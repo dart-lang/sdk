@@ -12,6 +12,7 @@
  */
 part of html;
 
+@Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
@@ -46,13 +47,36 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Accessor to the underlying altKey value is the parent event. */
   bool get _realAltKey => _parent.altKey;
 
+  /** Shadows on top of the parent's currentTarget. */
+  EventTarget _currentTarget;
+
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent(KeyboardEvent parent): super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent): super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
+    _currentTarget = _parent.currentTarget == null? window :
+        _parent.currentTarget;
   }
+
+  /** Programmatically create a new KeyEvent (and KeyboardEvent). */
+   factory KeyEvent(String type,
+      {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
+      int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
+      bool altKey: false, bool shiftKey: false, bool metaKey: false,
+      bool altGraphKey: false, EventTarget currentTarget}) {
+     var parent = new KeyboardEvent(type, view: view, canBubble: canBubble,
+        cancelable: cancelable, keyLocation: keyLocation, ctrlKey: ctrlKey,
+        altKey: altKey, shiftKey: shiftKey, metaKey: metaKey, altGraphKey:
+        altGraphKey);
+     var keyEvent = new KeyEvent.wrap(parent);
+     keyEvent._shadowAltKey = altKey;
+     keyEvent._shadowCharCode = charCode;
+     keyEvent._shadowKeyCode = keyCode;
+     keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
+     return keyEvent;
+   }
 
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyDownEvent =
@@ -63,6 +87,9 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyPressEvent =
     new _KeyboardEventHandler('keypress');
+
+  /** The currently registered target for this event. */
+  EventTarget get currentTarget => _currentTarget;
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;

@@ -16,13 +16,17 @@ import 'transform_logger.dart';
 import 'transform_node.dart';
 import 'utils.dart';
 
+typedef void LogFunction(AssetId asset, LogLevel level, String message,
+                         Span span);
+
 /// Creates a [Transform] by forwarding to the private constructor.
 ///
 /// Lets [TransformNode] create [Transforms] without giving a [Transform]
 /// itself a public constructor, which would be visible to external users.
 /// Unlike the [Transform] class, this function is not exported by barback.dart.
-Transform createTransform(TransformNode node, AssetSet outputs) =>
-    new Transform._(node, outputs);
+Transform createTransform(TransformNode node, AssetSet outputs,
+                          LogFunction logFunction) =>
+    new Transform._(node, outputs, logFunction);
 
 /// While a [Transformer] represents a *kind* of transformation, this defines
 /// one specific usage of it on a set of files.
@@ -33,7 +37,7 @@ Transform createTransform(TransformNode node, AssetSet outputs) =>
 /// outputs.
 class Transform {
   final TransformNode _node;
-
+  final TransformLogger _logger;
   final AssetSet _outputs;
 
   /// A logger so that the [Transformer] can report build details.
@@ -62,7 +66,8 @@ class Transform {
     return _node.primary.asset;
   }
 
-  Transform._(this._node, this._outputs);
+  Transform._(this._node, this._outputs, LogFunction logFunction)
+    : _logger = new TransformLogger(logFunction);
 
   /// Gets the asset for an input [id].
   ///
@@ -99,6 +104,3 @@ class Transform {
     _outputs.add(output);
   }
 }
-
-// TODO(sigmund,rnystrom): create a separate logger for each Transfom.
-final TransformLogger _logger = new TransformLogger(true);

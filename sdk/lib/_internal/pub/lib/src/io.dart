@@ -463,7 +463,8 @@ Future store(Stream stream, EventSink sink,
     {bool cancelOnError: true, bool closeSink: true}) {
   var completer = new Completer();
   stream.listen(sink.add,
-      onError: (e) {
+      onError: (e, [stackTrace]) {
+        // TODO(floitsch): Sink.addError without stack trace.
         sink.addError(e);
         if (cancelOnError) {
           completer.complete();

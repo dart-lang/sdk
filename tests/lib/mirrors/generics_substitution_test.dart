@@ -48,5 +48,5 @@ main() {
   Expect.equals(#int, s(superOfTAndInt));
 
   Expect.equals(#String, r(superOfStringAndInt));
-  Expect.equals(#int, t(superOfStringAndInt));
+  Expect.equals(#int, s(superOfStringAndInt));
 }

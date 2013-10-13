@@ -6,7 +6,7 @@ library pub.source_registry;
 
 import 'source.dart';
 
-/// A class that keeps track of [Source]s used for installing packages.
+/// A class that keeps track of [Source]s used for getting packages.
 class SourceRegistry {
   final Map<String, Source> _map;
   Source _default;

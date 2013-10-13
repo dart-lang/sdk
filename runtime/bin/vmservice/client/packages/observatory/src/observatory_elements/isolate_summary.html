@@ -1,0 +1,22 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="isolate-summary" extends="observatory-element">
+  <template>
+  	<div class="row">
+  	  <div class="col-md-1">
+  	  	<img src="img/isolate_icon.png" class="img-polaroid">	
+  	  </div>
+  	  <div class="col-md-1">{{ isolate }}</div>
+  	  <div class="col-md-10">{{ name }}</div>
+  	</div>
+  	<div class="row">
+  	  <div class="col-md-2"></div>
+  	  <div class="col-md-1">
+  	  	<a href="{{ app.locationManager.relativeLink(isolate, 'stacktrace') }}">Stacktrace</a>
+  	  </div>
+  	  <div class="col-md-9"></div>
+    </div>
+  </template>
+  <script type="application/dart" src="isolate_summary.dart"></script>
+</polymer-element>

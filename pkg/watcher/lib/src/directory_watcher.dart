@@ -133,11 +133,11 @@ class DirectoryWatcher {
 
       if (entity is! File) return;
       _filesToProcess.add(entity.path);
-    }, onError: (error) {
+    }, onError: (error, StackTrace stackTrace) {
       if (!isDirectoryNotFoundException(error)) {
         // It's some unknown error. Pipe it over to the event stream so the
         // user can see it.
-        _events.addError(error);
+        _events.addError(error, stackTrace);
       }
 
       // When an error occurs, we end the listing normally, which has the

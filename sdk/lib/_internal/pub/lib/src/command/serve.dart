@@ -6,8 +6,10 @@ library pub.command.serve;
 
 import 'dart:async';
 
-import '../barback.dart' as barback;
+import '../barback/dart_forwarding_transformer.dart';
+import '../barback/dart2js_transformer.dart';
 import '../barback/pub_package_provider.dart';
+import '../barback.dart' as barback;
 import '../command.dart';
 import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
@@ -15,9 +17,6 @@ import '../io.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 
-final _green = getSpecial('\u001b[32m');
-final _red = getSpecial('\u001b[31m');
-final _none = getSpecial('\u001b[0m');
 final _arrow = getSpecial('\u2192', '=>');
 
 /// Handles the `serve` pub command.
@@ -28,6 +27,9 @@ class ServeCommand extends PubCommand {
   PubPackageProvider _provider;
 
   String get hostname => commandOptions['hostname'];
+
+  /// `true` if Dart entrypoints should be compiled to JavaScript.
+  bool get useDart2JS => commandOptions['dart2js'];
 
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
@@ -40,6 +42,9 @@ class ServeCommand extends PubCommand {
     commandParser.addOption('hostname',
                             defaultsTo: 'localhost',
                             hide: true);
+
+    commandParser.addFlag('dart2js', defaultsTo: true,
+        help: 'Compile Dart to JavaScript.');
   }
 
   Future onRun() {
@@ -52,67 +57,63 @@ class ServeCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
-    return ensureLockFileIsUpToDate()
-        .then((_) => entrypoint.loadPackageGraph())
-        .then((graph) => barback.createServer(hostname, port, graph))
-        .then((server) {
+    return entrypoint.ensureLockFileIsUpToDate().then((_) {
+      return entrypoint.loadPackageGraph();
+    }).then((graph) {
+      // TODO(rnystrom): Add support for dart2dart transformer here.
+      var builtInTransformers = null;
+      if (useDart2JS) {
+        builtInTransformers = [
+          new Dart2JSTransformer(graph),
+          new DartForwardingTransformer()
+        ];
+      }
+
+      return barback.createServer(hostname, port, graph,
+          builtInTransformers: builtInTransformers);
+    }).then((server) {
       /// This completer is used to keep pub running (by not completing) and
       /// to pipe fatal errors to pub's top-level error-handling machinery.
       var completer = new Completer();
 
       server.barback.errors.listen((error) {
-        log.error("${_red}Build error:\n$error$_none");
+        log.error(log.red("Build error:\n$error"));
       });
 
       server.barback.results.listen((result) {
         if (result.succeeded) {
           // TODO(rnystrom): Report using growl/inotify-send where available.
-          log.message("Build completed ${_green}successfully$_none");
+          log.message("Build completed ${log.green('successfully')}");
         } else {
           log.message("Build completed with "
-              "${_red}${result.errors.length}$_none errors.");
+              "${log.red(result.errors.length)} errors.");
         }
-      }, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      }, onError: (error, [stackTrace]) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       });
 
       server.results.listen((result) {
         if (result.isSuccess) {
-          log.message("${_green}GET$_none ${result.url.path} $_arrow "
+          log.message("${log.green('GET')} ${result.url.path} $_arrow "
               "${result.id}");
           return;
         }
 
-        var msg = "${_red}GET$_none ${result.url.path} $_arrow";
+        var msg = "${log.red('GET')} ${result.url.path} $_arrow";
         var error = result.error.toString();
         if (error.contains("\n")) {
           log.message("$msg\n${prefixLines(error)}");
         } else {
           log.message("$msg $error");
         }
-      }, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      }, onError: (error, [stackTrace]) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       });
 
       log.message("Serving ${entrypoint.root.name} "
           "on http://$hostname:${server.port}");
 
       return completer.future;
-    });
-  }
-
-  /// Installs dependencies is the lockfile is out of date with respect to the
-  /// pubspec.
-  Future ensureLockFileIsUpToDate() {
-    return new Future.sync(() {
-      // The server relies on an up-to-date lockfile, so install first if
-      // needed.
-      if (!entrypoint.isLockFileUpToDate()) {
-        log.message("Dependencies have changed, installing...");
-        return entrypoint.installDependencies().then((_) {
-          log.message("Dependencies installed!");
-        });
-      }
     });
   }
 }

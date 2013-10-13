@@ -289,8 +289,8 @@ template <bool>
 struct CompileAssert {
 };
 
-#define COMPILE_ASSERT(expr, msg)                       \
-  typedef CompileAssert<(static_cast<bool>(expr))>      \
+#define COMPILE_ASSERT(expr, msg)                                              \
+  DART_UNUSED typedef CompileAssert<(static_cast<bool>(expr))>                 \
   msg[static_cast<bool>(expr) ? 1 : -1]
 
 

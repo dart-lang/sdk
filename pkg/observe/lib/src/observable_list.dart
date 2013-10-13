@@ -181,7 +181,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
   void _recordChange(ListChangeRecord record) {
     if (_listRecords == null) {
       _listRecords = [];
-      runAsync(deliverChanges);
+      scheduleMicrotask(deliverChanges);
     }
     _listRecords.add(record);
   }
@@ -225,7 +225,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
     }
 
     if (length != oldLength) {
-      notifyPropertyChange(const Symbol('length'), oldLength, length);
+      notifyPropertyChange(#length, oldLength, length);
     }
 
     if (_listRecords.length == 1) {

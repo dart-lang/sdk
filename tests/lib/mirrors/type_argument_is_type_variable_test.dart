@@ -34,7 +34,7 @@ main() {
 
   typeArguments(generic, []);
   typeArguments(superOfGeneric, [gFromGeneric]);
-  typeArguments(superOfSuperOfGeneric, [sFromSuper]);
+  typeArguments(superOfSuperOfGeneric, [gFromGeneric]);
 
 
   // Instantiations.

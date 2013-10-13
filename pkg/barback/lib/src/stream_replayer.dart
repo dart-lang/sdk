@@ -23,7 +23,7 @@ class StreamReplayer<T> {
   ///
   /// Each element is a [Either] that's either a value or an error sent through
   /// the stream.
-  final _buffer = new Queue<Either<T, dynamic>>();
+  final _buffer = new Queue<Either<T, Pair<dynamic, StackTrace>>>();
 
   /// The controllers that are listening for future events from [_stream].
   final _controllers = new Set<StreamController<T>>();
@@ -34,10 +34,11 @@ class StreamReplayer<T> {
       for (var controller in _controllers) {
         controller.add(data);
       }
-    }, onError: (error) {
-      _buffer.add(new Either<T, dynamic>.withSecond(error));
+    }, onError: (error, [stackTrace]) {
+      _buffer.add(new Either<T, Pair<dynamic, StackTrace>>.withSecond(
+          new Pair<dynamic, StackTrace>(error, stackTrace)));
       for (var controller in _controllers) {
-        controller.addError(error);
+        controller.addError(error, stackTrace);
       }
     }, onDone: () {
       _isClosed = true;
@@ -55,7 +56,9 @@ class StreamReplayer<T> {
   Stream<T> getReplay() {
     var controller = new StreamController<T>();
     for (var eventOrError in _buffer) {
-      eventOrError.match(controller.add, controller.addError);
+      eventOrError.match(controller.add, (pair) {
+        controller.addError(pair.first, pair.second);
+      });
     }
     if (_isClosed) {
       controller.close();

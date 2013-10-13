@@ -77,12 +77,26 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
 }
 
 
-Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
+Dart_Handle Api::InitNewHandle(Isolate* isolate, RawObject* raw) {
   LocalHandles* local_handles = Api::TopScope(isolate)->local_handles();
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
   ref->set_raw(raw);
   return reinterpret_cast<Dart_Handle>(ref);
+}
+
+
+Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
+  if (raw == Object::null()) {
+    return Null();
+  }
+  if (raw == Bool::True().raw()) {
+    return True();
+  }
+  if (raw == Bool::False().raw()) {
+    return False();
+  }
+  return InitNewHandle(isolate, raw);
 }
 
 
@@ -234,13 +248,13 @@ void Api::InitHandles() {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ASSERT(true_handle_ == NULL);
-  true_handle_ = Api::NewHandle(isolate, Bool::True().raw());
+  true_handle_ = Api::InitNewHandle(isolate, Bool::True().raw());
 
   ASSERT(false_handle_ == NULL);
-  false_handle_ = Api::NewHandle(isolate, Bool::False().raw());
+  false_handle_ = Api::InitNewHandle(isolate, Bool::False().raw());
 
   ASSERT(null_handle_ == NULL);
-  null_handle_ = Api::NewHandle(isolate, Object::null());
+  null_handle_ = Api::InitNewHandle(isolate, Object::null());
 }
 
 
@@ -1207,49 +1221,39 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
 
 // TODO(iposva): This call actually implements IsInstanceOfClass.
 // Do we also need a real Dart_IsInstanceOf, which should take an instance
-// rather than an object and a type rather than a class?
+// rather than an object?
 DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
 
-  Type& type_obj = Type::Handle();
-  Object& obj = Object::Handle(isolate, Api::UnwrapHandle(type));
-  if (obj.IsNull()) {
-    RETURN_NULL_ERROR(type);
+  const Type& type_obj = Api::UnwrapTypeHandle(isolate, type);
+  if (type_obj.IsNull()) {
+    *value = false;
+    RETURN_TYPE_ERROR(isolate, type, Type);
   }
-  if (obj.IsType()) {
-    type_obj ^= obj.raw();
-  } else {
-    if (!obj.IsClass()) {
-      RETURN_TYPE_ERROR(isolate, type, Type);
-    }
-    type_obj ^= Type::NewNonParameterizedType(Class::Cast(obj));
+  if (object == Api::Null()) {
+    *value = false;
+    return Api::Success();
   }
-  obj = Api::UnwrapHandle(object);
-  if (obj.IsError()) {
-    return object;
-  } else if (!obj.IsNull() && !obj.IsInstance()) {
-    return Api::NewError(
-        "%s expects argument 'object' to be an instance of Object.",
-        CURRENT_FUNC);
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, object);
+  if (instance.IsNull()) {
+    *value = false;
+    RETURN_TYPE_ERROR(isolate, object, Instance);
   }
   // Finalize all classes.
   Dart_Handle state = Api::CheckIsolateState(isolate);
   if (::Dart_IsError(state)) {
+    *value = false;
     return state;
   }
-  if (obj.IsInstance()) {
-    CHECK_CALLBACK_STATE(isolate);
-    Error& malformed_type_error = Error::Handle(isolate);
-    *value = Instance::Cast(obj).IsInstanceOf(type_obj,
-                                              TypeArguments::Handle(isolate),
-                                              &malformed_type_error);
-    ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
-  } else {
-    *value = false;
-  }
+  CHECK_CALLBACK_STATE(isolate);
+  Error& malformed_type_error = Error::Handle(isolate);
+  *value = instance.IsInstanceOf(type_obj,
+                                 Object::null_abstract_type_arguments(),
+                                 &malformed_type_error);
+  ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
   return Api::Success();
 }
 

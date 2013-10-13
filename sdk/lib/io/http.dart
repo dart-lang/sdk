@@ -528,8 +528,11 @@ abstract class HeaderValue {
    * string with both value and optional parameters.
    */
   static HeaderValue parse(String value,
-                           {String parameterSeparator: ";"}) {
-    return _HeaderValue.parse(value, parameterSeparator: parameterSeparator);
+                           {String parameterSeparator: ";",
+                            bool preserveBackslash: false}) {
+    return _HeaderValue.parse(value,
+                              parameterSeparator: parameterSeparator,
+                              preserveBackslash: preserveBackslash);
   }
 
   /**

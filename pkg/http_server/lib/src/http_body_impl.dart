@@ -5,14 +5,33 @@
 part of http_server;
 
 class _HttpBodyHandlerTransformer
-    extends StreamEventTransformer<HttpRequest, HttpRequestBody> {
+    implements StreamTransformer<HttpRequest, HttpRequestBody> {
   final Encoding _defaultEncoding;
-  _HttpBodyHandlerTransformer(this._defaultEncoding);
 
-  void handleData(HttpRequest request, EventSink<HttpRequestBody> sink) {
-    _HttpBodyHandler.processRequest(request, _defaultEncoding)
-        .then(sink.add, onError: sink.addError);
+  const _HttpBodyHandlerTransformer(this._defaultEncoding);
+
+  Stream<HttpRequestBody> bind(Stream<HttpRequest> stream) {
+    return new Stream<HttpRequestBody>.eventTransformed(
+        stream,
+        (EventSink<HttpRequestBody> sink) =>
+            new _HttpBodyHandlerTransformerSink(_defaultEncoding, sink));
   }
+}
+
+class _HttpBodyHandlerTransformerSink implements EventSink<HttpRequest> {
+  final Encoding _defaultEncoding;
+  final EventSink<HttpRequestBody> _outSink;
+
+  _HttpBodyHandlerTransformerSink(this._defaultEncoding, this._outSink);
+
+  void add(HttpRequest request) {
+    _HttpBodyHandler.processRequest(request, _defaultEncoding)
+        .then(_outSink.add, onError: _outSink.addError);
+  }
+  void addError(Object error, [StackTrace stackTrace]) {
+    _outSink.addError(error, stackTrace);
+  }
+  void close() => _outSink.close();
 }
 
 class _HttpBodyHandler {
@@ -67,7 +86,8 @@ class _HttpBodyHandler {
       return stream
           .transform(new MimeMultipartTransformer(
                 contentType.parameters['boundary']))
-          .map((HttpMultipartFormData.parse))
+          .map((part) => HttpMultipartFormData.parse(
+                part, defaultEncoding: defaultEncoding))
           .map((multipart) {
             var future;
             if (multipart.isText) {
@@ -107,7 +127,7 @@ class _HttpBodyHandler {
 
     switch (contentType.primaryType) {
       case "text":
-        return asText(ASCII);
+        return asText(defaultEncoding);
 
       case "application":
         switch (contentType.subType) {

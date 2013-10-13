@@ -177,7 +177,7 @@ ApplicationException _cycleError(PackageGraph graph, String dependee,
       pairs(path).map((pair) {
     var transformers = unionAll(graph.packages[pair.first].pubspec.transformers)
         .where((id) => id.asset.package == pair.last)
-        .map(idToLibraryIdentifier).toList();
+        .map((id) => idToLibraryIdentifier(id.asset)).toList();
     if (transformers.isEmpty) {
       return "  ${pair.first} depends on ${pair.last}";
     } else {

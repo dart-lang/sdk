@@ -40,7 +40,7 @@ interface Document {
 
 [Supplemental]
 interface Node {
-  Node cloneNode([Default=Undefined] optional boolean deep);
+  [Custom] Node cloneNode([Default=Undefined] optional boolean deep);
 };
 
 [Supplemental]

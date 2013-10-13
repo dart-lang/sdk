@@ -5,6 +5,9 @@
 part of csslib.parser;
 
 
+// TODO(terry): Add optimizing phase to remove duplicated selectors in the same
+//              selector group (e.g., .btn, .btn { color: red; }).  Also, look
+//              at simplifying selectors expressions too (much harder).
 // TODO(terry): Detect invalid directive usage.  All @imports must occur before
 //              all rules other than @charset directive.  Any @import directive
 //              after any non @charset or @import directive are ignored. e.g.,
@@ -23,132 +26,35 @@ part of csslib.parser;
 class Analyzer {
   final List<StyleSheet> _styleSheets;
   final Messages _messages;
-  VarDefinitions varDefs;
 
   Analyzer(this._styleSheets, this._messages);
 
+  // TODO(terry): Currently each feature walks the AST each time.  Once we have
+  //               our complete feature set consider benchmarking the cost and
+  //               possibly combine in one walk.
   void run() {
-    varDefs = new VarDefinitions(_styleSheets);
-
-    // Any cycles?
-    var cycles = findAllCycles();
-    for (var cycle in cycles) {
-      _messages.warning("var cycle detected var-${cycle.definedName}",
-          cycle.span);
-      // TODO(terry): What if no var definition for a var usage an error?
-      // TODO(terry): Ensure a var definition imported from a different style
-      //              sheet works.
-    }
-
-    // Remove any var definition from the stylesheet that has a cycle.
+    // Expand top-level @include.
     _styleSheets.forEach((styleSheet) =>
-        new RemoveVarDefinitions(cycles).visitStyleSheet(styleSheet));
+        TopLevelIncludes.expand(_messages, _styleSheets));
+
+    // Expand @include in declarations.
+    _styleSheets.forEach((styleSheet) =>
+        DeclarationIncludes.expand(_messages, _styleSheets));
+
+    // Remove all @mixin and @include
+    _styleSheets.forEach((styleSheet) => MixinsAndIncludes.remove(styleSheet));
 
     // Expand any nested selectors using selector desendant combinator to
     // signal CSS inheritance notation.
     _styleSheets.forEach((styleSheet) => new ExpandNestedSelectors()
         ..visitStyleSheet(styleSheet)
         ..flatten(styleSheet));
-  }
 
-  List<VarDefinition> findAllCycles() {
-    var cycles = [];
-
-    varDefs.map.values.forEach((value) {
-      if (hasCycle(value.property)) cycles.add(value);
-     });
-
-    // Update our local list of known varDefs remove any varDefs with a cycle.
-    // So the same varDef cycle isn't reported for each style sheet processed.
-    for (var cycle in cycles) {
-      varDefs.map.remove(cycle.property);
-    }
-
-    return cycles;
-  }
-
-  Iterable<VarUsage> variablesOf(Expressions exprs) =>
-      exprs.expressions.where((e) => e is VarUsage);
-
-  bool hasCycle(String varName, {Set<String> visiting, Set<String> visited}) {
-    if (visiting == null) visiting = new Set();
-    if (visited == null) visited = new Set();
-    if (visiting.contains(varName)) return true;
-    if (visited.contains(varName)) return false;
-    visiting.add(varName);
-    visited.add(varName);
-    bool cycleDetected = false;
-    if (varDefs.map[varName] != null) {
-      for (var usage in variablesOf(varDefs.map[varName].expression)) {
-        if (hasCycle(usage.name, visiting: visiting, visited: visited)) {
-          cycleDetected = true;
-          break;
-        }
-      }
-    }
-    visiting.remove(varName);
-    return cycleDetected;
-  }
-
-  // TODO(terry): Need to start supporting @host, custom pseudo elements,
-  //              composition, intrinsics, etc.
-}
-
-
-/** Find all var definitions from a list of stylesheets. */
-class VarDefinitions extends Visitor {
-  /** Map of variable name key to it's definition. */
-  final Map<String, VarDefinition> map = new Map<String, VarDefinition>();
-
-  VarDefinitions(List<StyleSheet> styleSheets) {
-    for (var styleSheet in styleSheets) {
-      visitTree(styleSheet);
-    }
-  }
-
-  void visitVarDefinition(VarDefinition node) {
-    // Replace with latest variable definition.
-    map[node.definedName] = node;
-    super.visitVarDefinition(node);
-  }
-
-  void visitVarDefinitionDirective(VarDefinitionDirective node) {
-    visitVarDefinition(node.def);
-  }
-}
-
-/**
- * Remove the var definition from the stylesheet where it is defined; if it is
- * a definition from the list to delete.
- */
-class RemoveVarDefinitions extends Visitor {
-  final List<VarDefinition> _varDefsToRemove;
-
-  RemoveVarDefinitions(this._varDefsToRemove);
-
-  void visitStyleSheet(StyleSheet ss) {
-    var idx = ss.topLevels.length;
-    while(--idx >= 0) {
-      var topLevel = ss.topLevels[idx];
-      if (topLevel is VarDefinitionDirective &&
-          _varDefsToRemove.contains(topLevel.def)) {
-        ss.topLevels.removeAt(idx);
-      }
-    }
-
-    super.visitStyleSheet(ss);
-  }
-
-  void visitDeclarationGroup(DeclarationGroup node) {
-    var idx = node.declarations.length;
-    while (--idx >= 0) {
-      var decl = node.declarations[idx];
-      if (decl is VarDefinition && _varDefsToRemove.contains(decl)) {
-        node.declarations.removeAt(idx);
-      }
-    }
-
-    super.visitDeclarationGroup(node);
+    // Expand any @extend.
+    _styleSheets.forEach((styleSheet) {
+        var allExtends = new AllExtends()..visitStyleSheet(styleSheet);
+        new InheritExtends(_messages, allExtends)..visitStyleSheet(styleSheet);
+    });
   }
 }
 
@@ -458,6 +364,13 @@ class ExpandNestedSelectors extends Visitor {
     super.visitVarDefinition(node);
   }
 
+  void visitExtendDeclaration(ExtendDeclaration node) {
+    if (_parentRuleSet != null) {
+      _flatDeclarationGroup.declarations.add(node);
+    }
+    super.visitExtendDeclaration(node);
+  }
+
   void visitMarginGroup(MarginGroup node) {
     if (_parentRuleSet != null) {
       _flatDeclarationGroup.declarations.add(node);
@@ -509,5 +422,597 @@ class _MediaRulesReplacer extends Visitor {
       node.rulesets.insertAll(index + 1, _newRules);
       _foundAndReplaced = true;
     }
+  }
+}
+
+/**
+ * Expand all @include at the top-level the ruleset(s) associated with the
+ * mixin.
+ */
+class TopLevelIncludes extends Visitor {
+  StyleSheet _styleSheet;
+  final Messages _messages;
+  /** Map of variable name key to it's definition. */
+  final Map<String, MixinDefinition> map = new Map<String, MixinDefinition>();
+  MixinDefinition currDef;
+
+  static void expand(Messages messages, List<StyleSheet> styleSheets) {
+    new TopLevelIncludes(messages, styleSheets);
+  }
+
+  bool _anyRulesets(MixinRulesetDirective def) =>
+      def.rulesets.any((rule) => rule is RuleSet);
+
+  TopLevelIncludes(this._messages, List<StyleSheet> styleSheets) {
+    for (var styleSheet in styleSheets) {
+      visitTree(styleSheet);
+    }
+  }
+
+  void visitStyleSheet(StyleSheet ss) {
+    _styleSheet = ss;
+    super.visitStyleSheet(ss);
+    _styleSheet = null;
+  }
+
+  void visitIncludeDirective(IncludeDirective node) {
+    if (map.containsKey(node.name)) {
+      var mixinDef = map[node.name];
+      if (mixinDef is MixinRulesetDirective) {
+        _TopLevelIncludeReplacer.replace(_messages, _styleSheet, node,
+            mixinDef.rulesets);
+      } else if (currDef is MixinRulesetDirective && _anyRulesets(currDef)) {
+        // currDef is MixinRulesetDirective
+        MixinRulesetDirective mixinRuleset = currDef;
+        int index = mixinRuleset.rulesets.indexOf(node as dynamic);
+        mixinRuleset.rulesets.replaceRange(index, index + 1, [new NoOp()]);
+        _messages.warning(
+            'Using declaration mixin ${node.name} as top-level mixin',
+            node.span);
+      }
+    } else {
+      if (currDef is MixinRulesetDirective) {
+        MixinRulesetDirective rulesetDirect = currDef as MixinRulesetDirective;
+        var index = 0;
+        rulesetDirect.rulesets.forEach((entry) {
+          if (entry == node) {
+            rulesetDirect.rulesets.replaceRange(index, index + 1, [new NoOp()]);
+            _messages.warning('Undefined mixin ${node.name}', node.span);
+          }
+          index++;
+        });
+      }
+    }
+    super.visitIncludeDirective(node);
+  }
+
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    currDef = node;
+
+    super.visitMixinRulesetDirective(node);
+
+    // Replace with latest top-level mixin definition.
+    map[node.name] = node;
+    currDef = null;
+  }
+
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node) {
+    currDef = node;
+
+    super.visitMixinDeclarationDirective(node);
+
+    // Replace with latest mixin definition.
+    map[node.name] = node;
+    currDef = null;
+  }
+}
+
+/** @include as a top-level with ruleset(s). */
+class _TopLevelIncludeReplacer extends Visitor {
+  final Messages _messages;
+  final IncludeDirective _include;
+  final List<RuleSet> _newRules;
+  bool _foundAndReplaced = false;
+
+  /**
+   * Look for the [ruleSet] inside of an @media directive; if found then replace
+   * with the [newRules].  If [ruleSet] is found and replaced return true.
+   */
+  static bool replace(Messages messages, StyleSheet styleSheet,
+      IncludeDirective include, List<RuleSet>newRules) {
+    var visitor = new _TopLevelIncludeReplacer(messages, include, newRules);
+    visitor.visitStyleSheet(styleSheet);
+    return visitor._foundAndReplaced;
+  }
+
+  _TopLevelIncludeReplacer(this._messages, this._include, this._newRules);
+
+  visitStyleSheet(StyleSheet node) {
+    var index = node.topLevels.indexOf(_include);
+    if (index != -1) {
+      node.topLevels.insertAll(index + 1, _newRules);
+      node.topLevels.replaceRange(index, index + 1, [new NoOp()]);
+      _foundAndReplaced = true;
+    }
+    super.visitStyleSheet(node);
+  }
+
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    var index = node.rulesets.indexOf(_include as dynamic);
+    if (index != -1) {
+      node.rulesets.insertAll(index + 1, _newRules);
+      // Only the resolve the @include once.
+      node.rulesets.replaceRange(index, index + 1, [new NoOp()]);
+      _foundAndReplaced = true;
+    }
+    super.visitMixinRulesetDirective(node);
+  }
+}
+
+/**
+ * Utility function to match an include to a list of either Declarations or
+ * RuleSets, depending on type of mixin (ruleset or declaration).  The include
+ * can be an include in a declaration or an include directive (top-level).
+ */
+int _findInclude(List list, var node) {
+  IncludeDirective matchNode = (node is IncludeMixinAtDeclaration) ?
+      node.include : node;
+
+  var index = 0;
+  for (var item in list) {
+    var includeNode = (item is IncludeMixinAtDeclaration) ?
+        item.include : item;
+    if (includeNode == matchNode) return index;
+    index++;
+  }
+  return -1;
+}
+
+/**
+ * Stamp out a mixin with the defined args substituted with the user's
+ * parameters.
+ */
+class CallMixin extends Visitor {
+  var mixinDef;
+  List _definedArgs;
+  Expressions _currExpressions;
+  int _currIndex = -1;
+
+  final varUsages = new Map<String, Map<Expressions, Set<int>>>();
+
+  /** Only var defs with more than one expression (comma separated). */
+  final Map<String, VarDefinition> varDefs;
+
+  CallMixin(this.mixinDef, [this.varDefs]) {
+    if (mixinDef is MixinRulesetDirective) {
+      visitMixinRulesetDirective(mixinDef);
+    } else {
+      visitMixinDeclarationDirective(mixinDef);
+    }
+  }
+
+  /**
+   * Given a mixin's defined arguments return a cloned mixin defintion that has
+   * replaced all defined arguments with user's supplied VarUsages.
+   */
+  transform(List<TreeNode> callArgs) {
+    // TODO(terry): Handle default arguments and varArgs.
+    // Transform mixin with callArgs.
+    var index = 0;
+    for (var index = 0; index < _definedArgs.length; index++) {
+      var definedArg = _definedArgs[index];
+      VarDefinition varDef;
+      if (definedArg is VarDefinition) {
+        varDef = definedArg;
+      } else if (definedArg is VarDefinitionDirective) {
+        VarDefinitionDirective varDirective = definedArg;
+        varDef = varDirective.def;
+      }
+      var callArg = callArgs[index];
+
+      // Is callArg a var definition with multi-args (expressions > 1).
+      var defArgs = _varDefsAsCallArgs(callArg);
+      if (defArgs.isNotEmpty) {
+        // Replace call args with the var def parameters.
+        callArgs.insertAll(index, defArgs);
+        callArgs.removeAt(index + defArgs.length);
+        callArg = callArgs[index];
+      }
+
+      var expressions = varUsages[varDef.definedName];
+      var expressionsLength = expressions.length;
+      expressions.forEach((k, v) {
+        for (var usagesIndex in v) {
+          k.expressions.replaceRange(usagesIndex, usagesIndex + 1, callArg);
+        }
+      });
+    }
+
+    // Clone the mixin
+    return mixinDef.clone();
+  }
+
+  /** Rip apart var def with multiple parameters. */
+  List<List<TreeNode>> _varDefsAsCallArgs(var callArg) {
+    var defArgs = [];
+    if (callArg is List && callArg[0] is VarUsage) {
+      var varDef = varDefs[callArg[0].name];
+      var expressions = varDef.expression.expressions;
+      assert(expressions.length > 1);
+      for (var expr in expressions) {
+        if (expr is! OperatorComma) {
+          defArgs.add([expr]);
+        }
+      }
+    }
+    return defArgs;
+  }
+
+  void visitExpressions(Expressions node) {
+    var oldExpressions = _currExpressions;
+    var oldIndex = _currIndex;
+
+    _currExpressions = node;
+    for (_currIndex = 0; _currIndex < node.expressions.length; _currIndex++) {
+      node.expressions[_currIndex].visit(this);
+    }
+
+    _currIndex = oldIndex;
+    _currExpressions = oldExpressions;
+  }
+
+  void _addExpression(Map<Expressions, Set<int>> expressions) {
+    var indexSet = new Set<int>();
+    indexSet.add(_currIndex);
+    expressions[_currExpressions] = indexSet;
+  }
+
+  void visitVarUsage(VarUsage node) {
+    assert(_currIndex != -1);
+    assert(_currExpressions != null);
+    if (varUsages.containsKey(node.name)) {
+      Map<Expressions, Set<int>> expressions = varUsages[node.name];
+      Set<int> allIndexes = expressions[_currExpressions];
+      if (allIndexes == null) {
+        _addExpression(expressions);
+      } else {
+        allIndexes.add(_currIndex);
+      }
+    } else {
+      var newExpressions = new Map<Expressions, Set<int>>();
+      _addExpression(newExpressions);
+      varUsages[node.name] = newExpressions;
+    }
+    super.visitVarUsage(node);
+  }
+
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node) {
+    _definedArgs = node.definedArgs;
+    super.visitMixinDeclarationDirective(node);
+  }
+
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    _definedArgs = node.definedArgs;
+    super.visitMixinRulesetDirective(node);
+  }
+}
+
+/** Expand all @include inside of a declaration associated with a mixin. */
+class DeclarationIncludes extends Visitor {
+  StyleSheet _styleSheet;
+  final Messages _messages;
+  /** Map of variable name key to it's definition. */
+  final Map<String, MixinDefinition> map = new Map<String, MixinDefinition>();
+  /** Cache of mixin called with parameters. */
+  final Map<String, CallMixin> callMap = new Map<String, CallMixin>();
+  MixinDefinition currDef;
+  DeclarationGroup currDeclGroup;
+
+  /** Var definitions with more than 1 expression. */
+  final Map<String, VarDefinition> varDefs = new Map<String, VarDefinition>();
+
+  static void expand(Messages messages, List<StyleSheet> styleSheets) {
+    new DeclarationIncludes(messages, styleSheets);
+  }
+
+  DeclarationIncludes(this._messages, List<StyleSheet> styleSheets) {
+    for (var styleSheet in styleSheets) {
+      visitTree(styleSheet);
+    }
+  }
+
+  bool _allIncludes(rulesets) =>
+      rulesets.every((rule) => rule is IncludeDirective || rule is NoOp);
+
+  CallMixin _createCallDeclMixin(mixinDef) {
+    callMap.putIfAbsent(mixinDef.name, () =>
+        callMap[mixinDef.name] = new CallMixin(mixinDef, varDefs));
+    return callMap[mixinDef.name];
+  }
+
+  void visitStyleSheet(StyleSheet ss) {
+    _styleSheet = ss;
+    super.visitStyleSheet(ss);
+    _styleSheet = null;
+  }
+
+  void visitDeclarationGroup(DeclarationGroup node) {
+    currDeclGroup = node;
+    super.visitDeclarationGroup(node);
+    currDeclGroup = null;
+  }
+
+  void visitIncludeMixinAtDeclaration(IncludeMixinAtDeclaration node) {
+    if (map.containsKey(node.include.name)) {
+      var mixinDef = map[node.include.name];
+
+      // Fix up any mixin that is really a Declaration but has includes.
+      if (mixinDef is MixinRulesetDirective) {
+        if (!_allIncludes(mixinDef.rulesets) && currDeclGroup != null) {
+          var index = _findInclude(currDeclGroup.declarations, node);
+          if (index != -1) {
+            currDeclGroup.declarations.replaceRange(index, index + 1,
+                [new NoOp()]);
+          }
+          _messages.warning(
+              "Using top-level mixin ${node.include.name} as a declaration",
+              node.span);
+        } else {
+          // We're a list of @include(s) inside of a mixin ruleset - convert
+          // to a list of IncludeMixinAtDeclaration(s).
+          var origRulesets = mixinDef.rulesets;
+          var rulesets = [];
+          if (origRulesets.every((ruleset) => ruleset is IncludeDirective)) {
+            origRulesets.forEach((ruleset) {
+              rulesets.add(new IncludeMixinAtDeclaration(ruleset,
+                  ruleset.span));
+            });
+            _IncludeReplacer.replace(_styleSheet, node, rulesets);
+          }
+        }
+      }
+
+      if ( mixinDef.definedArgs.length > 0 && node.include.args.length > 0) {
+        var callMixin = _createCallDeclMixin(mixinDef);
+        mixinDef = callMixin.transform(node.include.args);
+      }
+
+      if (mixinDef is MixinDeclarationDirective) {
+        _IncludeReplacer.replace(_styleSheet, node,
+            mixinDef.declarations.declarations);
+      }
+    } else {
+      _messages.warning("Undefined mixin ${node.include.name}", node.span);
+    }
+
+    super.visitIncludeMixinAtDeclaration(node);
+  }
+
+  void visitIncludeDirective(IncludeDirective node) {
+    if (map.containsKey(node.name)) {
+      var mixinDef = map[node.name];
+      if (currDef is MixinDeclarationDirective &&
+          mixinDef is MixinDeclarationDirective) {
+        _IncludeReplacer.replace(_styleSheet, node,
+            mixinDef.declarations.declarations);
+      } else if (currDef is MixinDeclarationDirective) {
+        var decls = (currDef as MixinDeclarationDirective)
+            .declarations.declarations;
+        var index = _findInclude(decls, node);
+        if (index != -1) {
+          decls.replaceRange(index, index + 1, [new NoOp()]);
+        }
+      }
+    }
+
+    super.visitIncludeDirective(node);
+  }
+
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    currDef = node;
+
+    super.visitMixinRulesetDirective(node);
+
+    // Replace with latest top-level mixin definition.
+    map[node.name] = node;
+    currDef = null;
+  }
+
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node) {
+    currDef = node;
+
+    super.visitMixinDeclarationDirective(node);
+
+    // Replace with latest mixin definition.
+    map[node.name] = node;
+    currDef = null;
+  }
+
+  void visitVarDefinition(VarDefinition node) {
+    // Only record var definitions that have multiple expressions (comma
+    // separated for mixin parameter substitution.
+    var exprs = (node.expression as Expressions).expressions;
+    if (exprs.length > 1) {
+      varDefs[node.definedName] = node;
+    }
+    super.visitVarDefinition(node);
+ }
+
+  void visitVarDefinitionDirective(VarDefinitionDirective node) {
+    visitVarDefinition(node.def);
+  }
+}
+
+/** @include as a top-level with ruleset(s). */
+class _IncludeReplacer extends Visitor {
+  final _include;
+  final List<Declaration> _newDeclarations;
+  bool _foundAndReplaced = false;
+
+  /**
+   * Look for the [ruleSet] inside of a @media directive; if found then replace
+   * with the [newRules].
+   */
+  static void replace(StyleSheet ss, var include,
+      List<Declaration> newDeclarations) {
+    var visitor = new _IncludeReplacer(include, newDeclarations);
+    visitor.visitStyleSheet(ss);
+  }
+
+  _IncludeReplacer(this._include, this._newDeclarations);
+
+  void visitDeclarationGroup(DeclarationGroup node) {
+    var index = _findInclude(node.declarations, _include);
+    if (index != -1) {
+      node.declarations.insertAll(index + 1, _newDeclarations);
+      // Change @include to NoOp so it's processed only once.
+      node.declarations.replaceRange(index, index + 1, [new NoOp()]);
+      _foundAndReplaced = true;
+    }
+    super.visitDeclarationGroup(node);
+  }
+}
+
+/**
+ * Remove all @mixin and @include and any NoOp used as placeholder for @include.
+ */
+class MixinsAndIncludes extends Visitor {
+  static void remove(StyleSheet styleSheet) {
+    new MixinsAndIncludes()..visitStyleSheet(styleSheet);
+  }
+
+  bool _nodesToRemove(node) =>
+      node is IncludeDirective || node is MixinDefinition || node is NoOp;
+
+  void visitStyleSheet(StyleSheet ss) {
+    var index = ss.topLevels.length;
+    while (--index >= 0) {
+      if (_nodesToRemove(ss.topLevels[index])) {
+        ss.topLevels.removeAt(index);
+      }
+    }
+    super.visitStyleSheet(ss);
+  }
+
+  void visitDeclarationGroup(DeclarationGroup node) {
+    var index = node.declarations.length;
+    while (--index >= 0) {
+      if (_nodesToRemove(node.declarations[index])) {
+        node.declarations.removeAt(index);
+      }
+    }
+    super.visitDeclarationGroup(node);
+  }
+}
+
+/** Find all @extend to create inheritance. */
+class AllExtends extends Visitor {
+  final Map<String, List<SelectorGroup>> inherits =
+      new Map<String, List<SelectorGroup>>();
+
+  SelectorGroup _currSelectorGroup;
+  List _currDecls;
+  int _currDeclIndex;
+  List<int> _extendsToRemove = [];
+
+  void visitRuleSet(RuleSet node) {
+    var oldSelectorGroup = _currSelectorGroup;
+    _currSelectorGroup = node.selectorGroup;
+
+    super.visitRuleSet(node);
+
+    _currSelectorGroup = oldSelectorGroup;
+  }
+
+  void visitExtendDeclaration(ExtendDeclaration node) {
+    var inheritName = "";
+    for (var selector in node.selectors) {
+      inheritName += selector.toString();
+    }
+    if (inherits.containsKey(inheritName)) {
+      inherits[inheritName].add(_currSelectorGroup);
+    } else {
+      inherits[inheritName] = [_currSelectorGroup];
+    }
+
+    // Remove this @extend
+    _extendsToRemove.add(_currDeclIndex);
+
+    super.visitExtendDeclaration(node);
+  }
+
+  void visitDeclarationGroup(DeclarationGroup node) {
+    var oldDeclIndex = _currDeclIndex;
+
+    var decls = node.declarations;
+    for (_currDeclIndex = 0; _currDeclIndex < decls.length; _currDeclIndex++) {
+      decls[_currDeclIndex].visit(this);
+    }
+
+    if (_extendsToRemove.isNotEmpty) {
+      var removeTotal = _extendsToRemove.length - 1;
+      for (var index = removeTotal; index >= 0; index--) {
+        decls.removeAt(_extendsToRemove[index]);
+      }
+      _extendsToRemove.clear();
+    }
+
+    _currDeclIndex = oldDeclIndex;
+  }
+}
+
+// TODO(terry): Need to handle merging selector sequences
+// TODO(terry): Need to handle @extend-Only selectors.
+// TODO(terry): Need to handle !optional glag.
+/**
+ * Changes any selector that matches @extend.
+ */
+class InheritExtends extends Visitor {
+  Messages _messages;
+  AllExtends _allExtends;
+
+  InheritExtends(this._messages, this._allExtends);
+
+  void visitSelectorGroup(SelectorGroup node) {
+    for (var selectorsIndex = 0; selectorsIndex < node.selectors.length;
+        selectorsIndex++) {
+      var selectors = node.selectors[selectorsIndex];
+      var isLastNone = false;
+      var selectorName = "";
+      for (var index = 0; index < selectors.simpleSelectorSequences.length;
+          index++) {
+        var simpleSeq = selectors.simpleSelectorSequences[index];
+        var namePart = simpleSeq.simpleSelector.toString();
+        selectorName = (isLastNone) ? (selectorName + namePart) : namePart;
+        List<SelectorGroup> matches = _allExtends.inherits[selectorName];
+        if (matches != null) {
+          for (var match in matches) {
+            // Create a new group.
+            var newSelectors = selectors.clone();
+            var newSeq = match.selectors[0].clone();
+            if (isLastNone) {
+              // Add the inherited selector.
+              node.selectors.add(newSeq);
+            } else {
+              // Replace the selector sequence to the left of the pseudo class
+              // or pseudo element.
+
+              // Make new selector seq combinator the same as the original.
+              var orgCombinator =
+                  newSelectors.simpleSelectorSequences[index].combinator;
+              newSeq.simpleSelectorSequences[0].combinator = orgCombinator;
+
+              newSelectors.simpleSelectorSequences.replaceRange(index,
+                  index + 1, newSeq.simpleSelectorSequences);
+              node.selectors.add(newSelectors);
+            }
+            isLastNone = false;
+          }
+        } else {
+          isLastNone = simpleSeq.isCombinatorNone;
+        }
+      }
+    }
+    super.visitSelectorGroup(node);
   }
 }

@@ -103,6 +103,10 @@ class _TreePrinter extends Visitor {
     output.depth--;
   }
 
+  void visitContentDirective(ContentDirective node) {
+    print("ContentDirective not implemented");
+  }
+
   void visitKeyFrameDirective(KeyFrameDirective node) {
     heading('KeyFrameDirective', node);
     output.depth++;
@@ -141,7 +145,48 @@ class _TreePrinter extends Visitor {
 
   void visitVarDefinitionDirective(VarDefinitionDirective node) {
     heading('Less variable definition', node);
+    output.depth++;
     visitVarDefinition(node.def);
+    output.depth--;
+  }
+
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    heading('Mixin top-level ${node.name}', node);
+    output.writeNodeList('parameters', node.definedArgs);
+    output.depth++;
+    _visitNodeList(node.rulesets);
+    output.depth--;
+  }
+
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node) {
+    heading('Mixin declaration ${node.name}', node);
+    output.writeNodeList('parameters', node.definedArgs);
+    output.depth++;
+    visitDeclarationGroup(node.declarations);
+    output.depth--;
+  }
+
+  /**
+   * Added optional newLine for handling @include at top-level vs/ inside of
+   * a declaration group.
+   */
+  void visitIncludeDirective(IncludeDirective node) {
+    heading('IncludeDirective ${node.name}', node);
+    output.writeNodeList('parameters', node.args);
+  }
+
+  void visitIncludeMixinAtDeclaration(IncludeMixinAtDeclaration node) {
+    heading('IncludeMixinAtDeclaration ${node.include.name}', node);
+    output.depth++;
+    visitIncludeDirective(node.include);
+    output.depth--;
+  }
+
+  void visitExtendDeclaration(ExtendDeclaration node) {
+    heading('ExtendDeclaration', node);
+    output.depth++;
+    _visitNodeList(node.selectors);
+    output.depth--;
   }
 
   void visitRuleSet(RuleSet node) {

@@ -864,7 +864,8 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) {
 
 void ValueGraphVisitor::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  // Type may be malbounded, but not malformed.
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
   if (type.IsInstantiated()) {
     ReturnDefinition(new ConstantInstr(type));
   } else {
@@ -2051,12 +2052,30 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // The context scope may have already been set by the non-optimizing
     // compiler.  If it was not, set it here.
     if (function.context_scope() == ContextScope::null()) {
-      // TODO(regis): Why are we not doing this in the parser?
       const ContextScope& context_scope = ContextScope::ZoneHandle(
           node->scope()->PreserveOuterScope(owner()->context_level()));
       ASSERT(!function.HasCode());
       ASSERT(function.context_scope() == ContextScope::null());
       function.set_context_scope(context_scope);
+      const Class& cls = Class::Handle(
+          owner()->parsed_function()->function().Owner());
+      // The closure is now properly setup, add it to the lookup table.
+#if DEBUG
+      const Function& found_func = Function::Handle(
+          cls.LookupClosureFunction(function.token_pos()));
+      ASSERT(found_func.IsNull() ||
+             (found_func.token_pos() != function.token_pos()) ||
+             // TODO(hausner): The following check should not be necessary.
+             // Since we only lookup based on the token_pos we can get
+             // duplicate entries due to closurized and non-closurized parent
+             // functions (see Parser::ParseFunctionStatement).
+             // We need two ways to lookup in this cache: One way to cache the
+             // appropriate closure function and one way to find the functions
+             // while debugging (we might need to set breakpoints in multiple
+             // different function for a single token index.)
+             (found_func.parent_function() != function.parent_function()));
+#endif  // DEBUG
+      cls.AddClosureFunction(function);
     }
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new ZoneGrowableArray<PushArgumentInstr*>(2);
@@ -2532,8 +2551,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
       BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   const bool use_instantiator_type_args =
       type_arguments.IsUninstantiatedIdentity() ||
-      type_arguments.CanShareInstantiatorTypeArguments(
-          instantiator_class);
+      type_arguments.CanShareInstantiatorTypeArguments(instantiator_class);
   return use_instantiator_type_args
       ? instantiator_value
       : Bind(new InstantiateTypeArgumentsInstr(token_pos,
@@ -2823,7 +2841,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
             node->cls().IsTopLevel() ?
                 InvocationMirror::kTopLevel :
                 InvocationMirror::kStatic,
-            InvocationMirror::kGetter));
+            InvocationMirror::kSetter));
     }
   } else {
     if (is_super_setter) {
@@ -3093,6 +3111,13 @@ void ValueGraphVisitor::VisitStoreInstanceFieldNode(
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
+  if (node->field().is_const()) {
+    ASSERT(node->field().value() != Object::sentinel().raw());
+    ASSERT(node->field().value() != Object::transition_sentinel().raw());
+    Definition* result =
+        new ConstantInstr(Instance::ZoneHandle(node->field().value()));
+    return ReturnDefinition(result);
+  }
   Value* field_value = Bind(new ConstantInstr(node->field()));
   LoadStaticFieldInstr* load = new LoadStaticFieldInstr(field_value);
   ReturnDefinition(load);

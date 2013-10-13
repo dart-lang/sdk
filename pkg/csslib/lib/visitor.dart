@@ -16,6 +16,7 @@ abstract class VisitorBase {
   void visitCssComment(CssComment node);
   void visitCommentDefinition(CommentDefinition node);
   void visitStyleSheet(StyleSheet node);
+  void visitNoOp(NoOp node);
   void visitTopLevelProduction(TopLevelProduction node);
   void visitDirective(Directive node);
   void visitMediaExpression(MediaExpression node);
@@ -31,12 +32,19 @@ abstract class VisitorBase {
   void visitStyletDirective(StyletDirective node);
   void visitNamespaceDirective(NamespaceDirective node);
   void visitVarDefinitionDirective(VarDefinitionDirective node);
+  void visitMixinDefinition(MixinDefinition node);
+  void visitMixinRulesetDirective(MixinRulesetDirective node);
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node);
+  void visitIncludeDirective(IncludeDirective node);
+  void visitContentDirective(ContentDirective node);
 
   void visitRuleSet(RuleSet node);
   void visitDeclarationGroup(DeclarationGroup node);
   void visitMarginGroup(DeclarationGroup node);
   void visitDeclaration(Declaration node);
   void visitVarDefinition(VarDefinition node);
+  void visitIncludeMixinAtDeclaration(IncludeMixinAtDeclaration node);
+  void visitExtendDeclaration(ExtendDeclaration node);
   void visitSelectorGroup(SelectorGroup node);
   void visitSelector(Selector node);
   void visitSimpleSelectorSequence(SimpleSelectorSequence node);
@@ -118,6 +126,8 @@ class Visitor implements VisitorBase {
     _visitNodeList(ss.topLevels);
   }
 
+  void visitNoOp(NoOp node) { }
+
   void visitTopLevelProduction(TopLevelProduction node) { }
 
   void visitDirective(Directive node) { }
@@ -193,6 +203,27 @@ class Visitor implements VisitorBase {
     visitVarDefinition(node.def);
   }
 
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    _visitNodeList(node.rulesets);
+  }
+
+  void visitMixinDefinition(MixinDefinition node) { }
+
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node) {
+    visitDeclarationGroup(node.declarations);
+  }
+
+  void visitIncludeDirective(IncludeDirective node) {
+    for (var index = 0; index < node.args.length; index++) {
+      var param = node.args[index];
+      _visitNodeList(param);
+    }
+  }
+
+  void visitContentDirective(ContentDirective node) {
+    // TODO(terry): TBD
+  }
+
   void visitRuleSet(RuleSet node) {
     visitSelectorGroup(node._selectorGroup);
     visitDeclarationGroup(node._declarationGroup);
@@ -212,6 +243,14 @@ class Visitor implements VisitorBase {
   void visitVarDefinition(VarDefinition node) {
     visitIdentifier(node._property);
     if (node._expression != null) node._expression.visit(this);
+  }
+
+  void visitIncludeMixinAtDeclaration(IncludeMixinAtDeclaration node) {
+    visitIncludeDirective(node.include);
+  }
+
+  void visitExtendDeclaration(ExtendDeclaration node) {
+    _visitNodeList(node.selectors);
   }
 
   void visitSelectorGroup(SelectorGroup node) {

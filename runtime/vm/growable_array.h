@@ -23,7 +23,7 @@ class BaseGrowableArray : public B {
     ASSERT(zone_ != NULL);
   }
 
-  BaseGrowableArray(int initial_capacity, Zone* zone)
+  BaseGrowableArray(intptr_t initial_capacity, Zone* zone)
       : length_(0), capacity_(0), data_(NULL), zone_(zone) {
     ASSERT(zone_ != NULL);
     if (initial_capacity > 0) {
@@ -32,7 +32,7 @@ class BaseGrowableArray : public B {
     }
   }
 
-  int length() const { return length_; }
+  intptr_t length() const { return length_; }
   T* data() const { return data_; }
   bool is_empty() const { return length_ == 0; }
 
@@ -53,7 +53,7 @@ class BaseGrowableArray : public B {
     return result;
   }
 
-  T& operator[](int index) const {
+  T& operator[](intptr_t index) const {
     ASSERT(0 <= index);
     ASSERT(index < length_);
     ASSERT(length_ <= capacity_);
@@ -87,12 +87,12 @@ class BaseGrowableArray : public B {
   inline void Sort(int compare(const T*, const T*));
 
  private:
-  int length_;
-  int capacity_;
+  intptr_t length_;
+  intptr_t capacity_;
   T* data_;
   Zone* zone_;  // Zone in which we are allocating the array.
 
-  void Resize(int new_length);
+  void Resize(intptr_t new_length);
 
   DISALLOW_COPY_AND_ASSIGN(BaseGrowableArray);
 };
@@ -107,9 +107,9 @@ inline void BaseGrowableArray<T, B>::Sort(
 
 
 template<typename T, typename B>
-void BaseGrowableArray<T, B>::Resize(int new_length) {
+void BaseGrowableArray<T, B>::Resize(intptr_t new_length) {
   if (new_length > capacity_) {
-    int new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
+    intptr_t new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
     T* new_data = zone_->Realloc<T>(data_, capacity_, new_capacity);
     ASSERT(new_data != NULL);
     data_ = new_data;
@@ -122,7 +122,7 @@ void BaseGrowableArray<T, B>::Resize(int new_length) {
 template<typename T>
 class GrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
-  explicit GrowableArray(int initial_capacity)
+  explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
           initial_capacity,
           Isolate::Current()->current_zone()) {}
@@ -135,7 +135,7 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject> {
 template<typename T>
 class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
  public:
-  explicit ZoneGrowableArray(int initial_capacity)
+  explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
           initial_capacity,
           Isolate::Current()->current_zone()) {}

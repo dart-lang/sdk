@@ -7,6 +7,7 @@ class G<T> { }
 class M { }
 
 typedef T0 = abstract S with M;
+abstract class T0A = S with M;
 typedef T1 = final S with M;     /// 01: compile-time error
 typedef T2 = var S with M;       /// 02: compile-time error
 typedef T3 = const S with M;     /// 03: compile-time error
@@ -32,6 +33,7 @@ class D1 extends T0 { }
 
 main() {
   new T0();  /// 13: static type warning, runtime error
+  new T0A();  /// 13: static type warning, runtime error
   new T1();  /// 01: continued
   new T2();  /// 02: continued
   new T3();  /// 03: continued

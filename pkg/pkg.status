@@ -24,6 +24,9 @@ third_party/html5lib/test/browser/browser_test: Skip
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: RuntimeError #Issue 12341
 
+[ $compiler == dart2js && $runtime == drt ]
+polymer/test/prop_attr_reflection_test: Fail # Issue 14048
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
@@ -48,7 +51,6 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
-sequence_zip/test/stream_test: Pass, Fail # Flaky, issue 12873
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -57,11 +59,7 @@ crypto/test/sha1_test: Fail # Issue 11407.
 stack_trace/test/trace_test: Fail # http://dartbug.com/12380
 crypto/test/sha256_test: Pass, Fail # Issue 12502
 crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
-polymer/test/attr_deserialize_test: Fail # Issue 12865, 13197
-polymer/test/attr_mustache_test: Fail # Issue 12865, 13197
-polymer/test/event_path_test: Fail # Issue 12865, 13197
-polymer/test/events_test: Fail # Issue 12865, 13197
-polymer/test/prop_attr_reflection_test: Fail # Issue 12865, 13197
+polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
@@ -71,12 +69,14 @@ polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $system == windows && ($runtime == chrome || $runtime == ff) ]
 polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
 polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
 polymer/test/event_path_test: Pass, Timeout # Issue 13260
 polymer/test/events_test: Pass, Timeout # Issue 13260
+polymer/test/instance_attrs_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
 polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
@@ -90,6 +90,7 @@ polymer/test/attr_deserialize_test: Fail, OK # Uses dart:html
 polymer/test/attr_mustache_test: Fail, OK # Uses dart:html
 polymer/test/event_path_test: Fail, OK # Uses dart:html
 polymer/test/events_test: Fail, OK # Uses dart:html
+polymer/test/instance_attrs_test: Fail, OK # Uses dart:html
 polymer/test/prop_attr_reflection_test: Fail, OK # Uses dart:html
 polymer/test/publish_attributes_test: Fail, OK # Uses dart:html
 polymer/test/take_attributes_test: Fail, OK # Uses dart:html
@@ -131,7 +132,7 @@ docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
 [ $browser ]
-analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/error_test: Fail, Timeout, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/options_test: Fail, OK, Pass # Uses dart:io.
@@ -205,16 +206,36 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == arm ]
 *: Skip  # Issue 13624
 
-[ $arch == simarm ]
-watcher/test/no_subscription_test: Pass, Fail  # Issue 13705.
-
 [ $arch == simarm || $arch == simmips ]
 third_party/html5lib/test/tokenizer_test: Pass, Slow
+watcher/test/no_subscription_test: Pass, Fail  # Issue 13705.
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 serialization/test/no_library_test: Skip # Expected Failure
+serialization/test/serialization_test: Fail # 13921
+unittest/test/unittest_async_exception_test: Fail # 13921
+unittest/test/unittest_async_setup_teardown_test: Fail # 13921
+unittest/test/unittest_completion_test: Fail # 13921
+unittest/test/unittest_correct_callback_test: Fail # 13921
+unittest/test/unittest_exception_test: Fail # 13921
+unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_late_exception_test: Fail # 13921
+unittest/test/unittest_middle_exception_test: Fail # 13921
+unittest/test/unittest_nested_groups_setup_teardown_test: Fail # 13921
+unittest/test/unittest_runtests_without_tests_test: Fail # 13921
+unittest/test/unittest_setup_and_teardown_test: Fail # 13921
+unittest/test/unittest_setup_test: Fail # 13921
+unittest/test/unittest_single_correct_test: Fail # 13921
+unittest/test/unittest_single_failing_test: Fail # 13921
+unittest/test/unittest_skipped_soloed_nested_test: Fail # 13921
+unittest/test/unittest_teardown_test: Fail # 13921
+unittest/test/unittest_test_returning_future_test: Fail # 13921
+unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
+unittest/test/unittest_testcases_immutable_test: Fail # 13921
+unittest/test/unitttest_group_name_test: Fail # 13921
+
 
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
@@ -222,6 +243,8 @@ custom_element: Skip
 mdv: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
+polymer_expressions/test/globals_test: Skip
+polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
@@ -244,3 +267,14 @@ intl/test/message_extraction/failed_extraction_test: Pass, Fail # Issue 13543
 [ $compiler == none && $runtime == dartium ]
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
+[ $compiler == dartanalyzer ]
+# pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
+custom_element/test/analyzer_test: fail
+mdv/test/analyzer_test: fail
+observe/test/observe_test: fail
+
+# pkg issue 13945; Missing inherited member 'Trace.frames'
+observe/test/observe_test: fail
+
+[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
+polymer/test/prop_attr_reflection_test: fail # Issue 14036

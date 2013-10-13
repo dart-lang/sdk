@@ -395,7 +395,7 @@ class Parser : public ValueObject {
   void ParseFormalParameterList(bool allow_explicit_default_values,
                                 bool evaluate_metadata,
                                 ParamList* params);
-  void CheckConstFieldsInitialized(const Class& cls);
+  void CheckFieldsInitialized(const Class& cls);
   static void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   AstNode* ParseExternalInitializedField(const Field& field);

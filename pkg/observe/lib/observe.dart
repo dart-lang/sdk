@@ -45,7 +45,7 @@
  *       int _health = 100;
  *       get health => _health;
  *       set health(val) {
- *         _health = notifyPropertyChange(const Symbol('health'), _health, val);
+ *         _health = notifyPropertyChange(#health, _health, val);
  *       }
  *
  *       void damage(int amount) {

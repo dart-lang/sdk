@@ -1394,6 +1394,12 @@ class JavaScriptBackend extends Backend {
     Element element = type.element;
     bool nativeCheck = nativeCheckOnly ||
         emitter.nativeEmitter.requiresNativeIsCheck(element);
+
+    // TODO(13955), TODO(9731).  The test for non-primitive types should use an
+    // interceptor.  The interceptor should be an argument to HTypeConversion so
+    // that it can be optimized by standard interceptor optimizations.
+    nativeCheck = true;
+
     if (type == compiler.types.voidType) {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
@@ -1461,25 +1467,25 @@ class JavaScriptBackend extends Backend {
               : 'listSuperTypeCheck';
         }
       } else {
-        if (nativeCheck) {
-          // TODO(karlklose): can we get rid of this branch when we use
-          // interceptors?
+        if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
           return typeCast
-              ? 'interceptedTypeCast'
-              : 'interceptedTypeCheck';
+              ? 'subtypeCast'
+              : 'assertSubtype';
+        } else if (type.kind == TypeKind.TYPE_VARIABLE) {
+          return typeCast
+              ? 'subtypeOfRuntimeTypeCast'
+              : 'assertSubtypeOfRuntimeType';
+        } else if (type.kind == TypeKind.FUNCTION) {
+          return typeCast
+              ? 'functionSubtypeCast'
+              : 'assertFunctionSubtype';
         } else {
-          if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
+          if (nativeCheck) {
+            // TODO(karlklose): can we get rid of this branch when we use
+            // interceptors?
             return typeCast
-                ? 'subtypeCast'
-                : 'assertSubtype';
-          } else if (type.kind == TypeKind.TYPE_VARIABLE) {
-            return typeCast
-                ? 'subtypeOfRuntimeTypeCast'
-                : 'assertSubtypeOfRuntimeType';
-          } else if (type.kind == TypeKind.FUNCTION) {
-            return typeCast
-                ? 'functionSubtypeCast'
-                : 'assertFunctionSubtype';
+                ? 'interceptedTypeCast'
+                : 'interceptedTypeCheck';
           } else {
             return typeCast
                 ? 'propertyTypeCast'
@@ -1761,17 +1767,17 @@ class JavaScriptBackend extends Backend {
       return true;
     }
 
-    if (!metaTargetsUsed.isEmpty) {
-      // TODO(ahe): Implement this.
+    Element enclosing = element.enclosingElement;
+    if (enclosing != null && isNeededForReflection(enclosing)) {
       return registerNameOf(element);
     }
 
-    if (!targetsUsed.isEmpty) {
-      if (targetsUsed.contains(element)) return registerNameOf(element);
-      Element enclosing = element.enclosingElement;
-      if (enclosing != null && isNeededForReflection(enclosing)) {
-        return registerNameOf(element);
-      }
+    if (isNeededThroughMetaTarget(element)) {
+      return registerNameOf(element);
+    }
+
+    if (!targetsUsed.isEmpty && targetsUsed.contains(element)) {
+      return registerNameOf(element);
     }
 
     if (element is ClosureClassElement) {
@@ -1783,6 +1789,28 @@ class JavaScriptBackend extends Backend {
       }
     }
 
+    // TODO(kasperl): Consider caching this information. It is consulted
+    // multiple times because of the way we deal with the enclosing element.
+    return false;
+  }
+
+  /**
+   * Returns `true` if the element is needed because it has an annotation
+   * of a type that is used as a meta target for reflection.
+   */
+  bool isNeededThroughMetaTarget(Element element) {
+    if (metaTargetsUsed.isEmpty) return false;
+    for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
+      MetadataAnnotation metadata = link.head;
+      // TODO(kasperl): It would be nice if we didn't have to resolve
+      // all metadata but only stuff that potentially would match one
+      // of the used meta targets.
+      metadata.ensureResolved(compiler);
+      Constant value = metadata.value;
+      if (value == null) continue;
+      DartType type = value.computeType(compiler);
+      if (metaTargetsUsed.contains(type.element)) return true;
+    }
     return false;
   }
 

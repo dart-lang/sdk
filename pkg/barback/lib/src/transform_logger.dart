@@ -6,43 +6,45 @@ library barback.transform_logger;
 
 import 'package:source_maps/span.dart';
 
+import 'asset_id.dart';
+import 'barback_logger.dart';
+import 'transform.dart';
+
 /// Object used to report warnings and errors encountered while running a
 /// transformer.
 class TransformLogger {
+  final LogFunction _logFunction;
 
-  bool _shouldPrint;
-
-  TransformLogger(this._shouldPrint);
+  TransformLogger(this._logFunction);
 
   /// Logs an informative message.
   ///
-  /// If present, [span] indicates the location in the input asset that caused
-  /// the message.
-  void info(String message, [Span span]) {
-    _printMessage('info', message, span);
+  /// If [asset] is provided, the log entry is associated with that asset,
+  /// otherwise it's associated with the primary input of [transformer].
+  /// If [span] is provided, indicates the location in the input asset that
+  /// caused the message.
+  void info(String message, {AssetId asset, Span span}) {
+    _logFunction(asset, LogLevel.INFO, message, span);
   }
 
   /// Logs a warning message.
   ///
+  /// If [asset] is provided, the log entry is associated with that asset,
+  /// otherwise it's associated with the primary input of [transformer].
   /// If present, [span] indicates the location in the input asset that caused
   /// the warning.
-  void warning(String message, [Span span]) {
-    _printMessage('warning', message, span);
+  void warning(String message, {AssetId asset, Span span}) {
+    _logFunction(asset, LogLevel.WARNING, message, span);
   }
 
   /// Logs an error message.
   ///
+  /// If [asset] is provided, the log entry is associated with that asset,
+  /// otherwise it's associated with the primary input of [transformer].
   /// If present, [span] indicates the location in the input asset that caused
   /// the error.
   // TODO(sigmund,nweiz): clarify when an error should be logged or thrown.
-  void error(String message, [Span span]) {
-    _printMessage('error', message, span);
-  }
-
-  // TODO(sigmund,rnystrom): do something better than printing.
-  _printMessage(String prefix, String message, Span span) {
-    if (!_shouldPrint) return;
-    print(span == null ? '$prefix: $message'
-        : '$prefix ${span.getLocationMessage(message)}');
+  void error(String message, {AssetId asset, Span span}) {
+    _logFunction(asset, LogLevel.ERROR, message, span);
   }
 }

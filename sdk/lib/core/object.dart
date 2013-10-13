@@ -85,7 +85,7 @@ class Object {
    * the original invocation.
    *
    * The default behavior of [noSuchMethod] is to throw a
-   * [noSuchMethodError].
+   * [NoSuchMethodError].
    */
   external dynamic noSuchMethod(Invocation invocation);
 

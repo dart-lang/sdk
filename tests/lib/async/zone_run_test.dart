@@ -44,21 +44,21 @@ main() {
   result = forked.run(() {
     Expect.identical(forked, Zone.current);
     events.add("run closure 2");
-    runAsync(() {
+    scheduleMicrotask(() {
       events.add("run closure 3");
       Expect.identical(forked, Zone.current);
       done.complete(true);
     });
     return 1234;
   });
-  events.add("after nested runAsync");
+  events.add("after nested scheduleMicrotask");
   Expect.equals(1234, result);
 
   done.future.whenComplete(() {
     Expect.listEquals(
         ["zone forked", "forked.run", "run closure", "executed run",
         "forked.run", "executed run2", "forked.run", "run closure 2",
-        "after nested runAsync", "forked.run", "run closure 3"],
+        "after nested scheduleMicrotask", "forked.run", "run closure 3"],
         events);
     asyncEnd();
   });

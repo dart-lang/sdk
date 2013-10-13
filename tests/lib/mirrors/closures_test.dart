@@ -8,20 +8,18 @@ import 'stringify.dart';
 
 testIntercepted() {
   var instance = [];
-  var methodMirror = reflect(instance.toString);
-  String rest = ' in s(List)';
-  rest = ''; /// 01: ok
-  expect('Method(s(toString)$rest)', methodMirror.function);
-  Expect.equals('[]', methodMirror.apply([]).reflectee);
+  var closureMirror = reflect(instance.toString);
+  var methodMirror = closureMirror.function;
+  Expect.equals(#toString, methodMirror.simpleName);
+  Expect.equals('[]', closureMirror.apply([]).reflectee);
 }
 
 testNonIntercepted() {
   var closure = new Map().containsKey;
-  var mirror = reflect(closure);
-  String rest = ' in s(_HashMap)'; // Might become Map instead.
-  rest = ''; /// 01: ok
-  expect('Method(s(containsKey)$rest)', mirror.function);
-  Expect.isFalse(mirror.apply([7]).reflectee);
+  var closureMirror = reflect(closure);
+  var methodMirror = closureMirror.function;
+  Expect.equals(#containsKey, methodMirror.simpleName);
+  Expect.isFalse(closureMirror.apply([7]).reflectee);
 }
 
 main() {

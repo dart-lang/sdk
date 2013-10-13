@@ -857,6 +857,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     ASSERT(cls.IsDynamicClass());
     return error.raw();
   }
+  // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
@@ -866,6 +867,22 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();
+      }
+    }
+  }
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(cls.closures());
+  if (!closures.IsNull()) {
+    for (int i = 0; i < closures.Length(); i++) {
+      func ^= closures.At(i);
+      if (!func.HasCode()) {
+        error = CompileFunction(func);
+        if (!error.IsNull()) {
+          return error.raw();
+        }
       }
     }
   }

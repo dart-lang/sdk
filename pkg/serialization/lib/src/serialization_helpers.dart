@@ -30,16 +30,6 @@ Iterable append(Iterable a, Iterable b) {
   return result;
 }
 
-/**
- * Return a sorted version of [anIterable], using the default sort criterion.
- * Always returns a List, regardless of the type of [anIterable].
- */
-List sorted(anIterable) {
-  var result = new List.from(anIterable);
-  result.sort();
-  return result;
-}
-
 /** Helper function for PrimitiveRule to tell which objects it applies to. */
 bool isPrimitive(object) {
   return identical(object, null) || object is num || object is String ||
@@ -47,78 +37,23 @@ bool isPrimitive(object) {
 }
 
 /**
- * Be able to iterate polymorphically between List-like and Map-like things.
+ * Given either an Iterable or a Map, return a map. For a Map just return it.
+ * For an iterable, return a Map from the index to the value at that index.
+ *
+ * Used to iterate polymorphically between List-like and Map-like things.
  * For example, keysAndValues(["a", "b", "c"]).forEach((key, value) => ...);
  * will loop over the key/value pairs 1/"a", 2/"b", 3/"c", as if the argument
  * was a Map from integer keys to string values.
- * Only supports forEach() and map() operations because that was all the code
- * needed for the moment.
  */
-MapLikeIterable keysAndValues(x) {
-  if (x is Map) return new MapLikeIterableForMap(x);
-  if (x is Iterable) return new MapLikeIterableForList(x);
-  throw new ArgumentError("Invalid argument");
+Map keysAndValues(x) {
+  if (x is Map) return x;
+  if (x is List) return x.asMap();
+  if (x is Iterable) return x.toList().asMap();
+  throw new ArgumentError("Invalid argument, expected Map or Iterable, got $x");
 }
 
 /**
- * A class for iterating over things as if they were Maps, which primarily
- * means that forEach() and map() pass two arguments, and map() returns a new
- * Map with the same keys as [collection] and values which have been transformed
- * by the argument to map().
- */
-abstract class MapLikeIterable {
-  MapLikeIterable(this.collection);
-  final collection;
-
-  /** Iterate over the collection, passing both key and value parameters. */
-  void forEach(Function f);
-
-  /**
-   * Return a new collection whose keys are the same as [collection], but whose
-   * values are the result of applying [f] to the key/value pairs. So, if
-   * [collection] is a List, it will be the same as the map() method if the
-   * [key] parameter wasn't passed.
-   */
-  map(Function f) {
-    var result = copyEmpty();
-    forEach((key, value) {
-       result[key] = f(key, value);
-    });
-    return result;
-  }
-
-  /**
-   * Return an empty copy of our collection. Very limited, only knows enough
-   * to return a Map or List as appropriate.
-   */
-  copyEmpty();
-}
-
-
-
-class MapLikeIterableForMap extends MapLikeIterable {
-  MapLikeIterableForMap(collection) : super(collection);
-
-  void forEach(Function f) { collection.forEach(f);}
-  Map copyEmpty() => new Map();
-}
-
-class MapLikeIterableForList extends MapLikeIterable {
-  MapLikeIterableForList(collection) : super(collection);
-
-  void forEach(f) {
-    Iterator iterator = collection.iterator;
-    for (var i = 0; i < collection.length; i++) {
-      iterator.moveNext();
-      f(i, iterator.current);
-    }
-  }
-
-  List copyEmpty() => new List(collection.length);
-}
-
-/**
- * An inverse of MapLikeIterable. Lets you iterate polymorphically between
+ * Lets you iterate polymorphically between
  * List-like and Map-like things, but making them behave like Lists, instead
  * of behaving like Maps.
  * So values(["a", "b", "c"]).forEach((value) => ...);
@@ -126,50 +61,25 @@ class MapLikeIterableForList extends MapLikeIterable {
  * Only supports forEach() and map() operations because that was all I needed
  * for the moment.
  */
-values(x) {
+Iterable values(x) {
   if (x is Iterable) return x;
-  if (x is Map) return new ListLikeIterable(x);
-  throw new ArgumentError("Invalid argument");
-}
-
-mapValues(x, f) {
-  if (x is Set) return x.map(f).toSet();
-  if (x is Iterable) return x.map(f).toList();
-  if (x is Map) return new ListLikeIterable(x).map(f);
-  throw new ArgumentError("Invalid argument");
+  if (x is Map) return x.values;
+  throw new ArgumentError("Invalid argument, expected Map or Iterable, got $x");
 }
 
 /**
- * A class for iterating over things as if they were Lists, which primarily
- * means that forEach passes one argument, and map() returns a new Map
- * with the same keys as [collection] and values which haev been transformed
- * by the argument to map().
+ * Iterate over [collection] and return a new collection of the same type
+ * where each value has been transformed by [f]. For iterables and sets, this
+ * is equivalent to [map]. For a Map, it returns a new Map with the same keys
+ * and the corresponding values transformed by [f].
  */
-class ListLikeIterable {
-  ListLikeIterable(this.collection);
-  final Map collection;
-
-  /** Iterate over the collection, passing just the value parameters. */
-  forEach(f) {
-      collection.forEach((key, value) => f(value));
-  }
-
-  /**
-   * Return a new collection whose keys are the same as [collection], but whose
-   * values are the result of applying [f] to the key/value pairs. So, if
-   * [collection] is a List, it will be the same as if map() had been called
-   * directly on [collection].
-   */
-  map(Function f) {
-      var result = new Map();
-      collection.forEach((key, value) => result[key] = f(value));
-      return result;
-  }
-
-  /**
-   * Return an iterator that behaves like a List iterator, taking one parameter.
-   */
-  Iterator get iterator => collection.values.iterator;
+mapValues(collection, Function f) {
+  if (collection is Set) return collection.map(f).toSet();
+  if (collection is Iterable) return collection.map(f).toList();
+  if (collection is Map) return new Map.fromIterables(collection.keys,
+      collection.values.map(f));
+  throw new ArgumentError("Invalid argument, expected Map or Iterable, "
+      "got $collection");
 }
 
 /**

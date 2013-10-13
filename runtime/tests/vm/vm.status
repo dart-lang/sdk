@@ -69,3 +69,7 @@ dart/isolate_mirror_local_test: fail
 
 [ $compiler == none && $runtime == dartium ]
 dart/isolate_mirror_local_test: Fail # Issue 13719: Please triage this failure.
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+dart/isolate_mirror_remote_test: Fail # Issue 13921
+dart/isolate_unhandled_exception_test: Fail # Issue 13921

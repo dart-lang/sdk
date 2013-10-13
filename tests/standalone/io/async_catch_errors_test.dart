@@ -12,7 +12,7 @@ var events = [];
 
 Future testSocketException() {
   var completer = new Completer();
-  runZonedExperimental(() {
+  runZoned(() {
     Socket.connect("4", 1).then((Socket s) {
       Expect.fail("Socket should not be able to connect");
     });
@@ -26,7 +26,7 @@ Future testSocketException() {
 
 Future testFileException() {
   var completer = new Completer();
-  runZonedExperimental(() {
+  runZoned(() {
     new File("lol it's not a file\n").openRead().listen(null);
   }, onError: (err) {
     if (err is! FileException) Expect.fail("Not expected error: $err");

@@ -634,6 +634,82 @@ class CompilationUnitElementX extends ElementX
   }
 }
 
+class ImportScope {
+  /**
+   * Map for elements imported through import declarations.
+   *
+   * Addition to the map is performed by [addImport]. Lookup is done trough
+   * [find].
+   */
+  final Map<SourceString, Element> importScope =
+      new Map<SourceString, Element>();
+
+  /**
+   * Adds [element] to the import scope of this library.
+   *
+   * If an element by the same name is already in the imported scope, an
+   * [ErroneousElement] will be put in the imported scope, allowing for
+   * detection of ambiguous uses of imported names.
+   */
+  void addImport(Element enclosingElement,
+                 Element element,
+                 Import import,
+                 DiagnosticListener listener) {
+    LibraryElementX library = enclosingElement.getLibrary();
+    Map<Element, Link<Import>> importers = library.importers;
+    importers[element] =
+        importers.putIfAbsent(element, () => const Link<Import>())
+            .prepend(import);
+    SourceString name = element.name;
+    Element existing = importScope.putIfAbsent(name, () => element);
+
+    Element createWarnOnUseElement(Spannable spannable,
+                                   MessageKind messageKind,
+                                   Element hidingElement,
+                                   Element hiddenElement) {
+        Uri hiddenUri = hiddenElement.getLibrary().canonicalUri;
+        Uri hidingUri = hidingElement.getLibrary().canonicalUri;
+        return new WarnOnUseElementX(
+            new WrappedMessage(
+                null, // Report on reference to [hidingElement].
+                messageKind,
+                {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
+            new WrappedMessage(
+                listener.spanFromSpannable(spannable),
+                MessageKind.IMPORTED_HERE,
+                {'name': name}),
+            enclosingElement, hidingElement);
+    }
+
+    if (existing != element) {
+      if (existing.getLibrary().isPlatformLibrary &&
+          !element.getLibrary().isPlatformLibrary) {
+        // [existing] is implicitly hidden.
+        importScope[name] = createWarnOnUseElement(
+            import, MessageKind.HIDDEN_IMPORT, element, existing);
+      } else if (!existing.getLibrary().isPlatformLibrary &&
+                 element.getLibrary().isPlatformLibrary) {
+        // [element] is implicitly hidden.
+        if (import == null) {
+          // [element] is imported implicitly (probably through dart:core).
+          importScope[name] = createWarnOnUseElement(
+              importers[existing].head, MessageKind.HIDDEN_IMPLICIT_IMPORT,
+              existing, element);
+        } else {
+          importScope[name] = createWarnOnUseElement(
+              import, MessageKind.HIDDEN_IMPORT, existing, element);
+        }
+      } else {
+        importScope[name] = new AmbiguousElementX(
+            MessageKind.DUPLICATE_IMPORT, {'name': name},
+            enclosingElement, existing, element);
+      }
+    }
+  }
+
+  Element operator [](SourceString name) => importScope[name];
+}
+
 class LibraryElementX extends ElementX implements LibraryElement {
   final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
@@ -644,6 +720,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
   bool canUseNative = false;
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
+  final ImportScope importScope = new ImportScope();
 
   /**
    * If this library is patched, [patch] points to the patch library.
@@ -658,14 +735,6 @@ class LibraryElementX extends ElementX implements LibraryElement {
    * See [:patch_parser.dart:] for a description of the terminology.
    */
   final LibraryElementX origin;
-
-  /**
-   * Map for elements imported through import declarations.
-   *
-   * Addition to the map is performed by [addImport]. Lookup is done trough
-   * [find].
-   */
-  final Map<SourceString, Element> importScope;
 
   /// A mapping from an imported element to the "import" tag.
   final Map<Element, Link<Import>> importers;
@@ -685,7 +754,6 @@ class LibraryElementX extends ElementX implements LibraryElement {
 
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
     : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
-      importScope = new Map<SourceString, Element>(),
       importers = new Map<Element, Link<Import>>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
@@ -733,56 +801,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
    * [ErroneousElement] will be put in the imported scope, allowing for detection of ambiguous uses of imported names.
    */
   void addImport(Element element, Import import, DiagnosticListener listener) {
-    importers[element] =
-        importers.putIfAbsent(element, () => const Link<Import>())
-        .prepend(import);
-    SourceString name = element.name;
-    Element existing = importScope.putIfAbsent(name, () => element);
-
-    Element createWarnOnUseElement(Spannable spannable,
-                                   MessageKind messageKind,
-                                   Element hidingElement,
-                                   Element hiddenElement) {
-        Uri hiddenUri = hiddenElement.getLibrary().canonicalUri;
-        Uri hidingUri = hidingElement.getLibrary().canonicalUri;
-        return new WarnOnUseElementX(
-            new WrappedMessage(
-                null, // Report on reference to [hidingElement].
-                messageKind,
-                {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
-            new WrappedMessage(
-                listener.spanFromSpannable(spannable),
-                MessageKind.IMPORTED_HERE,
-                {'name': name}),
-            this, hidingElement);
-    }
-
-    if (existing != element) {
-      if (existing.getLibrary().isPlatformLibrary &&
-          !element.getLibrary().isPlatformLibrary) {
-        // [existing] is implicitly hidden.
-        importScope[name] = createWarnOnUseElement(
-            import, MessageKind.HIDDEN_IMPORT, element, existing);
-      } else if (!existing.getLibrary().isPlatformLibrary &&
-                 element.getLibrary().isPlatformLibrary) {
-        // [element] is implicitly hidden.
-        if (import == null) {
-          // [element] is imported implicitly (probably through dart:core).
-          importScope[name] = createWarnOnUseElement(
-              importers[existing].head, MessageKind.HIDDEN_IMPLICIT_IMPORT,
-              existing, element);
-        } else {
-          importScope[name] = createWarnOnUseElement(
-              import, MessageKind.HIDDEN_IMPORT, existing, element);
-        }
-      } else {
-        // TODO(johnniwinther): Provide access to the import tags from which
-        // the elements came.
-        importScope[name] = new AmbiguousElementX(
-            MessageKind.DUPLICATE_IMPORT, {'name': name},
-            this, existing, element);
-      }
-    }
+    importScope.addImport(this, element, import, listener);
   }
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -932,18 +951,22 @@ class LibraryElementX extends ElementX implements LibraryElement {
 }
 
 class PrefixElementX extends ElementX implements PrefixElement {
-  Map<SourceString, Element> imported;
   Token firstPosition;
 
-  PrefixElementX(SourceString prefix, Element enclosing, this.firstPosition)
-      : imported = new Map<SourceString, Element>(),
-        super(prefix, ElementKind.PREFIX, enclosing);
+  final ImportScope importScope = new ImportScope();
 
-  Element lookupLocalMember(SourceString memberName) => imported[memberName];
+  PrefixElementX(SourceString prefix, Element enclosing, this.firstPosition)
+      : super(prefix, ElementKind.PREFIX, enclosing);
+
+  Element lookupLocalMember(SourceString memberName) => importScope[memberName];
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   Token position() => firstPosition;
+
+  void addImport(Element element, Import import, DiagnosticListener listener) {
+    importScope.addImport(this, element, import, listener);
+  }
 }
 
 class TypedefElementX extends ElementX implements TypedefElement {

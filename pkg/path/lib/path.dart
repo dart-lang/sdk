@@ -90,11 +90,9 @@ LibraryMirror get _html =>
 /// return the current URL.
 String get current {
   if (_io != null) {
-    return _io.classes[const Symbol('Directory')]
-        .getField(const Symbol('current')).reflectee.path;
+    return _io.classes[#Directory].getField(#current).reflectee.path;
   } else if (_html != null) {
-    return _html.getField(const Symbol('window'))
-        .reflectee.location.href;
+    return _html.getField(#window).reflectee.location.href;
   } else {
     return '.';
   }
@@ -869,8 +867,8 @@ abstract class Style {
   static Style _getPlatformStyle() {
     if (_io == null) return Style.url;
 
-    if (_io.classes[const Symbol('Platform')]
-        .getField(const Symbol('operatingSystem')).reflectee == 'windows') {
+    if (_io.classes[#Platform].getField(#operatingSystem)
+        .reflectee == 'windows') {
       return Style.windows;
     }
 

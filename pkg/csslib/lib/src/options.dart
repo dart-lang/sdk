@@ -7,6 +7,9 @@ library csslib.src.options;
 import 'package:args/args.dart';
 
 class PreprocessorOptions {
+  /** Generate polyfill code (e.g., var, etc.) */
+  final bool polyfill;
+
   /** Report warnings as errors. */
   final bool warningsAsErrors;
 
@@ -48,6 +51,7 @@ class PreprocessorOptions {
       checked = args['checked'],
       lessSupport = args['less'],
       useColors = args['colors'],
+      polyfill = args['polyfill'],
       inputFile = args.rest.length > 0 ? args.rest[0] : null;
 
   // tool.dart [options...] <css file>
@@ -69,6 +73,8 @@ class PreprocessorOptions {
           help: 'Throw on warnings encountered')
       ..addFlag('colors', defaultsTo: true,
           help: 'Display errors/warnings in colored text')
+      ..addFlag('polyfill', defaultsTo: false,
+          help: 'Generate polyfill for new CSS features')
       ..addFlag('help', abbr: 'h', defaultsTo: false, negatable: false,
           help: 'Displays this help message');
 

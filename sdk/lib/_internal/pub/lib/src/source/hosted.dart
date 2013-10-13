@@ -20,8 +20,8 @@ import '../source.dart';
 import '../utils.dart';
 import '../version.dart';
 
-/// A package source that installs packages from a package hosting site that
-/// uses the same API as pub.dartlang.org.
+/// A package source that gets packages from a package hosting site that uses
+/// the same API as pub.dartlang.org.
 class HostedSource extends Source {
 
   final name = "hosted";
@@ -70,7 +70,7 @@ class HostedSource extends Source {
       // TODO(rnystrom): After this is pulled down, we could place it in
       // a secondary cache of just pubspecs. This would let us have a
       // persistent cache for pubspecs for packages that haven't actually
-      // been installed.
+      // been downloaded.
       return new Pubspec.fromMap(version['pubspec'], systemCache.sources,
           expectedName: id.name, location: url);
     }).catchError((ex) {
@@ -80,11 +80,11 @@ class HostedSource extends Source {
   }
 
   /// Downloads a package from the site and unpacks it.
-  Future<bool> install(PackageId id, String destPath) {
+  Future<bool> get(PackageId id, String destPath) {
     return new Future.sync(() {
       var url = _makeVersionUrl(id, (server, package, version) =>
           "$server/packages/$package/versions/$version.tar.gz");
-      log.io("Install package from $url.");
+      log.io("Get package from $url.");
 
       log.message('Downloading $id...');
 
@@ -96,9 +96,9 @@ class HostedSource extends Source {
         return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
             'fetching URL "$url"');
       }).then((_) {
-        // Now that the install has succeeded, move it to the real location in
-        // the cache. This ensures that we don't leave half-busted ghost
-        // directories in the user's pub cache if an install fails.
+        // Now that the get has succeeded, move it to the real location in the
+        // cache. This ensures that we don't leave half-busted ghost
+        // directories in the user's pub cache if a get fails.
         renameDir(tempDir, destPath);
         return true;
       });
@@ -107,7 +107,7 @@ class HostedSource extends Source {
 
   /// The system cache directory for the hosted source contains subdirectories
   /// for each separate repository URL that's used on the system. Each of these
-  /// subdirectories then contains a subdirectory for each package installed
+  /// subdirectories then contains a subdirectory for each package downloaded
   /// from that site.
   Future<String> systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
@@ -175,7 +175,7 @@ class HostedSource extends Source {
   }
 }
 
-/// This is the modified hosted source used when pub install or update are run
+/// This is the modified hosted source used when pub get or upgrade are run
 /// with "--offline". This uses the system cache to get the list of available
 /// packages and does no network access.
 class OfflineHostedSource extends HostedSource {
@@ -198,10 +198,10 @@ class OfflineHostedSource extends HostedSource {
     });
   }
 
-  Future<bool> install(PackageId id, String destPath) {
+  Future<bool> get(PackageId id, String destPath) {
     // Since HostedSource returns `true` for [shouldCache], install will only
     // be called for uncached packages.
-    throw new UnsupportedError("Cannot install packages when offline.");
+    throw new UnsupportedError("Cannot get packages when offline.");
   }
 
   Future<Pubspec> describeUncached(PackageId id) {

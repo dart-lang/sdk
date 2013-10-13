@@ -27,7 +27,7 @@ main() {
       })
     ]).create();
 
-    startPubServe(shouldInstallFirst: true);
+    startPubServe(shouldGetFirst: true);
     requestShouldSucceed("packages/foo/lib.dart", "foo() => 'foo';");
     requestShouldSucceed("packages/foo/sub/lib.dart", "bar() => 'bar';");
 

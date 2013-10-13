@@ -157,8 +157,6 @@ class Command {
   String toString() => commandLine;
 
   Future<bool> get outputIsUpToDate => new Future.value(false);
-  Path get expectedOutputFile => null;
-  bool get isPixelTest => false;
 }
 
 class CompilationCommand extends Command {
@@ -245,19 +243,10 @@ class CompilationCommand extends Command {
 }
 
 class ContentShellCommand extends Command {
-  /**
-   * If [expectedOutputPath] is set, the output of content shell is compared
-   * with the content of [expectedOutputPath].
-   * This is used for example for pixel tests, where [expectedOutputPath] points
-   * to a *png file.
-   */
-  Path expectedOutputPath;
-
   ContentShellCommand._(String executable,
                         String htmlFile,
                         List<String> options,
                         List<String> dartFlags,
-                        Path this.expectedOutputPath,
                         String configurationDir)
       : super._("content_shell",
                executable,
@@ -272,6 +261,7 @@ class ContentShellCommand extends Command {
     if (needDartFlags) {
       env = new Map<String, String>();
       env['DART_FLAGS'] = dartFlags.join(" ");
+      env['DART_FORWARDING_PRINT'] = '1';
     }
 
     return env;
@@ -283,20 +273,8 @@ class ContentShellCommand extends Command {
     return arguments;
   }
 
-  Path get expectedOutputFile => expectedOutputPath;
-  bool get isPixelTest => (expectedOutputFile != null &&
-                           expectedOutputFile.filename.endsWith(".png"));
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.add(expectedOutputPath.toString());
-  }
-
   bool _equal(Command other) {
-    return
-        other is ContentShellCommand &&
-        super._equal(other) &&
-        expectedOutputPath.toString() == other.expectedOutputPath.toString();
+    return other is ContentShellCommand && super._equal(other);
   }
 
   int get maxNumRetries => 3;
@@ -410,11 +388,9 @@ class CommandBuilder {
                                              String htmlFile,
                                              List<String> options,
                                              List<String> dartFlags,
-                                             Path expectedOutputPath,
                                              String configurationDir) {
     ContentShellCommand command = new ContentShellCommand._(
-        executable, htmlFile, options, dartFlags, expectedOutputPath,
-        configurationDir);
+        executable, htmlFile, options, dartFlags, configurationDir);
     return _getUniqueCommand(command);
   }
 
@@ -801,7 +777,6 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         return Expectation.MISSING_RUNTIME_ERROR;
       }
     }
-
     if (testCase.isNegative) {
       if (outcome.canBeOutcomeOf(Expectation.FAIL)) return Expectation.PASS;
       return Expectation.FAIL;
@@ -817,17 +792,15 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     return super.canRunDependendCommands && !didFail(null);
   }
 
+  bool get hasCrashed {
+    return super.hasCrashed || _rendererCrashed;
+  }
+
   Expectation _getOutcome() {
     if (_failedBecauseOfMissingXDisplay) {
       return Expectation.FAIL;
     }
 
-    if (command.expectedOutputFile != null) {
-      // We are either doing a pixel test or a layout test with content shell
-      if (_failedBecauseOfUnexpectedDRTOutput) {
-        return Expectation.FAIL;
-      }
-    }
     if (_browserTestFailure) {
       return Expectation.RUNTIME_ERROR;
     }
@@ -852,78 +825,54 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     return false;
   }
 
-  bool get _failedBecauseOfUnexpectedDRTOutput {
-    /*
-     * The output of content shell is different for pixel tests than for
-     * layout tests.
-     *
-     * On a pixel test, the DRT output has the following format
-     *     ......
-     *     ......
-     *     Content-Length: ...\n
-     *     <*png data>
-     *     #EOF\n
-     * So we need to get the byte-range of the png data first, before
-     * comparing it with the content of the expected output file.
-     *
-     * On a layout tests, the DRT output is directly compared with the
-     * content of the expected output.
-     */
-    var file = new io.File(command.expectedOutputFile.toNativePath());
-    if (file.existsSync()) {
-      var bytesContentLength = "Content-Length:".codeUnits;
-      var bytesNewLine = "\n".codeUnits;
-      var bytesEOF = "#EOF\n".codeUnits;
-
-      var expectedContent = file.readAsBytesSync();
-      if (command.isPixelTest) {
-        var startOfContentLength = findBytes(stdout, bytesContentLength);
-        if (startOfContentLength >= 0) {
-          var newLineAfterContentLength = findBytes(stdout,
-                                                    bytesNewLine,
-                                                    startOfContentLength);
-          if (newLineAfterContentLength > 0) {
-            var startPosition = newLineAfterContentLength +
-                bytesNewLine.length;
-            var endPosition = stdout.length - bytesEOF.length;
-
-            return !areByteArraysEqual(expectedContent,
-                                       0,
-                                       stdout,
-                                       startPosition,
-                                       endPosition - startPosition);
-          }
-        }
-        return true;
-      } else {
-        return !areByteArraysEqual(expectedContent, 0,
-                                   stdout, 0,
-                                   stdout.length);
-      }
-    }
-    return true;
-  }
+  bool get _rendererCrashed =>
+      decodeUtf8(super.stdout).contains("#CRASHED - rendere");
 
   bool get _browserTestFailure {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
-    bool has_content_type = false;
+    bool hasContentType = false;
     var stdoutLines = decodeUtf8(super.stdout).split("\n");
+    var containsFail = false;
+    var containsPass = false;
     for (String line in stdoutLines) {
       switch (line) {
         case 'Content-Type: text/plain':
-          has_content_type = true;
+          hasContentType = true;
+          break;
+        case 'FAIL':
+          if (hasContentType) {
+            containsFail = true;
+          }
           break;
         case 'PASS':
-          if (has_content_type) {
-            if (exitCode != 0) {
-              print("Warning: All tests passed, but exitCode != 0 ($this)");
-            }
-            return (exitCode != 0 && !hasCrashed);
+          if (hasContentType) {
+            containsPass = true;
           }
           break;
       }
     }
+    if (hasContentType) {
+      if (containsFail && containsPass) {
+        DebugLogger.warning("Test had 'FAIL' and 'PASS' in stdout. ($command)");
+      }
+      if (!containsFail && !containsPass) {
+        DebugLogger.warning("Test had neither 'FAIL' nor 'PASS' in stdout. "
+                            "($command)");
+        return true;
+      }
+      if (containsFail) {
+        return true;
+      }
+      assert(containsPass);
+      if (exitCode != 0) {
+        DebugLogger.warning("All tests passed, but exitCode != 0. "
+                            "($command)");
+      }
+      return (exitCode != 0 && !hasCrashed);
+    }
+    DebugLogger.warning("Couldn't find 'Content-Type: text/plain' in output. "
+                        "($command).");
     return true;
   }
 }

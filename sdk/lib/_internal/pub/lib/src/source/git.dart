@@ -14,7 +14,7 @@ import '../package.dart';
 import '../source.dart';
 import '../utils.dart';
 
-/// A package source that installs packages from Git repos.
+/// A package source that gets packages from Git repos.
 class GitSource extends Source {
   final String name = "git";
 
@@ -34,13 +34,13 @@ class GitSource extends Source {
   /// `<package name>-<url hash>`. These are used to check out the repository
   /// itself; each of the commit-specific directories are clones of a directory
   /// in `cache/`.
-  Future<Package> installToSystemCache(PackageId id) {
+  Future<Package> downloadToSystemCache(PackageId id) {
     var revisionCachePath;
 
     return git.isInstalled.then((installed) {
       if (!installed) {
         throw new Exception(
-            "Cannot install '${id.name}' from Git (${_getUrl(id)}).\n"
+            "Cannot get '${id.name}' from Git (${_getUrl(id)}).\n"
             "Please ensure Git is correctly installed.");
       }
 

@@ -51,7 +51,7 @@ class ExternalLabel : public ValueObject {
 // into executable memory.
 class AssemblerFixup : public ZoneAllocated {
  public:
-  virtual void Process(const MemoryRegion& region, int position) = 0;
+  virtual void Process(const MemoryRegion& region, intptr_t position) = 0;
 
   // It would be ideal if the destructor method could be made private,
   // but the g++ compiler complains when this is subclassed.
@@ -59,13 +59,13 @@ class AssemblerFixup : public ZoneAllocated {
 
  private:
   AssemblerFixup* previous_;
-  int position_;
+  intptr_t position_;
 
   AssemblerFixup* previous() const { return previous_; }
   void set_previous(AssemblerFixup* previous) { previous_ = previous; }
 
-  int position() const { return position_; }
-  void set_position(int position) { position_ = position; }
+  intptr_t position() const { return position_; }
+  void set_position(intptr_t position) { position_ = position; }
 
   friend class AssemblerBuffer;
 };
@@ -89,17 +89,19 @@ class AssemblerBuffer : public ValueObject {
     cursor_ -= sizeof(T);
   }
 
-  template<typename T> T Load(int position) {
-    ASSERT(position >= 0 && position <= (Size() - static_cast<int>(sizeof(T))));
+  template<typename T> T Load(intptr_t position) {
+    ASSERT(position >= 0 &&
+           position <= (Size() - static_cast<intptr_t>(sizeof(T))));
     return *reinterpret_cast<T*>(contents_ + position);
   }
 
-  template<typename T> void Store(int position, T value) {
-    ASSERT(position >= 0 && position <= (Size() - static_cast<int>(sizeof(T))));
+  template<typename T> void Store(intptr_t position, T value) {
+    ASSERT(position >= 0 &&
+           position <= (Size() - static_cast<intptr_t>(sizeof(T))));
     *reinterpret_cast<T*>(contents_ + position) = value;
   }
 
-  const ZoneGrowableArray<int>& pointer_offsets() const {
+  const ZoneGrowableArray<intptr_t>& pointer_offsets() const {
 #if defined(DEBUG)
     ASSERT(fixups_processed_);
 #endif
@@ -174,7 +176,7 @@ class AssemblerBuffer : public ValueObject {
   uword cursor_;
   uword limit_;
   AssemblerFixup* fixup_;
-  ZoneGrowableArray<int>* pointer_offsets_;
+  ZoneGrowableArray<intptr_t>* pointer_offsets_;
 #if defined(DEBUG)
   bool fixups_processed_;
 #endif

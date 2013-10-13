@@ -775,10 +775,10 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   ESP + 16 : new context containing the current isolate pointer.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  const int kEntryPointOffset = 2 * kWordSize;
-  const int kArgumentsDescOffset = 3 * kWordSize;
-  const int kArgumentsOffset = 4 * kWordSize;
-  const int kNewContextOffset = 5 * kWordSize;
+  const intptr_t kEntryPointOffset = 2 * kWordSize;
+  const intptr_t kArgumentsDescOffset = 3 * kWordSize;
+  const intptr_t kArgumentsOffset = 4 * kWordSize;
+  const intptr_t kNewContextOffset = 5 * kWordSize;
 
   // Save frame pointer coming in.
   __ EnterFrame(0);

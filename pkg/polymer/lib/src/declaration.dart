@@ -71,7 +71,7 @@ class PolymerDeclaration extends CustomElement {
 
   Map<String, Symbol> _observe;
 
-  Map<Symbol, Object> _instanceAttributes;
+  Map<String, Object> _instanceAttributes;
 
   List<Element> _sheets;
   List<Element> get sheets => _sheets;
@@ -237,10 +237,10 @@ class PolymerDeclaration extends CustomElement {
     installSheets();
     // TODO(jmesserly): this feels unnatrual in Dart. Since we have convenient
     // lazy static initialization, can we get by without it?
-    var registered = type.methods[const Symbol('registerCallback')];
+    var registered = type.methods[#registerCallback];
     if (registered != null && registered.isStatic &&
         registered.isRegularMethod) {
-      type.invoke(const Symbol('registerCallback'), [this]);
+      type.invoke(#registerCallback, [this]);
     }
 
   }
@@ -293,13 +293,13 @@ class PolymerDeclaration extends CustomElement {
 
   void accumulateInstanceAttributes() {
     // inherit instance attributes
-    _instanceAttributes = new Map<Symbol, Object>();
+    _instanceAttributes = new Map<String, Object>();
     if (_super != null) _instanceAttributes.addAll(_super._instanceAttributes);
 
     // merge attributes from element
     attributes.forEach((name, value) {
       if (isInstanceAttribute(name)) {
-        _instanceAttributes[new Symbol(name)] = value;
+        _instanceAttributes[name] = value;
       }
     });
   }
@@ -583,8 +583,7 @@ bool _hasSetter(ClassMirror type, MethodMirror getter) {
   return type.setters.containsKey(setterName);
 }
 
-bool _inDartHtml(ClassMirror type) =>
-    type.owner.simpleName == const Symbol('dart.dom.html');
+bool _inDartHtml(ClassMirror type) => type.owner.simpleName == #dart.dom.html;
 
 
 /** Attribute prefix used for declarative event handlers. */

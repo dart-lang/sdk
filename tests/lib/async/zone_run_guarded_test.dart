@@ -23,10 +23,11 @@ main() {
         events.add("forked.run");
         return parent.run(origin, f);
       },
-      handleUncaughtError: (Zone self, ZoneDelegate parent, Zone origin, e) {
+      handleUncaughtError:
+          (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
         Expect.identical(Zone.ROOT, Zone.current);
         Expect.identical(forked, origin);
-        events.add("forked.handleUncaught $e");
+        events.add("forked.handleUncaught $error");
         return 499;
       }));
 
@@ -56,7 +57,7 @@ main() {
   result = forked.runGuarded(() {
     Expect.identical(forked, Zone.current);
     events.add("run closure");
-    runAsync(() {
+    scheduleMicrotask(() {
       events.add("run closure 2");
       Expect.identical(forked, Zone.current);
       done.complete(true);
@@ -64,13 +65,13 @@ main() {
     });
     throw 1234;
   });
-  events.add("after nested runAsync");
+  events.add("after nested scheduleMicrotask");
   Expect.equals(499, result);
 
   done.future.whenComplete(() {
     Expect.listEquals(
         ["forked.run", "run closure", "forked.handleUncaught 1234",
-         "after nested runAsync", "forked.run", "run closure 2",
+         "after nested scheduleMicrotask", "forked.run", "run closure 2",
          "forked.handleUncaught 88" ],
         events);
     asyncEnd();

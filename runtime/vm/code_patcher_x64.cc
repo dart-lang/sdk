@@ -43,17 +43,17 @@ class UnoptimizedCall : public ValueObject {
   }
 
   RawObject* ic_data() const {
-    int index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
     return object_pool_.At(index);
   }
 
   uword target() const {
-    int index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
     return reinterpret_cast<uword>(object_pool_.At(index));
   }
 
   void set_target(uword target) const {
-    int index = InstructionPattern::IndexFromPPLoad(start_ + 10);
+    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 10);
     const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
     object_pool_.SetAt(index, smi);
     // No need to flush the instruction cache, since the code is not modified.
@@ -124,12 +124,12 @@ class StaticCall : public ValueObject {
   }
 
   uword target() const {
-    int index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
     return reinterpret_cast<uword>(object_pool_.At(index));
   }
 
   void set_target(uword target) const {
-    int index = InstructionPattern::IndexFromPPLoad(start_ + 3);
+    intptr_t index = InstructionPattern::IndexFromPPLoad(start_ + 3);
     const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
     object_pool_.SetAt(index, smi);
     // No need to flush the instruction cache, since the code is not modified.

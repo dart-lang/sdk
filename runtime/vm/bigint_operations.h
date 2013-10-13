@@ -148,7 +148,7 @@ class BigintOperations : public AllStatic {
 
   static RawBigint* Copy(const Bigint& bigint);
 
-  static int CountBits(Chunk digit);
+  static intptr_t CountBits(Chunk digit);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BigintOperations);
 };

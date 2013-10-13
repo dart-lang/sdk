@@ -10,6 +10,7 @@ import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_provider.dart';
@@ -23,6 +24,10 @@ import 'utils.dart';
 class PackageGraph {
   /// The provider that exposes asset and package information.
   final PackageProvider provider;
+
+  /// The logger used to report transformer log entries. If this is null, then
+  /// [_defaultLogger] will be used instead.
+  final BarbackLogger _logger;
 
   /// The [AssetCascade] for each package.
   final _cascades = <String, AssetCascade>{};
@@ -62,7 +67,8 @@ class PackageGraph {
 
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
-  PackageGraph(this.provider) {
+  PackageGraph(this.provider, {BarbackLogger logger})
+      : _logger = logger != null ? logger : new BarbackLogger() {
     for (var package in provider.packages) {
       var cascade = new AssetCascade(this, package);
       // The initial result for each cascade is "success" since the cascade
@@ -73,6 +79,8 @@ class PackageGraph {
         _cascadeResults[package] = null;
       });
 
+      cascade.onLog.listen(_logger.logEntry);
+
       cascade.results.listen((result) {
         _cascadeResults[cascade.package] = result;
         // If any cascade hasn't yet finished, the overall build isn't finished
@@ -81,11 +89,11 @@ class PackageGraph {
 
         // Include all build errors for all cascades. If no cascades have
         // errors, the result will automatically be considered a success.
-        _resultsController.add(new BuildResult(unionAll(
-            _cascadeResults.values.map((result) => result.errors))));
-      }, onError: (error) {
+        _resultsController.add(
+            new BuildResult.aggregate(_cascadeResults.values));
+      }, onError: (error, [stackTrace]) {
         _lastUnexpectedError = error;
-        _resultsController.addError(error);
+        _resultsController.addError(error, stackTrace);
       });
     }
 
@@ -125,10 +133,9 @@ class PackageGraph {
     }
 
     // If the build completed with an error, complete the future with it.
-    var errors = unionAll(
-        _cascadeResults.values.map((result) => result.errors));
-    if (errors.isNotEmpty) {
-      return new Future.error(BarbackException.aggregate(errors));
+    var result = new BuildResult.aggregate(_cascadeResults.values);
+    if (!result.succeeded) {
+      return new Future.error(BarbackException.aggregate(result.errors));
     }
 
     // Otherwise, return all of the final output assets.

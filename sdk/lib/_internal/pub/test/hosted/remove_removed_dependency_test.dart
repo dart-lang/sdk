@@ -10,7 +10,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  forBothPubInstallAndUpdate((command) {
+  forBothPubGetAndUpgrade((command) {
     integration("removes a dependency that's removed from the pubspec", () {
       servePackages([
         packageMap("foo", "1.0.0"),

@@ -218,6 +218,39 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
     Expect.isFalse(set.contains(2));
     Expect.isTrue(set.contains(3));
   }
+
+  {  // Test lookup
+    Set set = newSet();
+    var m1a = new Mutable(1);
+    var m1b = new Mutable(1);
+    var m2a = new Mutable(2);
+    var m2b = new Mutable(2);
+    Expect.isNull(set.lookup(m1a));
+    Expect.isNull(set.lookup(m1b));
+    set.add(m1a);
+    Expect.identical(m1a, set.lookup(m1a));
+    Expect.identical(m1a, set.lookup(m1b));
+
+    Expect.isNull(set.lookup(m2a));
+    Expect.isNull(set.lookup(m2b));
+    set.add(m2a);
+    Expect.identical(m2a, set.lookup(m2a));
+    Expect.identical(m2a, set.lookup(m2b));
+
+    set.add(m2b);  // Adding doesn't change element.
+    Expect.identical(m2a, set.lookup(m2a));
+    Expect.identical(m2a, set.lookup(m2b));
+
+    set.remove(m1a);
+    set.add(m1b);
+    Expect.identical(m1b, set.lookup(m1a));
+    Expect.identical(m1b, set.lookup(m1b));
+
+    set.add(1);
+    Expect.identical(1, set.lookup(1.0));
+    set.add(-0.0);
+    Expect.identical(-0.0, set.lookup(0.0));
+  }
 }
 
 
@@ -259,6 +292,9 @@ void testIdentitySet(Set create()) {
   set.remove(m3);
   Expect.isFalse(set.contains(m3));
   Expect.isTrue(set.contains(m1));
+
+  Expect.identical(m1, set.lookup(m1));
+  Expect.identical(null, set.lookup(m3));
 }
 
 

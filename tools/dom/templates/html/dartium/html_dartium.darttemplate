@@ -50,7 +50,7 @@ import 'dart:web_sql';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 
-export 'dart:math' show Rectangle, RectangleBase, Point;
+export 'dart:math' show Rectangle, Point;
 
 $!GENERATED_DART_FILES
 

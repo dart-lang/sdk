@@ -108,7 +108,7 @@ Future copyDirectory(String from, String to) {
         }
       },
       onDone: () => Future.wait(futureList).then((_) => completer.complete()),
-      onError: (e) => completer.completeError(e));
+      onError: completer.completeError);
   return completer.future;
 }
 

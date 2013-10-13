@@ -4,15 +4,30 @@
 
 part of utf;
 
+// TODO(floitsch): make this transformer reusable.
 abstract class _StringDecoder
-    extends StreamEventTransformer<List<int>, String> {
+    implements StreamTransformer<List<int>, String>, EventSink<List<int>> {
   List<int> _carry;
   List<int> _buffer;
   int _replacementChar;
 
+  EventSink<String> _outSink;
+
   _StringDecoder(int this._replacementChar);
 
-  void handleData(List<int> bytes, EventSink<String> sink) {
+  Stream<String> bind(Stream<List<int>> stream) {
+    return new Stream.eventTransformed(
+        stream,
+        (EventSink<String> sink) {
+          if (_outSink != null) {
+            throw new StateError("String decoder already used");
+          }
+          _outSink = sink;
+          return this;
+        });
+  }
+
+  void add(List<int> bytes) {
     try {
       _buffer = <int>[];
       List<int> carry = _carry;
@@ -55,24 +70,28 @@ abstract class _StringDecoder
       }
       if (_buffer.length > 0) {
         // Limit to 'goodChars', if lower than actual charCodes in the buffer.
-        sink.add(new String.fromCharCodes(_buffer));
+        _outSink.add(new String.fromCharCodes(_buffer));
       }
       _buffer = null;
-    } catch (e) {
-      sink.addError(e);
+    } catch (e, stackTrace) {
+      _outSink.addError(e, stackTrace);
     }
   }
 
-  void handleDone(EventSink<String> sink) {
+  void addError(Object error, [StackTrace stackTrace]) {
+    _outSink.addError(error, stackTrace);
+  }
+
+  void close() {
     if (_carry != null) {
       if (_replacementChar != null) {
-        sink.add(new String.fromCharCodes(
+        _outSink.add(new String.fromCharCodes(
             new List.filled(_carry.length, _replacementChar)));
       } else {
         throw new ArgumentError('Invalid codepoint');
       }
     }
-    sink.close();
+    _outSink.close();
   }
 
   int _processBytes(int getNext());
@@ -150,11 +169,31 @@ class Utf8DecoderTransformer extends _StringDecoder {
 
 
 abstract class _StringEncoder
-    extends StreamEventTransformer<String, List<int>> {
+    implements StreamTransformer<String, List<int>>, EventSink<String> {
 
-  void handleData(String data, EventSink<List<int>> sink) {
-    sink.add(_processString(data));
+  EventSink<List<int>> _outSink;
+
+  Stream<List<int>> bind(Stream<String> stream) {
+    return new Stream.eventTransformed(
+        stream,
+        (EventSink<List<int>> sink) {
+          if (_outSink != null) {
+            throw new StateError("String encoder already used");
+          }
+          _outSink = sink;
+          return this;
+        });
   }
+
+  void add(String data) {
+    _outSink.add(_processString(data));
+  }
+
+  void addError(Object error, [StackTrace stackTrace]) {
+    _outSink.addError(error, stackTrace);
+  }
+
+  void close() { _outSink.close(); }
 
   List<int> _processString(String string);
 }

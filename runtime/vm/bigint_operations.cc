@@ -37,7 +37,7 @@ RawBigint* BigintOperations::NewFromSmi(const Smi& smi, Heap::Space space) {
 
   // Allocate a bigint of the correct size and copy the bits.
   const Bigint& result = Bigint::Handle(Bigint::Allocate(digit_count, space));
-  for (int i = 0; i < digit_count; i++) {
+  for (intptr_t i = 0; i < digit_count; i++) {
     result.SetChunkAt(i, static_cast<Chunk>(value & kDigitMask));
     value >>= kDigitBitSize;
   }
@@ -76,7 +76,7 @@ RawBigint* BigintOperations::NewFromUint64(uint64_t value, Heap::Space space) {
 
   // Allocate a bigint of the correct size and copy the bits.
   const Bigint& result = Bigint::Handle(Bigint::Allocate(digit_count, space));
-  for (int i = 0; i < digit_count; i++) {
+  for (intptr_t i = 0; i < digit_count; i++) {
     result.SetChunkAt(i, static_cast<Chunk>(value & kDigitMask));
     value >>= kDigitBitSize;
   }
@@ -174,7 +174,7 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
 
   // Read first digit separately. This avoids a multiplication and addition.
   // The first digit might also not have kDigitsPerIteration decimal digits.
-  int first_digit_decimal_digits = str_length % kDigitsPerIteration;
+  intptr_t first_digit_decimal_digits = str_length % kDigitsPerIteration;
   Chunk digit = 0;
   for (intptr_t i = 0; i < first_digit_decimal_digits; i++) {
     char c = str[str_pos++];
@@ -226,8 +226,8 @@ RawBigint* BigintOperations::NewFromDouble(double d, Heap::Space space) {
     Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
   }
   uint64_t significand = internals.Significand();
-  int exponent = internals.Exponent();
-  int sign = internals.Sign();
+  intptr_t exponent = internals.Exponent();
+  intptr_t sign = internals.Sign();
   if (exponent <= 0) {
     significand >>= -exponent;
     exponent = 0;
@@ -284,7 +284,7 @@ const char* BigintOperations::ToHexCString(intptr_t length,
   // Compute the number of hex-digits that are needed to represent the
   // leading bigint-digit. All other digits need exactly kHexCharsPerDigit
   // characters.
-  int leading_hex_digits = 0;
+  intptr_t leading_hex_digits = 0;
   Chunk leading_digit = chunk_data[chunk_length - 1];
   while (leading_digit != 0) {
     leading_hex_digits++;
@@ -308,7 +308,7 @@ const char* BigintOperations::ToHexCString(intptr_t length,
     // Print all non-leading characters (which are printed with
     // kHexCharsPerDigit characters.
     Chunk digit = chunk_data[i];
-    for (int j = 0; j < kHexCharsPerDigit; j++) {
+    for (intptr_t j = 0; j < kHexCharsPerDigit; j++) {
       result[pos--] = Utils::IntToHexDigit(static_cast<int>(digit & 0xF));
       digit >>= 4;
     }
@@ -377,7 +377,7 @@ const char* BigintOperations::ToDecimalCString(
   char* result =
       reinterpret_cast<char*>(allocator(static_cast<intptr_t>(required_size)));
   ASSERT(result != NULL);
-  int result_pos = 0;
+  intptr_t result_pos = 0;
 
   // We divide the input into pieces of ~27 bits which can be efficiently
   // handled.
@@ -444,7 +444,7 @@ bool BigintOperations::FitsIntoSmi(const Bigint& bigint) {
   // Consume the least-significant digits of the bigint.
   // If bigint_is_greater is set, then the processed sub-part of the bigint is
   // greater than the corresponding part of the limit.
-  for (int i = 0; i < bigint_length - 1; i++) {
+  for (intptr_t i = 0; i < bigint_length - 1; i++) {
     Chunk limit_digit = static_cast<Chunk>(limit & kDigitMask);
     Chunk bigint_digit = bigint.GetChunkAt(i);
     if (limit_digit < bigint_digit) {
@@ -473,7 +473,7 @@ bool BigintOperations::FitsIntoSmi(const Bigint& bigint) {
 RawSmi* BigintOperations::ToSmi(const Bigint& bigint) {
   ASSERT(FitsIntoSmi(bigint));
   intptr_t value = 0;
-  for (int i = bigint.Length() - 1; i >= 0; i--) {
+  for (intptr_t i = bigint.Length() - 1; i >= 0; i--) {
     value <<= kDigitBitSize;
     value += static_cast<intptr_t>(bigint.GetChunkAt(i));
   }
@@ -643,7 +643,7 @@ bool BigintOperations::FitsIntoInt64(const Bigint& bigint) {
   // Consume the least-significant digits of the bigint.
   // If bigint_is_greater is set, then the processed sub-part of the bigint is
   // greater than the corresponding part of the limit.
-  for (int i = 0; i < bigint_length - 1; i++) {
+  for (intptr_t i = 0; i < bigint_length - 1; i++) {
     Chunk limit_digit = static_cast<Chunk>(limit & kDigitMask);
     Chunk bigint_digit = bigint.GetChunkAt(i);
     if (limit_digit < bigint_digit) {
@@ -672,7 +672,7 @@ bool BigintOperations::FitsIntoInt64(const Bigint& bigint) {
 uint64_t BigintOperations::AbsToUint64(const Bigint& bigint) {
   ASSERT(AbsFitsIntoUint64(bigint));
   uint64_t value = 0;
-  for (int i = bigint.Length() - 1; i >= 0; i--) {
+  for (intptr_t i = bigint.Length() - 1; i >= 0; i--) {
     value <<= kDigitBitSize;
     value += static_cast<intptr_t>(bigint.GetChunkAt(i));
   }
@@ -695,7 +695,7 @@ int64_t BigintOperations::ToInt64(const Bigint& bigint) {
 
 bool BigintOperations::AbsFitsIntoUint64(const Bigint& bigint) {
   intptr_t b_length = bigint.Length();
-  int num_bits = CountBits(bigint.GetChunkAt(b_length - 1));
+  intptr_t num_bits = CountBits(bigint.GetChunkAt(b_length - 1));
   num_bits += (kDigitBitSize * (b_length - 1));
   if (num_bits > 64) return false;
   return true;
@@ -1795,8 +1795,8 @@ RawBigint* BigintOperations::Copy(const Bigint& bigint) {
 }
 
 
-int BigintOperations::CountBits(Chunk digit) {
-  int result = 0;
+intptr_t BigintOperations::CountBits(Chunk digit) {
+  intptr_t result = 0;
   while (digit != 0) {
     digit >>= 1;
     result++;

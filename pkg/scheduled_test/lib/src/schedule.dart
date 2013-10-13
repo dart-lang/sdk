@@ -445,8 +445,8 @@ class TaskQueue {
       return _taskFuture.whenComplete(() {
         _taskFuture = null;
         _schedule.heartbeat();
-      }).catchError((e) {
-        var error = new ScheduleError.from(_schedule, e);
+      }).catchError((e, trace) {
+        var error = new ScheduleError.from(_schedule, e, stackTrace: trace);
         _signalError(error);
         throw _error;
       });
@@ -454,15 +454,16 @@ class TaskQueue {
       _schedule._currentTask = null;
     }).then((_) {
       _onTasksCompleteCompleter.complete();
-    }).catchError((e) {
-      _onTasksCompleteCompleter.completeError(e);
+    }).catchError((e, stackTrace) {
+      _onTasksCompleteCompleter.completeError(e, stackTrace);
       throw e;
     }).whenComplete(() {
       if (pendingCallbacks.isEmpty) return;
-      return _noPendingCallbacks.catchError((e) {
+      return _noPendingCallbacks.catchError((e, stackTrace) {
         // Signal the error rather than passing it through directly so that if a
         // timeout happens after an in-task error, both are reported.
-        _signalError(new ScheduleError.from(_schedule, e));
+        _signalError(new ScheduleError.from(_schedule, e,
+                                            stackTrace: stackTrace));
       });
     }).whenComplete(() {
       _schedule.heartbeat();

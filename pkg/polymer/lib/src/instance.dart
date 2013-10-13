@@ -264,6 +264,14 @@ class PolymerElement extends CustomElement with ObservableMixin {
   }
 
   // TODO(jmesserly): use stream or future here?
+  /**
+   * Run the `listener` callback *once*
+   * when `node` changes, or when its children or subtree changes.
+   * 
+   *
+   * See [MutationObserver] if you want to listen to a stream of
+   * changes.
+   */
   void onMutation(Node node, void listener(MutationObserver obs)) {
     new MutationObserver((records, MutationObserver observer) {
       listener(observer);
@@ -273,7 +281,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
 
   void copyInstanceAttributes() {
     _declaration._instanceAttributes.forEach((name, value) {
-      attributes[name] = value;
+      attributes.putIfAbsent(name, () => value);
     });
   }
 
@@ -334,11 +342,11 @@ class PolymerElement extends CustomElement with ObservableMixin {
     if (value == null) return null;
 
     final type = inferredType.qualifiedName;
-    if (type == const Symbol('dart.core.bool')) {
+    if (type == #dart.core.bool) {
       return _toBoolean(value) ? '' : null;
-    } else if (type == const Symbol('dart.core.String')
-        || type == const Symbol('dart.core.int')
-        || type == const Symbol('dart.core.double')) {
+    } else if (type == #dart.core.String
+        || type == #dart.core.int
+        || type == #dart.core.double) {
       return '$value';
     }
     return null;
@@ -361,7 +369,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
       // refine the attr reflection system to achieve this; pica, for example,
       // relies on having inferredType object properties not removed as
       // attrs.
-    } else if (inferredType.qualifiedName == const Symbol('dart.core.bool')) {
+    } else if (inferredType.qualifiedName == #dart.core.bool) {
       attributes.remove(name);
     }
   }
@@ -910,8 +918,8 @@ TypeMirror _propertyType(DeclarationMirror property) =>
 
 TypeMirror _inferPropertyType(Object value, DeclarationMirror property) {
   var type = _propertyType(property);
-  if (type.qualifiedName == const Symbol('dart.core.Object') ||
-      type.qualifiedName == const Symbol('dynamic')) {
+  if (type.qualifiedName == #dart.core.Object ||
+      type.qualifiedName == #dynamic) {
     // Attempt to infer field type from the default value.
     if (value != null) {
       type = reflect(value).type;

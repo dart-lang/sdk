@@ -12,7 +12,7 @@ import 'test_pub.dart';
 main() {
   initConfig();
 
-  forBothPubInstallAndUpdate((command) {
+  forBothPubGetAndUpgrade((command) {
     integration('fails gracefully on a dependency from an unknown source', () {
       d.appDir({"foo": {"bad": "foo"}}).create();
 
@@ -63,7 +63,7 @@ main() {
 
       pubCommand(command);
 
-      // Should update to the new one.
+      // Should upgrade to the new one.
       d.dir(packagesPath, [
         d.dir("foo", [
           d.file("foo.dart", 'main() => "foo";')

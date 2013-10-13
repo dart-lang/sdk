@@ -521,36 +521,18 @@ class ImportLink {
     var combinatorFilter = new CombinatorFilter.fromTag(import);
     if (import != null && import.prefix != null) {
       SourceString prefix = import.prefix.source;
-      Element e = importingLibrary.find(prefix);
-      if (e == null) {
-        e = new PrefixElementX(prefix, importingLibrary.entryCompilationUnit,
-                               import.getBeginToken());
-        importingLibrary.addToScope(e, compiler);
+      Element existingElement = importingLibrary.find(prefix);
+      PrefixElement prefixElement;
+      if (existingElement == null || !existingElement.isPrefix()) {
+        prefixElement = new PrefixElementX(prefix,
+            importingLibrary.entryCompilationUnit, import.getBeginToken());
+      } else {
+        prefixElement = existingElement;
       }
-      if (!identical(e.kind, ElementKind.PREFIX)) {
-        compiler.withCurrentElement(e, () {
-          compiler.reportWarning(e, 'duplicated definition');
-        });
-        compiler.reportFatalError(
-            import.prefix,
-            MessageKind.GENERIC, {'text': 'Error: Duplicate definition.'});
-      }
-      PrefixElement prefixElement = e;
+      importingLibrary.addToScope(prefixElement, compiler);
       importedLibrary.forEachExport((Element element) {
         if (combinatorFilter.exclude(element)) return;
-        // TODO(johnniwinther): Clean-up like [checkDuplicateLibraryName].
-        Element existing =
-            prefixElement.imported.putIfAbsent(element.name, () => element);
-        if (!identical(existing, element)) {
-          compiler.withCurrentElement(existing, () {
-            compiler.reportWarning(existing, 'duplicated import');
-          });
-          compiler.withCurrentElement(element, () {
-            compiler.reportFatalError(
-                element,
-                MessageKind.GENERIC, {'text': 'Error: Duplicated import.'});
-          });
-        }
+        prefixElement.addImport(element, import, compiler);
       });
     } else {
       importedLibrary.forEachExport((Element element) {

@@ -24,10 +24,22 @@ class TestController {
     numCompletedTests++;
     if (testCase.displayName == "fail-unexpected") {
       if (!testCase.unexpectedOutput) {
-        throw "Expected fail-unexpected";
+        var stdout =
+            new String.fromCharCodes(testCase.lastCommandOutput.stdout);
+        var stderr =
+            new String.fromCharCodes(testCase.lastCommandOutput.stderr);
+        print("stdout = [$stdout]");
+        print("stderr = [$stderr]");
+        throw "Expected fail-unexpected: ${testCase.result}";
       }
     } else {
       if (testCase.unexpectedOutput) {
+        var stdout =
+            new String.fromCharCodes(testCase.lastCommandOutput.stdout);
+        var stderr =
+            new String.fromCharCodes(testCase.lastCommandOutput.stderr);
+        print("stdout = [$stdout]");
+        print("stderr = [$stderr]");
         throw "Unexpected fail";
       }
     }

@@ -77,17 +77,19 @@ class _List<E> implements List<E> {
     if (iterable is _List) {
       _copyFromObjectArray(iterable, skipCount, start, length);
     } else {
-      List otherList;
-      int otherStart;
       if (iterable is List) {
-        otherList = iterable;
-        otherStart = skipCount;
+        Arrays.copy(iterable, skipCount, this, start, length);
       } else {
-        otherList =
-            iterable.skip(skipCount).take(length).toList(growable: false);
-        otherStart = 0;
+        Iterator it = iterable.iterator;
+        while (skipCount > 0) {
+          if (!it.moveNext()) return;
+          skipCount--;
+        }
+        for (int i = start; i < end; i++) {
+          if (!it.moveNext()) return;
+          this[i] = it.current;
+        }
       }
-      Arrays.copy(otherList, otherStart, this, start, length);
     }
   }
 
@@ -202,8 +204,8 @@ class _List<E> implements List<E> {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
-  void shuffle() {
-    IterableMixinWorkaround.shuffleList(this);
+  void shuffle([Random random]) {
+    IterableMixinWorkaround.shuffleList(this, random);
   }
 
   int indexOf(Object element, [int start = 0]) {
@@ -460,7 +462,7 @@ class _ImmutableList<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }

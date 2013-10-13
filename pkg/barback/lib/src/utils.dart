@@ -137,14 +137,13 @@ Stream mergeStreams(Iterable<Stream> streams, {bool broadcast: false}) {
       : new StreamController(sync: true);
 
   for (var stream in streams) {
-    stream.listen((value) {
-      controller.add(value);
-    }, onError: (error) {
-      controller.addError(error);
-    }, onDone: () {
-      doneCount++;
-      if (doneCount == streams.length) controller.close();
-    });
+    stream.listen(
+      controller.add,
+      onError: controller.addError,
+      onDone: () {
+    doneCount++;
+    if (doneCount == streams.length) controller.close();
+  });
   }
 
   return controller.stream;
@@ -169,10 +168,10 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// any code to run, as long as it's not waiting on some external event.
 Future pumpEventQueue([int times=20]) {
   if (times == 0) return new Future.value();
-  // We use a delayed future to allow runAsync events to finish. The
-  // Future.value or Future() constructors use runAsync themselves and would
-  // therefore not wait for runAsync callbacks that are scheduled after invoking
-  // this method.
+  // We use a delayed future to allow microtask events to finish. The
+  // Future.value or Future() constructors use scheduleMicrotask themselves and
+  // would therefore not wait for microtask callbacks that are scheduled after
+  // invoking this method.
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
@@ -188,10 +187,10 @@ Stream futureStream(Future<Stream> future) {
   future.then((stream) {
     stream.listen(
         controller.add,
-        onError: (error) => controller.addError(error),
+        onError: controller.addError,
         onDone: controller.close);
-  }).catchError((e) {
-    controller.addError(e);
+  }).catchError((e, stackTrace) {
+    controller.addError(e, stackTrace);
     controller.close();
   });
   return controller.stream;

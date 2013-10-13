@@ -49,8 +49,8 @@ const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
   ASSERT(url_mapping != NULL);
   // We need to check if the passed in url is found in the url_mapping array,
   // in that case use the mapped entry.
-  int len = strlen(url_string);
-  for (int idx = 0; idx < url_mapping->count(); idx++) {
+  intptr_t len = strlen(url_string);
+  for (intptr_t idx = 0; idx < url_mapping->count(); idx++) {
     const char* url_name = url_mapping->GetArgument(idx);
     if (!strncmp(url_string, url_name, len) && (url_name[len] == ',')) {
       const char* url_mapped_name = url_name + len + 1;
@@ -939,7 +939,7 @@ Dart_CObject* CObject::NewString(intptr_t length) {
 
 
 Dart_CObject* CObject::NewString(const char* str) {
-  int length = strlen(str);
+  intptr_t length = strlen(str);
   Dart_CObject* cobject = NewString(length);
   memmove(cobject->value.as_string, str, length + 1);
   return cobject;

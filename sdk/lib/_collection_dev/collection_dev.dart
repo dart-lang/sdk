@@ -9,10 +9,11 @@ import 'dart:collection';
 import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:math' show Random;
+import 'dart:collection' show HashSet;
 
 part 'arrays.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'sort.dart';
 part 'symbol.dart';
-part 'to_string.dart';
+

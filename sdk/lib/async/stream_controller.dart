@@ -169,10 +169,7 @@ abstract class StreamController<T> implements StreamSink<T> {
 
 
 abstract class _StreamControllerLifecycle<T> {
-  StreamSubscription<T> _subscribe(void onData(T data),
-                                   void onError(Object error),
-                                   void onDone(),
-                                   bool cancelOnError);
+  StreamSubscription<T> _subscribe(bool cancelOnError);
   void _recordPause(StreamSubscription<T> subscription) {}
   void _recordResume(StreamSubscription<T> subscription) {}
   void _recordCancel(StreamSubscription<T> subscription) {}
@@ -383,7 +380,7 @@ abstract class _StreamController<T> implements StreamController<T>,
       // a stack trace.
       _attachStackTrace(error, stackTrace);
     }
-    _addError(error);
+    _addError(error, stackTrace);
   }
 
   /**
@@ -424,11 +421,11 @@ abstract class _StreamController<T> implements StreamController<T>,
     }
   }
 
-  void _addError(Object error) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (hasListener) {
-      _sendError(error);
+      _sendError(error, stackTrace);
     } else if (_isInitialState) {
-      _ensurePendingEvents().add(new _DelayedError(error));
+      _ensurePendingEvents().add(new _DelayedError(error, stackTrace));
     }
   }
 
@@ -443,15 +440,12 @@ abstract class _StreamController<T> implements StreamController<T>,
 
   // _StreamControllerLifeCycle interface
 
-  StreamSubscription<T> _subscribe(void onData(T data),
-                                   void onError(Object error),
-                                   void onDone(),
-                                   bool cancelOnError) {
+  StreamSubscription<T> _subscribe(bool cancelOnError) {
     if (!_isInitialState) {
       throw new StateError("Stream has already been listened to.");
     }
-    _ControllerSubscription subscription = new _ControllerSubscription(
-        this, onData, onError, onDone, cancelOnError);
+    _ControllerSubscription subscription =
+        new _ControllerSubscription(this, cancelOnError);
 
     _PendingEvents pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
@@ -506,8 +500,8 @@ abstract class _SyncStreamControllerDispatch<T>
     _subscription._add(data);
   }
 
-  void _sendError(Object error) {
-    _subscription._addError(error);
+  void _sendError(Object error, StackTrace stackTrace) {
+    _subscription._addError(error, stackTrace);
   }
 
   void _sendDone() {
@@ -521,8 +515,8 @@ abstract class _AsyncStreamControllerDispatch<T>
     _subscription._addPending(new _DelayedData(data));
   }
 
-  void _sendError(Object error) {
-    _subscription._addPending(new _DelayedError(error));
+  void _sendError(Object error, StackTrace stackTrace) {
+    _subscription._addPending(new _DelayedError(error, stackTrace));
   }
 
   void _sendDone() {
@@ -579,7 +573,7 @@ void _runGuarded(_NotificationHandler notificationHandler) {
   try {
     notificationHandler();
   } catch (e, s) {
-    Zone.current.handleUncaughtError(_asyncError(e, s));
+    Zone.current.handleUncaughtError(_asyncError(e, s), s);
   }
 }
 
@@ -588,12 +582,8 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   _ControllerStream(this._controller);
 
-  StreamSubscription<T> _createSubscription(
-      void onData(T data),
-      void onError(Object error),
-      void onDone(),
-      bool cancelOnError) =>
-    _controller._subscribe(onData, onError, onDone, cancelOnError);
+  StreamSubscription<T> _createSubscription(bool cancelOnError) =>
+    _controller._subscribe(cancelOnError);
 
   // Override == and hashCode so that new streams returned by the same
   // controller are considered equal. The controller returns a new stream
@@ -612,12 +602,8 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
   final _StreamControllerLifecycle<T> _controller;
 
-  _ControllerSubscription(this._controller,
-                          void onData(T data),
-                          void onError(Object error),
-                          void onDone(),
-                          bool cancelOnError)
-      : super(onData, onError, onDone, cancelOnError);
+  _ControllerSubscription(this._controller, bool cancelOnError)
+      : super(cancelOnError);
 
   void _onCancel() {
     _controller._recordCancel(this);
@@ -638,7 +624,9 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
   final StreamSink _target;
   _StreamSinkWrapper(this._target);
   void add(T data) { _target.add(data); }
-  void addError(Object error) { _target.addError(error); }
+  void addError(Object error, [StackTrace stackTrace]) {
+    _target.addError(error);
+  }
   Future close() => _target.close();
   Future addStream(Stream<T> source) => _target.addStream(source);
   Future get done => _target.done;

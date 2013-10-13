@@ -25,6 +25,11 @@ Timer _progressTimer;
 /// progress is done, a single entry will be added to the log for it.
 String _progressMessage;
 
+final _green = getSpecial('\u001b[32m');
+final _red = getSpecial('\u001b[31m');
+final _yellow = getSpecial('\u001b[33m');
+final _none = getSpecial('\u001b[0m');
+
 /// An enum type for defining the different logging levels. By default, [ERROR]
 /// and [WARNING] messages are printed to sterr. [MESSAGE] messages are printed
 /// to stdout, and others are ignored.
@@ -201,6 +206,18 @@ Future progress(String message, Future callback()) {
 
   return callback().whenComplete(_stopProgress);
 }
+
+/// Wraps [text] in the ANSI escape codes to color it green when on a platform
+/// that supports that.
+String green(text) => "$_green$text$_none";
+
+/// Wraps [text] in the ANSI escape codes to color it red when on a platform
+/// that supports that.
+String red(text) => "$_red$text$_none";
+
+/// Wraps [text] in the ANSI escape codes to color it yellow when on a platform
+/// that supports that.
+String yellow(text) => "$_yellow$text$_none";
 
 /// Stops the running progress indicator, if currently running.
 _stopProgress() {

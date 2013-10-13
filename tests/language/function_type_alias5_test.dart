@@ -11,4 +11,7 @@ typedef A(B x);  /// 02: compile-time error
 typedef B(A x);  /// 02: continued
 
 main() {
+  Handle h;  /// 00: continued
+  F f;  /// 01: continued
+  A f;  /// 02: continued
 }

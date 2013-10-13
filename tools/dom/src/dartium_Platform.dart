@@ -24,15 +24,8 @@ class Platform {
    *
    * This is needed to cover timing scenarios which the custom element polyfill
    * does not cover.
-   *
-   * This is also a workaround for dartbug.com/12642 in Dartium.
    */
   static void upgradeCustomElements(Node node) {
     // no-op, provided for dart2js polyfill.
-    if (node is Element) {
-      (node as Element).queryAll('*');
-    } else {
-      node.nodes.forEach(upgradeCustomElements);
-    }
   }
 }

@@ -124,7 +124,7 @@ Future<String> _transform(String code) {
 class _MockTransform implements Transform {
   List<Asset> outs = [];
   Asset _asset;
-  TransformLogger logger = new TransformLogger(false);
+  TransformLogger logger = new TransformLogger(_mockLogFn);
   Asset get primaryInput => _asset;
 
   _MockTransform(this._asset);
@@ -139,6 +139,11 @@ class _MockTransform implements Transform {
 
   readInput(id) => throw new UnimplementedError();
   readInputAsString(id, {encoding}) => throw new UnimplementedError();
+
+  static void _mockLogFn(AssetId asset, LogLevel level, String message,
+                         Span span) {
+    // Do nothing.
+  }
 }
 
 String _sampleObservable(String annotation) => '''

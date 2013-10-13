@@ -396,4 +396,22 @@ void InlinedFunctionsIterator::Advance() {
   SetDone();
 }
 
+
+// Finds the potential offset for the current function's FP if the
+// current frame were to be deoptimized.
+intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
+  ASSERT(deopt_instructions_.length() != 0);
+  for (intptr_t index = index_;
+       index < deopt_instructions_.length();
+       index++) {
+    DeoptInstr* deopt_instr = deopt_instructions_[index];
+    if (deopt_instr->kind() == DeoptInstr::kCallerFp) {
+      return index;
+    }
+  }
+  UNREACHABLE();
+  return 0;
+}
+
+
 }  // namespace dart

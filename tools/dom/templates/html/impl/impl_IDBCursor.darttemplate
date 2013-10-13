@@ -23,5 +23,16 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
+  $if DART2JS
+  @JSName('continue')
+  @DomName('IDBCursor.continue')
+  void next([Object key]) {
+    if (key == null) {
+      JS('void', '#.continue()', this);
+    } else {
+      JS('void', '#.continue(#)', this, key);
+    }
+  }
+  $endif
   $!MEMBERS
 }

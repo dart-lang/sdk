@@ -422,7 +422,7 @@ class EventSinkWrapper extends EventSink<String> {
 
   void add(String data) => onAdd(data);
 
-  void addError(error) => throw error;
+  void addError(error, [StackTrace stackTrace]) => throw error;
 
   void close() => onClose();
 }
@@ -590,7 +590,7 @@ void helpAndFail(String message) {
 }
 
 void mainWithErrorHandler(Options options) {
-  runZonedExperimental(() => compilerMain(options), onError: (exception) {
+  runZoned(() => compilerMain(options), onError: (exception) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {

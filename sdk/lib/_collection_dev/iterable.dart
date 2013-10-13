@@ -24,6 +24,10 @@ part of dart._collection.dev;
 //    deprecation of runZonedExperimental.
 // TODO(floitsch): also used in dart:json and dart:utf until middle of October
 //    for deprecation of json and utf libraries.
+// TODO(floitsch): and dart:async until middle of October for deprecation of
+//    getAttachedStackTrace.
+// TODO(floitsch): and dart:async until end of October for deprecation of
+//    runAsync.
 
 // We use a random string constant to avoid it clashing with other constants.
 // This is, because we have a test that verifies that no metadata is included
@@ -897,7 +901,7 @@ class IterableMixinWorkaround {
     for (int i = 0; i < _toStringList.length; i++) {
       if (identical(_toStringList[i], iterable)) {
         return '$leftDelimiter...$rightDelimiter';
-        }
+      }
     }
 
     StringBuffer result = new StringBuffer();
@@ -958,8 +962,8 @@ class IterableMixinWorkaround {
     Sort.sort(list, compare);
   }
 
-  static void shuffleList(List list) {
-    Random random = new Random();
+  static void shuffleList(List list, Random random) {
+    if (random == null) random = new Random();
     int length = list.length;
     while (length > 1) {
       int pos = random.nextInt(length);

@@ -15,10 +15,9 @@ Language/05_Variables/05_Variables_A06_t03: Fail # Issue 13719: Please triage th
 Language/05_Variables/05_Variables_A06_t04: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A06_t05: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A06_t06: Fail # Issue 13719: Please triage this failure.
-Language/05_Variables/05_Variables_A16_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Issue 13719: Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Fail # Issue 13719: Please triage this failure.
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: Fail # Issue 13719: Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: Fail # Issue 13719: Please triage this failure.
 Language/09_Mixins/1_Mixin_Application_A01_t01: Fail # co19-roll r607: Please triage this failure
@@ -56,6 +55,7 @@ Language/13_Statements/09_Switch_A02_t04: Fail # Issue 13719: Please triage this
 Language/13_Statements/12_Labels_A01_t03: Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: Fail # Issue 13719: Please triage this failure.
+Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t04: Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/5_URIs_A01_t05: Fail # Issue 13719: Please triage this failure.
@@ -104,13 +104,13 @@ LibTest/core/Symbol/Symbol_A01_t05: Fail # co19-roll r607: Please triage this fa
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnFunction_A04_t02: Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnFunction_A04_t03: Timeout # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t01: Timeout # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t02: Timeout # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Timeout # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Timeout # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A01_t05: Timeout # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # Issue 13719: Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, Timeout # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, Timeout # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, Timeout # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail, Timeout # Issue 13719: Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail, Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Timeout # Issue 13719: Please triage this failure.
 LibTest/isolate/IsolateSink/addError_A01_t01: Fail # Issue 13719: Please triage this failure.
@@ -125,3 +125,36 @@ LibTest/math/atan_A01_t01: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Float32x4/clamp_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # Issue 13719: Please triage this failure.
+
+Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A04_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A04_t02: Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A04_t03: Fail # Issue 13921
+LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Fail # Issue 13921
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail # Issue 13921
+LibTest/isolate/IsolateSink/add_A01_t01: Fail # Issue 13921
+LibTest/isolate/IsolateSink/add_A01_t02: Fail # Issue 13921
+LibTest/isolate/IsolateSink/add_A02_t01: Fail # Issue 13921
+LibTest/isolate/IsolateSink/close_A01_t03: Fail # Issue 13921
+LibTest/isolate/IsolateSink/close_A01_t04: Fail # Issue 13921
+LibTest/isolate/IsolateSink/operator_equality_A01_t01: Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t01: Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t02: Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t03: Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
+
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Skip # Issue 13992
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Skip # Issue 13992

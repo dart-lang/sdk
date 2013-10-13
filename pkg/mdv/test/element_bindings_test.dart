@@ -21,8 +21,6 @@ main() {
   group('Element Bindings', elementBindingTests);
 }
 
-sym(x) => new Symbol(x);
-
 observePath(obj, path) => new PathObserver(obj, path);
 
 elementBindingTests() {
@@ -46,7 +44,7 @@ elementBindingTests() {
     var text = testDiv.nodes[1];
     expect(text.text, '1 and 2');
 
-    model[sym('a')] = 3;
+    model[#a] = 3;
     performMicrotaskCheckpoint();
     expect(text.text, '3 and 2');
   });
@@ -58,19 +56,19 @@ elementBindingTests() {
     performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '1');
 
-    model[sym('a')] = '2';
+    model[#a] = '2';
     performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '2');
 
-    model[sym('a')] = 232.2;
+    model[#a] = 232.2;
     performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '232.2');
 
-    model[sym('a')] = 232;
+    model[#a] = 232;
     performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '232');
 
-    model[sym('a')] = null;
+    model[#a] = null;
     performMicrotaskCheckpoint();
     expect(el.attributes['foo'], '');
   });
@@ -82,7 +80,7 @@ elementBindingTests() {
     performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '1');
 
-    model[sym('a')] = '2';
+    model[#a] = '2';
     performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '2');
   });
@@ -95,7 +93,7 @@ elementBindingTests() {
     performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '1');
 
-    model[sym('a')] = '2';
+    model[#a] = '2';
     performMicrotaskCheckpoint();
     expect(el.attributes['foo-bar'], '2');
   });
@@ -118,7 +116,7 @@ elementBindingTests() {
     el = testDiv.nodes[1].nodes.first;
     expect(el.text, 'Hello cruel world!');
 
-    model[sym('adj')] = 'happy';
+    model[#adj] = 'happy';
     performMicrotaskCheckpoint();
     expect(el.text, 'Hello happy world!');
   });
@@ -133,7 +131,7 @@ elementBindingTests() {
 
     el.value = 'pong';
     dispatchEvent('input', el);
-    expect(model[sym('val')], 'pong');
+    expect(model[#val], 'pong');
 
     // Try a deep path.
     model = toSymbolMap({'a': {'b': {'c': 'ping'}}});
@@ -147,7 +145,7 @@ elementBindingTests() {
     expect(observePath(model, 'a.b.c').value, 'pong');
 
     // Start with the model property being absent.
-    model[sym('a')][sym('b')].remove(sym('c'));
+    model[#a][#b].remove(#c);
     performMicrotaskCheckpoint();
     expect(el.value, '');
 
@@ -157,7 +155,7 @@ elementBindingTests() {
     performMicrotaskCheckpoint();
 
     // Model property unreachable (and unsettable).
-    model[sym('a')].remove(sym('b'));
+    model[#a].remove(#b);
     performMicrotaskCheckpoint();
     expect(el.value, '');
 
@@ -176,21 +174,21 @@ elementBindingTests() {
     performMicrotaskCheckpoint();
     expect(el.checked, true);
 
-    model[sym('val')] = false;
+    model[#val] = false;
     performMicrotaskCheckpoint();
     expect(el.checked, false);
 
     el.click();
-    expect(model[sym('val')], true);
+    expect(model[#val], true);
 
     el.click();
-    expect(model[sym('val')], false);
+    expect(model[#val], false);
 
     el.onClick.listen((_) {
-      expect(model[sym('val')], true);
+      expect(model[#val], true);
     });
     el.onChange.listen((_) {
-      expect(model[sym('val')], true);
+      expect(model[#val], true);
     });
 
     el.dispatchEvent(new MouseEvent('click', view: window));
@@ -207,7 +205,7 @@ elementBindingTests() {
     expect(el.checked, true);
 
     el.onClick.listen((_) {
-      expect(model[sym('val')], false);
+      expect(model[#val], false);
     });
 
     el.dispatchEvent(new MouseEvent('click', view: window));
@@ -224,7 +222,7 @@ elementBindingTests() {
     expect(el.checked, true);
 
     el.onChange.listen((_) {
-      expect(model[sym('val')], false);
+      expect(model[#val], false);
     });
 
     el.dispatchEvent(new MouseEvent('click', view: window));
@@ -267,8 +265,8 @@ elementBindingTests() {
     expect(el3.checked, false);
     expect(el4.checked, true);
 
-    model[sym('val1')] = false;
-    model[sym('val2')] = true;
+    model[#val1] = false;
+    model[#val2] = true;
     performMicrotaskCheckpoint();
     expect(el1.checked, false);
     expect(el2.checked, true);
@@ -277,17 +275,17 @@ elementBindingTests() {
 
     el1.checked = true;
     dispatchEvent('change', el1);
-    expect(model[sym('val1')], true);
-    expect(model[sym('val2')], false);
-    expect(model[sym('val3')], false);
-    expect(model[sym('val4')], true);
+    expect(model[#val1], true);
+    expect(model[#val2], false);
+    expect(model[#val3], false);
+    expect(model[#val4], true);
 
     el3.checked = true;
     dispatchEvent('change', el3);
-    expect(model[sym('val1')], false);
-    expect(model[sym('val2')], false);
-    expect(model[sym('val3')], true);
-    expect(model[sym('val4')], true);
+    expect(model[#val1], false);
+    expect(model[#val2], false);
+    expect(model[#val3], true);
+    expect(model[#val4], true);
   });
 
   observeTest('InputElementRadioMultipleForms', () {
@@ -332,21 +330,21 @@ elementBindingTests() {
 
     el2.checked = true;
     dispatchEvent('change', el2);
-    expect(model[sym('val1')], false);
-    expect(model[sym('val2')], true);
+    expect(model[#val1], false);
+    expect(model[#val2], true);
 
     // Radio buttons in form2 should be unaffected
-    expect(model[sym('val3')], false);
-    expect(model[sym('val4')], true);
+    expect(model[#val3], false);
+    expect(model[#val4], true);
 
     el3.checked = true;
     dispatchEvent('change', el3);
-    expect(model[sym('val3')], true);
-    expect(model[sym('val4')], false);
+    expect(model[#val3], true);
+    expect(model[#val4], false);
 
     // Radio buttons in form1 should be unaffected
-    expect(model[sym('val1')], false);
-    expect(model[sym('val2')], true);
+    expect(model[#val1], false);
+    expect(model[#val2], true);
   });
 
   observeTest('BindToChecked', () {
@@ -362,10 +360,10 @@ elementBindingTests() {
     input.bind('checked', model, 'a.b');
 
     input.click();
-    expect(model[sym('a')][sym('b')], true);
+    expect(model[#a][#b], true);
 
     input.click();
-    expect(model[sym('a')][sym('b')], false);
+    expect(model[#a][#b], false);
   });
 
   observeTest('Select selectedIndex', () {
@@ -383,7 +381,7 @@ elementBindingTests() {
 
     select.selectedIndex = 1;
     dispatchEvent('change', select);
-    expect(model[sym('val')], 1);
+    expect(model[#val], 1);
   });
 
   observeTest('MultipleReferences', () {

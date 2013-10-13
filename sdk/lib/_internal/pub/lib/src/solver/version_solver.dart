@@ -22,7 +22,7 @@ import 'backtracking_solver.dart';
 /// [lockFile].
 ///
 /// If [useLatest] is given, then only the latest versions of the referenced
-/// packages will be used. This is for forcing an update to one or more
+/// packages will be used. This is for forcing an upgrade to one or more
 /// packages.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
     {LockFile lockFile, List<String> useLatest}) {
@@ -235,11 +235,11 @@ class NoVersionException extends SolveFailure {
 // TODO(rnystrom): Report the list of depending packages and their constraints.
 /// Exception thrown when the most recent version of [package] must be selected,
 /// but doesn't match the [VersionConstraint] imposed on the package.
-class CouldNotUpdateException extends SolveFailure {
+class CouldNotUpgradeException extends SolveFailure {
   final VersionConstraint constraint;
   final Version best;
 
-  CouldNotUpdateException(String package, this.constraint, this.best)
+  CouldNotUpgradeException(String package, this.constraint, this.best)
       : super(package, null);
 
   String get _message =>

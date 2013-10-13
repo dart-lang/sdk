@@ -1,13 +1,10 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library css;
 
-import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
-import 'dart:math' as Math;
 
 import 'package:path/path.dart' as path;
 import 'package:source_maps/span.dart' show SourceFile;

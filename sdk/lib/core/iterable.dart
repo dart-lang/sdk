@@ -201,7 +201,7 @@ abstract class Iterable<E> {
   /**
    * Returns an Iterable that skips the first [n] elements.
    *
-   * If `this` has fewer than [n] elements, then the resulting Iterable is 
+   * If `this` has fewer than [n] elements, then the resulting Iterable is
    * empty.
    *
    * It is an error if [n] is negative.

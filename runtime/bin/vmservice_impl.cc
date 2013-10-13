@@ -47,7 +47,7 @@ static const char* kVMServiceIOLibraryScriptResourceName =
 static const char* kVMServiceLibraryName =
     kLibraryResourceNamePrefix "/vmservice.dart";
 
-#define kClientResourceNamePrefix "/client/web/out"
+#define kClientResourceNamePrefix "/vmservice/client"
 
 Dart_Isolate VmService::isolate_ = NULL;
 Dart_Port VmService::port_ = ILLEGAL_PORT;
@@ -146,6 +146,9 @@ bool VmService::_Start(intptr_t server_port) {
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);
 
+  Dart_Handle library_name = Dart_NewStringFromCString(kVMServiceLibraryName);
+  library = Dart_LookupLibrary(library_name);
+  SHUTDOWN_ON_ERROR(library);
   result = LoadResources(library);
   SHUTDOWN_ON_ERROR(result);
   result = Dart_CompileAll();

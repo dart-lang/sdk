@@ -48,6 +48,9 @@ DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
     "Huge method cutoff in unoptimized code size (in bytes).");
 DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
     "Huge method cutoff in tokens: Disables optimizations for huge methods.");
+DEFINE_FLAG(bool, overlap_type_arguments, true,
+    "When possible, partially or fully overlap the type arguments of a type "
+    "with the type arguments of its super type.");
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
@@ -213,6 +216,7 @@ INVISIBLE_LIST(MARK_FUNCTION)
 #undef MARK_FUNCTION
 }
 
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -238,7 +242,7 @@ INVISIBLE_LIST(MARK_FUNCTION)
 //   _MyClass@6b3832b. -> _MyClass
 //   _MyClass@6b3832b.named -> _MyClass.named
 //
-static RawString* IdentifierPrettyName(const String& name) {
+RawString* String::IdentifierPrettyName(const String& name) {
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
@@ -306,6 +310,51 @@ static RawString* IdentifierPrettyName(const String& name) {
   if (is_setter) {
     // Setters need to end with '='.
     return String::Concat(result, Symbols::Equals());
+  }
+
+  return result.raw();
+}
+
+
+RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
+  intptr_t len = name.Length();
+  intptr_t start = 0;
+  intptr_t at_pos = -1;  // Position of '@' in the name, if any.
+  bool is_setter = false;
+
+  for (intptr_t i = start; i < len; i++) {
+    if (name.CharAt(i) == ':') {
+      ASSERT(start == 0);  // Only one : is possible in getters or setters.
+      if (name.CharAt(0) == 's') {
+        is_setter = true;
+      }
+      start = i + 1;
+    } else if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == -1);  // Only one @ is supported.
+      at_pos = i;
+    }
+  }
+
+  if (start == 0) {
+    // This unmangled_name is fine as it is.
+    return name.raw();
+  }
+
+  String& result =
+      String::Handle(String::SubString(name, start, (len - start)));
+
+  if (is_setter) {
+    // Setters need to end with '='.
+    if (at_pos == -1) {
+      return String::Concat(result, Symbols::Equals());
+    } else {
+      const String& pre_at =
+          String::Handle(String::SubString(result, 0, at_pos - 4));
+      const String& post_at =
+          String::Handle(String::SubString(name, at_pos, len - at_pos));
+      result = String::Concat(pre_at, Symbols::Equals());
+      result = String::Concat(result, post_at);
+    }
   }
 
   return result.raw();
@@ -1488,7 +1537,7 @@ RawString* Class::UserVisibleName() const {
     default:
       if (!IsSignatureClass()) {
         const String& name = String::Handle(Name());
-        return IdentifierPrettyName(name);
+        return String::IdentifierPrettyName(name);
       } else {
         return Name();
       }
@@ -1538,13 +1587,14 @@ RawType* Class::SignatureType() const {
 }
 
 
-RawType* Class::RareType() const {
+RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       Object::null_abstract_type_arguments(),
       Scanner::kDummyTokenIndex));
-  return Type::RawCast(
-      ClassFinalizer::FinalizeType(*this, type, ClassFinalizer::kCanonicalize));
+  return ClassFinalizer::FinalizeType(*this,
+                                      type,
+                                      ClassFinalizer::kCanonicalize);
 }
 
 
@@ -1704,17 +1754,79 @@ intptr_t Class::NumTypeParameters() const {
 }
 
 
+intptr_t Class::NumOwnTypeArguments() const {
+  Isolate* isolate = Isolate::Current();
+  const intptr_t num_type_params = NumTypeParameters();
+  if (!FLAG_overlap_type_arguments ||
+      (num_type_params == 0) ||
+      (super_type() == AbstractType::null()) ||
+      (super_type() == isolate->object_store()->object_type())) {
+    return num_type_params;
+  }
+  ASSERT(!IsMixinApplication() || is_mixin_type_applied());
+  const AbstractType& sup_type = AbstractType::Handle(isolate, super_type());
+  ASSERT(sup_type.IsResolved());
+  const AbstractTypeArguments& sup_type_args =
+      AbstractTypeArguments::Handle(isolate, sup_type.arguments());
+  if (sup_type_args.IsNull()) {
+    // The super type is raw or the super class is non generic.
+    // In either case, overlapping is not possible.
+    return num_type_params;
+  }
+  const intptr_t num_sup_type_args = sup_type_args.Length();
+  // At this point, the super type may or may not be finalized. In either case,
+  // the result of this function must remain the same.
+  // The value of num_sup_type_args may increase when the super type is
+  // finalized, but the last num_sup_type_args type arguments will not be
+  // modified by finalization, only shifted to higher indices in the vector.
+  // They may however get wrapped in a BoundedType, which we skip.
+  const AbstractTypeArguments& type_params =
+      AbstractTypeArguments::Handle(isolate, type_parameters());
+  // Determine the maximum overlap of a prefix of the vector consisting of the
+  // type parameters of this class with a suffix of the vector consisting of the
+  // type arguments of the super type of this class.
+  // The number of own type arguments of this class is the number of its type
+  // parameters minus the number of type arguments in the overlap.
+  // Attempt to overlap the whole vector of type parameters; reduce the size
+  // of the vector (keeping the first type parameter) until it fits or until
+  // its size is zero.
+  TypeParameter& type_param = TypeParameter::Handle(isolate);
+  AbstractType& sup_type_arg = AbstractType::Handle(isolate);
+  for (intptr_t num_overlapping_type_args =
+           (num_type_params < num_sup_type_args) ?
+               num_type_params : num_sup_type_args;
+       num_overlapping_type_args > 0; num_overlapping_type_args--) {
+    intptr_t i = 0;
+    for (; i < num_overlapping_type_args; i++) {
+      type_param ^= type_params.TypeAt(i);
+      sup_type_arg = sup_type_args.TypeAt(
+          num_sup_type_args - num_overlapping_type_args + i);
+      // BoundedType can nest in case the finalized super type has bounded type
+      // arguments that overlap multiple times in its own super class chain.
+      while (sup_type_arg.IsBoundedType()) {
+        sup_type_arg = BoundedType::Cast(sup_type_arg).type();
+      }
+      if (!type_param.Equals(sup_type_arg)) break;
+    }
+    if (i == num_overlapping_type_args) {
+      // Overlap found.
+      return num_type_params - num_overlapping_type_args;
+    }
+  }
+  // No overlap found.
+  return num_type_params;
+}
+
+
 intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the type_class() call on the super type.
   // Note that calling type_class() on a MixinAppType fails.
   Isolate* isolate = Isolate::Current();
   Class& cls = Class::Handle(isolate);
-  TypeArguments& type_params = TypeArguments::Handle(isolate);
   AbstractType& sup_type = AbstractType::Handle(isolate);
-  cls ^= raw();
+  cls = raw();
   intptr_t num_type_args = 0;
-
   do {
     if (cls.IsSignatureClass()) {
       Function& signature_fun = Function::Handle(isolate);
@@ -1724,32 +1836,53 @@ intptr_t Class::NumTypeArguments() const {
         cls = signature_fun.Owner();
       }
     }
-    // Calling NumTypeParameters() on a mixin application class will setup the
+    // Calling NumOwnTypeArguments() on a mixin application class will setup the
     // type parameters if not already done.
-    if (cls.NumTypeParameters() > 0) {
-      type_params ^= cls.type_parameters();
-      num_type_args += type_params.Length();
-    }
+    num_type_args += cls.NumOwnTypeArguments();
     // Super type of Object class is null.
-    if (cls.super_type() == AbstractType::null() ||
-        cls.super_type() == isolate->object_store()->object_type()) {
+    if ((cls.super_type() == AbstractType::null()) ||
+        (cls.super_type() == isolate->object_store()->object_type())) {
       break;
     }
-    sup_type ^= cls.super_type();
+    sup_type = cls.super_type();
     cls = sup_type.type_class();
   } while (true);
   return num_type_args;
 }
 
 
+// More efficient than calling NumTypeArguments().
 bool Class::HasTypeArguments() const {
+  // Fast check for a non-signature finalized class.
   if (!IsSignatureClass() && (is_finalized() || is_prefinalized())) {
-    // More efficient than calling NumTypeArguments().
     return type_arguments_field_offset() != kNoTypeArguments;
-  } else {
-    // No need to check NumTypeArguments() if class has type parameters.
-    return (NumTypeParameters() > 0) || (NumTypeArguments() > 0);
   }
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle(isolate);
+  cls = raw();
+  do {
+    if (cls.IsSignatureClass()) {
+      Function& signature_fun = Function::Handle(isolate);
+      signature_fun ^= cls.signature_function();
+      if (!signature_fun.is_static() &&
+          !signature_fun.HasInstantiatedSignature()) {
+        cls = signature_fun.Owner();
+      }
+    }
+    if (cls.NumTypeParameters() > 0) {
+      return true;
+    }
+    if ((cls.super_type() == AbstractType::null()) ||
+        (cls.super_type() == isolate->object_store()->object_type())) {
+      return false;
+    }
+    cls = cls.SuperClass();
+    if (!cls.IsSignatureClass() &&
+        (cls.is_finalized() || cls.is_prefinalized())) {
+      return cls.type_arguments_field_offset() != kNoTypeArguments;
+    }
+  } while (true);
+  UNREACHABLE();
 }
 
 
@@ -1764,7 +1897,7 @@ RawClass* Class::SuperClass() const {
 
 void Class::set_super_type(const AbstractType& value) const {
   ASSERT(value.IsNull() ||
-         value.IsType() ||
+         (value.IsType() && !value.IsDynamicType()) ||
          value.IsBoundedType() ||
          value.IsMixinAppType());
   StorePointer(&raw_ptr()->super_type_, value.raw());
@@ -2532,10 +2665,10 @@ bool Class::TypeTest(
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
-    const intptr_t len = NumTypeArguments();
-    if (len == 0) {
+    if (!HasTypeArguments()) {
       return true;
     }
+    const intptr_t len = NumTypeArguments();
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
     // Check for covariance.
@@ -3375,25 +3508,39 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+// Return true if this uninstantiated type argument vector, once instantiated
+// at runtime, is a prefix of the type argument vector of its instantiator.
 bool TypeArguments::CanShareInstantiatorTypeArguments(
       const Class& instantiator_class) const {
   ASSERT(!IsInstantiated());
+  const intptr_t num_type_args = Length();
   const intptr_t num_instantiator_type_args =
       instantiator_class.NumTypeArguments();
-  const intptr_t num_instantiator_type_params =
-      instantiator_class.NumTypeParameters();
-  const intptr_t num_super_instantiator_type_args =
-      num_instantiator_type_args - num_instantiator_type_params;
-  const intptr_t num_type_args = Length();
-  // As a first requirement in order to share the instantiator type argument
-  // vector, this type argument vector must refer to the type parameters of the
-  // instantiator class in declaration order. It does not need to contain all
-  // type parameters.
-  if (num_type_args < num_super_instantiator_type_args) {
+  if (num_type_args > num_instantiator_type_args) {
+    // This vector cannot be a prefix of a shorter vector.
     return false;
   }
+  const intptr_t num_instantiator_type_params =
+      instantiator_class.NumTypeParameters();
+  const intptr_t first_type_param_offset =
+      num_instantiator_type_args - num_instantiator_type_params;
+  // At compile time, the type argument vector of the instantiator consists of
+  // the type argument vector of its super type, which may refer to the type
+  // parameters of the instantiator class, followed by (or overlapping partially
+  // or fully with) the type parameters of the instantiator class in declaration
+  // order.
+  // In other words, the only variables are the type parameters of the
+  // instantiator class.
+  // This uninstantiated type argument vector is also expressed in terms of the
+  // type parameters of the instantiator class. Therefore, in order to be a
+  // prefix once instantiated at runtime, every one of its type argument must be
+  // equal to the type argument of the instantiator vector at the same index.
+
+  // As a first requirement, the last num_instantiator_type_params type
+  // arguments of this type argument vector must refer to the corresponding type
+  // parameters of the instantiator class.
   AbstractType& type_arg = AbstractType::Handle();
-  for (intptr_t i = num_super_instantiator_type_args; i < num_type_args; i++) {
+  for (intptr_t i = first_type_param_offset; i < num_type_args; i++) {
     type_arg = TypeAt(i);
     if (!type_arg.IsTypeParameter()) {
       return false;
@@ -3405,8 +3552,9 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     }
   }
   // As a second requirement, the type arguments corresponding to the super type
-  // must be identical.
-  if (num_super_instantiator_type_args == 0) {
+  // must be identical. Overlapping ones have already been checked starting at
+  // first_type_param_offset.
+  if (first_type_param_offset == 0) {
     return true;
   }
   AbstractType& super_type = AbstractType::Handle(
@@ -3417,7 +3565,8 @@ bool TypeArguments::CanShareInstantiatorTypeArguments(
     return false;
   }
   AbstractType& super_type_arg = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_super_instantiator_type_args; i++) {
+  for (intptr_t i = 0;
+       (i < first_type_param_offset) && (i < num_type_args); i++) {
     type_arg = TypeAt(i);
     super_type_arg = super_type_args.TypeAt(i);
     if (!type_arg.Equals(super_type_arg)) {
@@ -4170,6 +4319,11 @@ void Function::set_is_intrinsic(bool value) const {
 
 void Function::set_is_recognized(bool value) const {
   set_kind_tag(RecognizedBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
+void Function::set_is_redirecting(bool value) const {
+  set_kind_tag(RedirectingBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
@@ -5089,7 +5243,7 @@ bool Function::HasOptimizedCode() const {
 
 RawString* Function::UserVisibleName() const {
   const String& str = String::Handle(name());
-  return IdentifierPrettyName(str);
+  return String::IdentifierPrettyName(str);
 }
 
 
@@ -5506,7 +5660,7 @@ RawField* Field::Clone(const Class& new_owner) const {
 
 RawString* Field::UserVisibleName() const {
   const String& str = String::Handle(name());
-  return IdentifierPrettyName(str);
+  return String::IdentifierPrettyName(str);
 }
 
 
@@ -9111,7 +9265,7 @@ RawCode* Code::FinalizeCode(const char* name,
                            instrs.size(),
                            optimized);
 
-  const ZoneGrowableArray<int>& pointer_offsets =
+  const ZoneGrowableArray<intptr_t>& pointer_offsets =
       assembler->GetPointerOffsets();
 
   // Allocate the code object.
@@ -9122,8 +9276,8 @@ RawCode* Code::FinalizeCode(const char* name,
     // Set pointer offsets list in Code object and resolve all handles in
     // the instruction stream to raw objects.
     ASSERT(code.pointer_offsets_length() == pointer_offsets.length());
-    for (int i = 0; i < pointer_offsets.length(); i++) {
-      int offset_in_instrs = pointer_offsets[i];
+    for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
+      intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
       const Object* object = region.Load<const Object*>(offset_in_instrs);
       region.Store<RawObject*>(offset_in_instrs, object->raw());
@@ -10586,10 +10740,11 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   if (other.IsVoidType()) {
     return false;
   }
-  const Class& cls = Class::Handle(clazz());
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
-  const intptr_t num_type_arguments = cls.NumTypeArguments();
-  if (num_type_arguments > 0) {
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate, clazz());
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(isolate);
+  if (cls.HasTypeArguments()) {
     type_arguments = GetTypeArguments();
     if (!type_arguments.IsNull() && !type_arguments.IsCanonical()) {
       type_arguments = type_arguments.Canonicalize();
@@ -10604,14 +10759,15 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     // Also, an optimization reuses the type argument vector of the instantiator
     // of generic instances when its layout is compatible.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() >= num_type_arguments));
+           (type_arguments.Length() >= cls.NumTypeArguments()));
   }
-  Class& other_class = Class::Handle();
-  AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
+  Class& other_class = Class::Handle(isolate);
+  AbstractTypeArguments& other_type_arguments =
+      AbstractTypeArguments::Handle(isolate);
   // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
     const AbstractType& instantiated_other = AbstractType::Handle(
-        other.InstantiateFrom(other_instantiator, bound_error));
+        isolate, other.InstantiateFrom(other_instantiator, bound_error));
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(FLAG_enable_type_checks);
       return false;
@@ -11596,17 +11752,13 @@ bool TypeParameter::Equals(const Instance& other) const {
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  ASSERT(other_type_param.IsFinalized());
   if (parameterized_class() != other_type_param.parameterized_class()) {
     return false;
   }
-  if (IsFinalized() != other_type_param.IsFinalized()) {
-    return false;
+  if (IsFinalized() == other_type_param.IsFinalized()) {
+    return index() == other_type_param.index();
   }
-  if (index() != other_type_param.index()) {
-    return false;
-  }
-  return true;
+  return name() == other_type_param.name();
 }
 
 

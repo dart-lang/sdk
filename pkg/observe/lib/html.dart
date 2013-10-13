@@ -41,7 +41,7 @@ class ObservableLocationHash extends ChangeNotifierBase {
   }
 
   void _notifyHashChange(_) {
-    notifyChange(new PropertyChangeRecord(const Symbol('hash')));
+    notifyChange(new PropertyChangeRecord(#hash));
   }
 }
 

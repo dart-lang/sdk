@@ -8,10 +8,14 @@ library first_regression_test;
 import 'dart:async';
 import '../../../pkg/unittest/lib/unittest.dart';
 
-class DoubleTransformer<T> extends StreamEventTransformer<T, T> {
-  void handleData(T data, EventSink<T> sink) {
-    sink.add(data);
-    sink.add(data);
+class DoubleTransformer<T> implements StreamTransformer<T, T> {
+  Stream<T> bind(Stream<T> stream) {
+    var transformer = new StreamTransformer<T, T>.fromHandlers(
+        handleData: (T data, EventSink<T> sink) {
+          sink.add(data);
+          sink.add(data);
+        });
+    return transformer.bind(stream);
   }
 }
 

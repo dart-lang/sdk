@@ -124,7 +124,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   lib_mirror.invokeAsync(const Symbol('function'), [123]).then(
       (InstanceMirror retval) {
         Expect.equals(123, global_var);
-        Expect.equals(const Symbol('int'), retval.type.simpleName);
+        testImplements(retval.type, #int);
         Expect.isTrue(retval.hasReflectee);
         Expect.equals(124, retval.reflectee);
         testDone('testRootLibraryMirror');
@@ -158,6 +158,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testBoolInstanceMirror, '
                 'testCustomInstanceMirror, '
                 'testDone, '
+                'testImplements, '
                 'testIntegerInstanceMirror, '
                 'testLibrariesMap, '
                 'testMirrorErrors, '
@@ -196,6 +197,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testBoolInstanceMirror, '
                 'testCustomInstanceMirror, '
                 'testDone, '
+                'testImplements, '
                 'testIntegerInstanceMirror, '
                 'testLibrariesMap, '
                 'testMirrorErrors, '
@@ -252,11 +254,12 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
 
   func = cls_mirror.constructors[const Symbol('MyClass')];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('MyClass return(MyClass) constructor', buildMethodString(func));
+  Expect.equals('MyClass return(MyClass) constructor generative',
+                buildMethodString(func));
 
   func = cls_mirror.constructors[const Symbol('MyClass.named')];
   Expect.isTrue(func is MethodMirror);
-  Expect.equals('MyClass.named return(MyClass) constructor',
+  Expect.equals('MyClass.named return(MyClass) constructor generative',
                 buildMethodString(func));
 
   func = generic_cls_mirror.members[const Symbol('method')];
@@ -348,8 +351,19 @@ void testMirrorSystem(MirrorSystem mirrors) {
   testDone('testMirrorSystem');
 }
 
+void testImplements(klass, intfName) {
+  bool foundInterface = false;
+  for (ClassMirror cm = klass; cm != null; cm = cm.superclass) {
+    if (cm.simpleName == intfName) foundInterface = true;
+    cm.superinterfaces.forEach((intf) {
+      if (intf.simpleName == intfName) foundInterface = true;
+    });
+  }
+  Expect.isTrue(foundInterface, '$klass should implement $intfName');
+}
+
 void testIntegerInstanceMirror(InstanceMirror mirror) {
-  Expect.equals(const Symbol('int'), mirror.type.simpleName);
+  testImplements(mirror.type, #int);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(1001, mirror.reflectee);
   Expect.equals("InstanceMirror on 1001", mirror.toString());
@@ -357,7 +371,7 @@ void testIntegerInstanceMirror(InstanceMirror mirror) {
   // Invoke (mirror + mirror).
   mirror.invokeAsync(const Symbol('+'), [ mirror ]).then(
       (InstanceMirror retval) {
-        Expect.equals(const Symbol('int'), retval.type.simpleName);
+        testImplements(retval.type, #int);
         Expect.isTrue(retval.hasReflectee);
         Expect.equals(2002, retval.reflectee);
         testDone('testIntegerInstanceMirror');
@@ -365,7 +379,7 @@ void testIntegerInstanceMirror(InstanceMirror mirror) {
 }
 
 void testStringInstanceMirror(InstanceMirror mirror) {
-  Expect.equals(const Symbol('String'), mirror.type.simpleName);
+  testImplements(mirror.type, #String);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals('This\nis\na\nString', mirror.reflectee);
   Expect.equals('InstanceMirror on "This\\nis\\na\\nString"',
@@ -374,7 +388,7 @@ void testStringInstanceMirror(InstanceMirror mirror) {
   // Invoke mirror[0].
   mirror.invokeAsync(const Symbol('[]'), [ 0 ]).then(
       (InstanceMirror retval) {
-        Expect.equals(const Symbol('String'), retval.type.simpleName);
+        testImplements(retval.type, #String);
         Expect.isTrue(retval.hasReflectee);
         Expect.equals('T', retval.reflectee);
         testDone('testStringInstanceMirror');
@@ -382,7 +396,7 @@ void testStringInstanceMirror(InstanceMirror mirror) {
 }
 
 void testBoolInstanceMirror(InstanceMirror mirror) {
-  Expect.equals(const Symbol('bool'), mirror.type.simpleName);
+  testImplements(mirror.type, #bool);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(true, mirror.reflectee);
   Expect.equals("InstanceMirror on true", mirror.toString());
@@ -390,7 +404,7 @@ void testBoolInstanceMirror(InstanceMirror mirror) {
 }
 
 void testNullInstanceMirror(InstanceMirror mirror) {
-  Expect.equals(const Symbol('Null'), mirror.type.simpleName);
+  testImplements(mirror.type, #Null);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(null, mirror.reflectee);
   Expect.equals("InstanceMirror on null", mirror.toString());
@@ -450,7 +464,7 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   // Invoke mirror.method(1000).
   mirror.invokeAsync(const Symbol('method'), [ 1000 ]).then(
       (InstanceMirror retval) {
-        Expect.equals(const Symbol('int'), retval.type.simpleName);
+        testImplements(retval.type, #int);
         Expect.isTrue(retval.hasReflectee);
         Expect.equals(1017, retval.reflectee);
         testDone('testCustomInstanceMirror');

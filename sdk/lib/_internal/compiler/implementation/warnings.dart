@@ -254,7 +254,21 @@ class Future {}""",
 """
 library export;
 
-export 'future.dart';"""}]);
+export 'future.dart';"""},
+
+         const {
+'main.dart':
+"""
+import 'future.dart' as prefix;
+import 'dart:async' as prefix; // This imports a class Future.
+
+void main() => new prefix.Future();""",
+
+'future.dart':
+"""
+library future;
+
+class Future {}"""}]);
 
 
   static const MessageKind HIDDEN_IMPLICIT_IMPORT = const MessageKind(
@@ -1030,6 +1044,18 @@ Error: '#{value}' is not a valid Symbol name because is not:
   static const MessageKind UNSUPPORTED_THROW_WITHOUT_EXP = const MessageKind(
       "Error: No expression after 'throw'. "
       "Did you mean 'rethrow'?");
+
+  static const MessageKind DEPRECATED_TYPEDEF_MIXIN_SYNTAX = const MessageKind(
+      "Warning: 'typedef' not allowed here. ",
+      howToFix: "Try replacing 'typedef' with 'class'.",
+      examples: const [
+          """
+class B { }
+class M1 {  }
+typedef C = B with M1;  // Need to replace 'typedef' with 'class'.
+main() { new C(); }
+"""]
+);
 
   static const MessageKind MIRRORS_EXPECTED_STRING = const MessageKind(
       "Hint: Can't use '#{name}' here because it's an instance of '#{type}' "

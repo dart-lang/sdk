@@ -45,21 +45,25 @@ bool get isChecked => messages.options.checked;
 
 // TODO(terry): Remove nested name parameter.
 /** Parse and analyze the CSS file. */
-StyleSheet compile(var input,
-    {List errors, List options, bool nested: true, bool polyfill: false}) {
+StyleSheet compile(var input, {List errors, List options, bool nested: true,
+    bool polyfill: false, List<StyleSheet> includes: null}) {
+  if (includes == null) {
+    includes = [];
+  }
+
   var source = _inputAsString(input);
 
   _createMessages(errors: errors, options: options);
 
   var file = new SourceFile.text(null, source);
 
-  var tree = new Parser(file, source).parse();
+  var tree = new _Parser(file, source).parse();
 
   analyze([tree], errors: errors, options: options);
 
   if (polyfill) {
     var processCss = new PolyFill(messages, true);
-    processCss.process(tree);
+    processCss.process(tree, includes: includes);
   }
 
   return tree;
@@ -83,7 +87,7 @@ StyleSheet parse(var input, {List errors, List options}) {
 
   var file = new SourceFile.text(null, source);
 
-  return new Parser(file, source).parse();
+  return new _Parser(file, source).parse();
 }
 
 /**
@@ -98,7 +102,7 @@ StyleSheet selector(var input, {List errors}) {
 
   var file = new SourceFile.text(null, source);
 
-  return new Parser(file, source).parseSelector();
+  return new _Parser(file, source).parseSelector();
 }
 
 String _inputAsString(var input) {
@@ -132,8 +136,20 @@ String _inputAsString(var input) {
   return source;
 }
 
-/** A simple recursive descent parser for CSS. */
+// TODO(terry): Consider removing this class when all usages can be eliminated
+//               or replaced with compile API.
+/** Public parsing interface for csslib. */
 class Parser {
+  final _Parser _parser;
+
+  Parser(SourceFile file, String text, {int start: 0, String baseUrl}) :
+    _parser = new _Parser(file, text, start: start, baseUrl: baseUrl);
+
+  StyleSheet parse() => _parser.parse();
+}
+
+/** A simple recursive descent parser for CSS. */
+class _Parser {
   Tokenizer tokenizer;
 
   /** Base url of CSS file. */
@@ -148,7 +164,7 @@ class Parser {
   Token _previousToken;
   Token _peekToken;
 
-  Parser(SourceFile file, String text, {int start: 0, String baseUrl})
+  _Parser(SourceFile file, String text, {int start: 0, String baseUrl})
       : this.file = file,
         _baseUrl = baseUrl,
         tokenizer = new Tokenizer(file, text, true, start) {
@@ -429,60 +445,28 @@ class Parser {
     }
   }
 
-  //  Directive grammar:
-  //
-  //  import:             '@import' [string | URI] media_list?
-  //  media:              '@media' media_query_list '{' ruleset '}'
-  //  page:               '@page' [':' IDENT]? '{' declarations '}'
-  //  stylet:             '@stylet' IDENT '{' ruleset '}'
-  //  media_query_list:   IDENT [',' IDENT]
-  //  keyframes:          '@-webkit-keyframes ...' (see grammar below).
-  //  font_face:          '@font-face' '{' declarations '}'
-  //  namespace:          '@namespace name url("xmlns")
-  //  host:               '@host '{' ruleset '}'
+  /**
+   * Directive grammar:
+   *
+   *  import:             '@import' [string | URI] media_list?
+   *  media:              '@media' media_query_list '{' ruleset '}'
+   *  page:               '@page' [':' IDENT]? '{' declarations '}'
+   *  stylet:             '@stylet' IDENT '{' ruleset '}'
+   *  media_query_list:   IDENT [',' IDENT]
+   *  keyframes:          '@-webkit-keyframes ...' (see grammar below).
+   *  font_face:          '@font-face' '{' declarations '}'
+   *  namespace:          '@namespace name url("xmlns")
+   *  host:               '@host '{' ruleset '}'
+   *  mixin:              '@mixin name [(args,...)] '{' declarations/ruleset '}'
+   *  include:            '@include name [(@arg,@arg1)]
+   *                      '@include name [(@arg...)]
+   *  content             '@content'
+   */
   processDirective() {
     int start = _peekToken.start;
 
-    var tokId = _peek();
-    // Handle case for @ directive (where there's a whitespace between the @
-    // sign and the directive name.  Technically, it's not valid grammar but
-    // a number of CSS tests test for whitespace between @ and name.
-    if (tokId == TokenKind.AT) {
-      Token tok = _next();
-      tokId = _peek();
-      if (_peekIdentifier()) {
-        // Is it a directive?
-        var directive = _peekToken.text;
-        var directiveLen = directive.length;
-        tokId = TokenKind.matchDirectives(directive, 0, directiveLen);
-        if (tokId == -1) {
-          tokId = TokenKind.matchMarginDirectives(directive, 0, directiveLen);
-        }
-      }
-
-      if (tokId == -1) {
-        if (messages.options.lessSupport) {
-          // Less compatibility:
-          //    @name: value;      =>    var-name: value;       (VarDefinition)
-          //    property: @name;   =>    property: var(name);   (VarUsage)
-          var name;
-          if (_peekIdentifier()) {
-            name = identifier();
-          }
-
-          _eat(TokenKind.COLON);
-
-          Expressions exprs = processExpr();
-
-          var span = _makeSpan(start);
-          return new VarDefinitionDirective(
-              new VarDefinition(name, exprs, span), span);
-        } else if (isChecked) {
-          _error('unexpected directive @$_peekToken', _peekToken.span);
-        }
-      }
-    }
-
+    var tokId = processVariableOrDirective();
+    if (tokId is VarDefinitionDirective) return tokId;
     switch (tokId) {
       case TokenKind.DIRECTIVE_IMPORT:
         _next();
@@ -748,7 +732,237 @@ class Parser {
 
         return new NamespaceDirective(prefix != null ? prefix.name : '',
             namespaceUri, _makeSpan(start));
+
+      case TokenKind.DIRECTIVE_MIXIN:
+        return processMixin(start);
+
+      case TokenKind.DIRECTIVE_INCLUDE:
+        return processInclude( _makeSpan(start));
+
+      case TokenKind.DIRECTIVE_CONTENT:
+        // TODO(terry): TBD
+        _warning("@content not implemented.", _makeSpan(start));
+        return;
     }
+  }
+
+  /**
+   * Parse the mixin beginning token offset [start]. Returns a [MixinDefinition]
+   * node.
+   *
+   * Mixin grammar:
+   *
+   *  @mixin IDENT [(args,...)] '{'
+   *    [ruleset | property | directive]*
+   *  '}'
+   */
+  MixinDefinition processMixin(int start) {
+    _next();
+
+    var name = identifier();
+
+    List<VarDefinitionDirective> params = [];
+    // Any parameters?
+    if (_maybeEat(TokenKind.LPAREN)) {
+      var mustHaveParam = false;
+      var keepGoing = true;
+      while (keepGoing) {
+        var varDef = processVariableOrDirective(mixinParameter: true);
+        if (varDef is VarDefinitionDirective || varDef is VarDefinition) {
+          params.add(varDef);
+        } else if (mustHaveParam) {
+          _warning("Expecting parameter", _makeSpan(_peekToken.start));
+          keepGoing = false;
+        }
+        if (_maybeEat(TokenKind.COMMA)) {
+          mustHaveParam = true;
+          continue;
+        }
+        keepGoing = !_maybeEat(TokenKind.RPAREN);
+      }
+    }
+
+    _eat(TokenKind.LBRACE);
+
+    List<TreeNode> productions = [];
+    List<TreeNode> declarations = [];
+    var mixinDirective;
+
+    start = _peekToken.start;
+    while (!_maybeEat(TokenKind.END_OF_FILE)) {
+      var directive = processDirective();
+      if (directive != null) {
+        productions.add(directive);
+        continue;
+      }
+
+      var declGroup = processDeclarations(checkBrace: false);
+      var decls = [];
+      if (declGroup.declarations.any((decl) {
+        return decl is Declaration &&
+            decl is! IncludeMixinAtDeclaration;
+      })) {
+        var newDecls = [];
+        productions.forEach((include) {
+          // If declGroup has items that are declarations then we assume
+          // this mixin is a declaration mixin not a top-level mixin.
+          if (include is IncludeDirective) {
+            newDecls.add(new IncludeMixinAtDeclaration(include,
+                include.span));
+          } else {
+            _warning("Error mixing of top-level vs declarations mixins",
+                _makeSpan(include));
+          }
+        });
+        declGroup.declarations.insertAll(0, newDecls);
+        productions = [];
+      } else {
+        // Declarations are just @includes make it a list of productions
+        // not a declaration group (anything else is a ruleset).  Make it a
+        // list of productions, not a declaration group.
+        for (var decl in declGroup.declarations) {
+          productions.add(decl is IncludeMixinAtDeclaration ?
+              decl.include : decl);
+        };
+        declGroup.declarations.clear();
+      }
+
+      if (declGroup.declarations.isNotEmpty) {
+        if (productions.isEmpty) {
+          mixinDirective = new MixinDeclarationDirective(name.name, params,
+              false, declGroup, _makeSpan(start));
+          break;
+        } else {
+          for (var decl in declGroup.declarations) {
+            productions.add(decl is IncludeMixinAtDeclaration ?
+                decl.include : decl);
+          }
+        }
+      } else {
+        mixinDirective = new MixinRulesetDirective(name.name, params,
+            false, productions, _makeSpan(start));
+        break;
+      }
+    }
+
+    if (productions.isNotEmpty) {
+      mixinDirective = new MixinRulesetDirective(name.name, params,
+          false, productions, _makeSpan(start));
+    }
+
+    _eat(TokenKind.RBRACE);
+
+    return mixinDirective;
+  }
+
+  /**
+   * Returns a VarDefinitionDirective or VarDefinition if a varaible otherwise
+   * return the token id of a directive or -1 if neither.
+   */
+  processVariableOrDirective({bool mixinParameter: false}) {
+    int start = _peekToken.start;
+
+    var tokId = _peek();
+    // Handle case for @ directive (where there's a whitespace between the @
+    // sign and the directive name.  Technically, it's not valid grammar but
+    // a number of CSS tests test for whitespace between @ and name.
+    if (tokId == TokenKind.AT) {
+      Token tok = _next();
+      tokId = _peek();
+      if (_peekIdentifier()) {
+        // Is it a directive?
+        var directive = _peekToken.text;
+        var directiveLen = directive.length;
+        tokId = TokenKind.matchDirectives(directive, 0, directiveLen);
+        if (tokId == -1) {
+          tokId = TokenKind.matchMarginDirectives(directive, 0, directiveLen);
+        }
+      }
+
+      if (tokId == -1) {
+        if (messages.options.lessSupport) {
+          // Less compatibility:
+          //    @name: value;      =>    var-name: value;       (VarDefinition)
+          //    property: @name;   =>    property: var(name);   (VarUsage)
+          var name;
+          if (_peekIdentifier()) {
+            name = identifier();
+          }
+
+          Expressions exprs;
+          if (mixinParameter && _maybeEat(TokenKind.COLON)) {
+            exprs = processExpr();
+          } else if (!mixinParameter) {
+            _eat(TokenKind.COLON);
+            exprs = processExpr();
+          }
+
+          var span = _makeSpan(start);
+          return new VarDefinitionDirective(
+              new VarDefinition(name, exprs, span), span);
+        } else if (isChecked) {
+          _error('unexpected directive @$_peekToken', _peekToken.span);
+        }
+      }
+    } else if (mixinParameter && _peekToken.kind == TokenKind.VAR_DEFINITION) {
+      _next();
+      var definedName;
+      if (_peekIdentifier()) definedName = identifier();
+
+      Expressions exprs;
+      if (_maybeEat(TokenKind.COLON)) {
+        exprs = processExpr();
+      }
+
+      return new VarDefinition(definedName, exprs, _makeSpan(start));
+    }
+
+    return tokId;
+  }
+
+  IncludeDirective processInclude(Span span, {bool eatSemiColon: true}) {
+    /* Stylet grammar:
+    *
+     *  @include IDENT [(args,...)];
+     */
+    _next();
+
+    var name;
+    if (_peekIdentifier()) {
+      name = identifier();
+    }
+
+    var params = [];
+
+    // Any parameters?  Parameters can be multiple terms per argument e.g.,
+    // 3px solid yellow, green is two parameters:
+    //    1. 3px solid yellow
+    //    2. green
+    // the first has 3 terms and the second has 1 term.
+    if (_maybeEat(TokenKind.LPAREN)) {
+      var terms = [];
+      var expr;
+      var keepGoing = true;
+      while (keepGoing && (expr = processTerm()) != null) {
+        // VarUsage is returns as a list
+        terms.add(expr is List ? expr[0] : expr);
+        keepGoing = !_peekKind(TokenKind.RPAREN);
+        if (keepGoing) {
+          if (_maybeEat(TokenKind.COMMA)) {
+            params.add(terms);
+            terms = [];
+          }
+        }
+      }
+      params.add(terms);
+      _maybeEat(TokenKind.RPAREN);
+    }
+
+    if (eatSemiColon) {
+      _eat(TokenKind.SEMICOLON);
+    }
+
+    return new IncludeDirective(name.name, params, span);
   }
 
   RuleSet processRuleSet([SelectorGroup selectorGroup]) {
@@ -809,7 +1023,7 @@ class Parser {
     }
   }
 
-  processDeclarations({bool checkBrace: true}) {
+  DeclarationGroup processDeclarations({bool checkBrace: true}) {
     int start = _peekToken.start;
 
     if (checkBrace) _eat(TokenKind.LBRACE);
@@ -1165,56 +1379,7 @@ class Parser {
         return new ClassSelector(id, _makeSpan(start));
       case TokenKind.COLON:
         // :pseudo-class ::pseudo-element
-        // TODO(terry): '::' should be token.
-        _eat(TokenKind.COLON);
-        bool pseudoElement = _maybeEat(TokenKind.COLON);
-
-        // TODO(terry): If no identifier specified consider optimizing out the
-        //              : or :: and making this a normal selector.  For now,
-        //              create an empty pseudoName.
-        var pseudoName;
-        if (_peekIdentifier()) {
-          pseudoName = identifier();
-        } else {
-          return null;
-        }
-
-        // Functional pseudo?
-        if (_maybeEat(TokenKind.LPAREN)) {
-          if (!pseudoElement && pseudoName.name.toLowerCase() == 'not') {
-            // Negation :   ':NOT(' S* negation_arg S* ')'
-            var negArg = simpleSelector();
-
-            _eat(TokenKind.RPAREN);
-            return new NegationSelector(negArg, _makeSpan(start));
-          } else {
-            // Handle function expression.
-            var span = _makeSpan(start);
-            var expr = processSelectorExpression();
-
-            // Used during selector look-a-head if not a SelectorExpression is
-            // bad.
-            if (expr is! SelectorExpression) {
-              _errorExpected("CSS expression");
-              return null;
-            }
-
-            _eat(TokenKind.RPAREN);
-            return (pseudoElement) ?
-                new PseudoElementFunctionSelector(pseudoName, expr, span) :
-                new PseudoClassFunctionSelector(pseudoName, expr, span);
-          }
-        }
-
-        // TODO(terry): Need to handle specific pseudo class/element name and
-        // backward compatible names that are : as well as :: as well as
-        // parameters.  Current, spec uses :: for pseudo-element and : for
-        // pseudo-class.  However, CSS2.1 allows for : to specify old
-        // pseudo-elements (:first-line, :first-letter, :before and :after) any
-        // new pseudo-elements defined would require a ::.
-        return pseudoElement ?
-            new PseudoElementSelector(pseudoName, _makeSpan(start)) :
-            new PseudoClassSelector(pseudoName, _makeSpan(start));
+        return processPseudoSelector(start);
       case TokenKind.LBRACK:
         return processAttribute();
       case TokenKind.DOUBLE:
@@ -1223,6 +1388,60 @@ class Parser {
         _next();
         break;
     }
+  }
+
+  processPseudoSelector(int start) {
+    // :pseudo-class ::pseudo-element
+    // TODO(terry): '::' should be token.
+    _eat(TokenKind.COLON);
+    bool pseudoElement = _maybeEat(TokenKind.COLON);
+
+    // TODO(terry): If no identifier specified consider optimizing out the
+    //              : or :: and making this a normal selector.  For now,
+    //              create an empty pseudoName.
+    var pseudoName;
+    if (_peekIdentifier()) {
+      pseudoName = identifier();
+    } else {
+      return null;
+    }
+
+    // Functional pseudo?
+    if (_maybeEat(TokenKind.LPAREN)) {
+      if (!pseudoElement && pseudoName.name.toLowerCase() == 'not') {
+        // Negation :   ':NOT(' S* negation_arg S* ')'
+        var negArg = simpleSelector();
+
+        _eat(TokenKind.RPAREN);
+        return new NegationSelector(negArg, _makeSpan(start));
+      } else {
+        // Handle function expression.
+        var span = _makeSpan(start);
+        var expr = processSelectorExpression();
+
+        // Used during selector look-a-head if not a SelectorExpression is
+        // bad.
+        if (expr is! SelectorExpression) {
+          _errorExpected("CSS expression");
+          return null;
+        }
+
+        _eat(TokenKind.RPAREN);
+        return (pseudoElement) ?
+            new PseudoElementFunctionSelector(pseudoName, expr, span) :
+              new PseudoClassFunctionSelector(pseudoName, expr, span);
+      }
+    }
+
+    // TODO(terry): Need to handle specific pseudo class/element name and
+    // backward compatible names that are : as well as :: as well as
+    // parameters.  Current, spec uses :: for pseudo-element and : for
+    // pseudo-class.  However, CSS2.1 allows for : to specify old
+    // pseudo-elements (:first-line, :first-letter, :before and :after) any
+    // new pseudo-elements defined would require a ::.
+    return pseudoElement ?
+        new PseudoElementSelector(pseudoName, _makeSpan(start)) :
+          new PseudoClassSelector(pseudoName, _makeSpan(start));
   }
 
   /**
@@ -1411,6 +1630,32 @@ class Parser {
       Expressions exprs = processExpr();
 
       decl = new VarDefinition(definedName, exprs, _makeSpan(start));
+    } else if (_peekToken.kind == TokenKind.DIRECTIVE_INCLUDE) {
+      // @include mixinName in the declaration area.
+      var span = _makeSpan(start);
+      var include = processInclude(span, eatSemiColon: false);
+      decl = new IncludeMixinAtDeclaration(include, span);
+    } else if (_peekToken.kind == TokenKind.DIRECTIVE_EXTEND) {
+      List<SimpleSelectorSequence> simpleSequences = [];
+
+      _next();
+      var span = _makeSpan(start);
+      var selector = simpleSelector();
+      if (selector == null) {
+        _warning("@extends expecting simple selector name", span);
+      } else {
+        simpleSequences.add(selector);
+      }
+      if (_peekKind(TokenKind.COLON)) {
+        var pseudoSelector = processPseudoSelector(_peekToken.start);
+        if (pseudoSelector is PseudoElementSelector ||
+            pseudoSelector is PseudoClassSelector) {
+          simpleSequences.add(pseudoSelector);
+        } else {
+          _warning("not a valid selector", span);
+        }
+      }
+      decl = new ExtendDeclaration(simpleSequences, span);
     }
 
     return decl;
@@ -1791,7 +2036,13 @@ class Parser {
       }
 
       if (expr != null) {
-        expressions.add(expr);
+        if (expr is List) {
+          expr.forEach((exprItem) {
+            expressions.add(exprItem);
+          });
+        } else {
+          expressions.add(expr);
+        }
       } else {
         keepGoing = false;
       }
@@ -1985,7 +2236,9 @@ class Parser {
         }
 
         var param = expr.expressions[0];
-        return new VarUsage(param.text, [], _makeSpan(start));
+        var varUsage = new VarUsage(param.text, [], _makeSpan(start));
+        expr.expressions[0] = varUsage;
+        return expr.expressions;
       }
       break;
     }

@@ -231,6 +231,15 @@ class Cursor extends Interceptor native "IDBCursor" {
     }
   }
 
+  @JSName('continue')
+  @DomName('IDBCursor.continue')
+  void next([Object key]) {
+    if (key == null) {
+      JS('void', '#.continue()', this);
+    } else {
+      JS('void', '#.continue(#)', this, key);
+    }
+  }
   
   @DomName('IDBCursor.direction')
   @DocsEditable()
@@ -262,11 +271,6 @@ class Cursor extends Interceptor native "IDBCursor" {
   @DomName('IDBCursor.delete')
   @DocsEditable()
   Request _delete() native;
-
-  @JSName('continue')
-  @DomName('IDBCursor.continue')
-  @DocsEditable()
-  void next([Object key]) native;
 
   @DomName('IDBCursor.update')
   @DocsEditable()
@@ -520,9 +524,7 @@ class IdbFactory extends Interceptor native "IDBFactory" {
       request.onSuccess.listen((e) {
         completer.complete(this);
       });
-      request.onError.listen((e) {
-        completer.completeError(e);
-      });
+      request.onError.listen(completer.completeError);
       return completer.future;
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
@@ -593,9 +595,7 @@ Future _completeRequest(Request request) {
   request.onSuccess.listen((e) {
     completer.complete(request.result);
   });
-  request.onError.listen((e) {
-    completer.completeError(e);
-  });
+  request.onError.listen(completer.completeError);
   return completer.future;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -1124,10 +1124,8 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
     // close.
     var controller = new StreamController(sync: true);
 
-    request.onError.listen((e) {
-      //TODO: Report stacktrace once issue 4061 is resolved.
-      controller.addError(e);
-    });
+    //TODO: Report stacktrace once issue 4061 is resolved.
+    request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
       Cursor cursor = request.result;

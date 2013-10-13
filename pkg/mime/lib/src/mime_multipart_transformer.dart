@@ -21,7 +21,7 @@ class _MimeMultipart extends MimeMultipart {
 
   StreamSubscription<List<int>> listen(void onData(List<int> data),
                                        {void onDone(),
-                                        void onError(error),
+                                        Function onError,
                                         bool cancelOnError}) {
     return _stream.listen(onData,
                           onDone: onDone,
@@ -138,9 +138,7 @@ class MimeMultipartTransformer
                 }
                 _controller.close();
               },
-              onError: (error) {
-                _controller.addError(error);
-              });
+              onError: _controller.addError);
         });
     return _controller.stream;
   }

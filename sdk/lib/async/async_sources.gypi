@@ -17,6 +17,7 @@
     'stream_controller.dart',
     'stream_impl.dart',
     'stream_pipe.dart',
+    'stream_transformers.dart',
     'timer.dart',
     'zone.dart',
   ],

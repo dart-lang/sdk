@@ -4,8 +4,6 @@
 
 part of observe;
 
-const _VALUE = const Symbol('value');
-
 // Inspired by ArrayReduction at:
 // https://raw.github.com/rafaelw/ChangeSummary/master/util/array_reduction.js
 // The main difference is we support anything on the rich Dart Iterable API.
@@ -49,13 +47,13 @@ class ListPathObserver<E, P> extends ChangeNotifierBase {
   void _reduce() {
     _scheduled = false;
     _value = _observers.map((o) => o.value);
-    notifyChange(new PropertyChangeRecord(_VALUE));
+    notifyChange(new PropertyChangeRecord(#value));
   }
 
   void _scheduleReduce(_) {
     if (_scheduled) return;
     _scheduled = true;
-    runAsync(_reduce);
+    scheduleMicrotask(_reduce);
   }
 
   void _observeItems(int lengthAdjust) {

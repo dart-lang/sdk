@@ -13,8 +13,8 @@ part of observe;
  *
  *       MyModel() {
  *         ...
- *         _sub = onPropertyChange(_otherModel, const Symbol('value'),
- *             () => notifyProperty(this, const Symbol('prop'));
+ *         _sub = onPropertyChange(_otherModel, #value,
+ *             () => notifyProperty(this, #prop);
  *       }
  *
  *       String get prop => _otherModel.value;

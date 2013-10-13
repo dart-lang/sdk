@@ -12,8 +12,6 @@ import 'observe_test_utils.dart';
 // Note: this ensures we run the dartanalyzer on the @observe package.
 // @static-clean
 
-const _VALUE = const Symbol('value');
-
 void main() {
   // Note: to test the basic Observable system, we use ObservableBox due to its
   // simplicity. We also test a variant that is based on dirty-checking.
@@ -73,7 +71,7 @@ void _observeTests(createModel(x)) {
     initialObservers = dirty_check.allObservablesCount;
     subs = [];
 
-    if (watch) runAsync(Observable.dirtyCheck);
+    if (watch) scheduleMicrotask(Observable.dirtyCheck);
   });
 
   tearDown(() {
@@ -179,7 +177,7 @@ void _observeTests(createModel(x)) {
       expectChanges(records, _changedValue(1));
       sub.cancel();
       t.value = 777;
-      runAsync(Observable.dirtyCheck);
+      scheduleMicrotask(Observable.dirtyCheck);
     }));
     t.value = 42;
   });
@@ -191,12 +189,12 @@ void _observeTests(createModel(x)) {
       expectChanges(records, _changedValue(1));
       sub.cancel();
 
-      runAsync(expectAsync0(() {
+      scheduleMicrotask(expectAsync0(() {
         subs.add(t.changes.listen(expectAsync1((records) {
           expectChanges(records, _changedValue(1));
         })));
         t.value = 777;
-        runAsync(Observable.dirtyCheck);
+        scheduleMicrotask(Observable.dirtyCheck);
       }));
     }));
     t.value = 42;
@@ -214,7 +212,7 @@ void _observeTests(createModel(x)) {
     // Verify that mutation operations on the list fail:
 
     expect(() {
-      records[0] = new PropertyChangeRecord(_VALUE);
+      records[0] = new PropertyChangeRecord(#value);
     }, throwsUnsupportedError);
 
     expect(() { records.clear(); }, throwsUnsupportedError);
@@ -226,7 +224,7 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
     var records = [];
     subs.add(t.changes.listen((r) { records.addAll(r); }));
-    t.notifyChange(new PropertyChangeRecord(_VALUE));
+    t.notifyChange(new PropertyChangeRecord(#value));
 
     performMicrotaskCheckpoint();
     expectChanges(records, _changedValue(1));
@@ -237,7 +235,7 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
     var records = null;
     subs.add(t.changes.listen((r) { records = r; }));
-    expect(t.notifyPropertyChange(_VALUE, t.value, 42), 42,
+    expect(t.notifyPropertyChange(#value, t.value, 42), 42,
         reason: 'notifyPropertyChange returns newValue');
 
     performMicrotaskCheckpoint();
@@ -246,7 +244,7 @@ void _observeTests(createModel(x)) {
   });
 }
 
-_changedValue(len) => new List.filled(len, new PropertyChangeRecord(_VALUE));
+_changedValue(len) => new List.filled(len, new PropertyChangeRecord(#value));
 
 // A test model based on dirty checking.
 class WatcherModel<T> extends ObservableBase {

@@ -17,17 +17,26 @@ namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
 #if defined(HOST_ARCH_ARM)
+  // Nothing to do. Flushing no instructions.
+  if (size == 0) {
+    return;
+  }
 
-#if defined(__ARM_EABI__) && !defined(__thumb__)
-  syscall(__ARM_NR_cacheflush, start, start + size, 0);
-#else
-#error FlushICache only tested/supported on EABI ARM currently.
+  // ARM recommends using the gcc intrinsic __clear_cache on Linux, and the
+  // library call cacheflush from unistd.h on Android:
+  // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
+  #if defined(__linux__) && !defined(ANDROID)
+    extern void __clear_cache(char*, char*);
+    char* beg = reinterpret_cast<char*>(start);
+    char* end = reinterpret_cast<char*>(start + size);
+    ::__clear_cache(beg, end);
+  #elif defined(ANDROID)
+    cacheflush(start, start + size, 0);
+  #else
+    #error FlushICache only tested/supported on Linux and Android
+  #endif
+
 #endif
-
-#else  // defined(HOST_ARCH_ARM)
-  // When running in simulated mode we do not need to flush the ICache because
-  // we are not running on the actual hardware.
-#endif  // defined(HOST_ARCH_ARM)
 }
 
 

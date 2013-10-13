@@ -198,7 +198,7 @@ class ScheduledProcess {
   Pair<Stream<String>, StreamCanceller> _lineStreamWithCanceller(
       Future<Stream<List<int>>> streamFuture) {
     return streamWithCanceller(futureStream(streamFuture)
-        .handleError((e) => currentSchedule.signalError(e))
+        .handleError(currentSchedule.signalError)
         .map((chunk) {
       // Whenever the process produces any sort of output, reset the schedule's
       // timer.

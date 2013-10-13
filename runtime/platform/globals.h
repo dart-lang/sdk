@@ -173,6 +173,14 @@ typedef double fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
+// DART_UNUSED inidicates to the compiler that a variable/typedef is expected
+// to be unused and disables the related warning.
+#ifdef __GNUC__
+#define DART_UNUSED __attribute__((unused))
+#else
+#define DART_UNUSED
+#endif
+
 #if !defined(TARGET_ARCH_MIPS)
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
@@ -392,7 +400,7 @@ template <class D, class S>
 inline D bit_cast(const S& source) {
   // Compile time assertion: sizeof(D) == sizeof(S). A compile error
   // here means your D and S have different sizes.
-  typedef char VerifySizesAreEqual[sizeof(D) == sizeof(S) ? 1 : -1];
+  DART_UNUSED typedef char VerifySizesAreEqual[sizeof(D) == sizeof(S) ? 1 : -1];
 
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.

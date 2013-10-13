@@ -310,4 +310,6 @@ class LogRecord {
   LogRecord(this.level, this.message, this.loggerName, [this.exception])
       : time = new DateTime.now(),
         sequenceNumber = LogRecord._nextNumber++;
+
+  String toString() => '[${level.name}] $loggerName: $message';
 }

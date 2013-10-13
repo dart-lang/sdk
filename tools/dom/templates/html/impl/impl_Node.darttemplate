@@ -155,7 +155,7 @@ $endif
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 

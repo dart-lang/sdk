@@ -377,7 +377,8 @@ class DartiumBackend(HtmlDartGenerator):
       to_native_body = emitter.Format(
           '\n'
           '    {\n'
-          '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
+          '        DartDOMData* domData = DartDOMData::current();\n'
+          '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(domData, handle, exception);\n'
           '    }',
           INTERFACE=self._interface.id)
       to_native_arg_body = emitter.Format(

@@ -5,6 +5,7 @@
 #include "lib/invocation_mirror.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
@@ -105,6 +106,22 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   return Bool::Get(PortMap::IsLocalPort(port_id)).raw();
 }
 
+static void EnsureConstructorsAreCompiled(const Function& func) {
+  if (func.kind() != RawFunction::kConstructor) return;
+  const Class& cls = Class::Handle(func.Owner());
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+    UNREACHABLE();
+  }
+  if (!func.HasCode()) {
+    const Error& error = Error::Handle(Compiler::CompileFunction(func));
+    if (!error.IsNull()) {
+      ThrowInvokeError(error);
+      UNREACHABLE();
+    }
+  }
+}
 
 static RawInstance* CreateParameterMirrorList(const Function& func,
                                               const Instance& owner_mirror) {
@@ -133,6 +150,11 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   Bool& is_final = Bool::Handle();
   Object& default_value = Object::Handle();
   Object& metadata = Object::Handle();
+
+  // We force compilation of constructors to ensure the types of initializing
+  // formals have been corrected. We do not force the compilation of all types
+  // of functions because some have no body, e.g. signature functions.
+  EnsureConstructorsAreCompiled(func);
 
   // Reparse the function for the following information:
   // * The default value of a parameter.
@@ -202,6 +224,8 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
   for (intptr_t i = 0; i < args.Length(); i++) {
     type ^= args.TypeAt(i);
     ASSERT(type.IsTypeParameter());
+    ASSERT(!type.IsMalformed());
+    ASSERT(type.IsFinalized());
     name ^= type.name();
     result.SetAt(2 * i, name);
     result.SetAt(2 * i + 1, type);
@@ -233,18 +257,24 @@ static RawInstance* CreateMethodMirror(const Function& func,
                                        const Instance& owner_mirror) {
   const Array& args = Array::Handle(Array::New(12));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
-  args.SetAt(1, String::Handle(func.UserVisibleName()));
+
+  String& name = String::Handle(func.name());
+  name = String::IdentifierPrettyNameRetainPrivate(name);
+  args.SetAt(1, name);
+
   args.SetAt(2, owner_mirror);
   args.SetAt(3, Bool::Get(func.is_static()));
   args.SetAt(4, Bool::Get(func.is_abstract()));
   args.SetAt(5, Bool::Get(func.IsGetterFunction()));
   args.SetAt(6, Bool::Get(func.IsSetterFunction()));
-  args.SetAt(7, Bool::Get(func.kind() == RawFunction::kConstructor));
-  // TODO(mlippautz): Implement different constructor kinds.
-  args.SetAt(8, Bool::False());
-  args.SetAt(9, Bool::False());
-  args.SetAt(10, Bool::False());
-  args.SetAt(11, Bool::False());
+
+  bool isConstructor = (func.kind() == RawFunction::kConstructor);
+  args.SetAt(7, Bool::Get(isConstructor));
+  args.SetAt(8, Bool::Get(isConstructor && func.is_const()));
+  args.SetAt(9, Bool::Get(isConstructor && func.IsConstructor()));
+  args.SetAt(10, Bool::Get(isConstructor && func.is_redirecting()));
+  args.SetAt(11, Bool::Get(isConstructor && func.IsFactory()));
+
   return CreateMirror(Symbols::_LocalMethodMirrorImpl(), args);
 }
 
@@ -254,7 +284,7 @@ static RawInstance* CreateVariableMirror(const Field& field,
   const MirrorReference& field_ref =
       MirrorReference::Handle(MirrorReference::New(field));
 
-  const String& name = String::Handle(field.UserVisibleName());
+  const String& name = String::Handle(field.name());
 
   const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, field_ref);
@@ -289,6 +319,8 @@ static RawInstance* CreateClassMirror(const Class& cls,
                                       const Bool& is_declaration,
                                       const Instance& owner_mirror) {
   ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
+  ASSERT(!type.IsNull());
+  ASSERT(type.IsFinalized());
 
   if (cls.IsSignatureClass()) {
     if (cls.IsCanonicalSignatureClass()) {
@@ -300,8 +332,6 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
-  ASSERT(!type.IsNull());
-
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
   const Bool& is_mixin_typedef = Bool::Get(cls.is_mixin_typedef());
 
@@ -312,7 +342,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   // use a different naming convention than the VM (lib.S with lib.M and S&M
   // respectively).
   if (!cls.IsMixinApplication() || cls.is_mixin_typedef()) {
-    args.SetAt(2, String::Handle(cls.UserVisibleName()));
+    args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, is_generic);
   args.SetAt(4, is_mixin_typedef);
@@ -334,6 +364,7 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 
 
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
+  ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
@@ -353,6 +384,10 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
   } else if (type.IsTypeParameter()) {
     return CreateTypeVariableMirror(TypeParameter::Cast(type),
                                     Object::null_instance());
+  } else if (type.IsBoundedType()) {
+    AbstractType& actual_type =
+        AbstractType::Handle(BoundedType::Cast(type).type());
+    return CreateTypeMirror(actual_type);
   }
   UNREACHABLE();
   return Instance::null();
@@ -448,6 +483,67 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
   // class, depending on whether it was an actual getter, or an uninitialized
   // field.
   const Field& field = Field::Handle(
+      library.LookupLocalField(getter_name));
+  Function& getter = Function::Handle();
+  if (field.IsNull()) {
+    // No field found. Check for a getter in the lib.
+    const String& internal_getter_name =
+        String::Handle(Field::GetterName(getter_name));
+    getter = library.LookupLocalFunction(internal_getter_name);
+    if (getter.IsNull()) {
+      getter = library.LookupLocalFunction(getter_name);
+      if (!getter.IsNull()) {
+        // Looking for a getter but found a regular method: closurize it.
+        const Function& closure_function =
+            Function::Handle(getter.ImplicitClosureFunction());
+        return closure_function.ImplicitStaticClosure();
+      }
+    }
+  } else {
+    if (!field.IsUninitialized()) {
+      return field.value();
+    }
+    // An uninitialized field was found.  Check for a getter in the field's
+    // owner classs.
+    const Class& klass = Class::Handle(field.owner());
+    const String& internal_getter_name =
+        String::Handle(Field::GetterName(getter_name));
+    getter = klass.LookupStaticFunction(internal_getter_name);
+  }
+
+  if (!getter.IsNull() && getter.is_visible()) {
+    // Invoke the getter and return the result.
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(getter, Object::empty_array()));
+    return ReturnResult(result);
+  }
+
+  if (throw_nsm_if_absent) {
+    ThrowNoSuchMethod(Instance::null_instance(),
+                      getter_name,
+                      getter,
+                      InvocationMirror::kTopLevel,
+                      InvocationMirror::kGetter);
+    UNREACHABLE();
+  }
+
+  // Fall through case: Indicate that we didn't find any function or field using
+  // a special null instance. This is different from a field being null. Callers
+  // make sure that this null does not leak into Dartland.
+  return Object::sentinel().raw();
+}
+
+
+// TODO(13656): Remove AllowPrivate.
+static RawInstance* InvokeLibraryGetterAllowImports(
+    const Library& library,
+    const String& getter_name,
+    const bool throw_nsm_if_absent) {
+  // To access a top-level we may need to use the Field or the getter Function.
+  // The getter function may either be in the library or in the field's owner
+  // class, depending on whether it was an actual getter, or an uninitialized
+  // field.
+  const Field& field = Field::Handle(
       library.LookupFieldAllowPrivate(getter_name));
   Function& getter = Function::Handle();
   if (field.IsNull()) {
@@ -473,7 +569,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
     const Class& klass = Class::Handle(field.owner());
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
-    getter = klass.LookupStaticFunctionAllowPrivate(internal_getter_name);
+    getter = klass.LookupStaticFunction(internal_getter_name);
   }
 
   if (!getter.IsNull() && getter.is_visible()) {
@@ -508,11 +604,11 @@ static RawInstance* InvokeClassGetter(const Class& klass,
     const String& internal_getter_name = String::Handle(
         Field::GetterName(getter_name));
     Function& getter = Function::Handle(
-        klass.LookupStaticFunctionAllowPrivate(internal_getter_name));
+        klass.LookupStaticFunction(internal_getter_name));
 
     if (getter.IsNull() || !getter.is_visible()) {
       if (getter.IsNull()) {
-        getter = klass.LookupStaticFunctionAllowPrivate(getter_name);
+        getter = klass.LookupStaticFunction(getter_name);
         if (!getter.IsNull()) {
           // Looking for a getter but found a regular method: closurize it.
           const Function& closure_function =
@@ -552,7 +648,7 @@ static RawInstance* InvokeInstanceGetter(const Class& klass,
   const String& internal_getter_name = String::Handle(
       Field::GetterName(getter_name));
   Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgsAllowPrivate(klass, internal_getter_name));
+      Resolver::ResolveDynamicAnyArgs(klass, internal_getter_name));
 
   if (!function.IsNull() || throw_nsm_if_absent) {
     const int kNumArgs = 1;
@@ -586,7 +682,7 @@ static RawInstance* LookupFunctionOrFieldInLibraryPrefix(
       const Class& field_owner = Class::Handle(field.owner());
       const Library& field_library = Library::Handle(field_owner.library());
       const Instance& result = Instance::Handle(
-          InvokeLibraryGetter(field_library, lookup_name, false));
+          InvokeLibraryGetterAllowImports(field_library, lookup_name, false));
       if (result.raw() != Object::sentinel().raw()) {
         return result.raw();
       }
@@ -617,7 +713,7 @@ static RawInstance* LookupStaticFunctionOrFieldInClass(
   Function& func = Function::Handle();
   Class& lookup_class = Class::Handle(klass.raw());
   while (func.IsNull() && !lookup_class.IsNull()) {
-    func ^= lookup_class.LookupStaticFunctionAllowPrivate(lookup_name);
+    func ^= lookup_class.LookupStaticFunction(lookup_name);
     lookup_class = lookup_class.SuperClass();
   }
   if (!func.IsNull()) {
@@ -678,12 +774,12 @@ static RawInstance* LookupFunctionOrFieldInLibraryHelper(
     const String& lookup_name) {
   if (class_name.IsNull()) {
     const Instance& result = Instance::Handle(
-        InvokeLibraryGetter(library, lookup_name, false));
+        InvokeLibraryGetterAllowImports(library, lookup_name, false));
     if (result.raw() != Object::sentinel().raw()) {
       return result.raw();
     }
     const Function& func = Function::Handle(
-        library.LookupFunctionAllowPrivate(lookup_name));
+        library.LookupLocalFunction(lookup_name));
     if (!func.IsNull()) {
       const Function& closure_function = Function::Handle(
           func.ImplicitClosureFunction());
@@ -691,7 +787,7 @@ static RawInstance* LookupFunctionOrFieldInLibraryHelper(
     }
   } else {
     const Class& cls = Class::Handle(
-        library.LookupClassAllowPrivate(class_name));
+        library.LookupClass(class_name));
     if (!cls.IsNull()) {
       return LookupStaticFunctionOrFieldInClass(cls, lookup_name);
     }
@@ -738,14 +834,16 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalMirrorSystem, 0) {
 
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  ASSERT(type.HasResolvedTypeClass());
   const Class& cls = Class::Handle(type.type_class());
-  ASSERT(!cls.IsNull());
   if (cls.IsDynamicClass() || cls.IsVoidClass()) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
-  const Type& stripped_type = Type::Handle(cls.RareType());
+  const AbstractType& stripped_type = AbstractType::Handle(cls.RareType());
   return CreateClassMirror(cls,
                            stripped_type,
                            Bool::True(),  // is_declaration
@@ -756,6 +854,25 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   return CreateTypeMirror(type);
+}
+
+DEFINE_NATIVE_ENTRY(Mirrors_mangleName, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
+  const Library& lib = Library::Handle(ref.GetLibraryReferent());
+  return lib.IsPrivate(name) ? lib.PrivateName(name) : name.raw();
+}
+
+DEFINE_NATIVE_ENTRY(Mirrors_unmangleName, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
+  // It would be nice to unconditionally use IdentifierPrettyName, alas it
+  // cannot cope with the symbols for the names of anonymous mixin applications.
+  if (Library::IsPrivate(name) ||
+      Field::IsGetterName(name) ||
+      Field::IsSetterName(name)) {
+    return String::IdentifierPrettyName(name);
+  }
+  return name.raw();
 }
 
 
@@ -847,9 +964,39 @@ DEFINE_NATIVE_ENTRY(ClassMirror_library, 1) {
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Class& klass = Class::Handle(ref.GetClassReferent());
-  return klass.super_type();
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  const Class& cls = Class::Handle(type.type_class());
+  const AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  ASSERT(super_type.IsNull() || super_type.IsFinalized());
+  return super_type.raw();
+}
+
+DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  const Class& cls = Class::Handle(type.type_class());
+  AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  AbstractType& result = AbstractType::Handle(super_type.raw());
+
+  ASSERT(super_type.IsType());
+  if (!super_type.IsInstantiated()) {
+    AbstractTypeArguments& type_args =
+        AbstractTypeArguments::Handle(type.arguments());
+    Error& bound_error = Error::Handle();
+    result ^= super_type.InstantiateFrom(type_args, &bound_error);
+    if (!bound_error.IsNull()) {
+      ThrowInvokeError(bound_error);
+      UNREACHABLE();
+    }
+    result ^= result.Canonicalize();
+    ASSERT(result.IsType());
+  }
+
+  ASSERT(result.IsFinalized());
+  return result.raw();
 }
 
 
@@ -1050,7 +1197,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   const Class& owner = Class::Handle(param.parameterized_class());
-  const Type& type = Type::Handle(owner.RareType());
+  const AbstractType& type = AbstractType::Handle(owner.RareType());
   return CreateClassMirror(owner,
                            type,
                            Bool::True(),  // is_declaration
@@ -1061,6 +1208,23 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   return param.bound();
+}
+
+
+DEFINE_NATIVE_ENTRY(TypeVariableMirror_instantiate_from, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, instantiator, arguments->NativeArgAt(1));
+
+  ASSERT(param.parameterized_class() == instantiator.type_class());
+
+  AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(instantiator.arguments());
+  Error& bound_error = Error::Handle();
+  AbstractType& result =
+      AbstractType::Handle(param.InstantiateFrom(type_args, &bound_error));
+  ASSERT(bound_error.IsNull());
+  ASSERT(result.IsFinalized());
+  return result.raw();
 }
 
 
@@ -1076,7 +1240,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
 
   Class& klass = Class::Handle(reflectee.clazz());
   Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgsAllowPrivate(klass, function_name));
+      Resolver::ResolveDynamicAnyArgs(klass, function_name));
 
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
@@ -1125,7 +1289,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
       ThrowMirroredCompilationError(message);
       UNREACHABLE();
     }
-    setter = klass.LookupDynamicFunctionAllowPrivate(internal_setter_name);
+    setter = klass.LookupDynamicFunction(internal_setter_name);
     if (!setter.IsNull()) {
       break;
     }
@@ -1145,6 +1309,15 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
                                internal_setter_name,
                                args,
                                args_descriptor);
+}
+
+
+DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  const Type& type = Type::Handle(instance.GetType());
+  // The static type of null is specified to be the bottom type, however, the
+  // runtime type of null is the Null type, which we correctly return here.
+  return type.Canonicalize();
 }
 
 
@@ -1268,8 +1441,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
   const Function& function = Function::Handle(
-      klass.LookupStaticFunctionAllowPrivate(function_name));
-
+      klass.LookupStaticFunction(function_name));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
@@ -1319,7 +1491,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     const String& internal_setter_name = String::Handle(
       Field::SetterName(setter_name));
     const Function& setter = Function::Handle(
-      klass.LookupStaticFunctionAllowPrivate(internal_setter_name));
+      klass.LookupStaticFunction(internal_setter_name));
 
     if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
@@ -1380,7 +1552,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   }
 
   Function& lookup_constructor = Function::Handle(
-      klass.LookupFunctionAllowPrivate(internal_constructor_name));
+      klass.LookupFunction(internal_constructor_name));
 
   if (lookup_constructor.IsNull() ||
       !(lookup_constructor.IsConstructor() || lookup_constructor.IsFactory()) ||
@@ -1512,7 +1684,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
   const Function& function = Function::Handle(
-      library.LookupFunctionAllowPrivate(function_name));
+      library.LookupLocalFunction(function_name));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
@@ -1560,13 +1732,13 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   // setter Function.  The setter function may either be in the
   // library or in the field's owner class, depending.
   const Field& field = Field::Handle(
-      library.LookupFieldAllowPrivate(setter_name));
+      library.LookupLocalField(setter_name));
 
   if (field.IsNull()) {
     const String& internal_setter_name =
         String::Handle(Field::SetterName(setter_name));
     const Function& setter = Function::Handle(
-        library.LookupFunctionAllowPrivate(internal_setter_name));
+        library.LookupLocalFunction(internal_setter_name));
     if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(Instance::null_instance(),
                         setter_name,
@@ -1615,7 +1787,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
 
-  Type& type = Type::Handle(owner.RareType());
+  AbstractType& type = AbstractType::Handle(owner.RareType());
   return CreateClassMirror(owner, type, Bool::True(), Object::null_instance());
 }
 

@@ -82,12 +82,7 @@ main() {
   });
 }
 
-class Person extends Object with ChangeNotifierMixin {
-  static const _FIRST_NAME = const Symbol('firstName');
-  static const _LAST_NAME = const Symbol('lastName');
-  static const _ITEMS = const Symbol('items');
-  static const _GET_FULL_NAME = const Symbol('getFullName');
-
+class Person extends ChangeNotifierBase {
   String _firstName;
   String _lastName;
   List<String> _items;
@@ -98,14 +93,14 @@ class Person extends Object with ChangeNotifierMixin {
 
   void set firstName(String value) {
     _firstName = value;
-    notifyChange(new PropertyChangeRecord(_FIRST_NAME));
+    notifyChange(new PropertyChangeRecord(#firstName));
   }
 
   String get lastName => _lastName;
 
   void set lastName(String value) {
     _lastName = value;
-    notifyChange(new PropertyChangeRecord(_LAST_NAME));
+    notifyChange(new PropertyChangeRecord(#lastName));
   }
 
   String getFullName() => '$_firstName $_lastName';
@@ -114,7 +109,7 @@ class Person extends Object with ChangeNotifierMixin {
 
   void set items(List<String> value) {
     _items = value;
-    notifyChange(new PropertyChangeRecord(_ITEMS));
+    notifyChange(new PropertyChangeRecord(#items));
   }
 
   String toString() => "Person(firstName: $_firstName, lastName: $_lastName)";

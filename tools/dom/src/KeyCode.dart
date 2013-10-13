@@ -225,4 +225,59 @@ abstract class KeyCode {
         keyCode == OPEN_SQUARE_BRACKET || keyCode == BACKSLASH ||
         keyCode == CLOSE_SQUARE_BRACKET);
   }
+
+  /**
+   * Experimental helper function for converting keyCodes to keyNames for the
+   * keyIdentifier attribute still used in browsers not updated with current
+   * spec. This is an imperfect conversion! It will need to be refined, but
+   * hopefully it can just completely go away once all the browsers update to
+   * follow the DOM3 spec.
+   */
+  static String _convertKeyCodeToKeyName(int keyCode) {
+    switch(keyCode) {
+      case KeyCode.ALT: return _KeyName.ALT;
+      case KeyCode.BACKSPACE: return _KeyName.BACKSPACE;
+      case KeyCode.CAPS_LOCK: return _KeyName.CAPS_LOCK;
+      case KeyCode.CTRL: return _KeyName.CONTROL;
+      case KeyCode.DELETE: return _KeyName.DEL;
+      case KeyCode.DOWN: return _KeyName.DOWN;
+      case KeyCode.END: return _KeyName.END;
+      case KeyCode.ENTER: return _KeyName.ENTER;
+      case KeyCode.ESC: return _KeyName.ESC;
+      case KeyCode.F1: return _KeyName.F1;
+      case KeyCode.F2: return _KeyName.F2;
+      case KeyCode.F3: return _KeyName.F3;
+      case KeyCode.F4: return _KeyName.F4;
+      case KeyCode.F5: return _KeyName.F5;
+      case KeyCode.F6: return _KeyName.F6;
+      case KeyCode.F7: return _KeyName.F7;
+      case KeyCode.F8: return _KeyName.F8;
+      case KeyCode.F9: return _KeyName.F9;
+      case KeyCode.F10: return _KeyName.F10;
+      case KeyCode.F11: return _KeyName.F11;
+      case KeyCode.F12: return _KeyName.F12;
+      case KeyCode.HOME: return _KeyName.HOME;
+      case KeyCode.INSERT: return _KeyName.INSERT;
+      case KeyCode.LEFT: return _KeyName.LEFT;
+      case KeyCode.META: return _KeyName.META;
+      case KeyCode.NUMLOCK: return _KeyName.NUM_LOCK;
+      case KeyCode.PAGE_DOWN: return _KeyName.PAGE_DOWN;
+      case KeyCode.PAGE_UP: return _KeyName.PAGE_UP;
+      case KeyCode.PAUSE: return _KeyName.PAUSE;
+      case KeyCode.PRINT_SCREEN: return _KeyName.PRINT_SCREEN;
+      case KeyCode.RIGHT: return _KeyName.RIGHT;
+      case KeyCode.SCROLL_LOCK: return _KeyName.SCROLL;
+      case KeyCode.SHIFT: return _KeyName.SHIFT;
+      case KeyCode.SPACE: return _KeyName.SPACEBAR;
+      case KeyCode.TAB: return _KeyName.TAB;
+      case KeyCode.UP: return _KeyName.UP;
+      case KeyCode.WIN_IME:
+      case KeyCode.WIN_KEY:
+      case KeyCode.WIN_KEY_LEFT:
+      case KeyCode.WIN_KEY_RIGHT:
+        return _KeyName.WIN;
+      default: return _KeyName.UNIDENTIFIED;
+    }
+    return _KeyName.UNIDENTIFIED;
+  }
 }

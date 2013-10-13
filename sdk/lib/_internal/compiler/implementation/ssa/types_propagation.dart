@@ -166,6 +166,11 @@ abstract class SsaTypePropagator extends HBaseVisitor
     return oldType;
   }
 
+  HType visitTypeKnown(HTypeKnown instruction) {
+    HInstruction input = instruction.checkedInput;
+    return instruction.knownType.intersection(input.instructionType, compiler);
+  }
+
   void convertInput(HInvokeDynamic instruction,
                     HInstruction input,
                     HType type,
@@ -231,7 +236,7 @@ abstract class SsaTypePropagator extends HBaseVisitor
   // expected by the call.
   // Return true if the argument type check was added.
   bool checkArgument(HInvokeDynamic instruction) {
-    // We want the righ error in checked mode.
+    // We want the right error in checked mode.
     if (compiler.enableTypeAssertions) return false;
     HInstruction left = instruction.inputs[1];
     HType receiverType = left.instructionType;
@@ -337,6 +342,10 @@ class DesiredTypeVisitor extends HBaseVisitor {
   }
 
   HType visitTypeConversion(HTypeConversion check) {
+    return HType.UNKNOWN;
+  }
+
+  HType visitTypeKnown(HTypeKnown check) {
     return HType.UNKNOWN;
   }
 

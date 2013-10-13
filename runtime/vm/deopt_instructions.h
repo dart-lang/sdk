@@ -17,46 +17,31 @@ namespace dart {
 class Location;
 class Value;
 class MaterializeObjectInstr;
+class StackFrame;
 
 // Holds all data relevant for execution of deoptimization instructions.
 class DeoptContext {
  public:
-  // 'num_args' is 0 if there are no arguments or if there are optional
-  // arguments.
-  DeoptContext(const Array& object_table,
-               intptr_t num_args,
-               DeoptReasonId deopt_reason);
+  enum DestFrameOptions {
+    kDestIsOriginalFrame,   // Replace the original frame with deopt frame.
+    kDestIsAllocated        // Write deopt frame to a buffer.
+  };
 
+  DeoptContext(const StackFrame* frame,
+               const Code& code,
+               DestFrameOptions dest_options,
+               fpu_register_t* fpu_registers,
+               intptr_t* cpu_registers);
   virtual ~DeoptContext();
 
-  // Sets the sources (frame and registers) for this deoptimization.
-  //
-  // if 'frame_is_copy' is true, DeoptContext will delete the frame
-  // when it is done.
-  void SetSourceArgs(intptr_t* frame_start,
-                     intptr_t frame_size,
-                     fpu_register_t* fpu_registers,
-                     intptr_t* cpu_registers,
-                     bool frame_is_copy);
-
-  // Sets the destination fraem for this deoptimization.
-  //
-  // 'frame_start' oints to the fixed size portion of the frame under
-  // sp.
-  //
-  // DeoptContext does not claim ownership of the frame memory.
-  void SetDestArgs(intptr_t* frame_start, intptr_t frame_size);
+  // Returns the offset of the dest fp from the dest sp.  Used in
+  // runtime code to adjust the stack size before deoptimization.
+  intptr_t DestStackAdjustment() const;
 
   intptr_t* GetSourceFrameAddressAt(intptr_t index) const {
     ASSERT(source_frame_ != NULL);
     ASSERT((0 <= index) && (index < source_frame_size_));
     return &source_frame_[index];
-  }
-
-  intptr_t* GetDestFrameAddressAt(intptr_t index) const {
-    ASSERT(dest_frame_ != NULL);
-    ASSERT((0 <= index) && (index < dest_frame_size_));
-    return &dest_frame_[index];
   }
 
   intptr_t GetSourceFp() const;
@@ -72,51 +57,53 @@ class DeoptContext {
   }
 
   intptr_t RegisterValue(Register reg) const {
+    ASSERT(cpu_registers_ != NULL);
     return cpu_registers_[reg];
   }
 
   double FpuRegisterValue(FpuRegister reg) const {
+    ASSERT(fpu_registers_ != NULL);
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
   }
 
   int64_t FpuRegisterValueAsInt64(FpuRegister reg) const {
+    ASSERT(fpu_registers_ != NULL);
     return *reinterpret_cast<int64_t*>(&fpu_registers_[reg]);
   }
 
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
+    ASSERT(fpu_registers_ != NULL);
     const float* address = reinterpret_cast<float*>(&fpu_registers_[reg]);
     return simd128_value_t().readFrom(address);
+  }
+
+  void set_dest_frame(intptr_t* dest_frame) {
+    ASSERT(dest_frame != NULL && dest_frame_ == NULL);
+    dest_frame_ = dest_frame;
   }
 
   Isolate* isolate() const { return isolate_; }
 
   intptr_t source_frame_size() const { return source_frame_size_; }
+  intptr_t dest_frame_size() const { return dest_frame_size_; }
+
+  RawCode* code() const { return code_; }
 
   DeoptReasonId deopt_reason() const { return deopt_reason_; }
 
+  RawDeoptInfo* deopt_info() const { return deopt_info_; }
+
+  // Fills the destination frame but defers materialization of
+  // objects.
+  void FillDestFrame();
+
+  // Materializes all deferred objects.  Returns the total number of
+  // artificial arguments used during deoptimization.
+  intptr_t MaterializeDeferredObjects();
+
+  RawArray* DestFrameAsArray();
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
-  void PrepareForDeferredMaterialization(intptr_t count) {
-    if (count > 0) {
-      deferred_objects_ = new DeferredObject*[count];
-      deferred_objects_count_ = count;
-    }
-  }
-
-  DeferredObject* GetDeferredObject(intptr_t idx) const {
-    return deferred_objects_[idx];
-  }
-
-  // Sets the materialized value for some deferred object.
-  //
-  // Claims ownership of the memory for 'object'.
-  void SetDeferredObjectAt(intptr_t idx, DeferredObject* object) {
-    deferred_objects_[idx] = object;
-  }
-
-  intptr_t DeferredObjectsCount() const {
-    return deferred_objects_count_;
-  }
 
   void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
     deferred_object_refs_ = new DeferredObjectRef(
@@ -155,21 +142,48 @@ class DeoptContext {
         deferred_boxes_);
   }
 
-  // Materializes all deferred objects.  Returns the total number of
-  // artificial arguments used during deoptimization.
-  intptr_t MaterializeDeferredObjects();
+  DeferredObject* GetDeferredObject(intptr_t idx) const {
+    return deferred_objects_[idx];
+  }
 
  private:
+  intptr_t* GetDestFrameAddressAt(intptr_t index) const {
+    ASSERT(dest_frame_ != NULL);
+    ASSERT((0 <= index) && (index < dest_frame_size_));
+    return &dest_frame_[index];
+  }
+
+  void PrepareForDeferredMaterialization(intptr_t count) {
+    if (count > 0) {
+      deferred_objects_ = new DeferredObject*[count];
+      deferred_objects_count_ = count;
+    }
+  }
+
+  // Sets the materialized value for some deferred object.
+  //
+  // Claims ownership of the memory for 'object'.
+  void SetDeferredObjectAt(intptr_t idx, DeferredObject* object) {
+    deferred_objects_[idx] = object;
+  }
+
+  intptr_t DeferredObjectsCount() const {
+    return deferred_objects_count_;
+  }
+
+  RawCode* code_;
   RawArray* object_table_;
+  RawDeoptInfo* deopt_info_;
+  bool dest_frame_is_allocated_;
   intptr_t* dest_frame_;
   intptr_t dest_frame_size_;
-  bool source_frame_is_copy_;
+  bool source_frame_is_allocated_;
   intptr_t* source_frame_;
   intptr_t source_frame_size_;
   intptr_t* cpu_registers_;
   fpu_register_t* fpu_registers_;
-  const intptr_t num_args_;
-  const DeoptReasonId deopt_reason_;
+  intptr_t num_args_;
+  DeoptReasonId deopt_reason_;
   intptr_t caller_fp_;
   Isolate* isolate_;
 

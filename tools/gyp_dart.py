@@ -18,8 +18,8 @@ def execute(args):
   return process.returncode
 
 def main():
-  args = ['python', 'dart/third_party/gyp/gyp', '--depth=dart',
-          '-Idart/tools/gyp/all.gypi', 'dart/dart.gyp']
+  args = ['python', 'dart/third_party/gyp/gyp_main.py',
+          '--depth=dart', '-Idart/tools/gyp/all.gypi', 'dart/dart.gyp']
 
   if sys.platform == 'win32':
     # Generate Visual Studio 2010 compatible files by default.

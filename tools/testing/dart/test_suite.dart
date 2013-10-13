@@ -711,8 +711,6 @@ class StandardTestSuite extends TestSuite {
       // browser or otherwise).
       enqueueStandardTest(info, testName, expectations);
     } else if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
-      bool isWrappingRequired = configuration['compiler'] != 'dart2js';
-
       if (info.optionsFromFile['isMultiHtmlTest']) {
         // A browser multi-test has multiple expectations for one test file.
         // Find all the different sub-test expecations for one entire test file.
@@ -723,10 +721,9 @@ class StandardTestSuite extends TestSuite {
           multiHtmlTestExpectations[fullTestName] =
               testExpectations.expectations(fullTestName);
         }
-        enqueueBrowserTest(info, testName, multiHtmlTestExpectations,
-            isWrappingRequired);
+        enqueueBrowserTest(info, testName, multiHtmlTestExpectations);
       } else {
-        enqueueBrowserTest(info, testName, expectations, isWrappingRequired);
+        enqueueBrowserTest(info, testName, expectations);
       }
     } else {
       enqueueStandardTest(info, testName, expectations);
@@ -919,23 +916,13 @@ class StandardTestSuite extends TestSuite {
   }
 
   void _createWrapperFile(String dartWrapperFilename,
-                          Path dartLibraryFilename,
-                          {bool useUnittestWrapper: false}) {
+                          Path dartLibraryFilename) {
     File file = new File(dartWrapperFilename);
     RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
 
     var usePackageImport = dartLibraryFilename.segments().contains("pkg");
     var libraryPathComponent = _createUrlPathFromFile(dartLibraryFilename);
-    var generatedSource;
-    if (useUnittestWrapper) {
-      // FIXME(kustermann): This is broken, we can't do unittest-based wrapping
-      // of tests (e.g. async operations are not wrapped in expectAsync()).
-      generatedSource = dartUnittestWrapper(usePackageImport,
-                                            libraryPathComponent);
-    } else {
-      generatedSource = dartTestWrapper(libraryPathComponent);
-    }
-
+    var generatedSource = dartTestWrapper(libraryPathComponent);
     dartWrapper.writeStringSync(generatedSource);
     dartWrapper.closeSync();
   }
@@ -955,13 +942,11 @@ class StandardTestSuite extends TestSuite {
    */
   void enqueueBrowserTest(TestInformation info,
                           String testName,
-                          expectations,
-                          bool isWrappingRequired) {
+                          expectations) {
     // TODO(kustermann/ricow): This method should be refactored.
     Map optionsFromFile = info.optionsFromFile;
     Path filePath = info.filePath;
     String filename = filePath.toString();
-    bool isWebTest = optionsFromFile['containsDomImport'];
 
     final String compiler = configuration['compiler'];
     final String runtime = configuration['runtime'];
@@ -990,7 +975,6 @@ class StandardTestSuite extends TestSuite {
       Path txtPath = dir.append('$nameNoExt.txt');
       String customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
       File customHtml = new File(customHtmlPath);
-      Path expectedOutput = null;
 
       // Construct the command(s) that compile all the inputs needed by the
       // browser test. For running Dart in DRT, this will be noop commands.
@@ -1037,15 +1021,9 @@ class StandardTestSuite extends TestSuite {
         }
       } else {
         htmlPath = '$tempDir/test.html';
-        if (isWrappingRequired && !isWebTest) {
+        if (configuration['compiler'] != 'dart2js') {
           // test.dart will import the dart test.
-          if (configuration['use_browser_controller'] &&
-              configuration['runtime'] == 'dartium') {
-            _createWrapperFile(dartWrapperFilename, filePath);
-          } else {
-            _createWrapperFile(
-                dartWrapperFilename, filePath, useUnittestWrapper: true);
-          }
+          _createWrapperFile(dartWrapperFilename, filePath);
         } else {
           dartWrapperFilename = filename;
         }
@@ -1063,16 +1041,8 @@ class StandardTestSuite extends TestSuite {
         }
         scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
-        if (new File(pngPath.toNativePath()).existsSync()) {
-          expectedOutput = pngPath;
-          content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
-        } else if (new File(txtPath.toNativePath()).existsSync()) {
-          expectedOutput = txtPath;
-          content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
-        } else {
-          content = getHtmlContents(filename, scriptType,
-              new Path("$scriptPath"));
-        }
+        content =
+            getHtmlContents(filename, scriptType, new Path("$scriptPath"));
         htmlTest.writeStringSync(content);
         htmlTest.closeSync();
       }
@@ -1161,16 +1131,9 @@ class StandardTestSuite extends TestSuite {
             dartFlags.addAll(vmOptions);
           }
 
-          if (expectedOutput != null) {
-            if (expectedOutput.toNativePath().endsWith('.png')) {
-              // pixel tests are specified by running DRT "foo.html'-p"
-              contentShellOptions.add('--notree');
-              fullHtmlPath = "${fullHtmlPath}'-p";
-            }
-          }
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
-              dartFlags, expectedOutput, configurationDir));
+              dartFlags, configurationDir));
         }
 
         // Create BrowserTestCase and queue it.

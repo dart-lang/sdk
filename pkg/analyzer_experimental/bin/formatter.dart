@@ -6,7 +6,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:utf';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -17,11 +16,15 @@ import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 const BINARY_NAME = 'dartfmt';
 final dartFileRegExp = new RegExp(r'^[^.].*\.dart$', caseSensitive: false);
 final argParser = _initArgParser();
+final defaultSelection = new Selection(-1, -1);
+
+var formatterSettings;
 
 bool machineFormat;
 bool overwriteFileContents;
 Selection selection;
 const followLinks = false;
+
 
 main() {
   var options = argParser.parse(new Options().arguments);
@@ -31,7 +34,7 @@ main() {
   }
 
   _readOptions(options);
-  
+
   if (options.rest.isEmpty) {
     _formatStdin(options);
   } else {
@@ -43,6 +46,8 @@ _readOptions(options) {
   machineFormat = options['machine'];
   overwriteFileContents = options['write'];
   selection = _parseSelection(options['selection']);
+  formatterSettings =
+      new FormatterOptions(codeTransforms: options['transform']);
 }
 
 Selection _parseSelection(selectionOption) {
@@ -104,7 +109,7 @@ _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
 _formatStdin(options) {
   var input = new StringBuffer();
-  stdin.transform(new Utf8DecoderTransformer())
+  stdin.transform(new Utf8Decoder())
       .listen((data) => input.write(data),
         onError: (error) => _log('Error reading from stdin'),
         onDone: () => print(_formatCU(input.toString())));
@@ -122,6 +127,8 @@ ArgParser _initArgParser() {
   parser.addOption('selection', abbr: 's',
       help: 'Specify selection information as an offset,length pair '
             '(e.g., -s "0,4").');
+  parser.addFlag('transform', abbr: 't', negatable: true,
+      help: 'Perform code transformations.');
   parser.addFlag('help', abbr: 'h', negatable: false,
       help: 'Print this usage information.');
   return parser;
@@ -147,16 +154,19 @@ _printUsage() {
 }
 
 /// Format the given [src] as a compilation unit.
-String _formatCU(src, {options: const FormatterOptions()}) {
-  var formatResult = new CodeFormatter(options).format(
+String _formatCU(src) {
+  var formatResult = new CodeFormatter(formatterSettings).format(
       CodeKind.COMPILATION_UNIT, src, selection: selection);
   if (machineFormat) {
+    if (formatResult.selection == null) {
+      formatResult.selection = defaultSelection;
+    }
     return _toJson(formatResult);
   }
   return formatResult.source;
 }
 
-_toJson(formatResult) => 
+_toJson(formatResult) =>
     // Actual JSON format TBD
     JSON.encode({'source': formatResult.source,
                  'selection': {

@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 main() {
   asyncStart();
   // Ensure that `runZoned`'s onError handles synchronous errors but delegates
-  // to the next runZonedExperimental when the handler returns false.
+  // to the next runZoned when the handler returns false.
   bool sawInnerHandler = false;
   try {
     runZoned(() {

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,6 +11,8 @@ part of csslib.parser;
 class PolyFill {
   final Messages _messages;
   final bool _warningsAsErrors;
+  Map<String, VarDefinition> _allVarDefinitions =
+      new Map<String, VarDefinition>();
 
   Set<StyleSheet> allStyleSheets = new Set<StyleSheet>();
 
@@ -25,55 +27,45 @@ class PolyFill {
    * Run the analyzer on every file that is a style sheet or any component that
    * has a style tag.
    */
-  void process(StyleSheet stylesheet) {
-    // TODO(terry): Process all imported stylesheets.
-
-    var styleSheets = processVars([stylesheet]);
-    allStyleSheets.addAll(styleSheets);
-
-    normalize();
-  }
-
-  void normalize() {
-    // Remove all var definitions for all style sheets analyzed.
-    for (var tree in allStyleSheets)
-      new _RemoveVarDefinitions().visitTree(tree);
-  }
-
-  List<StyleSheet> processVars(List<StyleSheet> styleSheets) {
-    // TODO(terry): Process all dependencies.
-    // Build list of all var definitions.
-    Map varDefs = new Map();
-    for (var tree in styleSheets) {
-      var allDefs = (new _VarDefinitions()..visitTree(tree)).found;
-      allDefs.forEach((key, value) {
-        varDefs[key] = value;
-      });
+  void process(StyleSheet styleSheet, {List<StyleSheet> includes: null}) {
+    if (includes != null) {
+      processVarDefinitions(includes);
     }
+    processVars(styleSheet);
+
+    // Remove all var definitions for this style sheet.
+    new _RemoveVarDefinitions().visitTree(styleSheet);
+  }
+
+  /** Process all includes looking for var definitions. */
+  void processVarDefinitions(List<StyleSheet> includes) {
+    for (var include in includes) {
+      _allVarDefinitions = (new _VarDefinitionsIncludes(_allVarDefinitions)
+          ..visitTree(include)).varDefs;
+    }
+  }
+
+  void processVars(StyleSheet styleSheet) {
+    // Build list of all var definitions.
+    var mainStyleSheetVarDefs =
+        (new _VarDefAndUsage(this._messages, _allVarDefinitions)
+        ..visitTree(styleSheet)).varDefs;
 
     // Resolve all definitions to a non-VarUsage (terminal expression).
-    varDefs.forEach((key, value) {
-      for (var expr in (value.expression as Expressions).expressions) {
-        var def = _findTerminalVarDefinition(varDefs, value);
-        varDefs[key] = def;
+    mainStyleSheetVarDefs.forEach((key, value) {
+      for (Expression expr in (value.expression as Expressions).expressions) {
+        mainStyleSheetVarDefs[key] =
+            _findTerminalVarDefinition(_allVarDefinitions, value);
       }
     });
-
-    // Resolve all var usages.
-    for (var tree in styleSheets) {
-      new _ResolveVarUsages(varDefs).visitTree(tree);
-    }
-
-    return styleSheets;
   }
 }
 
-/**
- * Find var- definitions in a style sheet.
- * [found] list of known definitions.
- */
-class _VarDefinitions extends Visitor {
-  final Map<String, VarDefinition> found = new Map();
+/** Build list of all var definitions in all includes. */
+class _VarDefinitionsIncludes extends Visitor {
+  final Map<String, VarDefinition> varDefs;
+
+  _VarDefinitionsIncludes(this.varDefs);
 
   void visitTree(StyleSheet tree) {
     visitStyleSheet(tree);
@@ -81,9 +73,9 @@ class _VarDefinitions extends Visitor {
 
   visitVarDefinition(VarDefinition node) {
     // Replace with latest variable definition.
-    found[node.definedName] = node;
+    varDefs[node.definedName] = node;
     super.visitVarDefinition(node);
-  }
+ }
 
   void visitVarDefinitionDirective(VarDefinitionDirective node) {
     visitVarDefinition(node.def);
@@ -91,78 +83,98 @@ class _VarDefinitions extends Visitor {
 }
 
 /**
- * Resolve any CSS expression which contains a var() usage to the ultimate real
- * CSS expression value e.g.,
- *
- *    var-one: var(two);
- *    var-two: #ff00ff;
- *
- *    .test {
- *      color: var(one);
- *    }
- *
- * then .test's color would be #ff00ff
+ * Find var- definitions in a style sheet.
+ * [found] list of known definitions.
  */
-class _ResolveVarUsages extends Visitor {
-  final Map<String, VarDefinition> varDefs;
-  bool inVarDefinition = false;
-  bool inUsage = false;
-  Expressions currentExpressions;
+class _VarDefAndUsage extends Visitor {
+  final Messages _messages;
+  final Map<String, VarDefinition> _knownVarDefs;
+  final Map<String, VarDefinition> varDefs = new Map<String, VarDefinition>();
 
-  _ResolveVarUsages(this.varDefs);
+  VarDefinition currVarDefinition;
+  List<Expression> currentExpressions;
+
+  _VarDefAndUsage(this._messages, this._knownVarDefs);
 
   void visitTree(StyleSheet tree) {
     visitStyleSheet(tree);
   }
 
-  void visitVarDefinition(VarDefinition varDef) {
-    inVarDefinition = true;
-    super.visitVarDefinition(varDef);
-    inVarDefinition = false;
+  visitVarDefinition(VarDefinition node) {
+    // Replace with latest variable definition.
+    currVarDefinition = node;
+
+    _knownVarDefs[node.definedName] = node;
+    varDefs[node.definedName] = node;
+
+    super.visitVarDefinition(node);
+
+    currVarDefinition = null;
+ }
+
+  void visitVarDefinitionDirective(VarDefinitionDirective node) {
+    visitVarDefinition(node.def);
   }
 
   void visitExpressions(Expressions node) {
-    currentExpressions = node;
+    currentExpressions = node.expressions;
     super.visitExpressions(node);
     currentExpressions = null;
   }
 
   void visitVarUsage(VarUsage node) {
+    if (currVarDefinition != null && currVarDefinition.badUsage) return;
+
     // Don't process other var() inside of a varUsage.  That implies that the
     // default is a var() too.  Also, don't process any var() inside of a
     // varDefinition (they're just place holders until we've resolved all real
     // usages.
-    if (!inUsage && !inVarDefinition && currentExpressions != null) {
-      var expressions = currentExpressions.expressions;
-      var index = expressions.indexOf(node);
-      assert(index >= 0);
-      var def = varDefs[node.name];
-      if (def != null) {
-        // Found a VarDefinition use it.
-        _resolveVarUsage(currentExpressions.expressions, index, def);
-      } else if (node.defaultValues.any((e) => e is VarUsage)) {
-        // Don't have a VarDefinition need to use default values resolve all
-        // default values.
-        var terminalDefaults = [];
-        for (var defaultValue in node.defaultValues) {
-          terminalDefaults.addAll(resolveUsageTerminal(defaultValue));
-        }
-        expressions.replaceRange(index, index + 1, terminalDefaults);
-      } else {
-        // No VarDefinition but default value is a terminal expression; use it.
-        expressions.replaceRange(index, index + 1, node.defaultValues);
+    var expressions = currentExpressions;
+    var index = expressions.indexOf(node);
+    assert(index >= 0);
+    var def = _knownVarDefs[node.name];
+    if (def != null) {
+      if (def.badUsage) {
+        // Remove any expressions pointing to a bad var definition.
+        expressions.removeAt(index);
+        return;
       }
+      _resolveVarUsage(currentExpressions, index,
+          _findTerminalVarDefinition(_knownVarDefs, def));
+    } else if (node.defaultValues.any((e) => e is VarUsage)) {
+      // Don't have a VarDefinition need to use default values resolve all
+      // default values.
+      var terminalDefaults = [];
+      for (var defaultValue in node.defaultValues) {
+        terminalDefaults.addAll(resolveUsageTerminal(defaultValue));
+      }
+      expressions.replaceRange(index, index + 1, terminalDefaults);
+    } else if (node.defaultValues.isNotEmpty){
+      // No VarDefinition but default value is a terminal expression; use it.
+      expressions.replaceRange(index, index + 1, node.defaultValues);
+    } else {
+      if (currVarDefinition != null) {
+        currVarDefinition.badUsage = true;
+        var mainStyleSheetDef = varDefs[node.name];
+        if (mainStyleSheetDef != null) {
+          varDefs.remove(currVarDefinition.property);
+        }
+      }
+      // Remove var usage that points at an undefined definition.
+      expressions.removeAt(index);
+      _messages.warning("Variable is not defined.", node.span);
     }
 
-    inUsage = true;
+    var oldExpressions = currentExpressions;
+    currentExpressions = node.defaultValues;
     super.visitVarUsage(node);
-    inUsage = false;
+    currentExpressions = oldExpressions;
   }
 
   List<Expression> resolveUsageTerminal(VarUsage usage) {
     var result = [];
 
-    var varDef = varDefs[usage.name];
+    var varDef = _knownVarDefs[usage.name];
     var expressions;
     if (varDef == null) {
       // VarDefinition not found try the defaultValues.

@@ -592,6 +592,8 @@ if (!HTMLElement.prototype.createShadowRoot
     this.isObserved = true;
   }
 
+  // TODO(rafaelw): Consider surfacing a way to avoid observing prototype
+  // ancestors which are expected not to change (e.g. Element, Node...).
   var objProto = Object.getPrototypeOf({});
   var arrayProto = Object.getPrototypeOf([]);
   ObservedSet.prototype = {
@@ -734,6 +736,8 @@ if (!HTMLElement.prototype.createShadowRoot
   CompoundPathObserver.prototype = createObject({
     __proto__: PathObserver.prototype,
 
+    // TODO(rafaelw): Consider special-casing when |object| is a PathObserver
+    // and path 'value' to avoid explicit observation.
     addPath: function(object, path) {
       if (this.started)
         throw Error('Cannot add more paths once started.');
@@ -798,7 +802,8 @@ if (!HTMLElement.prototype.createShadowRoot
 
         this.reportArgs = [this.value, this.oldValue];
       } else {
-        this.reportArgs = [this.values, this.oldValues, this.changeFlags];
+        this.reportArgs = [this.values, this.oldValues, this.changeFlags,
+                           this.observed];
       }
 
       return true;
@@ -1947,21 +1952,17 @@ var ShadowDOMPolyfill = {};
     return false;
   }
 
-  function isMutationEvent(type) {
-    switch (type) {
-      case 'DOMAttrModified':
-      case 'DOMAttributeNameChanged':
-      case 'DOMCharacterDataModified':
-      case 'DOMElementNameChanged':
-      case 'DOMNodeInserted':
-      case 'DOMNodeInsertedIntoDocument':
-      case 'DOMNodeRemoved':
-      case 'DOMNodeRemovedFromDocument':
-      case 'DOMSubtreeModified':
-        return true;
-    }
-    return false;
+  var mutationEventsAreSilenced = 0;
+
+  function muteMutationEvents() {
+    mutationEventsAreSilenced++;
   }
+
+  function unmuteMutationEvents() {
+    mutationEventsAreSilenced--;
+  }
+
+  var OriginalMutationEvent = window.MutationEvent;
 
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
@@ -1972,8 +1973,12 @@ var ShadowDOMPolyfill = {};
     // Don't do rendering if this is a mutation event since rendering might
     // mutate the DOM which would fire more events and we would most likely
     // just iloop.
-    if (!isMutationEvent(originalEvent.type))
+    if (originalEvent instanceof OriginalMutationEvent) {
+      if (mutationEventsAreSilenced)
+        return;
+    } else {
       scope.renderAllPending();
+    }
 
     var target = wrap(originalEvent.target);
     var event = wrap(originalEvent);
@@ -2102,7 +2107,7 @@ var ShadowDOMPolyfill = {};
         if (window.onerror)
           window.onerror(ex.message);
         else
-          console.error(ex);
+          console.error(ex, ex.stack);
       }
     }
 
@@ -2491,6 +2496,8 @@ var ShadowDOMPolyfill = {};
   scope.elementFromPoint = elementFromPoint;
   scope.getEventHandlerGetter = getEventHandlerGetter;
   scope.getEventHandlerSetter = getEventHandlerSetter;
+  scope.muteMutationEvents = muteMutationEvents;
+  scope.unmuteMutationEvents = unmuteMutationEvents;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
@@ -3602,8 +3609,10 @@ var ShadowDOMPolyfill = {};
   var HTMLElement = scope.wrappers.HTMLElement;
   var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
+  var muteMutationEvents = scope.muteMutationEvents;
   var registerWrapper = scope.registerWrapper;
   var setInnerHTML = scope.setInnerHTML;
+  var unmuteMutationEvents = scope.unmuteMutationEvents;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -3632,9 +3641,11 @@ var ShadowDOMPolyfill = {};
     var doc = getTemplateContentsOwner(templateElement.ownerDocument);
     var df = unwrap(doc.createDocumentFragment());
     var child;
+    muteMutationEvents();
     while (child = templateElement.firstChild) {
       df.appendChild(child);
     }
+    unmuteMutationEvents();
     return df;
   }
 
@@ -3808,7 +3819,9 @@ var ShadowDOMPolyfill = {};
   var assert = scope.assert;
   var getHostForShadowRoot = scope.getHostForShadowRoot;
   var mixin = scope.mixin;
+  var muteMutationEvents = scope.muteMutationEvents;
   var oneOf = scope.oneOf;
+  var unmuteMutationEvents = scope.unmuteMutationEvents;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -4119,7 +4132,7 @@ var ShadowDOMPolyfill = {};
       }
 
       for (var i = lastIndex; i < newChildren.length; i++) {
-        newChildren[i++].sync(added);
+        newChildren[i].sync(added);
       }
     }
   };
@@ -4152,8 +4165,11 @@ var ShadowDOMPolyfill = {};
         this.renderNode(shadowRoot, renderNode, node, false);
       }
 
-      if (topMostRenderer)
+      if (topMostRenderer) {
+        //muteMutationEvents();
         renderNode.sync();
+        //unmuteMutationEvents();
+      }
 
       this.dirty = false;
     },
@@ -5162,6 +5178,13 @@ var ShadowDOMPolyfill = {};
           return 'MutationRecord';
       if (window.MutationObserver && (obj instanceof MutationObserver))
           return 'MutationObserver';
+
+      // TODO(jmesserly): this prevents incorrect interaction between ShadowDOM
+      // and dart:html's <template> polyfill. Essentially, ShadowDOM is
+      // polyfilling native template, but our Dart polyfill fails to detect this
+      // because the unwrapped node is an HTMLUnknownElement, leading it to
+      // think the node has no content.
+      if (obj instanceof HTMLTemplateElement) return 'HTMLTemplateElement';
 
       var unwrapped = unwrapIfNeeded(obj);
       if (obj !== unwrapped) {

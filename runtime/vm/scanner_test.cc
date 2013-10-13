@@ -88,7 +88,7 @@ void CheckLineNumber(const Scanner::GrowableTokenStream& token_stream,
 void CheckNumTokens(const Scanner::GrowableTokenStream& token_stream,
                     int index) {
   if (token_stream.length() != index) {
-    OS::PrintErr("Expected %d tokens but got only %d.\n",
+    OS::PrintErr("Expected %d tokens but got only %" Pd ".\n",
         index, token_stream.length());
   }
 }

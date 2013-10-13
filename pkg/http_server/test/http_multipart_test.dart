@@ -7,6 +7,7 @@ import "package:mime/mime.dart";
 import "package:unittest/unittest.dart";
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 class FormField {
   final String name;
@@ -45,7 +46,8 @@ void postDataTest(List<int> message,
       String boundary = request.headers.contentType.parameters['boundary'];
       request
           .transform(new MimeMultipartTransformer(boundary))
-          .map(HttpMultipartFormData.parse)
+          .map((part) => HttpMultipartFormData.parse(
+              part, defaultEncoding: LATIN1))
           .map((multipart) {
             var future;
             if (multipart.isText) {
@@ -104,7 +106,6 @@ Content-Type: text/plain\r
 Content of file\r
 --AaB03x--\r\n''';
 
-
   postDataTest(message.codeUnits,
                'multipart/form-data',
                'AaB03x',
@@ -113,6 +114,24 @@ Content of file\r
                               'Content of file',
                               contentType: 'text/plain',
                               filename: 'file1.txt')]);
+
+  // Windows/IE style file upload.
+  message = '''
+\r\n--AaB03x\r
+Content-Disposition: form-data; name="files"; filename="C:\\file1\\".txt"\r
+Content-Type: text/plain\r
+\r
+Content of file\r
+--AaB03x--\r\n''';
+
+
+  postDataTest(message.codeUnits,
+               'multipart/form-data',
+               'AaB03x',
+               [new FormField('files',
+                              'Content of file',
+                              contentType: 'text/plain',
+                              filename: 'C:\\file1".txt')]);
   // Similar test using Chrome posting.
   message = [
       45, 45, 45, 45, 45, 45, 87, 101, 98, 75, 105, 116, 70, 111, 114, 109, 66,

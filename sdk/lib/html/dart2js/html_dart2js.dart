@@ -52,10 +52,12 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
     JSName, Null, Returns,
-    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord;
+    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
+    makeLeafDispatchRecord;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    getNativeInterceptor;
+    findConstructorForWebComponentType, getNativeInterceptor, 
+    setDispatchProperty, findInterceptorForType;
 
 export 'dart:math' show Rectangle, Point;
 
@@ -8168,7 +8170,7 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -8617,7 +8619,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
@@ -8929,8 +8931,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     // Validate that this is a custom element & perform any additional
     // initialization.
     _initializeCustomElement(this);
-
-    createdCallback();
   }
 
   /**
@@ -9242,13 +9242,13 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   /**
    * Gets the position of this element relative to the client area of the page.
    */
-  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth, 
+  Rectangle get client => new Rectangle(clientLeft, clientTop, clientWidth,
       clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
    */
-  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth, 
+  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth,
       offsetHeight);
 
   /**
@@ -9275,15 +9275,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     var e = _ElementFactoryProvider.createElement_tag(tag, null);
     return e is Element && !(e is UnknownElement);
   }
-
-  /**
-   * Called by the DOM when this element has been instantiated.
-   *
-   * Will be replaced by created constructor.
-   */
-  @Experimental()
-  @deprecated
-  void createdCallback() {}
 
   /**
    * Called by the DOM when this element has been inserted into the live
@@ -9357,7 +9348,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * * [scrollIntoViewIfNeeded](http://docs.webplatform.org/wiki/dom/methods/scrollIntoViewIfNeeded)
    */
   void scrollIntoView([ScrollAlignment alignment]) {
-    var hasScrollIntoViewIfNeeded = false;
+    var hasScrollIntoViewIfNeeded = true;
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
     if (alignment == ScrollAlignment.TOP) {
@@ -11059,6 +11050,31 @@ class Event extends Interceptor native "Event" {
     final Event e = document._createEvent(type);
     e._initEvent(name, canBubble, cancelable);
     return e;
+  }
+  
+  /** The CSS selector involved with event delegation. */
+  String _selector;
+
+  /**
+   * A pointer to the element whose CSS selector matched within which an event
+   * was fired. If this Event was not associated with any Event delegation,
+   * accessing this value will throw an [UnsupportedError].
+   */
+  Element get matchingTarget {
+    if (_selector == null) {
+      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
+          ' not arise as a result of event delegation.');
+    }
+    var currentTarget = this.currentTarget;
+    var target = this.target;
+    var matchedTarget;
+    while (matchedTarget == null && target != currentTarget && target != null) {
+      if (target.matches(_selector)) {
+        matchedTarget = target;
+      }
+      target = target.parent;
+    }
+    return matchedTarget;
   }
 
   @DomName('Event.AT_TARGET')
@@ -13258,9 +13274,7 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
       }
     });
 
-    xhr.onError.listen((e) {
-      completer.completeError(e);
-    });
+    xhr.onError.listen(completer.completeError);
 
     if (sendData != null) {
       xhr.send(sendData);
@@ -17930,7 +17944,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -28341,9 +28355,38 @@ class _DataAttributeMap implements Map<String, String> {
   bool get isNotEmpty => !isEmpty;
 
   // Helpers.
-  String _attr(String key) => 'data-$key';
+  String _attr(String key) => 'data-${_toHyphenedName(key)}';
   bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
+  String _strip(String key) => _toCamelCase(key.substring(5));
+
+  /**
+   * Converts a string name with hyphens into an identifier, by removing hyphens
+   * and capitalizing the following letter. Optionally [startUppercase] to
+   * captialize the first letter.
+   */
+  String _toCamelCase(String hyphenedName, {bool startUppercase: false}) {
+    var segments = hyphenedName.split('-');
+    int start = startUppercase ? 0 : 1;
+    for (int i = start; i < segments.length; i++) {
+      var segment = segments[i];
+      if (segment.length > 0) {
+        // Character between 'a'..'z' mapped to 'A'..'Z'
+        segments[i] = '${segment[0].toUpperCase()}${segment.substring(1)}';
+      }
+    }
+    return segments.join('');
+  }
+
+  /** Reverse of [toCamelCase]. */
+  String _toHyphenedName(String word) {
+    var sb = new StringBuffer();
+    for (int i = 0; i < word.length; i++) {
+      var lower = word[i].toLowerCase();
+      if (word[i] != lower && i > 0) sb.write('-');
+      sb.write(lower);
+    }
+    return sb.toString();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29038,7 +29081,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) {
 
@@ -29068,8 +29111,11 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
   _ElementEventStreamImpl(target, eventType, useCapture) :
       super(target, eventType, useCapture);
 
-  Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matchesWithAncestors(selector));
+  Stream<T> matches(String selector) => this.where(
+      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+        e._selector = selector;
+        return e;
+      });
 }
 
 /**
@@ -29090,12 +29136,15 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     _stream = _pool.stream;
   }
 
-  Stream<T> matches(String selector) =>
-      this.where((event) => event.target.matchesWithAncestors(selector));
+  Stream<T> matches(String selector) => this.where(
+      (event) => event.target.matchesWithAncestors(selector)).map((e) {
+        e._selector = selector;
+        return e;
+      });
 
   // Delegate all regular Stream behavor to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(error),
+      { Function onError,
         void onDone(),
         bool cancelOnError}) =>
       _stream.listen(onData, onError: onError, onDone: onDone,
@@ -29104,6 +29153,61 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
                                void onCancel(StreamSubscription subscription)})
       => _stream;
   bool get isBroadcast => true;
+}
+
+/**
+ * A stream of custom events, which enables the user to "fire" (add) their own
+ * custom events to a stream.
+ */
+abstract class CustomStream<T extends Event> implements Stream<T> {
+  /**
+   * Add the following custom event to the stream for dispatching to interested
+   * listeners.
+   */
+  void add(T event);
+}
+
+class _CustomEventStreamImpl<T extends Event> extends Stream<T>
+    implements CustomStream<T> {
+  StreamController<T> _streamController;
+  /** The type of event this stream is providing (e.g. "keydown"). */
+  String _type;
+
+  _CustomEventStreamImpl(String type) {
+    _type = type;
+    _streamController = new StreamController.broadcast(sync: true);
+  }
+
+  // Delegate all regular Stream behavior to our wrapped Stream.
+  StreamSubscription<T> listen(void onData(T event),
+      { Function onError,
+        void onDone(),
+        bool cancelOnError}) {
+    return _streamController.stream.listen(onData, onError: onError,
+        onDone: onDone, cancelOnError: cancelOnError);
+  }
+
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
+                               void onCancel(StreamSubscription subscription)})
+      => _streamController.stream;
+
+  bool get isBroadcast => true;
+
+  void add(T event) {
+    if (event.type == _type) _streamController.add(event);
+  }
+}
+
+class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
+    implements CustomStream<KeyEvent> {
+  _CustomKeyEventStreamImpl(String type) : super(type);
+
+  void add(KeyEvent event) {
+    if (event.type == _type) {
+      event.currentTarget.dispatchEvent(event._parent);
+      _streamController.add(event);
+    }
+  }
 }
 
 /**
@@ -29205,7 +29309,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(error)) {}
+  void onError(Function handleError) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
@@ -29828,7 +29932,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  void shuffle() {
+  void shuffle([Random random]) {
     throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 
@@ -30327,6 +30431,61 @@ abstract class KeyCode {
         keyCode == OPEN_SQUARE_BRACKET || keyCode == BACKSLASH ||
         keyCode == CLOSE_SQUARE_BRACKET);
   }
+
+  /**
+   * Experimental helper function for converting keyCodes to keyNames for the
+   * keyIdentifier attribute still used in browsers not updated with current
+   * spec. This is an imperfect conversion! It will need to be refined, but
+   * hopefully it can just completely go away once all the browsers update to
+   * follow the DOM3 spec.
+   */
+  static String _convertKeyCodeToKeyName(int keyCode) {
+    switch(keyCode) {
+      case KeyCode.ALT: return _KeyName.ALT;
+      case KeyCode.BACKSPACE: return _KeyName.BACKSPACE;
+      case KeyCode.CAPS_LOCK: return _KeyName.CAPS_LOCK;
+      case KeyCode.CTRL: return _KeyName.CONTROL;
+      case KeyCode.DELETE: return _KeyName.DEL;
+      case KeyCode.DOWN: return _KeyName.DOWN;
+      case KeyCode.END: return _KeyName.END;
+      case KeyCode.ENTER: return _KeyName.ENTER;
+      case KeyCode.ESC: return _KeyName.ESC;
+      case KeyCode.F1: return _KeyName.F1;
+      case KeyCode.F2: return _KeyName.F2;
+      case KeyCode.F3: return _KeyName.F3;
+      case KeyCode.F4: return _KeyName.F4;
+      case KeyCode.F5: return _KeyName.F5;
+      case KeyCode.F6: return _KeyName.F6;
+      case KeyCode.F7: return _KeyName.F7;
+      case KeyCode.F8: return _KeyName.F8;
+      case KeyCode.F9: return _KeyName.F9;
+      case KeyCode.F10: return _KeyName.F10;
+      case KeyCode.F11: return _KeyName.F11;
+      case KeyCode.F12: return _KeyName.F12;
+      case KeyCode.HOME: return _KeyName.HOME;
+      case KeyCode.INSERT: return _KeyName.INSERT;
+      case KeyCode.LEFT: return _KeyName.LEFT;
+      case KeyCode.META: return _KeyName.META;
+      case KeyCode.NUMLOCK: return _KeyName.NUM_LOCK;
+      case KeyCode.PAGE_DOWN: return _KeyName.PAGE_DOWN;
+      case KeyCode.PAGE_UP: return _KeyName.PAGE_UP;
+      case KeyCode.PAUSE: return _KeyName.PAUSE;
+      case KeyCode.PRINT_SCREEN: return _KeyName.PRINT_SCREEN;
+      case KeyCode.RIGHT: return _KeyName.RIGHT;
+      case KeyCode.SCROLL_LOCK: return _KeyName.SCROLL;
+      case KeyCode.SHIFT: return _KeyName.SHIFT;
+      case KeyCode.SPACE: return _KeyName.SPACEBAR;
+      case KeyCode.TAB: return _KeyName.TAB;
+      case KeyCode.UP: return _KeyName.UP;
+      case KeyCode.WIN_IME:
+      case KeyCode.WIN_KEY:
+      case KeyCode.WIN_KEY_LEFT:
+      case KeyCode.WIN_KEY_RIGHT:
+        return _KeyName.WIN;
+      default: return _KeyName.UNIDENTIFIED;
+    }
+    return _KeyName.UNIDENTIFIED;
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30381,10 +30540,10 @@ abstract class KeyLocation {
 
 /**
  * Defines the standard keyboard identifier names for keys that are returned
- * by KeyEvent.getKeyboardIdentifier when the key does not have a direct
+ * by KeyboardEvent.getKeyboardIdentifier when the key does not have a direct
  * unicode mapping.
  */
-abstract class KeyName {
+abstract class _KeyName {
 
   /** The Accept (Commit, OK) key */
   static const String ACCEPT = "Accept";
@@ -30896,8 +31055,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // The distance to shift from upper case alphabet Roman letters to lower case.
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
-  /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController(sync: true);
+  /** Custom Stream (Controller) to produce KeyEvents for the stream. */
+  _CustomKeyEventStreamImpl _stream;
 
   static const _EVENT_TYPE = 'KeyEvent';
 
@@ -30933,56 +31092,33 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   };
 
   /** Return a stream for KeyEvents for the specified target. */
-  Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    return new _KeyboardEventHandler.initializeAllEventListeners(
-        _type, e).stream;
-  }
-
-  /**
-   * Accessor to the stream associated with a particular KeyboardEvent
-   * EventTarget.
-   *
-   * [forTarget] must be called to initialize this stream to listen to a
-   * particular EventTarget.
-   */
-  Stream<KeyEvent> get stream {
-    if(_target != null) {
-      return _controller.stream;
-    } else {
-      throw new StateError("Not initialized. Call forTarget to access a stream "
-          "initialized with a particular EventTarget.");
-    }
+  // Note: this actually functions like a factory constructor.
+  CustomStream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    var handler = new _KeyboardEventHandler.initializeAllEventListeners(
+        _type, e);
+    return handler._stream;
   }
 
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventHandler(this._type) :
-    _target = null, super(_EVENT_TYPE) {
-  }
+  _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
+      _stream = new _CustomKeyEventStreamImpl('event');
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
   _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
-    super(_EVENT_TYPE) {
+      super(_EVENT_TYPE) {
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
         processKeyDown);
     Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
         processKeyPress);
     Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
         processKeyUp);
-  }
-
-  /**
-   * Notify all callback listeners that a KeyEvent of the relevant type has
-   * occurred.
-   */
-  bool _dispatch(KeyEvent event) {
-    if (event.type == _type)
-      _controller.add(event);
+    _stream = new _CustomKeyEventStreamImpl(_type);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -31173,7 +31309,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       _keyDownList.clear();
     }
 
-    var event = new KeyEvent(e);
+    var event = new KeyEvent.wrap(e);
     event._shadowKeyCode = _normalizeKeyCodes(event);
     // Technically a "keydown" event doesn't have a charCode. This is
     // calculated nonetheless to provide us with more information in giving
@@ -31187,12 +31323,12 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       processKeyPress(e);
     }
     _keyDownList.add(event);
-    _dispatch(event);
+    _stream.add(event);
   }
 
   /** Handle keypress events. */
   void processKeyPress(KeyboardEvent event) {
-    var e = new KeyEvent(event);
+    var e = new KeyEvent.wrap(event);
     // IE reports the character code in the keyCode field for keypress events.
     // There are two exceptions however, Enter and Escape.
     if (Device.isIE) {
@@ -31217,12 +31353,12 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
     }
     e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
-    _dispatch(e);
+    _stream.add(e);
   }
 
   /** Handle keyup events. */
   void processKeyUp(KeyboardEvent event) {
-    var e = new KeyEvent(event);
+    var e = new KeyEvent.wrap(event);
     KeyboardEvent toRemove = null;
     for (var key in _keyDownList) {
       if (key.keyCode == e.keyCode) {
@@ -31237,7 +31373,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
       // inconsistencies. Filing bugs on when this is reached is welcome!
       _keyDownList.removeLast();
     }
-    _dispatch(e);
+    _stream.add(e);
   }
 }
 
@@ -31260,16 +31396,16 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 class KeyboardEventStream {
 
   /** Named constructor to produce a stream for onKeyPress events. */
-  static Stream<KeyEvent> onKeyPress(EventTarget target) =>
+  static CustomStream<KeyEvent> onKeyPress(EventTarget target) =>
       new _KeyboardEventHandler('keypress').forTarget(target);
 
   /** Named constructor to produce a stream for onKeyUp events. */
-  static Stream<KeyEvent> onKeyUp(EventTarget target) =>
+  static CustomStream<KeyEvent> onKeyUp(EventTarget target) =>
       new _KeyboardEventHandler('keyup').forTarget(target);
 
   /** Named constructor to produce a stream for onKeyDown events. */
-  static Stream<KeyEvent> onKeyDown(EventTarget target) =>
-    new _KeyboardEventHandler('keydown').forTarget(target);
+  static CustomStream<KeyEvent> onKeyDown(EventTarget target) =>
+      new _KeyboardEventHandler('keydown').forTarget(target);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32363,8 +32499,10 @@ _convertNativeToDart_XHR_Response(o) {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_callCreated(receiver) {
-  return receiver.createdCallback();
+_callConstructor(constructor) {
+  return (receiver) {
+    return JS('', '#(#)', constructor, receiver);
+  };
 }
 
 _callEnteredView(receiver) {
@@ -32443,6 +32581,11 @@ void _registerCustomElement(context, document, String tag, Type type,
     throw new ArgumentError(type);
   }
 
+  var constructor = findConstructorForWebComponentType(type, 'created');
+  if (constructor == null) {
+    throw new ArgumentError("$type has no constructor called 'created'");
+  }
+
   // Workaround for 13190- use an article element to ensure that HTMLElement's
   // interceptor is resolved correctly.
   getNativeInterceptor(new Element.tag('article'));
@@ -32458,7 +32601,8 @@ void _registerCustomElement(context, document, String tag, Type type,
   var properties = JS('=Object', '{}');
 
   JS('void', '#.createdCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callCreated)));
+      JS('=Object', '{value: #}',
+          _makeCallbackMethod(_callConstructor(constructor))));
   JS('void', '#.enteredViewCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
   JS('void', '#.leftViewCallback = #', properties,
@@ -32608,6 +32752,7 @@ class _HistoryCrossFrame implements HistoryBase {
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
+@Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
@@ -32642,25 +32787,132 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** Accessor to the underlying altKey value is the parent event. */
   bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
+  /** Shadows on top of the parent's currentTarget. */
+  EventTarget _currentTarget;
+
+  /**
+   * The value we want to use for this object's dispatch. Created here so it is
+   * only invoked once.
+   */
+  static final _keyboardEventDispatchRecord = _makeRecord();
+
+  /** Helper to statically create the dispatch record. */
+  static _makeRecord() {
+    var interceptor = findInterceptorForType(KeyboardEvent);
+    return makeLeafDispatchRecord(interceptor);
+  }
+
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent(KeyboardEvent parent): super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent): super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
+    _currentTarget = _parent.currentTarget;
+  }
+
+  /** Programmatically create a new KeyEvent (and KeyboardEvent). */
+  factory KeyEvent(String type,
+      {Window view, bool canBubble: true, bool cancelable: true, int keyCode: 0,
+      int charCode: 0, int keyLocation: 1, bool ctrlKey: false,
+      bool altKey: false, bool shiftKey: false, bool metaKey: false,
+      bool altGraphKey: false, EventTarget currentTarget}) {
+    if (view == null) {
+      view = window;
+    }
+
+    var eventObj;
+    // In these two branches we create an underlying native KeyboardEvent, but
+    // we set it with our specified values. Because we are doing custom setting
+    // of certain values (charCode/keyCode, etc) only in this class (as opposed
+    // to KeyboardEvent) and the way we set these custom values depends on the
+    // type of underlying JS object, we do all the contruction for the
+    // underlying KeyboardEvent here.
+    if (canUseDispatchEvent) {
+      // Currently works in everything but Internet Explorer.
+      eventObj = new Event.eventType('Event', type,
+          canBubble: canBubble, cancelable: cancelable);
+
+      JS('void', '#.keyCode = #', eventObj, keyCode);
+      JS('void', '#.which = #', eventObj, keyCode);
+      JS('void', '#.charCode = #', eventObj, charCode);
+
+      JS('void', '#.keyLocation = #', eventObj, keyLocation);
+      JS('void', '#.ctrlKey = #', eventObj, ctrlKey);
+      JS('void', '#.altKey = #', eventObj, altKey);
+      JS('void', '#.shiftKey = #', eventObj, shiftKey);
+      JS('void', '#.metaKey = #', eventObj, metaKey);
+      JS('void', '#.altGraphKey = #', eventObj, altGraphKey);
+    } else {
+      // Currently this works on everything but Safari. Safari throws an
+      // "Attempting to change access mechanism for an unconfigurable property"
+      // TypeError when trying to do the Object.defineProperty hack, so we avoid
+      // this branch if possible.
+      // Also, if we want this branch to work in FF, we also need to modify
+      // _initKeyboardEvent to also take charCode and keyCode values to
+      // initialize initKeyEvent.
+
+      eventObj = new Event.eventType('KeyboardEvent', type,
+          canBubble: canBubble, cancelable: cancelable);
+
+      // Chromium Hack
+      JS('void', "Object.defineProperty(#, 'keyCode', {"
+          "  get : function() { return this.keyCodeVal; } })",  eventObj);
+      JS('void', "Object.defineProperty(#, 'which', {"
+          "  get : function() { return this.keyCodeVal; } })",  eventObj);
+      JS('void', "Object.defineProperty(#, 'charCode', {"
+          "  get : function() { return this.charCodeVal; } })",  eventObj);
+
+      var keyIdentifier = _convertToHexString(charCode, keyCode);
+      eventObj._initKeyboardEvent(type, canBubble, cancelable, view,
+          keyIdentifier, keyLocation, ctrlKey, altKey, shiftKey, metaKey,
+          altGraphKey);
+      JS('void', '#.keyCodeVal = #', eventObj, keyCode);
+      JS('void', '#.charCodeVal = #', eventObj, charCode);
+    }
+    // Tell dart2js that it smells like a KeyboardEvent!
+    setDispatchProperty(eventObj, _keyboardEventDispatchRecord);
+
+    var keyEvent = new KeyEvent.wrap(eventObj);
+    if (keyEvent._currentTarget == null) {
+      keyEvent._currentTarget = currentTarget == null ? window : currentTarget;
+    }
+    return keyEvent;
+  }
+
+  // Currently known to work on all browsers but IE.
+  static bool get canUseDispatchEvent =>
+      JS('bool',
+         '(typeof document.body.dispatchEvent == "function")'
+         '&& document.body.dispatchEvent.length > 0');
+
+  /** The currently registered target for this event. */
+  EventTarget get currentTarget => _currentTarget;
+
+  // This is an experimental method to be sure.
+  static String _convertToHexString(int charCode, int keyCode) {
+    if (charCode != -1) {
+      var hex = charCode.toRadixString(16); // Convert to hexadecimal.
+      StringBuffer sb = new StringBuffer('U+');
+      for (int i = 0; i < 4 - hex.length; i++) sb.write('0');
+      sb.write(hex);
+      return sb.toString();
+    } else {
+      return KeyCode._convertKeyCodeToKeyName(keyCode);
+    }
   }
 
   // TODO(efortuna): If KeyEvent is sufficiently successful that we want to make
   // it the default keyboard event handling, move these methods over to Element.
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyDownEvent =
-    new _KeyboardEventHandler('keydown');
+      new _KeyboardEventHandler('keydown');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyUpEvent =
-    new _KeyboardEventHandler('keyup');
+      new _KeyboardEventHandler('keyup');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyPressEvent =
-    new _KeyboardEventHandler('keypress');
+      new _KeyboardEventHandler('keypress');
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;

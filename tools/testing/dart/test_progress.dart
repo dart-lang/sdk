@@ -107,12 +107,7 @@ List<String> _buildFailureOutput(TestCase test,
       if (!commandOutput.stdout.isEmpty) {
         output.add('');
         output.add('stdout:');
-        if (command.isPixelTest) {
-          output.add('DRT pixel test failed! stdout is not printed because it '
-                     'contains binary data!');
-        } else {
-          output.addAll(getLinesWithoutCarriageReturn(commandOutput.stdout));
-        }
+        output.addAll(getLinesWithoutCarriageReturn(commandOutput.stdout));
       }
       if (!commandOutput.stderr.isEmpty) {
         output.add('');

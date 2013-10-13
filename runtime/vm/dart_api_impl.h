@@ -226,6 +226,8 @@ class Api : AllStatic {
                                        Dart_WeakPersistentHandle retval);
 
  private:
+  static Dart_Handle InitNewHandle(Isolate* isolate, RawObject* raw);
+
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.
   static ThreadLocalKey api_native_key_;

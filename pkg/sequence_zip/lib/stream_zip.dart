@@ -20,7 +20,7 @@ class StreamZip extends Stream<List> {
   StreamZip(Iterable<Stream> streams) : _streams = streams;
 
   StreamSubscription<List> listen(void onData(List data), {
-                                  void onError(Object error),
+                                  Function onError,
                                   void onDone(),
                                   bool cancelOnError}) {
     cancelOnError = identical(true, cancelOnError);
@@ -46,22 +46,22 @@ class StreamZip extends Stream<List> {
       }
     }
 
-    /// Called for each error from a subscription in [subscriptons].
+    /// Called for each error from a subscription in [subscriptions].
     /// Except if [cancelOnError] is true, in which case the function below
     /// is used instead.
-    void handleError(Object error) {
-      controller.addError(error);
+    void handleError(Object error, StackTrace stackTrace) {
+      controller.addError(error, stackTrace);
     }
 
     /// Called when a subscription has an error and [cancelOnError] is true.
     ///
     /// Prematurely cancels all subscriptions since we know that we won't
     /// be needing any more values.
-    void handleErrorCancel(Object error) {
+    void handleErrorCancel(Object error, StackTrace stackTrace) {
       for (int i = 0; i < subscriptions.length; i++) {
         subscriptions[i].cancel();
       }
-      controller.addError(error);
+      controller.addError(error, stackTrace);
     }
 
     void handleDone() {

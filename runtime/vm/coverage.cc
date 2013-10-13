@@ -21,7 +21,23 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
 void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_arr) {
   if (!function.HasCode()) {
-    if (Compiler::CompileFunction(function) != Error::null()) {
+    // If the function should not be compiled or if the compilation failed,
+    // then just skip this method.
+    // TODO(iposva): Maybe we should skip synthesized methods in general too.
+    if (function.is_abstract() || function.IsRedirectingFactory()) {
+      return;
+    }
+    if (function.IsNonImplicitClosureFunction() &&
+        (function.context_scope() == ContextScope::null())) {
+      // TODO(iposva): This can arise if we attempt to compile an inner function
+      // before we have compiled its enclosing function or if the enclosing
+      // function failed to compile.
+      OS::Print("### Coverage skipped compiling: %s\n", function.ToCString());
+      return;
+    }
+    const Error& err = Error::Handle(Compiler::CompileFunction(function));
+    if (!err.IsNull()) {
+      OS::Print("### Coverage failed compiling:\n%s\n", err.ToErrorCString());
       return;
     }
   }

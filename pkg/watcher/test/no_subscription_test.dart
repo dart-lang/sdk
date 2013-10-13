@@ -57,7 +57,10 @@ main() {
     // its pause between polling loops. That means the second scan to skip
     // what changed while we were unsubscribed won't happen until after that
     // delay is done. Wait long enough for that to happen.
-    schedule(() => new Future.delayed(watcher.pollingDelay * 2));
+    //
+    // We're doing * 4 here because that seems to give the slower bots enough
+    // time for this to complete.
+    schedule(() => new Future.delayed(watcher.pollingDelay * 4));
 
     // And add a third file.
     writeFile("added.txt");

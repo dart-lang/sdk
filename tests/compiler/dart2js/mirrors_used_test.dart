@@ -35,6 +35,10 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
     return;
   }
   if (kind.name == 'info') return;
+
+  // TODO(aprelev@gmail.com): Remove once dartbug.com/13907 is fixed.
+  if (message.contains("Warning: 'typedef' not allowed here")) return;
+
   throw '$uri:$begin:$end: $kind: $message';
 }
 
@@ -55,7 +59,7 @@ void main() {
     // 2. Some code was refactored, and there are more methods.
     // Either situation could be problematic, but in situation 2, it is often
     // acceptable to increase [expectedMethodCount] a little.
-    int expectedMethodCount = 322;
+    int expectedMethodCount = 325;
     Expect.isTrue(
         generatedCode.length <= expectedMethodCount,
         'Too many compiled methods: '

@@ -97,7 +97,7 @@ main() {
       void handler(Event e) {
         expect(Zone.current, equals(zone));
 
-        runAsync(expectAsync0(() {
+        scheduleMicrotask(expectAsync0(() {
           expect(Zone.current, equals(zone));
           sub.cancel();
         }));

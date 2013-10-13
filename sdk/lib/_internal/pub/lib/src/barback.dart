@@ -9,9 +9,8 @@ import 'dart:async';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
-import 'barback/dart_forwarding_transformer.dart';
-import 'barback/dart2js_transformer.dart';
 import 'barback/load_all_transformers.dart';
+import 'barback/pub_barback_logger.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
 import 'barback/watch_sources.dart';
@@ -54,16 +53,14 @@ class TransformerId {
 /// This transforms and serves all library and asset files in all packages in
 /// [graph]. It loads any transformer plugins defined in packages in [graph] and
 /// re-runs them as necessary when any input files change.
-Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
+///
+/// If [builtInTransformers] is provided, then a phase is added to the end of
+/// each package's cascade including those transformers.
+Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
+    {Iterable<Transformer> builtInTransformers}) {
   var provider = new PubPackageProvider(graph);
-  var barback = new Barback(provider);
-
-  // TODO(rnystrom): Add dart2dart transformer here and some way to configure
-  // them.
-  var builtInTransformers = [
-    new Dart2JSTransformer(graph),
-    new DartForwardingTransformer()
-  ];
+  var logger = new PubBarbackLogger();
+  var barback = new Barback(provider, logger: logger);
 
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
@@ -78,18 +75,18 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph) {
         if (error is TransformerException) error = error.error;
         if (!completer.isCompleted) completer.completeError(error);
       }),
-      server.barback.results.listen((_) {}, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      server.barback.results.listen((_) {}, onError: (error, stackTrace) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       }),
-      server.results.listen((_) {}, onError: (error) {
-        if (!completer.isCompleted) completer.completeError(error);
+      server.results.listen((_) {}, onError: (error, stackTrace) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
       })
     ];
 
     loadAllTransformers(server, graph, builtInTransformers).then((_) {
       if (!completer.isCompleted) completer.complete(server);
-    }).catchError((error) {
-      if (!completer.isCompleted) completer.completeError(error);
+    }).catchError((error, stackTrace) {
+      if (!completer.isCompleted) completer.completeError(error, stackTrace);
     });
 
     return completer.future.whenComplete(() {
@@ -186,4 +183,53 @@ AssetId specialUrlToId(Uri url) {
   }
 
   return null;
+}
+
+/// Converts [id] to a "servable path" for that asset.
+///
+/// This is the relative URL that could be used to request that asset from pub
+/// serve. It's also the relative path that the asset will be output to by
+/// pub build (except this always returns a path using URL separators).
+///
+/// [entrypoint] is the name of the entrypoint package.
+///
+/// Examples (where [entrypoint] is "myapp"):
+///
+///     myapp|web/index.html   -> index.html
+///     myapp|lib/lib.dart     -> packages/myapp/lib.dart
+///     foo|lib/foo.dart       -> packages/foo/foo.dart
+///     foo|asset/foo.png      -> assets/foo/foo.png
+///     myapp|test/main.dart   -> ERROR
+///     foo|web/
+///
+/// Throws a [FormatException] if [id] is not a valid public asset.
+String idtoUrlPath(String entrypoint, AssetId id) {
+  var parts = path.url.split(id.path);
+
+  if (parts.length < 2) {
+    throw new FormatException(
+        "Can not serve asset from top-level directory.");
+  }
+
+  // Each top-level directory gets handled differently.
+  var dir = parts[0];
+  parts = parts.skip(1);
+
+  switch (dir) {
+    case "asset":
+      return path.url.join("assets", id.package, path.url.joinAll(parts));
+
+    case "lib":
+      return path.url.join("packages", id.package, path.url.joinAll(parts));
+
+    case "web":
+      if (id.package != entrypoint) {
+        throw new FormatException(
+            'Can only access "web" directory of root package.');
+      }
+      return path.url.joinAll(parts);
+
+    default:
+      throw new FormatException('Cannot access assets from "$dir".');
+  }
 }

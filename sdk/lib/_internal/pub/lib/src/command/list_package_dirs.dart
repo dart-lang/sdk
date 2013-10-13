@@ -29,7 +29,7 @@ class ListPackageDirsCommand extends PubCommand {
   Future onRun() {
     if (!entrypoint.lockFileExists) {
       log.error(JSON.encode(
-          'Package "myapp" has no lockfile. Please run "pub install" first.'));
+          'Package "myapp" has no lockfile. Please run "pub get" first.'));
       return flushThenExit(exit_codes.NO_INPUT);
     }
 

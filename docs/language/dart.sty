@@ -1,0 +1,110 @@
+\def\keyword#1{\textbf{#1}}
+\def\builtinId#1{\textbf{#1}}
+\def\comment#1{\textit{#1}}
+\def\capt#1{\rmfamily \caption{#1}}
+\newcommand{\cd}[1]{\textsf{#1}}
+\def\lt{$<$}
+\def\gt{$>$}
+\def\<{$\langle$}
+\def\>{$\rangle$}
+
+  \def\ABSTRACT{\builtinId{abstract}}
+  \def\AS{\builtinId{as}}  
+  \def\ASSERT{\keyword{assert}}
+  \def\BOOLEAN{\keyword{boolean}}
+  \def\BREAK{\keyword{break}}
+  \def\CASE{\keyword{case}}
+  \def\CLASS{\keyword{class}}
+   \def\CALL{\keyword{call}}
+  \def\CATCH{\keyword{catch}}
+  \def\CONST{\keyword{const}}
+  \def\CONTINUE{\keyword{continue}}
+  \def\DEFAULT{\keyword{default}}
+  \def\DYNAMIC{\builtinId{dynamic}}
+  \def\DO{\keyword{do}}
+  \def\ELSE{\keyword{else}}
+    \def\ENUM{\keyword{enum}}
+  \def\EQUALS{\keyword{equals}}
+  \def\EXPORT{\builtinId{export}}
+  \def\EXTENDS{\keyword{extends}}
+  \def\EXTERNAL{\builtinId{external}}
+  \def\FACTORY{\builtinId{factory}}  
+  \def\FALSE{\keyword{false}}  
+  \def\FINAL{\keyword{final}} 
+  \def\FINALLY{\keyword{finally}}
+  \def\FOR{\keyword{for}}
+  \def\GET{\builtinId{get}}  
+  \def\HIDE{\keyword{hide}}
+  \def\IF{\keyword{if}}  
+  \def\IMPLEMENTS{\builtinId{implements}}
+  \def\IMPORT{\builtinId{import}}
+  \def\IN{\keyword{in}}
+  \def\INT{\keyword{int}}
+  \def\INTERFACE{\keyword{interface}}
+  \def\IS{\keyword{is}}
+  \def\LIBRARY{\builtinId{library}}
+  \def\NATIVE{\keyword{native}}  
+  \def\NEGATE{\keyword{negate}}  
+  \def\NEW{\keyword{new}}      
+  \def\NULL{\keyword{null}}
+  \def\ON{\keyword{on}}  
+  \def\OF{\keyword{of}}  
+  \def\OPERATOR{\builtinId{operator}}
+  \def\PART{\builtinId{part}} 
+  \def\PRIVATE{\keyword{private}}
+  \def\RETHROW{\keyword{rethrow}}
+  \def\RETURN{\keyword{return}}
+  \def\SET{\builtinId{set}} 
+  \def\SHOW{\keyword{show}} 
+  \def\SOURCE{\keyword{source}}  
+  \def\STATIC{\builtinId{static}}
+  \def\SUPER{\keyword{super}}  
+  \def\SWITCH{\keyword{switch}}  
+  \def\THIS{\keyword{this}}
+  \def\THROW{\keyword{throw}}
+  \def\TRUE{\keyword{true}}
+  \def\TRY{\keyword{try}}
+  \def\TYPEDEF{\builtinId{typedef}}
+  \def\THIS{\keyword{this}}
+  \def\VAR{\keyword{var}}  
+  \def\VOID{\keyword{void}}
+  \def\WHILE{\keyword{while}}
+   \def\WITH{\keyword{with}}
+
+
+
+ 
+ % \def\PUBLIC{\keyword{public}}
+
+  %\def\PROTECTED{\keyword{protected}}
+
+
+
+
+    
+
+ 
+
+
+
+ % \def\OUTER{\keyword{outer}}
+
+  \def\TRUE{\keyword{true}}
+
+
+\newenvironment{Q}[1]{{\bf #1}}
+
+\newenvironment{rationale}[1]{{\it #1}}
+
+\newenvironment{commentary}[1]{{\sf #1}}
+
+\newenvironment{dartCode}[1][!ht] {
+%  \begin{verbatim}[#1]
+  \def\@programcr{\@addfield\strut}
+  \let\\=\@programcr
+  \relax\@vobeyspaces\obeylines
+
+  \sffamily
+}{
+  %\end{verbatim}
+}

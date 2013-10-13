@@ -4939,13 +4939,14 @@ class LoadOptimizer : public ValueObject {
             gen->RemoveAll(killed);
           }
 
-          // Only forward stores to normal arrays and float64 arrays
+          // Only forward stores to normal arrays, float64, and simd arrays
           // to loads because other array stores (intXX/uintXX/float32)
           // may implicitly convert the value stored.
           StoreIndexedInstr* array_store = instr->AsStoreIndexed();
-          if (array_store == NULL ||
-              array_store->class_id() == kArrayCid ||
-              array_store->class_id() == kTypedDataFloat64ArrayCid) {
+          if ((array_store == NULL) ||
+              (array_store->class_id() == kArrayCid) ||
+              (array_store->class_id() == kTypedDataFloat64ArrayCid) ||
+              (array_store->class_id() == kTypedDataFloat32x4ArrayCid)) {
             bool is_load = false;
             Place store_place(instr, &is_load);
             ASSERT(!is_load);

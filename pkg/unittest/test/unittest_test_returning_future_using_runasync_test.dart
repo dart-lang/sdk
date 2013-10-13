@@ -9,12 +9,12 @@ import 'package:unittest/unittest.dart';
 
 part 'unittest_test_utils.dart';
 
-var testName = 'test returning future using runAsync';
+var testName = 'test returning future using scheduleMicrotask';
 
 var testFunction = (_) {
   test("successful", () {
     return _defer(() {
-      runAsync(() {
+      scheduleMicrotask(() {
         guardAsync(() {
           expect(true, true);
         });
@@ -24,7 +24,7 @@ var testFunction = (_) {
   test("fail1", () {
     var callback = expectAsync0((){});
     return _defer(() {
-      runAsync(() {
+      scheduleMicrotask(() {
         guardAsync(() {
           expect(true, false);
           callback();
@@ -36,7 +36,7 @@ var testFunction = (_) {
     var callback = expectAsync0((){});
     var excesscallback = expectAsync0((){});
     return _defer(() {
-      runAsync(() {
+      scheduleMicrotask(() {
         guardAsync(() {
           excesscallback();
           excesscallback();
@@ -48,7 +48,7 @@ var testFunction = (_) {
   test("fail2", () {
     var callback = expectAsync0((){});
     return _defer(() {
-      runAsync(() {
+      scheduleMicrotask(() {
         guardAsync(() {
           fail('failure');
           callback();
@@ -60,7 +60,7 @@ var testFunction = (_) {
     var callback = expectAsync0((){});
     var excesscallback = expectAsync0((){});
     return _defer(() {
-      runAsync(() {
+      scheduleMicrotask(() {
         guardAsync(() {
           excesscallback();
           excesscallback();

@@ -7,7 +7,7 @@ part of dart.async;
 /** Abstract and private interface for a place to put events. */
 abstract class _EventSink<T> {
   void _add(T data);
-  void _addError(Object error);
+  void _addError(Object error, StackTrace stackTrace);
   void _close();
 }
 
@@ -20,7 +20,7 @@ abstract class _EventSink<T> {
  */
 abstract class _EventDispatch<T> {
   void _sendData(T data);
-  void _sendError(Object error);
+  void _sendError(Object error, StackTrace stackTrace);
   void _sendDone();
 }
 
@@ -36,6 +36,7 @@ abstract class _EventDispatch<T> {
  *
  * The user interface of [_BufferingStreamSubscription] are the following
  * methods:
+ *
  * * [_add]: Add a data event to the stream.
  * * [_addError]: Add an error event to the stream.
  * * [_close]: Request to close the stream.
@@ -43,6 +44,7 @@ abstract class _EventDispatch<T> {
  *     either due to being actively canceled, or after sending a done event.
  * * [_onPause]: Called when the subscription wants the event source to pause.
  * * [_onResume]: Called when allowing new events after a pause.
+ *
  * The user should not add new events when the subscription requests a paused,
  * but if it happens anyway, the subscription will enqueue the events just as
  * when new events arrive while still firing an old event.
@@ -78,7 +80,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   /* Event handlers provided in constructor. */
   _DataHandler<T> _onData;
-  _ErrorHandler _onError;
+  Function _onError;
   _DoneHandler _onDone;
   final Zone _zone = Zone.current;
 
@@ -92,18 +94,8 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
    */
   _PendingEvents _pending;
 
-  _BufferingStreamSubscription(void onData(T data),
-                               void onError(error),
-                               void onDone(),
-                               bool cancelOnError)
-      : _onData = Zone.current.registerUnaryCallback(onData),
-        _onError = Zone.current.registerUnaryCallback(onError),
-        _onDone = Zone.current.registerCallback(onDone),
-        _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) {
-    assert(_onData != null);
-    assert(_onError != null);
-    assert(_onDone != null);
-  }
+  _BufferingStreamSubscription(bool cancelOnError)
+      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0);
 
   /**
    * Sets the subscription's pending events object.
@@ -138,17 +130,17 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   void onData(void handleData(T event)) {
     if (handleData == null) handleData = _nullDataHandler;
-    _onData = handleData;
+    _onData = Zone.current.registerUnaryCallback(handleData);
   }
 
-  void onError(void handleError(error)) {
+  void onError(Function handleError) {
     if (handleError == null) handleError = _nullErrorHandler;
-    _onError = handleError;
+    _onError = _registerErrorHandler(handleError, Zone.current);
   }
 
   void onDone(void handleDone()) {
     if (handleDone == null) handleDone = _nullDoneHandler;
-    _onDone = handleDone;
+    _onDone = Zone.current.registerCallback(handleDone);
   }
 
   void pause([Future resumeSignal]) {
@@ -196,9 +188,9 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
     // Overwrite the onDone and onError handlers.
     _onDone = () { result._complete(futureValue); };
-    _onError = (error) {
+    _onError = (error, stackTrace) {
       cancel();
-      result._completeError(error);
+      result._completeError(error, stackTrace);
     };
 
     return result;
@@ -259,12 +251,12 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     }
   }
 
-  void _addError(Object error) {
+  void _addError(Object error, StackTrace stackTrace) {
     if (_isCanceled) return;
     if (_canFire) {
-      _sendError(error);  // Reports cancel after sending.
+      _sendError(error, stackTrace);  // Reports cancel after sending.
     } else {
-      _addPending(new _DelayedError(error));
+      _addPending(new _DelayedError(error, stackTrace));
     }
   }
 
@@ -328,7 +320,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     _checkState(wasInputPaused);
   }
 
-  void _sendError(var error) {
+  void _sendError(var error, StackTrace stackTrace) {
     assert(!_isCanceled);
     assert(!_isPaused);
     assert(!_inCallback);
@@ -336,7 +328,9 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     _state |= _STATE_IN_CALLBACK;
     if (!_zone.inSameErrorZone(Zone.current)) {
       // Errors are not allowed to traverse zone boundaries.
-      Zone.current.handleUncaughtError(error);
+      Zone.current.handleUncaughtError(error, stackTrace);
+    } else if (_onError is ZoneBinaryCallback) {
+      _zone.runBinaryGuarded(_onError, error, stackTrace);
     } else {
       _zone.runUnaryGuarded(_onError, error);
     }
@@ -424,28 +418,22 @@ abstract class _StreamImpl<T> extends Stream<T> {
   // Stream interface.
 
   StreamSubscription<T> listen(void onData(T data),
-                               { void onError(error),
+                               { Function onError,
                                  void onDone(),
                                  bool cancelOnError }) {
-    if (onData == null) onData = _nullDataHandler;
-    if (onError == null) onError = _nullErrorHandler;
-    if (onDone == null) onDone = _nullDoneHandler;
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription subscription =
-        _createSubscription(onData, onError, onDone, cancelOnError);
+    StreamSubscription subscription = _createSubscription(cancelOnError);
+    subscription.onData(onData);
+    subscription.onError(onError);
+    subscription.onDone(onDone);
     _onListen(subscription);
     return subscription;
   }
 
   // -------------------------------------------------------------------
   /** Create a subscription object. Called by [subcribe]. */
-  _BufferingStreamSubscription<T> _createSubscription(
-      void onData(T data),
-      void onError(error),
-      void onDone(),
-      bool cancelOnError) {
-    return new _BufferingStreamSubscription<T>(
-        onData, onError, onDone, cancelOnError);
+  _BufferingStreamSubscription<T> _createSubscription(bool cancelOnError) {
+    return new _BufferingStreamSubscription<T>(cancelOnError);
   }
 
   /** Hook called when the subscription has been created. */
@@ -465,13 +453,9 @@ class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
    */
   _GeneratedStreamImpl(this._pending);
 
-  StreamSubscription _createSubscription(void onData(T data),
-                                         void onError(Object error),
-                                         void onDone(),
-                                         bool cancelOnError) {
+  StreamSubscription _createSubscription(bool cancelOnError) {
     _BufferingStreamSubscription<T> subscription =
-         new _BufferingStreamSubscription(
-             onData, onError, onDone, cancelOnError);
+         new _BufferingStreamSubscription(cancelOnError);
     subscription._setPendingEvents(_pending());
     return subscription;
   }
@@ -502,7 +486,7 @@ class _IterablePendingEvents<T> extends _PendingEvents {
       isDone = !_iterator.moveNext();
     } catch (e, s) {
       _iterator = null;
-      dispatch._sendError(_asyncError(e, s));
+      dispatch._sendError(_asyncError(e, s), s);
       return;
     }
     if (!isDone) {
@@ -524,16 +508,15 @@ class _IterablePendingEvents<T> extends _PendingEvents {
 
 // Types of the different handlers on a stream. Types used to type fields.
 typedef void _DataHandler<T>(T value);
-typedef void _ErrorHandler(error);
 typedef void _DoneHandler();
 
 
 /** Default data handler, does nothing. */
 void _nullDataHandler(var value) {}
 
-/** Default error handler, reports the error to the global handler. */
-void _nullErrorHandler(error) {
-  Zone.current.handleUncaughtError(error);
+/** Default error handler, reports the error to the current zone's handler. */
+void _nullErrorHandler(error, [StackTrace stackTrace]) {
+  Zone.current.handleUncaughtError(error, stackTrace);
 }
 
 /** Default done handler, does nothing. */
@@ -560,9 +543,11 @@ class _DelayedData<T> extends _DelayedEvent {
 /** A delayed error event. */
 class _DelayedError extends _DelayedEvent {
   final error;
-  _DelayedError(this.error);
+  final StackTrace stackTrace;
+
+  _DelayedError(this.error, this.stackTrace);
   void perform(_EventDispatch dispatch) {
-    dispatch._sendError(error);
+    dispatch._sendError(error, stackTrace);
   }
 }
 
@@ -594,13 +579,13 @@ abstract class _PendingEvents {
    * State of being scheduled.
    *
    * Set to [_STATE_SCHEDULED] when pending events are scheduled for
-   * async dispatch. Since we can't cancel a [runAsync] call, if schduling
-   * is "canceled", the _state is simply set to [_STATE_CANCELED] which will
-   * make the async code do nothing except resetting [_state].
+   * async dispatch. Since we can't cancel a [scheduleMicrotask] call, if
+   * scheduling is "canceled", the _state is simply set to [_STATE_CANCELED]
+   * which will make the async code do nothing except resetting [_state].
    *
    * If events are scheduled while the state is [_STATE_CANCELED], it is
-   * merely switched back to [_STATE_SCHEDULED], but no new call to [runAsync]
-   * is performed.
+   * merely switched back to [_STATE_SCHEDULED], but no new call to
+   * [scheduleMicrotask] is performed.
    */
   int _state = _STATE_UNSCHEDULED;
 
@@ -623,7 +608,7 @@ abstract class _PendingEvents {
       _state = _STATE_SCHEDULED;
       return;
     }
-    runAsync(() {
+    scheduleMicrotask(() {
       int oldState = _state;
       _state = _STATE_UNSCHEDULED;
       if (oldState == _STATE_CANCELED) return;
@@ -704,7 +689,7 @@ class _DummyStreamSubscription<T> implements StreamSubscription<T> {
   int _pauseCounter = 0;
 
   void onData(void handleData(T data)) {}
-  void onError(void handleError(Object data)) {}
+  void onError(Function handleError) {}
   void onDone(void handleDone()) {}
 
   void pause([Future resumeSignal]) {
@@ -741,7 +726,7 @@ class _AsBroadcastStream<T> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T data),
-                               { void onError(Object error),
+                               { Function onError,
                                  void onDone(),
                                  bool cancelOnError}) {
     if (_controller == null) {
@@ -754,11 +739,12 @@ class _AsBroadcastStream<T> extends Stream<T> {
                                      onError: _controller.addError,
                                      onDone: _controller.close);
     }
-    if (onData == null) onData = _nullDataHandler;
-    if (onError == null) onError = _nullErrorHandler;
-    if (onDone == null) onDone = _nullDoneHandler;
     cancelOnError = identical(true, cancelOnError);
-    return _controller._subscribe(onData, onError, onDone, cancelOnError);
+    StreamSubscription<T> result = _controller._subscribe(cancelOnError);
+    result.onData(onData);
+    result.onError(onError);
+    result.onDone(onDone);
+    return result;
   }
 
   void _onCancel() {
@@ -976,12 +962,12 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
     _state = _STATE_EXTRA_DATA;
   }
 
-  void _onError(Object error) {
+  void _onError(Object error, [StackTrace stackTrace]) {
     if (_state == _STATE_MOVING) {
       _Future<bool> hasNext = _futureOrPrefetch;
       // We have cancelOnError: true, so the subscription is canceled.
       _clear();
-      hasNext._completeError(error);
+      hasNext._completeError(error, stackTrace);
       return;
     }
     _subscription.pause();

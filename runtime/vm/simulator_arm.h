@@ -149,7 +149,7 @@ class Simulator {
   // Simulator support.
   char* stack_;
   bool pc_modified_;
-  int icount_;
+  intptr_t icount_;
   static int32_t flag_stop_sim_at_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;
@@ -205,13 +205,13 @@ class Simulator {
   inline int16_t ReadH(uword addr, Instr* instr);
   inline void WriteH(uword addr, uint16_t value, Instr* instr);
 
-  inline int ReadW(uword addr, Instr* instr);
-  inline void WriteW(uword addr, int value, Instr* instr);
+  inline intptr_t ReadW(uword addr, Instr* instr);
+  inline void WriteW(uword addr, intptr_t value, Instr* instr);
 
   // Synchronization primitives support.
   void ClearExclusive();
-  int ReadExclusiveW(uword addr, Instr* instr);
-  int WriteExclusiveW(uword addr, int value, Instr* instr);
+  intptr_t ReadExclusiveW(uword addr, Instr* instr);
+  intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
 
   // TODO(regis): Remove exclusive access support machinery if not needed.
   // In Dart, there is at most one thread per isolate.

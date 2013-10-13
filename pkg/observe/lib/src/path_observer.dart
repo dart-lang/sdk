@@ -132,7 +132,7 @@ class PathObserver extends ChangeNotifierBase {
 
     _observePath(start);
     if (changed) {
-      notifyChange(new PropertyChangeRecord(const Symbol('value')));
+      notifyChange(new PropertyChangeRecord(#value));
     }
   }
 

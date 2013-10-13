@@ -16,6 +16,12 @@ class C
   extends Object with A<Unresolved> /// 04: static type warning
   implements Unresolved /// 05: compile-time error
   implements A<Unresolved> /// 06: static type warning
+  <A> extends A<int> /// 07: compile-time error
+  <A> extends A<Unresolved> /// 08: compile-time error
+  <A> extends Object with A<int> /// 09: compile-time error
+  <A> extends Object with A<Unresolved> /// 10: compile-time error
+  <A> implements A<int> /// 11: compile-time error
+  <A> implements A<Unresolved> /// 12: compile-time error
 {
 
 }

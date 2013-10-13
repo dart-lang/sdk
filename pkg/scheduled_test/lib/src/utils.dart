@@ -29,7 +29,7 @@ class Pair<E, F> {
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
   future.then((value) => completer.complete(value),
-      onError: (e) => completer.completeError(e));
+      onError: completer.completeError);
 }
 
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
@@ -51,10 +51,10 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// any code to run, as long as it's not waiting on some external event.
 Future pumpEventQueue([int times=20]) {
   if (times == 0) return new Future.value();
-  // We use a delayed future to allow runAsync events to finish. The
-  // Future.value or Future() constructors use runAsync themselves and would
-  // therefore not wait for runAsync callbacks that are scheduled after invoking
-  // this method.
+  // We use a delayed future to allow microtask events to finish. The
+  // Future.value or Future() constructors use scheduleMicrotask themselves and
+  // would therefore not wait for microtask callbacks that are scheduled after
+  // invoking this method.
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
@@ -85,7 +85,7 @@ Stream futureStream(Future<Stream> future) {
   future.then((stream) {
     stream.listen(
         controller.add,
-        onError: (error) => controller.addError(error),
+        onError: controller.addError,
         onDone: controller.close);
   }).catchError((e) {
     controller.addError(e);
@@ -143,8 +143,8 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
   var controllerStream = controller.stream;
   var subscription = stream.listen((value) {
     if (!controller.isClosed) controller.add(value);
-  }, onError: (error) {
-    if (!controller.isClosed) controller.addError(error);
+  }, onError: (error, [stackTrace]) {
+    if (!controller.isClosed) controller.addError(error, stackTrace);
   }, onDone: controller.close);
   return new Pair<Stream, StreamCanceller>(controllerStream, controller.close);
 }
@@ -159,9 +159,9 @@ Pair<Stream, Stream> tee(Stream stream) {
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
-  }, onError: (error) {
-    controller1.addError(error);
-    controller2.addError(error);
+  }, onError: (error, [stackTrace]) {
+    controller1.addError(error, stackTrace);
+    controller2.addError(error, stackTrace);
   }, onDone: () {
     controller1.close();
     controller2.close();

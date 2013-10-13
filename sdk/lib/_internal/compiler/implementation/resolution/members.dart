@@ -3686,6 +3686,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
 
+    if (identical(node.classKeyword.stringValue, 'typedef')) {
+      // TODO(aprelev@gmail.com): Remove this deprecation diagnostic
+      // together with corresponding TODO in parser.dart.
+      compiler.reportWarningCode(node.classKeyword,
+          MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
+    }
+
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
@@ -3949,8 +3956,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
        identical(type.element, compiler.intClass) ||
        identical(type.element, compiler.doubleClass) ||
        identical(type.element, compiler.stringClass) ||
-       identical(type.element, compiler.nullClass) ||
-       identical(type.element, compiler.functionClass));
+       identical(type.element, compiler.nullClass));
   }
 }
 
@@ -4475,6 +4481,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     } else if (identical(e.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = e;
       e = prefix.lookupLocalMember(name.source);
+      e = Elements.unwrap(e, compiler, node);
       if (e == null) {
         return failOrReturnErroneousElement(
             resolver.enclosingElement, name,

@@ -554,7 +554,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription listen(void onData(RawSocketEvent data),
-                            {void onError(error),
+                            {Function onError,
                              void onDone(),
                              bool cancelOnError}) {
     _sendWriteEvent();
@@ -748,8 +748,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       } else if (event == RawSocketEvent.READ_CLOSED) {
         _closeHandler();
       }
-    } catch (e) {
-      _reportError(e);
+    } catch (e, stackTrace) {
+      _reportError(e, stackTrace);
     }
   }
 
@@ -769,16 +769,16 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  void _reportError(e) {
+  void _reportError(e, [StackTrace stackTrace]) {
     if (_status == CLOSED) {
       return;
     } else if (_connectPending) {
       // _connectPending is true until the handshake has completed, and the
       // _handshakeComplete future returned from SecureSocket.connect has
       // completed.  Before this point, we must complete it with an error.
-      _handshakeComplete.completeError(e);
+      _handshakeComplete.completeError(e, stackTrace);
     } else {
-      _controller.addError(e);
+      _controller.addError(e, stackTrace);
     }
     _close();
   }
@@ -800,7 +800,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _socketClosedRead = true;
       if (_filterStatus.readEmpty) {
       _reportError(
-          new HandshakeException('Connection terminated during handshake'));
+          new HandshakeException('Connection terminated during handshake'),
+          null);
       } else {
         _secureHandshake();
       }
@@ -814,8 +815,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _readSocket();
       _writeSocket();
       _scheduleFilter();
-    } catch (e) {
-      _reportError(e);
+    } catch (e, stackTrace) {
+      _reportError(e, stackTrace);
     }
   }
 
@@ -999,7 +1000,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
     return _IOService.dispatch(_SSL_PROCESS_FILTER, args).then((response) {
       if (response.length == 2) {
-        _reportError(new TlsException('${response[1]} error ${response[0]}'));
+        _reportError(new TlsException('${response[1]} error ${response[0]}'),
+                     null);
       }
       int start(int index) => response[2 * index];
       int end(int index) => response[2 * index + 1];

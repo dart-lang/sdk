@@ -19,7 +19,8 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
   _HttpMultipartFormData(ContentType this.contentType,
                          HeaderValue this.contentDisposition,
                          HeaderValue this.contentTransferEncoding,
-                         MimeMultipart this._mimeMultipart) {
+                         MimeMultipart this._mimeMultipart,
+                         Encoding defaultEncoding) {
     _stream = _mimeMultipart;
     if (contentTransferEncoding != null) {
       // TODO(ajohnsen): Support BASE64, etc.
@@ -36,7 +37,7 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
       if (contentType != null) {
         encoding = Encoding.getByName(contentType.charset);
       }
-      if (encoding == null) encoding = LATIN1;
+      if (encoding == null) encoding = defaultEncoding;
       _stream = _stream
           .transform(encoding.decoder)
           .expand((data) {
@@ -54,7 +55,8 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
   bool get isText => _isText;
   bool get isBinary => !_isText;
 
-  static HttpMultipartFormData parse(MimeMultipart multipart) {
+  static HttpMultipartFormData parse(MimeMultipart multipart,
+                                     Encoding defaultEncoding) {
     var type;
     var encoding;
     var disposition;
@@ -70,7 +72,8 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
           break;
 
         case 'content-disposition':
-          disposition = HeaderValue.parse(multipart.headers[key]);
+          disposition = HeaderValue.parse(multipart.headers[key],
+                                          preserveBackslash: true);
           break;
 
         default:
@@ -82,12 +85,13 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
       throw new HttpException(
           "Mime Multipart doesn't contain a Content-Disposition header value");
     }
-    return new _HttpMultipartFormData(type, disposition, encoding, multipart);
+    return new _HttpMultipartFormData(
+        type, disposition, encoding, multipart, defaultEncoding);
   }
 
   StreamSubscription listen(void onData(data),
                             {void onDone(),
-                             void onError(error),
+                             Function onError,
                              bool cancelOnError}) {
     return _stream.listen(onData,
                           onDone: onDone,

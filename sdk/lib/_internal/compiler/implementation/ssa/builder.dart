@@ -300,7 +300,9 @@ class LocalsHandler {
       HParameterValue value = new HParameterValue(parameter);
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
-      value.instructionType = builder.getTypeOfThis();
+      // Unlike `this`, receiver is nullable since direct calls to generative
+      // constructor call the constructor with `null`.
+      value.instructionType = new HType.exact(cls, compiler);
     }
   }
 

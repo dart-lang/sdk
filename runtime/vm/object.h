@@ -707,7 +707,7 @@ class Class : public Object {
   // Return the Type with type parameters declared by this class filled in with
   // dynamic and type parameters declared in superclasses filled in as declared
   // in superclass clauses.
-  RawType* RareType() const;
+  RawAbstractType* RareType() const;
 
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
@@ -731,6 +731,10 @@ class Class : public Object {
   // the super class.
   bool HasTypeArguments() const;
   intptr_t NumTypeArguments() const;
+
+  // Return the number of type arguments that are specific to this class, i.e.
+  // not overlapping with the type arguments of the super class of this class.
+  intptr_t NumOwnTypeArguments() const;
 
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
@@ -1699,6 +1703,11 @@ class Function : public Object {
   }
   void set_is_recognized(bool value) const;
 
+  bool is_redirecting() const {
+    return RedirectingBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_redirecting(bool value) const;
+
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
@@ -1858,7 +1867,8 @@ class Function : public Object {
     kVisibleBit = 8,
     kIntrinsicBit = 9,
     kRecognizedBit = 10,
-    kKindTagBit = 11,
+    kRedirectingBit = 11,
+    kKindTagBit = 12,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1872,6 +1882,7 @@ class Function : public Object {
   class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
   class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
   class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
+  class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 
@@ -4815,6 +4826,9 @@ class String : public Instance {
                                 Heap::Space space = Heap::kNew);
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
+
+  static RawString* IdentifierPrettyName(const String& name);
+  static RawString* IdentifierPrettyNameRetainPrivate(const String& name);
 
   static bool EqualsIgnoringPrivateKey(const String& str1,
                                        const String& str2);

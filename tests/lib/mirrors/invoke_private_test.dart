@@ -35,52 +35,52 @@ main() {
   // InstanceMirror.
   C c = new C();
   InstanceMirror im = reflect(c);
-  result = im.invoke(const Symbol('_method'), [2,4,8]);
+  result = im.invoke(#_method, [2,4,8]);
   Expect.equals('2+4+8', result.reflectee);
 
-  result = im.getField(const Symbol('_getter'));
+  result = im.getField(#_getter);
   Expect.equals('get default', result.reflectee);
-  result = im.getField(const Symbol('_field'));
+  result = im.getField(#_field);
   Expect.equals('default', result.reflectee);
 
-  im.setField(const Symbol('_setter'), 'foo');
+  im.setField(#_setter, 'foo');
   Expect.equals('set foo', c._field);
-  im.setField(const Symbol('_field'), 'bar');
+  im.setField(#_field, 'bar');
   Expect.equals('bar', c._field);
 
 
   // ClassMirror.
   ClassMirror cm = reflectClass(C);
-  result = cm.invoke(const Symbol('_staticFunction'),[3,4]);
+  result = cm.invoke(#_staticFunction, [3,4]);
   Expect.equals('(3,4)', result.reflectee);
 
-  result = cm.getField(const Symbol('_staticGetter'));
+  result = cm.getField(#_staticGetter);
   Expect.equals('sget initial', result.reflectee);
-  result = cm.getField(const Symbol('_staticField'));
+  result = cm.getField(#_staticField);
   Expect.equals('initial', result.reflectee);
 
-  cm.setField(const Symbol('_staticSetter'), 'sfoo');
+  cm.setField(#_staticSetter, 'sfoo');
   Expect.equals('sset sfoo', C._staticField);
-  cm.setField(const Symbol('_staticField'), 'sbar');
+  cm.setField(#_staticField, 'sbar');
   Expect.equals('sbar', C._staticField);
 
-  result = cm.newInstance(const Symbol('_named'), ['my value']);
+  result = cm.newInstance(#_named, ['my value']);
   Expect.isTrue(result.reflectee is C);
   Expect.equals('my value', result.reflectee._field);
 
 
   // LibraryMirror.
   LibraryMirror lm = cm.owner;
-  result = lm.invoke(const Symbol('_libraryFunction'),[':',')']);
+  result = lm.invoke(#_libraryFunction, [':',')']);
   Expect.equals(':)', result.reflectee);
 
-  result = lm.getField(const Symbol('_libraryGetter'));
+  result = lm.getField(#_libraryGetter);
   Expect.equals('lget a priori', result.reflectee);
-  result = lm.getField(const Symbol('_libraryField'));
+  result = lm.getField(#_libraryField);
   Expect.equals('a priori', result.reflectee);
 
-  lm.setField(const Symbol('_librarySetter'), 'lfoo');
+  lm.setField(#_librarySetter, 'lfoo');
   Expect.equals('lset lfoo', _libraryField);
-  lm.setField(const Symbol('_libraryField'), 'lbar');
+  lm.setField(#_libraryField, 'lbar');
   Expect.equals('lbar', _libraryField);
 }

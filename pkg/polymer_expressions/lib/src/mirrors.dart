@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library polymer_expressions.mirrors;
+library polymer_expressions.src.mirrors;
 
 import 'dart:mirrors';
 
@@ -38,5 +38,5 @@ Mirror getMemberMirror(ClassMirror classMirror, Symbol name) {
 bool hasSuperclass(ClassMirror classMirror) {
   var superclass = classMirror.superclass;
   return (superclass != null) &&
-      (superclass.qualifiedName != const Symbol('dart.core.Object'));
+      (superclass.qualifiedName != #dart.core.Object);
 }

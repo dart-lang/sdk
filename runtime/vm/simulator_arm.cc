@@ -1016,7 +1016,7 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
 }
 
 
-int Simulator::ReadW(uword addr, Instr* instr) {
+intptr_t Simulator::ReadW(uword addr, Instr* instr) {
   static StatsCounter counter_read_w("Simulated word reads");
   counter_read_w.Increment();
   if ((addr & 3) == 0) {
@@ -1028,7 +1028,7 @@ int Simulator::ReadW(uword addr, Instr* instr) {
 }
 
 
-void Simulator::WriteW(uword addr, int value, Instr* instr) {
+void Simulator::WriteW(uword addr, intptr_t value, Instr* instr) {
   static StatsCounter counter_write_w("Simulated word writes");
   counter_write_w.Increment();
   if ((addr & 3) == 0) {
@@ -1109,7 +1109,7 @@ void Simulator::ClearExclusive() {
 }
 
 
-int Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
   // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
   SetExclusiveAccess(addr);
@@ -1117,7 +1117,7 @@ int Simulator::ReadExclusiveW(uword addr, Instr* instr) {
 }
 
 
-int Simulator::WriteExclusiveW(uword addr, int value, Instr* instr) {
+intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
   // This lock is initialized in Simulator::InitOnce().
   MutexLocker ml(exclusive_access_lock_);
   bool write_allowed = HasExclusiveAccessAndOpen(addr);

@@ -1,0 +1,168 @@
+<!DOCTYPE html><html><head>
+    <title>Dart VM Observatory</title>
+    <meta charset="utf-8">
+    
+    <link type="text/css" rel="stylesheet" href="bootstrap_css/css/bootstrap.min.css">
+    
+  </head>
+  <body><script src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script src="packages/browser/interop.js"></script>
+<polymer-element name="observatory-element">
+  
+</polymer-element><polymer-element name="collapsible-content" extends="observatory-element">
+  <template>
+    <div class="well row">
+      <a on-click="toggleDisplay" class="btn muted unselectable">
+           Raw message... <i class="{{ iconClass }}"></i>
+      </a>
+      <div style="display: {{ displayValue }}" class="well">
+        <content></content>
+      </div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="error-view" extends="observatory-element">
+  <template>
+    <div class="alert alert-danger">Error!</div>
+    <div class="alert alert-info">
+      <p>Error message:</p>
+      <p>{{ error }}</p>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="isolate-summary" extends="observatory-element">
+  <template>
+  	<div class="row">
+  	  <div class="col-md-1">
+  	  	<img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">	
+  	  </div>
+  	  <div class="col-md-1">{{ isolate }}</div>
+  	  <div class="col-md-10">{{ name }}</div>
+  	</div>
+  	<div class="row">
+  	  <div class="col-md-2"></div>
+  	  <div class="col-md-1">
+  	  	<a href="{{ app.locationManager.relativeLink(isolate, 'stacktrace') }}">Stacktrace</a>
+  	  </div>
+  	  <div class="col-md-9"></div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="isolate-list" extends="observatory-element">
+  <template>
+      <ul class="list-group">
+      <template repeat="{{ isolate in app.isolateManager.isolates.values }}">
+      	<li class="list-group-item">
+        <isolate-summary app="{{ app }}" isolate="{{ isolate.id }}" name="{{ isolate.name }}"></isolate-summary>
+        </li>
+      </template>
+      </ul>
+  </template>
+  
+</polymer-element><polymer-element name="json-view" extends="observatory-element">
+  <template>
+    <template bind="" if="{{ valueType == 'Primitive' }}">
+      <span>{{primitiveString}}</span>
+    </template>
+    <template bind="" if="{{ valueType == 'List' }}">
+      <table class="table table-condensed table-bordered">
+        <caption class="text-left">List, {{list.length}}</caption>
+        <tbody>
+          <tr template="" repeat="{{item in list)}}">
+            <th>{{counter}}</th>
+            <td><json-view json="{{item}}"></json-view></td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+    <template if="{{ valueType == 'Map' }}">
+      <table class="table table-condensed table-bordered">
+        <caption class="text-left">Map, {{keys.length}}</caption>
+        <tbody>
+          <tr template="" repeat="{{key in keys}}">
+            <th>{{key}}</th>
+            <td><json-view json="{{value(key)}}"></json-view></td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+  </template>
+  
+</polymer-element><polymer-element name="stack-trace" extends="observatory-element">
+  <template>
+  <div class="alert alert-info">Stack Trace</div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Depth</th>
+        <th>Function</th>
+        <th>Url</th>
+        <th>Line</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr template="" repeat="{{ frame in trace['members'] }}">
+        <td>{{$index}}</td>
+        <td>{{ frame['name'] }}</td>
+        <td>{{ frame['url'] }}</td>
+        <td>{{ frame['line'] }}</td>
+      </tr>
+    </tbody>
+  </table>
+  </template>
+  
+</polymer-element><polymer-element name="message-viewer" extends="observatory-element">
+  <!--
+    This is a big switch statement which instantiates the custom element
+    designated to display the message type.
+  -->
+  <template>
+  	<!-- If the message type is an IsolateList -->
+    <template if="{{ messageType == 'IsolateList' }}">
+      <isolate-list app="{{ app }}"></isolate-list>
+    </template>
+    <!-- If the message type is a StackTrace -->
+    <template if="{{ messageType == 'StackTrace' }}">
+      <stack-trace app="{{ app }}" trace="{{ message }}"></stack-trace>
+    </template>
+    <!-- If the message type is a RequestError -->
+    <template if="{{ messageType == 'RequestError' }}">
+      <error-view app="{{ app }}" error="{{ message['error'] }}"></error-view>
+    </template>
+    <!-- Add new views and message types in the future here. -->
+  </template>
+  
+</polymer-element><polymer-element name="navigation-bar" extends="observatory-element">
+  <template>
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="">Observatory</a>
+      </div>
+      <div class="collapse navbar-collapse navbar-ex1-collapse">
+        <input class="span2 pull-right navbar-form" placeholder="VM Address" type="text" value="{{ app.requestManager.prefix }}">
+      </div>
+    </nav>
+  </template>
+  
+</polymer-element><polymer-element name="response-viewer" extends="observatory-element">
+  <template>
+    <template repeat="{{ message in app.requestManager.responses }}">
+      <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
+      <collapsible-content>
+        <json-view json="{{ message }}"></json-view>
+      </collapsible-content>
+    </template>
+  </template>
+  
+</polymer-element><polymer-element name="observatory-application" extends="observatory-element">
+  <template>
+    <navigation-bar app="{{ app }}"></navigation-bar>
+    <response-viewer app="{{ app }}"></response-viewer>
+  </template>
+  
+</polymer-element>
+    <observatory-application></observatory-application>
+    
+  
+
+<script type="application/dart" src="index.html_bootstrap.dart"></script><script src="packages/browser/dart.js"></script></body></html>

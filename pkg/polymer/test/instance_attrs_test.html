@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Polymer.dart attribute deserialization test</title>
+    <script src="packages/polymer/boot.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+    <polymer-element name="my-element" foo="123" bar="hi" baz="there" noscript>
+      <template>
+        foo: {{attributes['foo']}}
+        bar: {{attributes['bar']}}
+        baz: {{attributes['baz']}}
+      </template>
+    </polymer-element>
+
+    <my-element baz="world"></my-element>
+
+    <script type="application/dart" src="instance_attrs_test.dart"></script>
+  </body>
+</html>

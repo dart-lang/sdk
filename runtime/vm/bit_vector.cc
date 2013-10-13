@@ -94,7 +94,7 @@ bool BitVector::KillAndAdd(BitVector* kill, BitVector* gen) {
 
 void BitVector::Intersect(const BitVector* other) {
   ASSERT(other->length() == length());
-  for (int i = 0; i < data_length_; i++) {
+  for (intptr_t i = 0; i < data_length_; i++) {
     data_[i] = data_[i] & other->data_[i];
   }
 }

@@ -143,8 +143,6 @@ prefix11_negative_test: fail
 # test issue 12156, fails only at runtime
 static_call_wrong_argument_count_negative_test: fail
 
-constructor9_test/01: Fail # Issue 12157
-
 throw7_test/01: Fail # Issue 12159
 
 # test issue 12160, not annotated warnings for type variables from static member
@@ -187,6 +185,13 @@ static_field_test/04: fail # Issue 12541
 
 # test issue 13787; duplicate exports of the same declaration is not handled
 duplicate_export_test: fail # Issue 13787
+
+type_variable_conflict_test/01: Fail # Issue 13703
+type_variable_conflict_test/02: Fail # Issue 13703
+type_variable_conflict_test/03: Fail # Issue 13703
+type_variable_conflict_test/04: Fail # Issue 13703
+type_variable_conflict_test/05: Fail # Issue 13703
+type_variable_conflict_test/06: Fail # Issue 13703
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail

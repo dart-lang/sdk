@@ -625,7 +625,7 @@ void _initCustomElement(Element node, CustomElement ctor()) {
 }
 
 void _registerLifecycleInsert(CustomElement element) {
-  runAsync(() {
+  scheduleMicrotask(() {
     // TODO(jmesserly): bottom up or top down insert?
     var node = element.host;
 

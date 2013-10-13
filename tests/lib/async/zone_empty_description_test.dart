@@ -51,7 +51,7 @@ testForkedZone(Zone forked) {
   asyncStart();
   bool asyncDidRun = false;
   forked.scheduleMicrotask(() {
-    // The runAsync functions on the Zone don't bind the closures.
+    // The scheduleMicrotask functions on the Zone don't bind the closures.
     Expect.identical(Zone.ROOT, Zone.current);
     asyncDidRun = true;
     asyncEnd();

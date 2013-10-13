@@ -987,6 +987,18 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     }
   }
 
+  E lookup(Object object) {
+    if (_isStringElement(object) || _isNumericElement(object)) {
+      return this.contains(object) ? object : null;
+    }
+    var rest = _rest;
+    if (rest == null) return null;
+    var bucket = _getBucket(rest, object);
+    var index = _findBucketIndex(bucket, object);
+    if (index < 0) return null;
+    return bucket[index];
+  }
+
   // Collection.
   void add(E element) {
     if (_isStringElement(element)) {
@@ -1251,6 +1263,11 @@ class _CustomHashSet<E> extends _HashSet<E> {
     return super.contains(object);
   }
 
+  E lookup(Object object) {
+    if (!_validKey(object)) return null;
+    return super.lookup(object);
+  }
+
   bool remove(Object object) {
     if (!_validKey(object)) return false;
     return super.remove(object);
@@ -1398,6 +1415,19 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
       if (rest == null) return false;
       var bucket = _getBucket(rest, object);
       return _findBucketIndex(bucket, object) >= 0;
+    }
+  }
+
+  E lookup(Object object) {
+    if (_isStringElement(object) || _isNumericElement(object)) {
+      return this.contains(object) ? object : null;
+    } else {
+      var rest = _rest;
+      if (rest == null) return null;
+      var bucket = _getBucket(rest, object);
+      var index = _findBucketIndex(bucket, object);
+      if (index < 0) return null;
+      return bucket[index]._element;
     }
   }
 
@@ -1688,6 +1718,11 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
   bool contains(Object object) {
     if (!_validKey(object)) return false;
     return super.contains(object);
+  }
+
+  E lookup(Object object) {
+    if (!_validKey(object)) return null;
+    return super.lookup(object);
   }
 
   bool remove(Object object) {

@@ -18,7 +18,7 @@ import 'source/path.dart';
 import 'source.dart';
 import 'source_registry.dart';
 
-/// The system-wide cache of installed packages.
+/// The system-wide cache of downloaded packages.
 ///
 /// This cache contains all packages that are downloaded from the internet.
 /// Packages that are available locally (e.g. path dependencies) don't use this
@@ -29,16 +29,16 @@ class SystemCache {
 
   String get tempDir => path.join(rootDir, '_temp');
 
-  /// Packages which are currently being asynchronously installed to the cache.
-  final Map<PackageId, Future<Package>> _pendingInstalls;
+  /// Packages which are currently being asynchronously downloaded to the cache.
+  final Map<PackageId, Future<Package>> _pendingDownloads;
 
-  /// The sources from which to install packages.
+  /// The sources from which to get packages.
   final SourceRegistry sources;
 
   /// Creates a new package cache which is backed by the given directory on the
   /// user's file system.
   SystemCache(this.rootDir)
-  : _pendingInstalls = new Map<PackageId, Future<Package>>(),
+  : _pendingDownloads = new Map<PackageId, Future<Package>>(),
     sources = new SourceRegistry();
 
   /// Creates a system cache and registers the standard set of sources. If
@@ -66,32 +66,32 @@ class SystemCache {
     sources.register(source);
   }
 
-  /// Ensures that the package identified by [id] is installed to the cache,
+  /// Ensures that the package identified by [id] is downloaded to the cache,
   /// loads it, and returns it.
   ///
-  /// It is an error to try installing a package from a source with
-  /// `shouldCache == false` to the system cache.
-  Future<Package> install(PackageId id) {
+  /// It is an error to try downloading a package from a source with
+  /// `shouldCache == false`.
+  Future<Package> download(PackageId id) {
     var source = sources[id.source];
 
     if (!source.shouldCache) {
       throw new ArgumentError("Package $id is not cacheable.");
     }
 
-    var pending = _pendingInstalls[id];
+    var pending = _pendingDownloads[id];
     if (pending != null) return pending;
 
-    var future = source.installToSystemCache(id).whenComplete(() {
-      _pendingInstalls.remove(id);
+    var future = source.downloadToSystemCache(id).whenComplete(() {
+      _pendingDownloads.remove(id);
     });
 
-    _pendingInstalls[id] = future;
+    _pendingDownloads[id] = future;
     return future;
   }
 
   /// Create a new temporary directory within the system cache. The system
   /// cache maintains its own temporary directory that it uses to stage
-  /// packages into while installing. It uses this instead of the OS's system
+  /// packages into while downloading. It uses this instead of the OS's system
   /// temp directory to ensure that it's on the same volume as the pub system
   /// cache so that it can move the directory from it.
   String createTempDir() {

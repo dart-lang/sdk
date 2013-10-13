@@ -64,8 +64,8 @@ class Barback {
   /// emitted through the [results] stream's error channel.
   Stream get errors => _graph.errors;
 
-  Barback(PackageProvider provider)
-      : _graph = new PackageGraph(provider);
+  Barback(PackageProvider provider, {BarbackLogger logger})
+      : _graph = new PackageGraph(provider, logger: logger);
 
   /// Gets the asset identified by [id].
   ///
@@ -102,7 +102,10 @@ class Barback {
   ///
   /// To the extent that [transformers] is similar to the previous transformer
   /// phases for [package], the existing asset graph will be preserved.
+  ///
+  /// Elements of the inner iterable of [transformers] must be either
+  /// [Transformer]s or [TransformerGroup]s.
   void updateTransformers(String package,
-          Iterable<Iterable<Transformer>> transformers) =>
+          Iterable<Iterable> transformers) =>
       _graph.updateTransformers(package, transformers);
 }

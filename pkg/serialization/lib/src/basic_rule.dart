@@ -525,7 +525,7 @@ class _FieldList extends IterableBase<_Field> {
   /** Return a cached, sorted list of all the fields. */
   List<_Field> get contents {
     if (_contents == null) {
-      _contents = sorted(allFields.values);
+      _contents = allFields.values.toList()..sort();
       for (var i = 0; i < _contents.length; i++)
         _contents[i].index = i;
     }

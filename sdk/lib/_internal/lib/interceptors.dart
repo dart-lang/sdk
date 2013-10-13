@@ -26,6 +26,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               StringMatch,
                               firstMatchAfter;
 import 'dart:_foreign_helper' show JS, JS_EFFECT;
+import 'dart:math' show Random;
 
 part 'js_array.dart';
 part 'js_number.dart';

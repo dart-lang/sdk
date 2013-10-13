@@ -17,7 +17,7 @@ class _StdStream extends Stream<List<int>> {
   _StdStream(Stream<List<int>> this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(error),
+                                       {Function onError,
                                         void onDone(),
                                         bool cancelOnError}) {
     return _stream.listen(

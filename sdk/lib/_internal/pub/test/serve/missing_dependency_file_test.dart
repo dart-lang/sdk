@@ -21,7 +21,7 @@ main() {
       })
     ]).create();
 
-    pubInstall();
+    pubGet();
     startPubServe();
     requestShould404("packages/foo/nope.dart");
     requestShould404("assets/foo/nope.png");

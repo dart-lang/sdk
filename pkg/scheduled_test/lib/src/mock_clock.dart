@@ -60,7 +60,7 @@ class Clock {
   void tick([int milliseconds = 1]) {
     for (var i = 0; i < milliseconds; i++) {
       var tickTime = ++_time;
-      runAsync(() {
+      scheduleMicrotask(() {
         _broadcastController.add(tickTime);
       });
     }

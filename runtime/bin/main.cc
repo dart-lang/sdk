@@ -763,7 +763,7 @@ int main(int argc, char** argv) {
     ASSERT(vm_service_server_port >= 0);
     bool r = VmService::Start(vm_service_server_port);
     if (!r) {
-      Log::PrintErr("Could not start VM Service isolate %s",
+      Log::PrintErr("Could not start VM Service isolate %s\n",
                     VmService::GetErrorMessage());
     }
   }

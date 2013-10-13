@@ -19,10 +19,14 @@ class Class<T> {
   Class.optPos([this.stringField = 'default']);
   Class.generic(this.tField);
   Class.private(this._privateField);
+
+  Class.explicitType(num this.intField);
+  Class.withVar(var this.intField);
+  Class.withDynamic(dynamic this.intField);
 }
 
 class Constant {
-  final value;
+  final num value;
   const Constant(this.value);
   const Constant.marked(final this.value);
 }
@@ -32,7 +36,7 @@ main() {
 
   pm = reflectClass(Class).constructors[#Class.nongeneric].parameters.single;
   Expect.equals(#intField, pm.simpleName);
-  Expect.equals(reflectClass(int), pm.type);  /// 01: ok
+  Expect.equals(reflectClass(int), pm.type);
   Expect.isFalse(pm.isNamed);
   Expect.isFalse(pm.isFinal);
   Expect.isFalse(pm.isOptional);
@@ -43,7 +47,7 @@ main() {
   
   pm = reflectClass(Class).constructors[#Class.named].parameters.single;
   Expect.equals(#boolField, pm.simpleName);
-  Expect.equals(reflectClass(bool), pm.type);  /// 01: ok
+  Expect.equals(reflectClass(bool), pm.type);
   Expect.isTrue(pm.isNamed);
   Expect.isFalse(pm.isFinal);
   Expect.isTrue(pm.isOptional);
@@ -54,7 +58,7 @@ main() {
   
   pm = reflectClass(Class).constructors[#Class.optPos].parameters.single;
   Expect.equals(#stringField, pm.simpleName);
-  Expect.equals(reflectClass(String), pm.type);  /// 01: ok
+  Expect.equals(reflectClass(String), pm.type);
   Expect.isFalse(pm.isNamed);
   Expect.isFalse(pm.isFinal);
   Expect.isTrue(pm.isOptional);
@@ -66,7 +70,7 @@ main() {
   
   pm = reflectClass(Class).constructors[#Class.generic].parameters.single;
   Expect.equals(#tField, pm.simpleName);
-  Expect.equals(reflectClass(Class).typeVariables.single, pm.type);  /// 01: ok
+  Expect.equals(reflectClass(Class).typeVariables.single, pm.type);
   Expect.isFalse(pm.isNamed);
   Expect.isFalse(pm.isFinal);
   Expect.isFalse(pm.isOptional);
@@ -86,9 +90,42 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
+  pm = reflectClass(Class).constructors[#Class.explicitType].parameters.single;
+  Expect.equals(#intField, pm.simpleName);
+  Expect.equals(reflectClass(num), pm.type);
+  Expect.isFalse(pm.isNamed);
+  Expect.isFalse(pm.isFinal);
+  Expect.isFalse(pm.isOptional);
+  Expect.isFalse(pm.hasDefaultValue);
+  Expect.isFalse(pm.isPrivate);
+  Expect.isFalse(pm.isStatic);
+  Expect.isFalse(pm.isTopLevel);
+
+  pm = reflectClass(Class).constructors[#Class.withVar].parameters.single;
+  Expect.equals(#intField, pm.simpleName);
+  Expect.equals(reflectClass(int), pm.type);  // N.B.
+  Expect.isFalse(pm.isNamed);
+  Expect.isFalse(pm.isFinal);
+  Expect.isFalse(pm.isOptional);
+  Expect.isFalse(pm.hasDefaultValue);
+  Expect.isFalse(pm.isPrivate);
+  Expect.isFalse(pm.isStatic);
+  Expect.isFalse(pm.isTopLevel);
+
+  pm = reflectClass(Class).constructors[#Class.withDynamic].parameters.single;
+  Expect.equals(#intField, pm.simpleName);
+  Expect.equals(currentMirrorSystem().dynamicType, pm.type);  // N.B.
+  Expect.isFalse(pm.isNamed);
+  Expect.isFalse(pm.isFinal);
+  Expect.isFalse(pm.isOptional);
+  Expect.isFalse(pm.hasDefaultValue);
+  Expect.isFalse(pm.isPrivate);
+  Expect.isFalse(pm.isStatic);
+  Expect.isFalse(pm.isTopLevel);
+
   pm = reflectClass(Constant).constructors[#Constant].parameters.single;
   Expect.equals(#value, pm.simpleName);
-  Expect.equals(currentMirrorSystem().dynamicType, pm.type);
+  Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);
   Expect.isFalse(pm.isFinal);  // N.B.
   Expect.isFalse(pm.isOptional);
@@ -99,7 +136,7 @@ main() {
 
   pm = reflectClass(Constant).constructors[#Constant.marked].parameters.single;
   Expect.equals(#value, pm.simpleName);
-  Expect.equals(currentMirrorSystem().dynamicType, pm.type);
+  Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);
   Expect.isTrue(pm.isFinal);  // N.B.
   Expect.isFalse(pm.isOptional);

@@ -56,8 +56,8 @@ class BarbackServer {
       : _server = server,
         port = server.port,
         address = server.address {
-    _server.listen(_handleRequest, onError: (error) {
-      _resultsController.addError(error);
+    _server.listen(_handleRequest, onError: (error, stackTrace) {
+      _resultsController.addError(error, stackTrace);
       close();
     });
   }

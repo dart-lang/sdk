@@ -10,8 +10,8 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  forBothPubInstallAndUpdate((command) {
-    integration('updates a package using the cache', () {
+  forBothPubGetAndUpgrade((command) {
+    integration('upgrades a package using the cache', () {
       // Run the server so that we know what URL to use in the system cache.
       servePackages([]);
 
@@ -26,8 +26,8 @@ main() {
       }).create();
 
       var warning = null;
-      if (command == RunCommand.update) {
-        warning = "Warning: Updating when offline may not update you "
+      if (command == RunCommand.upgrade) {
+        warning = "Warning: Upgrading when offline may not update you "
                   "to the latest versions of your dependencies.";
       }
 

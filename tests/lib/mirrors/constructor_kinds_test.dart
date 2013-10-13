@@ -10,29 +10,36 @@ import 'package:expect/expect.dart';
 class ClassWithDefaultConstructor {}
 
 class Class {
-  Class.generative();
-  Class.redirectingGenerative() : this.generative();
-  factory Class.faktory () => new Class.generative();
-  factory Class.redirectingFactory() = Class.faktory;
+  Class.generativeConstructor();
+  Class.redirectingGenerativeConstructor() : this.generativeConstructor();
+  factory Class.factoryConstructor() => new Class.generativeConstructor();
+  factory Class.redirectingFactoryConstructor() = Class.factoryConstructor;
 
-  const Class.constGenerative();
-  const Class.constRedirectingGenerative() : this.constGenerative();
+  const Class.constGenerativeConstructor();
+  const Class.constRedirectingGenerativeConstructor()
+      : this.constGenerativeConstructor();
   // Not legal.
-  // const factory Class.constFaktory () => const Class.constGenerative();
-  const factory Class.constRedirectingFactory() = Class.constGenerative;
+  // const factory Class.constFactoryConstructor() => ...
+  const factory Class.constRedirectingFactoryConstructor()
+      = Class.constGenerativeConstructor;
 }
 
 main() {
   ClassMirror cm;
   MethodMirror mm;
 
-  new Class.generative();  
-  new Class.redirectingGenerative();
-  new Class.faktory();
-  new Class.redirectingFactory();
-  const Class.constGenerative();
-  const Class.constRedirectingGenerative();
-  const Class.constRedirectingFactory();
+  // Multitest with and without constructor calls. On the VM, we want to check
+  // that constructor properties are correctly set even if the constructor
+  // hasn't been fully compiled. On dart2js, we want to check that constructors
+  // are retain even if there are no base-level calls.
+  new ClassWithDefaultConstructor();  /// 01: ok
+  new Class.generativeConstructor();  /// 01: ok
+  new Class.redirectingGenerativeConstructor();  /// 01: ok
+  new Class.factoryConstructor();  /// 01: ok
+  new Class.redirectingFactoryConstructor();  /// 01: ok
+  const Class.constGenerativeConstructor();  /// 01: ok
+  const Class.constRedirectingGenerativeConstructor();  /// 01: ok
+  const Class.constRedirectingFactoryConstructor();  /// 01: ok
 
   cm = reflectClass(ClassWithDefaultConstructor);
   mm = cm.constructors.values.single;
@@ -42,45 +49,44 @@ main() {
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-
   cm = reflectClass(Class);
 
-  mm = cm.constructors[#generative];
+  mm = cm.constructors[#Class.generativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#redirectingGenerative];
+  mm = cm.constructors[#Class.redirectingGenerativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
   Expect.isTrue(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#faktory];
+  mm = cm.constructors[#Class.factoryConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isFalse(mm.isGenerativeConstructor);
   Expect.isTrue(mm.isFactoryConstructor);
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#redirectingFactory];
+  mm = cm.constructors[#Class.redirectingFactoryConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isFalse(mm.isGenerativeConstructor);
   Expect.isTrue(mm.isFactoryConstructor);
   Expect.isTrue(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#constGenerative];
+  mm = cm.constructors[#Class.constGenerativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isTrue(mm.isConstConstructor);
 
-  mm = cm.constructors[#constRedirectingGenerative];
+  mm = cm.constructors[#Class.constRedirectingGenerativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
@@ -88,14 +94,14 @@ main() {
   Expect.isTrue(mm.isConstConstructor);
 
   // Not legal.
-  // mm = cm.constructors[#constFaktory];
+  // mm = cm.constructors[#Class.constFactoryConstructor];
   // Expect.isTrue(mm.isConstructor);
   // Expect.isFalse(mm.isGenerativeConstructor);
   // Expect.isTrue(mm.isFactoryConstructor);
   // Expect.isFalse(mm.isRedirectingConstructor);
   // Expect.isTrue(mm.isConstConstructor);
 
-  mm = cm.constructors[#constRedirectingFactory];
+  mm = cm.constructors[#Class.constRedirectingFactoryConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isFalse(mm.isGenerativeConstructor);
   Expect.isTrue(mm.isFactoryConstructor);

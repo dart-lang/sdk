@@ -98,12 +98,17 @@ function processMessage(msg) {
     notifyDone();
   } else if (msg == 'unittest-suite-wait-for-done') {
     waitForDone = true;
-    if (testRunner) testRunner.startedDartTest = true;
+    if (testRunner) {
+      testRunner.startedDartTest = true;
+    }
   } else if (msg == 'dart-calling-main') {
-    if (testRunner) testRunner.startedDartTest = true;
+    if (testRunner) {
+      testRunner.startedDartTest = true;
+    }
   } else if (msg == 'dart-main-done') {
     if (!waitForDone) {
-      window.postMessage('unittest-suite-success', '*');
+      printMessage('PASS');
+      notifyDone();
     }
   } else if (msg == 'unittest-suite-success') {
     printMessage('PASS');

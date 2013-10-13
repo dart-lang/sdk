@@ -35,7 +35,7 @@ main() {
       ])
     ]).create();
 
-    pubInstall();
+    pubGet();
     startPubServe();
     requestShould404("packages");
     requestShould404("assets");

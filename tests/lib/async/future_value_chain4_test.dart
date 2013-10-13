@@ -8,7 +8,7 @@ import 'dart:async';
 
 class MyFuture implements Future {
   then(valueHandler, {onError}) {
-    runAsync(() { valueHandler(499); });
+    scheduleMicrotask(() { valueHandler(499); });
   }
   catchError(_) => null;
   whenComplete(_) => null;

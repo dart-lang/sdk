@@ -25,7 +25,7 @@ main() {
       })
     ]).create();
 
-    pubInstall();
+    pubGet();
 
     // Note: Using canonicalize here because pub gets the path to the
     // entrypoint package from the working directory, which has had symlinks

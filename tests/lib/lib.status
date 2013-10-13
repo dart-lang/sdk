@@ -2,26 +2,43 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $csp ]
+mirrors/delegate_test: RuntimeError # Issue 13864
+
 [ $compiler == dart2js ]
+async/schedule_microtask3_test: RuntimeError # _enqueueImmediate runs after Timer. http://dartbug.com/9002
+async/schedule_microtask4_test: Pass, RuntimeError # no global exception handler in isolates. http://dartbug.com/9012
+async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
+async/stream_controller_async_test: Pass, Fail # Issue 13608
+
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_test: RuntimeError
+
+mirrors/closures_test/none: RuntimeError # Issue 6490
 mirrors/closure_mirror_find_in_context_test: Fail # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/equality_test/02: RuntimeError # Issue 12333
 mirrors/fake_function_test: RuntimeError # Issue 11612
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generics_test/01: RuntimeError # Issue 12087
+mirrors/generic_bounded_test/none: RuntimeError # Issue 12087
+mirrors/generic_bounded_test/01: RuntimeError # Issue 12087
+mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError # Issue 12087
+mirrors/generic_bounded_by_type_parameter_test/01: RuntimeError # Issue 12087
+mirrors/generic_f_bounded_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/generics_substitution_test: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/initializing_formals_test: CompileTimeError # Issue 12164
+mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
 mirrors/invoke_named_test/none: RuntimeError # Issue 12863
 mirrors/invoke_private_test: CompileTimeError # Issue 12164
 mirrors/invoke_throws_test: RuntimeError # Issue 11954
+mirrors/library_metadata2_test/01: CompileTimeError # Issue 13633
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 mirrors/method_mirror_name_test: RuntimeError # Issue 6335
 mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
@@ -33,20 +50,21 @@ mirrors/new_instance_with_type_arguments_test: RuntimeError # Issue 12333
 mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_metadata_test: CompileTimeError # Issue 10905
+mirrors/private_symbol_test: CompileTimeError # Issue 13597
+mirrors/proxy_type_test: RuntimeError # Issue 13842
+mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
+mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_test: RuntimeError # Issue 12607
+mirrors/symbol_validation_test: RuntimeError # Issue 13597
 mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
+mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/unnamed_library_test: RuntimeError # Issue 10580
-async/run_async3_test: RuntimeError # _enqueueImmediate runs after Timer. http://dartbug.com/9002
-async/run_async4_test: Pass, RuntimeError # no global exception handler in isolates. http://dartbug.com/9012
-async/run_async6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
-mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
-mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
-mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
-mirrors/closures_test/none: RuntimeError # Issue 6490
-mirrors/library_metadata2_test/01: CompileTimeError # Issue 13633
-async/stream_controller_async_test: Pass, Fail # Issue 13608
+
+[ $compiler == dart2js && $unchecked ]
+mirrors/generic_bounded_test/02: RuntimeError # Issue 12087
+mirrors/generic_bounded_by_type_parameter_test/02: RuntimeError # Issue 12087
 
 [ $compiler == dart2js && $checked ]
 mirrors/redirection_type_shuffling_test: RuntimeError # Issue 13706
@@ -102,7 +120,8 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
-async/run_async6_test: Fail             # Issue 10957 - may be related to issue 10910
+async/schedule_microtask6_test: Fail             # Issue 10957 - may be related to issue 10910
+async/schedule_microtask3_test: RuntimeError # Issue 13719: Please triage this failure.
 
 [ $compiler == dart2dart && $minified ]
 json/json_test: Fail                            # Issue 10961
@@ -139,32 +158,32 @@ async/multiple_timer_test: Pass, Fail
 async/timer_test: Fail, Pass
 
 [ $runtime == vm ]
-async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
-                                         # implement timer (currently only in d8)
-async/timer_isolate_test: Skip # See Issue 4997
+async/timer_not_available_test: Fail, OK 
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
-[ $runtime == vm || ($compiler == none && $runtime == drt) ]
-async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
+[ $compiler == none  ]
+async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
+mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
-mirrors/constructor_kinds_test: RuntimeError # Issue 13798
-mirrors/generics_substitution_test: RuntimeError # Issue 13808
-mirrors/initializing_formals_test/01: RuntimeError # Issue 11281
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
-mirrors/generic_mixin_applications_test: RuntimeError # Issue 12282
-mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12282
+mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
+mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
-[ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997
-async/timer_not_available_test: Skip # only meant to test when there is no way to
-                                     # implement timer (currently only in d8)
+async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
+
+[ $compiler == none && ( $runtime == drt || $runtime == dartium ) ]
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 mirrors/local_isolate_test: Skip # http://dartbug.com/12188
-async/run_async6_test: Fail # Issue 10910
+async/schedule_microtask6_test: Fail # Issue 10910
+async/schedule_microtask4_test: Fail # Issue 13921
+
+[ $compiler == none && ( $runtime == drt || $runtime == dartium ) && $system == macos]
+mirrors/constructor_kinds_test: Pass, Fail # Issue 13999
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
@@ -178,34 +197,26 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
 convert/utf85_test: Pass, Slow # Issue 12644.
 
-[ $compiler == none && $runtime == drt ]
-async/run_zoned6_test/01: fail # Issue 12756.
-async/run_zoned9_test/01: fail # Issue 12756.
-
+[ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == drt) ]
 async/stream_controller_async_test: Pass, Fail # Issue 13608
 
 [ $compiler == dartanalyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
+mirrors/generic_bounded_test/none: Fail # Issue 13432
+mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
+
+# test issue 14016
+mirrors/typevariable_mirror_metadata_test: fail
 
 [ $compiler == dart2analyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
+mirrors/generic_bounded_test/none: Fail # Issue 13432
+mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 
 [ $compiler == none && $runtime == dartium ]
-async/run_async3_test: Fail # Issue 13719: Please triage this failure.
-async/run_async4_test: Fail # Issue 13719: Please triage this failure.
-async/run_async6_test: Fail # Issue 13719: Please triage this failure.
-async/timer_not_available_test: Fail # Issue 13719: Please triage this failure.
-mirrors/closures_test/01: Fail # Issue 13719: Please triage this failure.
-mirrors/hierarchy_test: Fail # Issue 13719: Please triage this failure.
-mirrors/library_uri_io_test: Fail # Issue 13719: Please triage this failure.
-mirrors/local_isolate_test: Fail # Issue 13719: Please triage this failure.
-mirrors/mixin_test/01: Fail # Issue 13719: Please triage this failure.
-mirrors/typedef_test/01: Fail # Issue 13719: Please triage this failure.
-
-[ $compiler == none && $runtime == dartium ]
-async/timer_isolate_test: Fail # Issue 13719: Please triage this failure.
-async/run_async5_test: Pass, Timeout  # Issue 13719: Please triage this failure.
+async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
+async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.

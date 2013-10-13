@@ -108,7 +108,10 @@ struct Chain : public ZoneAllocated {
 
 
 int Edge::LowestWeightFirst(const Edge* a, const Edge* b) {
-  return (a->weight < b->weight) ? -1 : (a->weight > b->weight);
+  if (a->weight < b->weight) {
+    return -1;
+  }
+  return (a->weight > b->weight) ? 1 : 0;
 }
 
 

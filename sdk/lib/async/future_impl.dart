@@ -6,7 +6,6 @@ part of dart.async;
 
 /** The onValue and onError handlers return either a value or a future */
 typedef dynamic _FutureOnValue<T>(T value);
-typedef dynamic _FutureOnError(error);
 /** Test used by [Future.catchError] to handle skip some errors. */
 typedef bool _FutureErrorTest(var error);
 /** Used by [WhenFuture]. */
@@ -130,12 +129,12 @@ class _Future<T> implements Future<T> {
   // fields of which 2 are always null.
   final _FutureOnValue _onValueCallback;
   final _FutureErrorTest _errorTestCallback;
-  final _FutureOnError _onErrorCallback;
+  final Function _onErrorCallback;
   final _FutureAction _whenCompleteActionCallback;
 
   _FutureOnValue get _onValue => _isChained ? null : _onValueCallback;
   _FutureErrorTest get _errorTest => _isChained ? null : _errorTestCallback;
-  _FutureOnError get _onError => _isChained ? null : _onErrorCallback;
+  Function get _onError => _isChained ? null : _onErrorCallback;
   _FutureAction get _whenCompleteAction
       => _isChained ? null : _whenCompleteActionCallback;
 
@@ -159,17 +158,18 @@ class _Future<T> implements Future<T> {
     _asyncCompleteError(error, stackTrace);
   }
 
-  _Future._then(onValueCallback(value), onErrorCallback(e))
+  _Future._then(onValueCallback(value), Function onErrorCallback)
       : _zone = Zone.current,
         _onValueCallback = Zone.current.registerUnaryCallback(onValueCallback),
-        _onErrorCallback = Zone.current.registerUnaryCallback(onErrorCallback),
+        _onErrorCallback = _registerErrorHandler(onErrorCallback, Zone.current),
         _errorTestCallback = null,
         _whenCompleteActionCallback = null;
 
-  _Future._catchError(onErrorCallback(e), bool errorTestCallback(e))
+  _Future._catchError(Function onErrorCallback, bool errorTestCallback(e))
     : _zone = Zone.current,
-      _onErrorCallback = Zone.current.registerUnaryCallback(onErrorCallback),
-      _errorTestCallback = Zone.current.registerUnaryCallback(errorTestCallback),
+      _onErrorCallback = _registerErrorHandler(onErrorCallback, Zone.current),
+      _errorTestCallback =
+          Zone.current.registerUnaryCallback(errorTestCallback),
       _onValueCallback = null,
       _whenCompleteActionCallback = null;
 
@@ -181,15 +181,15 @@ class _Future<T> implements Future<T> {
         _errorTestCallback = null,
         _onErrorCallback = null;
 
-  Future then(f(T value), { onError(error) }) {
+  Future then(f(T value), { Function onError }) {
     _Future result;
     result = new _Future._then(f, onError);
     _addListener(result);
     return result;
   }
 
-  Future catchError(f(error), { bool test(error) }) {
-    _Future result = new _Future._catchError(f, test);
+  Future catchError(Function onError, { bool test(error) }) {
+    _Future result = new _Future._catchError(onError, test);
     _addListener(result);
     return result;
   }
@@ -212,7 +212,7 @@ class _Future<T> implements Future<T> {
     return _resultOrListeners;
   }
 
-  Object get _error {
+  _AsyncError get _error {
     assert(_isComplete && _hasError);
     return _resultOrListeners;
   }
@@ -223,10 +223,10 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = value;
   }
 
-  void _setError(Object error) {
+  void _setError(Object error, StackTrace stackTrace) {
     assert(!_isComplete);  // But may have a completion pending.
     _state = _ERROR;
-    _resultOrListeners = error;
+    _resultOrListeners = new _AsyncError(error, stackTrace);
   }
 
   void _addListener(_Future listener) {
@@ -275,9 +275,13 @@ class _Future<T> implements Future<T> {
           assert(target._isChained);
           target._complete(value);
         },
-        onError: (error) {
+        // TODO(floitsch): eventually we would like to make this non-optional
+        // and dependent on the listeners of the target future. If none of
+        // the target future's listeners want to have the stack trace we don't
+        // need a trace.
+        onError: (error, [stackTrace]) {
           assert(target._isChained);
-          target._completeError(error);
+          target._completeError(error, stackTrace);
         });
     }
   }
@@ -311,7 +315,7 @@ class _Future<T> implements Future<T> {
     }
 
     _Future listeners = _isChained ? null : _removeListeners();
-    _setError(error);
+    _setError(error, stackTrace);
     _propagateToListeners(this, listeners);
   }
 
@@ -398,7 +402,9 @@ class _Future<T> implements Future<T> {
       if (!source._isComplete) return;  // Chained future.
       bool hasError = source._hasError;
       if (hasError && listeners == null) {
-        source._zone.handleUncaughtError(source._error);
+        _AsyncError asyncError = source._error;
+        source._zone.handleUncaughtError(
+            asyncError.error, asyncError.stackTrace);
         return;
       }
       if (listeners == null) return;
@@ -411,7 +417,9 @@ class _Future<T> implements Future<T> {
       }
       if (hasError && !source._zone.inSameErrorZone(listener._zone)) {
         // Don't cross zone boundaries with errors.
-        source._zone.handleUncaughtError(source._error);
+        _AsyncError asyncError = source._error;
+        source._zone.handleUncaughtError(
+            asyncError.error, asyncError.stackTrace);
         return;
       }
       if (!identical(Zone.current, listener._zone)) {
@@ -454,18 +462,21 @@ class _Future<T> implements Future<T> {
               listenerHasValue = true;
             }
           } else {
-            Object error = source._error;
+            _AsyncError asyncError = source._error;
             _FutureErrorTest test = listener._errorTest;
             bool matchesTest = true;
             if (test != null) {
-              matchesTest = test(error);
+              matchesTest = test(asyncError.error);
             }
             if (matchesTest && listener._onError != null) {
-              listenerValueOrError = listener._onError(error);
+              Function errorCallback = listener._onError;
+              listenerValueOrError = _invokeErrorHandler(errorCallback,
+                                                         asyncError.error,
+                                                         asyncError.stackTrace);
               listenerHasValue = true;
             } else {
               // Copy over the error from the source.
-              listenerValueOrError = error;
+              listenerValueOrError = asyncError;
               listenerHasValue = false;
             }
           }
@@ -477,13 +488,13 @@ class _Future<T> implements Future<T> {
               completeResult.then((ignored) {
                 // Try again, but this time don't run the whenComplete callback.
                 _propagateToListeners(source, listener);
-              }, onError: (error) {
+              }, onError: (error, [stackTrace]) {
                 // When there is an error, we have to make the error the new
                 // result of the current listener.
                 if (completeResult is! _Future) {
                   // This should be a rare case.
                   completeResult = new _Future();
-                  completeResult._setError(error);
+                  completeResult._setError(error, stackTrace);
                 }
                 _propagateToListeners(completeResult, listener);
               });
@@ -491,8 +502,13 @@ class _Future<T> implements Future<T> {
             }
           }
         } catch (e, s) {
-          // Set the exception as error.
-          listenerValueOrError = _asyncError(e, s);
+          // Set the exception as error unless the error is the same as the
+          // original one.
+          if (hasError && identical(source._error.error, e)) {
+            listenerValueOrError = source._error;
+          } else {
+            listenerValueOrError = new _AsyncError(_asyncError(e, s), s);
+          }
           listenerHasValue = false;
         }
       });
@@ -518,7 +534,8 @@ class _Future<T> implements Future<T> {
         listener._setValue(listenerValueOrError);
       } else {
         listeners = listener._removeListeners();
-        listener._setError(listenerValueOrError);
+        _AsyncError asyncError = listenerValueOrError;
+        listener._setError(asyncError.error, asyncError.stackTrace);
       }
       // Prepare for next round.
       source = listener;

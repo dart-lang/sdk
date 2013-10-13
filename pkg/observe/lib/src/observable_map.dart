@@ -44,8 +44,6 @@ class MapChangeRecord extends ChangeRecord {
  * will be notified.
  */
 class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
-  static const _LENGTH = const Symbol('length');
-
   final Map<K, V> _map;
 
   /** Creates an observable map. */
@@ -104,7 +102,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     _map[key] = value;
     if (hasObservers) {
       if (len != _map.length) {
-        notifyPropertyChange(_LENGTH, len, _map.length);
+        notifyPropertyChange(#length, len, _map.length);
         notifyChange(new MapChangeRecord(key, isInsert: true));
       } else if (!identical(oldValue, value)) {
         notifyChange(new MapChangeRecord(key));
@@ -120,7 +118,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     int len = _map.length;
     V result = _map.putIfAbsent(key, ifAbsent);
     if (hasObservers && len != _map.length) {
-      notifyPropertyChange(_LENGTH, len, _map.length);
+      notifyPropertyChange(#length, len, _map.length);
       notifyChange(new MapChangeRecord(key, isInsert: true));
     }
     return result;
@@ -131,7 +129,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     V result =  _map.remove(key);
     if (hasObservers && len != _map.length) {
       notifyChange(new MapChangeRecord(key, isRemove: true));
-      notifyPropertyChange(_LENGTH, len, _map.length);
+      notifyPropertyChange(#length, len, _map.length);
     }
     return result;
   }
@@ -142,7 +140,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
       _map.forEach((key, value) {
         notifyChange(new MapChangeRecord(key, isRemove: true));
       });
-      notifyPropertyChange(_LENGTH, len, 0);
+      notifyPropertyChange(#length, len, 0);
     }
     _map.clear();
   }

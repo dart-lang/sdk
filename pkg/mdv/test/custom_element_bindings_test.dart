@@ -16,8 +16,6 @@ main() {
   group('Custom Element Bindings', customElementBindingsTest);
 }
 
-sym(x) => new Symbol(x);
-
 customElementBindingsTest() {
   var testDiv;
 
@@ -53,22 +51,22 @@ customElementBindingsTest() {
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
 
-    expect(element.myPoint, model[sym('a')]);
-    expect(element.scaryMonster, model[sym('b')]);
+    expect(element.myPoint, model[#a]);
+    expect(element.scaryMonster, model[#b]);
 
-    model[sym('a')] = null;
+    model[#a] = null;
     performMicrotaskCheckpoint();
     expect(element.myPoint, null);
     element.unbind('my-point');
 
-    model[sym('a')] = new Point(1, 2);
-    model[sym('b')] = new Monster(200);
+    model[#a] = new Point(1, 2);
+    model[#b] = new Monster(200);
     performMicrotaskCheckpoint();
-    expect(element.scaryMonster, model[sym('b')]);
+    expect(element.scaryMonster, model[#b]);
     expect(element.myPoint, null, reason: 'a was unbound');
 
     element.unbindAll();
-    model[sym('b')] = null;
+    model[#b] = null;
     performMicrotaskCheckpoint();
     expect(element.scaryMonster.health, 200);
   });
@@ -83,22 +81,22 @@ customElementBindingsTest() {
     expect(element.attributes['hidden'], '');
     expect(element.id, '2');
 
-    model[sym('a')] = null;
+    model[#a] = null;
     performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')),
         reason: 'null is false-y');
 
-    model[sym('a')] = false;
+    model[#a] = false;
     performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')));
 
-    model[sym('a')] = 'foo';
+    model[#a] = 'foo';
     // TODO(jmesserly): this is here to force an ordering between the two
     // changes. Otherwise the order depends on what order StreamController
     // chooses to fire the two listeners in.
     performMicrotaskCheckpoint();
 
-    model[sym('b')] = 'x';
+    model[#b] = 'x';
     performMicrotaskCheckpoint();
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
@@ -139,13 +137,13 @@ customElementBindingsTest() {
     expect(element.xtag is MyCustomElement, true,
         reason: '${element.xtag} should be a MyCustomElement');
 
-    expect(element.xtag.myPoint, model[sym('a')]);
-    expect(element.xtag.scaryMonster, model[sym('b')]);
+    expect(element.xtag.myPoint, model[#a]);
+    expect(element.xtag.scaryMonster, model[#b]);
 
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
 
-    model[sym('a')] = null;
+    model[#a] = null;
     performMicrotaskCheckpoint();
     expect(element.xtag.myPoint, null);
 
@@ -154,8 +152,8 @@ customElementBindingsTest() {
 
     expect(element.parentNode, null, reason: 'element was detached');
 
-    model[sym('a')] = new Point(1, 2);
-    model[sym('b')] = new Monster(200);
+    model[#a] = new Point(1, 2);
+    model[#b] = new Monster(200);
     performMicrotaskCheckpoint();
 
     expect(element.xtag.myPoint, null, reason: 'model was unbound');

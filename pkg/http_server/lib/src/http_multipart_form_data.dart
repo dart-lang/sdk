@@ -67,7 +67,14 @@ abstract class HttpMultipartFormData implements Stream {
    * Parse a [MimeMultipart] and return a [HttpMultipartFormData]. If the
    * [:Content-Disposition:] header is missing or invalid, a [HttpException] is
    * thrown.
+   *
+   * If the [MimeMultipart] is identified as text, and the [:Content-Type:]
+   * header is missing, the data is decoded using [defaultEncoding]. See more
+   * information in the
+   * [HTML5 spec](http://dev.w3.org/html5/spec-preview/
+   * constraints.html#multipart-form-data).
    */
-  static HttpMultipartFormData parse(MimeMultipart multipart)
-      => _HttpMultipartFormData.parse(multipart);
+  static HttpMultipartFormData parse(MimeMultipart multipart,
+                                     {Encoding defaultEncoding: UTF8})
+      => _HttpMultipartFormData.parse(multipart, defaultEncoding);
 }

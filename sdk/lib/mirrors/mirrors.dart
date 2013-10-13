@@ -65,7 +65,7 @@ import 'dart:isolate';
  */
 abstract class MirrorSystem {
   /**
-   * An immutable map from from library names to mirrors for all
+   * Returns an immutable map from URIs to mirrors for all
    * libraries known to this mirror system.
    */
   Map<Uri, LibraryMirror> get libraries;
@@ -104,6 +104,19 @@ abstract class MirrorSystem {
    * [MirrorsUsed] to specify which symbols must be retained in clear text.
    */
   external static String getName(Symbol symbol);
+
+  /**
+   * Returns a symbol for [name]. If [library] is not a [LibraryMirror] or if
+   * [name] is a private identifier and [library] is [:null:], throws an
+   * [ArgumentError]. If [name] is a private identifier, the symbol returned is
+   * with respect to [library].
+   *
+   * The following text is non-normative:
+   *
+   * Using this method may result in larger output.  If possible, use
+   * the const constructor of Symbol or symbol literals.
+   */
+  external static Symbol getSymbol(String name, [LibraryMirror library]);
 }
 
 /**
@@ -118,10 +131,11 @@ external MirrorSystem currentMirrorSystem();
 external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 
 /**
+ * Reflects an instance.
  * Returns an [InstanceMirror] reflecting [reflectee].
- * If [reflectee] is function or an instance of a class
+ * If [reflectee] is a function or an instance of a class
  * that has a [:call:] method, the returned instance mirror
- * will be a [ClosureMirror].
+ * will be a [ClosureMirror].  
  *
  * Note that since one cannot obtain an object from
  * another isolate, this function can only be used to
@@ -130,12 +144,13 @@ external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 external InstanceMirror reflect(Object reflectee);
 
 /**
+ * Reflects a class declaration.
  * Let *C* be the original class declaration of the class
  * represented by [key].
  * This function returns a [ClassMirror] reflecting *C*.
  *
  * If [key] is not an instance of [Type] then this function
- * throws an [ArgumentError]. If [key] is the Type dynamic,
+ * throws an [ArgumentError]. If [key] is the Type [:dynamic:],
  * throws an [ArgumentError] because dynamic is not a class.
  *
  * Note that since one cannot obtain a [Type] object from
@@ -235,7 +250,6 @@ abstract class DeclarationMirror implements Mirror {
    * or variable, the owner is the enclosing library.
    * For a mixin application *S with M*, the owner is the owner
    * of *M*.
-   * For class Null, the owner is the dart:core library.
    * For a constructor, the owner is the immediately enclosing class.
    * For a method, instance variable or
    * a static variable, the owner is the immediately enclosing class,
@@ -280,6 +294,11 @@ abstract class DeclarationMirror implements Mirror {
    * members are instance mirrors on *c1, ..., cn*.
    * If no annotations are associated with *D*, then
    * an empty list is returned.
+   *
+   * If evaluating any of *c1, ..., cn* would cause a 
+   * compilation error
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    */
   List<InstanceMirror> get metadata;
 }
@@ -315,7 +334,8 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
@@ -355,7 +375,8 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
@@ -378,7 +399,8 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect]([value]).
    * If the invocation causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
@@ -617,7 +639,7 @@ abstract class ClosureMirror implements InstanceMirror {
    * Let *s* be the contents of the string used to construct the symbol [name].
    *
    * If the expression *s* occurs within the source code of the reflectee,
-   * and that any such occurrence refers to a declaration outside the reflectee,
+   * and if any such occurrence refers to a declaration outside the reflectee,
    * then let *v* be the result of evaluating the expression *s* at such
    * an occurrence.
    * If *s = this*, and the reflectee was defined within the instance scope of
@@ -696,9 +718,20 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
 
 /**
  * A [TypeMirror] reflects a Dart language class, typedef,
- * or type variable.
+ * function type or type variable.
  */
 abstract class TypeMirror implements DeclarationMirror {
+  /**
+   * An immutable list with mirrors for all type variables for this type.
+   *
+   * If this type is a generic declaration or an invocation of a generic
+   * declaration, the returned list contains mirrors on the type variables
+   * declared in the original declaration.
+   * Otherwise, the returned list is empty.
+   *
+   * This list preserves the order of declaration of the type variables.
+   */
+  List<TypeVariableMirror> get typeVariables;
 }
 
 /**
@@ -731,7 +764,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   List<ClassMirror> get superinterfaces;
 
   /**
-   * An immutable map from from names to mirrors for all members of
+   * An immutable map from names to mirrors for all members of
    * this type.
    *
    * The members of a type are its methods, fields, getters, and
@@ -774,25 +807,14 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   Map<Symbol, MethodMirror> get constructors;
 
   /**
-   * An immutable list with mirrors for all type variables for this type.
-   *
-   * If this type is a generic declaration or an invocation of a generic
-   * declaration, the returned list contains mirrors on the type variables.
-   * Otherwise, the returned list is empty.
-   *
-   * This list preserves the order of declaration of the type variables.
-   */
-  List<TypeVariableMirror> get typeVariables;
-
-  /**
    * An immutable list with mirrors for all type arguments for
    * this type.
    *
-   * If the the reflectee is an invocation of a generic class,
+   * If the reflectee is an invocation of a generic class,
    * the type arguments are the bindings of its type parameters.
    * If the reflectee is the original declaration of a generic,
    * it has no type arguments and this method returns an empty list.
-   * If the reflectee is a not generic, then
+   * If the reflectee is not generic, then
    * it has no type arguments and this method returns an empty list.
    *
    * This list preserves the order of declaration of the type variables.
@@ -843,7 +865,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * If the expression evaluates to a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If evaluating the expression causes a compilation error
-   * this method throws a [MirroredCompilationError].
+   * the effect is the same as if a non-reflective compilation error 
+   * had been encountered.
    * If evaluating the expression throws an exception *e*
    * (that it does not catch)
    * this method throws *e*.
@@ -1091,6 +1114,12 @@ abstract class VariableMirror implements DeclarationMirror {
    * Otherwise returns [:false:].
    */
   bool get isFinal;
+
+  /**
+   * Returns [:true:] if the reflectee is declared [:const:].
+   * Otherwise returns [:false:].
+   */
+  bool get isConst;
 
   /**
    * Returns true if this mirror is equal to [other].

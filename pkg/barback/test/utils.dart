@@ -18,6 +18,7 @@ import 'package:unittest/compact_vm_config.dart';
 
 export 'transformer/bad.dart';
 export 'transformer/check_content.dart';
+export 'transformer/check_content_and_rename.dart';
 export 'transformer/create_asset.dart';
 export 'transformer/many_to_one.dart';
 export 'transformer/mock.dart';
@@ -132,8 +133,7 @@ void removeSourcesSync(Iterable assets) =>
     _barback.removeSources(_parseAssets(assets));
 
 /// Sets the transformers for [package] to [transformers].
-void updateTransformers(String package,
-    Iterable<Iterable<Transformer>> transformers) {
+void updateTransformers(String package, Iterable<Iterable> transformers) {
   schedule(() => _barback.updateTransformers(package, transformers),
       "updating transformers for $package");
 }

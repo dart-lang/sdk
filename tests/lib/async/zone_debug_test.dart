@@ -48,7 +48,8 @@ debugZoneRunUnary(Zone self, ZoneDelegate parent, Zone origin, f(arg), arg) {
 
 List expectedDebugTrace;
 
-debugUncaughtHandler(Zone self, ZoneDelegate parent, Zone origin, error) {
+debugUncaughtHandler(
+    Zone self, ZoneDelegate parent, Zone origin, error, StackTrace stackTrace) {
   events.add("handling uncaught error $error");
   Expect.listEquals(expectedDebugTrace, restoredStackTrace);
   // Suppress the error and don't propagate to parent.
@@ -78,10 +79,10 @@ main() {
   openTests++;
   forked.run(() {
     int forkTrace = stackTrace;
-    runAsync(() {
-      int runAsyncTrace = stackTrace;
-      runAsync(() {
-        expectedDebugTrace = [runAsyncTrace, forkTrace];
+    scheduleMicrotask(() {
+      int scheduleMicrotaskTrace = stackTrace;
+      scheduleMicrotask(() {
+        expectedDebugTrace = [scheduleMicrotaskTrace, forkTrace];
         openTests--;
         if (openTests == 0) {
           done.complete();
@@ -111,7 +112,7 @@ main() {
       if (openTests == 0) {
         done.complete();
       }
-      runAsync(() {
+      scheduleMicrotask(() {
         expectedDebugTrace = [fork3Trace, fork2Trace, globalTrace];
         throw "gee";
       });

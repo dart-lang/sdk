@@ -102,9 +102,9 @@ void testMultiController() {
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.asBroadcastStream().transform(
-      new StreamTransformer(
+      new StreamTransformer.fromHandlers(
           handleData: (v, s) { s.addError(v); },
-          handleError: (e, s) { s.add(e); },
+          handleError: (e, st, s) { s.add(e); },
           handleDone: (s) {
             s.add("foo");
             s.close();
@@ -279,9 +279,9 @@ testSingleController() {
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
-      new StreamTransformer(
+      new StreamTransformer.fromHandlers(
           handleData: (v, s) { s.addError(v); },
-          handleError: (e, s) { s.add(e); },
+          handleError: (e, st, s) { s.add(e); },
           handleDone: (s) {
             s.add("foo");
             s.close();

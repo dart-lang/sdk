@@ -280,6 +280,8 @@ class InlinedFunctionsIterator : public ValueObject {
     return code_.raw();
   }
 
+  intptr_t GetDeoptFpOffset() const;
+
  private:
   void SetDone() { index_ = -1; }
 

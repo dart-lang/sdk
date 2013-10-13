@@ -11,14 +11,14 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import 'command/build.dart';
 import 'command/cache.dart';
-import 'command/deploy.dart';
+import 'command/get.dart';
 import 'command/help.dart';
-import 'command/install.dart';
 import 'command/lish.dart';
 import 'command/list_package_dirs.dart';
 import 'command/serve.dart';
-import 'command/update.dart';
+import 'command/upgrade.dart';
 import 'command/uploader.dart';
 import 'command/version.dart';
 import 'entrypoint.dart';
@@ -48,7 +48,7 @@ abstract class PubCommand {
   /// this will be `true`.
   bool get hidden => false;
 
-  /// How to invoke this command (e.g. `"pub install [package]"`).
+  /// How to invoke this command (e.g. `"pub get [package]"`).
   String get usage;
 
   /// Whether or not this command requires [entrypoint] to be defined. If false,
@@ -174,14 +174,14 @@ and include the results in a bug report on http://dartbug.com/new.
 
 _initCommands() {
   var commands = {
+    'build': new BuildCommand(),
     'cache': new CacheCommand(),
-    'deploy': new DeployCommand(),
+    'get': new GetCommand(),
     'help': new HelpCommand(),
-    'install': new InstallCommand(),
     'list-package-dirs': new ListPackageDirsCommand(),
     'publish': new LishCommand(),
     'serve': new ServeCommand(),
-    'update': new UpdateCommand(),
+    'upgrade': new UpgradeCommand(),
     'uploader': new UploaderCommand(),
     'version': new VersionCommand()
   };

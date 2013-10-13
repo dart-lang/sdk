@@ -9,7 +9,6 @@
 library run_impl;
 
 import 'dart:io';
-import 'package:unittest/unittest.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'testing.dart';
 
@@ -20,6 +19,9 @@ import 'nested_test.dart' as nested_test;
 import 'error_test.dart' as error_test;
 import 'selector_test.dart' as selector_test;
 import 'visitor_test.dart' as visitor_test;
+import 'mixin_test.dart' as mixin_test;
+import 'extend_test.dart' as extend_test;
+import 'big_1_test.dart' as big_1_test;
 
 main() {
   var args = new Options().arguments;
@@ -34,6 +36,9 @@ main() {
   if (pattern.hasMatch('var_test.dart')) var_test.main();
   if (pattern.hasMatch('nested_test.dart')) nested_test.main();
   if (pattern.hasMatch('selector_test.dart')) selector_test.main();
+  if (pattern.hasMatch('mixin_test.dart')) mixin_test.main();
+  if (pattern.hasMatch('extend_test.dart')) extend_test.main();
+  if (pattern.hasMatch('big_1_test.dart')) big_1_test.main();
   if (pattern.hasMatch('visitor_test.dart')) visitor_test.main();
   if (pattern.hasMatch('error_test.dart')) error_test.main();
 }

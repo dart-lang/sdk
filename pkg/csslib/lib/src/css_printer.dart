@@ -187,6 +187,34 @@ class CssPrinter extends Visitor {
     emit(';$_newLine');
   }
 
+  void visitMixinRulesetDirective(MixinRulesetDirective node) {
+    emit('@mixin ${node.name} {');
+    for (var ruleset in node.rulesets) {
+      ruleset.visit(this);
+    }
+    emit('}');
+  }
+
+  void visitMixinDeclarationDirective(MixinDeclarationDirective node) {
+    emit('@mixin ${node.name} {\n');
+    visitDeclarationGroup(node.declarations);
+    emit('}');
+  }
+
+  /**
+   * Added optional newLine for handling @include at top-level vs/ inside of
+   * a declaration group.
+   */
+  void visitIncludeDirective(IncludeDirective node, [bool topLevel = true]) {
+    if (topLevel) emit(_newLine);
+    emit('@include ${node.name}');
+    emit(';');
+  }
+
+  void visitContentDirective(ContentDirective node) {
+    // TODO(terry): TBD
+  }
+
   void visitRuleSet(RuleSet node) {
     emit("$_newLine");
     node._selectorGroup.visit(this);
@@ -232,6 +260,19 @@ class CssPrinter extends Visitor {
     node._expression.visit(this);
   }
 
+  void visitIncludeMixinAtDeclaration(IncludeMixinAtDeclaration node) {
+    // Don't emit a new line we're inside of a declaration group.
+    visitIncludeDirective(node.include, false);
+  }
+
+  void visitExtendDeclaration(ExtendDeclaration node) {
+    emit("@extend ");
+    for (var selector in node.selectors) {
+      selector.visit(this);
+    }
+  }
+
+
   void visitSelectorGroup(SelectorGroup node) {
     var selectors = node._selectors;
     var selectorsLength = selectors.length;
@@ -251,31 +292,31 @@ class CssPrinter extends Visitor {
   }
 
   void visitNamespaceSelector(NamespaceSelector node) {
-    emit("${node.namespace}|${node.nameAsSimpleSelector.name}");
+    emit(node.toString());
   }
 
   void visitElementSelector(ElementSelector node) {
-    emit("${node.name}");
+    emit(node.toString());
   }
 
   void visitAttributeSelector(AttributeSelector node) {
-    emit("[${node.name}${node.matchOperator()}${node.valueToString()}]");
+    emit(node.toString());
   }
 
   void visitIdSelector(IdSelector node) {
-    emit("#${node.name}");
+    emit(node.toString());
   }
 
   void visitClassSelector(ClassSelector node) {
-    emit(".${node.name}");
+    emit(node.toString());
   }
 
   void visitPseudoClassSelector(PseudoClassSelector node) {
-    emit(":${node.name}");
+    emit(node.toString());
   }
 
   void visitPseudoElementSelector(PseudoElementSelector node) {
-    emit("::${node.name}");
+    emit(node.toString());
   }
 
   void visitPseudoClassFunctionSelector(PseudoClassFunctionSelector node) {

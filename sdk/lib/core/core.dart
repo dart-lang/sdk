@@ -39,7 +39,7 @@
  *     StringBuffer moreShakespeare = new StringBuffer();
  *     moreShakespeare.write('And all the men and women ');
  *     moreShakespeare.write('merely players; ...');
- * 
+ *
  * The String and StringBuffer classes implement string concatenation,
  * interpolation, and other string manipulation features.
  *
@@ -94,15 +94,15 @@
  * common in collections of objects.
  * Examples include the ability
  * to run a function on each element in the collection,
- * to apply a test to each element, 
+ * to apply a test to each element,
  * to retrieve an object, and to determine length.
  *
  * Iterable is implemented by List and Set,
  * and used by Map for its keys and values.
- * 
+ *
  * For other kinds of collections, check out the
  * [dart:collection](#dart-collection) library.
- * 
+ *
  * ## Date and time
  *
  * Use [DateTime] to represent a point in time
@@ -118,17 +118,17 @@
  * Create a Duration object specifying the individual time units.
  *
  *     Duration timeRemaining = new Duration(hours:56, minutes:14);
- * 
+ *
  * In addition to DateTime and Duration,
  * dart:core contains the [Stopwatch] class for measuring elapsed time.
- *     
+ *
  * ## Uri
  *
  * A [Uri] object represents a uniform resource identifier,
  * which identifies a resource on the web.
  *
  *     Uri dartlang = Uri.parse('http://dartlang.org/');
- *     
+ *
  * ## Errors
  *
  * The [Error] class represents the occurrence of an error
@@ -146,7 +146,7 @@
  * [dart:core - Numbers, Collections, Strings, and More](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartcore---strings-collections-and-more)
  * for more coverage of classes in this package.
  *
- * The 
+ * The
  * [Dart Language Specification](http://www.dartlang.org/docs/spec/)
  * provides technical details.
  */
@@ -156,6 +156,7 @@ import "dart:collection";
 import "dart:_collection-dev" hide Symbol;
 import "dart:_collection-dev" as _collection_dev;
 import "dart:convert" show UTF8, Encoding;
+import "dart:math" show Random;  // Used by List.shuffle.
 
 part "bool.dart";
 part "comparable.dart";

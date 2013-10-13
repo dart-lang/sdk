@@ -11,6 +11,7 @@ library dart.json;
 
 import "dart:convert";
 import "dart:_collection-dev" show deprecated;
+import "dart:collection" show HashSet;
 export "dart:convert" show JsonUnsupportedObjectError, JsonCyclicError;
 
 // JSON parsing and serialization.
@@ -51,28 +52,31 @@ parse(String json, [reviver(var key, var value)]) {
  * For [List], the elements must all be serializable.
  * For [Map], the keys must be [String] and the values must be serializable.
  *
- * If a value is any other type is attempted serialized, a "toJson()" method
- * is invoked on the object and the result, which must be a directly
- * serializable value, is serialized instead of the original value.
+ * If a value is any other type is attempted serialized, the [toEncodable]
+ * method is called with the object as argument, and the result, which must be a
+ * directly serializable value, is serialized instead of the original value.
+ * If [toEncodable] is omitted, the default is to call `object.toJson()` on the
+ * object.
  *
- * If the object does not support this method, throws, or returns a
- * value that is not directly serializable, a [JsonUnsupportedObjectError]
- * exception is thrown. If the call throws (including the case where there
- * is no nullary "toJson" method, the error is caught and stored in the
+ * If the conversion throws, or returns a value that is not directly
+ * serializable, a [JsonUnsupportedObjectError] exception is thrown.
+ * If the call throws (including the case where there
+ * is no nullary "toJson" method), the error is caught and stored in the
  * [JsonUnsupportedObjectError]'s [:cause:] field.
  *
  * If a [List] or [Map] contains a reference to itself, directly or through
  * other lists or maps, it cannot be serialized and a [JsonCyclicError] is
  * thrown.
  *
- * Json Objects should not change during serialization.
+ * The objects being serialized should not change during serialization.
  * If an object is serialized more than once, [stringify] is allowed to cache
  * the JSON text for it. I.e., if an object changes after it is first
  * serialized, the new values may or may not be reflected in the result.
  */
 @deprecated
-String stringify(Object object) {
-  return _JsonStringifier.stringify(object);
+String stringify(Object object, [toEncodable(object)]) {
+  if (toEncodable == null) toEncodable = _defaultToEncodable;
+  return _JsonStringifier.stringify(object, toEncodable);
 }
 
 /**
@@ -87,8 +91,9 @@ String stringify(Object object) {
  * [output], but it won't contain valid JSON text.
  */
 @deprecated
-void printOn(Object object, StringSink output) {
-  return _JsonStringifier.printOn(object, output);
+void printOn(Object object, StringSink output, [ toEncodable(object) ]) {
+  if (toEncodable == null) toEncodable = _defaultToEncodable;
+  return _JsonStringifier.printOn(object, output, toEncodable);
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -643,22 +648,25 @@ class JsonParser {
   }
 }
 
+Object _defaultToEncodable(object) => object.toJson();
 
 class _JsonStringifier {
-  StringSink sink;
-  List<Object> seen;  // TODO: that should be identity set.
+  final Function toEncodable;
+  final StringSink sink;
+  final Set<Object> seen;
 
-  _JsonStringifier(this.sink) : seen = [];
+  _JsonStringifier(this.sink, this.toEncodable)
+      : this.seen = new HashSet.identity();
 
-  static String stringify(final object) {
+  static String stringify(final object, toEncodable(object)) {
     StringBuffer output = new StringBuffer();
-    _JsonStringifier stringifier = new _JsonStringifier(output);
+    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
     stringifier.stringifyValue(object);
     return output.toString();
   }
 
-  static void printOn(final object, StringSink output) {
-    _JsonStringifier stringifier = new _JsonStringifier(output);
+  static void printOn(final object, StringSink output, toEncodable(object)) {
+    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
     stringifier.stringifyValue(object);
   }
 
@@ -715,11 +723,8 @@ class _JsonStringifier {
   }
 
   void checkCycle(final object) {
-    // TODO: use Iterables.
-    for (int i = 0; i < seen.length; i++) {
-      if (identical(seen[i], object)) {
-        throw new JsonCyclicError(object);
-      }
+    if (seen.contains(object)) {
+      throw new JsonCyclicError(object);
     }
     seen.add(object);
   }
@@ -731,11 +736,11 @@ class _JsonStringifier {
     if (!stringifyJsonValue(object)) {
       checkCycle(object);
       try {
-        var customJson = object.toJson();
+        var customJson = toEncodable(object);
         if (!stringifyJsonValue(customJson)) {
           throw new JsonUnsupportedObjectError(object);
         }
-        seen.removeLast();
+        seen.remove(object);
       } catch (e) {
         throw new JsonUnsupportedObjectError(object, cause: e);
       }
@@ -780,7 +785,7 @@ class _JsonStringifier {
         }
       }
       sink.write(']');
-      seen.removeLast();
+      seen.remove(object);
       return true;
     } else if (object is Map) {
       checkCycle(object);
@@ -799,7 +804,7 @@ class _JsonStringifier {
         first = false;
       });
       sink.write('}');
-      seen.removeLast();
+      seen.remove(object);
       return true;
     } else {
       return false;

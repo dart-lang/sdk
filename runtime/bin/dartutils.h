@@ -441,7 +441,7 @@ class CObjectString : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(String)
 
-  int Length() const { return strlen(cobject_->value.as_string); }
+  intptr_t Length() const { return strlen(cobject_->value.as_string); }
   char* CString() const { return cobject_->value.as_string; }
 
  private:

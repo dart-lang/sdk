@@ -87,20 +87,35 @@ class DartTransformer extends Transformer {
 
 /// Schedules starting the "pub serve" process.
 ///
-/// If [shouldInstallFirst] is `true`, validates that pub install is run first.
+/// If [shouldGetFirst] is `true`, validates that pub get is run first. If
+/// [dart2js] is `false`, does not compile Dart entrypoints in "web" to
+/// JavaScript.
 ///
 /// Returns the `pub serve` process.
-ScheduledProcess startPubServe({bool shouldInstallFirst: false}) {
+ScheduledProcess startPubServe({bool shouldGetFirst: false,
+    bool dart2js: true}) {
   // Use port 0 to get an ephemeral port.
-  _pubServer = startPub(args: ["serve", "--port=0", "--hostname=127.0.0.1"]);
+  var args = ["serve", "--port=0", "--hostname=127.0.0.1"];
 
-  if (shouldInstallFirst) {
+  if (!dart2js) args.add("--no-dart2js");
+
+  // Dart2js can take a long time to compile dart code, so we increase the
+  // timeout to cope with that.
+  if (dart2js) {
+    currentSchedule.timeout = new Duration(seconds: 15);
+  }
+
+  _pubServer = startPub(args: args);
+
+  if (shouldGetFirst) {
     expect(_pubServer.nextLine(),
-        completion(startsWith("Dependencies have changed")));
+        completion(anyOf(
+             startsWith("Your pubspec has changed"),
+             startsWith("You don't have a lockfile"))));
     expect(_pubServer.nextLine(),
         completion(startsWith("Resolving dependencies...")));
     expect(_pubServer.nextLine(),
-        completion(equals("Dependencies installed!")));
+        completion(equals("Got dependencies!")));
   }
 
   expect(_pubServer.nextLine().then(_parsePort), completes);

@@ -659,11 +659,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return node;
       }
     }
-    HType convertedType = node.instructionType;
-    if (convertedType.isUnknown()) return node;
-    HType combinedType = value.instructionType.intersection(
-        convertedType, compiler);
-    return (combinedType == value.instructionType) ? value : node;
+    return removeIfCheckAlwaysSucceeds(node, node.instructionType);
+  }
+
+  HInstruction visitTypeKnown(HTypeKnown node) {
+    return removeIfCheckAlwaysSucceeds(node, node.knownType);
+  }
+
+  HInstruction removeIfCheckAlwaysSucceeds(HCheck node, HType checkedType) {
+    if (checkedType.isUnknown()) return node;
+    HInstruction input = node.checkedInput;
+    HType inputType = input.instructionType;
+    HType filteredType = inputType.intersection(checkedType, compiler);
+    return (inputType == filteredType) ? input : node;
   }
 
   Element findConcreteFieldForDynamicAccess(HInstruction receiver,
@@ -1528,8 +1536,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
-    HTypeConversion newInput = new HTypeConversion(
-        null, HTypeConversion.NO_CHECK, convertedType, input);
+    HTypeKnown newInput = new HTypeKnown(convertedType, input);
     dominator.addBefore(dominator.first, newInput);
     dominatedUsers.forEach((HInstruction user) {
       user.changeUse(input, newInput);

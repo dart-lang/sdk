@@ -80,7 +80,7 @@ class Events implements EventSink {
     events.add(new DataEvent(value));
   }
 
-  void addError(error) {
+  void addError(error, [StackTrace stackTrace]) {
     if (trace) print("Events#$hashCode: addError($error)");
     events.add(new ErrorEvent(error));
   }
@@ -91,7 +91,9 @@ class Events implements EventSink {
   }
 
   // Error helper for creating errors manually..
-  void error(var value) { addError(value); }
+  void error(var value, [StackTrace stackTrace]) {
+    addError(value, stackTrace);
+  }
 
   /** Replay the captured events on a sink. */
   void replay(EventSink sink) {

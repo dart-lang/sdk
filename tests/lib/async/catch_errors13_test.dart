@@ -12,13 +12,13 @@ main() {
   Completer done = new Completer();
 
   var events = [];
-  // Work around bug that makes runAsync use Timers. By invoking `runAsync` here
-  // we make sure that asynchronous non-timer events are executed before any
-  // Timer events.
-  runAsync(() { });
+  // Work around bug that makes scheduleMicrotask use Timers. By invoking
+  // `scheduleMicrotask` here we make sure that asynchronous non-timer events
+  // are executed before any Timer events.
+  scheduleMicrotask(() { });
 
-  // Test that errors are caught by nested `catchErrors`. Also uses `runAsync`
-  // in the body of a Timer.
+  // Test that errors are caught by nested `catchErrors`. Also uses
+  // `scheduleMicrotask` in the body of a Timer.
   catchErrors(() {
     events.add("catch error entry");
     catchErrors(() {
@@ -26,12 +26,12 @@ main() {
       Timer.run(() { throw "timer error"; });
       new Timer(const Duration(milliseconds: 50),
                 () {
-                     runAsync(() { throw "runAsync"; });
+                     scheduleMicrotask(() { throw "scheduleMicrotask"; });
                      throw "delayed error";
                    });
     }).listen((x) {
       events.add(x);
-      if (x == "runAsync") {
+      if (x == "scheduleMicrotask") {
         throw "inner done throw";
       }
     });
@@ -56,7 +56,7 @@ main() {
                          "timer error",
                          "timer outer",
                          "delayed error",
-                         "runAsync",
+                         "scheduleMicrotask",
                          "inner done throw"
                          ],
                          events);

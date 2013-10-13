@@ -5,19 +5,34 @@
 library var_test;
 
 import 'package:unittest/unittest.dart';
-import 'package:csslib/parser.dart';
-import 'package:csslib/visitor.dart';
 import 'testing.dart';
 
+List options = ['--no-colors', '--warnings_as_errors', 'memory'];
+
+compileAndValidate(String input, String generated) {
+  var errors = [];
+  var stylesheet = compileCss(input, errors: errors, opts: options);
+  expect(stylesheet != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(stylesheet), generated);
+}
+
+compilePolyfillAndValidate(String input, String generated) {
+  var errors = [];
+  var stylesheet = polyFillCompileCss(input, errors: errors, opts: options);
+  expect(stylesheet != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(stylesheet), generated);
+}
+
 void simpleVar() {
-  final errors = [];
   final input = ''':root {
   var-color-background: red;
   var-color-foreground: blue;
 
-  var-a: var(b);
-  var-b: var(c);
   var-c: #00ff00;
+  var-b: var(c);
+  var-a: var(b);
 }
 .testIt {
   color: var(color-foreground);
@@ -28,21 +43,24 @@ void simpleVar() {
   final generated = ''':root {
   var-color-background: #f00;
   var-color-foreground: #00f;
-  var-a: var(b);
-  var-b: var(c);
   var-c: #0f0;
+  var-b: var(c);
+  var-a: var(b);
 }
 .testIt {
   color: var(color-foreground);
   background: var(color-background);
 }''';
 
-  var stylesheet = compileCss(input, errors: errors,
-      opts: ['--no-colors', 'memory']);
+  final generatedPolyfill = ''':root {
+}
+.testIt {
+  color: #00f;
+  background: #f00;
+}''';
 
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+  compileAndValidate(input, generated);
+  compilePolyfillAndValidate(input, generatedPolyfill);
 }
 
 void expressionsVar() {
@@ -51,9 +69,9 @@ void expressionsVar() {
   var-color-background: red;
   var-color-foreground: blue;
 
-  var-a: var(b);
-  var-b: var(c);
   var-c: #00ff00;
+  var-b: var(c);
+  var-a: var(b);
 
   var-image: url(test.png);
 
@@ -115,9 +133,9 @@ void expressionsVar() {
   final generated = ''':root {
   var-color-background: #f00;
   var-color-foreground: #00f;
-  var-a: var(b);
-  var-b: var(c);
   var-c: #0f0;
+  var-b: var(c);
+  var-a: var(b);
   var-image: url("test.png");
   var-b-width: 20cm;
   var-m-width: 33%;
@@ -167,12 +185,41 @@ void expressionsVar() {
   grid-columns: var(grid-columns);
 }''';
 
-  var stylesheet = compileCss(input, errors: errors,
-      opts: ['--no-colors', 'memory']);
+  compileAndValidate(input, generated);
 
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+  var generatedPolyfill = r''':root {
+}
+.testIt {
+  color: #00f;
+  background: #0f0;
+  background-image: url("test.png");
+  border-width: 20cm;
+  margin-width: 33%;
+  border-height: 30em;
+  width: .6in;
+  length: 1.2in;
+  -web-stuff: -10px;
+  background-color: rgba(10, 20, 255);
+  transition: color 0.4s;
+  transform: rotate(20deg);
+  content: "✔";
+  text-shadow: 0 -1px 0 #bfbfbf;
+}
+@font-face  {
+  font-family: Gentium;
+  src: url("http://example.com/fonts/Gentium.ttf");
+  unicode-range: U+000-49F, U+2000-27FF, U+2900-2BFF, U+1D400-1D7FF;
+}
+@font-face  {
+  font-family: Gentium;
+  src: local(Gentium Bold), local(Gentium-Bold), url("GentiumBold.ttf");
+  unicode-range: U+0A-FF, U+980-9FF, U+????, U+3???;
+}
+.foobar {
+  grid-columns: 10px ("content" 1fr 10px) [4];
+}''';
+
+  compilePolyfillAndValidate(input, generatedPolyfill);
 }
 
 void defaultVar() {
@@ -182,8 +229,8 @@ void defaultVar() {
   var-color-background: red;
   var-color-foreground: blue;
 
-  var-a: var(b);
-  var-b: var(c);
+  var-a: var(b, #0a0);
+  var-b: var(c, #0b0);
   var-c: #00ff00;
 
   var-image: url(test.png);
@@ -211,7 +258,7 @@ div {
 }
 
 .test-3 {
-  background: var(color-background) var(image-2) no-repeat right top;
+  background: var(color-background) var(image) no-repeat right top;
 }
 
 .test-4 {
@@ -230,8 +277,8 @@ div {
   final generated = ''':root {
   var-color-background: #f00;
   var-color-foreground: #00f;
-  var-a: var(b);
-  var-b: var(c);
+  var-a: var(b, #0a0);
+  var-b: var(c, #0b0);
   var-c: #0f0;
   var-image: url("test.png");
   var-b-width: 20cm;
@@ -251,7 +298,7 @@ div {
   background: var(color-background) var(image-2, url("img_1.png")) no-repeat right top;
 }
 .test-3 {
-  background: var(color-background) var(image-2) no-repeat right top;
+  background: var(color-background) var(image) no-repeat right top;
 }
 .test-4 {
   background: #ff0 var(image) no-repeat right top;
@@ -263,15 +310,39 @@ div {
   border: #f00 var(a-1, solid 20px);
 }''';
 
-  var stylesheet = compileCss(input, errors: errors,
-      opts: ['--no-colors', 'memory']);
+  compileAndValidate(input, generated);
 
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+  var generatedPolyfill = r''':root {
+}
+.test {
+  background-color: #ffa500;
+}
+body {
+  background: #0a0 url("test.png") no-repeat right top;
+}
+div {
+  background: #f00 url("img_tree.png") no-repeat right top;
+}
+.test-2 {
+  background: #f00 url("img_1.png") no-repeat right top;
+}
+.test-3 {
+  background: #f00 url("test.png") no-repeat right top;
+}
+.test-4 {
+  background: #ff0 url("test.png") no-repeat right top;
+}
+.test-5 {
+  background: #0a0 url("test.png") no-repeat right top;
+}
+.test-6 {
+  border: #f00 solid 20px;
+}''';
+
+  compilePolyfillAndValidate(input, generatedPolyfill);
 }
 
-void cyclesVar() {
+void undefinedVars() {
   final errors = [];
   final input = ''':root {
   var-color-background: red;
@@ -292,65 +363,99 @@ void cyclesVar() {
   var-def-2: var(def-3);
   var-def-3: var(def-2);
 }
+
 .testIt {
   color: var(color-foreground);
   background: var(color-background);
 }
+.test-1 {
+  color: var(c);
+}
 .test-2 {
   color: var(one);
+  background: var(six);
 }
 ''';
 
-  final generated = ''':root {
+  final generatedPolyfill = ''':root {
+}
+.testIt {
+  color: #00f;
+  background: #f00;
+}
+.test-1 {
+  color: #0f0;
+}
+.test-2 {
+  color: ;
+  background: ;
+}''';
+
+  var errorStrings = [
+    'error :5:14: Variable is not defined.\n'
+    '  var-a: var(b);\n'
+    '             ^^',
+    'error :6:14: Variable is not defined.\n'
+    '  var-b: var(c);\n'
+    '             ^^',
+    'error :9:16: Variable is not defined.\n'
+    '  var-one: var(two);\n'
+    '               ^^^^',
+    'error :12:17: Variable is not defined.\n'
+    '  var-four: var(five);\n'
+    '                ^^^^^',
+    'error :13:17: Variable is not defined.\n'
+    '  var-five: var(six);\n'
+    '                ^^^^',
+    'error :16:18: Variable is not defined.\n'
+    '  var-def-1: var(def-2);\n'
+    '                 ^^^^^^',
+    'error :17:18: Variable is not defined.\n'
+    '  var-def-2: var(def-3);\n'
+    '                 ^^^^^^',
+    ];
+
+  var generated = r''':root {
   var-color-background: #f00;
   var-color-foreground: #00f;
   var-a: var(b);
   var-b: var(c);
   var-c: #0f0;
+  var-one: var(two);
+  var-two: var(one);
+  var-four: var(five);
+  var-five: var(six);
+  var-six: var(four);
+  var-def-1: var(def-2);
+  var-def-2: var(def-3);
+  var-def-3: var(def-2);
 }
 .testIt {
   color: var(color-foreground);
   background: var(color-background);
 }
+.test-1 {
+  color: var(c);
+}
 .test-2 {
   color: var(one);
+  background: var(six);
 }''';
+  int testBitMap = 0;
 
-  var stylesheet = compileCss(input, errors: errors,
-      opts: ['--no-colors', '--warnings_as_errors', 'memory']);
+  compileAndValidate(input, generated);
+
+  var stylesheet = polyFillCompileCss(input, errors: errors..clear(),
+      opts: options);
 
   expect(stylesheet != null, true);
-  expect(errors.length, 8, reason: errors.toString());
-  int testBitMap = 0;
-  var errorStrings = [
-      'error :14:3: var cycle detected var-six\n'
-      '  var-six: var(four);\n'
-      '  ^^^^^^^^^^^^^^^^^^',
-      'error :18:3: var cycle detected var-def-3\n'
-      '  var-def-3: var(def-2);\n'
-      '  ^^^^^^^^^^^^^^^^^^^^^',
-      'error :10:3: var cycle detected var-two\n'
-      '  var-two: var(one);\n'
-      '  ^^^^^^^^^^^^^^^^^',
-      'error :17:3: var cycle detected var-def-2\n'
-      '  var-def-2: var(def-3);\n'
-      '  ^^^^^^^^^^^^^^^^^^^^^',
-      'error :16:3: var cycle detected var-def-1\n'
-      '  var-def-1: var(def-2);\n'
-      '  ^^^^^^^^^^^^^^^^^^^^^',
-      'error :13:3: var cycle detected var-five\n'
-      '  var-five: var(six);\n'
-      '  ^^^^^^^^^^^^^^^^^^',
-      'error :9:3: var cycle detected var-one\n'
-      '  var-one: var(two);\n'
-      '  ^^^^^^^^^^^^^^^^^',
-      'error :12:3: var cycle detected var-four\n'
-      '  var-four: var(five);\n'
-      '  ^^^^^^^^^^^^^^^^^^^'
-  ];
+
+  expect(errors.length, errorStrings.length, reason: errors.toString());
+  testBitMap = 0;
+
   outer: for (var error in errors) {
     var errorString = error.toString();
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < errorStrings.length; i++) {
       if (errorString == errorStrings[i]) {
         testBitMap |= 1 << i;
         continue outer;
@@ -358,19 +463,18 @@ void cyclesVar() {
     }
     fail("Unexpected error string: $errorString");
   }
-  expect(testBitMap, equals((1 << 8) - 1));
-  expect(prettyPrint(stylesheet), generated);
+  expect(testBitMap, equals((1 << errorStrings.length) - 1));
+  expect(prettyPrint(stylesheet), generatedPolyfill);
 }
 
 parserVar() {
-  final errors = [];
   final input = ''':root {
   var-color-background: red;
   var-color-foreground: blue;
 
-  var-a: var(b);
-  var-b: var(c);
   var-c: #00ff00;
+  var-b: var(c);
+  var-a: var(b);
 
   var-image: url(test.png);
 
@@ -432,9 +536,9 @@ parserVar() {
   final generated = ''':root {
   var-color-background: #f00;
   var-color-foreground: #00f;
-  var-a: var(b);
-  var-b: var(c);
   var-c: #0f0;
+  var-b: var(c);
+  var-a: var(b);
   var-image: url("test.png");
   var-b-width: 20cm;
   var-m-width: 33%;
@@ -484,12 +588,40 @@ parserVar() {
   grid-columns: var(grid-columns);
 }''';
 
-  var stylesheet = parseCss(input, errors: errors,
-      opts: ['--no-colors', 'memory']);
+  compileAndValidate(input, generated);
 
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+  var generatedPolyfill = r''':root {
+}
+.testIt {
+  color: #00f;
+  background: #0f0;
+  background-image: url("test.png");
+  border-width: 20cm;
+  margin-width: 33%;
+  border-height: 30em;
+  width: .6in;
+  length: 1.2in;
+  -web-stuff: -10px;
+  background-color: rgba(10, 20, 255);
+  transition: color 0.4s;
+  transform: rotate(20deg);
+  content: "✔";
+  text-shadow: 0 -1px 0 #bfbfbf;
+}
+@font-face  {
+  font-family: Gentium;
+  src: url("http://example.com/fonts/Gentium.ttf");
+  unicode-range: U+000-49F, U+2000-27FF, U+2900-2BFF, U+1D400-1D7FF;
+}
+@font-face  {
+  font-family: Gentium;
+  src: local(Gentium Bold), local(Gentium-Bold), url("GentiumBold.ttf");
+  unicode-range: U+0A-FF, U+980-9FF, U+????, U+3???;
+}
+.foobar {
+  grid-columns: 10px ("content" 1fr 10px) [4];
+}''';
+  compilePolyfillAndValidate(input, generatedPolyfill);
 }
 
 testVar() {
@@ -519,12 +651,7 @@ var-color-foreground: #00f;
   expect(errors.isEmpty, true, reason: errors.toString());
   expect(prettyPrint(stylesheet), generated);
 
-  stylesheet = compileCss(input, errors: errors..clear(),
-      opts: ['--no-colors', 'memory']);
-
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+  compileAndValidate(input, generated);
 
   final input2 = '''
 @color-background: red;
@@ -550,12 +677,7 @@ var-color-foreground: #00f;
   expect(errors.isEmpty, true, reason: errors.toString());
   expect(prettyPrint(stylesheet), generated2);
 
-  stylesheet = compileCss(input2, errors: errors..clear(),
-      opts: ['--no-colors', 'memory', '--no-less']);
-
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated2);
+  compileAndValidate(input2, generated2);
 }
 
 testLess() {
@@ -584,12 +706,7 @@ var-color-foreground: #00f;
   expect(errors.isEmpty, true, reason: errors.toString());
   expect(prettyPrint(stylesheet), generated);
 
-  stylesheet = compileCss(input, errors: errors..clear(),
-      opts: ['--no-colors', 'memory']);
-
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+  compileAndValidate(input, generated);
 
   final input2 = '''
 @color-background: red;
@@ -615,38 +732,185 @@ var-color-foreground: #00f;
   expect(errors.isEmpty, true, reason: errors.toString());
   expect(prettyPrint(stylesheet), generated2);
 
-  stylesheet = compileCss(input2, errors: errors..clear(),
-      opts: ['--no-colors', 'memory', '--no-less']);
-
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated2);
+  compileAndValidate(input2, generated2);
 }
 
 void polyfill() {
-  var errors = [];
-  var input = r'''
+  compilePolyfillAndValidate(r'''
 @color-background: red;
 @color-foreground: blue;
 .test {
   background-color: @color-background;
   color: @color-foreground;
-}''';
-
-  var generated = r'''.test {
+}''', r'''.test {
   background-color: #f00;
   color: #00f;
-}''';
-
-  var stylesheet = compileCss(input, errors: errors,
-      opts: ['--no-colors', 'memory'], polyfill: true);
-
-  expect(stylesheet != null, true);
-  expect(errors.isEmpty, true, reason: errors.toString());
-  expect(prettyPrint(stylesheet), generated);
+}''');
 }
 
+void testIndirects() {
+  compilePolyfillAndValidate('''
+:root {
+  var-redef: #0f0;
 
+  var-a1: #fff;
+  var-a2: var(a1);
+  var-a3: var(a2);
+
+  var-redef: #000;
+}
+.test {
+  background-color: @a1;
+  color: @a2;
+  border-color: @a3;
+}
+.test-1 {
+  color: @redef;
+}''', r''':root {
+}
+.test {
+  background-color: #fff;
+  color: #fff;
+  border-color: #fff;
+}
+.test-1 {
+  color: #000;
+}''');
+}
+
+void includes() {
+  var errors = [];
+  var file1Input = r'''
+:root {
+  var-redef: #0f0;
+
+  var-a1: #fff;
+  var-a2: var(a1);
+  var-a3: var(a2);
+
+  var-redef: #000;
+}
+.test-1 {
+  background-color: @a1;
+  color: @a2;
+  border-color: @a3;
+}
+.test-1a {
+  color: @redef;
+}
+''';
+
+  var file2Input = r'''
+:root {
+  var-redef: #0b0;
+  var-b3: var(a3);
+}
+.test-2 {
+  color: var(b3);
+  background-color: var(redef);
+  border-color: var(a3);
+}
+''';
+
+  var input = r'''
+:root {
+  var-redef: #0c0;
+}
+.test-main {
+  color: var(b3);
+  background-color: var(redef);
+  border-color: var(a3);
+}
+''';
+
+  var generated1 = r''':root {
+  var-redef: #0f0;
+  var-a1: #fff;
+  var-a2: var(a1);
+  var-a3: var(a2);
+  var-redef: #000;
+}
+.test-1 {
+  background-color: var(a1);
+  color: var(a2);
+  border-color: var(a3);
+}
+.test-1a {
+  color: var(redef);
+}''';
+
+  var stylesheet1 = compileCss(file1Input, errors: errors, opts: options);
+  expect(stylesheet1 != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(stylesheet1), generated1);
+
+  var generated2 = r''':root {
+  var-redef: #0b0;
+  var-b3: var(a3);
+}
+.test-2 {
+  color: var(b3);
+  background-color: var(redef);
+  border-color: var(a3);
+}''';
+
+  var stylesheet2 = compileCss(file2Input, includes: [stylesheet1],
+      errors: errors..clear(), opts: options);
+  expect(stylesheet2 != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(stylesheet2), generated2);
+
+  var generatedPolyfill1 = r''':root {
+}
+.test-1 {
+  background-color: #fff;
+  color: #fff;
+  border-color: #fff;
+}
+.test-1a {
+  color: #000;
+}''';
+  var styleSheet1Polyfill = compileCss(file1Input, errors: errors..clear(),
+      polyfill: true, opts: options);
+  expect(styleSheet1Polyfill != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(styleSheet1Polyfill), generatedPolyfill1);
+
+  var generatedPolyfill2 = r''':root {
+}
+.test-2 {
+  color: #fff;
+  background-color: #0b0;
+  border-color: #fff;
+}''';
+  var styleSheet2Polyfill = compileCss(file2Input, includes: [stylesheet1],
+      errors: errors..clear(), polyfill: true, opts: options);
+  expect(styleSheet2Polyfill != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(styleSheet2Polyfill), generatedPolyfill2);
+
+  // Make sure includes didn't change.
+  expect(prettyPrint(stylesheet1), generated1);
+
+  var generatedPolyfill = r''':root {
+}
+.test-main {
+  color: #fff;
+  background-color: #0c0;
+  border-color: #fff;
+}''';
+  var stylesheetPolyfill = compileCss(input,
+      includes: [stylesheet1, stylesheet2], errors: errors..clear(),
+      polyfill: true, opts: options);
+
+  expect(stylesheetPolyfill != null, true);
+  expect(errors.isEmpty, true, reason: errors.toString());
+  expect(prettyPrint(stylesheetPolyfill), generatedPolyfill);
+
+  // Make sure includes didn't change.
+  expect(prettyPrint(stylesheet1), generated1);
+  expect(prettyPrint(stylesheet2), generated2);
+}
 
 main() {
   test('Simple var', simpleVar);
@@ -654,7 +918,9 @@ main() {
   test('Default value in var()', defaultVar);
   test('CSS Parser only var', parserVar);
   test('Var syntax', testVar);
-  test('Cycles var', cyclesVar);
+  test('Indirects', testIndirects);
+  test('Forward Refs', undefinedVars);
   test('Less syntax', testLess);
   test('Polyfill', polyfill);
+  test('Multi-file', includes);
 }
