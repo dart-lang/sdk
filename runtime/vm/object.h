@@ -2530,6 +2530,12 @@ class Library : public Object {
   static void CheckFunctionFingerprints();
 
   static bool IsPrivate(const String& name);
+  // Construct the full name of a corelib member.
+  static const String& PrivateCoreLibName(const String& member);
+  // Lookup class in the core lib which also contains various VM
+  // helper methods and classes. Allow look up of private classes.
+  static RawClass* LookupCoreClass(const String& class_name);
+
 
   // Return Function::null() if function does not exist in libs.
   static RawFunction* GetFunction(const GrowableArray<Library*>& libs,

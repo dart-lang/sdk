@@ -1871,7 +1871,6 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label skip_call;
   if (!compiler->is_optimizing()) {
     // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
     // and therefore need a deoptimization descriptor.
@@ -1885,7 +1884,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                ArgumentCount(),
                                argument_names(),
                                locs());
-  __ Bind(&skip_call);
 }
 
 

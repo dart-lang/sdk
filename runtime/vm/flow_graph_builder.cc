@@ -35,13 +35,6 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
-static const String& PrivateCoreLibName(const String& str) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& private_name = String::ZoneHandle(core_lib.PrivateName(str));
-  return private_name;
-}
-
-
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector,
@@ -1073,7 +1066,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 
 static const String& BinaryOpAndMaskName(BinaryOpNode* node) {
   if (node->kind() == Token::kSHL) {
-    return PrivateCoreLibName(Symbols::_leftShiftWithMask32());
+    return Library::PrivateCoreLibName(Symbols::_leftShiftWithMask32());
   }
   UNIMPLEMENTED();
   return String::ZoneHandle();
@@ -1292,7 +1285,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const intptr_t kNumArgsChecked = 1;
   InstanceCallInstr* call = new InstanceCallInstr(
       node->token_pos(),
-      PrivateCoreLibName(Symbols::_instanceOf()),
+      Library::PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(),
       arguments,
       Object::null_array(),  // No argument names.
@@ -1362,7 +1355,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
     const intptr_t kNumArgsChecked = 1;
     InstanceCallInstr* call = new InstanceCallInstr(
         node->token_pos(),
-        PrivateCoreLibName(Symbols::_as()),
+        Library::PrivateCoreLibName(Symbols::_as()),
         node->kind(),
         arguments,
         Object::null_array(),  // No argument names.
@@ -3710,7 +3703,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
-                              PrivateCoreLibName(Symbols::ThrowNew()),
+                              Library::PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
                               Object::null_array(),
                               Resolver::kIsQualified));

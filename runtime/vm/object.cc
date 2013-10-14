@@ -7761,6 +7761,25 @@ bool Library::IsPrivate(const String& name) {
 }
 
 
+const String& Library::PrivateCoreLibName(const String& member) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const String& private_name = String::ZoneHandle(core_lib.PrivateName(member));
+  return private_name;
+}
+
+
+RawClass* Library::LookupCoreClass(const String& class_name) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  String& name = String::Handle(class_name.raw());
+  if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+    // Private identifiers are mangled on a per library basis.
+    name = String::Concat(name, String::Handle(core_lib.private_key()));
+    name = Symbols::New(name);
+  }
+  return core_lib.LookupClass(name);
+}
+
+
 // Cannot handle qualified names properly as it only appends private key to
 // the end (e.g. _Alfa.foo -> _Alfa.foo@...).
 RawString* Library::PrivateName(const String& name) const {
