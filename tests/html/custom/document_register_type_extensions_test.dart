@@ -72,20 +72,22 @@ main() {
 
   setUp(loadPolyfills);
 
-  group('construction', () {
+  group('registration', () {
     setUp(registerTypes);
 
-    group('registration', () {
-      test('cannot register twice', () {
-        expect(() => document.register(FooBad.tag, Foo), throws);
-      });
-
-      test('cannot register for non-matching tag', () {
-        expect(() {
-          document.register('x-input-div', Bar, extendsTag: 'div');
-        }, throws);
-      });
+    test('cannot register twice', () {
+      expect(() => document.register(FooBad.tag, Foo), throws);
     });
+
+    test('cannot register for non-matching tag', () {
+      expect(() {
+        document.register('x-input-div', Bar, extendsTag: 'div');
+      }, throws);
+    });
+  });
+
+  group('construction', () {
+    setUp(registerTypes);
 
     group('constructors', () {
 
