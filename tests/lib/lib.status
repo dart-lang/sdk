@@ -15,6 +15,7 @@ math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_test: RuntimeError
 
+mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 14025
 mirrors/closures_test/none: RuntimeError # Issue 6490
 mirrors/closure_mirror_find_in_context_test: Fail # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
@@ -31,6 +32,7 @@ mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/generics_substitution_test: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
+mirrors/immutable_collections_test: RuntimeError # Issue 14030
 mirrors/initializing_formals_test: CompileTimeError # Issue 12164
 mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
@@ -169,8 +171,10 @@ mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ens
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
+mirrors/basic_types_in_dart_core_test/01: RuntimeError # Issue 12141
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
 mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
+mirrors/immutable_collections_test: RuntimeError # Issue 14027
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 async/timer_isolate_test: Skip # See Issue 4997
