@@ -18,8 +18,10 @@ class CacheCommand extends PubCommand {
   String get usage => 'pub cache list';
   bool get hidden => true;
   bool get requiresEntrypoint => false;
+  bool get takesArguments => true;
 
   Future onRun() {
+    // TODO(rnystrom): Use subcommand for "list".
     if (commandOptions.rest.length != 1) {
       log.error('The cache command expects one argument.');
       this.printUsage();

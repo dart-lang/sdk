@@ -16,6 +16,7 @@ class UpgradeCommand extends PubCommand {
     "Upgrade the current package's dependencies to latest versions.";
   String get usage => 'pub upgrade [dependencies...]';
   final aliases = const ["update"];
+  bool get takesArguments => true;
 
   bool get isOffline => commandOptions['offline'];
 
