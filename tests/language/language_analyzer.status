@@ -20,11 +20,6 @@ default_implementation2_test: fail
 
 function_type_alias9_test/00: crash # Issue 11987
 
-list_literal_syntax_test/01: fail # Issue 12103
-list_literal_syntax_test/02: fail # Issue 12103
-list_literal_syntax_test/03: fail # Issue 12103
-malformed_test/none: fail # Issue 12696
-
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/02: fail
 override_field_test/03: fail
@@ -181,6 +176,11 @@ default_factory2_test/none: fail
 private_member1_negative_test: fail
 private_member2_negative_test: fail
 private_member3_negative_test: fail
+
+# test issue 14079
+malformed_test/none: fail # test issue 14079, legit warnings for malformed type
+malformed_test/05: fail # test issue 14079, it is not error, but warning to instantiate malformed type
+malformed_test/06: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
 
 #
 # Please don't add new items here.
