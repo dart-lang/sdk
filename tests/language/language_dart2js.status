@@ -138,7 +138,6 @@ mixin_regress_13688_test: RuntimeError # Issue 13109.
 const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
-named_parameters_aggregated_test/03: MissingCompileTimeError # Issue 12812
 external_test/11: MissingCompileTimeError # Issue 12887
 external_test/12: MissingCompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
@@ -246,7 +245,6 @@ setter_override_test/03: Fail # Issue 11496
 setter_override2_test/02: Fail # Issue 11496
 
 constructor_named_arguments_test/01: Fail # Issue 5519
-named_parameters_aggregated_test/03: Fail # Issue 12813
 not_enough_positional_arguments_test/01: Fail # Issue 12839
 not_enough_positional_arguments_test/02: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839

@@ -602,8 +602,6 @@ LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: fail # co19-roll r559: 
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t08: fail # co19-roll r587: Please triage this failure
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t09: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A03_t06: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A07_t01: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A08_t02: fail # co19-roll r587: Please triage this failure

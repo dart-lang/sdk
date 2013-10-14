@@ -3473,7 +3473,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 
     FunctionSignature signature = SignatureResolver.analyze(
         compiler, node.formals, node.returnType, element,
-        defaultValuesAllowed: false);
+        defaultValuesError: MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
     element.functionSignature = signature;
 
     scope = new MethodScope(scope, element);
@@ -4108,7 +4108,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
  */
 class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
-  final bool defaultValuesAllowed;
+  final MessageKind defaultValuesError;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
   bool isOptionalParameter = false;
@@ -4117,8 +4117,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   SignatureResolver(Compiler compiler,
                     this.enclosingElement,
-                    {this.defaultValuesAllowed: true})
+                    {this.defaultValuesError})
       : super(compiler);
+
+  bool get defaultValuesAllowed => defaultValuesError == null;
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
@@ -4248,7 +4250,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
-      error(defaultValue, MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
+      error(defaultValue, defaultValuesError);
     }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
@@ -4257,6 +4259,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   Element visitFunctionExpression(FunctionExpression node) {
+    // This is a function typed parameter.
     Modifiers modifiers = currentDefinitions.modifiers;
     if (modifiers.isFinal()) {
       compiler.reportError(modifiers,
@@ -4265,9 +4268,14 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if (modifiers.isVar()) {
       compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
     }
-    // This is a function typed parameter.
-    // TODO(ahe): Resolve the function type.
-    return visit(node.name);
+
+    Element variable = visit(node.name);
+    SignatureResolver.analyze(compiler, node.parameters, node.returnType,
+        variable,
+        defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
+    // TODO(ahe): Resolve and record the function type in the correct
+    // [TreeElements].
+    return variable;
   }
 
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {
@@ -4294,9 +4302,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                    NodeList formalParameters,
                                    Node returnNode,
                                    Element element,
-                                   {bool defaultValuesAllowed: true}) {
+                                   {MessageKind defaultValuesError}) {
     SignatureResolver visitor = new SignatureResolver(compiler, element,
-            defaultValuesAllowed: defaultValuesAllowed);
+        defaultValuesError: defaultValuesError);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {

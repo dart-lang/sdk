@@ -587,7 +587,7 @@ main() {
   static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
       "Error: A parameter of a typedef can't specify a default value.",
       howToFix:
-        "Try removing the default value or making the parameter optional.",
+        "Try removing the default value.",
       examples: const ["""
 typedef void F([int arg = 0]);
 
@@ -598,6 +598,22 @@ typedef void F({int arg: 0});
 
 main() {
   F f;
+}"""]);
+
+  static const MessageKind FUNCTION_TYPE_FORMAL_WITH_DEFAULT = const MessageKind(
+      "Error: A function type parameters can't specify a default value.",
+      howToFix:
+        "Try removing the default value.",
+      examples: const ["""
+foo(f(int i, [a = 1])) {}
+
+main() {
+  foo(1, 2);
+}""", """
+foo(f(int i, {a: 1})) {}
+
+main() {
+  foo(1, a: 2);
 }"""]);
 
   static const MessageKind FORMAL_DECLARED_CONST = const MessageKind(
