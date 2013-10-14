@@ -1239,11 +1239,28 @@ static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
     function.set_usage_counter(kLowInvocationCount);
     return false;
   }
-  if ((FLAG_optimization_filter != NULL) &&
-      (strstr(function.ToFullyQualifiedCString(),
-              FLAG_optimization_filter) == NULL)) {
-    function.set_usage_counter(kLowInvocationCount);
-    return false;
+  if (FLAG_optimization_filter != NULL) {
+    // FLAG_optimization_filter is a comma-separated list of strings that are
+    // matched against the fully-qualified function name.
+    char* save_ptr;  // Needed for strtok_r.
+    const char* function_name = function.ToFullyQualifiedCString();
+    intptr_t len = strlen(FLAG_optimization_filter) + 1;  // Length with \0.
+    char* filter = new char[len];
+    strncpy(filter, FLAG_optimization_filter, len);  // strtok modifies arg 1.
+    char* token = strtok_r(filter, ",", &save_ptr);
+    bool found = false;
+    while (token != NULL) {
+      if (strstr(function_name, token) != NULL) {
+        found = true;
+        break;
+      }
+      token = strtok_r(NULL, ",", &save_ptr);
+    }
+    delete[] filter;
+    if (!found) {
+      function.set_usage_counter(kLowInvocationCount);
+      return false;
+    }
   }
   if (!function.is_optimizable()) {
     if (FLAG_trace_failed_optimization_attempts) {
