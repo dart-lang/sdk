@@ -598,8 +598,7 @@ class HtmlDartGenerator(object):
     if not self._members_emitter:
       return
 
-    if (base_class != self.RootClassName() and
-          self._interface.id not in custom_html_constructors):
+    if self._interface.id not in custom_html_constructors:
       self._members_emitter.Emit(
           '  // To suppress missing implicit constructor warnings.\n'
           '  factory $CLASSNAME._() { '

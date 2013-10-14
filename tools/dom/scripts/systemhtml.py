@@ -662,9 +662,6 @@ class Dart2JSBackend(HtmlDartGenerator):
   def GenerateCallback(self, info):
     pass
 
-  def RootClassName(self):
-    return None
-
   def AdditionalImplementedInterfaces(self):
     implements = super(Dart2JSBackend, self).AdditionalImplementedInterfaces()
     if self._interface_type_info.list_item_type() and self.HasIndexedGetter():

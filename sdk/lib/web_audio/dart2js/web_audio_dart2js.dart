@@ -74,6 +74,8 @@ class AnalyserNode extends AudioNode native "AnalyserNode,RealtimeAnalyserNode" 
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
 @Experimental()
 class AudioBuffer extends Interceptor native "AudioBuffer" {
+  // To suppress missing implicit constructor warnings.
+  factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
@@ -418,6 +420,8 @@ class AudioDestinationNode extends AudioNode native "AudioDestinationNode" {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
 @Experimental()
 class AudioListener extends Interceptor native "AudioListener" {
+  // To suppress missing implicit constructor warnings.
+  factory AudioListener._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
@@ -502,6 +506,8 @@ class AudioNode extends EventTarget native "AudioNode" {
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
 @Experimental()
 class AudioParam extends Interceptor native "AudioParam" {
+  // To suppress missing implicit constructor warnings.
+  factory AudioParam._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
@@ -1073,6 +1079,8 @@ class PannerNode extends AudioNode native "PannerNode,AudioPannerNode" {
 @DomName('PeriodicWave')
 @Experimental() // untriaged
 class PeriodicWave extends Interceptor native "PeriodicWave" {
+  // To suppress missing implicit constructor warnings.
+  factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

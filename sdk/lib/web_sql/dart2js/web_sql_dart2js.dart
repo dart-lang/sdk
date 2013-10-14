@@ -82,6 +82,8 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental() // deprecated
 class SqlDatabase extends Interceptor native "Database" {
+  // To suppress missing implicit constructor warnings.
+  factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
@@ -124,6 +126,8 @@ class SqlDatabase extends Interceptor native "Database" {
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental() // deprecated
 class SqlError extends Interceptor native "SQLError" {
+  // To suppress missing implicit constructor warnings.
+  factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable()
@@ -175,6 +179,8 @@ class SqlError extends Interceptor native "SQLError" {
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental() // deprecated
 class SqlResultSet extends Interceptor native "SQLResultSet" {
+  // To suppress missing implicit constructor warnings.
+  factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
@@ -198,6 +204,8 @@ class SqlResultSet extends Interceptor native "SQLResultSet" {
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
 class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List native "SQLResultSetRowList" {
+  // To suppress missing implicit constructor warnings.
+  factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
@@ -272,6 +280,8 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 class SqlTransaction extends Interceptor native "SQLTransaction" {
+  // To suppress missing implicit constructor warnings.
+  factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
@@ -290,4 +300,6 @@ class SqlTransaction extends Interceptor native "SQLTransaction" {
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental() // deprecated
 abstract class _SQLTransactionSync extends Interceptor native "SQLTransactionSync" {
+  // To suppress missing implicit constructor warnings.
+  factory _SQLTransactionSync._() { throw new UnsupportedError("Not supported"); }
 }
