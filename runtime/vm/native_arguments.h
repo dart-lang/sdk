@@ -48,10 +48,6 @@ class Simulator;
     VerifyPointersVisitor::VerifyPointers();                                   \
     Isolate::Current()->heap()->Verify();                                      \
   }
-#define TRACE_NATIVE_CALL(format, name)                                        \
-  if (FLAG_trace_natives) {                                                    \
-    OS::Print("Calling native: " format "\n", name);                           \
-  }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeAll();                                                           \
@@ -61,10 +57,14 @@ class Simulator;
 
 #define CHECK_STACK_ALIGNMENT { }
 #define VERIFY_ON_TRANSITION { }
-#define TRACE_NATIVE_CALL(format, name) { }
 #define DEOPTIMIZE_ALOT { }
 
 #endif
+
+#define TRACE_NATIVE_CALL(format, name)                                        \
+  if (FLAG_trace_natives) {                                                    \
+    OS::Print("Calling native: " format "\n", name);                           \
+  }
 
 
 // Class NativeArguments is used to access arguments passed in from
