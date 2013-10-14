@@ -104,6 +104,11 @@ class _Utils {
     return false;
   }
 
+  static bool isTypeSubclassOfTag(Type type, String tagName) {
+    var element = new Element.tag(tagName);
+    return isTypeSubclassOf(type, element.runtimeType);
+  }
+
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
@@ -242,7 +247,7 @@ class _Utils {
     }
     // Inject all the already defined console variables.
     _consoleTempVariables._data.forEach(addArg);
-    
+
     // TODO(jacobr): remove the parentheses around the expresson once
     // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
     // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
@@ -264,7 +269,7 @@ class _Utils {
    * Returns a list of completions to use if the receiver is o.
    */
   static List<String> getCompletions(o) {
-    MirrorSystem system = currentMirrorSystem(); 
+    MirrorSystem system = currentMirrorSystem();
     var completions = new Set<String>();
     addAll(Map<Symbol, dynamic> map, bool isStatic) {
       map.forEach((symbol, mirror) {
@@ -287,7 +292,7 @@ class _Utils {
         addForClass(interface, isStatic);
       }
     }
-    
+
     if (o is Type) {
       addForClass(reflectClass(o), true);
     } else {
