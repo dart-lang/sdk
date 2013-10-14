@@ -36,7 +36,7 @@ void initPolymer(List<String> libraries, [String srcUrl]) {
 
     // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
     mdv.initialize();
-    registerCustomElement('polymer-element', () => new PolymerDeclaration());
+    document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
     for (var lib in libraries) {
       _loadLibrary(lib, srcUrl);
@@ -90,7 +90,7 @@ void _loadLibrary(String uriString, [String srcUrl]) {
     for (var m in c.metadata) {
       var meta = m.reflectee;
       if (meta is CustomTag) {
-        Polymer._registerClassMirror(meta.tagName, c);
+        Polymer.register(meta.tagName, _getReflectedTypeWorkaround(c));
       }
     }
 
@@ -102,6 +102,26 @@ void _loadLibrary(String uriString, [String srcUrl]) {
     //    we could wrap and hide those exceptions, but it's not ideal).
   }
 }
+
+// Horrible hack to work around: http://dartbug.com/12607
+Type _getReflectedTypeWorkaround(ClassMirror cls) {
+  // On Dart VM, just return reflectedType.
+  if (1.0 is! int) return cls.reflectedType;
+
+  var mangledName = reflect(cls).getField(_mangledNameField).reflectee;
+  Type type = _jsHelper.invoke(#createRuntimeType, [mangledName]).reflectee;
+  return type;
+}
+
+final LibraryMirror _jsHelper =
+    currentMirrorSystem().libraries[Uri.parse('dart:_js_helper')];
+
+final Symbol _mangledNameField = () {
+  var jsClassMirrorMirror = reflect(reflectClass(ClassMirror)).type;
+  for (var name in jsClassMirrorMirror.variables.keys) {
+    if (MirrorSystem.getName(name) == '_mangledName') return name;
+  }
+}();
 
 void _maybeInvoke(ObjectMirror obj, MethodMirror method) {
   var annotationFound = false;

@@ -45,7 +45,6 @@ import 'dart:html';
 import 'dart:js' as js;
 import 'dart:mirrors';
 
-import 'package:custom_element/custom_element.dart';
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:mdv/mdv.dart' as mdv;
 import 'package:mdv/mdv.dart' show NodeBinding;
@@ -60,7 +59,6 @@ import 'deserialize.dart' as deserialize;
 import 'job.dart';
 import 'platform.dart' as platform;
 
-export 'package:custom_element/custom_element.dart';
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';
 export 'package:observe/src/microtask.dart';

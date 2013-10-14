@@ -21,12 +21,25 @@ class PublishedProperty extends ObservableProperty {
   const PublishedProperty();
 }
 
-// TODO(jmesserly): make this the mixin so we can have Polymer type extensions,
-// and move the implementation of PolymerElement in here. Once done it will look
-// like:
-// abstract class Polymer { ... all the things ... }
-// typedef PolymerElement = HtmlElement with Polymer, Observable;
-abstract class Polymer {
+/**
+ * The mixin class for Polymer elements. It provides convenience features on top
+ * of the custom elements web standard.
+ */
+abstract class Polymer implements Element {
+  // Fully ported from revision:
+  // https://github.com/Polymer/polymer/blob/4dc481c11505991a7c43228d3797d28f21267779
+  //
+  //   src/instance/attributes.js
+  //   src/instance/base.js
+  //   src/instance/events.js
+  //   src/instance/mdv.js
+  //   src/instance/properties.js
+  //   src/instance/utils.js
+  //
+  // Not yet ported:
+  //   src/instance/style.js -- blocked on ShadowCSS.shimPolyfillDirectives
+
+
   // TODO(jmesserly): should this really be public?
   /** Regular expression that matches data-bindings. */
   static final bindPattern = new RegExp(r'\{\{([^{}]*)}}');
@@ -45,35 +58,11 @@ abstract class Polymer {
   static void register(String name, [Type type]) {
     //console.log('registering [' + name + ']');
     if (type == null) type = PolymerElement;
-    _registerClassMirror(name, reflectClass(type));
-  }
 
-  // TODO(jmesserly): we use ClassMirror internall for now, until it is possible
-  // to get from ClassMirror -> Type.
-  static void _registerClassMirror(String name, ClassMirror type) {
     _typesByName[name] = type;
     // notify the registrar waiting for 'name', if any
     _notifyType(name);
   }
-}
-
-/**
- * The base class for Polymer elements. It provides convience features on top
- * of the custom elements web standard.
- */
-class PolymerElement extends CustomElement with ObservableMixin {
-  // Fully ported from revision:
-  // https://github.com/Polymer/polymer/blob/4dc481c11505991a7c43228d3797d28f21267779
-  //
-  //   src/instance/attributes.js
-  //   src/instance/base.js
-  //   src/instance/events.js
-  //   src/instance/mdv.js
-  //   src/instance/properties.js
-  //   src/instance/utils.js
-  //
-  // Not yet ported:
-  //   src/instance/style.js -- blocked on ShadowCSS.shimPolyfillDirectives
 
   /// The one syntax to rule them all.
   static final BindingDelegate _polymerSyntax = new PolymerExpressions();
@@ -120,18 +109,6 @@ class PolymerElement extends CustomElement with ObservableMixin {
   // TODO(jmesserly): Polymer does not have this feature. Reconcile.
   ShadowRoot getShadowRoot(String customTagName) => _shadowRoots[customTagName];
 
-  ShadowRoot createShadowRoot([name]) {
-    if (name != null) {
-      throw new ArgumentError('name argument must not be supplied.');
-    }
-
-    // Provides ability to traverse from ShadowRoot to the host.
-    // TODO(jmessery): remove once we have this ability on the DOM.
-    final root = super.createShadowRoot();
-    _shadowHost[root] = host;
-    return root;
-  }
-
   /**
    * Invoke [callback] in [wait], unless the job is re-registered,
    * which resets the timer. For example:
@@ -147,15 +124,16 @@ class PolymerElement extends CustomElement with ObservableMixin {
   // created/createdCallback distinction. See post here:
   // https://groups.google.com/d/msg/polymer-dev/W0ZUpU5caIM/v5itFnvnehEJ
   // Same issue with inserted and removed.
-  void created() {
-    if (document.window != null || alwaysPrepare || _preparingElements > 0) {
+  void polymerCreated() {
+    if (this.document.window != null || alwaysPrepare ||
+        _preparingElements > 0) {
       prepareElement();
     }
   }
 
   void prepareElement() {
     // Dart note: get the _declaration, which also marks _elementPrepared
-    _declaration = _getDeclaration(reflect(this).type);
+    _declaration = _getDeclaration(this.runtimeType);
     // do this first so we can observe changes during initialization
     observeProperties();
     // install boilerplate attributes
@@ -176,14 +154,14 @@ class PolymerElement extends CustomElement with ObservableMixin {
   /** Called when [prepareElement] is finished. */
   void ready() {}
 
-  void inserted() {
+  void enteredView() {
     if (!_elementPrepared) {
       prepareElement();
     }
     cancelUnbindAll(preventCascade: true);
   }
 
-  void removed() {
+  void leftView() {
     asyncUnbindAll();
   }
 
@@ -191,7 +169,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
   void parseDeclarations(PolymerDeclaration declaration) {
     if (declaration != null) {
       parseDeclarations(declaration.superDeclaration);
-      parseDeclaration(declaration.host);
+      parseDeclaration(declaration);
     }
   }
 
@@ -223,6 +201,11 @@ class PolymerElement extends CustomElement with ObservableMixin {
     var elderRoot = this.shadowRoot;
     // make a shadow root
     var root = createShadowRoot();
+
+    // Provides ability to traverse from ShadowRoot to the host.
+    // TODO(jmessery): remove once we have this ability on the DOM.
+    _shadowHost[root] = this;
+
     // migrate flag(s)(
     root.applyAuthorStyles = applyAuthorStyles;
     root.resetStyleInheritance = resetStyleInheritance;
@@ -257,9 +240,9 @@ class PolymerElement extends CustomElement with ObservableMixin {
     }
   }
 
-  void attributeChanged(String name, String oldValue) {
+  void attributeChanged(String name, String oldValue, String newValue) {
     if (name != 'class' && name != 'style') {
-      attributeToProperty(name, attributes[name]);
+      attributeToProperty(name, newValue);
     }
   }
 
@@ -267,7 +250,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
   /**
    * Run the `listener` callback *once*
    * when `node` changes, or when its children or subtree changes.
-   * 
+   *
    *
    * See [MutationObserver] if you want to listen to a stream of
    * changes.
@@ -406,7 +389,10 @@ class PolymerElement extends CustomElement with ObservableMixin {
       reflectPropertyToAttribute(name);
       return bindings[name] = observer;
     } else {
-      return super.bind(name, model, path);
+      // Cannot call super.bind because of
+      // https://code.google.com/p/dart/issues/detail?id=13156
+      // https://code.google.com/p/dart/issues/detail?id=12456
+      return TemplateElement.mdvPackage(this).bind(name, model, path);
     }
   }
 
@@ -420,7 +406,11 @@ class PolymerElement extends CustomElement with ObservableMixin {
     if (_unbound == true) return;
 
     unbindAllProperties();
-    super.unbindAll();
+    // Cannot call super.bind because of
+    // https://code.google.com/p/dart/issues/detail?id=13156
+    // https://code.google.com/p/dart/issues/detail?id=12456
+    TemplateElement.mdvPackage(this).unbindAll();
+
     _unbindNodeTree(shadowRoot);
     // TODO(sjmiles): must also unbind inherited shadow roots
     _unbound = true;
@@ -676,12 +666,12 @@ class PolymerElement extends CustomElement with ObservableMixin {
   }
 
   void instanceEventListener(Event event) {
-    _listenLocal(host, event);
+    _listenLocal(this, event);
   }
 
   // TODO(sjmiles): much of the below privatized only because of the vague
   // notion this code is too fiddly and we need to revisit the core feature
-  void _listenLocal(Element host, Event event) {
+  void _listenLocal(Polymer host, Event event) {
     // TODO(jmesserly): do we need this check? It was using cancelBubble, see:
     // https://github.com/Polymer/polymer/issues/292
     if (!event.bubbles) return;
@@ -699,7 +689,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
     if (log) _eventsLog.info('<<< [$localName]: listenLocal [${event.type}]');
   }
 
-  static void _listenLocalEventPath(Element host, Event event, String eventOn) {
+  static void _listenLocalEventPath(Polymer host, Event event, String eventOn) {
     var c = null;
     for (var target in event.path) {
       // if we hit host, stop
@@ -723,7 +713,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
   // from a composed node to a node in shadowRoot.
   // This will be addressed via an event path api
   // https://www.w3.org/Bugs/Public/show_bug.cgi?id=21066
-  static void _listenLocalNoEventPath(Element host, Event event,
+  static void _listenLocalNoEventPath(Polymer host, Event event,
       String eventOn) {
 
     if (_eventsLog.isLoggable(Level.INFO)) {
@@ -749,14 +739,14 @@ class PolymerElement extends CustomElement with ObservableMixin {
 
   // TODO(jmesserly): this won't find the correct host unless the ShadowRoot
   // was created on a PolymerElement.
-  static Element _findController(Node node) {
+  static Polymer _findController(Node node) {
     while (node.parentNode != null) {
       node = node.parentNode;
     }
     return _shadowHost[node];
   }
 
-  static bool _handleEvent(Element ctrlr, Node node, Event event,
+  static bool _handleEvent(Polymer ctrlr, Node node, Event event,
       String eventOn) {
 
     // Note: local events are listened only in the shadow root. This dynamic
@@ -772,7 +762,7 @@ class PolymerElement extends CustomElement with ObservableMixin {
 
       if (node != null) {
         // TODO(jmesserly): cache symbols?
-        ctrlr.xtag.dispatchMethod(new Symbol(name), [event, detail, node]);
+        ctrlr.dispatchMethod(new Symbol(name), [event, detail, node]);
       }
     }
 
@@ -933,6 +923,17 @@ final Logger _eventsLog = new Logger('polymer.events');
 final Logger _unbindLog = new Logger('polymer.unbind');
 final Logger _bindLog = new Logger('polymer.bind');
 
-final Expando _shadowHost = new Expando<Element>();
+final Expando _shadowHost = new Expando<Polymer>();
 
 final Expando _eventHandledTable = new Expando<Set<Node>>();
+
+/**
+ * Base class for PolymerElements deriving from HtmlElement.
+ *
+ * See [Polymer].
+ */
+class PolymerElement extends HtmlElement with Polymer, ObservableMixin {
+  PolymerElement.created() : super.created() {
+    polymerCreated();
+  }
+}

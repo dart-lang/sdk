@@ -26,6 +26,8 @@
 
       @CustomTag("test-a")
       class TestA extends PolymerElement {
+        TestA.created() : super.created();
+
         List clicks = [];
         void clickHandler() {
           clicks.add('host click on: $localName (id $id)');
@@ -46,6 +48,8 @@
 
       @CustomTag("test-b")
       class TestB extends PolymerElement {
+        TestB.created() : super.created();
+
         List clicks = [];
         void clickHandler(event, detail, target) {
           clicks.add('local click under $localName (id $id) on ${target.id}');

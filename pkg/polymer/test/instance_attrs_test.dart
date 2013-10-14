@@ -11,7 +11,7 @@ main() {
   useHtmlConfiguration();
 
   test('attributes were deserialized', () {
-    var elem = query('my-element').xtag;
+    var elem = query('my-element');
 
     expect(elem.attributes, {'foo': '123', 'bar': 'hi', 'baz': 'world'},
         reason: 'attributes should be copied to instance');

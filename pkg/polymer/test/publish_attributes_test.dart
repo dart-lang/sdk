@@ -12,22 +12,30 @@ import 'package:polymer/polymer.dart';
 // So we define XFoo and XBar types here.
 @CustomTag('x-foo')
 class XFoo extends PolymerElement {
+  XFoo.created() : super.created();
+
   @observable var Foo;
   @observable var baz;
 }
 
 @CustomTag('x-bar')
 class XBar extends XFoo {
+  XBar.created() : super.created();
+
   @observable var Bar;
 }
 
 @CustomTag('x-zot')
 class XZot extends XBar {
+  XZot.created() : super.created();
+
   @published int zot = 3;
 }
 
 @CustomTag('x-squid')
 class XSquid extends XZot {
+  XSquid.created() : super.created();
+
   @published int baz = 13;
   @published int zot = 5;
   @published int squid = 7;

@@ -34,6 +34,7 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       bool shadowDomFound = false;
       bool jsInteropFound = false;
+      bool customElementFound = false;
       bool dartScriptTags = false;
 
       for (var tag in document.queryAll('script')) {
@@ -44,6 +45,8 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
             jsInteropFound = true;
           } else if (_shadowDomJS.hasMatch(last)) {
             shadowDomFound = true;
+          } else if (_customElementJS.hasMatch(last)) {
+            customElementFound = true;
           }
         }
 
@@ -64,6 +67,12 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
             '<script src="packages/browser/interop.js"></script>\n'));
       }
 
+      if (!customElementFound) {
+        document.body.nodes.insert(0, parseFragment(
+            '<script src="packages/custom_element/custom-elements.debug.js">'
+            '</script>\n'));
+      }
+
       if (!shadowDomFound) {
         // Insert at the beginning (this polyfill needs to run as early as
         // possible).
@@ -79,3 +88,5 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
 }
 
 final _shadowDomJS = new RegExp(r'shadow_dom\..*\.js', caseSensitive: false);
+final _customElementJS = new RegExp(r'custom-elements\..*\.js',
+    caseSensitive: false);
