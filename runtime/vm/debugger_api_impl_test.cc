@@ -550,8 +550,8 @@ static void InspectStackWithClosureTest(bool optimize) {
   if (optimize) {
     EXPECT_STREQ("[0] breakpointNow { }\n"
                  "[1] helper { a = 50 b = 99 stop = null }\n"
-                 "[2] <anonymous closure> { x = <unknown>"
-                 " stop = <unknown> value = null }\n"
+                 "[2] <anonymous closure> { x = <unknown> stop = <unknown>"
+                 " value = null }\n"
                  "[3] anotherMiddleMan { func = null }\n"
                  "[4] middleMan { limit = 100 value = 242550 }\n"
                  "[5] test { stop = true limit = 100 }\n",
@@ -559,11 +559,11 @@ static void InspectStackWithClosureTest(bool optimize) {
   } else {
     EXPECT_STREQ("[0] breakpointNow { }\n"
                  "[1] helper { a = 50 b = 99 stop = true }\n"
-                 "[2] <anonymous closure> { x = 5 i = 99"
-                 " stop = <unknown> value = 10 }\n"
+                 "[2] <anonymous closure> { x = 5 i = 99 stop = true"
+                 " value = 10 }\n"
                  "[3] anotherMiddleMan {"
                  " func = Closure: (dynamic) => dynamic }\n"
-                 "[4] middleMan { x = 5 limit = 100 stop = <unknown>"
+                 "[4] middleMan { x = 5 limit = 100 stop = true"
                  " value = 242550 i = 99 }\n"
                  "[5] test { stop = true limit = 100 }\n",
                  stack_buffer);

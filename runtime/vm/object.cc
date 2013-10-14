@@ -9528,7 +9528,22 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
 
 
 const char* Context::ToCString() const {
-  return "Context";
+  const Context& parent_ctx = Context::Handle(parent());
+  if (parent_ctx.IsNull()) {
+    const char* kFormat = "Context num_variables:% " Pd "";
+    intptr_t len = OS::SNPrint(NULL, 0, kFormat, num_variables()) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, kFormat, num_variables());
+    return chars;
+  } else {
+    const char* parent_str = parent_ctx.ToCString();
+    const char* kFormat = "Context num_variables:% " Pd " parent:{ %s }";
+    intptr_t len = OS::SNPrint(NULL, 0, kFormat,
+                               num_variables(), parent_str) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, kFormat, num_variables(), parent_str);
+    return chars;
+  }
 }
 
 

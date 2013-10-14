@@ -597,16 +597,16 @@ void ActivationFrame::VariableAt(intptr_t i,
       }
     } else {
       ASSERT(level_diff > 0);
-      Context& ctx = Context::Handle(ctx_.raw());
-      while (level_diff > 0 && !ctx.IsNull()) {
+      Context& var_ctx = Context::Handle(ctx_.raw());
+      while (level_diff > 0 && !var_ctx.IsNull()) {
         level_diff--;
-        ctx = ctx.parent();
+        var_ctx = var_ctx.parent();
       }
       // TODO(12767) : Need to ensure that we end up with the correct context
       // here so that this check can be assert.
-      if (!ctx.IsNull() &&
-          ((ctx_slot < ctx_.num_variables()) && (ctx_slot >= 0))) {
-        *value = ctx.At(ctx_slot);
+      if (!var_ctx.IsNull() &&
+          ((ctx_slot < var_ctx.num_variables()) && (ctx_slot >= 0))) {
+        *value = var_ctx.At(ctx_slot);
       } else {
         *value = Symbols::New("<unknown>");
       }
