@@ -27,6 +27,7 @@ class ExpensiveSet<E> extends IterableBase<E> implements LinkedHashSet<E> {
   Iterator<E> get iterator => _sets[0].iterator;
 
   bool contains(Object object) => _sets[0].contains(object);
+  E lookup(Object object) => _sets[0].lookup(object);
 
   void forEach(void action(E element)) {
     _sets[0].forEach(action);

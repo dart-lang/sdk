@@ -55,10 +55,12 @@ class ExpensiveMap<K, V> implements LinkedHashMap<K, V> {
     }
   }
 
-  void remove(Object key) {
-    for (int i = 0; i < _maps.length; i++) {
+  V remove(Object key) {
+    V result = _maps[0].remove(key);
+    for (int i = 1; i < _maps.length; i++) {
       _maps[i].remove(key);
     }
+    return result;
   }
 
   void clear() {
