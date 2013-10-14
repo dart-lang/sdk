@@ -60,6 +60,7 @@
     'vmservice/client/index.html',
 #  Package sources
     '<(PRODUCT_DIR)/packages/analyzer_experimental/analyzer.dart',
+    '<(PRODUCT_DIR)/packages/analyzer_experimental/formatter.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/options.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/generated/parser.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/generated/source.dart',
@@ -87,7 +88,6 @@
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/analyzer_impl.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/error_formatter.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/error.dart',
-    '<(PRODUCT_DIR)/packages/analyzer_experimental/src/services/formatter.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/services/runtime/coverage/coverage_lib.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/services/runtime/coverage/models.dart',
     '<(PRODUCT_DIR)/packages/analyzer_experimental/src/services/runtime/coverage/utils.dart',
