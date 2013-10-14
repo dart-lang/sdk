@@ -69,7 +69,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
       argumentsBuffer[0] = js(receiverArgumentName);
-      task.interceptorInvocationNames.add(invocationName);
+      task.interceptorEmitter.interceptorInvocationNames.add(invocationName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
@@ -609,16 +609,17 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (code == null) return;
     String name = namer.getNameOfMember(member);
     if (backend.isInterceptedMethod(member)) {
-      task.interceptorInvocationNames.add(name);
+      task.interceptorEmitter.interceptorInvocationNames.add(name);
     }
-    code = extendWithMetadata(member, code);
+    code = task.metadataEmitter.extendWithMetadata(member, code);
     builder.addProperty(name, code);
     String reflectionName = task.getReflectionName(member, name);
     if (reflectionName != null) {
       var reflectable =
           js(backend.isAccessibleByReflection(member) ? '1' : '0');
       builder.addProperty('+$reflectionName', reflectable);
-      jsAst.Node defaultValues = task.reifyDefaultArguments(member);
+      jsAst.Node defaultValues =
+          task.metadataEmitter.reifyDefaultArguments(member);
       if (defaultValues != null) {
         String unmangledName = member.name.slowToString();
         builder.addProperty('*$unmangledName', defaultValues);
@@ -639,32 +640,5 @@ class ContainerBuilder extends CodeEmitterHelper {
 
   void addMemberField(VariableElement member, ClassBuilder builder) {
     // For now, do nothing.
-  }
-
-  jsAst.Fun extendWithMetadata(FunctionElement element, jsAst.Fun code) {
-    if (!backend.retainMetadataOf(element)) return code;
-    return compiler.withCurrentElement(element, () {
-      List<int> metadata = <int>[];
-      FunctionSignature signature = element.functionSignature;
-      if (element.isConstructor()) {
-        metadata.add(task.reifyType(element.getEnclosingClass().thisType));
-      } else {
-        metadata.add(task.reifyType(signature.returnType));
-      }
-      signature.forEachParameter((Element parameter) {
-        metadata
-            ..add(task.reifyName(parameter.name))
-            ..add(task.reifyType(parameter.computeType(compiler)));
-      });
-      Link link = element.metadata;
-      // TODO(ahe): Why is metadata sometimes null?
-      if (link != null) {
-        for (; !link.isEmpty; link = link.tail) {
-          metadata.add(task.reifyMetadata(link.head));
-        }
-      }
-      code.body.statements.add(js.string(metadata.join(',')).toStatement());
-      return code;
-    });
   }
 }

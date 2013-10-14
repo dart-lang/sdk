@@ -137,7 +137,7 @@ class ClassEmitter extends CodeEmitterHelper {
         if (!classIsNative || needsAccessor) {
           buffer.write(separator);
           separator = ',';
-          var metadata = task.buildMetadataFunction(field);
+          var metadata = task.metadataEmitter.buildMetadataFunction(field);
           if (metadata != null) {
             hasMetadata = true;
           } else {
@@ -173,7 +173,8 @@ class ClassEmitter extends CodeEmitterHelper {
                 // the method's class was elsewhere mixed-in to an interceptor.
                 assert(!field.isInstanceMember() || getterCode != 0);
                 if (isIntercepted) {
-                  task.interceptorInvocationNames.add(namer.getterName(field));
+                  task.interceptorEmitter.interceptorInvocationNames.add(
+                      namer.getterName(field));
                 }
               } else {
                 getterCode = 1;
@@ -190,7 +191,8 @@ class ClassEmitter extends CodeEmitterHelper {
                 setterCode += backend.isInterceptorClass(element) ? 0 : 1;
                 assert(!field.isInstanceMember() || setterCode != 0);
                 if (isIntercepted) {
-                  task.interceptorInvocationNames.add(namer.setterName(field));
+                  task.interceptorEmitter.interceptorInvocationNames.add(
+                      namer.setterName(field));
                 }
               } else {
                 setterCode = 1;
@@ -283,7 +285,7 @@ class ClassEmitter extends CodeEmitterHelper {
                                           ClassElement classElement,
                                           ClassBuilder builder,
                                           CodeBuffer buffer) {
-    var metadata = task.buildMetadataFunction(classElement);
+    var metadata = task.metadataEmitter.buildMetadataFunction(classElement);
     if (metadata != null) {
       builder.addProperty("@", metadata);
     }
@@ -293,7 +295,9 @@ class ClassEmitter extends CodeEmitterHelper {
       List properties = [];
       for (TypeVariableType typeVar in typeVars) {
         properties.add(js.string(typeVar.name.slowToString()));
-        properties.add(js.toExpression(task.reifyType(typeVar.element.bound)));
+        properties.add(
+            js.toExpression(
+                task.metadataEmitter.reifyType(typeVar.element.bound)));
       }
 
       ClassElement superclass = classElement.superclass;
@@ -342,7 +346,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (reflectionName != null) {
       List<int> interfaces = <int>[];
       for (DartType interface in classElement.interfaces) {
-        interfaces.add(task.reifyType(interface));
+        interfaces.add(task.metadataEmitter.reifyType(interface));
       }
       buffer.write(',$n$n"+$reflectionName": $interfaces');
     }
