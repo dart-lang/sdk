@@ -89,6 +89,13 @@ packages:
         expect(foo.source, equals('bad'));
       });
 
+      test("allows an empty dependency map", () {
+        var lockFile = new LockFile.parse('''
+packages:
+''', sources);
+        expect(lockFile.packages, isEmpty);
+      });
+
       test("throws if the version is missing", () {
         expect(() {
           new LockFile.parse('''
