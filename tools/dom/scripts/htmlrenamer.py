@@ -134,6 +134,8 @@ convert_to_future_members = monitored.Set(
   'DirectoryEntry.getFile',
   'DirectoryEntry.removeRecursively',
   'DirectoryReader.readEntries',
+  'Window.webkitRequestFileSystem',
+  'Window.webkitResolveLocalFileSystemURL',
   'Entry.copyTo',
   'Entry.getMetadata',
   'Entry.getParent',
@@ -141,20 +143,13 @@ convert_to_future_members = monitored.Set(
   'Entry.remove',
   'FileEntry.createWriter',
   'FileEntry.file',
-  'FontLoader.notifyWhenFontsReady',
-  'MediaStreamTrack.getSources',
   'Notification.requestPermission',
   'NotificationCenter.requestPermission',
-  'RTCPeerConnection.getStats',
   'RTCPeerConnection.setLocalDescription',
   'RTCPeerConnection.setRemoteDescription',
   'StorageInfo.requestQuota',
-  'StorageQuota.queryUsageAndQuota',
-  'StorageQuota.requestQuota',
-  'Window.webkitRequestFileSystem',
-  'Window.webkitResolveLocalFileSystemURL',
-  'WorkerGlobalScope.webkitRequestFileSystem',
   'WorkerGlobalScope.webkitResolveLocalFileSystemURL',
+  'WorkerGlobalScope.webkitRequestFileSystem',
 ])
 
 # "Private" members in the form $dom_foo.
@@ -171,7 +166,6 @@ dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 custom_html_constructors = monitored.Set(
     'htmlrenamer.custom_html_constructors', [
   'HTMLOptionElement',
-  'MutationObserver',
 ])
 
 # Members from the standard dom that should not be exposed publicly in dart:html
@@ -329,12 +323,11 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'WheelEvent.deltaY',
   'Window.createImageBitmap',
   'Window.getComputedStyle',
-  'Window.clearInterval',
-  'Window.clearTimeout',
   'Window.moveTo',
-  'Window.requestAnimationFrame',
-  'Window.setInterval',
+  'Window.clearTimeout',
+  'Window.clearInterval',
   'Window.setTimeout',
+  'Window.setInterval',
 ])
 
 # Members from the standard dom that exist in the dart:html library with

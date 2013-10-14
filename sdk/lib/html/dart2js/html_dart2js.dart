@@ -56,7 +56,7 @@ import 'dart:_js_helper' show
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForWebComponentType, getNativeInterceptor,
+    findConstructorForWebComponentType, getNativeInterceptor, 
     setDispatchProperty, findInterceptorForType;
 
 export 'dart:math' show Rectangle, Point;
@@ -84,6 +84,9 @@ Window get window => JS('Window', 'window');
  * Root node for all content in a web page.
  */
 HtmlDocument get document => JS('HtmlDocument', 'document');
+
+Element query(String selector) => document.query(selector);
+ElementList queryAll(String selector) => document.queryAll(selector);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
@@ -12072,20 +12075,9 @@ class FontLoader extends EventTarget native "FontLoader" {
   @DocsEditable()
   void _loadFont_1(params) native;
 
-  @JSName('notifyWhenFontsReady')
   @DomName('FontLoader.notifyWhenFontsReady')
   @DocsEditable()
-  void _notifyWhenFontsReady(VoidCallback callback) native;
-
-  @JSName('notifyWhenFontsReady')
-  @DomName('FontLoader.notifyWhenFontsReady')
-  @DocsEditable()
-  Future notifyWhenFontsReady() {
-    var completer = new Completer();
-    _notifyWhenFontsReady(
-        () { completer.complete(); });
-    return completer.future;
-  }
+  void notifyWhenFontsReady(VoidCallback callback) native;
 
   @DomName('FontLoader.onerror')
   @DocsEditable()
@@ -16398,22 +16390,10 @@ class MediaStreamTrack extends EventTarget native "MediaStreamTrack" {
   @DocsEditable()
   final String readyState;
 
-  @JSName('getSources')
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void _getSources(MediaStreamTrackSourcesCallback callback) native;
-
-  @JSName('getSources')
-  @DomName('MediaStreamTrack.getSources')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Future<List<SourceInfo>> getSources() {
-    var completer = new Completer<List<SourceInfo>>();
-    _getSources(
-        (value) { completer.complete(value); });
-    return completer.future;
-  }
+  static void getSources(MediaStreamTrackSourcesCallback callback) native;
 
   @DomName('MediaStreamTrack.onended')
   @DocsEditable()
@@ -17403,7 +17383,7 @@ class MutationObserver extends Interceptor native "MutationObserver,WebKitMutati
     return JS('MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
         'window.MozMutationObserver)(#)',
-        convertDartClosureToJS(_wrapZone(callback), 2));
+        convertDartClosureToJS(callback, 2));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20662,20 +20642,9 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DocsEditable()
   List<MediaStream> getRemoteStreams() native;
 
-  @JSName('getStats')
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
-
-  @JSName('getStats')
-  @DomName('RTCPeerConnection.getStats')
-  @DocsEditable()
-  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
-    var completer = new Completer<RtcStatsResponse>();
-    _getStats(selector,
-        (value) { completer.complete(value); });
-    return completer.future;
-  }
+  void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
 
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
@@ -22546,37 +22515,13 @@ class StorageInfoUsage {
 @Experimental()
 class StorageQuota extends Interceptor native "StorageQuota" {
 
-  @JSName('queryUsageAndQuota')
   @DomName('StorageQuota.queryUsageAndQuota')
   @DocsEditable()
-  void _queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native;
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native;
 
-  @JSName('queryUsageAndQuota')
-  @DomName('StorageQuota.queryUsageAndQuota')
-  @DocsEditable()
-  Future<int> queryUsageAndQuota() {
-    var completer = new Completer<int>();
-    _queryUsageAndQuota(
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('requestQuota')
   @DomName('StorageQuota.requestQuota')
   @DocsEditable()
-  void _requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
-
-  @JSName('requestQuota')
-  @DomName('StorageQuota.requestQuota')
-  @DocsEditable()
-  Future<int> requestQuota(int newQuotaInBytes) {
-    var completer = new Completer<int>();
-    _requestQuota(newQuotaInBytes,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25355,7 +25300,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(RequestAnimationFrameCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone(callback));
+    return _requestAnimationFrame(callback);
   }
 
   void cancelAnimationFrame(int id) {
@@ -29335,6 +29280,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
+  static _wrapZone(callback) {
+    // For performance reasons avoid wrapping if we are in the root zone.
+    if (Zone.current == Zone.ROOT) return callback;
+    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+  }
+
   void cancel() {
     if (_canceled) return;
 
@@ -33123,19 +33074,6 @@ class Platform {
     }
   }
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-_wrapZone(callback) {
-  // For performance reasons avoid wrapping if we are in the root zone.
-  if (Zone.current == Zone.ROOT) return callback;
-  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
-}
-
-Element query(String selector) => document.query(selector);
-ElementList queryAll(String selector) => document.queryAll(selector);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

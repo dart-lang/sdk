@@ -19,7 +19,7 @@
  *
  * * If you've never written a web app before, try our
  * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- *
+ * 
  * * To see some web-based Dart apps in action and to play with the code,
  * download
  * [Dart Editor](http://www.dartlang.org/#get-started)
@@ -80,7 +80,6 @@ part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
 part '$AUXILIARY_DIR/dartium_Platform.dart';
-part '$AUXILIARY_DIR/shared_html.dart';
 
 part '$AUXILIARY_DIR/native_DOMImplementation.dart';
 
@@ -119,6 +118,10 @@ HtmlDocument get document {
   _document = window.document;
   return _document;
 }
+
+
+Element query(String selector) => document.query(selector);
+ElementList queryAll(String selector) => document.queryAll(selector);
 
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 
