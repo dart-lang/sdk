@@ -12,7 +12,7 @@
  *
  * * If you've never written a web app before, try our
  * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- * 
+ *
  * * To see some web-based Dart apps in action and to play with the code,
  * download
  * [Dart Editor](http://www.dartlang.org/#get-started)
@@ -92,10 +92,6 @@ HtmlDocument get document {
   _document = window.document;
   return _document;
 }
-
-
-Element query(String selector) => document.query(selector);
-ElementList queryAll(String selector) => document.queryAll(selector);
 
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 
@@ -12536,7 +12532,14 @@ class FontLoader extends EventTarget {
 
   @DomName('FontLoader.notifyWhenFontsReady')
   @DocsEditable()
-  void notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+  void _notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+
+  Future notifyWhenFontsReady() {
+    var completer = new Completer();
+    _notifyWhenFontsReady(
+        () { completer.complete(); });
+    return completer.future;
+  }
 
   @DomName('FontLoader.addEventListener')
   @DocsEditable()
@@ -17612,7 +17615,14 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
+  static void _getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
+
+  static Future<List<SourceInfo>> getSources() {
+    var completer = new Completer<List<SourceInfo>>();
+    _getSources(
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('MediaStreamTrack.addEventListener')
   @DocsEditable()
@@ -18615,7 +18625,7 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 
   @DomName('MutationObserver.MutationObserver')
   @DocsEditable()
-  factory MutationObserver(MutationCallback callback) => _create(callback);
+  factory MutationObserver._(MutationCallback callback) => _create(callback);
 
   @DocsEditable()
   static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
@@ -18687,6 +18697,8 @@ class MutationObserver extends NativeFieldWrapperClass1 {
     _observe(target, options);
   }
 
+  factory MutationObserver(MutationCallback callback) =>
+      new MutationObserver._(_wrapZone(callback));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22188,7 +22200,14 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
+  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
+
+  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
+    var completer = new Completer<RtcStatsResponse>();
+    _getStats(selector,
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
@@ -24374,11 +24393,27 @@ class StorageQuota extends NativeFieldWrapperClass1 {
 
   @DomName('StorageQuota.queryUsageAndQuota')
   @DocsEditable()
-  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native "StorageQuota_queryUsageAndQuota_Callback";
+  void _queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native "StorageQuota_queryUsageAndQuota_Callback";
+
+  Future<int> queryUsageAndQuota() {
+    var completer = new Completer<int>();
+    _queryUsageAndQuota(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
   @DomName('StorageQuota.requestQuota')
   @DocsEditable()
-  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "StorageQuota_requestQuota_Callback";
+  void _requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "StorageQuota_requestQuota_Callback";
+
+  Future<int> requestQuota(int newQuotaInBytes) {
+    var completer = new Completer<int>();
+    _requestQuota(newQuotaInBytes,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27206,6 +27241,27 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
   }
 
   /**
+   * Called to draw an animation frame and then request the window to repaint
+   * after [callback] has finished (creating the animation).
+   *
+   * Use this method only if you need to later call [cancelAnimationFrame]. If
+   * not, the preferred Dart idiom is to set animation frames by calling
+   * [animationFrame], which returns a Future.
+   *
+   * Returns a non-zero valued integer to represent the request id for this
+   * request. This value only needs to be saved if you intend to call
+   * [cancelAnimationFrame] so you can specify the particular animation to
+   * cancel.
+   *
+   * Note: The supplied [callback] needs to call [requestAnimationFrame] again
+   * for the animation to continue.
+   */
+  @DomName('Window.requestAnimationFrame')
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    return _requestAnimationFrame(_wrapZone(callback));
+  }
+
+  /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
    * true, the application will request permission from the user to create
    * lasting storage. This storage cannot be freed without the user's
@@ -27712,7 +27768,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
 
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "Window_requestAnimationFrame_Callback";
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native "Window_requestAnimationFrame_Callback";
 
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -31359,12 +31415,6 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
-  static _wrapZone(callback) {
-    // For performance reasons avoid wrapping if we are in the root zone.
-    if (Zone.current == Zone.ROOT) return callback;
-    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
-  }
-
   void cancel() {
     if (_canceled) return;
 
@@ -34894,6 +34944,19 @@ class Platform {
     // no-op, provided for dart2js polyfill.
   }
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+_wrapZone(callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
+  if (Zone.current == Zone.ROOT) return callback;
+  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+}
+
+Element query(String selector) => document.query(selector);
+ElementList queryAll(String selector) => document.queryAll(selector);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34997,6 +35060,11 @@ class _Utils {
       return isTypeSubclassOf(superclass.reflectedType, other);
     }
     return false;
+  }
+
+  static bool isTypeSubclassOfTag(Type type, String tagName) {
+    var element = new Element.tag(tagName);
+    return isTypeSubclassOf(type, element.runtimeType);
   }
 
   static window() native "Utils_window";
@@ -35137,7 +35205,7 @@ class _Utils {
     }
     // Inject all the already defined console variables.
     _consoleTempVariables._data.forEach(addArg);
-    
+
     // TODO(jacobr): remove the parentheses around the expresson once
     // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
     // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
@@ -35159,7 +35227,7 @@ class _Utils {
    * Returns a list of completions to use if the receiver is o.
    */
   static List<String> getCompletions(o) {
-    MirrorSystem system = currentMirrorSystem(); 
+    MirrorSystem system = currentMirrorSystem();
     var completions = new Set<String>();
     addAll(Map<Symbol, dynamic> map, bool isStatic) {
       map.forEach((symbol, mirror) {
@@ -35182,7 +35250,7 @@ class _Utils {
         addForClass(interface, isStatic);
       }
     }
-    
+
     if (o is Type) {
       addForClass(reflectClass(o), true);
     } else {
