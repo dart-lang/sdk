@@ -88,7 +88,6 @@ fuzzSyncRandomAccessMethods() {
 }
 
 fuzzAsyncRandomAccessMethods() {
-  var d = new Directory('');
   var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   var file = new File('${temp.path}/x');
   file.createSync();
