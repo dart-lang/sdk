@@ -499,6 +499,8 @@ The former section on variables in interfaces (now removed): Added specification
 
 \ref{if}: Type promotion support added.
 
+\ref{try}: \ON{} with no \CATCH{} implies \DYNAMIC{}, not \cd{Object}.
+
 \ref{return}: Added warning if \RETURN{} without expression mixed with \RETURN{} with an expression.
 
 \ref{exports}: Ensure that exports treat \code{dart:} libs specially, like imports do.
@@ -3852,7 +3854,7 @@ First, $e_1$ is evaluated to an object $o_1$.  Then, $o_1$ is  subjected to bool
 If all of the following hold:
 \begin{itemize}
 \item $e_1$ shows that a variable $v$ has type $T$.
-\item $v$ is not potentially mutated in either $e_1$, $e_2$ or within a closure.
+\item $v$ is not potentially mutated in $e_2$ or within a closure.
 \item If the variable $v$ is accessed by a closure in $e_2$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
 \end{itemize}
 
@@ -3890,7 +3892,7 @@ $T$ if all of the following conditions hold:
 \begin{itemize}
 \item Either $e_1$ shows that $v$ has type $T$ or $e_2$ shows that $v$ has type $T$.
 \item $v$ is a local variable or formal parameter.
-\item The variable $v$ is not mutated in either $e_1$ or $e_2$ or within a closure.
+\item The variable $v$ is not mutated in $e_2$ or within a closure.
 \end{itemize}
 
 Furthermore, if all of the following hold:
@@ -4307,7 +4309,7 @@ The static type of $e$ is determined as follows:
 
 \begin{itemize}
 \item If $d$ is a class, type alias or type parameter the static type of $e$ is \code{Type}.
-\item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is a subtype of any other type $S$ such that $v$ is known to have type $S$. 
+\item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is more specific than any other type $S$ such that $v$ is known to have type $S$. 
 \item If $d$ is a static method, top-level function or local function the static type of $e$ the function type defined by $d$.
 \item If $d$ is the declaration of a static variable or static getter declared in class $C$, the static type of $e$ the static type of the getter invocation (\ref{getterInvocation}) $C.id$. 
 \item If $d$ is the declaration of a library variable or top-level getter, the static type of $e$  is the static type of the getter invocation $id$. 
@@ -4358,7 +4360,17 @@ If $T$ is malformed the test always succeeds. This is a consequence of the rule 
 %It is a static warning if $T$ is malformed or malbounded.
 %does not denote a type available in the current lexical scope. 
 
-Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{}! $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
+Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
+
+\rationale{
+The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style. The rules in the current specification are deliberately kept simple. It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
+
+The rule only applies to locals and parameters, as fields could be modified via side-effecting functions or methods that are not accessible to a local analysis.
+
+It is pointless to deduce a weaker type than what is already known. Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification. Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
+
+We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than less.  The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
+}
 
 The static type of an is-expression is \code{bool}. 
 %It is a static warning if if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters. 
@@ -4599,7 +4611,7 @@ Under reasonable scope rules  such code is problematic. If we assume that \code{
 If:
 \begin{itemize}
 \item  $b$ shows that a variable $v$ has type $T$.
-\item  $v$ is not potentially mutated in either $b$, $s_1$ or within a closure.
+\item  $v$ is not potentially mutated in $s_1$ or within a closure.
 \item If the variable $v$ is accessed by a closure in $s_1$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$. 
 \end{itemize}
 then the type of $v$ is known to be $T$ in $s_1$.  
@@ -4887,7 +4899,7 @@ It is of course a static warning if $T$ is a malformed type (\ref{staticTypes}).
 An \ON{}-\CATCH{} clause of the form  \code{\ON{} $T$ \CATCH{} ($p_1$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} where $p_2$ is an identifier that does not occur anywhere else in the program. 
 
 
-An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} Object \CATCH{} ($p$) $s$}. An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p_1, p_2$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} Object \CATCH{} ($p_1, p_2$) $s$}
+An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p$) $s$}. An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p_1, p_2$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p_1, p_2$) $s$}
 
 
 %If an explicit type is associated with of $p_2$, it is a static warning if that type is not \code{Object} or \DYNAMIC{}.
@@ -5095,7 +5107,7 @@ It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Fu
 
  It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.  
 
-\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that). Overall, perhaps it could be defined as a function, and the overhead issue could be viewed as an optimization.
+\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that).  It cannot be viewed as a function call that is being optimized away because the argument might have side effects.
 }
 
 %If a lexically visible declaration named \code{assert} is in scope, an assert statement 
@@ -5702,6 +5714,7 @@ A type $T$ is more specific than a type $S$, written $T << S$,  if one of the fo
 \item $T$ is of the form $I<T_1, \ldots, T_n>$ and $S$ is of the form $I<S_1, \ldots, S_n>$ and:
 $T_i << S_i, 1 \le i \le n$
 \item $T$ and $S$ are both function types, and $T << S$ under the rules of section \ref{functionTypes}.
+\item $T$ is a function type and $S$ is \cd{Function}.
 \item $T << U$ and $U << S$.
 \end{itemize}
 
@@ -5917,7 +5930,7 @@ A {\em parameterized type} is an invocation of a generic type declaration.
 
 Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}. 
 
-\commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued. This behavior is not yet implemented.
+\commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued. 
 }
 
 Otherwise, let
