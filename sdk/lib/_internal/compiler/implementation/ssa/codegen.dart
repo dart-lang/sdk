@@ -1827,7 +1827,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       TypeConstant type = constant;
       Element element = type.representedType.element;
       if (element != null && element.isClass()) {
-        backend.registerEscapingConstructorsOfClass(element, world);
+        backend.customElementsAnalysis.registerTypeConstant(element, world);
       }
     }
     push(backend.emitter.constantReference(constant));

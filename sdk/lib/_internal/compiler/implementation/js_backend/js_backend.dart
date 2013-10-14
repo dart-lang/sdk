@@ -31,3 +31,4 @@ part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';
 part 'runtime_types.dart';
+part 'custom_elements_analysis.dart';

@@ -432,18 +432,21 @@ class InterceptorEmitter extends CodeEmitterHelper {
    */
   void emitMapTypeToInterceptor(CodeBuffer buffer) {
     // TODO(sra): Perhaps inject a constant instead?
-    // TODO(sra): Filter by subclasses of native types.
-    // TODO(13835): Don't generate this unless we generated the functions that
-    // use the data structure.
+    CustomElementsAnalysis analysis = backend.customElementsAnalysis;
+    if (!analysis.needsTable) return;
+
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     ConstantHandler handler = compiler.constantHandler;
-    List<Constant> constants = handler.getConstantsForEmission();
+    List<Constant> constants =
+        handler.getConstantsForEmission(task.compareConstants);
     for (Constant constant in constants) {
       if (constant is TypeConstant) {
         TypeConstant typeConstant = constant;
         Element element = typeConstant.representedType.element;
         if (element is ClassElement) {
           ClassElement classElement = element;
+          if (!analysis.needsClass(classElement)) continue;
+
           elements.add(backend.emitter.constantReference(constant));
           elements.add(js(namer.isolateAccess(classElement)));
 
@@ -463,18 +466,13 @@ class InterceptorEmitter extends CodeEmitterHelper {
           //
           // We expect most of the time the map will be a singleton.
           var properties = [];
-          classElement.forEachMember(
-              (ClassElement enclosingClass, Element member) {
-                if (member.isGenerativeConstructor()) {
-                  properties.add(
-                      new jsAst.Property(
-                          js.string(member.name.slowToString()),
-                          new jsAst.VariableUse(
-                              backend.namer.isolateAccess(member))));
-                }
-              },
-              includeBackendMembers: false,
-              includeSuperAndInjectedMembers: false);
+          for (Element member in analysis.constructors(classElement)) {
+            properties.add(
+                new jsAst.Property(
+                    js.string(member.name.slowToString()),
+                    new jsAst.VariableUse(
+                        backend.namer.isolateAccess(member))));
+          }
 
           var map = new jsAst.ObjectInitializer(properties);
           elements.add(map);
