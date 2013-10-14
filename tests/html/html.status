@@ -65,7 +65,6 @@ xhr_test/json: Fail # TODO(kasperl): Please triage.
 [ $compiler == dart2js && $runtime == ie10 ]
 async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893
-svgelement_test/supported_feMerge: Pass, Fail # issue 14049
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
