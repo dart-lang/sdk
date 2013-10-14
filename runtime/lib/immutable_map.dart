@@ -84,22 +84,28 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 }
 
-class _ImmutableMapKeyIterable<E> extends IterableBase<E> {
+class _ImmutableMapKeyIterable<E> extends IterableBase<E>
+                                  implements EfficientLength {
   final ImmutableMap _map;
   _ImmutableMapKeyIterable(this._map);
 
   Iterator<E> get iterator {
     return new _ImmutableMapKeyIterator<E>(_map);
   }
+
+  int get length => _map.length;
 }
 
-class _ImmutableMapValueIterable<E> extends IterableBase<E> {
+class _ImmutableMapValueIterable<E> extends IterableBase<E>
+                                    implements EfficientLength {
   final ImmutableMap _map;
   _ImmutableMapValueIterable(this._map);
 
   Iterator<E> get iterator {
     return new _ImmutableMapValueIterator<E>(_map);
   }
+
+  int get length => _map.length;
 }
 
 class _ImmutableMapKeyIterator<E> implements Iterator<E> {

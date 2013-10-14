@@ -20,7 +20,7 @@ part of dart.core;
  * guarantee anything about the order that elements are accessed in by
  * iteration. [LinkedHashSet] iterates in the insertion order of its elements.
  */
-abstract class Set<E> extends IterableBase<E> {
+abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Creates an empty [Set].
    *

@@ -280,14 +280,15 @@ abstract class Iterable<E> {
   E elementAt(int index);
 }
 
-
 typedef E _Generator<E>(int index);
 
-class _GeneratorIterable<E> extends IterableBase<E> {
+class _GeneratorIterable<E> extends IterableBase<E>
+                            implements EfficientLength {
   final int _count;
   final _Generator<E> _generator;
   _GeneratorIterable(this._count, this._generator);
   Iterator<E> get iterator => new _GeneratorIterator(_count, _generator);
+  int get length => _count;
 }
 
 class _GeneratorIterator<E> implements Iterator<E> {

@@ -390,9 +390,29 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void replaceRange(int start, int end, Iterable<E> newContents) {
-    // TODO(floitsch): Optimize this.
-    removeRange(start, end);
-    insertAll(start, newContents);
+    _rangeCheck(start, end);
+    if (newContents is! EfficientLength) {
+      newContents = newContents.toList();
+    }
+    int removeLength = end - start;
+    int insertLength = newContents.length;
+    if (removeLength >= insertLength) {
+      int delta = removeLength - insertLength;
+      int insertEnd = start + insertLength;
+      int newLength = this.length - delta;
+      this.setRange(start, insertEnd, newContents);
+      if (delta != 0) {
+        this.setRange(insertEnd, newLength, this, end);
+        this.length = newLength;
+      }
+    } else {
+      int delta = insertLength - removeLength;
+      int newLength = this.length + delta;
+      int insertEnd = start + insertLength;  // aka. end + delta.
+      this.length = newLength;
+      this.setRange(insertEnd, newLength, this, end);
+      this.setRange(start, insertEnd, newContents);
+    }
   }
 
   int indexOf(Object element, [int startIndex = 0]) {
@@ -462,8 +482,7 @@ abstract class ListMixin<E> implements List<E> {
     if (index < 0 || index > length) {
       throw new RangeError.range(index, 0, length);
     }
-    // TODO(floitsch): we can probably detect more cases.
-    if (iterable is! List && iterable is! Set && iterable is! SubListIterable) {
+    if (iterable is EfficientLength) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;

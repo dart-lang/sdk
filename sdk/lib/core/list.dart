@@ -36,7 +36,7 @@ part of dart.core;
  * temporarily and is restored before continuing the iteration, the iterator
  * does not detect it.
  */
-abstract class List<E> implements Iterable<E> {
+abstract class List<E> implements Iterable<E>, EfficientLength {
   /**
    * Creates a list of the given length.
    *

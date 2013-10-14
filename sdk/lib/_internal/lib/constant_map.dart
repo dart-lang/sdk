@@ -23,7 +23,8 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
 
 // This class has no constructor. This is on purpose since the instantiation
 // is shortcut by the compiler.
-class ConstantStringMap<K, V> extends ConstantMap<K, V> {
+class ConstantStringMap<K, V> extends ConstantMap<K, V>
+                              implements _symbol_dev.EfficientLength {
   final int length;
   // A constant map is backed by a JavaScript object.
   final _jsObject;

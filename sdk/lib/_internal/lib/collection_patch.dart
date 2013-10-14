@@ -401,7 +401,8 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   String toString() => Maps.mapToString(this);
 }
 
-class HashMapKeyIterable<E> extends IterableBase<E> {
+class HashMapKeyIterable<E> extends IterableBase<E>
+                            implements EfficientLength {
   final _map;
   HashMapKeyIterable(this._map);
 
@@ -850,7 +851,8 @@ class LinkedHashMapCell {
   LinkedHashMapCell(this._key, this._value);
 }
 
-class LinkedHashMapKeyIterable<E> extends IterableBase<E> {
+class LinkedHashMapKeyIterable<E> extends IterableBase<E>
+                                  implements EfficientLength {
   final _map;
   LinkedHashMapKeyIterable(this._map);
 
