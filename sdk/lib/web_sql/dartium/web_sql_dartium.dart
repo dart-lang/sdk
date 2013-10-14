@@ -206,7 +206,7 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List {
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()

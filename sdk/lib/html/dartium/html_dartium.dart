@@ -8542,7 +8542,7 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List {
 
   @DomName('DOMStringList.length')
   @DocsEditable()
@@ -12089,7 +12089,7 @@ class FileError extends DomError {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
+class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableListMixin<File> implements List {
 
   @DomName('FileList.length')
   @DocsEditable()
@@ -13150,7 +13150,7 @@ class HmacParams extends Algorithm {
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
 
   @DomName('HTMLAllCollection.length')
   @DocsEditable()
@@ -13227,7 +13227,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
@@ -18278,7 +18278,7 @@ class MimeType extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
+class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List {
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
@@ -19724,7 +19724,7 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
 
   @DomName('NodeList.length')
   @DocsEditable()
@@ -21045,7 +21045,7 @@ class Plugin extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
+class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List {
 
   @DomName('PluginArray.length')
   @DocsEditable()
@@ -23194,7 +23194,7 @@ class SourceBuffer extends EventTarget {
 @DomName('SourceBufferList')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 @Experimental()
-class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List<SourceBuffer> {
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -23419,7 +23419,7 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
+class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List {
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
@@ -25756,7 +25756,7 @@ class TextTrackCue extends EventTarget {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
+class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List {
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
@@ -25827,7 +25827,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
 @DomName('TextTrackList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
 @Experimental()
-class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List<TextTrack> {
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26130,7 +26130,7 @@ class TouchEvent extends UIEvent {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
+class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -29097,7 +29097,7 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
+class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List {
 
   @DomName('ClientRectList.length')
   @DocsEditable()
@@ -29176,7 +29176,7 @@ abstract class _Counter extends NativeFieldWrapperClass1 {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
+class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List {
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
@@ -29243,7 +29243,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
 @DomName('CSSValueList')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List {
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -29511,7 +29511,7 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
+class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List {
 
   @DomName('GamepadList.length')
   @DocsEditable()
@@ -29732,7 +29732,7 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
@@ -29904,7 +29904,7 @@ abstract class _SharedWorker extends EventTarget implements AbstractWorker {
 @DomName('SpeechInputResultList')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
 @Experimental()
-class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List<SpeechInputResult> {
+class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List {
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable()
@@ -29971,7 +29971,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List {
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
@@ -30036,7 +30036,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
+class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List {
 
   @DomName('StyleSheetList.length')
   @DocsEditable()

@@ -8009,7 +8009,7 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
+class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List native "DOMStringList" {
 
   @DomName('DOMStringList.length')
   @DocsEditable()
@@ -11669,7 +11669,7 @@ class FileError extends DomError native "FileError" {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
+class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List native "FileList" {
 
   @DomName('FileList.length')
   @DocsEditable()
@@ -12646,7 +12646,7 @@ class HmacParams extends Algorithm native "HmacParams" {
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> native "HTMLAllCollection" {
+class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements List native "HTMLAllCollection" {
 
   @DomName('HTMLAllCollection.length')
   @DocsEditable()
@@ -12721,7 +12721,7 @@ class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListM
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
+class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List native "HTMLCollection" {
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
@@ -16953,7 +16953,7 @@ class MimeType extends Interceptor native "MimeType" {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
+class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List native "MimeTypeArray" {
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
@@ -18410,7 +18410,7 @@ class NodeIterator extends Interceptor native "NodeIterator" {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
+class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List native "NodeList,RadioNodeList" {
 
   @DomName('NodeList.length')
   @DocsEditable()
@@ -19546,7 +19546,7 @@ class Plugin extends Interceptor native "Plugin" {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
+class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List native "PluginArray" {
 
   @DomName('PluginArray.length')
   @DocsEditable()
@@ -21532,7 +21532,7 @@ class SourceBuffer extends EventTarget native "SourceBuffer" {
 @DomName('SourceBufferList')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 @Experimental()
-class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List<SourceBuffer> native "SourceBufferList" {
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List native "SourceBufferList" {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -21707,7 +21707,7 @@ class SpeechGrammar extends Interceptor native "SpeechGrammar" {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
+class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List native "SpeechGrammarList" {
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
@@ -23708,7 +23708,7 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
+class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements JavaScriptIndexingBehavior, List native "TextTrackCueList" {
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
@@ -23775,7 +23775,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
 @DomName('TextTrackList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
 @Experimental()
-class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List<TextTrack> native "TextTrackList" {
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List native "TextTrackList" {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
@@ -24075,7 +24075,7 @@ class TouchEvent extends UIEvent native "TouchEvent" {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
+class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List native "TouchList" {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -27142,7 +27142,7 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle>, JavaScriptIndexingBehavior native "ClientRectList" {
+class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements JavaScriptIndexingBehavior, List native "ClientRectList" {
 
   @DomName('ClientRectList.length')
   @DocsEditable()
@@ -27214,7 +27214,7 @@ abstract class _Counter extends Interceptor native "Counter" {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
+class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List native "CSSRuleList" {
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
@@ -27277,7 +27277,7 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
 @DomName('CSSValueList')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List<_CSSValue> native "CSSValueList" {
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List native "CSSValueList" {
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -27501,7 +27501,7 @@ abstract class _FileWriterSync extends Interceptor native "FileWriterSync" {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
+class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List native "GamepadList" {
 
   @DomName('GamepadList.length')
   @DocsEditable()
@@ -27697,7 +27697,7 @@ abstract class _HTMLMarqueeElement extends HtmlElement native "HTMLMarqueeElemen
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap,MozNamedAttrMap" {
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List native "NamedNodeMap,MozNamedAttrMap" {
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
@@ -27853,7 +27853,7 @@ abstract class _SharedWorker extends EventTarget implements AbstractWorker nativ
 @DomName('SpeechInputResultList')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
 @Experimental()
-class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
+class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List native "SpeechInputResultList" {
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable()
@@ -27916,7 +27916,7 @@ class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResul
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
+class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List native "SpeechRecognitionResultList" {
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
@@ -27977,7 +27977,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
+class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List native "StyleSheetList" {
 
   @DomName('StyleSheetList.length')
   @DocsEditable()

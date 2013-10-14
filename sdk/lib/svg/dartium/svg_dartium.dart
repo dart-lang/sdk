@@ -3183,7 +3183,7 @@ class Length extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
+class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, ImmutableListMixin<Length> implements List {
 
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable()
@@ -3673,7 +3673,7 @@ class Number extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
+class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, ImmutableListMixin<Number> implements List {
 
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable()
@@ -4689,7 +4689,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
+class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List {
 
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable()
@@ -5449,7 +5449,7 @@ class StopElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List {
 
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable()
@@ -6467,7 +6467,7 @@ class Transform extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
+class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List {
 
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable()
@@ -6855,7 +6855,7 @@ class ZoomEvent extends UIEvent {
 @DocsEditable()
 @DomName('SVGElementInstanceList')
 @Unstable()
-class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
+class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List {
 
   @DomName('SVGElementInstanceList.length')
   @DocsEditable()

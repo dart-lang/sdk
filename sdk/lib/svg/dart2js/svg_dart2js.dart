@@ -3007,7 +3007,7 @@ class Length extends Interceptor native "SVGLength" {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> native "SVGLengthList" {
+class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements List native "SVGLengthList" {
 
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable()
@@ -3455,7 +3455,7 @@ class Number extends Interceptor native "SVGNumber" {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> native "SVGNumberList" {
+class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements List native "SVGNumberList" {
 
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable()
@@ -4216,7 +4216,7 @@ class PathSegLinetoVerticalRel extends PathSeg native "SVGPathSegLinetoVerticalR
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> native "SVGPathSegList" {
+class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List native "SVGPathSegList" {
 
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable()
@@ -4895,7 +4895,7 @@ class StopElement extends SvgElement native "SVGStopElement" {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements List<String> native "SVGStringList" {
+class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements List native "SVGStringList" {
 
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable()
@@ -5844,7 +5844,7 @@ class Transform extends Interceptor native "SVGTransform" {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> native "SVGTransformList" {
+class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List native "SVGTransformList" {
 
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable()
@@ -6206,7 +6206,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 @DocsEditable()
 @DomName('SVGElementInstanceList')
 @Unstable()
-class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> native "SVGElementInstanceList" {
+class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List native "SVGElementInstanceList" {
 
   @DomName('SVGElementInstanceList.length')
   @DocsEditable()
