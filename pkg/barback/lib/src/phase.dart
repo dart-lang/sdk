@@ -14,6 +14,7 @@ import 'asset_set.dart';
 import 'barback_logger.dart';
 import 'group_runner.dart';
 import 'errors.dart';
+import 'multiset.dart';
 import 'phase_forwarder.dart';
 import 'phase_input.dart';
 import 'phase_output.dart';
@@ -58,7 +59,6 @@ class Phase {
   /// The outputs for this phase.
   final _outputs = new Map<AssetId, PhaseOutput>();
 
-  // TODO(nweiz): Don't re-calculate this on the fly all the time.
   /// The set of all [AssetNode.origin] properties of the input assets for this
   /// phase.
   ///
@@ -72,8 +72,7 @@ class Phase {
   /// a PhaseInput, we must be able to distinguish it from other outputs with
   /// the same id. To do so, we check if its origin is in [_inputOrigins]. If
   /// so, it's been forwarded unmodified.
-  Set<AssetNode> get _inputOrigins =>
-    _inputs.values.map((input) => input.input.origin).toSet();
+  final _inputOrigins = new Multiset<AssetNode>();
 
   /// A stream that emits an event whenever this phase becomes dirty and needs
   /// to be run.
@@ -149,9 +148,11 @@ class Phase {
       if (exception != null) cascade.reportError(exception);
     });
 
+    _inputOrigins.add(node.origin);
     var input = new PhaseInput(this, node, _transformers);
     _inputs[node.id] = input;
     input.input.whenRemoved.then((_) {
+      _inputOrigins.remove(node.origin);
       _inputs.remove(node.id);
       _forwarders.remove(node.id).remove();
     });
