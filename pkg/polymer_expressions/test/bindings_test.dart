@@ -72,6 +72,7 @@ main() {
   });
 }
 
+@reflectable
 class NotifyModel extends ChangeNotifierBase {
   var _x;
   NotifyModel([this._x]);

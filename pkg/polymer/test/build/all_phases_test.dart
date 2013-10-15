@@ -5,6 +5,7 @@
 library polymer.test.build.all_phases_test;
 
 import 'package:polymer/transformer.dart';
+import 'package:polymer/src/build/script_compactor.dart' show MAIN_HEADER;
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';
@@ -44,11 +45,7 @@ void main() {
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
-          '''library app_bootstrap;
-
-          import 'package:polymer/polymer.dart';
-          import 'dart:mirrors' show currentMirrorSystem;
-
+          '''$MAIN_HEADER
           import 'a.dart' as i0;
 
           void main() {
@@ -77,11 +74,7 @@ void main() {
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
-          '''library app_bootstrap;
-
-          import 'package:polymer/polymer.dart';
-          import 'dart:mirrors' show currentMirrorSystem;
-
+          '''$MAIN_HEADER
           import 'test.html.0.dart' as i0;
 
           void main() {
@@ -118,11 +111,7 @@ void main() {
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
-          '''library app_bootstrap;
-
-          import 'package:polymer/polymer.dart';
-          import 'dart:mirrors' show currentMirrorSystem;
-
+          '''$MAIN_HEADER
           import 'a.dart' as i0;
           import 'test.html.0.dart' as i1;
           import 'test.html.1.dart' as i2;
@@ -169,11 +158,7 @@ void main() {
           '<script src="packages/browser/dart.js"></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
-          '''library app_bootstrap;
-
-          import 'package:polymer/polymer.dart';
-          import 'dart:mirrors' show currentMirrorSystem;
-
+          '''$MAIN_HEADER
           import 'test2.html.0.dart' as i0;
           import 'b.dart' as i1;
           import 'index.html.0.dart' as i2;
@@ -206,9 +191,9 @@ String _sampleObservableOutput(String className, String field) =>
     "library ${className}_$field;\n"
     "import 'package:observe/observe.dart';\n\n"
     "class $className extends ChangeNotifierBase {\n"
-    "  @observable int get $field => __\$$field; "
+    "  @reflectable @observable int get $field => __\$$field; "
       "int __\$$field; "
-      "set $field(int value) { "
+      "@reflectable set $field(int value) { "
       "__\$$field = notifyPropertyChange(#$field, __\$$field, value); "
       "}\n"
     "  $className($field) : __\$$field = $field;\n"

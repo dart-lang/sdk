@@ -17,9 +17,9 @@ class ObservableBox<T> extends ChangeNotifierBase {
 
   ObservableBox([T initialValue]) : _value = initialValue;
 
-  T get value => _value;
+  @reflectable T get value => _value;
 
-  void set value(T newValue) {
+  @reflectable void set value(T newValue) {
     _value = notifyPropertyChange(#value, _value, newValue);
   }
 

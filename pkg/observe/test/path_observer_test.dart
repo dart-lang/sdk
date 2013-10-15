@@ -224,6 +224,7 @@ observePathTests() {
   });
 }
 
+@reflectable
 class TestModel extends ChangeNotifierBase {
   var _a, _b, _c;
 

@@ -11,6 +11,7 @@
 library polymer_expressions.src.globals;
 
 import 'dart:collection';
+import 'package:observe/observe.dart' show reflectable;
 
 /**
  * Returns an [Iterable] of [IndexedValue]s where the nth value holds the nth
@@ -19,7 +20,7 @@ import 'dart:collection';
 Iterable<IndexedValue> enumerate(Iterable iterable) =>
     new EnumerateIterable(iterable);
 
-class IndexedValue<V> {
+@reflectable class IndexedValue<V> {
   final int index;
   final V value;
 

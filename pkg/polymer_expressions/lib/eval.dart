@@ -6,6 +6,9 @@ library polymer_expressions.eval;
 
 import 'dart:async';
 import 'dart:collection';
+
+@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
+    override: 'polymer_expressions.eval')
 import 'dart:mirrors';
 
 import 'package:observe/observe.dart';

@@ -7,6 +7,12 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
 
+// Note: we use @CustomTag to make this type reflectable.
+@CustomTag('my-element')
+class MyElement extends PolymerElement {
+  MyElement.created() : super.created();
+}
+
 main() {
   useHtmlConfiguration();
 

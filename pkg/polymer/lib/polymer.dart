@@ -43,6 +43,10 @@ import 'dart:async';
 import 'dart:collection' show HashMap;
 import 'dart:html';
 import 'dart:js' as js;
+
+@MirrorsUsed(metaTargets:
+    const [Reflectable, ObservableProperty, CustomTag, _InitMethodAnnotation],
+    override: const ['polymer', 'polymer.deserialize'])
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart' show Logger, Level;
@@ -58,6 +62,7 @@ import 'package:polymer_expressions/polymer_expressions.dart'
 import 'deserialize.dart' as deserialize;
 import 'job.dart';
 import 'platform.dart' as platform;
+import 'src/reflected_type.dart';
 
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';

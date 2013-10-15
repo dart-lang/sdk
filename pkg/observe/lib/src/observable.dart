@@ -5,11 +5,6 @@
 part of observe;
 
 /**
- * Use `@observable` to make a field automatically observable.
- */
-const ObservableProperty observable = const ObservableProperty();
-
-/**
  * Interface representing an observable object. This is used by data in
  * model-view architectures to notify interested parties of [changes].
  *
@@ -216,20 +211,4 @@ _notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
     obj.notifyChange(new PropertyChangeRecord(field));
   }
   return newValue;
-}
-
-
-/**
- * An annotation that is used to make a property observable.
- * Normally this is used via the [observable] constant, for example:
- *
- *     class Monster {
- *       @observable int health;
- *     }
- *
- * If needed, you can subclass this to create another annotation that will also
- * be treated as observable.
- */
-class ObservableProperty {
-  const ObservableProperty();
 }

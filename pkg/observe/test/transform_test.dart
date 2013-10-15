@@ -160,12 +160,12 @@ String _sampleObservableOutput(String annotation) =>
     "library A_foo;\n"
     "import 'package:observe/observe.dart';\n\n"
     "class A extends ChangeNotifierBase {\n"
-    "  @$annotation int get foo => __\$foo; int __\$foo; "
+    "  @reflectable @$annotation int get foo => __\$foo; int __\$foo; "
       "${_makeSetter('int', 'foo')}\n"
     "  A(foo) : __\$foo = foo;\n"
     "}\n";
 
-_makeSetter(type, name) => 'set $name($type value) { '
+_makeSetter(type, name) => '@reflectable set $name($type value) { '
     '__\$$name = notifyPropertyChange(#$name, __\$$name, value); }';
 
 String _complexObservable(String annotation) => '''
@@ -180,17 +180,17 @@ class Foo extends ObservableBase {
 }
 ''';
 
-String _complexObservableOutput(String annotation) =>
+String _complexObservableOutput(String meta) =>
     "class Foo extends ChangeNotifierBase {\n"
-    "  @$annotation\n"
+    "  @reflectable @$meta\n"
     "  @otherMetadata\n"
     "      Foo\n"
     "          get foo => __\$foo; Foo __\$foo/*D*/= 1; "
         "${_makeSetter('Foo', 'foo')} "
-        "@$annotation @otherMetadata Foo get bar => __\$bar; "
+        "@reflectable @$meta @otherMetadata Foo get bar => __\$bar; "
         "Foo __\$bar =/*A*/2/*B*/; ${_makeSetter('Foo', 'bar')}\n"
-    "          @$annotation @otherMetadata Foo get quux => __\$quux; "
+    "          @reflectable @$meta @otherMetadata Foo get quux => __\$quux; "
         "Foo __\$quux/*C*/; ${_makeSetter('Foo', 'quux')}\n\n"
-    "  @$annotation dynamic get baz => __\$baz; dynamic __\$baz; "
+    "  @reflectable @$meta dynamic get baz => __\$baz; dynamic __\$baz; "
         "${_makeSetter('dynamic', 'baz')}\n"
     "}\n";

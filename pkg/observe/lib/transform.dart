@@ -104,19 +104,23 @@ class _ErrorCollector extends AnalysisErrorListener {
 _getSpan(SourceFile file, ASTNode node) => file.span(node.offset, node.end);
 
 /** True if the node has the `@observable` or `@published` annotation. */
-// TODO(jmesserly): it is not good to be hard coding these. We should do a
-// resolve and do a proper ObservableProperty subtype check. However resolve
-// is very expensive in analyzer_experimental, so it isn't feasible yet.
+// TODO(jmesserly): it is not good to be hard coding Polymer support here.
 bool _hasObservable(AnnotatedNode node) =>
-    _hasAnnotation(node, 'observable') || _hasAnnotation(node, 'published');
+    node.metadata.any(_isObservableAnnotation);
 
-bool _hasAnnotation(AnnotatedNode node, String name) {
-  // TODO(jmesserly): this isn't correct if the annotation has been imported
-  // with a prefix, or cases like that. We should technically be resolving, but
-  // that is expensive.
-  return node.metadata.any((m) => m.name.name == name &&
-      m.constructorName == null && m.arguments == null);
-}
+// TODO(jmesserly): this isn't correct if the annotation has been imported
+// with a prefix, or cases like that. We should technically be resolving, but
+// that is expensive in analyzer_experimental, so it isn't feasible yet.
+bool _isObservableAnnotation(Annotation node) =>
+    _isAnnotationContant(node, 'observable') ||
+    _isAnnotationContant(node, 'published') ||
+    _isAnnotationType(node, 'ObservableProperty') ||
+    _isAnnotationType(node, 'PublishedProperty');
+
+bool _isAnnotationContant(Annotation m, String name) =>
+    m.name.name == name && m.constructorName == null && m.arguments == null;
+
+bool _isAnnotationType(Annotation m, String name) => m.name == name;
 
 void _transformClass(ClassDeclaration cls, TextEditTransaction code,
     SourceFile file, TransformLogger logger) {
@@ -334,10 +338,10 @@ void _transformFields(SourceFile file, FieldDeclaration member,
   //
   // Will be transformed into something like:
   //
-  //     @observable
+  //     @reflectable @observable
   //     @OtherMetaData()
   //         Foo
-  //             get foo => __foo; Foo __foo = 1; set foo ...; ... bar ...
+  //             get foo => __foo; Foo __foo = 1; @reflectable set foo ...; ...
   //             @observable @OtherMetaData() Foo get baz => __baz; Foo baz; ...
   //
   // Metadata is moved to the getter.
@@ -347,6 +351,7 @@ void _transformFields(SourceFile file, FieldDeclaration member,
     metadata = member.metadata
       .map((m) => _getOriginalCode(code, m))
       .join(' ');
+    metadata = '@reflectable $metadata';
   }
 
   for (int i = 0; i < fields.variables.length; i++) {
@@ -357,7 +362,12 @@ void _transformFields(SourceFile file, FieldDeclaration member,
 
     // The first field is expanded differently from subsequent fields, because
     // we can reuse the metadata and type annotation.
-    if (i > 0) beforeInit = '$metadata $type $beforeInit';
+    if (i == 0) {
+      final begin = member.metadata.first.offset;
+      code.edit(begin, begin, '@reflectable ');
+    } else {
+      beforeInit = '$metadata $type $beforeInit';
+    }
 
     code.edit(field.name.offset, field.name.end, beforeInit);
 
@@ -365,7 +375,7 @@ void _transformFields(SourceFile file, FieldDeclaration member,
     final end = _findFieldSeperator(field.endToken.next);
     if (end.type == TokenType.COMMA) code.edit(end.offset, end.end, ';');
 
-    code.edit(end.end, end.end, ' set $name($type value) { '
+    code.edit(end.end, end.end, ' @reflectable set $name($type value) { '
         '__\$$name = notifyPropertyChange(#$name, __\$$name, value); }');
   }
 }

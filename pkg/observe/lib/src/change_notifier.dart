@@ -71,8 +71,8 @@ abstract class ChangeNotifierMixin implements Observable {
    * setter:
    *
    *     var _myField;
-   *     get myField => _myField;
-   *     set myField(value) {
+   *     @reflectable get myField => _myField;
+   *     @reflectable set myField(value) {
    *       _myField = notifyPropertyChange(#myField, _myField, value);
    *     }
    */

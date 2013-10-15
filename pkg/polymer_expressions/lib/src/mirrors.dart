@@ -4,6 +4,10 @@
 
 library polymer_expressions.src.mirrors;
 
+import 'package:observe/observe.dart' show Reflectable, ObservableProperty;
+
+@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
+    override: 'polymer_expressions.src.mirrors')
 import 'dart:mirrors';
 
 /**
