@@ -109,7 +109,6 @@ audiobuffersourcenode_test: Pass, Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
-microtask_test: Fail, Pass # Appears to be flaky
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
 storage_test: Fail, Pass
@@ -177,7 +176,6 @@ dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 form_element_test: Fail # Issue 4793.
 localstorage_test: Fail
-microtask_test: Pass, Fail # http://dartbug.com/8300
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
