@@ -123,7 +123,8 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  ActivationFrame(uword pc, uword fp, uword sp, const Code& code);
+  ActivationFrame(uword pc, uword fp, uword sp, const Code& code,
+                  const Array& deopt_frame, intptr_t deopt_frame_offset);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -144,10 +145,6 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t TokenPos();
   intptr_t LineNumber();
   void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
-  void SetDeoptFrame(const Array& deopt_frame, intptr_t deopt_frame_offset) {
-    deopt_frame_ = deopt_frame.raw();
-    deopt_frame_offset_ = deopt_frame_offset;
-  }
 
   // Returns true if this frame is for a function that is visible
   // to the user and can be debugged.
@@ -202,8 +199,8 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t context_level_;
 
   // Some frames are deoptimized into a side array in order to inspect them.
-  Array& deopt_frame_;
-  intptr_t deopt_frame_offset_;
+  const Array& deopt_frame_;
+  const intptr_t deopt_frame_offset_;
 
   bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
@@ -381,7 +378,8 @@ class Debugger {
                                            uword pc,
                                            StackFrame* frame,
                                            const Code& code,
-                                           bool optimized,
+                                           const Array& deopt_frame,
+                                           intptr_t deopt_frame_offset,
                                            ActivationFrame* callee_activation,
                                            const Context& entry_ctx);
   static RawArray* DeoptimizeToArray(Isolate* isolate,

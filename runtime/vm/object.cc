@@ -9547,6 +9547,9 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
 
 
 const char* Context::ToCString() const {
+  if (IsNull()) {
+    return "Context (Null)";
+  }
   const Context& parent_ctx = Context::Handle(parent());
   if (parent_ctx.IsNull()) {
     const char* kFormat = "Context num_variables:% " Pd "";

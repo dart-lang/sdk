@@ -126,8 +126,13 @@ void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
 }
 
-
-ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp, const Code& code)
+ActivationFrame::ActivationFrame(
+    uword pc,
+    uword fp,
+    uword sp,
+    const Code& code,
+    const Array& deopt_frame,
+    intptr_t deopt_frame_offset)
     : pc_(pc), fp_(fp), sp_(sp),
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.raw())),
@@ -136,8 +141,8 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp, const Code& code)
       pc_desc_index_(-1),
       line_number_(-1),
       context_level_(-1),
-      deopt_frame_(Array::ZoneHandle()),
-      deopt_frame_offset_(0),
+      deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
+      deopt_frame_offset_(deopt_frame_offset),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
@@ -580,6 +585,9 @@ void ActivationFrame::VariableAt(intptr_t i,
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
     if (ctx_.IsNull()) {
+      if (FLAG_use_new_stacktrace) {
+        UNREACHABLE();  // ctx_ should never be null.
+      }
       *value = Symbols::New("<unknown>");
       return;
     }
@@ -593,6 +601,9 @@ void ActivationFrame::VariableAt(intptr_t i,
       if ((ctx_slot < ctx_.num_variables()) && (ctx_slot >= 0)) {
         *value = ctx_.At(ctx_slot);
       } else {
+        if (FLAG_use_new_stacktrace) {
+          UNREACHABLE();  // ctx_ should be correct.
+        }
         *value = Symbols::New("<unknown>");
       }
     } else {
@@ -608,6 +619,9 @@ void ActivationFrame::VariableAt(intptr_t i,
           ((ctx_slot < var_ctx.num_variables()) && (ctx_slot >= 0))) {
         *value = var_ctx.At(ctx_slot);
       } else {
+        if (FLAG_use_new_stacktrace) {
+          UNREACHABLE();  // var_ctx should be correct.
+        }
         *value = Symbols::New("<unknown>");
       }
     }
@@ -1023,20 +1037,19 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             uword pc,
                                             StackFrame* frame,
                                             const Code& code,
-                                            bool optimized,
+                                            const Array& deopt_frame,
+                                            intptr_t deopt_frame_offset,
                                             ActivationFrame* callee_activation,
                                             const Context& entry_ctx) {
-  // We never provide both a callee activation and an entry context.
-  ASSERT((callee_activation == NULL) || entry_ctx.IsNull());
+  // We provide either a callee activation or an entry context.  Not both.
+  ASSERT(((callee_activation != NULL) && entry_ctx.IsNull()) ||
+         ((callee_activation == NULL) && !entry_ctx.IsNull()));
   ActivationFrame* activation =
-      new ActivationFrame(pc, frame->fp(), frame->sp(), code);
+      new ActivationFrame(pc, frame->fp(), frame->sp(), code,
+                          deopt_frame, deopt_frame_offset);
 
   // Recover the context for this frame.
-  if (optimized) {
-    // Bail out for optimized frames for now.
-    activation->SetContext(Context::Handle(isolate));
-
-  } else if (callee_activation == NULL) {
+  if (callee_activation == NULL) {
     // No callee.  Use incoming entry context.  Could be from
     // isolate's top context or from an entry frame.
     activation->SetContext(entry_ctx);
@@ -1050,10 +1063,14 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
 
     // Sometimes there is no saved context. This is a bug.
     // https://code.google.com/p/dart/issues/detail?id=12767
-    if (FLAG_verbose_debug && closure_call_ctx.IsNull()) {
+    if ((FLAG_verbose_debug || FLAG_use_new_stacktrace) &&
+        closure_call_ctx.IsNull()) {
       PrintStackTraceError(
           "Expected to find saved context for call to closure function",
           activation, callee_activation);
+      if (FLAG_use_new_stacktrace) {
+        UNREACHABLE();  // This bug should be fixed with new stack collection.
+      }
     }
 
   } else {
@@ -1122,10 +1139,10 @@ DebuggerStackTrace* Debugger::CollectStackTraceNew() {
                                                 it.pc(),
                                                 frame,
                                                 inlined_code,
-                                                true,
+                                                deopt_frame,
+                                                deopt_frame_offset,
                                                 current_activation,
                                                 entry_ctx);
-          current_activation->SetDeoptFrame(deopt_frame, deopt_frame_offset);
           stack_trace->AddActivation(current_activation);
           entry_ctx = Context::null();  // Only use entry context once.
         }
@@ -1134,7 +1151,8 @@ DebuggerStackTrace* Debugger::CollectStackTraceNew() {
                                               frame->pc(),
                                               frame,
                                               code,
-                                              false,
+                                              Object::null_array(),
+                                              0,
                                               current_activation,
                                               entry_ctx);
         stack_trace->AddActivation(current_activation);
@@ -1167,7 +1185,8 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       ActivationFrame* activation =
-          new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code);
+          new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code,
+                              Object::null_array(), 0);
       // If this activation frame called a closure, the function has
       // saved its context before the call.
       if ((callee_activation != NULL) &&
@@ -1217,7 +1236,8 @@ ActivationFrame* Debugger::TopDartFrame() const {
   }
   Code& code = Code::Handle(isolate_, frame->LookupDartCode());
   ActivationFrame* activation =
-      new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code);
+      new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code,
+                          Object::null_array(), 0);
   return activation;
 }
 
