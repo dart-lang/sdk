@@ -149,15 +149,8 @@ testSwitch() {
       NOT_ASSIGNABLE);
   analyze("switch ('') { case 1: break; case 2: break; }",
       [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
-
-  analyze("switch (0.5) { case 0.5: break; case 1.5: break; }",
-      [], []);
-  analyze("switch (1.0) { case 1.0: break; case 1.5: break; }",
-      [], []);
-  analyze("switch (null) { case 1.0: break; case 2: break; }",
-      [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-       MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE],
-      [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL]);
+  analyze("switch (1.5) { case 1: break; case 2: break; }",
+      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
 testOperators() {

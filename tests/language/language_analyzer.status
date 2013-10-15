@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-switch_bad_case_test/02: Fail # missing error in double in switch case expr; however there is contradiction - Object has ==, and double - not
-
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 

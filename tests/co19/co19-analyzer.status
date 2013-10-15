@@ -214,3 +214,5 @@ LibTest/async/StreamEventTransformer/bind_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
+
+Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
