@@ -33,7 +33,9 @@ mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/generics_substitution_test: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/immutable_collections_test: RuntimeError # Issue 14030
-mirrors/initializing_formals_test: CompileTimeError # Issue 12164
+mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
+mirrors/initializing_formals_test/02: RuntimeError # Issue 12087
+mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
