@@ -17,7 +17,7 @@ void _asyncRunCallback() {
     try {
       callback();
     } catch (e) {
-      _AsyncRun._enqueueImmediate(_asyncRunCallback);
+      _AsyncRun._scheduleImmediate(_asyncRunCallback);
       rethrow;
     }
   }
@@ -30,7 +30,7 @@ void _scheduleAsyncCallback(callback) {
   // same Timer callback.
   _asyncCallbacks.add(callback);
   if (!_callbacksAreEnqueued) {
-    _AsyncRun._enqueueImmediate(_asyncRunCallback);
+    _AsyncRun._scheduleImmediate(_asyncRunCallback);
     _callbacksAreEnqueued = true;
   }
 }
@@ -74,6 +74,6 @@ void runAsync(void callback()) {
 }
 
 class _AsyncRun {
-  /** Enqueues the given callback before any other event in the event-loop. */
-  external static void _enqueueImmediate(void callback());
+  /** Schedule the given callback before any other event in the event-loop. */
+  external static void _scheduleImmediate(void callback());
 }
