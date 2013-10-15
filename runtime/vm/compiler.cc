@@ -106,7 +106,7 @@ static void AddRelatedClassesToList(const Class& cls,
                                     const GrowableObjectArray& patch_list) {
   Isolate* isolate = Isolate::Current();
   Class& parse_class = Class::Handle(isolate);
-  Type& interface_type = Type::Handle(isolate);
+  AbstractType& interface_type = Type::Handle(isolate);
   Array& interfaces = Array::Handle(isolate);
 
   // Add all the interfaces implemented by the class that have not been
