@@ -24,10 +24,6 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   return result;
 }
 
-patch void print(Object object) {
-  Primitives.printString(object.toString());
-}
-
 patch int identityHashCode(Object object) => objectHashCode(object);
 
 // Patch for Object implementation.

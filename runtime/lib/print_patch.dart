@@ -4,8 +4,8 @@
 
 typedef void _PrintClosure(Object obj);
 
-patch void print(Object obj) {
-  _printClosure(obj.toString());
+patch void printToConsole(String line) {
+  _printClosure(line);
 }
 
 void _unsupportedPrint(Object obj) {

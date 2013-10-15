@@ -8,6 +8,7 @@
   'sources': [
     'collection_dev_patch.dart',
     # The above file needs to be first as it imports required libraries.
+    'print_patch.dart',
     'symbol_patch.dart',
   ],
 }

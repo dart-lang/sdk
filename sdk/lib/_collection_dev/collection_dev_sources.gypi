@@ -10,6 +10,7 @@
     'arrays.dart',
     'iterable.dart',
     'list.dart',
+    'print.dart',
     'sort.dart',
     'symbol.dart',
   ],

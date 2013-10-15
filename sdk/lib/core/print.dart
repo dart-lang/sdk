@@ -4,4 +4,11 @@
 
 part of dart.core;
 
-external void print(Object object);
+void print(Object object) {
+  String line = object.toString();
+  if (printToZone == null) {
+    printToConsole(line);
+  } else {
+    printToZone(line);
+  }
+}

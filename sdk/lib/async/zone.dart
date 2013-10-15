@@ -31,6 +31,8 @@ typedef Timer CreateTimerHandler(
 typedef Timer CreatePeriodicTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone,
     Duration period, void f(Timer timer));
+typedef void PrintHandler(
+    Zone self, ZoneDelegate parent, Zone zone, String line);
 typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
                          ZoneSpecification specification,
                          Map<Symbol, dynamic> zoneValues);
@@ -82,6 +84,7 @@ abstract class ZoneSpecification {
                       Duration duration, void f()): null,
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
                               Duration period, void f(Timer timer)): null,
+    void print(Zone self, ZoneDelegate parent, Zone zone, String line): null,
     Zone fork(Zone self, ZoneDelegate parent, Zone zone,
               ZoneSpecification specification, Map zoneValues): null
   }) = _ZoneSpecification;
@@ -112,6 +115,7 @@ abstract class ZoneSpecification {
                       Duration duration, void f()): null,
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
                               Duration period, void f(Timer timer)): null,
+    void print(Zone self, ZoneDelegate parent, Zone zone, String line): null,
     Zone fork(Zone self, ZoneDelegate parent, Zone zone,
               ZoneSpecification specification,
               Map<Symbol, dynamic> zoneValues): null
@@ -141,6 +145,7 @@ abstract class ZoneSpecification {
       createPeriodicTimer: createPeriodicTimer != null
                            ? createPeriodicTimer
                            : other.createPeriodicTimer,
+      print : print != null ? print : other.print,
       fork: fork != null ? fork : other.fork);
   }
 
@@ -156,6 +161,7 @@ abstract class ZoneSpecification {
   RunAsyncHandler get runAsync;
   CreateTimerHandler get createTimer;
   CreatePeriodicTimerHandler get createPeriodicTimer;
+  PrintHandler get print;
   ForkHandler get fork;
 }
 
@@ -179,6 +185,7 @@ class _ZoneSpecification implements ZoneSpecification {
     this.runAsync: null,
     this.createTimer: null,
     this.createPeriodicTimer: null,
+    this.print: null,
     this.fork: null
   });
 
@@ -195,6 +202,7 @@ class _ZoneSpecification implements ZoneSpecification {
   final /*RunAsyncHandler*/ runAsync;
   final /*CreateTimerHandler*/ createTimer;
   final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
+  final /*PrintHandler*/ print;
   final /*ForkHandler*/ fork;
 }
 
@@ -224,6 +232,7 @@ abstract class ZoneDelegate {
   void scheduleMicrotask(Zone zone, f());
   Timer createTimer(Zone zone, Duration duration, void f());
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
+  void print(Zone zone, String line);
   Zone fork(Zone zone, ZoneSpecification specification, Map zoneValues);
 }
 
@@ -386,6 +395,11 @@ abstract class Zone {
   Timer createPeriodicTimer(Duration period, void callback(Timer timer));
 
   /**
+   * Prints the given [line].
+   */
+  void print(String line);
+
+  /**
    * The error zone is the one that is responsible for dealing with uncaught
    * errors. Errors are not allowed to cross zones with different error-zones.
    */
@@ -505,6 +519,15 @@ class _ZoneDelegate implements ZoneDelegate {
     }
     return (parent._specification.createPeriodicTimer)(
         parent, new _ZoneDelegate(parent.parent), zone, period, f);
+  }
+
+  void print(Zone zone, String line) {
+    _CustomizedZone parent = _degelationTarget;
+    while (parent._specification.print == null) {
+      parent = parent.parent;
+    }
+    (parent._specification.print)(
+        parent, new _ZoneDelegate(parent.parent), zone, line);
   }
 
   Zone fork(Zone zone, ZoneSpecification specification,
@@ -670,6 +693,10 @@ class _CustomizedZone extends _BaseZone {
   Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
     return new _ZoneDelegate(this).createPeriodicTimer(this, duration, f);
   }
+
+  void print(String line) {
+    new _ZoneDelegate(this).print(this, line);
+  }
 }
 
 void _rootHandleUncaughtError(
@@ -754,9 +781,22 @@ Timer _rootCreatePeriodicTimer(
   return _createPeriodicTimer(duration, callback);
 }
 
+void _rootPrint(Zone self, ZoneDelegate parent, Zone zone, String line) {
+  printToConsole(line);
+}
+
+void _printToZone(String line) {
+  Zone.current.print(line);
+}
+
 Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
                ZoneSpecification specification,
                Map<Symbol, dynamic> zoneValues) {
+  // TODO(floitsch): it would be nice if we could get rid of this hack.
+  // Change the static zoneOrDirectPrint function to go through zones
+  // from now on.
+  printToZone = _printToZone;
+
   if (specification == null) {
     specification = const ZoneSpecification();
   } else if (specification is! _ZoneSpecification) {
@@ -794,6 +834,7 @@ class _RootZoneSpecification implements ZoneSpecification {
   CreateTimerHandler get createTimer => _rootCreateTimer;
   CreatePeriodicTimerHandler get createPeriodicTimer =>
       _rootCreatePeriodicTimer;
+  PrintHandler get print => _rootPrint;
   ForkHandler get fork => _rootFork;
 }
 
@@ -846,6 +887,8 @@ class _RootZone extends _BaseZone {
 
   Timer createPeriodicTimer(Duration duration, void f(Timer timer)) =>
       _rootCreatePeriodicTimer(this, null, this, duration, f);
+
+  void print(String line) => _rootPrint(this, null, this, line);
 }
 
 const _ROOT_ZONE = const _RootZone();
