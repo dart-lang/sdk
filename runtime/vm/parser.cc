@@ -30,6 +30,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
@@ -3779,9 +3780,24 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     }
     cls.set_type_parameters(orig_type_parameters);
   }
+
+  if (is_abstract) {
+    cls.set_is_abstract();
+  }
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(cls, metadata_pos);
+  }
+
+  const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
+  if (is_mixin_declaration && is_patch) {
+    ErrorMsg(classname_pos,
+             "mixin application '%s' may not be a patch class",
+             class_name.ToCString());
+  }
+
   AbstractType& super_type = Type::Handle();
-  if (CurrentToken() == Token::kEXTENDS) {
-    ConsumeToken();
+  if ((CurrentToken() == Token::kEXTENDS) || is_mixin_declaration) {
+    ConsumeToken();  // extends or =
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
     if (super_type.IsDynamicType()) {
@@ -3800,6 +3816,10 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(pending_classes, super_type);
     }
+    if (is_mixin_declaration) {
+      cls.set_is_mixin_typedef();
+      cls.set_is_synthesized_class();
+    }
   } else {
     // No extends clause: implicitly extend Object, unless Object itself.
     if (!cls.IsObjectClass()) {
@@ -3813,9 +3833,6 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ParseInterfaceList(cls);
   }
 
-  if (is_abstract) {
-    cls.set_is_abstract();
-  }
   if (is_patch) {
     // Apply the changes to the patched class looked up above.
     ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
@@ -3826,15 +3843,16 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_patch();
   }
   pending_classes.Add(cls, Heap::kOld);
-  if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, metadata_pos);
-  }
 
-  if (CurrentToken() != Token::kLBRACE) {
-    ErrorMsg("{ expected");
+  if (is_mixin_declaration) {
+    ExpectSemicolon();
+  } else {
+    if (CurrentToken() != Token::kLBRACE) {
+      ErrorMsg("{ expected");
+    }
+    SkipBlock();
+    ExpectToken(Token::kRBRACE);
   }
-  SkipBlock();
-  ExpectToken(Token::kRBRACE);
 }
 
 
@@ -4010,9 +4028,6 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   type = ParseMixins(pending_classes, type);
 
-  // TODO(12773): Treat the mixin application as an alias, not as a base
-  // class whose super class is the mixin application! This is difficult because
-  // of issues involving subsitution of type parameters
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
@@ -4020,9 +4035,6 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   // too early to call 'AddImplicitConstructor(mixin_application)' here,
   // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
-    // At this point, the mixin_application alias already has an interface, but
-    // ParseInterfaceList will add to the list and not lose the one already
-    // there.
     ParseInterfaceList(mixin_application);
   }
   ExpectSemicolon();
@@ -4079,6 +4091,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinTypedef()) {
+    if (FLAG_warn_mixin_typedef) {
+      Warning("deprecated mixin typedef");
+    }
     ParseMixinTypedef(pending_classes, metadata_pos);
     return;
   }
