@@ -37,6 +37,9 @@ main() {
     }                                                 /// 10: continued
   }                                                   /// 10: continued
 
+  new Foo().f11();                                    /// 11: continued
+  new Foo().f12();                                    /// 12: continued
+
   try {                                               /// 13: continued
     Foo.f13();                                        /// 13: continued
   } on String catch (exc) {                           /// 13: continued
@@ -53,4 +56,11 @@ main() {
       throw exc;                                      /// 20: continued
     }                                                 /// 20: continued
   }                                                   /// 20: continued
+
+  new Foo.n21();                                      /// 21: continued
+  new Foo.n22();                                      /// 22: continued
+  new Foo.n23();                                      /// 23: continued
+
+  t06(1);                                             /// 30: continued
+  t07(1);                                             /// 31: continued
 }

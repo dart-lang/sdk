@@ -138,14 +138,7 @@ mixin_regress_13688_test: RuntimeError # Issue 13109.
 const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
-external_test/11: MissingCompileTimeError # Issue 12887
-external_test/12: MissingCompileTimeError # Issue 12887
 external_test/13: CompileTimeError # Issue 12887
-external_test/21: MissingCompileTimeError # Issue 12887
-external_test/22: MissingCompileTimeError # Issue 12887
-external_test/23: MissingCompileTimeError # Issue 12887
-external_test/30: MissingCompileTimeError # Issue 12887
-external_test/31: MissingCompileTimeError # Issue 12887
 instanceof4_test/01: RuntimeError # Issue 12889
 list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
@@ -252,14 +245,7 @@ not_enough_positional_arguments_test/05: Fail # Issue 12839
 metadata_test: Fail # Issue 12762
 const_var_test: Pass, Fail # Issue 12794
 map_literal3_test: Fail # Issue 12794
-external_test/11: Fail # Issue 12888
-external_test/12: Fail # Issue 12888
 external_test/13: Fail # Issue 12888
-external_test/21: Fail # Issue 12888
-external_test/22: Fail # Issue 12888
-external_test/23: Fail # Issue 12888
-external_test/30: Fail # Issue 12888
-external_test/31: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
 lazy_static3_test: Fail # Issue 12593
 list_literal1_test/01: Fail # Issue 12993
