@@ -66,16 +66,60 @@
 
 library dart.js;
 
+import 'dart:collection' show HashMap;
 import 'dart:html';
 import 'dart:isolate';
 
 // Global ports to manage communication from Dart to JS.
+
 SendPortSync _jsPortSync = window.lookupPort('dart-js-context');
 SendPortSync _jsPortCreate = window.lookupPort('dart-js-create');
 SendPortSync _jsPortInstanceof = window.lookupPort('dart-js-instanceof');
 SendPortSync _jsPortDeleteProperty = window.lookupPort('dart-js-delete-property');
 SendPortSync _jsPortConvert = window.lookupPort('dart-js-convert');
 
+final String _objectIdPrefix = 'dart-obj-ref';
+final String _functionIdPrefix = 'dart-fun-ref';
+final _objectTable = new _ObjectTable();
+final _functionTable = new _ObjectTable.forFunctions();
+
+// Port to handle and forward requests to the underlying Dart objects.
+// A remote proxy is uniquely identified by an ID and SendPortSync.
+ReceivePortSync _port = new ReceivePortSync()
+    ..receive((msg) {
+      try {
+        var id = msg[0];
+        var method = msg[1];
+        if (method == '#call') {
+          var receiver = _getObjectTable(id).get(id);
+          var result;
+          if (receiver is Function) {
+            // remove the first argument, which is 'this', but never
+            // used for a raw function
+            var args = msg[2].sublist(1).map(_deserialize).toList();
+            result = Function.apply(receiver, args);
+          } else if (receiver is Callback) {
+            var args = msg[2].map(_deserialize).toList();
+            result = receiver._call(args);
+          } else {
+            throw new StateError('bad function type: $receiver');
+          }
+          return ['return', _serialize(result)];
+        } else {
+          // TODO(vsm): Support a mechanism to register a handler here.
+          throw 'Invocation unsupported on non-function Dart proxies';
+        }
+      } catch (e) {
+        // TODO(vsm): callSync should just handle exceptions itself.
+        return ['throws', '$e'];
+      }
+    });
+
+_ObjectTable _getObjectTable(String id) {
+  if (id.startsWith(_functionIdPrefix)) return _functionTable;
+  if (id.startsWith(_objectIdPrefix)) return _objectTable;
+  throw new ArgumentError('internal error: invalid object id: $id');
+}
 
 JsObject _context;
 
@@ -104,21 +148,24 @@ JsObject jsify(dynamic data) => data == null ? null : new JsObject._json(data);
  * JavaScript.
  */
 class Callback implements Serializable<JsFunction> {
-  JsFunction _f;
+  final bool _withThis;
+  final Function _function;
+  JsFunction _jsFunction;
 
-  Callback._(Function f, bool withThis) {
-    final id = _proxiedObjectTable.add((List args) {
-      final arguments = new List.from(args);
-      if (!withThis) arguments.removeAt(0);
-      return Function.apply(f, arguments);
-    });
-    _f = new JsFunction._internal(_proxiedObjectTable.sendPort, id);
+  Callback._(this._function, this._withThis) {
+    var id = _functionTable.add(this);
+    _jsFunction = new JsFunction._internal(_port.toSendPort(), id);
   }
 
   factory Callback(Function f) => new Callback._(f, false);
   factory Callback.withThis(Function f) => new Callback._(f, true);
 
-  JsFunction toJs() => _f;
+  dynamic _call(List args) {
+    var arguments = (_withThis) ? args : args.sublist(1);
+    return Function.apply(_function, arguments);
+  }
+
+  JsFunction toJs() => _jsFunction;
 }
 
 /**
@@ -242,70 +289,46 @@ abstract class Serializable<T> {
   T toJs();
 }
 
-// A table to managed local Dart objects that are proxied in JavaScript.
-class _ProxiedObjectTable {
-  // Debugging name.
-  final String _name;
+class _ObjectTable {
+  final String name;
+  final Map<String, Object> objects;
+  final Map<Object, String> ids;
+  int nextId = 0;
 
-  // Generator for unique IDs.
-  int _nextId;
+  // Creates a table that uses an identity Map to store IDs
+  _ObjectTable()
+    : name = _objectIdPrefix,
+      objects = new HashMap<String, Object>(),
+      ids = new HashMap<Object, String>.identity();
 
-  // Table of IDs to Dart objects.
-  final Map<String, Object> _registry;
+  // Creates a table that uses an equality-based Map to store IDs, since
+  // closurized methods may be equal, but not identical
+  _ObjectTable.forFunctions()
+    : name = _functionIdPrefix,
+      objects = new HashMap<String, Object>(),
+      ids = new HashMap<Object, String>();
 
-  // Port to handle and forward requests to the underlying Dart objects.
-  // A remote proxy is uniquely identified by an ID and SendPortSync.
-  final ReceivePortSync _port;
-
-  _ProxiedObjectTable() :
-      _name = 'dart-ref',
-      _nextId = 0,
-      _registry = {},
-      _port = new ReceivePortSync() {
-    _port.receive((msg) {
-      try {
-        final receiver = _registry[msg[0]];
-        final method = msg[1];
-        final args = msg[2].map(_deserialize).toList();
-        if (method == '#call') {
-          final func = receiver as Function;
-          var result = _serialize(func(args));
-          return ['return', result];
-        } else {
-          // TODO(vsm): Support a mechanism to register a handler here.
-          throw 'Invocation unsupported on non-function Dart proxies';
-        }
-      } catch (e) {
-        // TODO(vsm): callSync should just handle exceptions itself.
-        return ['throws', '$e'];
-      }
-    });
-  }
-
-  // Adds a new object to the table and return a new ID for it.
-  String add(x) {
+  // Adds a new object to the table. If [id] is not given, a new unique ID is
+  // generated. Returns the ID.
+  String add(Object o, {String id}) {
     // TODO(vsm): Cache x and reuse id.
-    final id = '$_name-${_nextId++}';
-    _registry[id] = x;
+    if (id == null) id = ids[o];
+    if (id == null) id = '$name-${nextId++}';
+    ids[o] = id;
+    objects[id] = o;
     return id;
   }
 
   // Gets an object by ID.
-  Object get(String id) {
-    return _registry[id];
-  }
+  Object get(String id) => objects[id];
+
+  bool contains(String id) => objects.containsKey(id);
+
+  String getId(Object o) => ids[o];
 
   // Gets the current number of objects kept alive by this table.
-  get count => _registry.length;
-
-  // Gets a send port for this table.
-  get sendPort => _port.toSendPort();
+  get count => objects.length;
 }
-
-// The singleton to manage proxied Dart objects.
-_ProxiedObjectTable _proxiedObjectTable = new _ProxiedObjectTable();
-
-/// End of proxy implementation.
 
 // Dart serialization support.
 
@@ -322,20 +345,23 @@ _serialize(var message) {
     return message;
   } else if (message is JsFunction) {
     // Remote function proxy.
-    return [ 'funcref', message._id, message._port ];
+    return ['funcref', message._id, message._port];
   } else if (message is JsObject) {
     // Remote object proxy.
-    return [ 'objref', message._id, message._port ];
+    return ['objref', message._id, message._port];
   } else if (message is Serializable) {
     // use of result of toJs()
     return _serialize(message.toJs());
   } else if (message is Function) {
-    return _serialize(new Callback(message));
+    var id = _functionTable.getId(message);
+    if (id != null) {
+      return ['funcref', id, _port.toSendPort()];
+    }
+    id = _functionTable.add(message);
+    return ['funcref', id, _port.toSendPort()];
   } else {
     // Local object proxy.
-    return [ 'objref',
-             _proxiedObjectTable.add(message),
-             _proxiedObjectTable.sendPort ];
+    return ['objref', _objectTable.add(message), _port.toSendPort()];
   }
 }
 
@@ -343,24 +369,34 @@ _deserialize(var message) {
   deserializeFunction(message) {
     var id = message[1];
     var port = message[2];
-    if (port == _proxiedObjectTable.sendPort) {
+    if (port == _port.toSendPort()) {
       // Local function.
-      return _proxiedObjectTable.get(id);
+      return _functionTable.get(id);
     } else {
-      // Remote function.  Forward to its port.
-      return new JsFunction._internal(port, id);
+      // Remote function.
+      var jsFunction = _functionTable.get(id);
+      if (jsFunction == null) {
+        jsFunction = new JsFunction._internal(port, id);
+        _functionTable.add(jsFunction, id: id);
+      }
+      return jsFunction;
     }
   }
 
   deserializeObject(message) {
     var id = message[1];
     var port = message[2];
-    if (port == _proxiedObjectTable.sendPort) {
+    if (port == _port.toSendPort()) {
       // Local object.
-      return _proxiedObjectTable.get(id);
+      return _objectTable.get(id);
     } else {
       // Remote object.
-      return new JsObject._internal(port, id);
+      var jsObject = _objectTable.get(id);
+      if (jsObject == null) {
+        jsObject = new JsObject._internal(port, id);
+        _objectTable.add(jsObject, id: id);
+      }
+      return jsObject;
     }
   }
 
