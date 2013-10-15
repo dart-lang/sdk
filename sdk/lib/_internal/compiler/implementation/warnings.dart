@@ -524,7 +524,7 @@ main() => new C<String>();
 
   static const MessageKind SWITCH_CASE_VALUE_OVERRIDES_EQUALS =
       const MessageKind(
-          "Error: 'case' expression value overrides 'operator=='.");
+          "Error: 'case' expression type overrides 'operator=='.");
 
   static const MessageKind INVALID_ARGUMENT_AFTER_NAMED = const MessageKind(
       "Error: Unnamed argument after named argument.");

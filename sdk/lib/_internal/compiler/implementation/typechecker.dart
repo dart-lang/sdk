@@ -1193,6 +1193,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return analyze(node.expression);
   }
 
+  bool invalidSwitchExpressionType(Node diagnosticNode, DartType type) {
+    if (type.kind == TypeKind.FUNCTION) return true;
+    assert(invariant(diagnosticNode, type.kind == TypeKind.INTERFACE,
+        message: "Expected interface type"));
+    ClassElement cls = type.element;
+    if (cls == compiler.doubleClass) return true;
+    if (cls == compiler.intClass || cls == compiler.stringClass) return false;
+    Element equals = cls.lookupMember(const SourceString('=='));
+    return equals.getEnclosingClass() != compiler.objectClass;
+  }
+
   visitSwitchStatement(SwitchStatement node) {
     // TODO(johnniwinther): Handle reachability based on reachability of
     // switch cases.
@@ -1210,7 +1221,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
       analyze(switchCase);
     }
-
+    // Check that all the case expressions have the same type.
     CaseMatch firstCase = null;
     DartType firstCaseType = null;
     bool hasReportedProblem = false;
@@ -1238,7 +1249,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       }
     });
-
+    // Check that the type is either [int], [String], or a class that does not
+    // implement `operator ==`.
+    if (firstCaseType != null &&
+        invalidSwitchExpressionType(firstCase, firstCaseType)) {
+      compiler.reportError(firstCase.expression,
+          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
+    }
     return StatementType.NOT_RETURNING;
   }
 

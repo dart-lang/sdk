@@ -4576,28 +4576,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(node.expression);
   }
 
-  Map<CaseMatch,Constant> buildSwitchCaseConstants(SwitchStatement node) {
+  Map<CaseMatch, Constant> buildSwitchCaseConstants(SwitchStatement node) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
-    // First check whether all case expressions are compile-time constants,
-    // and all have the same type that doesn't override operator==.
-    // TODO(lrn): Move the constant resolution to the resolver, so
-    // we can report an error before reaching the backend.
-    DartType firstConstantType = null;
-    bool failure = false;
     for (SwitchCase switchCase in node.cases) {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is CaseMatch) {
           CaseMatch match = labelOrCase;
           Constant constant = getConstantForNode(match.expression);
-          if (firstConstantType == null) {
-            firstConstantType = constant.computeType(compiler);
-            if (nonPrimitiveTypeOverridesEquals(constant)) {
-              compiler.reportFatalError(
-                  match.expression,
-                  MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
-              failure = true;
-            }
-          }
           constants[labelOrCase] = constant;
         }
       }
@@ -4952,35 +4937,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         joinBlock);
 
     jumpHandler.close();
-  }
-
-  bool nonPrimitiveTypeOverridesEquals(Constant constant) {
-    // Function values override equals. Even static ones, since
-    // they inherit from [Function].
-    if (constant.isFunction()) return true;
-
-    // [Map] and [List] do not override equals.
-    // If constant is primitive, just return false. We know
-    // about the equals methods of num/String classes.
-    if (!constant.isConstructedObject()) return false;
-
-    ConstructedConstant constructedConstant = constant;
-    DartType type = constructedConstant.type;
-    assert(type != null);
-    Element element = type.element;
-    // If the type is not a class, we'll just assume it overrides
-    // operator==. Typedefs do, since [Function] does.
-    if (!element.isClass()) return true;
-    ClassElement classElement = element;
-    return typeOverridesObjectEquals(classElement);
-  }
-
-  bool typeOverridesObjectEquals(ClassElement classElement) {
-    Element operatorEq =
-        lookupOperator(classElement, const SourceString('=='));
-    if (operatorEq == null) return false;
-    // If the operator== declaration is in Object, it's not overridden.
-    return (operatorEq.getEnclosingClass() != compiler.objectClass);
   }
 
   Element lookupOperator(ClassElement classElement, SourceString operatorName) {

@@ -89,7 +89,6 @@ mixin_mixin5_test: Fail # Issue 12605.
 mixin_mixin6_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
-switch_bad_case_test/02: MissingCompileTimeError # switch case of type double
 malformed_test/none: RuntimeError # Issue 12695
 function_type_alias9_test/00: Crash # Issue 9792
 branch_canonicalization_test: RuntimeError # Issue 638.
@@ -196,7 +195,6 @@ function_type_alias9_test/00: Crash # Issue 11986
 malformed_test/none: CompileTimeError # Issue 12695
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
-switch_bad_case_test/02: Fail # missing switch type check for double
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633

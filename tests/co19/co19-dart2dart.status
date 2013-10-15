@@ -81,8 +81,8 @@ LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 [ $compiler == dart2dart ]
+Language/13_Statements/09_Switch_A02_t04: CompileTimeError, OK # co19 issue 628
 Language/03_Overview/2_Privacy_A01_t06: Fail # co19 issue 463
-
 LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
@@ -139,7 +139,6 @@ Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19-roll r546: Please tria
 Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
-Language/13_Statements/09_Switch_A04_t01: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/11_Try_A07_t03: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/12_Labels_A01_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
