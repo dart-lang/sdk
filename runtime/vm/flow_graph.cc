@@ -34,6 +34,8 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     postorder_(),
     reverse_postorder_(),
     optimized_block_order_(),
+    constant_null_(NULL),
+    constant_dead_(NULL),
     block_effects_(NULL),
     licm_allowed_(true),
     use_far_branches_(false),
@@ -706,6 +708,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Add global constants to the initial definitions.
   constant_null_ = GetConstant(Object::ZoneHandle());
+  constant_dead_ = GetConstant(Symbols::OptimizedOut());
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
@@ -804,7 +807,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   BitVector* live_in = variable_liveness->GetLiveInSet(block_entry);
   for (intptr_t i = 0; i < variable_count(); i++) {
     if (!live_in->Contains(i)) {
-      (*env)[i] = constant_null();
+      (*env)[i] = constant_dead();
     }
   }
 
@@ -875,7 +878,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (variable_liveness->IsStoreAlive(block_entry, store)) {
             (*env)[index] = result;
           } else {
-            (*env)[index] = constant_null();
+            (*env)[index] = constant_dead();
           }
         } else if (load != NULL) {
           // The graph construction ensures we do not have an unused LoadLocal
@@ -891,7 +894,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           }
 
           if (variable_liveness->IsLastLoad(block_entry, load)) {
-            (*env)[index] = constant_null();
+            (*env)[index] = constant_dead();
           }
         } else if (push != NULL) {
           result = push->value()->definition();

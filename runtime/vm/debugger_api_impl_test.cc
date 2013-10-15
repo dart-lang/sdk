@@ -453,13 +453,10 @@ static void InspectStackTest(bool optimize) {
   dart_args[1] = Dart_NewInteger(kLowThreshold);
   EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
   if (optimize) {
-    // Note that several variables have the value 'null' in the
-    // optimized case.  This is because these values were determined
-    // to be dead by the optimizing compiler and their values were not
-    // preserved by the deopt information.
     EXPECT_STREQ("[0] breakpointNow { }\n"
-                 "[1] helper { a = 5 b = 99 stop = null }\n"
-                 "[2] anotherMiddleMan { one = null two = null stop = null }\n"
+                 "[1] helper { a = 5 b = 99 stop = <optimized out> }\n"
+                 "[2] anotherMiddleMan { one = <optimized out> "
+                 "two = <optimized out> stop = <optimized out> }\n"
                  "[3] middleMan { x = 5 limit = 100 stop = true value = 24255"
                  " i = 99 }\n"
                  "[4] test { stop = true limit = 100 }\n",
@@ -549,10 +546,10 @@ static void InspectStackWithClosureTest(bool optimize) {
   EXPECT_VALID(Dart_Invoke(script_lib, NewString("test"), 2, dart_args));
   if (optimize) {
     EXPECT_STREQ("[0] breakpointNow { }\n"
-                 "[1] helper { a = 50 b = 99 stop = null }\n"
+                 "[1] helper { a = 50 b = 99 stop = <optimized out> }\n"
                  "[2] <anonymous closure> { x = 5 i = 99 stop = true"
-                 " value = null }\n"
-                 "[3] anotherMiddleMan { func = null }\n"
+                 " value = <optimized out> }\n"
+                 "[3] anotherMiddleMan { func = <optimized out> }\n"
                  "[4] middleMan { x = 5 limit = 100 stop = true"
                  " value = 242550 i = 99 }\n"
                  "[5] test { stop = true limit = 100 }\n",
