@@ -53,7 +53,7 @@
     // TODO(sigmund): rephrase when we split build.dart in two: analysis vs
     // deploy pieces.
     console.warn('boot.js only works in Dartium. Run the build.dart' +
-      ' tool to compile a depolyable JavaScript version')
+      ' tool to compile a deployable JavaScript version')
     return;
   }
 
@@ -70,8 +70,23 @@
 
   // Load HTML Imports:
   var htmlImportsSrc = 'src="packages/html_import/html_import.min.js"';
-  document.write('<script ' + htmlImportsSrc + '></script>');
+  var htmlImportsTag = '<script ' + htmlImportsSrc + '></script>';
   var importScript = document.querySelector('script[' + htmlImportsSrc + ']');
+
+  if (!importScript) {
+    try {
+      document.write(htmlImportsTag);
+      importScript = document.querySelector('script[' + htmlImportsSrc + ']');
+    } catch (e) {
+      console.error(
+        "Failed to use document.write() to inject the HTML import " +
+        "polyfill.\nIf you are running with Content Security Policy, " +
+        "try adding the following to your HTML's <head> BEFORE the " +
+        "line that includes polymer/boot.js:\n    " + htmlImportsTag);
+      return;
+    }
+  }
+
   importScript.addEventListener('load', function() {
     // NOTE: this is from polymer/src/lib/dom.js
     window.HTMLImports.importer.preloadSelectors +=
