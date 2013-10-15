@@ -216,3 +216,4 @@ LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
+Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: Fail  # Issue 629
