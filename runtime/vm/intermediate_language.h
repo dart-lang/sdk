@@ -2830,6 +2830,10 @@ class ComparisonInstr : public TemplateDefinition<2> {
   void set_operation_cid(intptr_t value) { operation_cid_ = value; }
   intptr_t operation_cid() const { return operation_cid_; }
 
+  void NegateComparison() {
+    kind_ = Token::NegateComparison(kind_);
+  }
+
  protected:
   ComparisonInstr(intptr_t token_pos,
                   Token::Kind kind,
@@ -2840,10 +2844,9 @@ class ComparisonInstr : public TemplateDefinition<2> {
     SetInputAt(1, right);
   }
 
-  intptr_t token_pos_;
-  Token::Kind kind_;
-
  private:
+  const intptr_t token_pos_;
+  Token::Kind kind_;
   intptr_t operation_cid_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
@@ -2936,7 +2939,6 @@ class StrictCompareInstr : public ComparisonInstr {
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
-  void set_kind(Token::Kind value) { kind_ = value; }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }

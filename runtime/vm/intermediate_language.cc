@@ -1515,11 +1515,45 @@ Definition* UnboxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
+                                             bool* negated) {
+  *negated = false;
+  if (!compare->right()->BindsToConstant()) {
+    return compare;
+  }
+  const Object& right_constant = compare->right()->BoundConstant();
+  Definition* left_defn = compare->left()->definition();
+
+  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
+  // Handles e === true.
+  if ((compare->kind() == Token::kEQ_STRICT) &&
+      (right_constant.raw() == Bool::True().raw()) &&
+      (compare->left()->Type()->ToCid() == kBoolCid)) {
+    // Return left subexpression as the replacement for this instruction.
+    return left_defn;
+  }
+  // x = (a === b);  y = x !== true; -> y = a !== b.
+  // In order to merge two strict compares, 'left_strict' must have only one
+  // use. Do not check left's cid as it is required to be a strict compare.
+  StrictCompareInstr* left_strict = left_defn->AsStrictCompare();
+  if ((compare->kind() == Token::kNE_STRICT) &&
+      (right_constant.raw() == Bool::True().raw()) &&
+      (left_strict != NULL) &&
+      (left_strict->HasOnlyUse(compare->left()))) {
+    *negated = true;
+    return left_strict;
+  }
+  return compare;
+}
+
+
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
-    Definition* replacement = comparison()->Canonicalize(flow_graph);
-    if ((replacement == comparison()) || (replacement == NULL)) {
+    bool negated = false;
+    Definition* replacement =
+        CanonicalizeStrictCompare(comparison()->AsStrictCompare(), &negated);
+    if (replacement == comparison()) {
       return this;
     }
     ComparisonInstr* comp = replacement->AsComparison();
@@ -1527,8 +1561,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
 
-    // Check that comparison is not serving as a pending deoptimization target
-    // for conversions.
+    // Assert that the comparison is not serving as a pending deoptimization
+    // target for conversions.
     for (intptr_t i = 0; i < comp->InputCount(); i++) {
       if (comp->RequiredInputRepresentation(i) !=
           comp->InputAt(i)->definition()->representation()) {
@@ -1540,6 +1574,9 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
     // and has exactly one use.
     Value* use = comp->input_use_list();
     if ((use->instruction() == this) && comp->HasOnlyUse(use)) {
+      if (negated) {
+        comp->NegateComparison();
+      }
       RemoveEnvironment();
       flow_graph->CopyDeoptTarget(this, comp);
 
@@ -1560,32 +1597,13 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!right()->BindsToConstant()) {
-    return this;
+  bool negated = false;
+  Definition* replacement = CanonicalizeStrictCompare(this, &negated);
+  if (negated && replacement->IsComparison()) {
+    ASSERT(replacement != this);
+    replacement->AsComparison()->NegateComparison();
   }
-  const Object& right_constant = right()->BoundConstant();
-  Definition* left_defn = left()->definition();
-  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
-  // Handles e === true.
-  if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant.raw() == Bool::True().raw()) &&
-      (left()->Type()->ToCid() == kBoolCid)) {
-    // Return left subexpression as the replacement for this instruction.
-    return left_defn;
-  }
-  // x = (a === b);  y = x !== true; -> y = a !== b.
-  // In order to merge two strict comares, 'left_strict' must have only one use.
-  // Do not check left's cid as it is required to be a strict compare.
-  StrictCompareInstr* left_strict = left_defn->AsStrictCompare();
-  if ((kind() == Token::kNE_STRICT) &&
-      (right_constant.raw() == Bool::True().raw()) &&
-      (left_strict != NULL) &&
-      (left_strict->HasOnlyUse(left()))) {
-    left_strict->set_kind(Token::NegateComparison(left_strict->kind()));
-    return left_strict;
-  }
-
-  return this;
+  return replacement;
 }
 
 
