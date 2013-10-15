@@ -522,7 +522,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   void print(Zone zone, String line) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.print == null) {
       parent = parent.parent;
     }
