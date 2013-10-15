@@ -60,9 +60,6 @@ Language/12_Expressions/12_Instance_Creation_A01_t02: fail, OK
 Language/12_Expressions/12_Instance_Creation_A01_t05: fail, OK
 Language/12_Expressions/12_Instance_Creation_A01_t06: fail, OK
 
-# co19 issue #433 (wrongly closed), missing @static-warning annotation
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
-
 # co19 issue #541: tests contain unqualified reference to static members defined in superclass
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: fail, OK
 Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
@@ -74,66 +71,11 @@ Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_
 Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail, OK
 Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
-# co19 issue #609, return type of "factory M" is M, so we need static warning for "return;".
-Language/13_Statements/11_Return_A07_t01: fail, OK
-
-# co19 issue #613: @static-warning missing, only runtime behavior is tested
-Language/12_Expressions/13_Property_Extraction_A02_t02: Fail, OK
-Language/12_Expressions/13_Property_Extraction_A04_t02: Fail, OK
-Language/12_Expressions/13_Property_Extraction_A04_t03: Fail, OK
-Language/12_Expressions/17_Getter_Invocation_A07_t01: Fail, OK
-Language/12_Expressions/17_Getter_Invocation_A07_t02: Fail, OK
-Language/12_Expressions/18_Assignment_A01_t07: Fail, OK
-Language/12_Expressions/18_Assignment_A04_t09: Fail, OK
-LibTest/core/Invocation/isAccessor_A01_t01: Fail, OK
-LibTest/core/Invocation/isAccessor_A01_t02: Fail, OK
-LibTest/core/Invocation/isGetter_A01_t01: Fail, OK
-LibTest/core/Invocation/isGetter_A01_t02: Fail, OK
-LibTest/core/Invocation/isMethod_A01_t01: Fail, OK
-LibTest/core/Invocation/isMethod_A01_t02: Fail, OK
-LibTest/core/Invocation/isSetter_A01_t01: Fail, OK
-LibTest/core/Invocation/isSetter_A01_t02: Fail, OK
-LibTest/core/Invocation/memberName_A01_t01: Fail, OK
-LibTest/core/Invocation/namedArguments_A01_t01: Fail, OK
-LibTest/core/Invocation/positionalArguments_A01_t01: Fail, OK
-LibTest/core/Symbol/Symbol_A01_t04: Fail, OK
-
-# co19 issue #614: abstract class
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail, OK
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t04: Fail, OK
-Language/12_Expressions/16_Getter_Lookup_A02_t05: Fail, OK
-Language/12_Expressions/16_Getter_Lookup_A02_t06: Fail, OK
-
 # co19 issue #615: Expect import missing
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A03_t03: Fail, OK
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
-
-# co19 issue #616: X required argument(s) expected, but Y found
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t04: Fail, OK
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Fail, OK
 
 # co19 issue #617: "hasNext" is not a function; "Expec"
 LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail, OK
-
-# co19 issue #618: Just a mess - mix of Map and Set
-LibTest/collection/LinkedHashSet/LinkedHashSet.from_A01_t01: Fail, OK
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: Fail, OK
-LibTest/collection/LinkedList/first_A01_t02: Fail, OK
-
-# co19 issue #619: 1 required argument(s) expected, but 0 found
-LibTest/collection/LinkedList/reduce_A01_t01: Fail, OK
-
-# co19 issue #620: The name 'NoSuchMethoError' is not a type and cannot be used in an on-catch clause
-LibTest/core/RuneIterator/currentAsString_A01_t02: Fail, OK
-LibTest/core/RuneIterator/current_A01_t02: Fail, OK
-LibTest/core/Runes/length_A01_t02: Fail, OK
-
-# co19 issue #621: Undefined name 'runes'
-LibTest/core/Runes/isEmpty_A01_t02: Fail, OK
-LibTest/core/Runes/isNotEmpty_A01_t02: Fail, OK
-
-# co19 issue #622: Undefined class 'Int16List.fromList'
-LibTest/core/Runes/lastWhere_A02_t01: Fail, OK
 
 # co19 issue #623: main() { {}; } is block and empty statement, not a map
 Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
@@ -217,3 +159,11 @@ LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: Fail  # Issue 629
+
+Language/07_Classes/6_Constructors/2_Factories_A14_t01: Fail # co19-roll r623: Please triage this failure
+Language/07_Classes/6_Constructors/2_Factories_A14_t02: Fail # co19-roll r623: Please triage this failure
+Language/12_Expressions/05_Strings_A20_t01: Fail # co19-roll r623: Please triage this failure
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
+LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
+LibTest/collection/Queue/Queue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
+LibTest/core/Iterable/Iterable.generate_A01_t01: Fail # co19-roll r623: Please triage this failure

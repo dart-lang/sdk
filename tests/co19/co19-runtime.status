@@ -61,18 +61,11 @@ LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A04_t02: fail # co19 issue 606
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: fail # Dart issue 12549
 Language/12_Expressions/18_Assignment_A01_t07: RuntimeError # Issue 13494
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
-Language/12_Expressions/32_Type_Test_A04_t02: fail # co19 issue 503
-Language/12_Expressions/32_Type_Test_A04_t03: fail # co19 issue 534
-Language/12_Expressions/32_Type_Test_A04_t04: fail # co19 issue 534
-Language/12_Expressions/33_Type_Cast_A03_t02: fail # co19 issue 534
-Language/12_Expressions/33_Type_Cast_A03_t03: fail # co19 issue 534
 Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
 Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
@@ -119,7 +112,6 @@ LibTest/typed_data/Float32x4List/map_A02_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/map_A03_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/operator_subscript_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/reversed_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/single_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
@@ -144,3 +136,5 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # c
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
+[ $compiler == none && $runtime == vm && $unchecked ]
+LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
