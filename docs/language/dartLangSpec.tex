@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Draft Version 0.70}}
+{\large Draft Version 0.71}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -508,6 +508,11 @@ The former section on variables in interfaces (now removed): Added specification
 \ref{typePromotion}: Added notion of type promotion.
 
 \ref{typedef}: Banned all recursion in typedefs.
+
+\subsubsection{Changes Since Version 0.7}
+
+\ref{leastUpperBounds}:  Extended LUBs to all types.
+
 
 
 \section{Notation}
@@ -1213,6 +1218,11 @@ We want different behavior for concrete classes and abstract classes. If $A$ is 
 
 The {\em interface of class $C$} is an implicit interface that declares instance members that correspond to the instance members declared by $C$, and whose direct superinterfaces are the direct superinterfaces of $C$ (\ref{superinterfaces}). When a class name appears as a type, that name denotes the interface of the class.
 
+% making an exception for the setters generated for final fields is tempting but problematic.
+% If a super type defines a setter, it will be overridden yet have no impact on the interface.
+% Maybe the final field hides the setter in scope?
+% I think the original rules were best.
+
  It is a compile-time error if a class declares two members of the same name.
  %, except that a getter and a setter may be declared with the same name provided both are instance members or both are static members.
 It is a compile-time error if a class has an instance member and a static member  with the same name. 
@@ -1455,6 +1465,8 @@ An instance getter for it can always be defined manually if desired.
 %\SET{} $v=(x)$
 
 %whose execution sets the value of $v$ to the incoming argument $x$.
+
+% It is a compile-time error/warning if a a class $C$ declares a final instance variable $v$ and $C$ inherits a setter $v=$.
 
 
 \subsection{Constructors}
@@ -2126,7 +2138,7 @@ Furthermore, we define $overrides(J, K)$  to be the set of members $m^\prime$ su
 \end{itemize}
 
 
-Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m^\prime$ if  $m^\prime \in overrides(I, L)$.
+Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m^\prime$ if  $m^\prime \in overrides(I, L)$. It is a static warning if $m$ is a method and $m^\prime$ is a getter, or if $m$ is a getter and $m^\prime$ is a method.
 
 
 %Let $I = S_0$ be the implicit interface of a class $C$ declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superinterfaces of $I$. 
@@ -2137,7 +2149,7 @@ Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {
 
 However, if the above rules would cause multiple members $m_1, \ldots,  m_k$ with the same name $n$ to be inherited (because identically named members existed in several superinterfaces) then at most one member is inherited. 
 
-%If some but not all of the $m_i, 1 \le i \le k$ are getters, or if some but not all of the $m_i$ are setters, none of the $m_i$ are inherited, and a static warning is issued.
+If some but not all of the $m_i, 1 \le i \le k$ are getters none of the $m_i$ are inherited, and a static warning is issued.
 
 Otherwise, if the static types $T_1, \ldots,  T_k$ of the members $m_1, \ldots,  m_k$  are not identical, then there must be a member $m_x$ such that $T_x <: T_i, 1 \le x \le k$ for all  $i  \in 1..k$, or a static type warning occurs. The member that is inherited  is $m_x$, if it exists; otherwise:
 \begin{itemize}
@@ -2159,6 +2171,8 @@ The current solution is a tad complex, but is robust in the face of type annotat
 
 (a) means that the presence of an inherited member of an interface varies depending on type signatures.  (b) is sensitive to irrelevant details of the declaration and (c) is liable to give unpredictable results between implementations or even between different compilation sessions.
 }
+
+% Need warnings if overrider conflicts with overriddee either because signatures are incompatible or because done is a method and one is a getter or setter.
 
 \section{Mixins}
 \label{mixins} 
@@ -3753,12 +3767,15 @@ Evaluation of an assignment $a$ of the form $v$ \code{=} $e$ proceeds as follows
 
 If there is neither a local variable declaration with name $v$ nor a setter declaration with name $v=$ in the lexical scope enclosing $a$, then:
 \begin{itemize}
- \item If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
+ \item If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. 
+ \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
  \end{itemize}
  
  Otherwise,  let $d$ be the innermost declaration whose name is $v$, if it exists.
 
-If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$. The value of the assignment expression is $o$.  
+If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$. 
+% unless $v$ is \FINAL{}, in which case a \code{NoSuchMethodError} is thrown (even if there is a noSuchMethod). 
+The value of the assignment expression is $o$.  
 
 If $d$ is the declaration of a library variable, the expression $e$ is evaluated to an object $o$. Then the setter $v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$.  
 
@@ -5968,9 +5985,23 @@ Let $T$ be the declared type of a declaration $d$, as it appears in the program 
 Given two interfaces $I$ and $J$, let $S_I$ be the set of superinterfaces of $I$,  let $S_J$ be the set of superinterfaces of $J$ and let $S =  (I \cup S_I) \cap (J \cup S_J)$.  Furthermore, we define $S_n = \{T | T \in S  \wedge depth(T) =n\}$ for any finite $n$ %, and $k=max(depth(T_1), \ldots, depth(T_m)), T_i \in S, i \in 1..m$, 
 where $depth(T)$ is the number of steps in the longest inheritance path from $T$ to \code{Object}. Let $q$ be the largest number such that $S_q$ has cardinality one. The least upper bound of $I$ and $J$ is the sole element of  $S_q$.
 
-% void, dynamic, type variables need to be figured into this.
+The least upper bound of \DYNAMIC{} and any type $T$ is \DYNAMIC{}.
+The least upper bound of \VOID{} and any type $T \ne \DYNAMIC{}$ is \VOID{}.
+Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T$ is the least upper bound of $B$ and $T$. 
 
- 
+The least upper bound relation is symmetric and reflexive.
+
+% Function types
+
+The least upper bound of a function type and an interface type $T$ is the least upper bound of \cd{Function} and $T$.
+Let $F$ and $G$ be function types. If $F$ and $G$ differ in their number of required parameters, then the least upper bound of $F$ and $G$ is \cd{Function}.  Otherwise:
+\begin{itemize}
+\item If $F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, [S_{r+1}, \ldots, S_k]) \longrightarrow S_0$ where $k \le n$ then the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r, [L_{r+1}, \ldots, L_k]) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..k$.
+\item If $F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, \{ \ldots \}) \longrightarrow S_0$ then the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$.
+\item If $F= (T_1 \ldots T_r, \{T_{r+1}$  $p_{r+1}, \ldots, T_f$ $p_f\}) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, \{ S_{r+1}$  $q_{r+1}, \ldots, S_g$ $q_g\}) \longrightarrow S_0$ then let $\{x_m, \ldots x_n\}  = \{p_{r+1}, \ldots, p_f\} \cap \{q_{r+1}, \ldots, q_g\}$ and let $X_j$ be the least upper bound of the types of $x_j$ in $F$ and $G, j \in m..n$. Then
+the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r, \{ X_m$ $x_m, \ldots, X_n$ $x_n\}) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$ 
+\end{itemize}
+
 
 \section{Reference}
 \label{reference}
