@@ -608,7 +608,8 @@ _toBool(v) => (v == null) ? false : v;
 Object call(Object receiver, List args) {
   var result;
   if (receiver is Method) {
-    result = receiver.mirror.invoke(receiver.symbol, args, null).reflectee;
+    Method method = receiver;
+    result = method.mirror.invoke(method.symbol, args, null).reflectee;
   } else {
     result = Function.apply(receiver, args, null);
   }

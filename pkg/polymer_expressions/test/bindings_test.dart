@@ -4,7 +4,6 @@
 
 library bindings_test;
 
-import 'dart:async';
 import 'dart:html';
 import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';

@@ -10,14 +10,14 @@ abstract class Transformer<T, V> {
 
   T forward(V v);
   V reverse(T t);
-  Transformer<V, T> get inverse => new _InverseTransformer(this);
+  Transformer<V, T> get inverse => new _InverseTransformer<V, T>(this);
 }
 
-class _InverseTransformer<T, V> implements Transformer<T, V> {
-  final Transformer<V, T> _t;
+class _InverseTransformer<V, T> implements Transformer<V, T> {
+  final Transformer<T, V> _t;
   _InverseTransformer(this._t);
 
-  T forward(V v) => _t.reverse(v);
-  V reverse(T t) => _t.forward(t);
-  Transformer<V, T> get inverse => _t;
+  V forward(T v) => _t.reverse(v);
+  T reverse(V t) => _t.forward(t);
+  Transformer<T, V> get inverse => _t;
 }
