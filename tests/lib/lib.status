@@ -28,7 +28,9 @@ mirrors/generic_bounded_test/01: RuntimeError # Issue 12087
 mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError # Issue 12087
 mirrors/generic_bounded_by_type_parameter_test/01: RuntimeError # Issue 12087
 mirrors/generic_f_bounded_test: RuntimeError # Issue 12087
+mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
+mirrors/generic_mixin_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/generics_substitution_test: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
@@ -179,6 +181,8 @@ mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
 mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
 mirrors/immutable_collections_test: RuntimeError # Issue 14027
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
+mirrors/generic_mixin_test/01: RuntimeError # Issue 14114
+mirrors/generic_mixin_test/02: RuntimeError # Issue 14113
 
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
@@ -212,7 +216,9 @@ mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
 mirrors/generic_bounded_test/none: Fail # Issue 13432
 mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
+mirrors/generic_mixin_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
+mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 
 # test issue 14016
 mirrors/typevariable_mirror_metadata_test: fail
@@ -222,7 +228,9 @@ mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
 mirrors/generic_bounded_test/none: Fail # Issue 13432
 mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
+mirrors/generic_mixin_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
+mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
