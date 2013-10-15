@@ -23,6 +23,23 @@ void main() {
   testTypeVariableSubtype();
 }
 
+void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
+          bool expectSubtype, bool expectMoreSpecific) {
+  if (expectMoreSpecific == null) expectMoreSpecific = expectSubtype;
+  Expect.equals(expectSubtype, env.isSubtype(subtype, supertype),
+      '$subtype <: $supertype');
+  Expect.equals(expectMoreSpecific, env.isMoreSpecific(subtype, supertype),
+      '$subtype << $supertype');
+}
+
+void testElementTypes(TypeEnvironment env, String subname, String supername,
+                      bool expectSubtype, bool expectMoreSpecific) {
+  DartType subtype = env.getElementType(subname);
+  DartType supertype = env.getElementType(supername);
+  testTypes(env, subtype, supertype, expectSubtype, expectMoreSpecific);
+}
+
+
 void testInterfaceSubtype() {
   asyncTest(() => TypeEnvironment.create(r"""
       class A<T> {}
@@ -32,8 +49,9 @@ void testInterfaceSubtype() {
       class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
       """).then((env) {
 
-    void expect(bool value, DartType T, DartType S) {
-      Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+    void expect(bool expectSubtype, DartType T, DartType S,
+                {bool expectMoreSpecific}) {
+      testTypes(env, T, S, expectSubtype, expectMoreSpecific);
     }
 
     ClassElement A = env.getElement('A');
@@ -69,10 +87,10 @@ void testInterfaceSubtype() {
     expect(true, String_, String_);
     expect(true, dynamic_, String_);
 
-    expect(true, Object_, dynamic_);
-    expect(true, num_, dynamic_);
-    expect(true, int_, dynamic_);
-    expect(true, String_, dynamic_);
+    expect(true, Object_, dynamic_, expectMoreSpecific: false);
+    expect(true, num_, dynamic_, expectMoreSpecific: false);
+    expect(true, int_, dynamic_, expectMoreSpecific: false);
+    expect(true, String_, dynamic_, expectMoreSpecific: false);
     expect(true, dynamic_, dynamic_);
 
     DartType A_Object = instantiate(A, [Object_]);
@@ -85,7 +103,7 @@ void testInterfaceSubtype() {
     expect(false, A_Object, num_);
     expect(false, A_Object, int_);
     expect(false, A_Object, String_);
-    expect(true, A_Object, dynamic_);
+    expect(true, A_Object, dynamic_, expectMoreSpecific: false);
 
     expect(true, A_Object, A_Object);
     expect(true, A_num, A_Object);
@@ -111,10 +129,10 @@ void testInterfaceSubtype() {
     expect(true, A_String, A_String);
     expect(true, A_dynamic, A_String);
 
-    expect(true, A_Object, A_dynamic);
-    expect(true, A_num, A_dynamic);
-    expect(true, A_int, A_dynamic);
-    expect(true, A_String, A_dynamic);
+    expect(true, A_Object, A_dynamic, expectMoreSpecific: false);
+    expect(true, A_num, A_dynamic, expectMoreSpecific: false);
+    expect(true, A_int, A_dynamic, expectMoreSpecific: false);
+    expect(true, A_String, A_dynamic, expectMoreSpecific: false);
     expect(true, A_dynamic, A_dynamic);
 
     DartType B_Object_Object = instantiate(B, [Object_, Object_]);
@@ -128,21 +146,21 @@ void testInterfaceSubtype() {
     expect(false, B_Object_Object, A_num);
     expect(false, B_Object_Object, A_int);
     expect(false, B_Object_Object, A_String);
-    expect(true, B_Object_Object, A_dynamic);
+    expect(true, B_Object_Object, A_dynamic, expectMoreSpecific: false);
 
     expect(true, B_num_num, Object_);
     expect(true, B_num_num, A_Object);
     expect(true, B_num_num, A_num);
     expect(false, B_num_num, A_int);
     expect(false, B_num_num, A_String);
-    expect(true, B_num_num, A_dynamic);
+    expect(true, B_num_num, A_dynamic, expectMoreSpecific: false);
 
     expect(true, B_int_num, Object_);
     expect(true, B_int_num, A_Object);
     expect(true, B_int_num, A_num);
     expect(true, B_int_num, A_int);
     expect(false, B_int_num, A_String);
-    expect(true, B_int_num, A_dynamic);
+    expect(true, B_int_num, A_dynamic, expectMoreSpecific: false);
 
     expect(true, B_dynamic_dynamic, Object_);
     expect(true, B_dynamic_dynamic, A_Object);
@@ -156,7 +174,7 @@ void testInterfaceSubtype() {
     expect(false, B_String_dynamic, A_num);
     expect(false, B_String_dynamic, A_int);
     expect(true, B_String_dynamic, A_String);
-    expect(true, B_String_dynamic, A_dynamic);
+    expect(true, B_String_dynamic, A_dynamic, expectMoreSpecific: false);
 
     expect(true, B_Object_Object, B_Object_Object);
     expect(true, B_num_num, B_Object_Object);
@@ -176,11 +194,12 @@ void testInterfaceSubtype() {
     expect(true, B_dynamic_dynamic, B_int_num);
     expect(false, B_String_dynamic, B_int_num);
 
-    expect(true, B_Object_Object, B_dynamic_dynamic);
-    expect(true, B_num_num, B_dynamic_dynamic);
-    expect(true, B_int_num, B_dynamic_dynamic);
+    expect(true, B_Object_Object, B_dynamic_dynamic, expectMoreSpecific: false);
+    expect(true, B_num_num, B_dynamic_dynamic, expectMoreSpecific: false);
+    expect(true, B_int_num, B_dynamic_dynamic, expectMoreSpecific: false);
     expect(true, B_dynamic_dynamic, B_dynamic_dynamic);
-    expect(true, B_String_dynamic, B_dynamic_dynamic);
+    expect(true, B_String_dynamic, B_dynamic_dynamic,
+           expectMoreSpecific: false);
 
     expect(false, B_Object_Object, B_String_dynamic);
     expect(false, B_num_num, B_String_dynamic);
@@ -196,20 +215,20 @@ void testInterfaceSubtype() {
     expect(true, C_Object_Object, B_Object_Object);
     expect(false, C_Object_Object, B_num_num);
     expect(false, C_Object_Object, B_int_num);
-    expect(true, C_Object_Object, B_dynamic_dynamic);
+    expect(true, C_Object_Object, B_dynamic_dynamic, expectMoreSpecific: false);
     expect(false, C_Object_Object, B_String_dynamic);
 
     expect(true, C_num_num, B_Object_Object);
     expect(true, C_num_num, B_num_num);
     expect(false, C_num_num, B_int_num);
-    expect(true, C_num_num, B_dynamic_dynamic);
+    expect(true, C_num_num, B_dynamic_dynamic, expectMoreSpecific: false);
     expect(false, C_num_num, B_String_dynamic);
 
     expect(true, C_int_String, B_Object_Object);
     expect(false, C_int_String, B_num_num);
     expect(false, C_int_String, B_int_num);
-    expect(true, C_int_String, B_dynamic_dynamic);
-    expect(true, C_int_String, B_String_dynamic);
+    expect(true, C_int_String, B_dynamic_dynamic, expectMoreSpecific: false);
+    expect(true, C_int_String, B_String_dynamic, expectMoreSpecific: false);
 
     expect(true, C_dynamic_dynamic, B_Object_Object);
     expect(true, C_dynamic_dynamic, B_num_num);
@@ -241,8 +260,9 @@ void testCallableSubtype() {
         void m5(V v, int i);
       }
       """).then((env) {
-    void expect(bool value, DartType T, DartType S) {
-      Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+    void expect(bool expectSubtype, DartType T, DartType S,
+                {bool expectMoreSpecific}) {
+      testTypes(env, T, S, expectSubtype, expectMoreSpecific);
     }
 
     ClassElement classA = env.getElement('A');
@@ -254,12 +274,12 @@ void testCallableSubtype() {
     DartType m4 = env.getMemberType(classA, 'm4');
     DartType m5 = env.getMemberType(classA, 'm5');
 
-    expect(true, A, function);
-    expect(true, A, m1);
-    expect(true, A, m2);
+    expect(true, A, function, expectMoreSpecific: false);
+    expect(true, A, m1, expectMoreSpecific: false);
+    expect(true, A, m2, expectMoreSpecific: false);
     expect(false, A, m3);
     expect(false, A, m4);
-    expect(true, A, m5);
+    expect(true, A, m5, expectMoreSpecific: false);
   }));
 }
 
@@ -306,11 +326,9 @@ testTypedefSubtyping() {
 }
 
 functionSubtypingHelper(TypeEnvironment env) {
-  void expect(bool expectedResult, String sub, String sup) {
-    DartType subtype = env.getElementType(sub);
-    DartType supertype = env.getElementType(sup);
-    Expect.equals(expectedResult, env.isSubtype(subtype, supertype),
-        '$subtype <: $supertype');
+  void expect(bool expectSubtype, String sub, String sup,
+              {bool expectMoreSpecific}) {
+    testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
   }
 
   // () -> int <: Function
@@ -323,7 +341,7 @@ functionSubtypingHelper(TypeEnvironment env) {
   // () -> dynamic <: () -> void
   expect(true, '_', 'void_');
   // () -> void <: () -> dynamic
-  expect(true, 'void_', '_');
+  expect(true, 'void_', '_', expectMoreSpecific: false);
 
   // () -> int <: () -> void
   expect(true, 'int_', 'void_');
@@ -346,7 +364,7 @@ functionSubtypingHelper(TypeEnvironment env) {
   // (int) -> int <: (int) -> int
   expect(true, 'int__int', 'int__int2');
   // (Object) -> int <: (int) -> Object
-  expect(true, 'int__Object', 'Object__int');
+  expect(true, 'int__Object', 'Object__int', expectMoreSpecific: false);
   // (int) -> int <: (double) -> int
   expect(false, 'int__int', 'int__double');
   // () -> int <: (int) -> int
@@ -396,11 +414,9 @@ testTypedefSubtypingOptional() {
 }
 
 functionSubtypingOptionalHelper(TypeEnvironment env) {
-  expect(bool expectedResult, String sub, String sup) {
-    DartType subtype = env.getElementType(sub);
-    DartType supertype = env.getElementType(sup);
-    Expect.equals(expectedResult, env.isSubtype(subtype, supertype),
-        '$subtype <: $supertype');
+  void expect(bool expectSubtype, String sub, String sup,
+              {bool expectMoreSpecific}) {
+    testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
   }
 
   // Test ([int])->void <: ()->void.
@@ -412,7 +428,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
   // Test ([int])->void <: ([int])->void.
   expect(true, 'void___int', 'void___int2');
   // Test ([Object])->void <: ([int])->void.
-  expect(true, 'void___Object', 'void___int');
+  expect(true, 'void___Object', 'void___int', expectMoreSpecific: false);
   // Test ([int])->void <: ([Object])->void.
   expect(true, 'void___int', 'void___Object');
   // Test (int,[int])->void <: (int)->void.
@@ -436,7 +452,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
   // Test ([int,int])->void <: ([int])->void.
   expect(true, 'void___int_int', 'void___int');
   // Test ([Object,int])->void <: ([int])->void.
-  expect(true, 'void___Object_int', 'void___int');
+  expect(true, 'void___Object_int', 'void___int', expectMoreSpecific: false);
 }
 
 testFunctionSubtypingNamed() {
@@ -478,11 +494,9 @@ testTypedefSubtypingNamed() {
 }
 
 functionSubtypingNamedHelper(TypeEnvironment env) {
-  expect(bool expectedResult, String sub, String sup) {
-    DartType subtype = env.getElementType(sub);
-    DartType supertype = env.getElementType(sup);
-    Expect.equals(expectedResult, env.isSubtype(subtype, supertype),
-        '$subtype <: $supertype');
+  expect(bool expectSubtype, String sub, String sup,
+         {bool expectMoreSpecific}) {
+    testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
   }
 
   // Test ({int a})->void <: ()->void.
@@ -496,7 +510,7 @@ functionSubtypingNamedHelper(TypeEnvironment env) {
   // Test ({int a})->void <: ({int b})->void.
   expect(false, 'void___a_int', 'void___b_int');
   // Test ({Object a})->void <: ({int a})->void.
-  expect(true, 'void___a_Object', 'void___a_int');
+  expect(true, 'void___a_Object', 'void___a_int', expectMoreSpecific: false);
   // Test ({int a})->void <: ({Object a})->void.
   expect(true, 'void___a_int', 'void___a_Object');
   // Test (int,{int a})->void <: (int,{int a})->void.
@@ -528,8 +542,9 @@ void testTypeVariableSubtype() {
       class I<T extends S, S extends U, U extends T> {}
       class J<T extends S, S extends U, U extends S> {}
       """).then((env) {
-    void expect(bool value, DartType T, DartType S) {
-      Expect.equals(value, env.isSubtype(T, S), '$T <: $S');
+    void expect(bool expectSubtype, DartType T, DartType S,
+                {bool expectMoreSpecific}) {
+      testTypes(env, T, S, expectSubtype, expectMoreSpecific);
     }
 
     ClassElement A = env.getElement('A');
@@ -571,7 +586,7 @@ void testTypeVariableSubtype() {
     expect(false, A_T, num_);
     expect(false, A_T, int_);
     expect(false, A_T, String_);
-    expect(true, A_T, dynamic_);
+    expect(true, A_T, dynamic_, expectMoreSpecific: false);
     expect(true, A_T, A_T);
     expect(false, A_T, B_T);
 
@@ -580,7 +595,7 @@ void testTypeVariableSubtype() {
     expect(false, B_T, num_);
     expect(false, B_T, int_);
     expect(false, B_T, String_);
-    expect(true, B_T, dynamic_);
+    expect(true, B_T, dynamic_, expectMoreSpecific: false);
     expect(true, B_T, B_T);
     expect(false, B_T, A_T);
 
@@ -589,7 +604,7 @@ void testTypeVariableSubtype() {
     expect(true, C_T, num_);
     expect(false, C_T, int_);
     expect(false, C_T, String_);
-    expect(true, C_T, dynamic_);
+    expect(true, C_T, dynamic_, expectMoreSpecific: false);
     expect(true, C_T, C_T);
     expect(false, C_T, A_T);
 
@@ -598,7 +613,7 @@ void testTypeVariableSubtype() {
     expect(true, D_T, num_);
     expect(true, D_T, int_);
     expect(false, D_T, String_);
-    expect(true, D_T, dynamic_);
+    expect(true, D_T, dynamic_, expectMoreSpecific: false);
     expect(true, D_T, D_T);
     expect(false, D_T, A_T);
 
@@ -607,7 +622,7 @@ void testTypeVariableSubtype() {
     expect(true, E_T, num_);
     expect(false, E_T, int_);
     expect(false, E_T, String_);
-    expect(true, E_T, dynamic_);
+    expect(true, E_T, dynamic_, expectMoreSpecific: false);
     expect(true, E_T, E_T);
     expect(true, E_T, E_S);
     expect(false, E_T, A_T);
@@ -616,7 +631,7 @@ void testTypeVariableSubtype() {
     expect(true, E_S, num_);
     expect(false, E_S, int_);
     expect(false, E_S, String_);
-    expect(true, E_S, dynamic_);
+    expect(true, E_S, dynamic_, expectMoreSpecific: false);
     expect(false, E_S, E_T);
     expect(true, E_S, E_S);
     expect(false, E_S, A_T);
@@ -626,7 +641,7 @@ void testTypeVariableSubtype() {
     expect(true, F_T, num_);
     expect(false, F_T, int_);
     expect(false, F_T, String_);
-    expect(true, F_T, dynamic_);
+    expect(true, F_T, dynamic_, expectMoreSpecific: false);
     expect(false, F_T, F_S);
     expect(true, F_T, F_T);
     expect(false, F_T, A_T);
@@ -635,7 +650,7 @@ void testTypeVariableSubtype() {
     expect(true, F_S, num_);
     expect(false, F_S, int_);
     expect(false, F_S, String_);
-    expect(true, F_S, dynamic_);
+    expect(true, F_S, dynamic_, expectMoreSpecific: false);
     expect(true, F_S, F_S);
     expect(true, F_S, F_T);
     expect(false, F_S, A_T);
@@ -645,7 +660,7 @@ void testTypeVariableSubtype() {
     expect(false, G_T, num_);
     expect(false, G_T, int_);
     expect(false, G_T, String_);
-    expect(true, G_T, dynamic_);
+    expect(true, G_T, dynamic_, expectMoreSpecific: false);
     expect(true, G_T, G_T);
     expect(false, G_T, A_T);
 
@@ -654,7 +669,7 @@ void testTypeVariableSubtype() {
     expect(false, H_T, num_);
     expect(false, H_T, int_);
     expect(false, H_T, String_);
-    expect(true, H_T, dynamic_);
+    expect(true, H_T, dynamic_, expectMoreSpecific: false);
     expect(true, H_T, H_T);
     expect(true, H_T, H_S);
     expect(false, H_T, A_T);
@@ -663,7 +678,7 @@ void testTypeVariableSubtype() {
     expect(false, H_S, num_);
     expect(false, H_S, int_);
     expect(false, H_S, String_);
-    expect(true, H_S, dynamic_);
+    expect(true, H_S, dynamic_, expectMoreSpecific: false);
     expect(true, H_S, H_T);
     expect(true, H_S, H_S);
     expect(false, H_S, A_T);
@@ -673,7 +688,7 @@ void testTypeVariableSubtype() {
     expect(false, I_T, num_);
     expect(false, I_T, int_);
     expect(false, I_T, String_);
-    expect(true, I_T, dynamic_);
+    expect(true, I_T, dynamic_, expectMoreSpecific: false);
     expect(true, I_T, I_T);
     expect(true, I_T, I_S);
     expect(true, I_T, I_U);
@@ -683,7 +698,7 @@ void testTypeVariableSubtype() {
     expect(false, I_S, num_);
     expect(false, I_S, int_);
     expect(false, I_S, String_);
-    expect(true, I_S, dynamic_);
+    expect(true, I_S, dynamic_, expectMoreSpecific: false);
     expect(true, I_S, I_T);
     expect(true, I_S, I_S);
     expect(true, I_S, I_U);
@@ -693,7 +708,7 @@ void testTypeVariableSubtype() {
     expect(false, I_U, num_);
     expect(false, I_U, int_);
     expect(false, I_U, String_);
-    expect(true, I_U, dynamic_);
+    expect(true, I_U, dynamic_, expectMoreSpecific: false);
     expect(true, I_U, I_T);
     expect(true, I_U, I_S);
     expect(true, I_U, I_U);
@@ -704,7 +719,7 @@ void testTypeVariableSubtype() {
     expect(false, J_T, num_);
     expect(false, J_T, int_);
     expect(false, J_T, String_);
-    expect(true, J_T, dynamic_);
+    expect(true, J_T, dynamic_, expectMoreSpecific: false);
     expect(true, J_T, J_T);
     expect(true, J_T, J_S);
     expect(true, J_T, J_U);
@@ -714,7 +729,7 @@ void testTypeVariableSubtype() {
     expect(false, J_S, num_);
     expect(false, J_S, int_);
     expect(false, J_S, String_);
-    expect(true, J_S, dynamic_);
+    expect(true, J_S, dynamic_, expectMoreSpecific: false);
     expect(false, J_S, J_T);
     expect(true, J_S, J_S);
     expect(true, J_S, J_U);
@@ -724,7 +739,7 @@ void testTypeVariableSubtype() {
     expect(false, J_U, num_);
     expect(false, J_U, int_);
     expect(false, J_U, String_);
-    expect(true, J_U, dynamic_);
+    expect(true, J_U, dynamic_, expectMoreSpecific: false);
     expect(false, J_U, J_T);
     expect(true, J_U, J_S);
     expect(true, J_U, J_U);

@@ -68,6 +68,10 @@ class TypeEnvironment {
     return compiler.types.isSubtype(T, S);
   }
 
+  bool isMoreSpecific(DartType T, DartType S) {
+    return compiler.types.isMoreSpecific(T, S);
+  }
+
   SourceString sourceString(String name) => new SourceString(name);
 
   FunctionType functionType(DartType returnType,
