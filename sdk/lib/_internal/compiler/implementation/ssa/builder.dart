@@ -913,6 +913,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   bool isReachable = true;
 
+  /**
+   * True if we are visiting the expression of a throw expression.
+   */
+  bool inThrowExpression = false;
+
   final List<Element> sourceElementStack;
 
   Element get currentElement => sourceElementStack.last.declaration;
@@ -1312,6 +1317,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isSynthesized) return true;
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
+
+      if (inThrowExpression) return false;
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
@@ -2060,11 +2067,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.internalError('visitClassNode should not be called', node: node);
   }
 
+  visitThrowExpression(Expression expression) {
+    bool old = inThrowExpression;
+    try {
+      inThrowExpression = true;
+      visit(expression);
+    } finally {
+      inThrowExpression = old;
+    }
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     if (!isReachable) return;
     Throw throwExpression = node.expression.asThrow();
     if (throwExpression != null && inliningStack.isEmpty) {
-      visit(throwExpression.expression);
+      visitThrowExpression(throwExpression.expression);
       handleInTryStatement();
       closeAndGotoExit(new HThrow(pop()));
     } else {
@@ -4319,7 +4336,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitThrow(Throw node) {
-    visit(node.expression);
+    visitThrowExpression(node.expression);
     if (isReachable) {
       handleInTryStatement();
       push(new HThrowExpression(pop()));
