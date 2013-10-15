@@ -35,11 +35,15 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     ClassBuilder builder = new ClassBuilder();
-    emitClassConstructor(classElement, builder, runtimeName);
+    if (!onlyForRti) {
+      emitClassConstructor(classElement, builder, runtimeName);
+    }
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
-    emitClassGettersSetters(classElement, builder);
-    if (!classElement.isMixinApplication) {
-      emitInstanceMembers(classElement, builder);
+    if (!onlyForRti) {
+      emitClassGettersSetters(classElement, builder);
+      if (!classElement.isMixinApplication) {
+        emitInstanceMembers(classElement, builder);
+      }
     }
     task.typeTestEmitter.emitIsTests(classElement, builder);
 
@@ -226,7 +230,6 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassGettersSetters(ClassElement classElement,
                                ClassBuilder builder) {
-
     visitFields(classElement, false,
                 (VariableElement member,
                  String name,
