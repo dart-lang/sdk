@@ -894,6 +894,11 @@ class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
           time,
           compilationSkipped);
 
+  bool didFail(TestCase testCase) {
+    return _getOutcome() != Expectation.PASS;
+  }
+
+
   bool get _browserTestFailure {
     // We should not need to convert back and forward.
     var output = decodeUtf8(super.stdout);
@@ -2116,12 +2121,13 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    if (command is BrowserTestCommand) {
-      // We do not re-run tests on the new browser controller, since it should
-      // not be as flaky as selenium.
-      return false;
-    } else if (command is SeleniumTestCommand) {
-      // Selenium tests can be flaky. Try re-running.
+    // Selenium tests can be flaky. Try re-running.
+    if (command is SeleniumTestCommand) {
+      return true;
+    }
+
+    // We currently rerun dartium tests, see issue 14074
+    if (command is BrowserTestCommand && command.displayName == 'dartium') {
       return true;
     }
   }
