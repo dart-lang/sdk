@@ -10,5 +10,10 @@ _wrapZone(callback) {
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
 }
 
+_wrapBinaryZone(callback) {
+  if (Zone.current == Zone.ROOT) return callback;
+  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
+}
+
 Element query(String selector) => document.query(selector);
 ElementList queryAll(String selector) => document.queryAll(selector);

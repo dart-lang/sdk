@@ -17531,11 +17531,7 @@ class MutationObserver extends Interceptor native "MutationObserver,WebKitMutati
     return JS('MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
         'window.MozMutationObserver)(#)',
-        convertDartClosureToJS((changes, observer) {
-          _wrapZone(() {
-            callback(changes, observer);
-          });
-        }, 2));
+        convertDartClosureToJS(_wrapBinaryZone(callback), 2));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33415,6 +33411,11 @@ _wrapZone(callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+}
+
+_wrapBinaryZone(callback) {
+  if (Zone.current == Zone.ROOT) return callback;
+  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 
 Element query(String selector) => document.query(selector);

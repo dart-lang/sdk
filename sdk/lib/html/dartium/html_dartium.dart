@@ -18820,10 +18820,7 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   }
 
   factory MutationObserver(MutationCallback callback) =>
-      new MutationObserver._((changes, observer) {
-        _wrapZone(() {
-            callback(changes, observer);
-          });
+      new MutationObserver._(_wrapBinaryZone(callback));
         });
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35237,6 +35234,11 @@ _wrapZone(callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+}
+
+_wrapBinaryZone(callback) {
+  if (Zone.current == Zone.ROOT) return callback;
+  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 
 Element query(String selector) => document.query(selector);
