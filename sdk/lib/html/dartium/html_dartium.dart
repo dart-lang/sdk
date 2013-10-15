@@ -18820,7 +18820,11 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   }
 
   factory MutationObserver(MutationCallback callback) =>
-      new MutationObserver._(_wrapZone(callback));
+      new MutationObserver._((changes, observer) {
+        _wrapZone(() {
+            callback(changes, observer);
+          });
+        });
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -17531,7 +17531,11 @@ class MutationObserver extends Interceptor native "MutationObserver,WebKitMutati
     return JS('MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
         'window.MozMutationObserver)(#)',
-        convertDartClosureToJS(_wrapZone(callback), 2));
+        convertDartClosureToJS((changes, observer) {
+          _wrapZone(() {
+            callback(changes, observer);
+          });
+        }, 2));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -84,10 +84,18 @@ $if DART2JS
     return JS('MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
         'window.MozMutationObserver)(#)',
-        convertDartClosureToJS(_wrapZone(callback), 2));
+        convertDartClosureToJS((changes, observer) {
+          _wrapZone(() {
+            callback(changes, observer);
+          });
+        }, 2));
   }
 $else
   factory MutationObserver(MutationCallback callback) =>
-      new MutationObserver._(_wrapZone(callback));
+      new MutationObserver._((changes, observer) {
+        _wrapZone(() {
+            callback(changes, observer);
+          });
+        });
 $endif
 }
