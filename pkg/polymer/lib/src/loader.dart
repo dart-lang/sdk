@@ -42,10 +42,11 @@ void initPolymer(List<String> libraries, [String srcUrl]) {
       _loadLibrary(lib, srcUrl);
     }
 
-    // TODO(jmesserly): this should be in the custom_element polyfill, not here.
-    // notify the system that we are bootstrapped
-    document.body.dispatchEvent(
-        new CustomEvent('WebComponentsReady', canBubble: true));
+    Polymer._ready.complete();
+
+    // TODO(sigmund): move to boot.dart once it's ready.
+    document.body.style.transition = 'opacity 0.3s';
+    document.body.style.opacity = '1';
   });
 }
 

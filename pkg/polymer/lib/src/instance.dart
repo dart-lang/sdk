@@ -69,6 +69,14 @@ abstract class Polymer implements Element {
 
   static int _preparingElements = 0;
 
+  static final Completer _ready = new Completer();
+
+  /**
+   * Future indicating that the Polymer library has been loaded and is ready
+   * for use.
+   */
+  static Future get onReady => _ready.future;
+
   PolymerDeclaration _declaration;
 
   /** The most derived `<polymer-element>` declaration for this element. */

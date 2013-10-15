@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -53,8 +52,7 @@ class XObj extends PolymerElement {
 main() {
   useHtmlConfiguration();
 
-  // Delay for custom elements upgrading
-  setUp(() => new Future.delayed(Duration.ZERO));
+  setUp(() => Polymer.onReady);
 
   test('take attributes', () {
     queryXTag(x) => document.query(x).xtag;
