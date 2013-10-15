@@ -220,12 +220,6 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
-  static _wrapZone(callback) {
-    // For performance reasons avoid wrapping if we are in the root zone.
-    if (Zone.current == Zone.ROOT) return callback;
-    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
-  }
-
   void cancel() {
     if (_canceled) return;
 

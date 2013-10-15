@@ -55,5 +55,12 @@ $endif
         (error) { completer.completeError(error); }, mediaConstraints);
     return completer.future;
   }
+
+  @DomName('RTCPeerConnection.getStats')
+  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
+    var completer = new Completer<RtcStatsResponse>();
+    _getStats((value) { completer.complete(value); }, selector);
+    return completer.future;
+  }
 $!MEMBERS
 }
