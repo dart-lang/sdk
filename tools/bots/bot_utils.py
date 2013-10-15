@@ -60,9 +60,28 @@ class Mode(object):
   ALL_MODES = [RELEASE, DEBUG]
 
 class GCSNamer(object):
+  """
+  This class is used for naming objects in our "gs://dart-archive/"
+  GoogleCloudStorage bucket. It's structure is as follows:
+
+  For every (channel,revision,release-type) tuple we have a base path:
+
+    gs://dart-archive/channels/{be,dev,stable}
+                     /{raw,signed,release}/{revision,latest}/
+
+  Under every base path, the following structure is used:
+    - /VERSION
+    - /api-docs/dart-api-docs.zip
+    - /dartium/{chromedriver,content_shell,dartium}
+         -{linux,macos,windows}-{ia32,x64}-release.zip
+    - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
+    - /editor/darteditor-{linux,macos,windows}-{ia32,x64}.zip
+    - /editor-eclipse-update
+         /{index.html,features/,plugins/,artifacts.jar,content.jar}
+  """
   def __init__(self, channel=Channel.BLEEDING_EDGE,
       release_type=ReleaseType.RAW):
-    assert channel in Channel.ALL_CHANNELS 
+    assert channel in Channel.ALL_CHANNELS
     assert release_type in ReleaseType.ALL_TYPES
 
     self.channel = channel
