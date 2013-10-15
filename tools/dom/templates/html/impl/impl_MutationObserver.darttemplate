@@ -89,6 +89,5 @@ $if DART2JS
 $else
   factory MutationObserver(MutationCallback callback) =>
       new MutationObserver._(_wrapBinaryZone(callback));
-        });
 $endif
 }
