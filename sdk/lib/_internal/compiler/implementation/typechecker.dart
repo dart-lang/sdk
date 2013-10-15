@@ -113,6 +113,21 @@ class ResolvedAccess extends ElementAccess {
   String toString() => 'ResolvedAccess($element)';
 }
 
+/// An access to a promoted variable.
+class PromotedAccess extends ElementAccess {
+  final VariableElement element;
+  final DartType type;
+
+  PromotedAccess(VariableElement this.element, DartType this.type) {
+    assert(element != null);
+    assert(type != null);
+  }
+
+  DartType computeType(Compiler compiler) => type;
+
+  String toString() => 'PromotedAccess($element,$type)';
+}
+
 /**
  * An access of a resolved top-level or static property or function, or an
  * access of a resolved element through [:this:].
@@ -166,6 +181,46 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType stringType;
   DartType objectType;
   DartType listType;
+
+  Map<Node, Map<VariableElement, DartType>> shownTypesMap =
+      new Map<Node, Map<VariableElement, DartType>>();
+
+  Map<VariableElement, Link<DartType>> knownTypesMap =
+      new Map<VariableElement, Link<DartType>>();
+
+  void showType(Node node, VariableElement element, DartType type) {
+    Map<VariableElement, DartType> shownTypes = shownTypesMap.putIfAbsent(node,
+        () => new Map<VariableElement, DartType>());
+    shownTypes[element] = type;
+  }
+
+  void registerKnownType(VariableElement element, DartType type) {
+    Link<DartType> knownTypes =
+        knownTypesMap.putIfAbsent(element, () => const Link<DartType>());
+    knownTypesMap[element] = knownTypes.prepend(type);
+  }
+
+  void unregisterKnownType(VariableElement element) {
+    Link<DartType> knownTypes = knownTypesMap[element].tail;
+    if (knownTypes.isEmpty) {
+      knownTypesMap.remove(element);
+    } else {
+      knownTypesMap[element] = knownTypes;
+    }
+  }
+
+  Map<VariableElement, DartType> getShownTypesFor(Node node) {
+    Map<VariableElement, DartType> shownTypes = shownTypesMap[node];
+    return shownTypes != null ? shownTypes : const {};
+  }
+
+  DartType getKnownType(VariableElement element) {
+    Link<DartType> promotions = knownTypesMap[element];
+    if (promotions != null) {
+      return promotions.head;
+    }
+    return element.computeType(compiler);
+  }
 
   TypeCheckerVisitor(this.compiler, TreeElements elements, this.types)
       : this.elements = elements,
@@ -228,6 +283,32 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       compiler.internalError('type is null', node: node);
     }
     return result;
+  }
+
+  /// Analyze [node] in the context of the known types shown in [context].
+  DartType analyzeInPromotedContext(Node context, Node node) {
+    Link<VariableElement> knownForArgument = const Link<VariableElement>();
+    Map<VariableElement, DartType> shownForReceiver =
+        getShownTypesFor(context);
+    shownForReceiver.forEach((VariableElement variable, DartType type) {
+      if (elements.isPotentiallyMutatedIn(node, variable)) return;
+      if (elements.isPotentiallyMutatedInClosure(variable)) return;
+      if (elements.isAccessedByClosureIn(node, variable) &&
+          elements.isPotentiallyMutated(variable)) {
+        return;
+      }
+      knownForArgument = knownForArgument.prepend(variable);
+      registerKnownType(variable, type);
+    });
+
+    final DartType type = analyze(node);
+
+    while (!knownForArgument.isEmpty) {
+      unregisterKnownType(knownForArgument.head);
+      knownForArgument = knownForArgument.tail;
+    }
+
+    return type;
   }
 
   /**
@@ -371,8 +452,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitIf(If node) {
+    Expression condition = node.condition.expression;
+    Statement thenPart = node.thenPart;
+
     checkCondition(node.condition);
-    StatementType thenType = analyze(node.thenPart);
+
+    StatementType thenType = analyzeInPromotedContext(condition, thenPart);
+
     StatementType elseType = node.hasElsePart ? analyze(node.elsePart)
                                               : StatementType.NOT_RETURNING;
     return thenType.join(elseType);
@@ -538,6 +624,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyzeArguments(node, elementAccess.element, types.dynamicType,
                        argumentTypes);
     }
+    type = type.unalias(compiler);
     if (identical(type.kind, TypeKind.FUNCTION)) {
       FunctionType funType = type;
       return funType.returnType;
@@ -621,6 +708,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   ElementAccess createResolvedAccess(Send node, SourceString name,
                                      Element element) {
     checkPrivateAccess(node, element, name);
+    return createPromotedAccess(element);
+  }
+
+  ElementAccess createPromotedAccess(Element element) {
+    if (element.isVariable() || element.isParameter()) {
+      Link<DartType> knownTypes = knownTypesMap[element];
+      if (knownTypes != null) {
+        return new PromotedAccess(element, knownTypes.head);
+      }
+    }
     return new ResolvedAccess(element);
   }
 
@@ -660,7 +757,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (Elements.isClosureSend(node, element)) {
       if (element != null) {
         // foo() where foo is a local or a parameter.
-        return analyzeInvocation(node, new ResolvedAccess(element));
+        return analyzeInvocation(node, createPromotedAccess(element));
       } else {
         // exp() where exp is some complex expression like (o) or foo().
         DartType type = analyze(node.selector);
@@ -673,6 +770,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
     if (node.isOperator && identical(name, 'is')) {
       analyze(node.receiver);
+      if (!node.isIsNotCheck) {
+        Element variable = elements[node.receiver];
+        if (variable != null &&
+            (variable.isVariable() || variable.isParameter())) {
+          DartType knownType = getKnownType(variable);
+          if (!knownType.isDynamic) {
+            DartType isType = elements.getType(node.arguments.head);
+            if (types.isMoreSpecific(isType, knownType)) {
+              showType(node, variable, isType);
+            }
+          }
+        }
+      }
       return boolType;
     } if (node.isOperator && identical(name, 'as')) {
       analyze(node.receiver);
@@ -686,11 +796,28 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         // Analyze argument.
         analyze(node.arguments.head);
         return boolType;
-      } else if (identical(name, '||') ||
-                 identical(name, '&&')) {
+      } else if (identical(name, '||')) {
         checkAssignable(receiver, receiverType, boolType);
         final Node argument = node.arguments.head;
         final DartType argumentType = analyze(argument);
+        checkAssignable(argument, argumentType, boolType);
+        return boolType;
+      } else if (identical(name, '&&')) {
+        checkAssignable(receiver, receiverType, boolType);
+        final Node argument = node.arguments.head;
+
+        final DartType argumentType =
+            analyzeInPromotedContext(receiver, argument);
+
+        void reshowTypes(VariableElement variable, DartType type) {
+          if (elements.isPotentiallyMutatedIn(argument, variable)) return;
+          if (elements.isPotentiallyMutatedInClosure(variable)) return;
+          showType(node, variable, type);
+        }
+
+        getShownTypesFor(receiver).forEach(reshowTypes);
+        getShownTypesFor(argument).forEach(reshowTypes);
+
         checkAssignable(argument, argumentType, boolType);
         return boolType;
       } else if (identical(name, '!')) {
@@ -1124,8 +1251,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitConditional(Conditional node) {
-    checkCondition(node.condition);
-    DartType thenType = analyzeNonVoid(node.thenExpression);
+    Expression condition = node.condition;
+    Expression thenExpression = node.thenExpression;
+
+    checkCondition(condition);
+
+    DartType thenType = analyzeInPromotedContext(condition, thenExpression);
+
     DartType elseType = analyzeNonVoid(node.elseExpression);
     if (types.isSubtype(thenType, elseType)) {
       return thenType;

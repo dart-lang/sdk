@@ -39,6 +39,19 @@ abstract class TreeElements {
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
+
+  /// Returns [:true:] if [element] is potentially mutated anywhere in its
+  /// scope.
+  bool isPotentiallyMutated(VariableElement element);
+
+  /// Returns [:true:] if [element] is potentially mutated in [node].
+  bool isPotentiallyMutatedIn(Node node, VariableElement element);
+
+  /// Returns [:true:] if [element] is potentially mutated in a closure.
+  bool isPotentiallyMutatedInClosure(VariableElement element);
+
+  /// Returns [:true:] if [element] is accessed by a closure in [node].
+  bool isAccessedByClosureIn(Node node, VariableElement element);
 }
 
 class TreeElementMapping implements TreeElements {
@@ -48,6 +61,13 @@ class TreeElementMapping implements TreeElements {
   final Set<Node> superUses = new Set<Node>();
   final Set<Element> otherDependencies = new Set<Element>();
   final Map<Node, Constant> constants = new Map<Node, Constant>();
+  final Set<VariableElement> potentiallyMutated = new Set<VariableElement>();
+  final Map<Node, Set<VariableElement>> potentiallyMutatedIn =
+      new Map<Node, Set<VariableElement>>();
+  final Set<VariableElement> potentiallyMutatedInClosure =
+      new Set<VariableElement>();
+  final Map<Node, Set<VariableElement>> accessedByClosureIn =
+      new Map<Node, Set<VariableElement>>();
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
@@ -156,6 +176,42 @@ class TreeElementMapping implements TreeElements {
 
   void registerDependency(Element element) {
     otherDependencies.add(element.implementation);
+  }
+
+  bool isPotentiallyMutated(VariableElement element) {
+    return potentiallyMutated.contains(element);
+  }
+
+  void setPotentiallyMutated(VariableElement element) {
+    potentiallyMutated.add(element);
+  }
+
+  bool isPotentiallyMutatedIn(Node node, VariableElement element) {
+    Set<Element> mutatedIn = potentiallyMutatedIn[node];
+    return mutatedIn != null && mutatedIn.contains(element);
+  }
+
+  void setPotentiallyMutatedIn(Node node, VariableElement element) {
+    potentiallyMutatedIn.putIfAbsent(
+        node, () => new Set<VariableElement>()).add(element);
+  }
+
+  bool isPotentiallyMutatedInClosure(VariableElement element) {
+    return potentiallyMutatedInClosure.contains(element);
+  }
+
+  void setPotentiallyMutatedInClosure(VariableElement element) {
+    potentiallyMutatedInClosure.add(element);
+  }
+
+  bool isAccessedByClosureIn(Node node, VariableElement element) {
+    Set<Element> accessedIn = accessedByClosureIn[node];
+    return accessedIn != null && accessedIn.contains(element);
+  }
+
+  void setAccessedByClosureIn(Node node, VariableElement element) {
+    accessedByClosureIn.putIfAbsent(
+        node, () => new Set<VariableElement>()).add(element);
   }
 
   String toString() => 'TreeElementMapping($currentElement)';
@@ -1845,6 +1901,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
   /// error when verifying that all final variables are initialized.
   bool allowFinalWithoutInitializer = false;
 
+  /// The nodes for which variable access and mutation must be registered in
+  /// order to determine when the static type of variables types is promoted.
+  Link<Node> promotionScope = const Link<Node>();
+
+  bool isPotentiallyMutableTarget(Element target) {
+    if (target == null) return false;
+    return (target.isVariable() || target.isParameter()) &&
+      !(target.modifiers.isFinal() || target.modifiers.isConst());
+  }
+
   // TODO(ahe): Find a way to share this with runtime implementation.
   static final RegExp symbolValidationPattern =
       new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
@@ -1940,6 +2006,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
     inInstanceContext = false;
     var result = action();
     inInstanceContext = wasInstanceContext;
+    return result;
+  }
+
+  doInPromotionScope(Node node, action()) {
+    promotionScope = promotionScope.prepend(node);
+    var result = action();
+    promotionScope = promotionScope.tail;
     return result;
   }
 
@@ -2185,8 +2258,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitIf(If node) {
-    visit(node.condition);
-    visitIn(node.thenPart, new BlockScope(scope));
+    doInPromotionScope(node.condition.expression, () => visit(node.condition));
+    doInPromotionScope(node.thenPart,
+        () => visitIn(node.thenPart, new BlockScope(scope)));
     visitIn(node.elsePart, new BlockScope(scope));
   }
 
@@ -2412,7 +2486,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
   visitSend(Send node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-    Element target = resolveSend(node);
+    Element target;
+    if (node.isLogicalAnd) {
+      target = doInPromotionScope(node.receiver, () => resolveSend(node));
+    } else {
+      target = resolveSend(node);
+    }
     sendIsMemberAccess = oldSendIsMemberAccess;
 
     if (target != null
@@ -2452,12 +2531,21 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Don't try to make constants of calls to type literals.
         analyzeConstant(node, isConst: !node.isCall);
       }
+      if (isPotentiallyMutableTarget(target)) {
+        if (enclosingElement != target.enclosingElement) {
+          for (Node scope in promotionScope) {
+            mapping.setAccessedByClosureIn(scope, target);
+          }
+        }
+      }
     }
 
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (identical(operatorString, 'is')) {
+        // TODO(johnniwinther): Use seen type tests to avoid registration of
+        // mutation/access to unpromoted variables.
         DartType type =
             resolveTypeExpression(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
@@ -2469,6 +2557,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         if (type != null) {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
+        resolvedArguments = true;
+      } else if (identical(operatorString, '&&')) {
+        doInPromotionScope(node.arguments.head,
+            () => resolveArguments(node.argumentsNode));
         resolvedArguments = true;
       }
     }
@@ -2571,6 +2663,15 @@ class ResolverVisitor extends MappingVisitor<Element> {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
         compiler.backend.registerThrowNoSuchMethod(mapping);
+      }
+      if (isPotentiallyMutableTarget(target)) {
+        mapping.setPotentiallyMutated(target);
+        if (enclosingElement != target.enclosingElement) {
+          mapping.setPotentiallyMutatedInClosure(target);
+        }
+        for (Node scope in promotionScope) {
+          mapping.setPotentiallyMutatedIn(scope, target);
+        }
       }
     }
 
@@ -3002,7 +3103,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitConditional(Conditional node) {
-    node.visitChildren(this);
+    doInPromotionScope(node.condition, () => visit(node.condition));
+    doInPromotionScope(node.thenExpression, () => visit(node.thenExpression));
+    visit(node.elseExpression);
   }
 
   visitStringInterpolation(StringInterpolation node) {
