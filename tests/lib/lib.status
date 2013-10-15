@@ -49,7 +49,8 @@ mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
 mirrors/method_mirror_returntype_test : RuntimeError # Issue 11928
 mirrors/method_mirror_source_test : RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
-mirrors/mixin_test/none: RuntimeError # Issue 12464
+mirrors/mixin_test: RuntimeError # Issue 12464
+mirrors/mixin_application_test/none: RuntimeError # Issue 12464
 mirrors/new_instance_with_type_arguments_test: RuntimeError # Issue 12333
 mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
@@ -168,7 +169,7 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 [ $compiler == none  ]
 async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
-mirrors/mixin_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
+mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
