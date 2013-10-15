@@ -8,7 +8,6 @@ LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please tr
 
 Language/12_Expressions/12_Instance_Creation/1_New_A04_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: Pass, RuntimeError # co19-roll r607: Please triage this failure
-Language/13_Statements/09_Switch_A04_t02: MissingCompileTimeError # co19-roll r623: Please triage this failure
 LibTest/core/Invocation/memberName_A01_t01: Pass, RuntimeError # co18-roll r607: Please triage this failure
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
@@ -163,7 +162,6 @@ LibTest/isolate/SendPort/send_A02_t02: timeout # co19-roll r546: Please triage t
 LibTest/isolate/SendPort/send_A02_t03: timeout # co19-roll r546: Please triage this failure
 Language/12_Expressions/06_Symbols_A01_t03: RuntimeError # co19-roll r623: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: RuntimeError # co19-roll r623: Please triage this failure
-Language/13_Statements/09_Switch_A04_t01: MissingCompileTimeError # co19-roll r623: Please triage this failure
 LibTest/core/Function/Function_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 
 [ $compiler == dart2dart && $minified ]
