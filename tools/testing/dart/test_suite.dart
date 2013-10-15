@@ -776,7 +776,7 @@ class StandardTestSuite extends TestSuite {
     switch (compiler) {
     case 'dart2js':
       args = new List.from(args);
-      String tempDir = createOutputDirectory(info.filePath, '');
+      String tempDir = createCompilationOutputDirectory(info.filePath);
       args.add('--out=$tempDir/out.js');
 
       var command = CommandBuilder.instance.getCompilationCommand(
@@ -795,11 +795,10 @@ class StandardTestSuite extends TestSuite {
             "jsshell", jsShellFileName, ['$tempDir/out.js'], configurationDir));
       }
       return commands;
-
     case 'dart2dart':
       args = new List.from(args);
       args.add('--output-type=dart');
-      String tempDir = createOutputDirectory(info.filePath, '');
+      String tempDir = createCompilationOutputDirectory(info.filePath);
       args.add('--out=$tempDir/out.dart');
 
       List<Command> commands =
@@ -961,11 +960,14 @@ class StandardTestSuite extends TestSuite {
                                            .replaceAll('=','')
                                            .replaceAll('/','');
       }
+      final String compilationTempDir =
+          createCompilationOutputDirectory(info.filePath);
       final String tempDir = createOutputDirectory(info.filePath, optionsName);
 
       String dartWrapperFilename = '$tempDir/test.dart';
-      String compiledDartWrapperFilename = '$tempDir/test.js';
-      String precompiledDartWrapperFilename = '$tempDir/test.precompiled.js';
+      String compiledDartWrapperFilename = '$compilationTempDir/test.js';
+      String precompiledDartWrapperFilename =
+          '$compilationTempDir/test.precompiled.js';
 
       String content = null;
       Path dir = filePath.directoryPath;
@@ -1208,6 +1210,29 @@ class StandardTestSuite extends TestSuite {
    * of levels down in the checkout as the original path of the web test.
    */
   String createOutputDirectory(Path testPath, String optionsName) {
+    // Create
+    // '[build dir]/generated_tests/$compiler-$runtime-$flags/$testUniqueName'.
+    var checked = configuration['checked'] ? '-checked' : '';
+    var minified = configuration['minified'] ? '-minified' : '';
+    var csp = configuration['csp'] ? '-csp' : '';
+    var dirName = "${configuration['compiler']}-${configuration['runtime']}"
+                  "$checked$minified$csp";
+    return createGeneratedTestDirectoryHelper(
+        "tests", dirName, testPath, optionsName);
+  }
+
+  String createCompilationOutputDirectory(Path testPath) {
+    // Create
+    // '[build dir]/generated_compilations/$compiler-$flags/$testUniqueName'.
+    var checked = configuration['checked'] ? '-checked' : '';
+    var minified = configuration['minified'] ? '-minified' : '';
+    var dirName = "${configuration['compiler']}$checked$minified";
+    return createGeneratedTestDirectoryHelper(
+        "compilations", dirName, testPath, "");
+  }
+
+  String createGeneratedTestDirectoryHelper(
+      String name, String dirname, Path testPath, String optionsName) {
     Path relative = testPath.relativeTo(TestUtils.dartDir());
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     String testUniqueName = relative.toString().replaceAll('/', '_');
@@ -1215,18 +1240,9 @@ class StandardTestSuite extends TestSuite {
       testUniqueName = '$testUniqueName-$optionsName';
     }
 
-    // Create '[build dir]/generated_tests/$compiler-$runtime/$testUniqueName',
-    // including any intermediate directories that don't exist.
-    // If the tests are run in checked or minified mode we add that to the
-    // '$compile-$runtime' directory name.
-    var checked = configuration['checked'] ? '-checked' : '';
-    var minified = configuration['minified'] ? '-minified' : '';
-    var csp = configuration['csp'] ? '-csp' : '';
-    var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-                  "$checked$minified$csp";
     Path generatedTestPath = new Path(buildDir)
-        .append('generated_tests')
-        .append(dirName)
+        .append('generated_$name')
+        .append(dirname)
         .append(testUniqueName);
 
     TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
