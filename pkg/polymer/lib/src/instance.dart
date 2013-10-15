@@ -394,7 +394,9 @@ abstract class Polymer implements Element {
       // reflect bound property to attribute when binding
       // to ensure binding is not left on attribute if property
       // does not update due to not changing.
-      reflectPropertyToAttribute(name);
+      // Dart note: we include this patch:
+      // https://github.com/Polymer/polymer/pull/319
+      reflectPropertyToAttribute(MirrorSystem.getName(property.simpleName));
       return bindings[name] = observer;
     } else {
       // Cannot call super.bind because of

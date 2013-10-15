@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>property to attribute reflection with bind</title>
+    <script src="packages/polymer/boot.js"></script>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+
+  <body>
+    <polymer-element name="my-child-element">
+      <template>
+        <h1>Hello from the child</h1>
+        <p>The camelCase is {{camelCase}}, attr {{attributes["camelCase"]}}</p>
+        <p>The lowercase is {{lowercase}}, attr {{attributes["lowercase"]}}</p>
+      </template>
+    </polymer-element>
+
+    <polymer-element name="my-element">
+      <template>
+        <h1>Hello from the custom element. The volume is {{volume}}</h1>
+        <p>
+          <my-child-element id="child"
+              camelCase="{{volume}}" lowercase="{{volume}}"></my-child-element>
+        </p>
+      </template>
+    </polymer-element>
+
+    <my-element></my-element>
+
+    <script type="application/dart" src="prop_attr_bind_reflection_test.dart">
+    </script>
+  </body>
+</html>

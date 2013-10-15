@@ -67,6 +67,7 @@ polymer/test/attr_mustache_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/prop_attr_bind_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer_expressions/test/globals_test: Fail # Issue 13890
@@ -78,6 +79,7 @@ polymer/test/event_path_test: Pass, Timeout # Issue 13260
 polymer/test/events_test: Pass, Timeout # Issue 13260
 polymer/test/instance_attrs_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
+polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
 polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 
@@ -92,6 +94,7 @@ polymer/test/event_path_test: Fail, OK # Uses dart:html
 polymer/test/events_test: Fail, OK # Uses dart:html
 polymer/test/instance_attrs_test: Fail, OK # Uses dart:html
 polymer/test/prop_attr_reflection_test: Fail, OK # Uses dart:html
+polymer/test/prop_attr_bind_reflection_test: Fail, OK # Uses dart:html
 polymer/test/publish_attributes_test: Fail, OK # Uses dart:html
 polymer/test/take_attributes_test: Fail, OK # Uses dart:html
 polymer/example: Fail, OK # Uses dart:html
