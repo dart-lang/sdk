@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter;
 
-import 'dart:collection' show LinkedHashMap, Queue;
+import 'dart:collection' show Queue;
 
 import '../common.dart';
 

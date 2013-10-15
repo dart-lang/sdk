@@ -1197,8 +1197,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // TODO(johnniwinther): Handle reachability based on reachability of
     // switch cases.
     DartType expressionType = analyze(node.expression);
-    Map<CaseMatch, DartType> caseTypeMap =
-        new LinkedHashMap<CaseMatch, DartType>();
+    Map<CaseMatch, DartType> caseTypeMap = new Map<CaseMatch, DartType>();
     for (SwitchCase switchCase in node.cases) {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         CaseMatch caseMatch = labelOrCase.asCaseMatch();

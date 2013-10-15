@@ -43,11 +43,10 @@ abstract class TreeElements {
 
 class TreeElementMapping implements TreeElements {
   final Element currentElement;
-  final Map<Spannable, Selector> selectors =
-      new LinkedHashMap<Spannable, Selector>();
-  final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
-  final Set<Node> superUses = new LinkedHashSet<Node>();
-  final Set<Element> otherDependencies = new LinkedHashSet<Element>();
+  final Map<Spannable, Selector> selectors = new Map<Spannable, Selector>();
+  final Map<Node, DartType> types = new Map<Node, DartType>();
+  final Set<Node> superUses = new Set<Node>();
+  final Set<Element> otherDependencies = new Set<Element>();
   final Map<Node, Constant> constants = new Map<Node, Constant>();
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;

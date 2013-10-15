@@ -5,7 +5,6 @@
 library mirrors_dart2js;
 
 import 'dart:async';
-import 'dart:collection' show LinkedHashMap;
 
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';
@@ -1601,7 +1600,7 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
 
   Map<String,Constant> get _fieldMap {
     if (_fieldMapCache == null) {
-      _fieldMapCache = new LinkedHashMap<String,Constant>();
+      _fieldMapCache = new Map<String,Constant>();
       if (identical(_constant.type.element.kind, ElementKind.CLASS)) {
         var index = 0;
         ClassElement element = _constant.type.element;

@@ -118,7 +118,7 @@ abstract class TypeInformation {
  */
 class ParameterAssignments extends IterableBase<TypeInformation> {
   final Map<TypeInformation, int> assignments =
-      new HashMap<TypeInformation, int>();
+      new Map<TypeInformation, int>();
 
   void remove(TypeInformation info) {
     int existing = assignments[info];

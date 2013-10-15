@@ -87,7 +87,7 @@ class Keyword extends IterableBase<int> implements SourceString {
                  PrecedenceInfo this.info: KEYWORD_INFO});
 
   static Map<String, Keyword> computeKeywordMap() {
-    Map<String, Keyword> result = new LinkedHashMap<String, Keyword>();
+    Map<String, Keyword> result = new Map<String, Keyword>();
     for (Keyword keyword in values) {
       result[keyword.syntax] = keyword;
     }

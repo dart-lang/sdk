@@ -4,8 +4,6 @@
 
 library elements.modelx;
 
-import 'dart:collection' show LinkedHashMap;
-
 import 'elements.dart';
 import '../../compiler.dart' as api;
 import '../tree/tree.dart';
@@ -750,7 +748,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
   Link<Element> slotForExports;
 
   final Map<LibraryDependency, LibraryElement> tagMapping =
-      new LinkedHashMap<LibraryDependency, LibraryElement>();
+      new Map<LibraryDependency, LibraryElement>();
 
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
     : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),

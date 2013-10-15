@@ -9,14 +9,14 @@ part of dart2js.util;
  * excessive memory usage due to large maps. It acts as an ordinary
  * hash map, but it uses 10 times more memory (by default).
  */
-class ExpensiveMap<K, V> implements LinkedHashMap<K, V> {
+class ExpensiveMap<K, V> implements Map<K, V> {
 
   final List _maps;
 
   ExpensiveMap([int copies = 10]) : _maps = new List(copies) {
     assert(copies > 0);
     for (int i = 0; i < _maps.length; i++) {
-      _maps[i] = new LinkedHashMap<K, V>();
+      _maps[i] = new Map<K, V>();
     }
   }
 

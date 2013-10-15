@@ -5,7 +5,7 @@
 library dart2js;
 
 import 'dart:async';
-import 'dart:collection' show Queue, LinkedHashMap;
+import 'dart:collection' show Queue;
 
 import 'closure.dart' as closureMapping;
 import 'dart_backend/dart_backend.dart' as dart_backend;

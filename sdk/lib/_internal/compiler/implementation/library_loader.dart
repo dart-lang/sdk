@@ -224,7 +224,7 @@ class LibraryLoaderTask extends LibraryLoader {
   List onLibraryLoadedCallbacks = [];
 
   final Map<String, LibraryElement> libraryNames =
-      new LinkedHashMap<String, LibraryElement>();
+      new Map<String, LibraryElement>();
 
   LibraryDependencyHandler currentHandler;
 
@@ -604,7 +604,7 @@ class LibraryDependencyNode {
    * computation in [LibraryDependencyHandler.computeExports].
    */
   Map<SourceString, Element> exportScope =
-      new LinkedHashMap<SourceString, Element>();
+      new Map<SourceString, Element>();
 
   /// Map from exported elements to the export directives that exported them.
   Map<Element, Link<Export>> exporters = new Map<Element, Link<Export>>();
@@ -807,7 +807,7 @@ class LibraryDependencyHandler {
    * already been computed.
    */
   Map<LibraryElement,LibraryDependencyNode> nodeMap =
-      new LinkedHashMap<LibraryElement,LibraryDependencyNode>();
+      new Map<LibraryElement,LibraryDependencyNode>();
 
   LibraryDependencyHandler(Compiler this.compiler);
 

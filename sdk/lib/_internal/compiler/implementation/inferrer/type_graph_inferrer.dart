@@ -4,7 +4,7 @@
 
 library type_graph_inferrer;
 
-import 'dart:collection' show Queue, LinkedHashSet, IterableBase, HashMap;
+import 'dart:collection' show Queue, IterableBase;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/tree.dart' show LiteralList, Node;
@@ -744,7 +744,7 @@ class TypeGraphInferrerEngine
         int length = mapping.selectors.length;
         max = length > max ? length : max;
         Set<Element> set = methodSizes.putIfAbsent(
-            length, () => new LinkedHashSet<Element>());
+            length, () => new Set<Element>());
         set.add(element);
     });
 
