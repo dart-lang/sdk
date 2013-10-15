@@ -2729,6 +2729,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         !redirectionTarget.modifiers.isConst()) {
       error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
+    if (redirectionTarget == constructor) {
+      compiler.reportError(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+      return;
+    }
     constructor.defaultImplementation = redirectionTarget;
     if (Elements.isUnresolved(redirectionTarget)) {
       compiler.backend.registerThrowNoSuchMethod(mapping);
