@@ -155,7 +155,6 @@ class ClassFinalizer : public AllStatic {
                           const Script& script,
                           intptr_t token_index,
                           const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
-  static void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of
   // Dart instances (e.g: _TypedListView, _ByteDataView).

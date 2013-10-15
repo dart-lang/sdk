@@ -2647,7 +2647,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
     return Bool::null();
   }
   const Class& type_class = Class::Handle(type.type_class());
-  if (type_class.HasTypeArguments()) {
+  if (type_class.NumTypeArguments() > 0) {
     // Only raw types can be directly compared, thus disregarding type
     // arguments.
     const AbstractTypeArguments& type_arguments =
@@ -2664,7 +2664,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
   Class& cls = Class::Handle();
   for (int i = 0; i < ic_data.NumberOfChecks(); i++) {
     cls = class_table.At(ic_data.GetReceiverClassIdAt(i));
-    if (cls.HasTypeArguments()) return Bool::null();
+    if (cls.NumTypeArguments() > 0) return Bool::null();
     const bool is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
                                             type_class,
                                             TypeArguments::Handle(),

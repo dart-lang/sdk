@@ -1095,8 +1095,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // The generated code is different if the class is parameterized.
-  const bool is_cls_parameterized = cls.HasTypeArguments();
-  ASSERT(!cls.HasTypeArguments() ||
+  const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
+  ASSERT(!is_cls_parameterized ||
          (cls.type_arguments_field_offset() != Class::kNoTypeArguments));
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
@@ -1272,7 +1272,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const bool is_implicit_instance_closure =
       func.IsImplicitInstanceClosureFunction();
   const Class& cls = Class::ZoneHandle(func.signature_class());
-  const bool has_type_arguments = cls.HasTypeArguments();
+  const bool has_type_arguments = cls.NumTypeArguments() > 0;
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
   const intptr_t kReceiverOffset = 2 * kWordSize;
   const intptr_t closure_size = Closure::InstanceSize();

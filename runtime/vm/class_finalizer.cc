@@ -2598,16 +2598,6 @@ void ClassFinalizer::ReportError(const Error& prev_error,
 }
 
 
-void ClassFinalizer::ReportError(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const Error& error = Error::Handle(
-      Parser::FormatError(Script::Handle(), -1, "Error", format, args));
-  va_end(args);
-  ReportError(error);
-}
-
-
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
   Isolate* isolate = Isolate::Current();

@@ -2078,7 +2078,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // pass the type arguments of the instantiator.
     const Class& cls = Class::ZoneHandle(function.signature_class());
     ASSERT(!cls.IsNull());
-    const bool requires_type_arguments = cls.HasTypeArguments();
+    const bool requires_type_arguments = cls.NumTypeArguments() > 0;
     Value* type_arguments = NULL;
     if (requires_type_arguments) {
       ASSERT(cls.type_arguments_field_offset() ==
@@ -2157,7 +2157,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // pass the type arguments of the instantiator. Otherwise, pass null object.
     const Class& cls = Class::Handle(function.signature_class());
     ASSERT(!cls.IsNull());
-    const bool requires_type_arguments = cls.HasTypeArguments();
+    const bool requires_type_arguments = cls.NumTypeArguments() > 0;
     Value* type_arguments = NULL;
     if (requires_type_arguments) {
       const Class& instantiator_class = Class::Handle(
@@ -2305,7 +2305,7 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 Value* EffectGraphVisitor::BuildObjectAllocation(
     ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
-  const bool requires_type_arguments = cls.HasTypeArguments();
+  const bool requires_type_arguments = cls.NumTypeArguments() > 0;
 
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
@@ -2558,7 +2558,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
     ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
-  ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
+  ASSERT((cls.NumTypeArguments() > 0) && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
     Value* type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));

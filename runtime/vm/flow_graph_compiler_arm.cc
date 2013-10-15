@@ -224,7 +224,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::ZoneHandle(type.type_class());
-  ASSERT(type_class.HasTypeArguments() || type_class.IsSignatureClass());
+  ASSERT((type_class.NumTypeArguments() > 0) || type_class.IsSignatureClass());
   const Register kInstanceReg = R0;
   Error& malformed_error = Error::Handle();
   const Type& int_type = Type::Handle(Type::IntType());
@@ -311,7 +311,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::Handle(type.type_class());
-  ASSERT(!type_class.HasTypeArguments());
+  ASSERT(type_class.NumTypeArguments() == 0);
 
   const Register kInstanceReg = R0;
   __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));
@@ -517,7 +517,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class, non-signature class, or with a raw dst type of
     // a parameterized class.
-    if (type_class.IsSignatureClass() || type_class.HasTypeArguments()) {
+    if (type_class.IsSignatureClass() || (type_class.NumTypeArguments() > 0)) {
       return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
                                                        type,
                                                        is_instance_lbl,

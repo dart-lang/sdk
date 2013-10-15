@@ -729,7 +729,6 @@ class Class : public Object {
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.
-  bool HasTypeArguments() const;
   intptr_t NumTypeArguments() const;
 
   // Return the number of type arguments that are specific to this class, i.e.
@@ -949,14 +948,11 @@ class Class : public Object {
   }
   void set_is_mixin_type_applied() const;
 
-  int num_native_fields() const {
+  uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
-  void set_num_native_fields(int value) const {
+  void set_num_native_fields(uint16_t value) const {
     raw_ptr()->num_native_fields_ = value;
-  }
-  static intptr_t num_native_fields_offset() {
-    return OFFSET_OF(RawClass, num_native_fields_);
   }
 
   RawCode* allocation_stub() const {
@@ -1075,6 +1071,19 @@ class Class : public Object {
                                           const Array& args_desc,
                                           RawFunction::Kind kind) const;
   void CalculateFieldOffsets() const;
+
+  // Initial value for the cached number of type arguments.
+  static const intptr_t kUnknownNumTypeArguments = -1;
+
+  int16_t num_type_arguments() const {
+    return raw_ptr()->num_type_arguments_;
+  }
+  void set_num_type_arguments(intptr_t value) const;
+
+  int16_t num_own_type_arguments() const {
+    return raw_ptr()->num_own_type_arguments_;
+  }
+  void set_num_own_type_arguments(intptr_t value) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();

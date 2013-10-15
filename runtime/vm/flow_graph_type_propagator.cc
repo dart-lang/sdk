@@ -537,7 +537,7 @@ const AbstractType* CompileType::ToAbstractType() {
     const Class& type_class =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
 
-    if (type_class.HasTypeArguments()) {
+    if (type_class.NumTypeArguments() > 0) {
       type_ = &Type::ZoneHandle(Type::DynamicType());
       return type_;
     }

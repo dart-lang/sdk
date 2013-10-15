@@ -496,12 +496,14 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   intptr_t id_;  // Class Id, also index in the class table.
+  intptr_t token_pos_;
+  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   intptr_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
-  intptr_t num_native_fields_;  // Number of native fields in class.
-  intptr_t token_pos_;
+  int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
+  int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
+  uint16_t num_native_fields_;  // Number of native fields in class.
   uint16_t state_bits_;
 
   friend class Instance;

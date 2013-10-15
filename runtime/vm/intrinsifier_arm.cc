@@ -170,7 +170,6 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Class& cls = Class::Handle(
       core_lib.LookupClassAllowPrivate(Symbols::_List()));
   ASSERT(!cls.IsNull());
-  ASSERT(cls.HasTypeArguments());
   ASSERT(cls.NumTypeArguments() == 1);
   const intptr_t field_offset = cls.type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);

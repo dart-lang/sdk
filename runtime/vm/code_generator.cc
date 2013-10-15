@@ -111,7 +111,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
-  if (!cls.HasTypeArguments()) {
+  if (cls.NumTypeArguments() == 0) {
     // No type arguments required for a non-parameterized type.
     ASSERT(Instance::CheckedHandle(arguments.ArgAt(1)).IsNull());
     return;
@@ -165,7 +165,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
-  ASSERT(cls.HasTypeArguments());
+  ASSERT(cls.NumTypeArguments() > 0);
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
@@ -372,7 +372,7 @@ static void PrintTypeCheck(
 // Return true if type arguments have been replaced, false otherwise.
 static bool OptimizeTypeArguments(const Instance& instance) {
   const Class& type_class = Class::ZoneHandle(instance.clazz());
-  if (!type_class.HasTypeArguments()) {
+  if (type_class.NumTypeArguments() == 0) {
     return false;
   }
   AbstractTypeArguments& type_arguments =
@@ -438,7 +438,7 @@ static void UpdateTypeTestCache(
 
   // Canonicalize type arguments.
   bool type_arguments_replaced = false;
-  if (instance_class.HasTypeArguments()) {
+  if (instance_class.NumTypeArguments() > 0) {
     // Canonicalize type arguments.
     type_arguments_replaced = OptimizeTypeArguments(instance);
     instance_type_arguments = instance.GetTypeArguments();

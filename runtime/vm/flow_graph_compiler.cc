@@ -1105,7 +1105,7 @@ bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
   if (type_class.is_implemented()) return false;
   const intptr_t type_cid = type_class.id();
   if (CHA::HasSubclasses(type_cid)) return false;
-  if (type_class.HasTypeArguments()) {
+  if (type_class.NumTypeArguments() > 0) {
     // Only raw types can be directly compared, thus disregarding type
     // arguments.
     const AbstractTypeArguments& type_arguments =
