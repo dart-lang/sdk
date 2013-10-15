@@ -13574,7 +13574,7 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   final dynamic _get_response;
 
   /**
-   * The response in string form or `null on failure.
+   * The response in String form or empty String on failure.
    */
   @DomName('XMLHttpRequest.responseText')
   @DocsEditable()

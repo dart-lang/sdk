@@ -14188,7 +14188,7 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   Object get response native "XMLHttpRequest_response_Getter";
 
   /**
-   * The response in string form or `null on failure.
+   * The response in String form or empty String on failure.
    */
   @DomName('XMLHttpRequest.responseText')
   @DocsEditable()
