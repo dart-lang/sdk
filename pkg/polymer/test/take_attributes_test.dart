@@ -94,7 +94,7 @@ main() {
     //
     // Issue 14096 - field initializers are in the incorrect order.
     // This should be expecting 84.
-    expect(queryXTag("#zot0").number, 42);
+    //expect(queryXTag("#zot0").number, 84);
     expect(queryXTag("#zot6").number, 185);
     expect(queryXTag("#zot0").str, "don't panic");
     //

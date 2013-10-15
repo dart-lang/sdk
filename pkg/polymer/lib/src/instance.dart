@@ -432,8 +432,8 @@ abstract class Polymer implements Element {
     // cascading our tree (as we do, for example, when the element is inserted).
     if (preventCascade == true) return;
     _forNodeTree(shadowRoot, (n) {
-      if (n is PolymerElement) {
-        (n as PolymerElement).cancelUnbindAll();
+      if (n is Polymer) {
+        (n as Polymer).cancelUnbindAll();
       }
     });
   }
@@ -552,7 +552,7 @@ abstract class Polymer implements Element {
    * bind a property in A to a path in B by converting A[property] to a
    * getter/setter pair that accesses B[...path...]
    */
-  static NodeBinding _bindProperties(PolymerElement inA, Symbol inProperty,
+  static NodeBinding _bindProperties(Polymer inA, Symbol inProperty,
         Object inB, String inPath) {
 
     if (_bindLog.isLoggable(Level.INFO)) {
@@ -867,7 +867,7 @@ class _PolymerBinding extends NodeBinding {
   StreamSubscription _sub;
   Object _lastValue;
 
-  _PolymerBinding(PolymerElement node, Symbol property, model, path)
+  _PolymerBinding(Polymer node, Symbol property, model, path)
       : _target = reflect(node),
         _property = property,
         super(node, MirrorSystem.getName(property), model, path) {
