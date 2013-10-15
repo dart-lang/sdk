@@ -1030,7 +1030,8 @@ class TypeErrorDecoder {
   ///   JavaScript toString on receiver), but it has degenerated into
   ///   "[object Object]" in recent versions.
   matchTypeError(message) {
-    var match = JS('List|Null', 'new RegExp(#).exec(#)', _pattern, message);
+    var match = JS('JSExtendableArray|Null',
+        'new RegExp(#).exec(#)', _pattern, message);
     if (match == null) return null;
     var result = JS('', '{}');
     if (_arguments != -1) {
@@ -1093,7 +1094,7 @@ class TypeErrorDecoder {
     // have been escaped already), as we will soon be inserting
     // regular expression syntax that we want interpreted by RegExp.
     List<String> match =
-        JS('List|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
+        JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
     if (match == null) match = [];
 
     // Find the positions within the substring matches of the error message

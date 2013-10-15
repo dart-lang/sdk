@@ -10506,6 +10506,8 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://dev.w3.org/csswg/css-regions/#dom-region-getregionflowranges
+  @Creates('JSExtendableArray')
+  @Returns('JSExtendableArray')
   List<Range> getRegionFlowRanges() native;
 
   @JSName('webkitRequestFullScreen')
@@ -16387,6 +16389,8 @@ class MediaStream extends EventTarget native "MediaStream" {
 
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
+  @Creates('JSExtendableArray')
+  @Returns('JSExtendableArray')
   List<MediaStreamTrack> getAudioTracks() native;
 
   @DomName('MediaStream.getTrackById')
@@ -16395,6 +16399,8 @@ class MediaStream extends EventTarget native "MediaStream" {
 
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
+  @Creates('JSExtendableArray')
+  @Returns('JSExtendableArray')
   List<MediaStreamTrack> getVideoTracks() native;
 
   @DomName('MediaStream.removeTrack')

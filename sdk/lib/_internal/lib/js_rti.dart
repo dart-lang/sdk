@@ -418,7 +418,7 @@ bool checkSubtypeOfRuntimeType(Object o, var t) {
     // If the type has type variables (that is, [:rti != null:]), make a copy of
     // the type arguments and insert [o] in the first position to create a
     // compound type representation.
-    type = JS('List', '#.slice()', rti);
+    type = JS('JSExtendableArray', '#.slice()', rti);
     JS('', '#.splice(0, 0, #)', type, o);
   } else {
     // Use the object as representation of the raw type.
