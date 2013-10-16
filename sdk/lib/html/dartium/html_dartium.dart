@@ -27373,8 +27373,21 @@ class WheelEvent extends MouseEvent {
 
 @DocsEditable
 @DomName('Window')
-class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 {
+class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase64 {
 
+  /**
+   * Executes a [callback] after the immediate execution stack has completed.
+   *
+   * This differs from using Timer.run(callback)
+   * because Timer will run in about 4-15 milliseconds, depending on browser,
+   * depending on load. [setImmediate], in contrast, makes browser-specific
+   * changes in behavior to attempt to run immediately after the current
+   * frame unwinds, causing the future to complete after all processing has
+   * completed for the current event, but before any subsequent events.
+   */
+  void setImmediate(TimeoutHandler callback) {
+    _addMicrotaskCallback(callback);
+  }
   /**
    * Lookup a port by its [name].  Return null if no port is
    * registered under [name].
@@ -27431,6 +27444,34 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
     return completer.future;
   }
 
+  /// Checks if _setImmediate is supported.
+  static bool get _supportsSetImmediate => false;
+
+  /// Dartium stub for IE's setImmediate.
+  void _setImmediate(void callback()) {
+    throw new UnsupportedError('setImmediate is not supported');
+  }
+
+  /**
+   * Called to draw an animation frame and then request the window to repaint
+   * after [callback] has finished (creating the animation).
+   *
+   * Use this method only if you need to later call [cancelAnimationFrame]. If
+   * not, the preferred Dart idiom is to set animation frames by calling
+   * [animationFrame], which returns a Future.
+   *
+   * Returns a non-zero valued integer to represent the request id for this
+   * request. This value only needs to be saved if you intend to call
+   * [cancelAnimationFrame] so you can specify the particular animation to
+   * cancel.
+   *
+   * Note: The supplied [callback] needs to call [requestAnimationFrame] again
+   * for the animation to continue.
+   */
+  @DomName('Window.requestAnimationFrame')
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    return _requestAnimationFrame(_wrapZone(callback));
+  }
 
   /**
    * Access a sandboxed file system of the specified `size`. If `persistent` is
@@ -28392,6 +28433,41 @@ abstract class WindowBase64 extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable()
+@DomName('WindowTimers')
+@Experimental() // untriaged
+abstract class WindowTimers extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory WindowTimers._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WindowTimers.clearInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
+
+  @DomName('WindowTimers.clearTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
+
+  @DomName('WindowTimers.setInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
+
+  @DomName('WindowTimers.setTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('Worker')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -28502,7 +28578,7 @@ class WorkerCrypto extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('WorkerGlobalScope')
 @Experimental() // untriaged
-class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase64 {
+class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase64 {
   // To suppress missing implicit constructor warnings.
   factory WorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
@@ -30420,41 +30496,6 @@ abstract class _WebKitSourceBufferList extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   _WebKitSourceBuffer _item(int index) native "WebKitSourceBufferList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WindowTimers')
-@Experimental() // untriaged
-abstract class _WindowTimers extends NativeFieldWrapperClass1 {
-  // To suppress missing implicit constructor warnings.
-  factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WindowTimers.clearInterval')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
-
-  @DomName('WindowTimers.clearTimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
-
-  @DomName('WindowTimers.setInterval')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
-
-  @DomName('WindowTimers.setTimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33774,6 +33815,161 @@ class KeyboardEventStream {
   /** Named constructor to produce a stream for onKeyDown events. */
   static CustomStream<KeyEvent> onKeyDown(EventTarget target) =>
       new _KeyboardEventHandler('keydown').forTarget(target);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+typedef void _MicrotaskCallback();
+
+/**
+ * This class attempts to invoke a callback as soon as the current event stack
+ * unwinds, but before the browser repaints.
+ */
+abstract class _MicrotaskScheduler {
+  bool _nextMicrotaskFrameScheduled = false;
+  final _MicrotaskCallback _callback;
+
+  _MicrotaskScheduler(this._callback);
+
+  /**
+   * Creates the best possible microtask scheduler for the current platform.
+   */
+  factory _MicrotaskScheduler.best(_MicrotaskCallback callback) {
+    if (Window._supportsSetImmediate) {
+      return new _SetImmediateScheduler(callback);
+    } else if (MutationObserver.supported) {
+      return new _MutationObserverScheduler(callback);
+    }
+    return new _PostMessageScheduler(callback);
+  }
+
+  /**
+   * Schedules a microtask callback if one has not been scheduled already.
+   */
+  void maybeSchedule() {
+    if (this._nextMicrotaskFrameScheduled) {
+      return;
+    }
+    this._nextMicrotaskFrameScheduled = true;
+    this._schedule();
+  }
+
+  /**
+   * Does the actual scheduling of the callback.
+   */
+  void _schedule();
+
+  /**
+   * Handles the microtask callback and forwards it if necessary.
+   */
+  void _onCallback() {
+    // Ignore spurious messages.
+    if (!_nextMicrotaskFrameScheduled) {
+      return;
+    }
+    _nextMicrotaskFrameScheduled = false;
+    this._callback();
+  }
+}
+
+/**
+ * Scheduler which uses window.postMessage to schedule events.
+ */
+class _PostMessageScheduler extends _MicrotaskScheduler {
+  final _MICROTASK_MESSAGE = "DART-MICROTASK";
+
+  _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
+      // Messages from other windows do not cause a security risk as
+      // all we care about is that _handleMessage is called
+      // after the current event loop is unwound and calling the function is
+      // a noop when zero requests are pending.
+      window.onMessage.listen(this._handleMessage);
+  }
+
+  void _schedule() {
+    window.postMessage(_MICROTASK_MESSAGE, "*");
+  }
+
+  void _handleMessage(e) {
+    this._onCallback();
+  }
+}
+
+/**
+ * Scheduler which uses a MutationObserver to schedule events.
+ */
+class _MutationObserverScheduler extends _MicrotaskScheduler {
+  MutationObserver _observer;
+  Element _dummy;
+
+  _MutationObserverScheduler(_MicrotaskCallback callback): super(callback) {
+    // Mutation events get fired as soon as the current event stack is unwound
+    // so we just make a dummy event and listen for that.
+    _observer = new MutationObserver(this._handleMutation);
+    _dummy = new DivElement();
+    _observer.observe(_dummy, attributes: true);
+  }
+
+  void _schedule() {
+    // Toggle it to trigger the mutation event.
+    _dummy.hidden = !_dummy.hidden;
+  }
+
+  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
+    this._onCallback();
+  }
+}
+
+/**
+ * Scheduler which uses window.setImmediate to schedule events.
+ */
+class _SetImmediateScheduler extends _MicrotaskScheduler {
+  _SetImmediateScheduler(_MicrotaskCallback callback): super(callback);
+
+  void _schedule() {
+    window._setImmediate(_handleImmediate);
+  }
+
+  void _handleImmediate() {
+    this._onCallback();
+  }
+}
+
+List<TimeoutHandler> _pendingMicrotasks;
+_MicrotaskScheduler _microtaskScheduler = null;
+
+void _maybeScheduleMicrotaskFrame() {
+  if (_microtaskScheduler == null) {
+    _microtaskScheduler =
+      new _MicrotaskScheduler.best(_completeMicrotasks);
+  }
+  _microtaskScheduler.maybeSchedule();
+}
+
+/**
+ * Registers a [callback] which is called after the current execution stack
+ * unwinds.
+ */
+void _addMicrotaskCallback(TimeoutHandler callback) {
+  if (_pendingMicrotasks == null) {
+    _pendingMicrotasks = <TimeoutHandler>[];
+    _maybeScheduleMicrotaskFrame();
+  }
+  _pendingMicrotasks.add(callback);
+}
+
+
+/**
+ * Complete all pending microtasks.
+ */
+void _completeMicrotasks() {
+  var callbacks = _pendingMicrotasks;
+  _pendingMicrotasks = null;
+  for (var callback in callbacks) {
+    callback();
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

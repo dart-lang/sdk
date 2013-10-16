@@ -59,7 +59,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'Stream': 'FileStream',
     'StringCallback': '_StringCallback',
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
-    'WindowTimers': '_WindowTimers',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
 }, **typed_array_renames))
