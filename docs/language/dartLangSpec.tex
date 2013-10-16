@@ -511,6 +511,8 @@ The former section on variables in interfaces (now removed): Added specification
 
 \subsubsection{Changes Since Version 0.7}
 
+\ref{new}: Instantiating subclasses of malbounded types is a dynamic error.
+
 \ref{leastUpperBounds}:  Extended LUBs to all types.
 
 
@@ -3170,7 +3172,7 @@ First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}
 
 Then, if $q$ is a non-factory constructor of an abstract class then an \code{AbstractClassInstantiationError} is thrown.
 
-If $T$  is malformed a dynamic error occurs. In checked mode, if $T$ is malbounded a dynamic error occurs.
+If $T$  is malformed or if $T$ is a type variable a dynamic error occurs. In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs.
  Otherwise, if $q$ is not defined or not accessible, a \code{NoSuchMethodError} is thrown.  If $q$ has  less than $n$ positional parameters or more than $n$ required parameters, or if $q$ lacks any of the keyword parameters $\{ x_{n+1}, \ldots, x_{n+k}\}$ a \code{NoSuchMethodError} is thrown.
 
 Otherwise, if $q$ is a generative constructor (\ref{generativeConstructors}), then:
@@ -5619,8 +5621,8 @@ Here is an example involving malbounded types:
 }
 
 \begin{dartCode}
-\INTERFACE{} I$<$T \EXTENDS{} num$>$ \{\}
-\INTERFACE{} J \{\}
+\CLASS{} I$<$T \EXTENDS{} num$>$ \{\}
+\CLASS{} J \{\}
 
 \CLASS{} A$<$T$>$ \IMPLEMENTS{} J,  I$<$T$>$ // type warning: T is not a subtype of num
 \{ ...
