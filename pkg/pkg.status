@@ -210,6 +210,7 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 *: Skip  # Issue 13624
 
 [ $arch == simarm || $arch == simmips ]
+barback/test/too_many_open_files_test: Pass, Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 watcher/test/no_subscription_test: Pass, Fail  # Issue 13705.
 
