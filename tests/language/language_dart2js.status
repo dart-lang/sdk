@@ -7,10 +7,6 @@ bad_constructor_test/05: CompileTimeError # Issue 13669
 block_scope_test: CompileTimeError # Issue 13204.
 malformed_test/05: MissingCompileTimeError # Issue 12695
 malformed_test/06: MissingCompileTimeError # Issue 12695
-malformed_inheritance_test/07: MissingCompileTimeError # Issue 13994
-malformed_inheritance_test/08: MissingCompileTimeError # Issue 13994
-malformed_inheritance_test/11: MissingCompileTimeError # Issue 13994
-malformed_inheritance_test/12: MissingCompileTimeError # Issue 13994
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698

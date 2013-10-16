@@ -1644,21 +1644,21 @@ class TypeResolver {
         compiler.backend.registerThrowRuntimeError(visitor.mapping);
         visitor.warning(node, messageKind.warning, messageArguments);
       }
-      var erroneousElement = new ErroneousElementX(
+      Element erroneousElement = new ErroneousElementX(
           messageKind.error, messageArguments, typeName.source,
           visitor.enclosingElement);
-      var arguments = new LinkBuilder<DartType>();
+      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(visitor, node, null, arguments);
       return new MalformedType(erroneousElement,
               userProvidedBadType, arguments.toLink());
     }
 
     DartType checkNoTypeArguments(DartType type) {
-      var arguments = new LinkBuilder<DartType>();
+      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       bool hasTypeArgumentMismatch = resolveTypeArguments(
           visitor, node, const Link<DartType>(), arguments);
       if (hasTypeArgumentMismatch) {
-        type = new MalformedType(
+        return new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                 {'type': node}, typeName.source, visitor.enclosingElement),
                 type, arguments.toLink());
@@ -3778,12 +3778,16 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   /// Resolves the mixed type for [mixinNode] and checks that the the mixin type
-  /// is not black-listed. The mixin type is returned.
+  /// is a valid, non-blacklisted interface type. The mixin type is returned.
   DartType checkMixinType(TypeAnnotation mixinNode) {
     DartType mixinType = resolveType(mixinNode);
     if (isBlackListed(mixinType)) {
       compiler.reportError(mixinNode,
           MessageKind.CANNOT_MIXIN, {'type': mixinType});
+    } else if (mixinType.kind == TypeKind.TYPE_VARIABLE) {
+      compiler.reportError(mixinNode, MessageKind.CLASS_NAME_EXPECTED);
+    } else if (mixinType.kind == TypeKind.MALFORMED_TYPE) {
+      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED);
     }
     return mixinType;
   }
@@ -3870,8 +3874,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     assert(mixinApplication.interfaces == null);
     mixinApplication.interfaces = interfaces;
 
+    if (mixinType.kind != TypeKind.INTERFACE) {
+      mixinApplication.allSupertypes = const Link<DartType>();
+      return;
+    }
+
     assert(mixinApplication.mixin == null);
-    mixinApplication.mixin = resolveMixinFor(mixinApplication, mixinType);
+    Element mixin = resolveMixinFor(mixinApplication, mixinType);
+
+    mixinApplication.mixin = mixin;
 
     // Create forwarding constructors for constructor defined in the superclass
     // because they are now hidden by the mixin application.
@@ -3912,23 +3923,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   DartType resolveType(TypeAnnotation node) {
-    // TODO(johnniwinther): Report errors/warnings on resolution failures.
     return typeResolver.resolveTypeAnnotation(this, node);
   }
 
   DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
-    DartType supertype = typeResolver.resolveTypeAnnotation(
-        this, superclass, malformedIsError: true);
+    DartType supertype = resolveType(superclass);
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
-        // Error has already been reported.
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED);
         return null;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
-        // TODO(johnniwinther): Handle dynamic.
-        error(superclass.typeName, MessageKind.CLASS_NAME_EXPECTED);
+        compiler.reportError(superclass.typeName,
+            MessageKind.CLASS_NAME_EXPECTED);
         return null;
       } else if (isBlackListed(supertype)) {
-        error(superclass, MessageKind.CANNOT_EXTEND, {'type': supertype});
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND,
+            {'type': supertype});
         return null;
       }
     }
@@ -3939,11 +3949,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     Link<DartType> result = const Link<DartType>();
     if (interfaces == null) return result;
     for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
-      DartType interfaceType = typeResolver.resolveTypeAnnotation(
-          this, link.head, malformedIsError: true);
+      DartType interfaceType = resolveType(link.head);
       if (interfaceType != null) {
         if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
-          // Error has already been reported.
+          compiler.reportError(superclass,
+              MessageKind.CANNOT_IMPLEMENT_MALFORMED);
         } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
           // TODO(johnniwinther): Handle dynamic.
           TypeAnnotation typeAnnotation = link.head;
@@ -4116,17 +4126,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitIdentifier(Identifier node) {
     Element element = lookupInScope(compiler, node, context, node.source);
-    if (element == null) {
-      compiler.reportError(
-          node, MessageKind.CANNOT_RESOLVE_TYPE.error, {'typeName': node});
-    } else if (!element.impliesType()) {
-      compiler.reportError(node, MessageKind.NOT_A_TYPE.error, {'node': node});
-    } else {
-      if (element.isClass()) {
-        loadSupertype(element, node);
-      } else {
-        compiler.reportError(node, MessageKind.CLASS_NAME_EXPECTED);
-      }
+    if (element != null && element.isClass()) {
+      loadSupertype(element, node);
     }
   }
 
