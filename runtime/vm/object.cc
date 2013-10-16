@@ -4948,6 +4948,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_visible(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_recognized(false);
+  result.set_is_redirecting(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
