@@ -5,6 +5,7 @@
 library pub.barback.server;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
@@ -70,6 +71,11 @@ class BarbackServer {
 
   /// Handles an HTTP request.
   void _handleRequest(HttpRequest request) {
+    if (WebSocketTransformer.isUpgradeRequest(request)) {
+      _handleWebSocket(request);
+      return;
+    }
+
     if (request.method != "GET" && request.method != "HEAD") {
       _methodNotAllowed(request);
       return;
@@ -77,7 +83,7 @@ class BarbackServer {
 
     var id;
     try {
-      id = _uriToId(_rootPackage, request.uri);
+      id = _urlToId(request.uri);
     } on FormatException catch (ex) {
       // If we got here, we had a path like "/packages" which is a special
       // directory, but not a valid path since it lacks a following package name.
@@ -135,9 +141,84 @@ class BarbackServer {
     });
   }
 
+  /// Creates a web socket for [request] which should be an upgrade request.
+  void _handleWebSocket(HttpRequest request) {
+    WebSocketTransformer.upgrade(request).then((socket) {
+      socket.listen((data) {
+        var command;
+        try {
+          command = JSON.decode(data);
+        } on FormatException catch (ex) {
+          _webSocketError(socket, '"$data" is not valid JSON: ${ex.message}');
+          return;
+        }
+
+        if (command is! Map) {
+          _webSocketError(socket, "Command must be a JSON map. Got: $data.");
+          return;
+        }
+
+        if (!command.containsKey("command")) {
+          _webSocketError(socket, "Missing command name. Got: $data.");
+          return;
+        }
+
+        switch (command["command"]) {
+          case "urlToAsset":
+            var urlPath = command["path"];
+            if (urlPath is! String) {
+              _webSocketError(socket, '"path" must be a string. Got: '
+                  '${JSON.encode(urlPath)}.');
+              return;
+            }
+
+            var url = new Uri(path: urlPath);
+            var id = _urlToId(url);
+            socket.add(JSON.encode({
+              "package": id.package,
+              "path": id.path
+            }));
+            break;
+
+          case "assetToUrl":
+            var packageName = command["package"];
+            if (packageName is! String) {
+              _webSocketError(socket, '"package" must be a string. Got: '
+                  '${JSON.encode(packageName)}.');
+              return;
+            }
+
+            var packagePath = command["path"];
+            if (packagePath is! String) {
+              _webSocketError(socket, '"path" must be a string. Got: '
+                  '${JSON.encode(packagePath)}.');
+              return;
+            }
+
+            var id = new AssetId(packageName, packagePath);
+            try {
+              var urlPath = idtoUrlPath(_rootPackage, id);
+              socket.add(JSON.encode({"path": urlPath}));
+            } on FormatException catch (ex) {
+              _webSocketError(socket, ex.message);
+            }
+            break;
+
+          default:
+            _webSocketError(socket, 'Unknown command "${command["command"]}".');
+            break;
+        }
+      }, onError: (error) {
+        _resultsController.addError(error);
+      }, cancelOnError: true);
+    }).catchError((error) {
+      _resultsController.addError(error);
+    });
+  }
+
   /// Converts a [url] served by pub serve into an [AssetId] that can be
   /// requested from barback.
-  AssetId _uriToId(String rootPackage, Uri url) {
+  AssetId _urlToId(Uri url) {
     var id = specialUrlToId(url);
     if (id != null) return id;
 
@@ -145,10 +226,10 @@ class BarbackServer {
     var parts = path.url.split(url.path);
 
     // Strip the leading "/" from the URL.
-    parts = parts.skip(1);
+    if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1);
 
     var relativePath = path.url.join("web", path.url.joinAll(parts));
-    return new AssetId(rootPackage, relativePath);
+    return new AssetId(_rootPackage, relativePath);
   }
 
   /// Responds to [request] with a 405 response and closes it.
@@ -174,6 +255,10 @@ class BarbackServer {
   /// Log [message] at [log.Level.FINE] with metadata about [request].
   void _logRequest(HttpRequest request, String message) =>
     log.fine("BarbackServer ${request.method} ${request.uri}\n$message");
+
+  void _webSocketError(WebSocket socket, String message) {
+    socket.add(JSON.encode({"error": message}));
+  }
 }
 
 /// The result of the server handling a URL.

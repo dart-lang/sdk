@@ -187,18 +187,18 @@ AssetId specialUrlToId(Uri url) {
 
 /// Converts [id] to a "servable path" for that asset.
 ///
-/// This is the relative URL that could be used to request that asset from pub
-/// serve. It's also the relative path that the asset will be output to by
+/// This is the root relative URL that could be used to request that asset from
+/// pub serve. It's also the relative path that the asset will be output to by
 /// pub build (except this always returns a path using URL separators).
 ///
 /// [entrypoint] is the name of the entrypoint package.
 ///
 /// Examples (where [entrypoint] is "myapp"):
 ///
-///     myapp|web/index.html   -> index.html
-///     myapp|lib/lib.dart     -> packages/myapp/lib.dart
-///     foo|lib/foo.dart       -> packages/foo/foo.dart
-///     foo|asset/foo.png      -> assets/foo/foo.png
+///     myapp|web/index.html   -> /index.html
+///     myapp|lib/lib.dart     -> /packages/myapp/lib.dart
+///     foo|lib/foo.dart       -> /packages/foo/foo.dart
+///     foo|asset/foo.png      -> /assets/foo/foo.png
 ///     myapp|test/main.dart   -> ERROR
 ///     foo|web/
 ///
@@ -208,7 +208,7 @@ String idtoUrlPath(String entrypoint, AssetId id) {
 
   if (parts.length < 2) {
     throw new FormatException(
-        "Can not serve asset from top-level directory.");
+        "Can not serve assets from top-level directory.");
   }
 
   // Each top-level directory gets handled differently.
@@ -217,17 +217,17 @@ String idtoUrlPath(String entrypoint, AssetId id) {
 
   switch (dir) {
     case "asset":
-      return path.url.join("assets", id.package, path.url.joinAll(parts));
+      return path.url.join("/", "assets", id.package, path.url.joinAll(parts));
 
     case "lib":
-      return path.url.join("packages", id.package, path.url.joinAll(parts));
+      return path.url.join("/", "packages", id.package, path.url.joinAll(parts));
 
     case "web":
       if (id.package != entrypoint) {
         throw new FormatException(
-            'Can only access "web" directory of root package.');
+            'Cannot access "web" directory of non-root packages.');
       }
-      return path.url.joinAll(parts);
+      return path.url.join("/", path.url.joinAll(parts));
 
     default:
       throw new FormatException('Cannot access assets from "$dir".');

@@ -70,6 +70,10 @@ class BuildCommand extends PubCommand {
         // Figure out the output directory for the asset, which is the same
         // as the path pub serve would use to serve it.
         var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id);
+
+        // Remove the leading "/".
+        relativeUrl = relativeUrl.substring(1);
+
         var relativePath = path.fromUri(new Uri(path: relativeUrl));
         var destPath = path.join(target, relativePath);
 
