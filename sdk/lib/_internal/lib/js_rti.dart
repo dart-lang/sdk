@@ -66,20 +66,6 @@ class TypeImpl implements Type {
   }
 }
 
-/**
- * Represents a type variable.
- *
- * This class holds the information needed when reflecting on generic classes
- * and their members.
- */
-class TypeVariable {
-  final Type owner;
-  final String name;
-  final int bound;
-
-  const TypeVariable(this.owner, this.name, this.bound);
-}
-
 getMangledTypeName(TypeImpl type) => type._typeName;
 
 /**

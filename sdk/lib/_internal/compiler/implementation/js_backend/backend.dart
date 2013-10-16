@@ -200,7 +200,6 @@ class JavaScriptBackend extends Backend {
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;
   ClassElement constMapLiteralClass;
-  ClassElement typeVariableClass;
 
   Element getInterceptorMethod;
   Element interceptedNames;
@@ -407,8 +406,6 @@ class JavaScriptBackend extends Backend {
           checkedModeHelpers,
           key: (helper) => helper.name.slowToString());
 
-  TypeVariableHandler typeVariableHandler;
-
   /// Number of methods compiled before considering reflection.
   int preMirrorsMethodCount = 0;
 
@@ -427,7 +424,6 @@ class JavaScriptBackend extends Backend {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
-    typeVariableHandler = new TypeVariableHandler(this);
     customElementsAnalysis = new CustomElementsAnalysis(this);
   }
 
@@ -674,9 +670,6 @@ class JavaScriptBackend extends Backend {
         new TypeMask.nonNullExact(jsFixedArrayClass));
     extendableArrayType = new HBoundedType(
         new TypeMask.nonNullExact(jsExtendableArrayClass));
-
-    typeVariableClass =
-        compiler.findHelper(const SourceString('TypeVariable'));
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -804,10 +797,6 @@ class JavaScriptBackend extends Backend {
   void registerInstantiatedClass(ClassElement cls,
                                  Enqueuer enqueuer,
                                  TreeElements elements) {
-    if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(cls);
-    }
-
     if (!seenAnyClass) {
       seenAnyClass = true;
       if (enqueuer.isResolutionQueue) {
@@ -1857,13 +1846,6 @@ class JavaScriptBackend extends Backend {
       metadataConstants.clear();
     }
 
-    if (isTreeShakingDisabled) {
-      if (enqueuer.isResolutionQueue) {
-        typeVariableHandler.onResolutionQueueEmpty(enqueuer);
-      } else {
-        typeVariableHandler.onCodegenQueueEmpty();
-      }
-    }
     customElementsAnalysis.onQueueEmpty(enqueuer);
   }
 }

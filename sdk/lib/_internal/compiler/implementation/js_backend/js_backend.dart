@@ -10,7 +10,7 @@ import 'dart:collection' show Queue;
 import '../closure.dart';
 import '../elements/elements.dart';
 import '../js_emitter/js_emitter.dart'
-    show Emitter, CodeEmitterTask, ClassBuilder, MetadataEmitter;
+    show Emitter, CodeEmitterTask, ClassBuilder;
 
 import '../dart2jslib.dart';
 import '../dart_types.dart';
@@ -31,5 +31,4 @@ part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';
 part 'runtime_types.dart';
-part 'type_variable_handler.dart';
 part 'custom_elements_analysis.dart';
