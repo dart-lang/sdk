@@ -30,6 +30,7 @@ mirrors/generic_bounded_by_type_parameter_test/01: RuntimeError # Issue 12087
 mirrors/generic_f_bounded_test: RuntimeError # Issue 12087
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
+mirrors/generic_interface_test: RuntimeError # Issue 12087
 mirrors/generic_mixin_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
 mirrors/generics_substitution_test: RuntimeError # Issue 12087
@@ -178,6 +179,7 @@ mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
 mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
+mirrors/generic_interface_test/01: RuntimeError # Issue 14113
 mirrors/immutable_collections_test: RuntimeError # Issue 14027
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/generic_mixin_test/01: RuntimeError # Issue 14114
@@ -218,6 +220,7 @@ mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
 mirrors/generic_mixin_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
+mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 
 # test issue 14016
 mirrors/typevariable_mirror_metadata_test: fail
@@ -230,6 +233,7 @@ mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
 mirrors/generic_mixin_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
+mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
