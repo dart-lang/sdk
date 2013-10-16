@@ -4,8 +4,8 @@
 
 import "package:expect/expect.dart";
 
-typedef M1 = Object with M0;
-typedef M2 = Object with M1;
+class M1 = Object with M0;
+class M2 = Object with M1;
 
 class M0 {
   foo() => 42;

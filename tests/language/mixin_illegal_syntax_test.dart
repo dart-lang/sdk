@@ -8,13 +8,13 @@ class M { }
 
 typedef T0 = abstract S with M;
 abstract class T0A = S with M;
-typedef T1 = final S with M;     /// 01: compile-time error
-typedef T2 = var S with M;       /// 02: compile-time error
-typedef T3 = const S with M;     /// 03: compile-time error
-typedef T4 = static S with M;    /// 04: compile-time error
-typedef T5 = external S with M;  /// 05: compile-time error
-typedef T6 = G<int> with M;
-typedef T7 = G<Map<String,int>> with M;
+class T1 = final S with M;     /// 01: compile-time error
+class T2 = var S with M;       /// 02: compile-time error
+class T3 = const S with M;     /// 03: compile-time error
+class T4 = static S with M;    /// 04: compile-time error
+class T5 = external S with M;  /// 05: compile-time error
+class T6 = G<int> with M;
+class T7 = G<Map<String,int>> with M;
 
 class C0 extends abstract S with M { }  /// 06: compile-time error
 class C1 extends final S with M { }     /// 07: compile-time error

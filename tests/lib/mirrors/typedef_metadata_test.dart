@@ -12,7 +12,7 @@ import 'metadata_test.dart';
 class S {}
 class M {}
 @symbol
-typedef MA = S with M;
+class MA = S with M;
 
 @string
 typedef bool Predicate(Object o);

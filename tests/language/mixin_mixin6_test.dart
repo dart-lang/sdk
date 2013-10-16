@@ -16,11 +16,11 @@ class M<T> {
   m() { return T; }
 }
 
-typedef A<U, V> = Object with M<Map<U, V>> implements I<V>;
+class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 
-typedef B<T> = Object with A<T, Set<T>> implements J<T>;
+class B<T> = Object with A<T, Set<T>> implements J<T>;
 
-typedef C<T> = S<List<T>> with B implements K<T>;  // B is raw.
+class C<T> = S<List<T>> with B implements K<T>;  // B is raw.
 
 main() {
   var c = new C<int>();

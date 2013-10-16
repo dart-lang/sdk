@@ -40,10 +40,10 @@ class M<T> {
 class S {
 }
 
-typedef C0<T> = S with M;
-typedef C1<T> = S with M<T>;
-typedef C2<T> = S with M<int>;
-typedef C3 = S with M<String>;
+class C0<T> = S with M;
+class C1<T> = S with M<T>;
+class C2<T> = S with M<int>;
+class C3 = S with M<String>;
 
 main() {
   var c0 = new C0();

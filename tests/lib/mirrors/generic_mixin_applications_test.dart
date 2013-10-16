@@ -14,11 +14,11 @@ class Super<S> {}
 class Mixin<M> {}
 class Nixim<N> {}
 
-typedef NonGenericMixinApplication1 = Super with Mixin;
-typedef NonGenericMixinApplication2 = Super<num> with Mixin<String>;
+class NonGenericMixinApplication1 = Super with Mixin;
+class NonGenericMixinApplication2 = Super<num> with Mixin<String>;
 
-typedef GenericMixinApplication1<MA> = Super<MA> with Mixin<MA>;
-typedef GenericMixinApplication2<MA> = Super<num> with Mixin<String>;
+class GenericMixinApplication1<MA> = Super<MA> with Mixin<MA>;
+class GenericMixinApplication2<MA> = Super<num> with Mixin<String>;
 
 class NonGenericClass1 extends Super with Mixin {}
 class NonGenericClass2 extends Super<num> with Mixin<String> {}
@@ -46,7 +46,7 @@ main() {
   typeParameters(reflectClass(NonGenericClass2).superclass, []);
   typeParameters(reflectClass(GenericClass1).superclass, []);
   typeParameters(reflectClass(GenericClass2).superclass, []);
-  
+
   typeArguments(reflectClass(NonGenericMixinApplication1), []);
   typeArguments(reflectClass(NonGenericMixinApplication2), []);
   typeArguments(reflectClass(GenericMixinApplication1), []);
@@ -78,7 +78,7 @@ main() {
   typeParameters(reflect(new NonGenericClass2()).type.superclass, []);
   typeParameters(reflect(new GenericClass1<bool>()).type.superclass, []);
   typeParameters(reflect(new GenericClass2<bool>()).type.superclass, []);
- 
+
   typeArguments(reflect(new NonGenericMixinApplication1()).type, []);
   typeArguments(reflect(new NonGenericMixinApplication2()).type, []);
   typeArguments(reflect(new GenericMixinApplication1<bool>()).type, [reflectClass(bool)]);

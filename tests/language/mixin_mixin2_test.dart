@@ -8,13 +8,13 @@ class M<T> {
   t() { return T; }
 }
 
-typedef A<U> = Object with M<U>;
+class A<U> = Object with M<U>;
 
-typedef B<V> = Object with A<V>;
+class B<V> = Object with A<V>;
 
-typedef C<U> = Object with M<List<U>>;
+class C<U> = Object with M<List<U>>;
 
-typedef D<V> = Object with C<Set<V>>;
+class D<V> = Object with C<Set<V>>;
 
 class E extends A<num> { }
 

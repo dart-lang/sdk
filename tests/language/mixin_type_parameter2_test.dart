@@ -14,7 +14,7 @@ class A {
   A(foo);
 }
 
-typedef MyTypedef<K, V> = A with Mixin1<K>, Mixin2<V>;
+class MyTypedef<K, V> = A with Mixin1<K>, Mixin2<V>;
 
 class B<K, V> extends MyTypedef<K, V> {
   B(foo) : super(foo);

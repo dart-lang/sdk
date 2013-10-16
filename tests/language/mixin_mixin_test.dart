@@ -5,10 +5,10 @@
 import "package:expect/expect.dart";
 
 class M1 { foo() => 42; }
-typedef M2 = Object with M1;
+class M2 = Object with M1;
 
 class S { }
-typedef C = S with M2;
+class C = S with M2;
 
 main() {
   var c = new C();

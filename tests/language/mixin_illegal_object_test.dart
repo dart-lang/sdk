@@ -6,7 +6,7 @@ class C0 extends Object
 with Object                       /// 01: compile-time error
 { }
 
-typedef C1 = Object with Object;  /// 02: compile-time error
+class C1 = Object with Object;  /// 02: compile-time error
 
 main() {
   new C0();

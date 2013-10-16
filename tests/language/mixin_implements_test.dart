@@ -20,12 +20,12 @@ class M {
   bar() => 87;
 }
 
-typedef C0 = Object with M;
-typedef C1 = Object with M implements I0;
-typedef C2 = Object with M implements I1;
-typedef C3 = Object with M implements I0, I1;
-typedef C4 = Object with M implements I1, I0;
-typedef C5 = Object with M implements I2;
+class C0 = Object with M;
+class C1 = Object with M implements I0;
+class C2 = Object with M implements I1;
+class C3 = Object with M implements I0, I1;
+class C4 = Object with M implements I1, I0;
+class C5 = Object with M implements I2;
 
 main() {
   var c0 = new C0();

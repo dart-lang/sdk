@@ -8,21 +8,21 @@ class M<T> {
   t() { return T; }
 }
 
-typedef A<U> = Object with M<List<U>>;
+class A<U> = Object with M<List<U>>;
 
-typedef B0 = Object with A<Set<bool>>;
+class B0 = Object with A<Set<bool>>;
 
-typedef B1 = Object with A<Set<int>>;
+class B1 = Object with A<Set<int>>;
 
 class C0 extends B0 { }
 
 class C1 extends B1 { }
 
-typedef A2<K, V> = Object with M<Map<K, V>>;
+class A2<K, V> = Object with M<Map<K, V>>;
 
-typedef B2<V> = Object with A2<Set<V>, List<V>>;
+class B2<V> = Object with A2<Set<V>, List<V>>;
 
-typedef B3<K, V> = Object with A2<Set<K>, List<V>>;
+class B3<K, V> = Object with A2<Set<K>, List<V>>;
 
 class C2<T> extends B2<T> { }
 
@@ -32,9 +32,9 @@ class N {
   q() { return 42; }
 }
 
-typedef O<U> = Object with N;
+class O<U> = Object with N;
 
-typedef P<K, V> = Object with O<V>;
+class P<K, V> = Object with O<V>;
 
 class Q<K, V> extends P<K, V> { }
 

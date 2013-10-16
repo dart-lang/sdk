@@ -13,7 +13,7 @@ class Mixin {
   var mixinField = 54;
 }
 
-typedef MyClass = A with Mixin;
+class MyClass = A with Mixin;
 
 main() {
   var a = new MyClass(42);

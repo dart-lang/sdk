@@ -13,7 +13,7 @@ Set _toStringVisiting = new HashSet.identity();
  * All operations are defined in terms of `length`, `operator[]`,
  * `operator[]=` and `length=`, which need to be implemented.
  */
-typedef ListBase<E> = Object with ListMixin<E>;
+abstract class ListBase<E> = Object with ListMixin<E>;
 
 /**
  * Base implementation of a [List] class.

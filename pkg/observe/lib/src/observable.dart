@@ -77,7 +77,7 @@ abstract class Observable {
  * When a field, property, or indexable item is changed, the change record
  * will be sent to [changes].
  */
-typedef ObservableBase = Object with ObservableMixin;
+class ObservableBase = Object with ObservableMixin;
 
 /**
  * Mixin for implementing [Observable] objects.

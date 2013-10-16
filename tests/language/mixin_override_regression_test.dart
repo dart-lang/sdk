@@ -9,7 +9,7 @@ class C0 {
   int m2() => m1();
 }
 
-typedef C1 = Object with C0;
+class C1 = Object with C0;
 
 class D {
   int m1() => 7;

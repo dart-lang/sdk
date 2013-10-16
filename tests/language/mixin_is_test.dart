@@ -8,14 +8,14 @@ class S { }
 class M1 { }
 class M2 { }
 
-typedef C = S with M1;
-typedef D = S with M1, M2;
-typedef E = S with M2, M1;
+class C = S with M1;
+class D = S with M1, M2;
+class E = S with M2, M1;
 class F extends E { }
 
-typedef C_ = S with M1;
-typedef D_ = S with M1, M2;
-typedef E_ = S with M2, M1;
+class C_ = S with M1;
+class D_ = S with M1, M2;
+class E_ = S with M2, M1;
 class F_ extends E_ { }
 
 main() {

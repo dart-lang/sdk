@@ -10,32 +10,32 @@ class M0 { }
 class M1 extends Object { }
 class M2 extends M0 { }
 
-typedef C00 = S0 with M0;
-typedef C01 = S0 with M1;
-typedef C02 = S0 with M2;      /// 01: compile-time error
-typedef C03 = S0 with M0, M1;
-typedef C04 = S0 with M0, M2;  /// 02: compile-time error
-typedef C05 = S0 with M2, M0;  /// 03: compile-time error
-typedef C06 = S0 with M1, M2;  /// 04: compile-time error
-typedef C07 = S0 with M2, M1;  /// 05: compile-time error
+class C00 = S0 with M0;
+class C01 = S0 with M1;
+class C02 = S0 with M2;      /// 01: compile-time error
+class C03 = S0 with M0, M1;
+class C04 = S0 with M0, M2;  /// 02: compile-time error
+class C05 = S0 with M2, M0;  /// 03: compile-time error
+class C06 = S0 with M1, M2;  /// 04: compile-time error
+class C07 = S0 with M2, M1;  /// 05: compile-time error
 
-typedef C10 = S1 with M0;
-typedef C11 = S1 with M1;
-typedef C12 = S1 with M2;      /// 06: compile-time error
-typedef C13 = S1 with M0, M1;
-typedef C14 = S1 with M0, M2;  /// 07: compile-time error
-typedef C15 = S1 with M2, M0;  /// 08: compile-time error
-typedef C16 = S1 with M1, M2;  /// 09: compile-time error
-typedef C17 = S1 with M2, M1;  /// 10: compile-time error
+class C10 = S1 with M0;
+class C11 = S1 with M1;
+class C12 = S1 with M2;      /// 06: compile-time error
+class C13 = S1 with M0, M1;
+class C14 = S1 with M0, M2;  /// 07: compile-time error
+class C15 = S1 with M2, M0;  /// 08: compile-time error
+class C16 = S1 with M1, M2;  /// 09: compile-time error
+class C17 = S1 with M2, M1;  /// 10: compile-time error
 
-typedef C20 = S2 with M0;
-typedef C21 = S2 with M1;
-typedef C22 = S2 with M2;      /// 11: compile-time error
-typedef C23 = S2 with M0, M1;
-typedef C24 = S2 with M0, M2;  /// 12: compile-time error
-typedef C25 = S2 with M2, M0;  /// 13: compile-time error
-typedef C26 = S2 with M1, M2;  /// 14: compile-time error
-typedef C27 = S2 with M2, M1;  /// 15: compile-time error
+class C20 = S2 with M0;
+class C21 = S2 with M1;
+class C22 = S2 with M2;      /// 11: compile-time error
+class C23 = S2 with M0, M1;
+class C24 = S2 with M0, M2;  /// 12: compile-time error
+class C25 = S2 with M2, M0;  /// 13: compile-time error
+class C26 = S2 with M1, M2;  /// 14: compile-time error
+class C27 = S2 with M2, M1;  /// 15: compile-time error
 
 class D00 extends S0 with M0 { }
 class D01 extends S0 with M1 { }

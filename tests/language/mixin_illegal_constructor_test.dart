@@ -15,13 +15,13 @@ class M2 {
   M2.named();
 }
 
-typedef C0 = Object with M0;
-typedef C1 = Object with M1;      /// 01: compile-time error
-typedef C2 = Object with M2;      /// 02: compile-time error
-typedef C3 = Object with M0, M1;  /// 03: compile-time error
-typedef C4 = Object with M1, M0;  /// 04: compile-time error
-typedef C5 = Object with M0, M2;  /// 05: compile-time error
-typedef C6 = Object with M2, M0;  /// 06: compile-time error
+class C0 = Object with M0;
+class C1 = Object with M1;      /// 01: compile-time error
+class C2 = Object with M2;      /// 02: compile-time error
+class C3 = Object with M0, M1;  /// 03: compile-time error
+class C4 = Object with M1, M0;  /// 04: compile-time error
+class C5 = Object with M0, M2;  /// 05: compile-time error
+class C6 = Object with M2, M0;  /// 06: compile-time error
 
 class D0 extends Object with M0 { }
 class D1 extends Object with M1 { }      /// 07: compile-time error
