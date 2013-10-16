@@ -461,14 +461,10 @@ testSuperclass() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("class Foo extends Bar {}");
   compiler.resolveStatement("Foo bar;");
-  // TODO(ahe): We get the same error twice: once from
-  // ClassResolverVisitor, and once from ClassSupertypeResolver. We
-  // should only the get the error once.
-  Expect.equals(2, compiler.errors.length);
-  var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE.error,
+  Expect.equals(1, compiler.errors.length);
+  var cannotResolveBar = new Message(MessageKind.CANNOT_EXTEND_MALFORMED,
                                      {'typeName': 'Bar'}, false);
   Expect.equals(cannotResolveBar, compiler.errors[0].message);
-  Expect.equals(cannotResolveBar, compiler.errors[1].message);
   compiler.clearErrors();
 
   compiler = new MockCompiler();
