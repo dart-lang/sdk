@@ -7503,11 +7503,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         // The type is never malformed (mapped to dynamic), but it can be
         // malbounded in checked mode.
         ASSERT(!type.IsMalformed());
-        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
+        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
+             (op_kind == Token::kAS)) &&
             type.IsMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
-          // in a type test. However, no cast exception is thrown if the value
-          // is null in a type cast.
+          // in a type test or in a type cast.
           return ThrowTypeError(type_pos, type);
         }
       }
