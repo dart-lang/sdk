@@ -29,8 +29,6 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-malbounded_type_cast_test: Fail # Issue 14133
-
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

@@ -11,7 +11,7 @@ class Malbounded2 extends Super<String> {}  /// static type warning
 main() {
   bool inCheckedMode = false;
   try {
-    String a = 42;
+    String a = 42; /// static type warning
   } catch (e) {
     inCheckedMode = true;
   }
@@ -24,7 +24,7 @@ main() {
   }
 
   var s = new Super<int>();
-  Expect.throws(() => s as Malbounded1, expectedError);  /// static type warning
-  Expect.throws(() => s as Malbounded2, expectedError);  /// static type warning
+  Expect.throws(() => s as Malbounded1, expectedError);
+  Expect.throws(() => s as Malbounded2, expectedError);
   Expect.throws(() => s as Super<String>, expectedError); /// static type warning
 }
