@@ -9,7 +9,6 @@ mirrors/delegate_test: RuntimeError # Issue 13864
 async/schedule_microtask3_test: RuntimeError # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/schedule_microtask4_test: Pass, RuntimeError # no global exception handler in isolates. http://dartbug.com/9012
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
-async/stream_controller_async_test: Pass, Fail # Issue 13608
 
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
@@ -166,7 +165,7 @@ async/multiple_timer_test: Pass, Fail
 async/timer_test: Fail, Pass
 
 [ $runtime == vm ]
-async/timer_not_available_test: Fail, OK 
+async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $compiler == none  ]
@@ -208,9 +207,6 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 [ $arch == simarm ]
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
 convert/utf85_test: Pass, Slow # Issue 12644.
-
-[ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == drt) ]
-async/stream_controller_async_test: Pass, Fail # Issue 13608
 
 [ $compiler == dartanalyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
