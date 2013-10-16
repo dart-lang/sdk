@@ -32,7 +32,7 @@ def makeResources(root_dir, input_files):
     fileHandle = open(resource_file, 'rb')
     lineCounter = 0
     for byte in fileHandle.read():
-      result += ' %d,' % ord(byte)
+      result += r" '\x%02x'," % ord(byte)
       lineCounter += 1
       if lineCounter == 10:
         result += '\n   '
