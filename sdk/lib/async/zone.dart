@@ -31,6 +31,8 @@ typedef Timer CreateTimerHandler(
 typedef Timer CreatePeriodicTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone,
     Duration period, void f(Timer timer));
+typedef void PrintHandler(
+    Zone self, ZoneDelegate parent, Zone zone, String line);
 typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
                          ZoneSpecification specification,
                          Map<Symbol, dynamic> zoneValues);
@@ -82,6 +84,7 @@ abstract class ZoneSpecification {
                       Duration duration, void f()): null,
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
                               Duration period, void f(Timer timer)): null,
+    void print(Zone self, ZoneDelegate parent, Zone zone, String line): null,
     Zone fork(Zone self, ZoneDelegate parent, Zone zone,
               ZoneSpecification specification, Map zoneValues): null
   }) = _ZoneSpecification;
@@ -112,6 +115,7 @@ abstract class ZoneSpecification {
                       Duration duration, void f()): null,
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
                               Duration period, void f(Timer timer)): null,
+    void print(Zone self, ZoneDelegate parent, Zone zone, String line): null,
     Zone fork(Zone self, ZoneDelegate parent, Zone zone,
               ZoneSpecification specification,
               Map<Symbol, dynamic> zoneValues): null
@@ -141,6 +145,7 @@ abstract class ZoneSpecification {
       createPeriodicTimer: createPeriodicTimer != null
                            ? createPeriodicTimer
                            : other.createPeriodicTimer,
+      print : print != null ? print : other.print,
       fork: fork != null ? fork : other.fork);
   }
 
@@ -156,6 +161,7 @@ abstract class ZoneSpecification {
   RunAsyncHandler get runAsync;
   CreateTimerHandler get createTimer;
   CreatePeriodicTimerHandler get createPeriodicTimer;
+  PrintHandler get print;
   ForkHandler get fork;
 }
 
@@ -179,6 +185,7 @@ class _ZoneSpecification implements ZoneSpecification {
     this.runAsync: null,
     this.createTimer: null,
     this.createPeriodicTimer: null,
+    this.print: null,
     this.fork: null
   });
 
@@ -195,6 +202,7 @@ class _ZoneSpecification implements ZoneSpecification {
   final /*RunAsyncHandler*/ runAsync;
   final /*CreateTimerHandler*/ createTimer;
   final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
+  final /*PrintHandler*/ print;
   final /*ForkHandler*/ fork;
 }
 
@@ -224,6 +232,7 @@ abstract class ZoneDelegate {
   void scheduleMicrotask(Zone zone, f());
   Timer createTimer(Zone zone, Duration duration, void f());
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
+  void print(Zone zone, String line);
   Zone fork(Zone zone, ZoneSpecification specification, Map zoneValues);
 }
 
@@ -386,6 +395,11 @@ abstract class Zone {
   Timer createPeriodicTimer(Duration period, void callback(Timer timer));
 
   /**
+   * Prints the given [line].
+   */
+  void print(String line);
+
+  /**
    * The error zone is the one that is responsible for dealing with uncaught
    * errors. Errors are not allowed to cross zones with different error-zones.
    */
@@ -401,14 +415,14 @@ abstract class Zone {
 }
 
 class _ZoneDelegate implements ZoneDelegate {
-  final _CustomizedZone _degelationTarget;
+  final _BaseZone _degelationTarget;
 
   Zone get _zone => _degelationTarget;
 
   const _ZoneDelegate(this._degelationTarget);
 
   dynamic handleUncaughtError(Zone zone, error, StackTrace stackTrace) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.handleUncaughtError == null) {
       parent = parent.parent;
     }
@@ -417,7 +431,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   dynamic run(Zone zone, f()) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.run == null) {
       parent = parent.parent;
     }
@@ -426,7 +440,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   dynamic runUnary(Zone zone, f(arg), arg) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.runUnary == null) {
       parent = parent.parent;
     }
@@ -435,7 +449,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   dynamic runBinary(Zone zone, f(arg1, arg2), arg1, arg2) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.runBinary == null) {
       parent = parent.parent;
     }
@@ -444,7 +458,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   ZoneCallback registerCallback(Zone zone, f()) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.registerCallback == null) {
       parent = parent.parent;
     }
@@ -453,7 +467,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg)) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.registerUnaryCallback == null) {
       parent = parent.parent;
     }
@@ -462,7 +476,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   ZoneBinaryCallback registerBinaryCallback(Zone zone, f(arg1, arg2)) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.registerBinaryCallback == null) {
       parent = parent.parent;
     }
@@ -471,7 +485,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   void scheduleMicrotask(Zone zone, f()) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.scheduleMicrotask == null &&
            parent._specification.runAsync == null) {
       parent = parent.parent;
@@ -490,7 +504,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   Timer createTimer(Zone zone, Duration duration, void f()) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.createTimer == null) {
       parent = parent.parent;
     }
@@ -499,7 +513,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.createPeriodicTimer == null) {
       parent = parent.parent;
     }
@@ -507,9 +521,18 @@ class _ZoneDelegate implements ZoneDelegate {
         parent, new _ZoneDelegate(parent.parent), zone, period, f);
   }
 
+  void print(Zone zone, String line) {
+    _BaseZone parent = _degelationTarget;
+    while (parent._specification.print == null) {
+      parent = parent.parent;
+    }
+    (parent._specification.print)(
+        parent, new _ZoneDelegate(parent.parent), zone, line);
+  }
+
   Zone fork(Zone zone, ZoneSpecification specification,
             Map<Symbol, dynamic> zoneValues) {
-    _CustomizedZone parent = _degelationTarget;
+    _BaseZone parent = _degelationTarget;
     while (parent._specification.fork == null) {
       parent = parent.parent;
     }
@@ -521,22 +544,22 @@ class _ZoneDelegate implements ZoneDelegate {
 
 
 /**
- * Default implementation of a [Zone].
+ * Base class for Zone implementations.
  */
-class _CustomizedZone implements Zone {
+abstract class _BaseZone implements Zone {
+  const _BaseZone();
+
   /// The parent zone.
-  final _CustomizedZone parent;
+  _BaseZone get parent;
   /// The zone's handlers.
-  final ZoneSpecification _specification;
-  /// The zone's value map.
-  final Map<Symbol, dynamic> _map;
-
-  const _CustomizedZone(this.parent, this._specification, this._map);
-
-  Zone get _errorZone {
-    if (_specification.handleUncaughtError != null) return this;
-    return parent._errorZone;
-  }
+  ZoneSpecification get _specification;
+  /**
+   * The closest error-handling zone.
+   *
+   * Returns `this` if `this` has an error-handler. Otherwise returns the
+   * parent's error-zone.
+   */
+  Zone get _errorZone;
 
   bool inSameErrorZone(Zone otherZone) => _errorZone == otherZone._errorZone;
 
@@ -590,6 +613,25 @@ class _CustomizedZone implements Zone {
     } else {
       return (arg1, arg2) => this.runBinary(registered, arg1, arg2);
     }
+  }
+}
+
+
+/**
+ * Default implementation of a [Zone].
+ */
+class _CustomizedZone extends _BaseZone {
+  final _BaseZone parent;
+  final ZoneSpecification _specification;
+
+  /// The zone's value map.
+  final Map<Symbol, dynamic> _map;
+
+  const _CustomizedZone(this.parent, this._specification, this._map);
+
+  Zone get _errorZone {
+    if (_specification.handleUncaughtError != null) return this;
+    return parent._errorZone;
   }
 
   operator [](Symbol key) {
@@ -650,6 +692,10 @@ class _CustomizedZone implements Zone {
 
   Timer createPeriodicTimer(Duration duration, void f(Timer timer)) {
     return new _ZoneDelegate(this).createPeriodicTimer(this, duration, f);
+  }
+
+  void print(String line) {
+    new _ZoneDelegate(this).print(this, line);
   }
 }
 
@@ -735,9 +781,22 @@ Timer _rootCreatePeriodicTimer(
   return _createPeriodicTimer(duration, callback);
 }
 
+void _rootPrint(Zone self, ZoneDelegate parent, Zone zone, String line) {
+  printToConsole(line);
+}
+
+void _printToZone(String line) {
+  Zone.current.print(line);
+}
+
 Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
                ZoneSpecification specification,
                Map<Symbol, dynamic> zoneValues) {
+  // TODO(floitsch): it would be nice if we could get rid of this hack.
+  // Change the static zoneOrDirectPrint function to go through zones
+  // from now on.
+  printToZone = _printToZone;
+
   if (specification == null) {
     specification = const ZoneSpecification();
   } else if (specification is! _ZoneSpecification) {
@@ -756,22 +815,83 @@ Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
   return new _CustomizedZone(zone, specification, copiedMap);
 }
 
-const _ROOT_SPECIFICATION = const ZoneSpecification(
-  handleUncaughtError: _rootHandleUncaughtError,
-  run: _rootRun,
-  runUnary: _rootRunUnary,
-  runBinary: _rootRunBinary,
-  registerCallback: _rootRegisterCallback,
-  registerUnaryCallback: _rootRegisterUnaryCallback,
-  registerBinaryCallback: _rootRegisterBinaryCallback,
-  scheduleMicrotask: _rootScheduleMicrotask,
-  createTimer: _rootCreateTimer,
-  createPeriodicTimer: _rootCreatePeriodicTimer,
-  fork: _rootFork
-);
+class _RootZoneSpecification implements ZoneSpecification {
+  const _RootZoneSpecification();
 
-const _ROOT_ZONE =
-    const _CustomizedZone(null, _ROOT_SPECIFICATION, const <Symbol, dynamic>{});
+  HandleUncaughtErrorHandler get handleUncaughtError =>
+      _rootHandleUncaughtError;
+  RunHandler get run => _rootRun;
+  RunUnaryHandler get runUnary => _rootRunUnary;
+  RunBinaryHandler get runBinary => _rootRunBinary;
+  RegisterCallbackHandler get registerCallback => _rootRegisterCallback;
+  RegisterUnaryCallbackHandler get registerUnaryCallback =>
+      _rootRegisterUnaryCallback;
+  RegisterBinaryCallbackHandler get registerBinaryCallback =>
+      _rootRegisterBinaryCallback;
+  ScheduleMicrotaskHandler get scheduleMicrotask => _rootScheduleMicrotask;
+  @deprecated
+  RunAsyncHandler get runAsync => null;
+  CreateTimerHandler get createTimer => _rootCreateTimer;
+  CreatePeriodicTimerHandler get createPeriodicTimer =>
+      _rootCreatePeriodicTimer;
+  PrintHandler get print => _rootPrint;
+  ForkHandler get fork => _rootFork;
+}
+
+class _RootZone extends _BaseZone {
+  const _RootZone();
+
+  Zone get parent => null;
+  ZoneSpecification get _specification => const _RootZoneSpecification();
+  Zone get _errorZone => this;
+
+  bool inSameErrorZone(Zone otherZone) => otherZone._errorZone == this;
+
+  operator [](Symbol key) => null;
+
+  // Methods that can be customized by the zone specification.
+
+  dynamic handleUncaughtError(error, StackTrace stackTrace) =>
+      _rootHandleUncaughtError(this, null, this, error, stackTrace);
+
+  Zone fork({ZoneSpecification specification, Map zoneValues}) =>
+      _rootFork(this, null, this, specification, zoneValues);
+
+  dynamic run(f()) => _rootRun(this, null, this, f);
+
+  dynamic runUnary(f(arg), arg) => _rootRunUnary(this, null, this, f, arg);
+
+  dynamic runBinary(f(arg1, arg2), arg1, arg2) =>
+      _rootRunBinary(this, null, this, f, arg1, arg2);
+
+  ZoneCallback registerCallback(f()) =>
+      _rootRegisterCallback(this, null, this, f);
+
+  ZoneUnaryCallback registerUnaryCallback(f(arg)) =>
+      _rootRegisterUnaryCallback(this, null, this, f);
+
+  ZoneBinaryCallback registerBinaryCallback(f(arg1, arg2)) =>
+      _rootRegisterBinaryCallback(this, null, this, f);
+
+  void scheduleMicrotask(void f()) {
+    _rootScheduleMicrotask(this, null, this, f);
+  }
+
+  @deprecated
+  void runAsync(void f()) {
+    scheduleMicrotask(f);
+  }
+
+  Timer createTimer(Duration duration, void f()) =>
+      _rootCreateTimer(this, null, this, duration, f);
+
+  Timer createPeriodicTimer(Duration duration, void f(Timer timer)) =>
+      _rootCreatePeriodicTimer(this, null, this, duration, f);
+
+  void print(String line) => _rootPrint(this, null, this, line);
+}
+
+const _ROOT_ZONE = const _RootZone();
 
 
 /**

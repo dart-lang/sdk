@@ -660,13 +660,13 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
-  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
-  DART_CHECK_VALID(corelib);
-
-  // Setup the corelib 'print' function.
+  // Setup the internal library's 'internalPrint' function.
+  Dart_Handle internal_lib =
+      Dart_LookupLibrary(NewString("dart:_collection-dev"));
+  DART_CHECK_VALID(internal_lib);
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  Dart_Handle result = Dart_SetField(corelib,
+  Dart_Handle result = Dart_SetField(internal_lib,
                                      NewString("_printClosure"),
                                      print);
   DART_CHECK_VALID(result);
@@ -685,6 +685,8 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
       async_lib, NewString("_setTimerFactoryClosure"), 1, args));
 
   // Setup the corelib 'Uri.base' getter.
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  DART_CHECK_VALID(corelib);
   Dart_Handle uri_base = Dart_Invoke(
       builtin_lib, NewString("_getUriBaseClosure"), 0, NULL);
   DART_CHECK_VALID(uri_base);
