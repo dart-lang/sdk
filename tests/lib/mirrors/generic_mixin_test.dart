@@ -14,11 +14,11 @@ class Super<S> {}
 class Mixin<M> {}
 class Nixim<N> {}
 
-typedef NonGenericMixinApplication1 = Super with Mixin;
-typedef NonGenericMixinApplication2 = Super<num> with Mixin<String>;
+class NonGenericMixinApplication1 = Super with Mixin;
+class NonGenericMixinApplication2 = Super<num> with Mixin<String>;
 
-typedef GenericMixinApplication1<MA> = Super<MA> with Mixin<MA>;
-typedef GenericMixinApplication2<MA> = Super<num> with Mixin<String>;
+class GenericMixinApplication1<MA> = Super<MA> with Mixin<MA>;
+class GenericMixinApplication2<MA> = Super<num> with Mixin<String>;
 
 class NonGenericClass1 extends Super with Mixin {}
 class NonGenericClass2 extends Super<num> with Mixin<String> {}

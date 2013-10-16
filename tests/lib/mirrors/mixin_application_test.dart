@@ -26,10 +26,10 @@ class Mixin2 {
   m2() {}
 }
 
-typedef MixinApplication = C with Mixin;
-typedef MixinApplicationA = C with Mixin, Mixin2;
+class MixinApplication = C with Mixin;
+class MixinApplicationA = C with Mixin, Mixin2;
 
-typedef UnusedMixinApplication = C with Mixin;
+class UnusedMixinApplication = C with Mixin;
 
 class Subclass extends C with Mixin {
   f() {}

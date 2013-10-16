@@ -13,7 +13,7 @@ class Mixin {}
 class Mixin2 {}
 class Mixin3 {}
 
-typedef MixinApplication = Super with Mixin;
+class MixinApplication = Super with Mixin;
 class Class extends Super with Mixin {}
 class MultipleMixins extends Super with Mixin, Mixin2, Mixin3 {}
 
