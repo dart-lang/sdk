@@ -132,7 +132,9 @@ def ProcessBot(name, target, custom_env=None):
 
 def FixJavaHome():
   buildbot_javahome = os.getenv('BUILDBOT_JAVA_HOME')
+  print 'value of buildbot_javahome ' + buildbot_javahome
   if buildbot_javahome:
+    print 'in buildbot_javahome'
     current_pwd = os.getenv('PWD')
     java_home = os.path.join(current_pwd, buildbot_javahome)
     java_bin = os.path.join(java_home, 'bin')
