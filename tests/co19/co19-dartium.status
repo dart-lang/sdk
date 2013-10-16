@@ -31,7 +31,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: Fail # Iss
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: Fail # Issue 13719: Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A14_t01: Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A14_t02: Fail # co19-roll r623: Please triage this failure
-Language/09_Mixins/1_Mixin_Application_A01_t01: Fail # co19-roll r607: Please triage this failure
 Language/12_Expressions/01_Constants_A16_t04: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/01_Constants_A16_t05: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/05_Strings_A02_t46: Fail # Issue 13719: Please triage this failure.
