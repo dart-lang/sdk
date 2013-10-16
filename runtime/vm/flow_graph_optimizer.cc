@@ -6217,6 +6217,11 @@ void ConstantPropagator::VisitStringFromCharCode(
 
 
 void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
+  // TODO(srdjan): Remove the code below and enable constant folding once
+  // issue resolved.
+  SetValue(instr, non_constant_);
+  return;
+
   if (IsNonConstant(instr->constant_value())) {
     // Do not bother with costly analysis if we already know that the
     // instruction is not a constant.
