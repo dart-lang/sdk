@@ -574,7 +574,7 @@ Language/12_Expressions/02_Null_A02_t01: RuntimeError # co19-roll r607: Please t
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && (($runtime == d8 && $unchecked ) || $runtime == ie9) ]
-Language/12_Expressions/08_Throw_A08_t01: RuntimeError # co19-roll r623: Please triage this failure
+Language/12_Expressions/08_Throw_A08_t01: RuntimeError # co19 Issue 630
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
