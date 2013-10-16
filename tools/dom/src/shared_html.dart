@@ -15,5 +15,20 @@ _wrapBinaryZone(callback) {
   return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 
-Element query(String selector) => document.query(selector);
-ElementList queryAll(String selector) => document.queryAll(selector);
+/**
+ * Alias for [querySelector]. Note this function is deprecated because its
+ * semantics will be changing in the future.
+ */
+@deprecated
+@Experimental()
+Element query(String relativeSelectors) => document.query(relativeSelectors);
+/**
+ * Alias for [querySelectorAll]. Note this function is deprecated because its
+ * semantics will be changing in the future.
+ */
+@deprecated
+@Experimental()
+ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
+
+Element querySelector(String selector) => document.querySelector(selector);
+ElementList querySelectorAll(String selector) => document.querySelectorAll(selector);

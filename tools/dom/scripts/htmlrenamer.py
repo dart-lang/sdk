@@ -194,7 +194,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.createTouchList',
   'Document.createTreeWalker',
   'Document.querySelectorAll',
-  'DocumentFragment.querySelector',
   'DocumentFragment.querySelectorAll',
 
   # Moved to HTMLDocument.
@@ -344,14 +343,12 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
-    'Document.querySelector': 'query',
     'Window.CSS': 'css',
     'Window.webkitConvertPointFromNodeToPage': '_convertPointFromNodeToPage',
     'Window.webkitConvertPointFromPageToNode': '_convertPointFromPageToNode',
     'Window.webkitNotifications': 'notifications',
     'Window.webkitRequestFileSystem': '_requestFileSystem',
     'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Element.querySelector': 'query',
     'Element.webkitMatchesSelector' : 'matches',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.appendChild': 'append',

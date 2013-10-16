@@ -254,7 +254,8 @@ $!MEMBERS
     // Need to do this first as the contents may get lifted if |node| is
     // template.
     // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents = (content as dynamic).queryAll(_allTemplatesSelectors);
+    var descendents = 
+        (content as dynamic).querySelectorAll(_allTemplatesSelectors);
     if (content is Element && (content as Element).isTemplate) {
       _bootstrap(content);
     }

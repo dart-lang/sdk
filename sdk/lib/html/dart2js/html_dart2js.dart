@@ -7434,25 +7434,25 @@ class Document extends Node  native "Document"
   @DocsEditable()
   String queryCommandValue(String command) native;
 
-  @JSName('querySelector')
   /**
- * Finds the first descendant element of this document that matches the
- * specified group of selectors.
- *
- * Unless your webpage contains multiple documents, the top-level query
- * method behaves the same as this method, so you should use it instead to
- * save typing a few characters.
- *
- * [selectors] should be a string using CSS selector syntax.
- *     var element1 = document.query('.className');
- *     var element2 = document.query('#id');
- *
- * For details about CSS selector syntax, see the
- * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
- */
+   * Finds the first descendant element of this document that matches the
+   * specified group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level
+   * [querySelector]
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var element1 = document.querySelector('.className');
+   *     var element2 = document.querySelector('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   @DomName('Document.querySelector')
   @DocsEditable()
-  Element query(String selectors) native;
+  Element querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
   @DomName('Document.querySelectorAll')
@@ -7754,19 +7754,39 @@ class Document extends Node  native "Document"
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
    *
-   * Unless your webpage contains multiple documents, the top-level queryAll
+   * Unless your webpage contains multiple documents, the top-level
+   * [querySelectorAll]
    * method behaves the same as this method, so you should use it instead to
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
-   *     var items = document.queryAll('.itemClassName');
+   *     var items = document.querySelectorAll('.itemClassName');
    *
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList queryAll(String selectors) {
+  ElementList querySelectorAll(String selectors) {
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
+
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('Document.querySelector')
+  Element query(String relativeSelectors) => querySelector(relativeSelectors);
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('Document.querySelectorAll')
+  ElementList queryAll(String relativeSelectors) =>
+      querySelectorAll(relativeSelectors);
 
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
@@ -7821,10 +7841,10 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
     children.addAll(copy);
   }
 
-  Element query(String selectors) => _querySelector(selectors);
-
-  List<Element> queryAll(String selectors) =>
+  ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -7861,13 +7881,33 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
     this.append(new DocumentFragment.html(text));
   }
 
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('DocumentFragment.querySelector')
+  Element query(String relativeSelectors) {
+    return querySelector(relativeSelectors);
+  }
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('DocumentFragment.querySelectorAll')
+  ElementList queryAll(String relativeSelectors) {
+    return querySelectorAll(relativeSelectors);
+  }
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('querySelector')
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
-  Element _querySelector(String selectors) native;
+  Element querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
   @DomName('DocumentFragment.querySelectorAll')
@@ -9209,10 +9249,30 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    *
    * [selectors] should be a string using CSS selector syntax.
    *
-   *     var items = element.query('.itemClassName');
+   *     var items = element.querySelectorAll('.itemClassName');
    */
-  ElementList queryAll(String selectors) =>
+  @DomName('Element.querySelectorAll')
+  ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @DomName('Element.querySelector')
+  @Experimental()
+  Element query(String relativeSelectors) => querySelector(relativeSelectors);
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @DomName('Element.querySelectorAll')
+  @Experimental()
+  ElementList queryAll(String relativeSelectors) =>
+      querySelectorAll(relativeSelectors);
 
   /**
    * The set of CSS classes applied to this element.
@@ -10427,27 +10487,26 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   bool _hasAttributeNS(String namespaceURI, String localName) native;
 
-  @JSName('querySelector')
   /**
- * Finds the first descendant element of this element that matches the
- * specified group of selectors.
- *
- * [selectors] should be a string using CSS selector syntax.
- *
- *     // Gets the first descendant with the class 'classname'
- *     var element = element.query('.className');
- *     // Gets the element with id 'id'
- *     var element = element.query('#id');
- *     // Gets the first descendant [ImageElement]
- *     var img = element.query('img');
- *
- * See also:
- *
- * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
- */
+   * Finds the first descendant element of this element that matches the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     // Gets the first descendant with the class 'classname'
+   *     var element = element.querySelector('.className');
+   *     // Gets the element with id 'id'
+   *     var element = element.querySelector('#id');
+   *     // Gets the first descendant [ImageElement]
+   *     var img = element.querySelector('img');
+   *
+   * See also:
+   *
+   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+   */
   @DomName('Element.querySelector')
   @DocsEditable()
-  Element query(String selectors) native;
+  Element querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
   @DomName('Element.querySelectorAll')
@@ -21408,8 +21467,8 @@ class SelectElement extends HtmlElement native "HTMLSelectElement" {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options =
-        this.queryAll('option').where((e) => e is OptionElement).toList();
+    var options = this.querySelectorAll('option').where(
+        (e) => e is OptionElement).toList();
     return new UnmodifiableListView(options);
   }
 
@@ -23522,7 +23581,8 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
     // Need to do this first as the contents may get lifted if |node| is
     // template.
     // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents = (content as dynamic).queryAll(_allTemplatesSelectors);
+    var descendents = 
+        (content as dynamic).querySelectorAll(_allTemplatesSelectors);
     if (content is Element && (content as Element).isTemplate) {
       _bootstrap(content);
     }
@@ -33418,8 +33478,23 @@ _wrapBinaryZone(callback) {
   return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 
-Element query(String selector) => document.query(selector);
-ElementList queryAll(String selector) => document.queryAll(selector);
+/**
+ * Alias for [querySelector]. Note this function is deprecated because its
+ * semantics will be changing in the future.
+ */
+@deprecated
+@Experimental()
+Element query(String relativeSelectors) => document.query(relativeSelectors);
+/**
+ * Alias for [querySelectorAll]. Note this function is deprecated because its
+ * semantics will be changing in the future.
+ */
+@deprecated
+@Experimental()
+ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
+
+Element querySelector(String selector) => document.querySelector(selector);
+ElementList querySelectorAll(String selector) => document.querySelectorAll(selector);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

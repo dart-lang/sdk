@@ -13,19 +13,39 @@ $!MEMBERS
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
    *
-   * Unless your webpage contains multiple documents, the top-level queryAll
+   * Unless your webpage contains multiple documents, the top-level
+   * [querySelectorAll]
    * method behaves the same as this method, so you should use it instead to
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
-   *     var items = document.queryAll('.itemClassName');
+   *     var items = document.querySelectorAll('.itemClassName');
    *
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList queryAll(String selectors) {
+  ElementList querySelectorAll(String selectors) {
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
+
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('Document.querySelector')
+  Element query(String relativeSelectors) => querySelector(relativeSelectors);
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('Document.querySelectorAll')
+  ElementList queryAll(String relativeSelectors) =>
+      querySelectorAll(relativeSelectors);
 
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
