@@ -43,6 +43,7 @@ class CodeEmitterTask extends CompilerTask {
   Set<ClassElement> instantiatedClasses;
 
   JavaScriptBackend get backend => compiler.backend;
+  TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
 
   String get _ => space;
   String get space => compiler.enableMinification ? "" : " ";
