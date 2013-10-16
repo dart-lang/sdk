@@ -10070,7 +10070,7 @@ AstNode* Parser::ParseStringLiteral() {
       }
       // Check if this interpolated string is still considered a compile time
       // constant. If it is we need to evaluate if the current string part is
-      // a constant or not. Only stings, numbers, booleans and null values
+      // a constant or not. Only strings, numbers, booleans and null values
       // are allowed in compile time const interpolations.
       if (is_compiletime_const) {
         const Object* const_expr = expr->EvalConstExpr();
@@ -10091,16 +10091,11 @@ AstNode* Parser::ParseStringLiteral() {
   if (is_compiletime_const) {
     primary = new LiteralNode(literal_start, Interpolate(values_list));
   } else {
-    ArgumentListNode* interpolate_arg = new ArgumentListNode(TokenPos());
     ArrayNode* values = new ArrayNode(
         TokenPos(),
         Type::ZoneHandle(Type::ArrayType()),
         values_list);
-    interpolate_arg->Add(values);
-    primary =
-        MakeStaticCall(Symbols::StringBase(),
-                       Library::PrivateCoreLibName(Symbols::Interpolate()),
-                       interpolate_arg);
+    primary = new StringInterpolateNode(TokenPos(), values);
   }
   return primary;
 }

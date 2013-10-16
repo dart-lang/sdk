@@ -15,6 +15,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -2611,6 +2612,26 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       UNREACHABLE();
       return -1;
   }
+}
+
+
+const Function& StringInterpolateInstr::CallFunction() const {
+  if (function_.IsNull()) {
+    const int kNumberOfArguments = 1;
+    const Array& kNoArgumentNames = Object::null_array();
+    const Class& cls =
+        Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+    ASSERT(!cls.IsNull());
+    function_ =
+        Resolver::ResolveStatic(
+            cls,
+            Library::PrivateCoreLibName(Symbols::Interpolate()),
+            kNumberOfArguments,
+            kNoArgumentNames,
+            Resolver::kIsQualified);
+  }
+  ASSERT(!function_.IsNull());
+  return function_;
 }
 
 

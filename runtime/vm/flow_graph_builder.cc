@@ -2025,6 +2025,17 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 }
 
 
+void EffectGraphVisitor::VisitStringInterpolateNode(
+    StringInterpolateNode* node) {
+  ValueGraphVisitor for_argument(owner(), temp_index());
+  node->value()->Visit(&for_argument);
+  Append(for_argument);
+  StringInterpolateInstr* instr =
+      new StringInterpolateInstr(for_argument.value(), node->token_pos());
+  ReturnDefinition(instr);
+}
+
+
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
