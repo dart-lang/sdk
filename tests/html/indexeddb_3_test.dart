@@ -25,7 +25,8 @@ Future<Database> createAndOpenDb() {
 Future<Database> writeItems(Database db) {
   Future<Object> write(index) {
     var transaction = db.transaction(STORE_NAME, 'readwrite');
-    return transaction.objectStore(STORE_NAME).put('Item $index', index);
+    return transaction.objectStore(STORE_NAME).put('Item $index', index)
+        .then((_) => transaction.onComplete.first);
   }
 
   var future = write(0);
