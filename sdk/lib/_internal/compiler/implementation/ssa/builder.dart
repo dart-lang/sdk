@@ -2846,7 +2846,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool first = true;
       List<String> templates = <String>[];
       for (DartType argument in interface.typeArguments) {
-        templates.add(rti.getTypeRepresentation(argument, (variable) {
+        templates.add(rti.getTypeRepresentationWithHashes(argument, (variable) {
           HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
         }));
@@ -3544,7 +3544,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     List<HInstruction> inputs = <HInstruction>[];
 
-    String template = rti.getTypeRepresentation(argument, (variable) {
+    String template = rti.getTypeRepresentationWithHashes(argument, (variable) {
       inputs.add(addTypeVariableReference(variable));
     });
 

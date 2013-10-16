@@ -296,11 +296,9 @@ class ClassEmitter extends CodeEmitterHelper {
     if (backend.isNeededForReflection(classElement)) {
       Link typeVars = classElement.typeVariables;
       List properties = [];
-      for (TypeVariableType typeVar in typeVars) {
-        properties.add(js.string(typeVar.name.slowToString()));
-        properties.add(
-            js.toExpression(
-                task.metadataEmitter.reifyType(typeVar.element.bound)));
+      if (task.typeVariableHandler.typeVariablesOf(classElement) != null) {
+        properties = task.typeVariableHandler.typeVariablesOf(classElement)
+            .map(js.toExpression);
       }
 
       ClassElement superclass = classElement.superclass;
@@ -347,11 +345,15 @@ class ClassEmitter extends CodeEmitterHelper {
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
     String reflectionName = task.getReflectionName(classElement, className);
     if (reflectionName != null) {
-      List<int> interfaces = <int>[];
-      for (DartType interface in classElement.interfaces) {
-        interfaces.add(task.metadataEmitter.reifyType(interface));
+      if (!backend.isNeededForReflection(classElement)) {
+        buffer.write(',$n$n"+$reflectionName": 0');
+      } else {
+        List<int> interfaces = <int>[];
+        for (DartType interface in classElement.interfaces) {
+          interfaces.add(task.metadataEmitter.reifyType(interface));
+        }
+        buffer.write(',$n$n"+$reflectionName": $interfaces');
       }
-      buffer.write(',$n$n"+$reflectionName": $interfaces');
     }
   }
 

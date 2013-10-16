@@ -638,7 +638,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant makeConstructedConstant(
-      Node node, InterfaceType type, FunctionElement constructor,
+      Spannable node, InterfaceType type, FunctionElement constructor,
       List<Constant> getArguments(FunctionElement constructor)) {
     if (constructor.isRedirectingFactory) {
       type = constructor.computeTargetType(compiler, type);
