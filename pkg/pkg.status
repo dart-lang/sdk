@@ -213,6 +213,7 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 barback/test/too_many_open_files_test: Pass, Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 watcher/test/no_subscription_test: Pass, Fail  # Issue 13705.
+barback/test/too_many_open_files_test: Pass, Slow
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
