@@ -35,6 +35,13 @@ part of dart.core;
  * lists can throw ConcurrentModificationError. If the length changes
  * temporarily and is restored before continuing the iteration, the iterator
  * does not detect it.
+ *
+ * It is generally not allowed to modify the list's length (adding or removing
+ * elements) while an operation on the list is being performed,
+ * for example during a call to [forEach] or [sort].
+ * Changing the list's length while it is being iterated, either by iterating it
+ * directly or through iterating an `Iterable` that is backed by the list, will
+ * break the iteration.
  */
 abstract class List<E> implements Iterable<E>, EfficientLength {
   /**
@@ -44,7 +51,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    *     List fixedLengthList = new List(3);
    *     fixedLengthList.length;     // 3
-         fixedLengthList.length = 1; // Error
+   *     fixedLengthList.length = 1; // Error
    *
    *
    * The list has length 0 and is growable if [length] is omitted.

@@ -19,6 +19,12 @@ part of dart.core;
  * Sets may be either ordered or unordered. [HashSet] is unordered and doesn't
  * guarantee anything about the order that elements are accessed in by
  * iteration. [LinkedHashSet] iterates in the insertion order of its elements.
+ *
+ * It is generally not allowed to modify the set (add or remove elements) while
+ * an operation on the set is being performed, for example during a call to
+ * [forEach] or [containsAll]. Nor is it allowed to modify the set while
+ * iterating either the set itself or any `Iterable` that is backed by the set,
+ * such as the ones returned by methods like [where] and [map].
  */
 abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**

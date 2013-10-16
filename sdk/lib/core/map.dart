@@ -9,6 +9,12 @@ part of dart.core;
  * by using its associated key.
  *
  * Each key can occur at most once in a map.
+ *
+ * It is generally not allowed to modify the map (add or remove keys) while
+ * an operation is being performed on the map, for example in functions called
+ * during a [forEach] or [putIfAbsent] call.
+ * Modifying the map while iterating the keys or values will also most likely
+ * break the iteration.
  */
 abstract class Map<K, V> {
   /**

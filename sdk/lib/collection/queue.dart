@@ -8,6 +8,14 @@ part of dart.collection;
  * A [Queue] is a collection that can be manipulated at both ends. One
  * can iterate over the elements of a queue through [forEach] or with
  * an [Iterator].
+ *
+ * It is generally not allowed to modify the queue (add or remove entries) while
+ * an operation on the queue is being performed, for example during a call to
+ * [forEach].
+ * Modifying the queue while it is being iterated will most likely break the
+ * iteration.
+ * This goes both for using the [iterator] directly, or for iterating an
+ * `Iterable` returned by a method like [map] or [where].
  */
 abstract class Queue<E> implements Iterable<E>, EfficientLength {
 
