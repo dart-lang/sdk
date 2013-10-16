@@ -6379,27 +6379,51 @@ class CssViewportRule extends CssRule native "CSSViewportRule" {
 
 @DomName('CustomEvent')
 class CustomEvent extends Event native "CustomEvent" {
+    @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  var _dartDetail;
+
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
     final CustomEvent e = document._createEvent('CustomEvent');
 
-    detail = convertDartToNative_SerializedScriptValue(detail);
-    e._initCustomEvent(type, canBubble, cancelable, detail);
+    e._dartDetail = detail;
+
+    // Only try setting the detail if it's one of these types to avoid
+    // first-chance exceptions. Can expand this list in the future as needed.
+    if (detail is List || detail is Map || detail is String || detail is num) {
+      try {
+        detail = convertDartToNative_SerializedScriptValue(detail);
+        e._initCustomEvent(type, canBubble, cancelable, detail);
+      } catch(_) {
+        e._initCustomEvent(type, canBubble, cancelable, null);
+      }
+    } else {
+      e._initCustomEvent(type, canBubble, cancelable, null);
+    }
 
     return e;
+  }
+
+  @DomName('CustomEvent.detail')
+  get detail {
+    if (_dartDetail != null) {
+      return _dartDetail;
+    }
+    return _detail;
   }
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('CustomEvent.detail')
+  @DomName('CustomEvent._detail')
   @DocsEditable()
-  dynamic get detail => convertNativeToDart_SerializedScriptValue(this._get_detail);
+  @Experimental() // untriaged
+  dynamic get _detail => convertNativeToDart_SerializedScriptValue(this._get__detail);
   @JSName('detail')
-  @DomName('CustomEvent.detail')
+  @DomName('CustomEvent._detail')
   @DocsEditable()
-  @Creates('Null')
-  final dynamic _get_detail;
+  @Experimental() // untriaged
+  final dynamic _get__detail;
 
   @JSName('initCustomEvent')
   @DomName('CustomEvent.initCustomEvent')

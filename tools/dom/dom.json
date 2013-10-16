@@ -1174,6 +1174,9 @@
   "CustomEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#interface-CustomEvent",
     "members": {
+      "_detail": {
+        "support_level": "untriaged"
+      },
       "detail": {},
       "initCustomEvent": {}
     },
