@@ -240,5 +240,5 @@ mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
-[ $runtime != none && $runtime != drt && $runtime != dartium ]
+[ ($compiler != none && $runtime != none) || ($compiler == none && $runtime != dartium) ]
 async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
