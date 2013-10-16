@@ -1117,11 +1117,10 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
       const Class& klass = Class::Cast(entry);
-      // We filter out implementation classes like Smi, Mint, Bignum,
-      // OneByteString; function signature classes; and dynamic.
+      // We filter out function signature classes and dynamic.
+      // TODO(12478): Should not need to filter out dynamic.
       if (!klass.IsCanonicalSignatureClass() &&
-          !klass.IsDynamicClass() &&
-          !RawObject::IsImplementationClassId(klass.id())) {
+          !klass.IsDynamicClass()) {
         type = klass.RareType();
         member_mirror = CreateClassMirror(klass,
                                           type,

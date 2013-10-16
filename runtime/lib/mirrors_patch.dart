@@ -43,7 +43,9 @@ patch ClassMirror reflectClass(Type key) {
 
 patch class MirrorSystem {
   /* patch */ static String getName(Symbol symbol) {
-    return _unmangleName(_symbol_dev.Symbol.getName(symbol));
+    String string = _symbol_dev.Symbol.getName(symbol);
+    if (string.contains(' with ')) return string;
+    return _unmangleName(string);
   }
   /* patch */ static Symbol getSymbol(String name, [LibraryMirror library]) {
     if (library is! LibraryMirror ||

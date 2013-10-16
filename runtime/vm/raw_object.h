@@ -400,7 +400,6 @@ class RawObject {
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
-  static bool IsImplementationClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
@@ -1700,13 +1699,6 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
          (kNullCid == kExternalTypedDataInt8ArrayCid + 12));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat32x4ArrayCid);
-}
-
-
-inline bool RawObject::IsImplementationClassId(intptr_t index) {
-  return IsBuiltinListClassId(index) ||
-      IsStringClassId(index) ||
-      IsNumberClassId(index);
 }
 
 

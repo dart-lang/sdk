@@ -19,9 +19,9 @@ main() {
   Expect.equals(reflectClass(double), cm);
   Expect.equals(#double, cm.simpleName);
 
-  cm = dartcore.classes[#num];  /// 01: ok
-  Expect.equals(reflectClass(num), cm);  /// 01: ok
-  Expect.equals(#num, cm.simpleName);  /// 01: ok
+  cm = dartcore.classes[#num];
+  Expect.equals(reflectClass(num), cm);
+  Expect.equals(#num, cm.simpleName);
 
   cm = dartcore.classes[#bool];
   Expect.equals(reflectClass(bool), cm);
