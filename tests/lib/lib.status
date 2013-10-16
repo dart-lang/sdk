@@ -246,5 +246,5 @@ mirrors/generic_mixin_applications_test: Fail
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
-[ ($compiler != none && $runtime != none) || ($compiler == none && $runtime != dartium) ]
+[ ($compiler != none && $runtime != none) || ($compiler == none && ($runtime != dartium && $runtime != drt)) ]
 async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
