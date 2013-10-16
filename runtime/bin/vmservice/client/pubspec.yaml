@@ -1,0 +1,4 @@
+name: observatory
+version: 0.1.0
+dependencies:
+  polymer: any
