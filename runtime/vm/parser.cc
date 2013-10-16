@@ -8202,13 +8202,11 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     String& name = String::CheckedZoneHandle(primary->primary().raw());
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
-      return ThrowNoSuchMethodError(primary->token_pos(),
-                                    current_class(),
-                                    name,
-                                    NULL,  // No arguments.
-                                    InvocationMirror::kStatic,
-                                    InvocationMirror::kField,
-                                    NULL);  // No existing function.
+      return new StaticGetterNode(primary->token_pos(),
+                                  NULL,  // No receiver.
+                                  false,  // Not a super getter.
+                                  Class::ZoneHandle(current_class().raw()),
+                                  name);
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
