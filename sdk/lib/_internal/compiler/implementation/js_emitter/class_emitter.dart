@@ -35,16 +35,11 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     ClassBuilder builder = new ClassBuilder();
-    if (!onlyForRti) {
-      emitClassConstructor(classElement, builder, runtimeName);
-    }
+    emitClassConstructor(classElement, builder, runtimeName,
+                         onlyForRti: onlyForRti);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
-    if (!onlyForRti) {
-      emitClassGettersSetters(classElement, builder);
-      if (!classElement.isMixinApplication) {
-        emitInstanceMembers(classElement, builder);
-      }
-    }
+    emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
+    emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
     task.typeTestEmitter.emitIsTests(classElement, builder);
 
     emitClassBuilderWithReflectionData(
@@ -53,9 +48,10 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassConstructor(ClassElement classElement,
                             ClassBuilder builder,
-                            String runtimeName) {
+                            String runtimeName,
+                            {bool onlyForRti: false}) {
     List<String> fields = <String>[];
-    if (!classElement.isNative()) {
+    if (!onlyForRti && !classElement.isNative()) {
       visitFields(classElement, false,
                   (Element member,
                    String name,
@@ -229,7 +225,10 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void emitClassGettersSetters(ClassElement classElement,
-                               ClassBuilder builder) {
+                               ClassBuilder builder,
+                               {bool onlyForRti: false}) {
+    if (onlyForRti) return;
+
     visitFields(classElement, false,
                 (VariableElement member,
                  String name,
@@ -258,8 +257,11 @@ class ClassEmitter extends CodeEmitterHelper {
    * Invariant: [classElement] must be a declaration element.
    */
   void emitInstanceMembers(ClassElement classElement,
-                           ClassBuilder builder) {
+                           ClassBuilder builder,
+                           {bool onlyForRti: false}) {
     assert(invariant(classElement, classElement.isDeclaration));
+
+    if (onlyForRti || classElement.isMixinApplication) return;
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(classElement, member.isDeclaration));
