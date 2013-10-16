@@ -297,7 +297,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     if (backend.isNeededForReflection(classElement)) {
       Link typeVars = classElement.typeVariables;
-      List properties = [];
+      Iterable properties = [];
       if (task.typeVariableHandler.typeVariablesOf(classElement) != null) {
         properties = task.typeVariableHandler.typeVariablesOf(classElement)
             .map(js.toExpression);
