@@ -29,9 +29,6 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-hidden_import_test/01: Fail # 14009
-hidden_import_test/02: Fail # 14009
-
 malbounded_type_cast_test: Fail # Issue 14133
 
 
