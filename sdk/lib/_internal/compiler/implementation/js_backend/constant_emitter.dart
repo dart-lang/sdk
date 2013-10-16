@@ -338,8 +338,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
       RuntimeTypes rti = backend.rti;
       Iterable<String> arguments = interface.typeArguments
           .toList(growable: false)
-          .map((DartType type) =>
-              rti.getTypeRepresentationWithHashes(type, (_){}));
+          .map((DartType type) => rti.getTypeRepresentation(type, (_){}));
       jsAst.Expression argumentList =
           new jsAst.LiteralString('[${arguments.join(', ')}]');
       return new jsAst.Call(getHelperProperty(backend.getSetRuntimeTypeInfo()),

@@ -36,8 +36,7 @@ import '../js_backend/js_backend.dart' show
     RuntimeTypes,
     Substitution,
     TypeCheck,
-    TypeChecks,
-    TypeVariableHandler;
+    TypeChecks;
 
 import '../source_file.dart' show
     SourceFile;
