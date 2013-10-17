@@ -35704,46 +35704,6 @@ class _ScheduleImmediateHelper {
   Function _callback;
 
   _ScheduleImmediateHelper() {
-    // Mutation events get fired as soon as the current event stack is unwound
-    // so we just make a dummy event and listen for that.
-    _observer = new MutationObserver(_handleMutation);
-    _observer.observe(_div, attributes: true);
-  }
-
-  void _schedule(callback) {
-    if (_callback != null) {
-      throw new StateError(
-          'Only one immediate callback can be scheduled at once');
-    }
-    _callback = callback;
-    // Toggle it to trigger the mutation event.
-    _div.hidden = !_div.hidden;
-  }
-
-  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
-    var tmp = _callback;
-    _callback = null;
-    tmp();
-  }
-}
-
-final _ScheduleImmediateHelper _scheduleImmediateHelper =
-    new _ScheduleImmediateHelper();
-
-get _scheduleImmediateClosure => (void callback()) {
-  _scheduleImmediateHelper._schedule(callback);
-};
-
-get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
-  throw new UnimplementedError("scheduleMicrotask in background isolates "
-                               "are not supported in the browser"));
-
-class _ScheduleImmediateHelper {
-  MutationObserver _observer;
-  final DivElement _div = new DivElement();
-  Function _callback;
-
-  _ScheduleImmediateHelper() {
     // Run in the root-zone as the DOM callback would otherwise execute in the
     // current zone.
     Zone.ROOT.run(() {
