@@ -13352,8 +13352,8 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar 
-   * to sending a FormData object with broader browser support but limited to 
+   * This is roughly the POST equivalent of getString. This method is similar
+   * to sending a FormData object with broader browser support but limited to
    * String values.
    *
    * See also:
@@ -13388,7 +13388,7 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
    * Creates and sends a URL request for the specified [url].
    *
    * By default `request` will perform an HTTP GET request, but a different
-   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
    * [method] parameter.
    *
    * The Future is completed when the response is available.
@@ -13548,6 +13548,42 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
     }
 
     return completer.future;
+  }
+
+  /**
+   * Returns all response headers as a key-value map.
+   *
+   * Multiple values for the same header key can be combined into one,
+   * separated by a comma and a space.
+   *
+   * See: http://www.w3.org/TR/XMLHttpRequest/#the-getresponseheader()-method
+   */
+  Map<String, String> get responseHeaders {
+    // from Closure's goog.net.Xhrio.getResponseHeaders.
+    var headers = <String, String>{};
+    var headersString = this.getAllResponseHeaders();
+    if (headersString == null) {
+      return headers;
+    }
+    var headersList = headersString.split('\r\n');
+    for (var header in headersList) {
+      if (header.isEmpty) {
+        continue;
+      }
+
+      var splitIdx = header.indexOf(': ');
+      if (splitIdx == -1) {
+        continue;
+      }
+      var key = header.substring(0, splitIdx).toLowerCase();
+      var value = header.substring(splitIdx + 2);
+      if (headers.containsKey(key)) {
+        headers[key] = '${headers[key]}, $value';
+      } else {
+        headers[key] = value;
+      }
+    }
+    return headers;
   }
 
   // To suppress missing implicit constructor warnings.

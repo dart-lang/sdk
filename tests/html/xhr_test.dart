@@ -246,4 +246,13 @@ main() {
           }));
     });
   });
+
+  group('headers', () {
+    test('xhr responseHeaders', () {
+      return HttpRequest.request(url, mimeType: 'application/binary').then(
+        (xhr) {
+          expect(xhr.responseHeaders['content-type'], 'application/binary');
+        });
+    });
+  });
 }
