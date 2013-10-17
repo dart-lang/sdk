@@ -537,10 +537,14 @@ class _ScheduleImmediateHelper {
   Function _callback;
 
   _ScheduleImmediateHelper() {
-    // Mutation events get fired as soon as the current event stack is unwound
-    // so we just make a dummy event and listen for that.
-    _observer = new MutationObserver(_handleMutation);
-    _observer.observe(_div, attributes: true);
+    // Run in the root-zone as the DOM callback would otherwise execute in the
+    // current zone.
+    Zone.ROOT.run(() {
+      // Mutation events get fired as soon as the current event stack is unwound
+      // so we just make a dummy event and listen for that.
+      _observer = new MutationObserver(_handleMutation);
+      _observer.observe(_div, attributes: true);
+    });
   }
 
   void _schedule(callback) {

@@ -2,11 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == dartium || $runtime == drt ]
-async/zone_run_guarded_test: Skip # Issue 14146
-async/zone_run_test: Skip # Issue 14146
-async/run_zoned9_test: Skip # Issue 14146
-
 [ $csp ]
 mirrors/delegate_test: RuntimeError # Issue 13864
 
