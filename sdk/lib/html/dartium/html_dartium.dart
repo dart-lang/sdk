@@ -20521,9 +20521,8 @@ class OptGroupElement extends HtmlElement {
 
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement {
-  factory OptionElement({String data, String value, bool defaultSelected, 
-      bool selected}) {
-    return new OptionElement._(data, value, defaultSelected, selected);
+  factory OptionElement({String data, String value, bool selected: false}) {
+    return new OptionElement._(data, value, false, selected);
   }
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
@@ -26956,13 +26955,13 @@ class Url extends NativeFieldWrapperClass2 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
