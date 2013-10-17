@@ -42,10 +42,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallToRuntimeStub");
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -79,7 +76,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   ASSERT(argv_offset == 2 * kWordSize);
   __ sll(A2, S4, 2);
   __ addu(A2, FP, A2);  // Compute argv.
-  __ addiu(A2, A2, Immediate(kWordSize));  // Set argv in NativeArguments.
+  // Set argv in NativeArguments.
+  __ addiu(A2, A2, Immediate(kParamEndSlotFromFp * kWordSize));
 
   ASSERT(retval_offset == 3 * kWordSize);
 
@@ -104,11 +102,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 

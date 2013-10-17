@@ -40,7 +40,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   // Load current Isolate pointer from Context structure into R0.
   __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
@@ -73,7 +73,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   ASSERT(argv_offset == 2 * kWordSize);
   __ add(R2, FP, ShifterOperand(R4, LSL, 2));  // Compute argv.
-  __ AddImmediate(R2, kWordSize);  // Set argv in NativeArguments.
+  // Set argv in NativeArguments.
+  __ AddImmediate(R2, kParamEndSlotFromFp * kWordSize);
 
   ASSERT(retval_offset == 3 * kWordSize);
   __ add(R3, R2, ShifterOperand(kWordSize));  // Retval is next to 1st argument.
@@ -95,7 +96,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, ShifterOperand(R2));
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ LeaveStubFrame();
   __ Ret();
 }
 
