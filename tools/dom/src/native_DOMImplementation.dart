@@ -423,7 +423,7 @@ class _Utils {
   static void initializeCustomElement(HtmlElement element) native "Utils_initializeCustomElement";
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
+class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     WindowBase {
   _DOMWindowCrossFrame.internal();
 
@@ -444,7 +444,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
   String get typeName => "Window";
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase {
+class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -456,7 +456,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBase {
+class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
@@ -466,7 +466,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBa
   String get typeName => "Location";
 }
 
-class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, String> {
+class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, String> {
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);

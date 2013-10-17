@@ -88,7 +88,7 @@ class AnalyserNode extends AudioNode {
 @DomName('AudioBuffer')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
 @Experimental()
-class AudioBuffer extends NativeFieldWrapperClass1 {
+class AudioBuffer extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
 
@@ -510,7 +510,7 @@ class AudioDestinationNode extends AudioNode {
 @DomName('AudioListener')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
 @Experimental()
-class AudioListener extends NativeFieldWrapperClass1 {
+class AudioListener extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioListener._() { throw new UnsupportedError("Not supported"); }
 
@@ -642,7 +642,7 @@ class AudioNode extends EventTarget {
 @DomName('AudioParam')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
 @Experimental()
-class AudioParam extends NativeFieldWrapperClass1 {
+class AudioParam extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AudioParam._() { throw new UnsupportedError("Not supported"); }
 
@@ -1320,7 +1320,7 @@ class PannerNode extends AudioNode {
 @DocsEditable()
 @DomName('PeriodicWave')
 @Experimental() // untriaged
-class PeriodicWave extends NativeFieldWrapperClass1 {
+class PeriodicWave extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
 

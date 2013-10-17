@@ -40,7 +40,7 @@ class _KeyRangeFactoryProvider {
 
 @DomName('IDBCursor')
 @Unstable()
-class Cursor extends NativeFieldWrapperClass1 {
+class Cursor extends NativeFieldWrapperClass2 {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
@@ -265,7 +265,7 @@ class Database extends EventTarget {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 @Unstable()
-class IdbFactory extends NativeFieldWrapperClass1 {
+class IdbFactory extends NativeFieldWrapperClass2 {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -394,7 +394,7 @@ Future _completeRequest(Request request) {
 
 @DomName('IDBIndex')
 @Unstable()
-class Index extends NativeFieldWrapperClass1 {
+class Index extends NativeFieldWrapperClass2 {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
@@ -532,7 +532,7 @@ class Index extends NativeFieldWrapperClass1 {
 
 @DomName('IDBKeyRange')
 @Unstable()
-class KeyRange extends NativeFieldWrapperClass1 {
+class KeyRange extends NativeFieldWrapperClass2 {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
@@ -598,7 +598,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
 @DomName('IDBObjectStore')
 @Unstable()
-class ObjectStore extends NativeFieldWrapperClass1 {
+class ObjectStore extends NativeFieldWrapperClass2 {
 
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
@@ -1056,7 +1056,7 @@ class VersionChangeEvent extends Event {
 @DocsEditable()
 @DomName('IDBAny')
 @deprecated // nonstandard
-abstract class _IDBAny extends NativeFieldWrapperClass1 {
+abstract class _IDBAny extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
 

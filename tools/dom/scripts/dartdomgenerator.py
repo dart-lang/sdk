@@ -137,39 +137,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
         dartium_output_dir)
     cpp_library_emitter.EmitResolver(
         template_loader.Load('cpp_resolver.template'), dartium_output_dir)
-
-    path = os.path.join(cpp_output_dir, 'DartWebkitClassIds.h')
-    e = emitters.FileEmitter(path)
-    e.Emit("""
-// WARNING: Do not edit - generated code.
-// See dart/tools/dom/scripts/dartdomgenerator.py
-
-#ifndef DartWebkitClassIds_h
-#define DartWebkitClassIds_h
-
-namespace WebCore {
-
-enum {
-    _HistoryCrossFrameClassId = 0,
-    _LocationCrossFrameClassId,
-    _DOMWindowCrossFrameClassId,
-    _DateTimeClassId,
-    // New types that are not auto-generated should be added here.
-""")
-    for interface in webkit_database.GetInterfaces():
-      interface_name = interface.id
-      e.Emit('    %sClassId,\n' % interface_name)
-    e.Emit("""
-    NumWebkitClassIds
-};
-
-} // namespace WebCore
-
-#endif // DartWebkitClassIds_h
-""")
-
-  _logger.info('Flush...')
-  emitters.Flush()
+    cpp_library_emitter.EmitClassIdTable(
+        webkit_database, dartium_output_dir, type_registry, renamer)
 
   if update_dom_metadata:
     metadata.Flush()

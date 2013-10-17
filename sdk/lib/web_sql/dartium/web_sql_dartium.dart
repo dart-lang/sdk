@@ -81,7 +81,7 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental() // deprecated
-class SqlDatabase extends NativeFieldWrapperClass1 {
+class SqlDatabase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
@@ -128,7 +128,7 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental() // deprecated
-class SqlError extends NativeFieldWrapperClass1 {
+class SqlError extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
@@ -184,7 +184,7 @@ class SqlError extends NativeFieldWrapperClass1 {
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental() // deprecated
-class SqlResultSet extends NativeFieldWrapperClass1 {
+class SqlResultSet extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
@@ -212,7 +212,7 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List {
+class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, ImmutableListMixin<Map> implements List {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
@@ -284,7 +284,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
-class SqlTransaction extends NativeFieldWrapperClass1 {
+class SqlTransaction extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
@@ -307,7 +307,7 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental() // deprecated
-abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
+abstract class _SQLTransactionSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _SQLTransactionSync._() { throw new UnsupportedError("Not supported"); }
 
