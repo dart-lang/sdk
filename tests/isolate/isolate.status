@@ -18,10 +18,6 @@ spawn_function_negative_test: Fail
 spawn_uri_vm_negative_test: Fail
 unresolved_ports_negative_test: Fail
 
-[ $compiler == dartanalyzer ]
-# pkg issue 13945; Missing inherited member 'Trace.frames'
-spawn_uri_multi_test/none: fail
-
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
 illegal_msg_stream_test: RuntimeError # Issue 6750
