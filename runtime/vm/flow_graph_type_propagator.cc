@@ -466,6 +466,11 @@ CompileType CompileType::Int() {
 }
 
 
+CompileType CompileType::String() {
+  return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
+}
+
+
 intptr_t CompileType::ToCid() {
   if ((cid_ == kNullCid) || (cid_ == kDynamicCid)) {
     return cid_;
@@ -537,7 +542,7 @@ const AbstractType* CompileType::ToAbstractType() {
     const Class& type_class =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
 
-    if (type_class.HasTypeArguments()) {
+    if (type_class.NumTypeArguments() > 0) {
       type_ = &Type::ZoneHandle(Type::DynamicType());
       return type_;
     }
@@ -874,6 +879,12 @@ CompileType* StoreLocalInstr::ComputeInitialType() const {
 
 CompileType StringFromCharCodeInstr::ComputeType() const {
   return CompileType::FromCid(cid_);
+}
+
+
+CompileType StringInterpolateInstr::ComputeType() const {
+  // TODO(srdjan): Do better and determine if it is a one or two byte string.
+  return CompileType::String();
 }
 
 

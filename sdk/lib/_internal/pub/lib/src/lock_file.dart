@@ -40,9 +40,8 @@ class LockFile {
     if (contents.trim() == '') return new LockFile.empty();
     var parsed = loadYaml(contents);
 
-    if (parsed.containsKey('packages')) {
-      var packageEntries = parsed['packages'];
-
+    var packageEntries = parsed['packages'];
+    if (packageEntries != null) {
       packageEntries.forEach((name, spec) {
         // Parse the version.
         if (!spec.containsKey('version')) {

@@ -27,13 +27,13 @@ class ObservableLocationHash extends ChangeNotifierBase {
     window.onPopState.listen(_notifyHashChange);
   }
 
-  String get hash => window.location.hash;
+  @reflectable String get hash => window.location.hash;
 
   /**
    * Pushes a new URL state, similar to the affect of clicking a link.
    * Has no effect if the [value] already equals [window.location.hash].
    */
-  void set hash(String value) {
+  @reflectable void set hash(String value) {
     if (value == hash) return;
 
     window.history.pushState(null, '', value);

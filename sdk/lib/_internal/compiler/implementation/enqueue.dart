@@ -578,7 +578,7 @@ class ResolutionEnqueuer extends Enqueuer {
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
-        resolvedElements = new LinkedHashMap<Element, TreeElements>(),
+        resolvedElements = new Map<Element, TreeElements>(),
         queue = new Queue<ResolutionWorkItem>(),
         postQueue = new Queue<PostProcessTask>();
 

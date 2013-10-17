@@ -28,9 +28,12 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
+        // TODO(rnystrom): Figure out why dart2js errors aren't deterministic.
+        // Use a lookahead regexp to do two searches in one regexp.
+        // Checked all non-matching cases for bad performance.
         error: new RegExp(
-            r"^Error on line 1 of .*[/\\]file\.dart:(.|\n)*"
-            r"^Error on line 1 of .*[/\\]subfile\.dart:",
+            r"(?=(.|\n)*^Error on line 1 of .*[/\\]file\.dart:)"
+            r"(.|\n)*^Error on line 1 of .*[/\\]subfile\.dart:",
             multiLine: true),
         output: new RegExp(r"Building myapp\.\.\.*"),
         exitCode: exit_codes.DATA);

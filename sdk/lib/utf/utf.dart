@@ -8,7 +8,7 @@
  */
 @deprecated
 library dart.utf;
-import "dart:_collection-dev" show deprecated;
+import "dart:_collection-dev" show deprecated, EfficientLength;
 import "dart:async";
 import "dart:collection";
 part "utf_stream.dart";
@@ -222,7 +222,7 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
  */
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class _ListRange extends IterableBase {
+class _ListRange extends IterableBase implements EfficientLength {
   final List _source;
   final int _offset;
   final int _length;

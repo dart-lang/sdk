@@ -114,6 +114,10 @@ class FlowGraph : public ZoneAllocated {
     return constant_null_;
   }
 
+  ConstantInstr* constant_dead() const {
+    return constant_dead_;
+  }
+
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   intptr_t InstructionCount() const;
@@ -269,6 +273,7 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   GrowableArray<BlockEntryInstr*> optimized_block_order_;
   ConstantInstr* constant_null_;
+  ConstantInstr* constant_dead_;
 
   BlockEffects* block_effects_;
   bool licm_allowed_;

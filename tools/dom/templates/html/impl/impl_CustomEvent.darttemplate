@@ -7,17 +7,42 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  $if DART2JS
+    @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  $endif
+  var _dartDetail;
+
   factory $CLASSNAME(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
     final CustomEvent e = document._createEvent('CustomEvent');
 
+    e._dartDetail = detail;
+
+    // Only try setting the detail if it's one of these types to avoid
+    // first-chance exceptions. Can expand this list in the future as needed.
+    if (detail is List || detail is Map || detail is String || detail is num) {
+      try {
 $if DART2JS
-    detail = convertDartToNative_SerializedScriptValue(detail);
+        detail = convertDartToNative_SerializedScriptValue(detail);
 $endif
-    e._initCustomEvent(type, canBubble, cancelable, detail);
+        e._initCustomEvent(type, canBubble, cancelable, detail);
+      } catch(_) {
+        e._initCustomEvent(type, canBubble, cancelable, null);
+      }
+    } else {
+      e._initCustomEvent(type, canBubble, cancelable, null);
+    }
 
     return e;
+  }
+
+  @DomName('CustomEvent.detail')
+  get detail {
+    if (_dartDetail != null) {
+      return _dartDetail;
+    }
+    return _detail;
   }
 $!MEMBERS
 }

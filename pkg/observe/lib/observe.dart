@@ -43,8 +43,8 @@
  *
  *     class Monster extends Unit with ChangeNotifierMixin {
  *       int _health = 100;
- *       get health => _health;
- *       set health(val) {
+ *       @reflectable get health => _health;
+ *       @reflectable set health(val) {
  *         _health = notifyPropertyChange(#health, _health, val);
  *       }
  *
@@ -67,6 +67,11 @@
  *       print('done!');
  *     }
  *
+ * *Note*: it is good practice to keep `@reflectable` annotation on
+ * getters/setters so they are accessible via reflection. This will preserve
+ * them from tree-shaking. You can also put this annotation on the class and it
+ * preserve all of its members for reflection.
+ *
  * [Tools](https://www.dartlang.org/polymer-dart/) exist to convert the first
  * form into the second form automatically, to get the best of both worlds.
  */
@@ -74,6 +79,13 @@ library observe;
 
 import 'dart:async';
 import 'dart:collection';
+
+// Note: ObservableProperty is in this list only for the unusual use case of
+// dart2js without deploy tool. The deploy tool (see "transformer.dart") will
+// add the @reflectable annotation, which makes it work with Polymer's
+// @published.
+@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
+    override: 'observe')
 import 'dart:mirrors';
 
 // Note: this is an internal library so we can import it from tests.
@@ -87,6 +99,7 @@ part 'src/change_notifier.dart';
 part 'src/change_record.dart';
 part 'src/compound_binding.dart';
 part 'src/list_path_observer.dart';
+part 'src/metadata.dart';
 part 'src/observable.dart';
 part 'src/observable_box.dart';
 part 'src/observable_list.dart';

@@ -124,6 +124,11 @@ void AstPrinter::VisitArrayNode(ArrayNode* node) {
 }
 
 
+void AstPrinter::VisitStringInterpolateNode(StringInterpolateNode* node) {
+  VisitGenericAstNode(node);
+}
+
+
 void AstPrinter::VisitLiteralNode(LiteralNode* node) {
   const Instance& literal = node->literal();
   OS::Print("(%s \"%s\")", node->PrettyName(), literal.ToCString());

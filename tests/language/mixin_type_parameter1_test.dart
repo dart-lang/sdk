@@ -13,7 +13,7 @@ abstract class Mixin2<T> {
 class A {
 }
 
-typedef MyTypedef<K, V> = A with Mixin1<K>, Mixin2<V>;
+class MyTypedef<K, V> = A with Mixin1<K>, Mixin2<V>;
 
 class B<K, V> extends MyTypedef<K, V> {
 }

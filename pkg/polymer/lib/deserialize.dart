@@ -5,7 +5,7 @@
 library polymer.deserialize;
 
 import 'dart:convert' show JSON;
-import 'dart:mirrors' show reflect, TypeMirror;
+import 'dart:mirrors' show TypeMirror;
 
 final _typeHandlers = () {
   // TODO(jmesserly): switch to map and symbol literal form when supported.

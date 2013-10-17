@@ -922,34 +922,16 @@ abstract class DartTypeVisitor<R, A> {
 }
 
 /**
- * Type visitor that determines the subtype relation two types.
+ * Abstract visitor for determining relations between types.
  */
-class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
+abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   final DynamicType dynamicType;
   final VoidType voidType;
 
-  SubtypeVisitor(Compiler this.compiler,
-                 DynamicType this.dynamicType,
-                 VoidType this.voidType);
-
-  bool isSubtype(DartType t, DartType s) {
-    if (identical(t, s) ||
-        t.treatAsDynamic ||
-        s.treatAsDynamic ||
-        identical(s.element, compiler.objectClass) ||
-        identical(t.element, compiler.nullClass)) {
-      return true;
-    }
-    t = t.unalias(compiler);
-    s = s.unalias(compiler);
-
-    return t.accept(this, s);
-  }
-
-  bool isAssignable(DartType t, DartType s) {
-    return isSubtype(t, s) || isSubtype(s, t);
-  }
+  AbstractTypeRelation(Compiler this.compiler,
+                       DynamicType this.dynamicType,
+                       VoidType this.voidType);
 
   bool visitType(DartType t, DartType s) {
     throw 'internal error: unknown type kind ${t.kind}';
@@ -960,14 +942,26 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
     return false;
   }
 
+  bool invalidTypeArguments(DartType t, DartType s);
+
+  bool invalidFunctionReturnTypes(DartType t, DartType s);
+
+  bool invalidFunctionParameterTypes(DartType t, DartType s);
+
+  bool invalidTypeVariableBounds(DartType bound, DartType s);
+
   bool visitInterfaceType(InterfaceType t, DartType s) {
+
+    // TODO(johnniwinther): Currently needed since literal types like int,
+    // double, bool etc. might not have been resolved yet.
+    t.element.ensureResolved(compiler);
 
     bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
       Link<DartType> tTypeArgs = instance.typeArguments;
       Link<DartType> sTypeArgs = other.typeArguments;
       while (!tTypeArgs.isEmpty) {
         assert(!sTypeArgs.isEmpty);
-        if (!isSubtype(tTypeArgs.head, sTypeArgs.head)) {
+        if (invalidTypeArguments(tTypeArgs.head, sTypeArgs.head)) {
           return false;
         }
         tTypeArgs = tTypeArgs.tail;
@@ -977,22 +971,9 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       return true;
     }
 
-    lookupCall(type) => type.lookupMember(Compiler.CALL_OPERATOR_NAME);
-
-    // TODO(johnniwinther): Currently needed since literal types like int,
-    // double, bool etc. might not have been resolved yet.
-    t.element.ensureResolved(compiler);
-
     if (s is InterfaceType) {
-      if (s.element == compiler.functionClass && lookupCall(t) != null) {
-        return true;
-      }
       InterfaceType instance = t.asInstanceOf(s.element);
       return instance != null && checkTypeArguments(instance, s);
-    } else if (s is FunctionType) {
-      Member call = lookupCall(t);
-      if (call == null) return false;
-      return isSubtype(call.computeType(compiler), s);
     } else {
       return false;
     }
@@ -1005,8 +986,7 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
     if (s is !FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
-    if (!identical(sf.returnType, voidType) &&
-        !isAssignable(tf.returnType, sf.returnType)) {
+    if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
       return false;
     }
 
@@ -1021,7 +1001,7 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
     Link<DartType> tps = tf.parameterTypes;
     Link<DartType> sps = sf.parameterTypes;
     while (!tps.isEmpty && !sps.isEmpty) {
-      if (!isAssignable(tps.head, sps.head)) return false;
+      if (invalidFunctionParameterTypes(tps.head, sps.head)) return false;
       tps = tps.tail;
       sps = sps.tail;
     }
@@ -1043,7 +1023,9 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       Link<DartType> sTypes = sf.namedParameterTypes;
       while (!tNames.isEmpty && !sNames.isEmpty) {
         if (sNames.head == tNames.head) {
-          if (!isAssignable(tTypes.head, sTypes.head)) return false;
+          if (invalidFunctionParameterTypes(tTypes.head, sTypes.head)) {
+            return false;
+          }
 
           sNames = sNames.tail;
           sTypes = sTypes.tail;
@@ -1059,7 +1041,7 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       // Check the remaining [: s.p :] against [: t.o :].
       tps = tf.optionalParameterTypes;
       while (!tps.isEmpty && !sps.isEmpty) {
-        if (!isAssignable(tps.head, sps.head)) return false;
+        if (invalidFunctionParameterTypes(tps.head, sps.head)) return false;
         tps = tps.tail;
         sps = sps.tail;
       }
@@ -1071,7 +1053,7 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
         // Check the remaining [: s.o :] against the remaining [: t.o :].
         sps = sf.optionalParameterTypes;
         while (!tps.isEmpty && !sps.isEmpty) {
-          if (!isAssignable(tps.head, sps.head)) return false;
+          if (invalidFunctionParameterTypes(tps.head, sps.head)) return false;
           tps = tps.tail;
           sps = sps.tail;
         }
@@ -1114,7 +1096,96 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
         bound = element.bound;
       }
     }
-    return isSubtype(bound, s);
+    if (invalidTypeVariableBounds(bound, s)) return false;
+    return true;
+  }
+}
+
+class MoreSpecificVisitor extends AbstractTypeRelation {
+  MoreSpecificVisitor(Compiler compiler,
+                      DynamicType dynamicType,
+                      VoidType voidType)
+      : super(compiler, dynamicType, voidType);
+
+  bool isMoreSpecific(DartType t, DartType s) {
+    if (identical(t, s) ||
+        t.treatAsDynamic ||
+        identical(s.element, compiler.objectClass) ||
+        identical(t.element, compiler.nullClass)) {
+      return true;
+    }
+    t = t.unalias(compiler);
+    s = s.unalias(compiler);
+
+    return t.accept(this, s);
+  }
+
+  bool invalidTypeArguments(DartType t, DartType s) {
+    return !isMoreSpecific(t, s);
+  }
+
+  bool invalidFunctionReturnTypes(DartType t, DartType s) {
+    return !s.isVoid && !isMoreSpecific(t, s);
+  }
+
+  bool invalidFunctionParameterTypes(DartType t, DartType s) {
+    return !isMoreSpecific(t, s);
+  }
+
+  bool invalidTypeVariableBounds(DartType bound, DartType s) {
+    return !isMoreSpecific(bound, s);
+  }
+}
+
+/**
+ * Type visitor that determines the subtype relation two types.
+ */
+class SubtypeVisitor extends MoreSpecificVisitor {
+
+  SubtypeVisitor(Compiler compiler,
+                 DynamicType dynamicType,
+                 VoidType voidType)
+      : super(compiler, dynamicType, voidType);
+
+  bool isSubtype(DartType t, DartType s) {
+    return s.treatAsDynamic || isMoreSpecific(t, s);
+  }
+
+  bool isAssignable(DartType t, DartType s) {
+    return isSubtype(t, s) || isSubtype(s, t);
+  }
+
+  bool invalidTypeArguments(DartType t, DartType s) {
+    return !isSubtype(t, s);
+  }
+
+  bool invalidFunctionReturnTypes(DartType t, DartType s) {
+    return !identical(s, voidType) && !isAssignable(t, s);
+  }
+
+  bool invalidFunctionParameterTypes(DartType t, DartType s) {
+    return !isAssignable(t, s);
+  }
+
+  bool invalidTypeVariableBounds(DartType bound, DartType s) {
+    return !isSubtype(bound, s);
+  }
+
+  bool visitInterfaceType(InterfaceType t, DartType s) {
+    if (super.visitInterfaceType(t, s)) return true;
+
+    lookupCall(type) => type.lookupMember(Compiler.CALL_OPERATOR_NAME);
+
+    if (s is InterfaceType &&
+        s.element == compiler.functionClass &&
+        lookupCall(t) != null) {
+      return true;
+    } else if (s is FunctionType) {
+      Member call = lookupCall(t);
+      if (call == null) return false;
+      return isSubtype(call.computeType(compiler), s);
+    }
+    return false;
   }
 }
 
@@ -1123,6 +1194,7 @@ class Types {
   // TODO(karlklose): should we have a class Void?
   final VoidType voidType;
   final DynamicType dynamicType;
+  final MoreSpecificVisitor moreSpecificVisitor;
   final SubtypeVisitor subtypeVisitor;
   final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
@@ -1131,17 +1203,25 @@ class Types {
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
     dynamicElement.rawTypeCache = dynamicElement.thisType = dynamicType;
+    MoreSpecificVisitor moreSpecificVisitor =
+        new MoreSpecificVisitor(compiler, dynamicType, voidType);
     SubtypeVisitor subtypeVisitor =
         new SubtypeVisitor(compiler, dynamicType, voidType);
     PotentialSubtypeVisitor potentialSubtypeVisitor =
         new PotentialSubtypeVisitor(compiler, dynamicType, voidType);
 
     return new Types.internal(compiler, voidType, dynamicType,
-        subtypeVisitor, potentialSubtypeVisitor);
+        moreSpecificVisitor, subtypeVisitor, potentialSubtypeVisitor);
   }
 
   Types.internal(this.compiler, this.voidType, this.dynamicType,
-                 this.subtypeVisitor, this.potentialSubtypeVisitor);
+                 this.moreSpecificVisitor, this.subtypeVisitor,
+                 this.potentialSubtypeVisitor);
+
+  /** Returns true if t is more specific than s */
+  bool isMoreSpecific(DartType t, DartType s) {
+    return moreSpecificVisitor.isMoreSpecific(t, s);
+  }
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {

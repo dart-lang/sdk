@@ -127,9 +127,9 @@ class _Binding extends ChangeNotifierBase {
     notifyPropertyChange(#value, oldValue, _value);
   }
 
-  get value => _value;
+  @reflectable get value => _value;
 
-  set value(v) {
+  @reflectable set value(v) {
     try {
       assign(_expr, v, _scope);
     } on EvalException catch (e) {

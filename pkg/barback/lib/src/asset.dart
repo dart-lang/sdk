@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'asset_id.dart';
+import 'file_pool.dart';
 import 'stream_replayer.dart';
 import 'utils.dart';
 
@@ -99,16 +100,20 @@ class _BinaryAsset extends Asset {
 
 /// An asset backed by a file on the local file system.
 class _FileAsset extends Asset {
+  /// Use a [FilePool] to handle reads so we can try to cope with running out
+  /// of file descriptors more gracefully.
+  static final _pool = new FilePool();
+
   final File _file;
   _FileAsset(AssetId id, this._file)
       : super(id);
 
   Future<String> readAsString({Encoding encoding}) {
     if (encoding == null) encoding = UTF8;
-    return _file.readAsString(encoding: encoding);
+    return _pool.readAsString(_file, encoding);
   }
 
-  Stream<List<int>> read() => _file.openRead();
+  Stream<List<int>> read() => _pool.openRead(_file);
 
   String toString() => 'File "${_file.path}"';
 }

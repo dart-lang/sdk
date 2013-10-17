@@ -43,11 +43,7 @@ void main() {
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
-          '''library app_bootstrap;
-
-          import 'package:polymer/polymer.dart';
-          import 'dart:mirrors' show currentMirrorSystem;
-
+          '''$MAIN_HEADER
           import 'a.dart' as i0;
 
           void main() {
@@ -76,11 +72,7 @@ void main() {
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
-          '''library app_bootstrap;
-
-          import 'package:polymer/polymer.dart';
-          import 'dart:mirrors' show currentMirrorSystem;
-
+          '''$MAIN_HEADER
           import 'a.dart' as i0;
           import 'b.dart' as i1;
           import 'c.dart' as i2;

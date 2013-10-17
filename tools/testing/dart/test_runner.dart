@@ -894,6 +894,11 @@ class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
           time,
           compilationSkipped);
 
+  bool didFail(TestCase testCase) {
+    return _getOutcome() != Expectation.PASS;
+  }
+
+
   bool get _browserTestFailure {
     // We should not need to convert back and forward.
     var output = decodeUtf8(super.stdout);
@@ -2116,12 +2121,13 @@ bool shouldRetryCommand(CommandOutput output) {
       }
     }
 
-    if (command is BrowserTestCommand) {
-      // We do not re-run tests on the new browser controller, since it should
-      // not be as flaky as selenium.
-      return false;
-    } else if (command is SeleniumTestCommand) {
-      // Selenium tests can be flaky. Try re-running.
+    // Selenium tests can be flaky. Try re-running.
+    if (command is SeleniumTestCommand) {
+      return true;
+    }
+
+    // We currently rerun dartium tests, see issue 14074
+    if (command is BrowserTestCommand && command.displayName == 'dartium') {
       return true;
     }
   }
@@ -2155,6 +2161,10 @@ class TestCaseCompleter {
     // (i.e. before state changes in the graph)
     commandQueue.completedCommands.listen((CommandOutput output) {
       _outputs[output.command] = output;
+    }, onDone: () {
+      _completeTestCasesIfPossible(new List.from(enqueuer.remainingTestCases));
+      assert(enqueuer.remainingTestCases.isEmpty);
+      _checkDone();
     });
 
     // Listen for NodeState.Processing -> NodeState.{Successfull,Failed}
@@ -2162,15 +2172,13 @@ class TestCaseCompleter {
     eventCondition((event) => event is dgraph.StateChangedEvent)
         .listen((dgraph.StateChangedEvent event) {
           if (event.from == dgraph.NodeState.Processing) {
-            assert(COMPLETED_STATES.contains(event.to));
-            _completeTestCasesIfPossible(event.node.userData);
+            var command = event.node.userData;
 
-            if (!_closed &&
-                graph.isSealed &&
-                enqueuer.remainingTestCases.isEmpty) {
-              _controller.close();
-              _closed = true;
-            }
+            assert(COMPLETED_STATES.contains(event.to));
+            assert(_outputs[command] != null);
+
+            _completeTestCasesIfPossible(enqueuer.command2testCases[command]);
+            _checkDone();
           }
     });
 
@@ -2187,11 +2195,14 @@ class TestCaseCompleter {
 
   Stream<TestCase> get finishedTestCases => _controller.stream;
 
-  void _completeTestCasesIfPossible(Command command) {
-    assert(_outputs[command] != null);
+  void _checkDone() {
+    if (!_closed && graph.isSealed && enqueuer.remainingTestCases.isEmpty) {
+      _controller.close();
+      _closed = true;
+    }
+  }
 
-    var testCases = enqueuer.command2testCases[command];
-
+  void _completeTestCasesIfPossible(Iterable<TestCase> testCases){
     // Update TestCases with command outputs
     for (TestCase test in testCases) {
       for (var icommand in test.commands) {

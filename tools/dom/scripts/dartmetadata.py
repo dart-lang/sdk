@@ -83,6 +83,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')",
     ],
 
+    'Element.webkitGetRegionFlowRanges': [
+      "@Creates('JSExtendableArray')",
+      "@Returns('JSExtendableArray')",
+    ],
+
     "ErrorEvent.error": [
       "@Creates('Null')", # Only returns values created elsewhere.
     ],
@@ -200,6 +205,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     'IDBVersionChangeEvent.oldVersion': [
       "@Creates('int|String|Null')",
       "@Returns('int|String|Null')",
+    ],
+
+    'MediaStream.getAudioTracks': [
+      "@Creates('JSExtendableArray')",
+      "@Returns('JSExtendableArray')",
+    ],
+
+    'MediaStream.getVideoTracks': [
+      "@Creates('JSExtendableArray')",
+      "@Returns('JSExtendableArray')",
     ],
 
     'MessageEvent.data': [

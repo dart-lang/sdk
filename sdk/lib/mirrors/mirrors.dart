@@ -764,6 +764,14 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   List<ClassMirror> get superinterfaces;
 
   /**
+   * The mixin of this class.
+   * If this class is the result of a mixin application of the
+   * form S with M, returns a class mirror on M.
+   * Otherwise returns a class mirror on [reflectee].
+   */
+  ClassMirror get mixin;
+
+  /**
    * An immutable map from names to mirrors for all members of
    * this type.
    *

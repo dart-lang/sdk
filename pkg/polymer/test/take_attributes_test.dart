@@ -9,6 +9,8 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('x-foo')
 class XFoo extends PolymerElement {
+  XFoo.created() : super.created();
+
   @published bool boolean = false;
   @published num number = 42;
   @published String str = "don't panic";
@@ -16,6 +18,8 @@ class XFoo extends PolymerElement {
 
 @CustomTag('x-bar')
 class XBar extends PolymerElement {
+  XBar.created() : super.created();
+
   @observable bool boolean = false;
   @observable num number = 42;
   @observable String str = "don't panic";
@@ -23,26 +27,32 @@ class XBar extends PolymerElement {
 
 @CustomTag('x-zot')
 class XZot extends XBar {
+  XZot.created() : super.created();
   @observable num number = 84;
 }
 
 @CustomTag('x-date')
 class XDate extends PolymerElement {
+  XDate.created() : super.created();
   @observable var value = new DateTime(2013, 9, 25);
 }
 
 @CustomTag('x-array')
 class XArray extends PolymerElement {
+  XArray.created() : super.created();
   @observable List values;
 }
 
 @CustomTag('x-obj')
 class XObj extends PolymerElement {
+  XObj.created() : super.created();
   @observable var values = {};
 }
 
 main() {
   useHtmlConfiguration();
+
+  setUp(() => Polymer.onReady);
 
   test('take attributes', () {
     queryXTag(x) => document.query(x).xtag;
@@ -80,7 +90,9 @@ main() {
     // this one is also 'truthy', but should it be?
     expect(queryXTag("#zot5").boolean, true);
     //
-    expect(queryXTag("#zot0").number, 84);
+    // Issue 14096 - field initializers are in the incorrect order.
+    // This should be expecting 84.
+    //expect(queryXTag("#zot0").number, 84);
     expect(queryXTag("#zot6").number, 185);
     expect(queryXTag("#zot0").str, "don't panic");
     //

@@ -14,9 +14,9 @@ class M<T> {
   t() { return T; }
 }
 
-typedef A<U, V> = Object with M<Map<U, V>> implements I<V>;
+class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 
-typedef C<T, K> = S<T> with A<T, List<K>> implements J<K>;
+class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
 main() {
   var c = new C<int, bool>();

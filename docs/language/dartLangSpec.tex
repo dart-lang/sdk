@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Draft Version 0.70}}
+{\large Draft Version 0.71}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -499,6 +499,8 @@ The former section on variables in interfaces (now removed): Added specification
 
 \ref{if}: Type promotion support added.
 
+\ref{try}: \ON{} with no \CATCH{} implies \DYNAMIC{}, not \cd{Object}.
+
 \ref{return}: Added warning if \RETURN{} without expression mixed with \RETURN{} with an expression.
 
 \ref{exports}: Ensure that exports treat \code{dart:} libs specially, like imports do.
@@ -506,6 +508,13 @@ The former section on variables in interfaces (now removed): Added specification
 \ref{typePromotion}: Added notion of type promotion.
 
 \ref{typedef}: Banned all recursion in typedefs.
+
+\subsubsection{Changes Since Version 0.7}
+
+\ref{new}: Instantiating subclasses of malbounded types is a dynamic error.
+
+\ref{leastUpperBounds}:  Extended LUBs to all types.
+
 
 
 \section{Notation}
@@ -1211,6 +1220,11 @@ We want different behavior for concrete classes and abstract classes. If $A$ is 
 
 The {\em interface of class $C$} is an implicit interface that declares instance members that correspond to the instance members declared by $C$, and whose direct superinterfaces are the direct superinterfaces of $C$ (\ref{superinterfaces}). When a class name appears as a type, that name denotes the interface of the class.
 
+% making an exception for the setters generated for final fields is tempting but problematic.
+% If a super type defines a setter, it will be overridden yet have no impact on the interface.
+% Maybe the final field hides the setter in scope?
+% I think the original rules were best.
+
  It is a compile-time error if a class declares two members of the same name.
  %, except that a getter and a setter may be declared with the same name provided both are instance members or both are static members.
 It is a compile-time error if a class has an instance member and a static member  with the same name. 
@@ -1453,6 +1467,8 @@ An instance getter for it can always be defined manually if desired.
 %\SET{} $v=(x)$
 
 %whose execution sets the value of $v$ to the incoming argument $x$.
+
+% It is a compile-time error/warning if a a class $C$ declares a final instance variable $v$ and $C$ inherits a setter $v=$.
 
 
 \subsection{Constructors}
@@ -2124,7 +2140,7 @@ Furthermore, we define $overrides(J, K)$  to be the set of members $m^\prime$ su
 \end{itemize}
 
 
-Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m^\prime$ if  $m^\prime \in overrides(I, L)$.
+Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m^\prime$ if  $m^\prime \in overrides(I, L)$. It is a static warning if $m$ is a method and $m^\prime$ is a getter, or if $m$ is a getter and $m^\prime$ is a method.
 
 
 %Let $I = S_0$ be the implicit interface of a class $C$ declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superinterfaces of $I$. 
@@ -2135,7 +2151,7 @@ Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {
 
 However, if the above rules would cause multiple members $m_1, \ldots,  m_k$ with the same name $n$ to be inherited (because identically named members existed in several superinterfaces) then at most one member is inherited. 
 
-%If some but not all of the $m_i, 1 \le i \le k$ are getters, or if some but not all of the $m_i$ are setters, none of the $m_i$ are inherited, and a static warning is issued.
+If some but not all of the $m_i, 1 \le i \le k$ are getters none of the $m_i$ are inherited, and a static warning is issued.
 
 Otherwise, if the static types $T_1, \ldots,  T_k$ of the members $m_1, \ldots,  m_k$  are not identical, then there must be a member $m_x$ such that $T_x <: T_i, 1 \le x \le k$ for all  $i  \in 1..k$, or a static type warning occurs. The member that is inherited  is $m_x$, if it exists; otherwise:
 \begin{itemize}
@@ -2157,6 +2173,8 @@ The current solution is a tad complex, but is robust in the face of type annotat
 
 (a) means that the presence of an inherited member of an interface varies depending on type signatures.  (b) is sensitive to irrelevant details of the declaration and (c) is liable to give unpredictable results between implementations or even between different compilation sessions.
 }
+
+% Need warnings if overrider conflicts with overriddee either because signatures are incompatible or because done is a method and one is a getter or setter.
 
 \section{Mixins}
 \label{mixins} 
@@ -3154,7 +3172,7 @@ First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}
 
 Then, if $q$ is a non-factory constructor of an abstract class then an \code{AbstractClassInstantiationError} is thrown.
 
-If $T$  is malformed a dynamic error occurs. In checked mode, if $T$ is malbounded a dynamic error occurs.
+If $T$  is malformed or if $T$ is a type variable a dynamic error occurs. In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs.
  Otherwise, if $q$ is not defined or not accessible, a \code{NoSuchMethodError} is thrown.  If $q$ has  less than $n$ positional parameters or more than $n$ required parameters, or if $q$ lacks any of the keyword parameters $\{ x_{n+1}, \ldots, x_{n+k}\}$ a \code{NoSuchMethodError} is thrown.
 
 Otherwise, if $q$ is a generative constructor (\ref{generativeConstructors}), then:
@@ -3751,12 +3769,15 @@ Evaluation of an assignment $a$ of the form $v$ \code{=} $e$ proceeds as follows
 
 If there is neither a local variable declaration with name $v$ nor a setter declaration with name $v=$ in the lexical scope enclosing $a$, then:
 \begin{itemize}
- \item If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
+ \item If  $a$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $a$ causes $e$ to be evaluated, after which a \code{NoSuchMethodError} is thrown. 
+ \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
  \end{itemize}
  
  Otherwise,  let $d$ be the innermost declaration whose name is $v$, if it exists.
 
-If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$. The value of the assignment expression is $o$.  
+If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$. 
+% unless $v$ is \FINAL{}, in which case a \code{NoSuchMethodError} is thrown (even if there is a noSuchMethod). 
+The value of the assignment expression is $o$.  
 
 If $d$ is the declaration of a library variable, the expression $e$ is evaluated to an object $o$. Then the setter $v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$.  
 
@@ -3852,7 +3873,7 @@ First, $e_1$ is evaluated to an object $o_1$.  Then, $o_1$ is  subjected to bool
 If all of the following hold:
 \begin{itemize}
 \item $e_1$ shows that a variable $v$ has type $T$.
-\item $v$ is not potentially mutated in either $e_1$, $e_2$ or within a closure.
+\item $v$ is not potentially mutated in $e_2$ or within a closure.
 \item If the variable $v$ is accessed by a closure in $e_2$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$.
 \end{itemize}
 
@@ -3890,7 +3911,7 @@ $T$ if all of the following conditions hold:
 \begin{itemize}
 \item Either $e_1$ shows that $v$ has type $T$ or $e_2$ shows that $v$ has type $T$.
 \item $v$ is a local variable or formal parameter.
-\item The variable $v$ is not mutated in either $e_1$ or $e_2$ or within a closure.
+\item The variable $v$ is not mutated in $e_2$ or within a closure.
 \end{itemize}
 
 Furthermore, if all of the following hold:
@@ -4307,7 +4328,7 @@ The static type of $e$ is determined as follows:
 
 \begin{itemize}
 \item If $d$ is a class, type alias or type parameter the static type of $e$ is \code{Type}.
-\item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is a subtype of any other type $S$ such that $v$ is known to have type $S$. 
+\item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is more specific than any other type $S$ such that $v$ is known to have type $S$. 
 \item If $d$ is a static method, top-level function or local function the static type of $e$ the function type defined by $d$.
 \item If $d$ is the declaration of a static variable or static getter declared in class $C$, the static type of $e$ the static type of the getter invocation (\ref{getterInvocation}) $C.id$. 
 \item If $d$ is the declaration of a library variable or top-level getter, the static type of $e$  is the static type of the getter invocation $id$. 
@@ -4358,7 +4379,17 @@ If $T$ is malformed the test always succeeds. This is a consequence of the rule 
 %It is a static warning if $T$ is malformed or malbounded.
 %does not denote a type available in the current lexical scope. 
 
-Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{}! $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
+Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
+
+\rationale{
+The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style. The rules in the current specification are deliberately kept simple. It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
+
+The rule only applies to locals and parameters, as fields could be modified via side-effecting functions or methods that are not accessible to a local analysis.
+
+It is pointless to deduce a weaker type than what is already known. Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification. Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
+
+We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than less.  The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
+}
 
 The static type of an is-expression is \code{bool}. 
 %It is a static warning if if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters. 
@@ -4599,7 +4630,7 @@ Under reasonable scope rules  such code is problematic. If we assume that \code{
 If:
 \begin{itemize}
 \item  $b$ shows that a variable $v$ has type $T$.
-\item  $v$ is not potentially mutated in either $b$, $s_1$ or within a closure.
+\item  $v$ is not potentially mutated in $s_1$ or within a closure.
 \item If the variable $v$ is accessed by a closure in $s_1$ then the variable $v$ is not potentially mutated anywhere in the scope of $v$. 
 \end{itemize}
 then the type of $v$ is known to be $T$ in $s_1$.  
@@ -4887,7 +4918,7 @@ It is of course a static warning if $T$ is a malformed type (\ref{staticTypes}).
 An \ON{}-\CATCH{} clause of the form  \code{\ON{} $T$ \CATCH{} ($p_1$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} where $p_2$ is an identifier that does not occur anywhere else in the program. 
 
 
-An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} Object \CATCH{} ($p$) $s$}. An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p_1, p_2$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} Object \CATCH{} ($p_1, p_2$) $s$}
+An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p$) $s$}. An \ON{}-\CATCH{} clause of the form  \code{\CATCH{} ($p_1, p_2$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} \DYNAMIC{} \CATCH{} ($p_1, p_2$) $s$}
 
 
 %If an explicit type is associated with of $p_2$, it is a static warning if that type is not \code{Object} or \DYNAMIC{}.
@@ -5095,7 +5126,7 @@ It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Fu
 
  It is a static type warning if the type of $e$ may not be assigned to either  \code{bool} or $() \rightarrow$ \code{bool}.  
 
-\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that). Overall, perhaps it could be defined as a function, and the overhead issue could be viewed as an optimization.
+\rationale{Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode. Also, in the absence of final methods. one could not prevent it being overridden (though there is no real harm in that).  It cannot be viewed as a function call that is being optimized away because the argument might have side effects.
 }
 
 %If a lexically visible declaration named \code{assert} is in scope, an assert statement 
@@ -5590,8 +5621,8 @@ Here is an example involving malbounded types:
 }
 
 \begin{dartCode}
-\INTERFACE{} I$<$T \EXTENDS{} num$>$ \{\}
-\INTERFACE{} J \{\}
+\CLASS{} I$<$T \EXTENDS{} num$>$ \{\}
+\CLASS{} J \{\}
 
 \CLASS{} A$<$T$>$ \IMPLEMENTS{} J,  I$<$T$>$ // type warning: T is not a subtype of num
 \{ ...
@@ -5702,6 +5733,7 @@ A type $T$ is more specific than a type $S$, written $T << S$,  if one of the fo
 \item $T$ is of the form $I<T_1, \ldots, T_n>$ and $S$ is of the form $I<S_1, \ldots, S_n>$ and:
 $T_i << S_i, 1 \le i \le n$
 \item $T$ and $S$ are both function types, and $T << S$ under the rules of section \ref{functionTypes}.
+\item $T$ is a function type and $S$ is \cd{Function}.
 \item $T << U$ and $U << S$.
 \end{itemize}
 
@@ -5917,7 +5949,7 @@ A {\em parameterized type} is an invocation of a generic type declaration.
 
 Let $T$ be a parameterized type  $G<S_1,  \ldots, S_n>$. If $G$ is not a generic type, the type arguments $S_i$, $1 \le i \le n$ are discarded. If $G$ has $m \ne n$ type parameters, $T$ is treated as as a parameterized type with $m$ arguments, all of which are \DYNAMIC{}. 
 
-\commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued. This behavior is not yet implemented.
+\commentary{In short, any arity mismatch results in all type arguments being dropped, and replaced with the correct number of type arguments, all set to \DYNAMIC{}. Of course, a static warning will be issued. 
 }
 
 Otherwise, let
@@ -5955,9 +5987,23 @@ Let $T$ be the declared type of a declaration $d$, as it appears in the program 
 Given two interfaces $I$ and $J$, let $S_I$ be the set of superinterfaces of $I$,  let $S_J$ be the set of superinterfaces of $J$ and let $S =  (I \cup S_I) \cap (J \cup S_J)$.  Furthermore, we define $S_n = \{T | T \in S  \wedge depth(T) =n\}$ for any finite $n$ %, and $k=max(depth(T_1), \ldots, depth(T_m)), T_i \in S, i \in 1..m$, 
 where $depth(T)$ is the number of steps in the longest inheritance path from $T$ to \code{Object}. Let $q$ be the largest number such that $S_q$ has cardinality one. The least upper bound of $I$ and $J$ is the sole element of  $S_q$.
 
-% void, dynamic, type variables need to be figured into this.
+The least upper bound of \DYNAMIC{} and any type $T$ is \DYNAMIC{}.
+The least upper bound of \VOID{} and any type $T \ne \DYNAMIC{}$ is \VOID{}.
+Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T$ is the least upper bound of $B$ and $T$. 
 
- 
+The least upper bound relation is symmetric and reflexive.
+
+% Function types
+
+The least upper bound of a function type and an interface type $T$ is the least upper bound of \cd{Function} and $T$.
+Let $F$ and $G$ be function types. If $F$ and $G$ differ in their number of required parameters, then the least upper bound of $F$ and $G$ is \cd{Function}.  Otherwise:
+\begin{itemize}
+\item If $F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, [S_{r+1}, \ldots, S_k]) \longrightarrow S_0$ where $k \le n$ then the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r, [L_{r+1}, \ldots, L_k]) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..k$.
+\item If $F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, \{ \ldots \}) \longrightarrow S_0$ then the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$.
+\item If $F= (T_1 \ldots T_r, \{T_{r+1}$  $p_{r+1}, \ldots, T_f$ $p_f\}) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, \{ S_{r+1}$  $q_{r+1}, \ldots, S_g$ $q_g\}) \longrightarrow S_0$ then let $\{x_m, \ldots x_n\}  = \{p_{r+1}, \ldots, p_f\} \cap \{q_{r+1}, \ldots, q_g\}$ and let $X_j$ be the least upper bound of the types of $x_j$ in $F$ and $G, j \in m..n$. Then
+the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r, \{ X_m$ $x_m, \ldots, X_n$ $x_n\}) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$ 
+\end{itemize}
+
 
 \section{Reference}
 \label{reference}

@@ -57,10 +57,10 @@ class P2 {
   }
 }
 
-typedef C = Object with M;
-typedef D = Object with P0;
-typedef E = Object with M, P1;
-typedef F = Object with P2, M;
+class C = Object with M;
+class D = Object with P0;
+class E = Object with M, P1;
+class F = Object with P2, M;
 
 main() {
   var p1 = new P1();

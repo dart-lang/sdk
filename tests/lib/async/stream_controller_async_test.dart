@@ -663,16 +663,9 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
             // The done-future of the sink completes when it passes
             // the done event to the asBroadcastStream controller, which is
             // before the final listener gets the event.
-            // Wait for the pause to end before testing the events.
-            dynamic executeWhenPauseIsDone(Function f) {
-              if (!pauseIsDone) {
-                return new Future.delayed(const Duration(milliseconds: 50), () {
-                  return executeWhenPauseIsDone(f);
-                });
-              }
-              return f();
-            }
-            return executeWhenPauseIsDone(() {
+            // Wait for the done event to be *delivered* before testing the
+            // events.
+            actual.onDone(() {
               Expect.listEquals(expected.events, actual.events);
               done();
             });

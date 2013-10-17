@@ -21,10 +21,6 @@ import "package:async_helper/async_helper.dart";
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String,List<String>> WHITE_LIST = const {
-  '/list.dart':
-      const ["Warning: 'typedef' not allowed here"],  // dartbug.com/13907
-  '/stream_controller.dart':
-      const ["Warning: 'typedef' not allowed here"],  // dartbug.com/13907
 };
 
 void main() {

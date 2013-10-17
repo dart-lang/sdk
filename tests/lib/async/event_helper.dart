@@ -62,6 +62,7 @@ class DoneEvent implements Event {
 class Events implements EventSink {
   final List<Event> events = [];
   bool trace = false;
+  Completer onDoneSignal = new Completer();
 
   Events();
 
@@ -88,9 +89,12 @@ class Events implements EventSink {
   void close() {
     if (trace) print("Events#$hashCode: close()");
     events.add(const DoneEvent());
+    onDoneSignal.complete();
   }
 
-  // Error helper for creating errors manually..
+  /**
+   * Error shorthand, for writing events manually.
+   */
   void error(var value, [StackTrace stackTrace]) {
     addError(value, stackTrace);
   }
@@ -132,20 +136,21 @@ class Events implements EventSink {
 
   /**
    * Sets an action to be called when this [Events] receives a 'done' event.
+   *
+   * The action will also be called if capturing events from a stream with
+   * `cancelOnError` set to true and receiving an error.
    */
   void onDone(void action()) {
-     throw new StateError("Not capturing events.");
+    onDoneSignal.future.whenComplete(action);
   }
 }
 
 class CaptureEvents extends Events {
   StreamSubscription subscription;
-  Completer onDoneSignal;
   bool cancelOnError = false;
 
   CaptureEvents(Stream stream,
-                { bool cancelOnError: false })
-      : onDoneSignal = new Completer() {
+                { bool cancelOnError: false }) {
     this.cancelOnError = cancelOnError;
     subscription = stream.listen(add,
                                  onError: addError,
@@ -155,12 +160,9 @@ class CaptureEvents extends Events {
 
   void addError(error) {
     super.addError(error);
-    if (cancelOnError) onDoneSignal.complete(null);
-  }
-
-  void close() {
-    super.close();
-    if (onDoneSignal != null) onDoneSignal.complete(null);
+    if (cancelOnError) {
+      onDoneSignal.complete();
+    }
   }
 
   void pause([Future resumeSignal]) {
@@ -175,6 +177,6 @@ class CaptureEvents extends Events {
 
   void onDone(void action()) {
     if (trace) print("Events#$hashCode: onDone");
-    onDoneSignal.future.whenComplete(action);
+    super.onDone(action);
   }
 }

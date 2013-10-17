@@ -59,7 +59,9 @@ class Cursor extends NativeFieldWrapperClass1 {
     }
   }
 
-  
+    // To suppress missing implicit constructor warnings.
+  factory Cursor._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('IDBCursor.direction')
   @DocsEditable()
   String get direction native "IDBCursor_direction_Getter";
@@ -339,6 +341,8 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     return true;
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
@@ -477,7 +481,9 @@ class Index extends NativeFieldWrapperClass1 {
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
-  
+    // To suppress missing implicit constructor warnings.
+  factory Index._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
   dynamic get keyPath native "IDBIndex_keyPath_Getter";
@@ -545,6 +551,8 @@ class KeyRange extends NativeFieldWrapperClass1 {
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
+  // To suppress missing implicit constructor warnings.
+  factory KeyRange._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
@@ -718,6 +726,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     return _createIndex(name, keyPath, options);
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
@@ -1044,5 +1054,7 @@ class VersionChangeEvent extends Event {
 @DomName('IDBAny')
 @deprecated // nonstandard
 abstract class _IDBAny extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
 
 }

@@ -11,6 +11,73 @@ part of dart.core;
  * to attempt to extend or implement num.
  */
 abstract class num implements Comparable<num> {
+  /**
+   * Test whether this value is numerically equal to `other`.
+   *
+   * If both operands are doubles, they are equal if they have the same
+   * representation, except that:
+   *   * zero and minus zero (0.0 and -0.0) are considered equal. They
+   *     both have the numerical value zero.
+   *   * NaN is not equal to anything, including NaN. If either operand is
+   *     NaN, the result is always false.
+   *
+   * If one operand is a double and the other is an int, they are equal if
+   * the double has an integer value (finite with no fractional part) and
+   * `identical(doubleValue.toInt(), intValue)`.
+   *
+   * If both operands are integers, they are equal if they have the same value.
+   *
+   * Returns false if `other` is not a [num].
+   *
+   * Notice that the behavior for NaN is non-reflexive. This means that
+   * equality of double values is not a proper equality relation, as is
+   * otherwise required of `operator==`. Using NaN in, e.g., a [HashSet]
+   * will fail to work. The behavior is the standard IEEE-754 equality of
+   * doubles.
+   *
+   * If you can avoid NaN values, the remaining doubles do have a proper eqality
+   * relation, and can be used safely.
+   *
+   * Use [compareTo] for a comparison that distinguishes zero and minus zero,
+   * and that considers NaN values as equal.
+   */
+  bool operator==(Object other);
+
+  /**
+   * Returns a hash code for a numerical value.
+   *
+   * The hash code is compatible with equality. It returns the same value
+   * for an [int] and a [double] with the same numerical value, and therefore
+   * the same value for the doubles zero and minus zero.
+   *
+   * No guarantees are made about the hash code of NaN.
+   */
+  int get hashCode;
+
+  /**
+   * Compares this to `other`.
+   *
+   * Returns a negative number if `this` is less than `other`, zero if they are
+   * equal, and a positive number if `this` is greater than `other`.
+   *
+   * The orderding represented by this method is a total ordering of [num]
+   * values. All distinct doubles are non-equal, as are all distinct integers,
+   * but integers are equal to doubles if they have the same numerical
+   * value.
+   *
+   * For ordering, the double NaN value is considered equal to itself, and
+   * greater than any numeric value (unlike its behavior in `operator==`).
+   *
+   * The double value -0.0 is considered less than 0.0 (and the integer 0), but
+   * greater than any non-zero negative value.
+   *
+   * Positive infinity is greater than any finite value (any value apart from
+   * itself and NaN), and negative infinity is less than any other value.
+   *
+   * All other values are compared using their numeric value.
+   */
+  int compareTo(num other);
+
   /** Addition operator. */
   num operator +(num other);
 

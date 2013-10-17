@@ -101,18 +101,18 @@ class LocalsHandler {
    * The values of locals that can be directly accessed (without redirections
    * to boxes or closure-fields).
    *
-   * [directLocals] is iterated, so it is a [LinkedHashMap] to make the
+   * [directLocals] is iterated, so it is "insertion ordered" to make the
    * iteration order a function only of insertions and not a function of
    * e.g. Element hash codes.  I'd prefer to use a SortedMap but some elements
    * don't have source locations for [Elements.compareByPosition].
    */
-  LinkedHashMap<Element, HInstruction> directLocals;
+  Map<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
   SsaBuilder builder;
   ClosureClassMap closureData;
 
   LocalsHandler(this.builder)
-      : directLocals = new LinkedHashMap<Element, HInstruction>(),
+      : directLocals = new Map<Element, HInstruction>(),
         redirectionMapping = new Map<Element, Element>();
 
   get typesTask => builder.compiler.typesTask;
@@ -123,8 +123,7 @@ class LocalsHandler {
    * throughout the AST visit.
    */
   LocalsHandler.from(LocalsHandler other)
-      : directLocals =
-            new LinkedHashMap<Element, HInstruction>.from(other.directLocals),
+      : directLocals = new Map<Element, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         builder = other.builder,
         closureData = other.closureData;
@@ -504,7 +503,7 @@ class LocalsHandler {
   void beginLoopHeader(HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over it.
     Map<Element, HInstruction> savedDirectLocals =
-        new LinkedHashMap<Element, HInstruction>.from(directLocals);
+        new Map<Element, HInstruction>.from(directLocals);
 
     // Create phis for all elements in the definitions environment.
     savedDirectLocals.forEach((Element element, HInstruction instruction) {
@@ -572,7 +571,7 @@ class LocalsHandler {
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
     Map<Element, HInstruction> joinedLocals =
-        new LinkedHashMap<Element, HInstruction>();
+        new Map<Element, HInstruction>();
     otherLocals.directLocals.forEach((element, instruction) {
       // We know 'this' cannot be modified.
       if (identical(element, closureData.thisElement)) {
@@ -606,7 +605,7 @@ class LocalsHandler {
     assert(localsHandlers.length > 0);
     if (localsHandlers.length == 1) return localsHandlers[0];
     Map<Element, HInstruction> joinedLocals =
-        new LinkedHashMap<Element,HInstruction>();
+        new Map<Element,HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Element element, HInstruction instruction) {
       if (element != closureData.thisElement) {
@@ -634,7 +633,7 @@ class LocalsHandler {
     }
 
     // Remove locals that are not in all handlers.
-    directLocals = new LinkedHashMap<Element, HInstruction>();
+    directLocals = new Map<Element, HInstruction>();
     joinedLocals.forEach((element, instruction) {
       if (instruction is HPhi
           && instruction.inputs.length != localsHandlers.length) {
@@ -913,6 +912,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * isAborted.
    */
   bool isReachable = true;
+
+  /**
+   * True if we are visiting the expression of a throw expression.
+   */
+  bool inThrowExpression = false;
 
   final List<Element> sourceElementStack;
 
@@ -1313,6 +1317,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isSynthesized) return true;
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
+
+      if (inThrowExpression) return false;
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
@@ -2061,11 +2067,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.internalError('visitClassNode should not be called', node: node);
   }
 
+  visitThrowExpression(Expression expression) {
+    bool old = inThrowExpression;
+    try {
+      inThrowExpression = true;
+      visit(expression);
+    } finally {
+      inThrowExpression = old;
+    }
+  }
+
   visitExpressionStatement(ExpressionStatement node) {
     if (!isReachable) return;
     Throw throwExpression = node.expression.asThrow();
     if (throwExpression != null && inliningStack.isEmpty) {
-      visit(throwExpression.expression);
+      visitThrowExpression(throwExpression.expression);
       handleInTryStatement();
       closeAndGotoExit(new HThrow(pop()));
     } else {
@@ -4320,7 +4336,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitThrow(Throw node) {
-    visit(node.expression);
+    visitThrowExpression(node.expression);
     if (isReachable) {
       handleInTryStatement();
       push(new HThrowExpression(pop()));
@@ -4577,28 +4593,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(node.expression);
   }
 
-  Map<CaseMatch,Constant> buildSwitchCaseConstants(SwitchStatement node) {
+  Map<CaseMatch, Constant> buildSwitchCaseConstants(SwitchStatement node) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
-    // First check whether all case expressions are compile-time constants,
-    // and all have the same type that doesn't override operator==.
-    // TODO(lrn): Move the constant resolution to the resolver, so
-    // we can report an error before reaching the backend.
-    DartType firstConstantType = null;
-    bool failure = false;
     for (SwitchCase switchCase in node.cases) {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is CaseMatch) {
           CaseMatch match = labelOrCase;
           Constant constant = getConstantForNode(match.expression);
-          if (firstConstantType == null) {
-            firstConstantType = constant.computeType(compiler);
-            if (nonPrimitiveTypeOverridesEquals(constant)) {
-              compiler.reportFatalError(
-                  match.expression,
-                  MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
-              failure = true;
-            }
-          }
           constants[labelOrCase] = constant;
         }
       }
@@ -4953,35 +4954,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         joinBlock);
 
     jumpHandler.close();
-  }
-
-  bool nonPrimitiveTypeOverridesEquals(Constant constant) {
-    // Function values override equals. Even static ones, since
-    // they inherit from [Function].
-    if (constant.isFunction()) return true;
-
-    // [Map] and [List] do not override equals.
-    // If constant is primitive, just return false. We know
-    // about the equals methods of num/String classes.
-    if (!constant.isConstructedObject()) return false;
-
-    ConstructedConstant constructedConstant = constant;
-    DartType type = constructedConstant.type;
-    assert(type != null);
-    Element element = type.element;
-    // If the type is not a class, we'll just assume it overrides
-    // operator==. Typedefs do, since [Function] does.
-    if (!element.isClass()) return true;
-    ClassElement classElement = element;
-    return typeOverridesObjectEquals(classElement);
-  }
-
-  bool typeOverridesObjectEquals(ClassElement classElement) {
-    Element operatorEq =
-        lookupOperator(classElement, const SourceString('=='));
-    if (operatorEq == null) return false;
-    // If the operator== declaration is in Object, it's not overridden.
-    return (operatorEq.getEnclosingClass() != compiler.objectClass);
   }
 
   Element lookupOperator(ClassElement classElement, SourceString operatorName) {

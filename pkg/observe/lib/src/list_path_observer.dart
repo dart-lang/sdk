@@ -36,7 +36,7 @@ class ListPathObserver<E, P> extends ChangeNotifierBase {
     _reduce();
   }
 
-  Iterable<P> get value => _value;
+  @reflectable Iterable<P> get value => _value;
 
   void dispose() {
     if (_sub != null) _sub.cancel();

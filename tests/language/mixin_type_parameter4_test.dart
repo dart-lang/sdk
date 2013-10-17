@@ -13,7 +13,7 @@ class B2 {}
 
 class A1<T> extends B1 with M<T> {}
 
-typedef A2<T> = B2 with M<T>;
+class A2<T> = B2 with M<T>;
 
 main() {
   var ab = new A1<int>();

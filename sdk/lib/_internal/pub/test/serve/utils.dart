@@ -5,6 +5,8 @@
 library pub_tests;
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_process.dart';
@@ -17,6 +19,11 @@ ScheduledProcess _pubServer;
 
 /// The ephemeral port assigned to the running server.
 int _port;
+
+/// The web socket connection to the running pub process, or `null` if no
+/// connection has been made.
+WebSocket _webSocket;
+Stream _webSocketBroadcastStream;
 
 /// The code for a transformer that renames ".txt" files to ".out" and adds a
 /// ".out" suffix.
@@ -107,6 +114,14 @@ ScheduledProcess startPubServe({bool shouldGetFirst: false,
 
   _pubServer = startPub(args: args);
 
+  currentSchedule.onComplete.schedule(() {
+    if (_webSocket != null) {
+      _webSocket.close();
+      _webSocket = null;
+      _webSocketBroadcastStream = null;
+    }
+  });
+
   if (shouldGetFirst) {
     expect(_pubServer.nextLine(),
         completion(anyOf(
@@ -182,4 +197,37 @@ void waitForBuildSuccess() {
   }
 
   schedule(nextLine);
+}
+
+/// Schedules opening a web socket connection to the currently running pub
+/// serve.
+Future _ensureWebSocket() {
+  // Use the existing one if already connected.
+  if (_webSocket != null) return new Future.value();
+
+  // Server should already be running.
+  assert(_pubServer != null);
+  assert(_port != null);
+
+  return WebSocket.connect("ws://127.0.0.1:$_port").then((socket) {
+    _webSocket = socket;
+    // TODO(rnystrom): Works around #13913.
+    _webSocketBroadcastStream = _webSocket.asBroadcastStream();
+  });
+}
+
+/// Sends [request] (an arbitrary JSON object) to the running pub serve's web
+/// socket connection, waits for a reply, then verifies that the reply matches
+/// [expectation].
+///
+/// If [encodeRequest] is `false`, then [request] will be sent as-is over the
+/// socket. It omitted, request is JSON encoded to a string first.
+void webSocketShouldReply(request, expectation, {bool encodeRequest: true}) {
+  schedule(() => _ensureWebSocket().then((_) {
+    if (encodeRequest) request = JSON.encode(request);
+    _webSocket.add(request);
+    return _webSocketBroadcastStream.first.then((value) {
+      expect(JSON.decode(value), expectation);
+    });
+  }), "send $request to web socket and expect reply that $expectation");
 }

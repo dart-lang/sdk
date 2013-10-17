@@ -964,6 +964,32 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* StringInterpolateInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(A0));
+  summary->set_out(Location::RegisterLocation(V0));
+  return summary;
+}
+
+
+void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register array = locs()->in(0).reg();
+  __ Push(array);
+  const int kNumberOfArguments = 1;
+  const Array& kNoArgumentNames = Object::null_array();
+  compiler->GenerateStaticCall(deopt_id(),
+                               token_pos(),
+                               CallFunction(),
+                               kNumberOfArguments,
+                               kNoArgumentNames,
+                               locs());
+  ASSERT(locs()->out().reg() == V0);
+}
+
+
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   return LocationSummary::Make(kNumInputs,

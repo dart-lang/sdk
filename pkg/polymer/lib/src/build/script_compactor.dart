@@ -93,7 +93,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
 
       var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
           .where((url) => url != null).toList();
-      var buffer = new StringBuffer()..write(_header);
+      var buffer = new StringBuffer()..writeln(MAIN_HEADER);
       for (int i = 0; i < urls.length; i++) {
         buffer.writeln("import '${urls[i]}' as i$i;");
       }
@@ -107,12 +107,12 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
   }
 }
 
-const _header = """
+const MAIN_HEADER = """
 library app_bootstrap;
 
 import 'package:polymer/polymer.dart';
-import 'dart:mirrors' show currentMirrorSystem;
-
+@MirrorsUsed(symbols: 'main', override: 'app_bootstrap')
+import 'dart:mirrors' show currentMirrorSystem, MirrorsUsed;
 """;
 
 const _mainPrefix = """

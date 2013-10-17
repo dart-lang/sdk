@@ -1638,17 +1638,22 @@ var ShadowDOMPolyfill = {};
     return GeneratedWrapper;
   }
 
-  var OriginalDOMImplementation = DOMImplementation;
-  var OriginalEvent = Event;
-  var OriginalNode = Node;
-  var OriginalWindow = Window;
-  var OriginalRange = Range;
+  var OriginalDOMImplementation = window.DOMImplementation;
+  var OriginalEvent = window.Event;
+  var OriginalNode = window.Node;
+  var OriginalWindow = window.Window;
+  var OriginalRange = window.Range;
+  var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
+  var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
 
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
            object instanceof wrappers.Event ||
            object instanceof wrappers.Range ||
-           object instanceof wrappers.DOMImplementation;
+           object instanceof wrappers.DOMImplementation ||
+           object instanceof wrappers.CanvasRenderingContext2D ||
+           wrappers.WebGLRenderingContext &&
+               object instanceof wrappers.WebGLRenderingContext;
   }
 
   function isNative(object) {
@@ -1656,7 +1661,10 @@ var ShadowDOMPolyfill = {};
            object instanceof OriginalEvent ||
            object instanceof OriginalWindow ||
            object instanceof OriginalRange ||
-           object instanceof OriginalDOMImplementation;
+           object instanceof OriginalDOMImplementation ||
+           object instanceof OriginalCanvasRenderingContext2D ||
+           OriginalWebGLRenderingContext &&
+               object instanceof OriginalWebGLRenderingContext;
   }
 
   /**
@@ -2065,13 +2073,19 @@ var ShadowDOMPolyfill = {};
 
     if ('relatedTarget' in event) {
       var originalEvent = unwrap(event);
-      var relatedTarget = wrap(originalEvent.relatedTarget);
+      // X-Tag sets relatedTarget on a CustomEvent. If they do that there is no
+      // way to have relatedTarget return the adjusted target but worse is that
+      // the originalEvent might not have a relatedTarget so we hit an assert
+      // when we try to wrap it.
+      if (originalEvent.relatedTarget) {
+        var relatedTarget = wrap(originalEvent.relatedTarget);
 
-      var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
-      if (adjusted === target)
-        return true;
+        var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
+        if (adjusted === target)
+          return true;
 
-      relatedTargetTable.set(event, adjusted);
+        relatedTargetTable.set(event, adjusted);
+      }
     }
 
     eventPhaseTable.set(event, phase);
@@ -2414,7 +2428,12 @@ var ShadowDOMPolyfill = {};
     },
     dispatchEvent: function(event) {
       var target = getTargetToListenAt(this);
-      return target.dispatchEvent_(unwrap(event));
+      var nativeEvent = unwrap(event);
+      // Allow dispatching the same event again. This is safe because if user
+      // code calls this during an existing dispatch of the same event the
+      // native dispatchEvent throws (that is required by the spec).
+      handledEventsTable.set(nativeEvent, false);
+      return target.dispatchEvent_(nativeEvent);
     }
   };
 
@@ -2424,7 +2443,6 @@ var ShadowDOMPolyfill = {};
   function wrapEventTargetMethods(constructors) {
     forwardMethodsToWrapper(constructors, methodNames);
   }
-
 
   var originalElementFromPoint = document.elementFromPoint;
 
@@ -2930,7 +2948,7 @@ var ShadowDOMPolyfill = {};
     },
 
     hasChildNodes: function() {
-      return this.firstChild === null;
+      return this.firstChild !== null;
     },
 
     /** @type {Node} */
@@ -3482,11 +3500,15 @@ var ShadowDOMPolyfill = {};
     }
   });
 
-  function getterRequiresRendering(name) {
-    defineGetter(HTMLElement, name, function() {
+  function getter(name) {
+    return function() {
       scope.renderAllPending();
       return this.impl[name];
-     });
+    };
+  }
+
+  function getterRequiresRendering(name) {
+    defineGetter(HTMLElement, name, getter(name));
   }
 
   [
@@ -3499,10 +3521,25 @@ var ShadowDOMPolyfill = {};
     'offsetTop',
     'offsetWidth',
     'scrollHeight',
-    'scrollLeft',
-    'scrollTop',
     'scrollWidth',
   ].forEach(getterRequiresRendering);
+
+  function getterAndSetterRequiresRendering(name) {
+    Object.defineProperty(HTMLElement.prototype, name, {
+      get: getter(name),
+      set: function(v) {
+        scope.renderAllPending();
+        this.impl[name] = v;
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  [
+    'scrollLeft',
+    'scrollTop',
+  ].forEach(getterAndSetterRequiresRendering);
 
   function methodRequiresRendering(name) {
     Object.defineProperty(HTMLElement.prototype, name, {
@@ -3531,6 +3568,37 @@ var ShadowDOMPolyfill = {};
   scope.getInnerHTML = getInnerHTML;
   scope.setInnerHTML = setInnerHTML
 })(this.ShadowDOMPolyfill);
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var wrap = scope.wrap;
+
+  var OriginalHTMLCanvasElement = window.HTMLCanvasElement;
+
+  function HTMLCanvasElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLCanvasElement.prototype = Object.create(HTMLElement.prototype);
+
+  mixin(HTMLCanvasElement.prototype, {
+    getContext: function() {
+      var context = this.impl.getContext.apply(this.impl, arguments);
+      return context && wrap(context);
+    }
+  });
+
+  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement);
+
+  scope.wrappers.HTMLCanvasElement = HTMLCanvasElement;
+})(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3714,6 +3782,88 @@ var ShadowDOMPolyfill = {};
   registerWrapper(OriginalHTMLUnknownElement, HTMLUnknownElement);
   scope.wrappers.HTMLUnknownElement = HTMLUnknownElement;
 })(this.ShadowDOMPolyfill);
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
+
+  function CanvasRenderingContext2D(impl) {
+    this.impl = impl;
+  }
+
+  mixin(CanvasRenderingContext2D.prototype, {
+    get canvas() {
+      return wrap(this.impl.canvas);
+    },
+
+    drawImage: function() {
+      arguments[0] = unwrap(arguments[0]);
+      this.impl.drawImage.apply(this.impl, arguments);
+    },
+
+    createPattern: function() {
+      arguments[0] = unwrap(arguments[0]);
+      return this.impl.createPattern.apply(this.impl, arguments);
+    }
+  });
+
+  registerWrapper(OriginalCanvasRenderingContext2D, CanvasRenderingContext2D);
+
+  scope.wrappers.CanvasRenderingContext2D = CanvasRenderingContext2D;
+})(this.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
+
+  // IE10 does not have WebGL.
+  if (!OriginalWebGLRenderingContext)
+    return;
+
+  function WebGLRenderingContext(impl) {
+    this.impl = impl;
+  }
+
+  mixin(WebGLRenderingContext.prototype, {
+    get canvas() {
+      return wrap(this.impl.canvas);
+    },
+
+    texImage2D: function() {
+      arguments[5] = unwrap(arguments[5]);
+      this.impl.texImage2D.apply(this.impl, arguments);
+    },
+
+    texSubImage2D: function() {
+      arguments[6] = unwrap(arguments[6]);
+      this.impl.texSubImage2D.apply(this.impl, arguments);
+    }
+  });
+
+  registerWrapper(OriginalWebGLRenderingContext, WebGLRenderingContext);
+
+  scope.wrappers.WebGLRenderingContext = WebGLRenderingContext;
+})(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4661,8 +4811,8 @@ var ShadowDOMPolyfill = {};
       // and not from the spec since the spec is out of date.
       [
         'createdCallback',
-        'enteredDocumentCallback',
-        'leftDocumentCallback',
+        'enteredViewCallback',
+        'leftViewCallback',
         'attributeChangedCallback',
       ].forEach(function(name) {
         var f = prototype[name];

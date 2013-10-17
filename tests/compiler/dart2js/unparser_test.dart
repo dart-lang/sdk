@@ -283,20 +283,23 @@ testClassDeclarations() {
 }
 
 testMixinApplications() {
-  testUnparseTopLevelWithMetadata('typedef C = S with M;');
-  testUnparseTopLevelWithMetadata('typedef C = S with M1,M2;');
-  testUnparseTopLevelWithMetadata('typedef C = S with M1,M2,M3;');
+  testUnparseTopLevelWithMetadata('class C = S with M;');
+  testUnparseTopLevelWithMetadata('class C = S with M1,M2;');
+  testUnparseTopLevelWithMetadata('class C = S with M1,M2,M3;');
 
-  testUnparseTopLevelWithMetadata('typedef C<A> = S with M;');
-  testUnparseTopLevelWithMetadata('typedef C<A,B> = S with M;');
+  testUnparseTopLevelWithMetadata('class C<A> = S with M;');
+  testUnparseTopLevelWithMetadata('class C<A,B> = S with M;');
 
-  testUnparseTopLevelWithMetadata('typedef C = S<A> with M;');
-  testUnparseTopLevelWithMetadata('typedef C = S<A,B> with M;');
+  testUnparseTopLevelWithMetadata('class C = S<A> with M;');
+  testUnparseTopLevelWithMetadata('class C = S<A,B> with M;');
 
-  testUnparseTopLevelWithMetadata('typedef C = S with M<A>;');
-  testUnparseTopLevelWithMetadata('typedef C = S with M<A,B>;');
-  testUnparseTopLevelWithMetadata('typedef C = S with M1<A>,M2;');
-  testUnparseTopLevelWithMetadata('typedef C = S with M1,M2<A,B>;');
+  testUnparseTopLevelWithMetadata('class C = S with M<A>;');
+  testUnparseTopLevelWithMetadata('class C = S with M<A,B>;');
+  testUnparseTopLevelWithMetadata('class C = S with M1<A>,M2;');
+  testUnparseTopLevelWithMetadata('class C = S with M1,M2<A,B>;');
+
+  testUnparseTopLevelWithMetadata('abstract class C = S with M;');
+  testUnparseTopLevelWithMetadata('abstract class C<A> = S<A> with M<A>;');
 }
 
 testUnparseParameters(List<String> variableDeclarations) {

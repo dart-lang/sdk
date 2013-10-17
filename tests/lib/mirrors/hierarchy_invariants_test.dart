@@ -8,12 +8,22 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
+isAnonymousMixinApplication(classMirror) {
+  return MirrorSystem.getName(classMirror.simpleName).contains(' with ');
+}
+
 check(classMirror) {
   if (classMirror is TypedefMirror) return;
 
   Expect.isTrue(classMirror.simpleName is Symbol);
   Expect.notEquals(null, classMirror.owner);
   Expect.isTrue(classMirror.owner is LibraryMirror);
+  if (!isAnonymousMixinApplication(classMirror)) {
+    Expect.equals(classMirror.originalDeclaration,
+                  classMirror.owner.classes[classMirror.simpleName]);
+  } else {
+    Expect.isNull(classMirror.owner.classes[classMirror.simpleName]);
+  }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
     Expect.equals(reflectClass(Object), classMirror);

@@ -14,7 +14,7 @@ class A {
 
 class B {}
 
-typedef C = B with A;
+class C = B with A;
 
 class D extends C {
   bar() => 54;

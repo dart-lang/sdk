@@ -35,12 +35,11 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     ClassBuilder builder = new ClassBuilder();
-    emitClassConstructor(classElement, builder, runtimeName);
+    emitClassConstructor(classElement, builder, runtimeName,
+                         onlyForRti: onlyForRti);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
-    emitClassGettersSetters(classElement, builder);
-    if (!classElement.isMixinApplication) {
-      emitInstanceMembers(classElement, builder);
-    }
+    emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
+    emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
     task.typeTestEmitter.emitIsTests(classElement, builder);
 
     emitClassBuilderWithReflectionData(
@@ -49,9 +48,10 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassConstructor(ClassElement classElement,
                             ClassBuilder builder,
-                            String runtimeName) {
+                            String runtimeName,
+                            {bool onlyForRti: false}) {
     List<String> fields = <String>[];
-    if (!classElement.isNative()) {
+    if (!onlyForRti && !classElement.isNative()) {
       visitFields(classElement, false,
                   (Element member,
                    String name,
@@ -137,7 +137,7 @@ class ClassEmitter extends CodeEmitterHelper {
         if (!classIsNative || needsAccessor) {
           buffer.write(separator);
           separator = ',';
-          var metadata = task.buildMetadataFunction(field);
+          var metadata = task.metadataEmitter.buildMetadataFunction(field);
           if (metadata != null) {
             hasMetadata = true;
           } else {
@@ -173,7 +173,8 @@ class ClassEmitter extends CodeEmitterHelper {
                 // the method's class was elsewhere mixed-in to an interceptor.
                 assert(!field.isInstanceMember() || getterCode != 0);
                 if (isIntercepted) {
-                  task.interceptorInvocationNames.add(namer.getterName(field));
+                  task.interceptorEmitter.interceptorInvocationNames.add(
+                      namer.getterName(field));
                 }
               } else {
                 getterCode = 1;
@@ -190,7 +191,8 @@ class ClassEmitter extends CodeEmitterHelper {
                 setterCode += backend.isInterceptorClass(element) ? 0 : 1;
                 assert(!field.isInstanceMember() || setterCode != 0);
                 if (isIntercepted) {
-                  task.interceptorInvocationNames.add(namer.setterName(field));
+                  task.interceptorEmitter.interceptorInvocationNames.add(
+                      namer.setterName(field));
                 }
               } else {
                 setterCode = 1;
@@ -223,7 +225,9 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void emitClassGettersSetters(ClassElement classElement,
-                               ClassBuilder builder) {
+                               ClassBuilder builder,
+                               {bool onlyForRti: false}) {
+    if (onlyForRti) return;
 
     visitFields(classElement, false,
                 (VariableElement member,
@@ -253,8 +257,11 @@ class ClassEmitter extends CodeEmitterHelper {
    * Invariant: [classElement] must be a declaration element.
    */
   void emitInstanceMembers(ClassElement classElement,
-                           ClassBuilder builder) {
+                           ClassBuilder builder,
+                           {bool onlyForRti: false}) {
     assert(invariant(classElement, classElement.isDeclaration));
+
+    if (onlyForRti || classElement.isMixinApplication) return;
 
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(classElement, member.isDeclaration));
@@ -283,7 +290,7 @@ class ClassEmitter extends CodeEmitterHelper {
                                           ClassElement classElement,
                                           ClassBuilder builder,
                                           CodeBuffer buffer) {
-    var metadata = task.buildMetadataFunction(classElement);
+    var metadata = task.metadataEmitter.buildMetadataFunction(classElement);
     if (metadata != null) {
       builder.addProperty("@", metadata);
     }
@@ -293,7 +300,9 @@ class ClassEmitter extends CodeEmitterHelper {
       List properties = [];
       for (TypeVariableType typeVar in typeVars) {
         properties.add(js.string(typeVar.name.slowToString()));
-        properties.add(js.toExpression(task.reifyType(typeVar.element.bound)));
+        properties.add(
+            js.toExpression(
+                task.metadataEmitter.reifyType(typeVar.element.bound)));
       }
 
       ClassElement superclass = classElement.superclass;
@@ -342,7 +351,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (reflectionName != null) {
       List<int> interfaces = <int>[];
       for (DartType interface in classElement.interfaces) {
-        interfaces.add(task.reifyType(interface));
+        interfaces.add(task.metadataEmitter.reifyType(interface));
       }
       buffer.write(',$n$n"+$reflectionName": $interfaces');
     }

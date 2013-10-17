@@ -35,13 +35,6 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
-static const String& PrivateCoreLibName(const String& str) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& private_name = String::ZoneHandle(core_lib.PrivateName(str));
-  return private_name;
-}
-
-
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector,
@@ -1073,7 +1066,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 
 static const String& BinaryOpAndMaskName(BinaryOpNode* node) {
   if (node->kind() == Token::kSHL) {
-    return PrivateCoreLibName(Symbols::_leftShiftWithMask32());
+    return Library::PrivateCoreLibName(Symbols::_leftShiftWithMask32());
   }
   UNIMPLEMENTED();
   return String::ZoneHandle();
@@ -1292,7 +1285,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const intptr_t kNumArgsChecked = 1;
   InstanceCallInstr* call = new InstanceCallInstr(
       node->token_pos(),
-      PrivateCoreLibName(Symbols::_instanceOf()),
+      Library::PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(),
       arguments,
       Object::null_array(),  // No argument names.
@@ -1305,7 +1298,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ValueGraphVisitor for_value(owner(), temp_index());
   node->left()->Visit(&for_value);
   const String& dst_name = String::ZoneHandle(
@@ -1322,54 +1315,47 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
+  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ValueGraphVisitor for_value(owner(), temp_index());
   node->left()->Visit(&for_value);
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
-  if (type.IsMalformed() || type.IsMalbounded()) {
-    ReturnValue(BuildAssignableValue(node->token_pos(),
-                                     for_value.value(),
-                                     type,
-                                     dst_name));
-  } else {
-    if (CanSkipTypeCheck(node->token_pos(),
-                         for_value.value(),
-                         type,
-                         dst_name)) {
-      ReturnValue(for_value.value());
-      return;
-    }
-    PushArgumentInstr* push_left = PushArgument(for_value.value());
-    PushArgumentInstr* push_instantiator = NULL;
-    PushArgumentInstr* push_type_args = NULL;
-    if (type.IsInstantiated()) {
-      push_instantiator = PushArgument(BuildNullValue());
-      push_type_args = PushArgument(BuildNullValue());
-    } else {
-      BuildTypecheckPushArguments(node->token_pos(),
-                                  &push_instantiator,
-                                  &push_type_args);
-    }
-    ZoneGrowableArray<PushArgumentInstr*>* arguments =
-        new ZoneGrowableArray<PushArgumentInstr*>(4);
-    arguments->Add(push_left);
-    arguments->Add(push_instantiator);
-    arguments->Add(push_type_args);
-    Value* type_arg = Bind(new ConstantInstr(type));
-    arguments->Add(PushArgument(type_arg));
-    const intptr_t kNumArgsChecked = 1;
-    InstanceCallInstr* call = new InstanceCallInstr(
-        node->token_pos(),
-        PrivateCoreLibName(Symbols::_as()),
-        node->kind(),
-        arguments,
-        Object::null_array(),  // No argument names.
-        kNumArgsChecked,
-        owner()->ic_data_array());
-    ReturnDefinition(call);
+  if (CanSkipTypeCheck(node->token_pos(),
+                       for_value.value(),
+                       type,
+                       dst_name)) {
+    ReturnValue(for_value.value());
+    return;
   }
+  PushArgumentInstr* push_left = PushArgument(for_value.value());
+  PushArgumentInstr* push_instantiator = NULL;
+  PushArgumentInstr* push_type_args = NULL;
+  if (type.IsInstantiated()) {
+    push_instantiator = PushArgument(BuildNullValue());
+    push_type_args = PushArgument(BuildNullValue());
+  } else {
+    BuildTypecheckPushArguments(node->token_pos(),
+                                &push_instantiator,
+                                &push_type_args);
+  }
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(4);
+  arguments->Add(push_left);
+  arguments->Add(push_instantiator);
+  arguments->Add(push_type_args);
+  Value* type_arg = Bind(new ConstantInstr(type));
+  arguments->Add(PushArgument(type_arg));
+  const intptr_t kNumArgsChecked = 1;
+  InstanceCallInstr* call = new InstanceCallInstr(
+      node->token_pos(),
+      Library::PrivateCoreLibName(Symbols::_as()),
+      node->kind(),
+      arguments,
+      Object::null_array(),  // No argument names.
+      kNumArgsChecked,
+      owner()->ic_data_array());
+  ReturnDefinition(call);
 }
 
 
@@ -2039,6 +2025,17 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 }
 
 
+void EffectGraphVisitor::VisitStringInterpolateNode(
+    StringInterpolateNode* node) {
+  ValueGraphVisitor for_argument(owner(), temp_index());
+  node->value()->Visit(&for_argument);
+  Append(for_argument);
+  StringInterpolateInstr* instr =
+      new StringInterpolateInstr(for_argument.value(), node->token_pos());
+  ReturnDefinition(instr);
+}
+
+
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
 
@@ -2085,7 +2082,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // pass the type arguments of the instantiator.
     const Class& cls = Class::ZoneHandle(function.signature_class());
     ASSERT(!cls.IsNull());
-    const bool requires_type_arguments = cls.HasTypeArguments();
+    const bool requires_type_arguments = cls.NumTypeArguments() > 0;
     Value* type_arguments = NULL;
     if (requires_type_arguments) {
       ASSERT(cls.type_arguments_field_offset() ==
@@ -2164,7 +2161,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     // pass the type arguments of the instantiator. Otherwise, pass null object.
     const Class& cls = Class::Handle(function.signature_class());
     ASSERT(!cls.IsNull());
-    const bool requires_type_arguments = cls.HasTypeArguments();
+    const bool requires_type_arguments = cls.NumTypeArguments() > 0;
     Value* type_arguments = NULL;
     if (requires_type_arguments) {
       const Class& instantiator_class = Class::Handle(
@@ -2312,7 +2309,7 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 Value* EffectGraphVisitor::BuildObjectAllocation(
     ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
-  const bool requires_type_arguments = cls.HasTypeArguments();
+  const bool requires_type_arguments = cls.NumTypeArguments() > 0;
 
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
@@ -2565,7 +2562,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
     ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
-  ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
+  ASSERT((cls.NumTypeArguments() > 0) && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
     Value* type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
@@ -3710,7 +3707,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
-                              PrivateCoreLibName(Symbols::ThrowNew()),
+                              Library::PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
                               Object::null_array(),
                               Resolver::kIsQualified));

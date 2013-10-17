@@ -30,6 +30,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef");
 DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
@@ -1716,27 +1717,6 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
 }
 
 
-// Lookup class in the core lib which also contains various VM
-// helper methods and classes. Allow look up of private classes.
-static RawClass* LookupCoreClass(const String& class_name) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  String& name = String::Handle(class_name.raw());
-  if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
-    // Private identifiers are mangled on a per script basis.
-    name = String::Concat(name, String::Handle(core_lib.private_key()));
-    name = Symbols::New(name);
-  }
-  return core_lib.LookupClass(name);
-}
-
-
-static const String& PrivateCoreLibName(const String& str) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const String& private_name = String::ZoneHandle(core_lib.PrivateName(str));
-  return private_name;
-}
-
-
 StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
@@ -1774,11 +1754,11 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   arguments->Add(args_array);
   // Lookup the static InvocationMirror._allocateInvocationMirror method.
   const Class& mirror_class =
-      Class::Handle(LookupCoreClass(Symbols::InvocationMirror()));
+      Class::Handle(Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
   const Function& allocation_function = Function::ZoneHandle(
       mirror_class.LookupStaticFunction(
-          PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
+          Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
   ASSERT(!allocation_function.IsNull());
   return new StaticCallNode(call_pos, allocation_function, arguments);
 }
@@ -3800,9 +3780,24 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     }
     cls.set_type_parameters(orig_type_parameters);
   }
+
+  if (is_abstract) {
+    cls.set_is_abstract();
+  }
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(cls, metadata_pos);
+  }
+
+  const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
+  if (is_mixin_declaration && is_patch) {
+    ErrorMsg(classname_pos,
+             "mixin application '%s' may not be a patch class",
+             class_name.ToCString());
+  }
+
   AbstractType& super_type = Type::Handle();
-  if (CurrentToken() == Token::kEXTENDS) {
-    ConsumeToken();
+  if ((CurrentToken() == Token::kEXTENDS) || is_mixin_declaration) {
+    ConsumeToken();  // extends or =
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
     if (super_type.IsDynamicType()) {
@@ -3821,6 +3816,10 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(pending_classes, super_type);
     }
+    if (is_mixin_declaration) {
+      cls.set_is_mixin_typedef();
+      cls.set_is_synthesized_class();
+    }
   } else {
     // No extends clause: implicitly extend Object, unless Object itself.
     if (!cls.IsObjectClass()) {
@@ -3834,9 +3833,6 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ParseInterfaceList(cls);
   }
 
-  if (is_abstract) {
-    cls.set_is_abstract();
-  }
   if (is_patch) {
     // Apply the changes to the patched class looked up above.
     ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
@@ -3847,15 +3843,16 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_patch();
   }
   pending_classes.Add(cls, Heap::kOld);
-  if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, metadata_pos);
-  }
 
-  if (CurrentToken() != Token::kLBRACE) {
-    ErrorMsg("{ expected");
+  if (is_mixin_declaration) {
+    ExpectSemicolon();
+  } else {
+    if (CurrentToken() != Token::kLBRACE) {
+      ErrorMsg("{ expected");
+    }
+    SkipBlock();
+    ExpectToken(Token::kRBRACE);
   }
-  SkipBlock();
-  ExpectToken(Token::kRBRACE);
 }
 
 
@@ -4031,9 +4028,6 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   type = ParseMixins(pending_classes, type);
 
-  // TODO(12773): Treat the mixin application as an alias, not as a base
-  // class whose super class is the mixin application! This is difficult because
-  // of issues involving subsitution of type parameters
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
@@ -4041,9 +4035,6 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   // too early to call 'AddImplicitConstructor(mixin_application)' here,
   // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
-    // At this point, the mixin_application alias already has an interface, but
-    // ParseInterfaceList will add to the list and not lose the one already
-    // there.
     ParseInterfaceList(mixin_application);
   }
   ExpectSemicolon();
@@ -4100,6 +4091,9 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinTypedef()) {
+    if (FLAG_warn_mixin_typedef) {
+      Warning("deprecated mixin typedef");
+    }
     ParseMixinTypedef(pending_classes, metadata_pos);
     return;
   }
@@ -6191,7 +6185,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
             TokenPos(), Integer::ZoneHandle(Integer::New(TokenPos()))));
         current_block_->statements->Add(
             MakeStaticCall(Symbols::FallThroughError(),
-                           PrivateCoreLibName(Symbols::ThrowNew()),
+                           Library::PrivateCoreLibName(Symbols::ThrowNew()),
                            arguments));
       }
       break;
@@ -6509,7 +6503,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
 AstNode* Parser::MakeStaticCall(const String& cls_name,
                                 const String& func_name,
                                 ArgumentListNode* arguments) {
-  const Class& cls = Class::Handle(LookupCoreClass(cls_name));
+  const Class& cls = Class::Handle(Library::LookupCoreClass(cls_name));
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
@@ -6529,7 +6523,7 @@ AstNode* Parser::MakeAssertCall(intptr_t begin, intptr_t end) {
   arguments->Add(new LiteralNode(end,
       Integer::ZoneHandle(Integer::New(end))));
   return MakeStaticCall(Symbols::AssertionError(),
-                        PrivateCoreLibName(Symbols::ThrowNew()),
+                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
 }
 
@@ -6822,7 +6816,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
           new InstanceCallNode(
               catch_pos,
               new LoadLocalNode(catch_pos, trace),
-              PrivateCoreLibName(Symbols::_setupFullStackTrace()),
+              Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
               no_args));
     }
 
@@ -7390,7 +7384,7 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
       Symbols::New(error.ToErrorCString()))));
   return MakeStaticCall(Symbols::TypeError(),
-                        PrivateCoreLibName(Symbols::ThrowNew()),
+                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
 }
 
@@ -7469,7 +7463,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   arguments->Add(new LiteralNode(call_pos, array));
 
   return MakeStaticCall(Symbols::NoSuchMethodError(),
-                        PrivateCoreLibName(Symbols::ThrowNew()),
+                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
 }
 
@@ -7509,11 +7503,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         // The type is never malformed (mapped to dynamic), but it can be
         // malbounded in checked mode.
         ASSERT(!type.IsMalformed());
-        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT)) &&
+        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
+             (op_kind == Token::kAS)) &&
             type.IsMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
-          // in a type test. However, no cast exception is thrown if the value
-          // is null in a type cast.
+          // in a type test or in a type cast.
           return ThrowTypeError(type_pos, type);
         }
       }
@@ -8208,13 +8202,11 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     String& name = String::CheckedZoneHandle(primary->primary().raw());
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
-      return ThrowNoSuchMethodError(primary->token_pos(),
-                                    current_class(),
-                                    name,
-                                    NULL,  // No arguments.
-                                    InvocationMirror::kStatic,
-                                    InvocationMirror::kField,
-                                    NULL);  // No existing function.
+      return new StaticGetterNode(primary->token_pos(),
+                                  NULL,  // No receiver.
+                                  false,  // Not a super getter.
+                                  Class::ZoneHandle(current_class().raw()),
+                                  name);
     } else {
       AstNode* receiver = LoadReceiver(primary->token_pos());
       return CallGetter(node->token_pos(), receiver, name);
@@ -9354,11 +9346,11 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   } else {
     // Factory call at runtime.
     const Class& factory_class =
-        Class::Handle(LookupCoreClass(Symbols::List()));
+        Class::Handle(Library::LookupCoreClass(Symbols::List()));
     ASSERT(!factory_class.IsNull());
     const Function& factory_method = Function::ZoneHandle(
         factory_class.LookupFactory(
-            PrivateCoreLibName(Symbols::ListLiteralFactory())));
+            Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
     ASSERT(!factory_method.IsNull());
     if (!list_type_arguments.IsNull() &&
         !list_type_arguments.IsInstantiated() &&
@@ -9597,7 +9589,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
     // Construct the map object.
     const Class& immutable_map_class =
-        Class::Handle(LookupCoreClass(Symbols::ImmutableMap()));
+        Class::Handle(Library::LookupCoreClass(Symbols::ImmutableMap()));
     ASSERT(!immutable_map_class.IsNull());
     // If the immutable map class extends other parameterized classes, we need
     // to adjust the type argument vector. This is currently not the case.
@@ -9606,7 +9598,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     constr_args->Add(new LiteralNode(literal_pos, key_value_array));
     const Function& map_constr =
         Function::ZoneHandle(immutable_map_class.LookupConstructor(
-            PrivateCoreLibName(Symbols::ImmutableMapConstructor())));
+            Library::PrivateCoreLibName(Symbols::ImmutableMapConstructor())));
     ASSERT(!map_constr.IsNull());
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(immutable_map_class,
@@ -9623,11 +9615,11 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   } else {
     // Factory call at runtime.
     const Class& factory_class =
-        Class::Handle(LookupCoreClass(Symbols::Map()));
+        Class::Handle(Library::LookupCoreClass(Symbols::Map()));
     ASSERT(!factory_class.IsNull());
     const Function& factory_method = Function::ZoneHandle(
         factory_class.LookupFactory(
-            PrivateCoreLibName(Symbols::MapLiteralFactory())));
+            Library::PrivateCoreLibName(Symbols::MapLiteralFactory())));
     ASSERT(!factory_method.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
@@ -9904,7 +9896,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     arguments->Add(new LiteralNode(
         TokenPos(), String::ZoneHandle(type_class_name.raw())));
     return MakeStaticCall(Symbols::AbstractClassInstantiationError(),
-                          PrivateCoreLibName(Symbols::ThrowNew()),
+                          Library::PrivateCoreLibName(Symbols::ThrowNew()),
                           arguments);
   }
   String& error_message = String::Handle();
@@ -10003,11 +9995,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
 
 String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
-  const Class& cls = Class::Handle(LookupCoreClass(Symbols::StringBase()));
+  const Class& cls =
+      Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
   const Function& func =
       Function::Handle(cls.LookupStaticFunction(
-          PrivateCoreLibName(Symbols::Interpolate())));
+          Library::PrivateCoreLibName(Symbols::Interpolate())));
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
@@ -10077,7 +10070,7 @@ AstNode* Parser::ParseStringLiteral() {
       }
       // Check if this interpolated string is still considered a compile time
       // constant. If it is we need to evaluate if the current string part is
-      // a constant or not. Only stings, numbers, booleans and null values
+      // a constant or not. Only strings, numbers, booleans and null values
       // are allowed in compile time const interpolations.
       if (is_compiletime_const) {
         const Object* const_expr = expr->EvalConstExpr();
@@ -10098,15 +10091,11 @@ AstNode* Parser::ParseStringLiteral() {
   if (is_compiletime_const) {
     primary = new LiteralNode(literal_start, Interpolate(values_list));
   } else {
-    ArgumentListNode* interpolate_arg = new ArgumentListNode(TokenPos());
     ArrayNode* values = new ArrayNode(
         TokenPos(),
         Type::ZoneHandle(Type::ArrayType()),
         values_list);
-    interpolate_arg->Add(values);
-    primary = MakeStaticCall(Symbols::StringBase(),
-                             PrivateCoreLibName(Symbols::Interpolate()),
-                             interpolate_arg);
+    primary = new StringInterpolateNode(TokenPos(), values);
   }
   return primary;
 }

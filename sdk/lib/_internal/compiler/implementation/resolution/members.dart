@@ -39,16 +39,35 @@ abstract class TreeElements {
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
+
+  /// Returns [:true:] if [element] is potentially mutated anywhere in its
+  /// scope.
+  bool isPotentiallyMutated(VariableElement element);
+
+  /// Returns [:true:] if [element] is potentially mutated in [node].
+  bool isPotentiallyMutatedIn(Node node, VariableElement element);
+
+  /// Returns [:true:] if [element] is potentially mutated in a closure.
+  bool isPotentiallyMutatedInClosure(VariableElement element);
+
+  /// Returns [:true:] if [element] is accessed by a closure in [node].
+  bool isAccessedByClosureIn(Node node, VariableElement element);
 }
 
 class TreeElementMapping implements TreeElements {
   final Element currentElement;
-  final Map<Spannable, Selector> selectors =
-      new LinkedHashMap<Spannable, Selector>();
-  final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
-  final Set<Node> superUses = new LinkedHashSet<Node>();
-  final Set<Element> otherDependencies = new LinkedHashSet<Element>();
+  final Map<Spannable, Selector> selectors = new Map<Spannable, Selector>();
+  final Map<Node, DartType> types = new Map<Node, DartType>();
+  final Set<Node> superUses = new Set<Node>();
+  final Set<Element> otherDependencies = new Set<Element>();
   final Map<Node, Constant> constants = new Map<Node, Constant>();
+  final Set<VariableElement> potentiallyMutated = new Set<VariableElement>();
+  final Map<Node, Set<VariableElement>> potentiallyMutatedIn =
+      new Map<Node, Set<VariableElement>>();
+  final Set<VariableElement> potentiallyMutatedInClosure =
+      new Set<VariableElement>();
+  final Map<Node, Set<VariableElement>> accessedByClosureIn =
+      new Map<Node, Set<VariableElement>>();
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
@@ -157,6 +176,42 @@ class TreeElementMapping implements TreeElements {
 
   void registerDependency(Element element) {
     otherDependencies.add(element.implementation);
+  }
+
+  bool isPotentiallyMutated(VariableElement element) {
+    return potentiallyMutated.contains(element);
+  }
+
+  void setPotentiallyMutated(VariableElement element) {
+    potentiallyMutated.add(element);
+  }
+
+  bool isPotentiallyMutatedIn(Node node, VariableElement element) {
+    Set<Element> mutatedIn = potentiallyMutatedIn[node];
+    return mutatedIn != null && mutatedIn.contains(element);
+  }
+
+  void setPotentiallyMutatedIn(Node node, VariableElement element) {
+    potentiallyMutatedIn.putIfAbsent(
+        node, () => new Set<VariableElement>()).add(element);
+  }
+
+  bool isPotentiallyMutatedInClosure(VariableElement element) {
+    return potentiallyMutatedInClosure.contains(element);
+  }
+
+  void setPotentiallyMutatedInClosure(VariableElement element) {
+    potentiallyMutatedInClosure.add(element);
+  }
+
+  bool isAccessedByClosureIn(Node node, VariableElement element) {
+    Set<Element> accessedIn = accessedByClosureIn[node];
+    return accessedIn != null && accessedIn.contains(element);
+  }
+
+  void setAccessedByClosureIn(Node node, VariableElement element) {
+    accessedByClosureIn.putIfAbsent(
+        node, () => new Set<VariableElement>()).add(element);
   }
 
   String toString() => 'TreeElementMapping($currentElement)';
@@ -1589,21 +1644,21 @@ class TypeResolver {
         compiler.backend.registerThrowRuntimeError(visitor.mapping);
         visitor.warning(node, messageKind.warning, messageArguments);
       }
-      var erroneousElement = new ErroneousElementX(
+      Element erroneousElement = new ErroneousElementX(
           messageKind.error, messageArguments, typeName.source,
           visitor.enclosingElement);
-      var arguments = new LinkBuilder<DartType>();
+      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       resolveTypeArguments(visitor, node, null, arguments);
       return new MalformedType(erroneousElement,
               userProvidedBadType, arguments.toLink());
     }
 
     DartType checkNoTypeArguments(DartType type) {
-      var arguments = new LinkBuilder<DartType>();
+      LinkBuilder<DartType> arguments = new LinkBuilder<DartType>();
       bool hasTypeArgumentMismatch = resolveTypeArguments(
           visitor, node, const Link<DartType>(), arguments);
       if (hasTypeArgumentMismatch) {
-        type = new MalformedType(
+        return new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
                 {'type': node}, typeName.source, visitor.enclosingElement),
                 type, arguments.toLink());
@@ -1846,6 +1901,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
   /// error when verifying that all final variables are initialized.
   bool allowFinalWithoutInitializer = false;
 
+  /// The nodes for which variable access and mutation must be registered in
+  /// order to determine when the static type of variables types is promoted.
+  Link<Node> promotionScope = const Link<Node>();
+
+  bool isPotentiallyMutableTarget(Element target) {
+    if (target == null) return false;
+    return (target.isVariable() || target.isParameter()) &&
+      !(target.modifiers.isFinal() || target.modifiers.isConst());
+  }
+
   // TODO(ahe): Find a way to share this with runtime implementation.
   static final RegExp symbolValidationPattern =
       new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
@@ -1941,6 +2006,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
     inInstanceContext = false;
     var result = action();
     inInstanceContext = wasInstanceContext;
+    return result;
+  }
+
+  doInPromotionScope(Node node, action()) {
+    promotionScope = promotionScope.prepend(node);
+    var result = action();
+    promotionScope = promotionScope.tail;
     return result;
   }
 
@@ -2186,8 +2258,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitIf(If node) {
-    visit(node.condition);
-    visitIn(node.thenPart, new BlockScope(scope));
+    doInPromotionScope(node.condition.expression, () => visit(node.condition));
+    doInPromotionScope(node.thenPart,
+        () => visitIn(node.thenPart, new BlockScope(scope)));
     visitIn(node.elsePart, new BlockScope(scope));
   }
 
@@ -2413,7 +2486,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
   visitSend(Send node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-    Element target = resolveSend(node);
+    Element target;
+    if (node.isLogicalAnd) {
+      target = doInPromotionScope(node.receiver, () => resolveSend(node));
+    } else {
+      target = resolveSend(node);
+    }
     sendIsMemberAccess = oldSendIsMemberAccess;
 
     if (target != null
@@ -2453,12 +2531,21 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Don't try to make constants of calls to type literals.
         analyzeConstant(node, isConst: !node.isCall);
       }
+      if (isPotentiallyMutableTarget(target)) {
+        if (enclosingElement != target.enclosingElement) {
+          for (Node scope in promotionScope) {
+            mapping.setAccessedByClosureIn(scope, target);
+          }
+        }
+      }
     }
 
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (identical(operatorString, 'is')) {
+        // TODO(johnniwinther): Use seen type tests to avoid registration of
+        // mutation/access to unpromoted variables.
         DartType type =
             resolveTypeExpression(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
@@ -2470,6 +2557,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         if (type != null) {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
+        resolvedArguments = true;
+      } else if (identical(operatorString, '&&')) {
+        doInPromotionScope(node.arguments.head,
+            () => resolveArguments(node.argumentsNode));
         resolvedArguments = true;
       }
     }
@@ -2572,6 +2663,15 @@ class ResolverVisitor extends MappingVisitor<Element> {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
         compiler.backend.registerThrowNoSuchMethod(mapping);
+      }
+      if (isPotentiallyMutableTarget(target)) {
+        mapping.setPotentiallyMutated(target);
+        if (enclosingElement != target.enclosingElement) {
+          mapping.setPotentiallyMutatedInClosure(target);
+        }
+        for (Node scope in promotionScope) {
+          mapping.setPotentiallyMutatedIn(scope, target);
+        }
       }
     }
 
@@ -2728,6 +2828,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (constructor.modifiers.isConst() &&
         !redirectionTarget.modifiers.isConst()) {
       error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
+    }
+    if (redirectionTarget == constructor) {
+      compiler.reportError(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+      return;
     }
     constructor.defaultImplementation = redirectionTarget;
     if (Elements.isUnresolved(redirectionTarget)) {
@@ -2999,7 +3103,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitConditional(Conditional node) {
-    node.visitChildren(this);
+    doInPromotionScope(node.condition, () => visit(node.condition));
+    doInPromotionScope(node.thenExpression, () => visit(node.thenExpression));
+    visit(node.elseExpression);
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -3473,7 +3579,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 
     FunctionSignature signature = SignatureResolver.analyze(
         compiler, node.formals, node.returnType, element,
-        defaultValuesAllowed: false);
+        defaultValuesError: MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
     element.functionSignature = signature;
 
     scope = new MethodScope(scope, element);
@@ -3672,12 +3778,16 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   /// Resolves the mixed type for [mixinNode] and checks that the the mixin type
-  /// is not black-listed. The mixin type is returned.
+  /// is a valid, non-blacklisted interface type. The mixin type is returned.
   DartType checkMixinType(TypeAnnotation mixinNode) {
     DartType mixinType = resolveType(mixinNode);
     if (isBlackListed(mixinType)) {
       compiler.reportError(mixinNode,
           MessageKind.CANNOT_MIXIN, {'type': mixinType});
+    } else if (mixinType.kind == TypeKind.TYPE_VARIABLE) {
+      compiler.reportError(mixinNode, MessageKind.CLASS_NAME_EXPECTED);
+    } else if (mixinType.kind == TypeKind.MALFORMED_TYPE) {
+      compiler.reportError(mixinNode, MessageKind.CANNOT_MIXIN_MALFORMED);
     }
     return mixinType;
   }
@@ -3764,8 +3874,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     assert(mixinApplication.interfaces == null);
     mixinApplication.interfaces = interfaces;
 
+    if (mixinType.kind != TypeKind.INTERFACE) {
+      mixinApplication.allSupertypes = const Link<DartType>();
+      return;
+    }
+
     assert(mixinApplication.mixin == null);
-    mixinApplication.mixin = resolveMixinFor(mixinApplication, mixinType);
+    Element mixin = resolveMixinFor(mixinApplication, mixinType);
+
+    mixinApplication.mixin = mixin;
 
     // Create forwarding constructors for constructor defined in the superclass
     // because they are now hidden by the mixin application.
@@ -3806,23 +3923,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   DartType resolveType(TypeAnnotation node) {
-    // TODO(johnniwinther): Report errors/warnings on resolution failures.
     return typeResolver.resolveTypeAnnotation(this, node);
   }
 
   DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
-    DartType supertype = typeResolver.resolveTypeAnnotation(
-        this, superclass, malformedIsError: true);
+    DartType supertype = resolveType(superclass);
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
-        // Error has already been reported.
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED);
         return null;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
-        // TODO(johnniwinther): Handle dynamic.
-        error(superclass.typeName, MessageKind.CLASS_NAME_EXPECTED);
+        compiler.reportError(superclass.typeName,
+            MessageKind.CLASS_NAME_EXPECTED);
         return null;
       } else if (isBlackListed(supertype)) {
-        error(superclass, MessageKind.CANNOT_EXTEND, {'type': supertype});
+        compiler.reportError(superclass, MessageKind.CANNOT_EXTEND,
+            {'type': supertype});
         return null;
       }
     }
@@ -3833,11 +3949,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     Link<DartType> result = const Link<DartType>();
     if (interfaces == null) return result;
     for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
-      DartType interfaceType = typeResolver.resolveTypeAnnotation(
-          this, link.head, malformedIsError: true);
+      DartType interfaceType = resolveType(link.head);
       if (interfaceType != null) {
         if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
-          // Error has already been reported.
+          compiler.reportError(superclass,
+              MessageKind.CANNOT_IMPLEMENT_MALFORMED);
         } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
           // TODO(johnniwinther): Handle dynamic.
           TypeAnnotation typeAnnotation = link.head;
@@ -4010,17 +4126,8 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
 
   void visitIdentifier(Identifier node) {
     Element element = lookupInScope(compiler, node, context, node.source);
-    if (element == null) {
-      compiler.reportError(
-          node, MessageKind.CANNOT_RESOLVE_TYPE.error, {'typeName': node});
-    } else if (!element.impliesType()) {
-      compiler.reportError(node, MessageKind.NOT_A_TYPE.error, {'node': node});
-    } else {
-      if (element.isClass()) {
-        loadSupertype(element, node);
-      } else {
-        compiler.reportError(node, MessageKind.CLASS_NAME_EXPECTED);
-      }
+    if (element != null && element.isClass()) {
+      loadSupertype(element, node);
     }
   }
 
@@ -4108,7 +4215,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
  */
 class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
-  final bool defaultValuesAllowed;
+  final MessageKind defaultValuesError;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
   bool isOptionalParameter = false;
@@ -4117,8 +4224,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   SignatureResolver(Compiler compiler,
                     this.enclosingElement,
-                    {this.defaultValuesAllowed: true})
+                    {this.defaultValuesError})
       : super(compiler);
+
+  bool get defaultValuesAllowed => defaultValuesError == null;
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
@@ -4248,7 +4357,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
-      error(defaultValue, MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
+      error(defaultValue, defaultValuesError);
     }
     // Visit the value. The compile time constant handler will
     // make sure it's a compile time constant.
@@ -4257,6 +4366,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   Element visitFunctionExpression(FunctionExpression node) {
+    // This is a function typed parameter.
     Modifiers modifiers = currentDefinitions.modifiers;
     if (modifiers.isFinal()) {
       compiler.reportError(modifiers,
@@ -4265,9 +4375,14 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     if (modifiers.isVar()) {
       compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
     }
-    // This is a function typed parameter.
-    // TODO(ahe): Resolve the function type.
-    return visit(node.name);
+
+    Element variable = visit(node.name);
+    SignatureResolver.analyze(compiler, node.parameters, node.returnType,
+        variable,
+        defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
+    // TODO(ahe): Resolve and record the function type in the correct
+    // [TreeElements].
+    return variable;
   }
 
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {
@@ -4294,9 +4409,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                    NodeList formalParameters,
                                    Node returnNode,
                                    Element element,
-                                   {bool defaultValuesAllowed: true}) {
+                                   {MessageKind defaultValuesError}) {
     SignatureResolver visitor = new SignatureResolver(compiler, element,
-            defaultValuesAllowed: defaultValuesAllowed);
+        defaultValuesError: defaultValuesError);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {

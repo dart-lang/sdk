@@ -409,6 +409,10 @@ class JavaScriptBackend extends Backend {
   /// Number of methods compiled before considering reflection.
   int preMirrorsMethodCount = 0;
 
+  /// Resolution and codegen support for generating table of interceptors and
+  /// constructors for custom elements.
+  CustomElementsAnalysis customElementsAnalysis;
+
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
@@ -420,6 +424,7 @@ class JavaScriptBackend extends Backend {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
+    customElementsAnalysis = new CustomElementsAnalysis(this);
   }
 
   static Namer determineNamer(Compiler compiler) {
@@ -881,6 +886,8 @@ class JavaScriptBackend extends Backend {
           compiler.findInterceptor(const SourceString('dispatchPropertyName')),
           elements);
     }
+
+    customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
   }
 
   void registerUseInterceptor(Enqueuer enqueuer) {
@@ -954,30 +961,7 @@ class JavaScriptBackend extends Backend {
     if (element.isTypedef()) {
       typedefTypeLiterals.add(element);
     }
-    if (element.isClass()) {
-      // TODO(sra): Can we register via a type parameter?
-      registerEscapingConstructorsOfClass(element, enqueuer);
-    }
-  }
-
-  void registerEscapingConstructorsOfClass(ClassElement classElement,
-                                           Enqueuer enqueuer) {
-    // Web component classes have constructors that are escaped to the host
-    // environment.
-    // TODO(13835): Defer registering generative constructors until the helper
-    // functions that fetch the constructors is seen.  These functions are
-    // called by document.register.
-    classElement.ensureResolved(compiler);
-    if (Elements.isNativeOrExtendsNative(classElement)) {
-      registerGenerativeConstructors(ClassElement enclosing, Element member) {
-        if (member.isGenerativeConstructor()) {
-          enqueuer.registerStaticUse(member);
-        }
-      }
-      classElement.forEachMember(registerGenerativeConstructors,
-          includeBackendMembers: false,
-          includeSuperAndInjectedMembers: false);
-    }
+    customElementsAnalysis.registerTypeLiteral(element, enqueuer);
   }
 
   void registerStackTraceInCatch(TreeElements elements) {
@@ -1650,6 +1634,7 @@ class JavaScriptBackend extends Backend {
     } else if (element == preserveMetadataMarker) {
       mustRetainMetadata = true;
     }
+    customElementsAnalysis.registerStaticUse(element, enqueuer);
   }
 
   /// Called when [:const Symbol(name):] is seen.
@@ -1860,6 +1845,8 @@ class JavaScriptBackend extends Backend {
       }
       metadataConstants.clear();
     }
+
+    customElementsAnalysis.onQueueEmpty(enqueuer);
   }
 }
 

@@ -19,9 +19,9 @@ class M2 {
   fez() => "M2-fez";
 }
 
-typedef C = S with M1;
-typedef D = S with M1, M2;
-typedef E = S with M2, M1;
+class C = S with M1;
+class D = S with M1, M2;
+class E = S with M2, M1;
 
 class F extends E {
   fez() => "F-fez";

@@ -302,6 +302,9 @@ class CompileType : public ValueObject {
   // Create non-nullable Int type.
   static CompileType Int();
 
+  // Create non-nullable String type.
+  static CompileType String();
+
   // Perform a join operation over the type lattice.
   void Union(CompileType* other);
 
@@ -650,6 +653,7 @@ class EmbeddedArray<T, 0> {
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
   M(StringFromCharCode)                                                        \
+  M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
@@ -2830,6 +2834,10 @@ class ComparisonInstr : public TemplateDefinition<2> {
   void set_operation_cid(intptr_t value) { operation_cid_ = value; }
   intptr_t operation_cid() const { return operation_cid_; }
 
+  void NegateComparison() {
+    kind_ = Token::NegateComparison(kind_);
+  }
+
  protected:
   ComparisonInstr(intptr_t token_pos,
                   Token::Kind kind,
@@ -2840,10 +2848,9 @@ class ComparisonInstr : public TemplateDefinition<2> {
     SetInputAt(1, right);
   }
 
-  intptr_t token_pos_;
-  Token::Kind kind_;
-
  private:
+  const intptr_t token_pos_;
+  Token::Kind kind_;
   intptr_t operation_cid_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
@@ -2936,7 +2943,6 @@ class StrictCompareInstr : public ComparisonInstr {
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
-  void set_kind(Token::Kind value) { kind_ = value; }
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -3644,6 +3650,34 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
   const intptr_t cid_;
 
   DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
+};
+
+
+class StringInterpolateInstr : public TemplateDefinition<1> {
+ public:
+  StringInterpolateInstr(Value* value, intptr_t token_pos)
+      : token_pos_(token_pos), function_(Function::Handle()) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+  intptr_t token_pos() const { return token_pos_; }
+
+  virtual CompileType ComputeType() const;
+  // Issues a static call to Dart code whihc calls toString on objects.
+  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool CanDeoptimize() const { return true; }
+  virtual bool MayThrow() const { return true; }
+
+  const Function& CallFunction() const;
+
+  DECLARE_INSTRUCTION(StringInterpolate)
+
+ private:
+  const intptr_t token_pos_;
+  Function& function_;
+
+  DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
 
 

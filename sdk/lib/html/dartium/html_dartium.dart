@@ -12,7 +12,7 @@
  *
  * * If you've never written a web app before, try our
  * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- * 
+ *
  * * To see some web-based Dart apps in action and to play with the code,
  * download
  * [Dart Editor](http://www.dartlang.org/#get-started)
@@ -93,10 +93,6 @@ HtmlDocument get document {
   return _document;
 }
 
-
-Element query(String selector) => document.query(selector);
-ElementList queryAll(String selector) => document.queryAll(selector);
-
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 
 bool _callPortInitialized = false;
@@ -123,6 +119,8 @@ _callPortSync(num id, var message) {
 @DocsEditable()
 @DomName('AbstractWorker')
 class AbstractWorker extends NativeFieldWrapperClass1 implements EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
@@ -183,6 +181,8 @@ class AesKeyGenParams extends Algorithm {
 @DomName('Algorithm')
 @Experimental() // untriaged
 class Algorithm extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Algorithm._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Algorithm.name')
   @DocsEditable()
@@ -719,6 +719,8 @@ class BRElement extends HtmlElement {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
 @deprecated // standard
 class BarProp extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('BarProp.visible')
   @DocsEditable()
@@ -791,6 +793,8 @@ class BeforeLoadEvent extends Event {
 
 @DomName('Blob')
 class Blob extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Blob._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Blob.Blob')
   @DocsEditable()
@@ -1111,6 +1115,8 @@ class CDataSection extends Text {
 // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
 @Experimental()
 class Canvas2DContextAttributes extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
@@ -1300,6 +1306,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  */
 @DomName('CanvasGradient')
 class CanvasGradient extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
   /**
    * Adds a color stop to this gradient at the offset.
@@ -1352,6 +1360,8 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
  */
 @DomName('CanvasPattern')
 class CanvasPattern extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1370,6 +1380,8 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
  */
 @DomName('CanvasRenderingContext')
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CanvasRenderingContext._() { throw new UnsupportedError("Not supported"); }
 
   /// Reference to the canvas element to which this context belongs.
   @DomName('CanvasRenderingContext.canvas')
@@ -2139,6 +2151,8 @@ class CharacterData extends Node implements ChildNode {
 @DomName('ChildNode')
 @Experimental() // untriaged
 abstract class ChildNode extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ChildNode.nextElementSibling')
   @DocsEditable()
@@ -2217,6 +2231,8 @@ class Comment extends CharacterData {
 // http://www.w3.org/TR/ime-api/#idl-def-Composition
 @Experimental()
 class Composition extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Composition._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Composition.selectionEnd')
   @DocsEditable()
@@ -2294,6 +2310,8 @@ class Console extends ConsoleBase {
 @DomName('ConsoleBase')
 @Experimental() // untriaged
 class ConsoleBase extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
@@ -2461,6 +2479,8 @@ class ContentElement extends HtmlElement {
 @DocsEditable()
 @DomName('Coordinates')
 class Coordinates extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Coordinates._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
@@ -2505,6 +2525,8 @@ class Coordinates extends NativeFieldWrapperClass1 {
 @Experimental()
 // http://www.w3.org/TR/WebCryptoAPI/
 class Crypto extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -2530,6 +2552,8 @@ class Crypto extends NativeFieldWrapperClass1 {
 @DomName('Key')
 @Experimental() // untriaged
 class CryptoKey extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Key.algorithm')
   @DocsEditable()
@@ -2564,6 +2588,8 @@ class CryptoKey extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/css3-conditional/#the-css-interface
 @Experimental() // None
 class Css extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Css._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CSS.supports')
   @DocsEditable()
@@ -2890,6 +2916,8 @@ class CssKeyframesRule extends CssRule {
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 class CssMatrix extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CssMatrix._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable()
@@ -3224,6 +3252,8 @@ class CssRegionRule extends CssRule {
 @DocsEditable()
 @DomName('CSSRule')
 class CssRule extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CssRule._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CSSRule.CHARSET_RULE')
   @DocsEditable()
@@ -3358,6 +3388,8 @@ class CssRule extends NativeFieldWrapperClass1 {
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions => true;
+  // To suppress missing implicit constructor warnings.
+  factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
@@ -6843,6 +6875,8 @@ class CssUnknownRule extends CssRule {
 @DomName('CSSVariablesMap')
 @Experimental() // untriaged
 class CssVariablesMap extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CssVariablesMap._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CSSVariablesMap.size')
   @DocsEditable()
@@ -6904,21 +6938,43 @@ class CssViewportRule extends CssRule {
 
 @DomName('CustomEvent')
 class CustomEvent extends Event {
+  var _dartDetail;
+
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
     final CustomEvent e = document._createEvent('CustomEvent');
 
-    e._initCustomEvent(type, canBubble, cancelable, detail);
+    e._dartDetail = detail;
+
+    // Only try setting the detail if it's one of these types to avoid
+    // first-chance exceptions. Can expand this list in the future as needed.
+    if (detail is List || detail is Map || detail is String || detail is num) {
+      try {
+        e._initCustomEvent(type, canBubble, cancelable, detail);
+      } catch(_) {
+        e._initCustomEvent(type, canBubble, cancelable, null);
+      }
+    } else {
+      e._initCustomEvent(type, canBubble, cancelable, null);
+    }
 
     return e;
+  }
+
+  @DomName('CustomEvent.detail')
+  get detail {
+    if (_dartDetail != null) {
+      return _dartDetail;
+    }
+    return _detail;
   }
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CustomEvent.detail')
   @DocsEditable()
-  Object get detail native "CustomEvent_detail_Getter";
+  Object get _detail native "CustomEvent_detail_Getter";
 
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
@@ -6994,6 +7050,8 @@ class DataListElement extends HtmlElement {
 @DocsEditable()
 @DomName('Clipboard')
 class DataTransfer extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Clipboard.dropEffect')
   @DocsEditable()
@@ -7068,6 +7126,8 @@ class DataTransfer extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface
 @Experimental()
 class DataTransferItem extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DataTransferItem.kind')
   @DocsEditable()
@@ -7112,6 +7172,8 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-datatransferitemlist-interface
 @Experimental()
 class DataTransferItemList extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DataTransferItemList.length')
   @DocsEditable()
@@ -7245,6 +7307,8 @@ class DetailsElement extends HtmlElement {
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
 class DeviceAcceleration extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
@@ -7345,6 +7409,8 @@ class DeviceOrientationEvent extends Event {
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
 class DeviceRotationRate extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
@@ -7513,6 +7579,8 @@ class DirectoryEntry extends Entry {
 // http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
 @Experimental()
 class DirectoryReader extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DirectoryReader.readEntries')
   @DocsEditable()
@@ -7929,23 +7997,24 @@ class Document extends Node
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
   /**
- * Finds the first descendant element of this document that matches the
- * specified group of selectors.
- *
- * Unless your webpage contains multiple documents, the top-level query
- * method behaves the same as this method, so you should use it instead to
- * save typing a few characters.
- *
- * [selectors] should be a string using CSS selector syntax.
- *     var element1 = document.query('.className');
- *     var element2 = document.query('#id');
- *
- * For details about CSS selector syntax, see the
- * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
- */
+   * Finds the first descendant element of this document that matches the
+   * specified group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level
+   * [querySelector]
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *     var element1 = document.querySelector('.className');
+   *     var element2 = document.querySelector('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   @DomName('Document.querySelector')
   @DocsEditable()
-  Element query(String selectors) native "Document_querySelector_Callback";
+  Element querySelector(String selectors) native "Document_querySelector_Callback";
 
   @DomName('Document.querySelectorAll')
   @DocsEditable()
@@ -8234,19 +8303,39 @@ class Document extends Node
    * Finds all descendant elements of this document that match the specified
    * group of selectors.
    *
-   * Unless your webpage contains multiple documents, the top-level queryAll
+   * Unless your webpage contains multiple documents, the top-level
+   * [querySelectorAll]
    * method behaves the same as this method, so you should use it instead to
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
-   *     var items = document.queryAll('.itemClassName');
+   *     var items = document.querySelectorAll('.itemClassName');
    *
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList queryAll(String selectors) {
+  ElementList querySelectorAll(String selectors) {
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
+
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('Document.querySelector')
+  Element query(String relativeSelectors) => querySelector(relativeSelectors);
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('Document.querySelectorAll')
+  ElementList queryAll(String relativeSelectors) =>
+      querySelectorAll(relativeSelectors);
 
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
@@ -8303,10 +8392,10 @@ class DocumentFragment extends Node implements ParentNode {
     children.addAll(copy);
   }
 
-  Element query(String selectors) => _querySelector(selectors);
-
-  List<Element> queryAll(String selectors) =>
+  ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -8343,12 +8432,33 @@ class DocumentFragment extends Node implements ParentNode {
     this.append(new DocumentFragment.html(text));
   }
 
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('DocumentFragment.querySelector')
+  Element query(String relativeSelectors) {
+    return querySelector(relativeSelectors);
+  }
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('DocumentFragment.querySelectorAll')
+  ElementList queryAll(String relativeSelectors) {
+    return querySelectorAll(relativeSelectors);
+  }
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
-  Element _querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
+  Element querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
@@ -8393,6 +8503,8 @@ class DocumentType extends Node implements ChildNode {
 @DocsEditable()
 @DomName('DOMError')
 class DomError extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DomError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMError.message')
   @DocsEditable()
@@ -8435,6 +8547,8 @@ class DomException extends NativeFieldWrapperClass1 {
   static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
   static const String DATA_CLONE = 'DataCloneError';
 
+  // To suppress missing implicit constructor warnings.
+  factory DomException._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMException.message')
   @DocsEditable()
@@ -8459,6 +8573,8 @@ class DomException extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('DOMImplementation')
 class DomImplementation extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMImplementation.createCSSStyleSheet')
   @DocsEditable()
@@ -8492,6 +8608,8 @@ class DomImplementation extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('DOMParser')
 class DomParser extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DomParser._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMParser.DOMParser')
   @DocsEditable()
@@ -8542,7 +8660,9 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMStringList.length')
   @DocsEditable()
@@ -8612,6 +8732,8 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
 @DocsEditable()
 @DomName('DOMStringMap')
 abstract class DomStringMap extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMStringMap.__delete__')
   @DocsEditable()
@@ -8636,6 +8758,8 @@ abstract class DomStringMap extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('DOMTokenList')
 class DomTokenList extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('DOMTokenList.length')
   @DocsEditable()
@@ -9702,10 +9826,30 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    *
    * [selectors] should be a string using CSS selector syntax.
    *
-   *     var items = element.query('.itemClassName');
+   *     var items = element.querySelectorAll('.itemClassName');
    */
-  ElementList queryAll(String selectors) =>
+  @DomName('Element.querySelectorAll')
+  ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @DomName('Element.querySelector')
+  @Experimental()
+  Element query(String relativeSelectors) => querySelector(relativeSelectors);
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @DomName('Element.querySelectorAll')
+  @Experimental()
+  ElementList queryAll(String relativeSelectors) =>
+      querySelectorAll(relativeSelectors);
 
   /**
    * The set of CSS classes applied to this element.
@@ -10756,25 +10900,25 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   bool _hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
   /**
- * Finds the first descendant element of this element that matches the
- * specified group of selectors.
- *
- * [selectors] should be a string using CSS selector syntax.
- *
- *     // Gets the first descendant with the class 'classname'
- *     var element = element.query('.className');
- *     // Gets the element with id 'id'
- *     var element = element.query('#id');
- *     // Gets the first descendant [ImageElement]
- *     var img = element.query('img');
- *
- * See also:
- *
- * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
- */
+   * Finds the first descendant element of this element that matches the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     // Gets the first descendant with the class 'classname'
+   *     var element = element.querySelector('.className');
+   *     // Gets the element with id 'id'
+   *     var element = element.querySelector('#id');
+   *     // Gets the first descendant [ImageElement]
+   *     var img = element.querySelector('img');
+   *
+   * See also:
+   *
+   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+   */
   @DomName('Element.querySelector')
   @DocsEditable()
-  Element query(String selectors) native "Element_querySelector_Callback";
+  Element querySelector(String selectors) native "Element_querySelector_Callback";
 
   @DomName('Element.querySelectorAll')
   @DocsEditable()
@@ -11266,6 +11410,8 @@ typedef void _EntriesCallback(List<Entry> entries);
 // http://www.w3.org/TR/file-system-api/#the-entry-interface
 @Experimental()
 class Entry extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Entry._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Entry.filesystem')
   @DocsEditable()
@@ -11489,6 +11635,8 @@ class Event extends NativeFieldWrapperClass1 {
     }
     return matchedTarget;
   }
+  // To suppress missing implicit constructor warnings.
+  factory Event._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Event.AT_TARGET')
   @DocsEditable()
@@ -11842,6 +11990,8 @@ class EventTarget extends NativeFieldWrapperClass1 {
    * used when an explicit accessor is not available.
    */
   Events get on => new Events(this);
+  // To suppress missing implicit constructor warnings.
+  factory EventTarget._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
@@ -12089,7 +12239,9 @@ class FileError extends DomError {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
+class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableListMixin<File> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory FileList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('FileList.length')
   @DocsEditable()
@@ -12294,6 +12446,8 @@ class FileReader extends EventTarget {
 @DomName('Stream')
 @Experimental() // untriaged
 class FileStream extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Stream.type')
   @DocsEditable()
@@ -12314,6 +12468,8 @@ class FileStream extends NativeFieldWrapperClass1 {
 @Experimental()
 // http://www.w3.org/TR/file-system-api/
 class FileSystem extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory FileSystem._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -12536,7 +12692,14 @@ class FontLoader extends EventTarget {
 
   @DomName('FontLoader.notifyWhenFontsReady')
   @DocsEditable()
-  void notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+  void _notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+
+  Future notifyWhenFontsReady() {
+    var completer = new Completer();
+    _notifyWhenFontsReady(
+        () { completer.complete(); });
+    return completer.future;
+  }
 
   @DomName('FontLoader.addEventListener')
   @DocsEditable()
@@ -12585,6 +12748,8 @@ class FontLoader extends EventTarget {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class FormData extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory FormData._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('FormData.FormData')
   @DocsEditable()
@@ -12767,6 +12932,8 @@ class FormElement extends HtmlElement {
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#gamepad-interface
 @Experimental()
 class Gamepad extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Gamepad._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Gamepad.axes')
   @DocsEditable()
@@ -12869,6 +13036,8 @@ class Geolocation extends NativeFieldWrapperClass1 {
     return domPosition;
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory Geolocation._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
@@ -12896,6 +13065,8 @@ class Geolocation extends NativeFieldWrapperClass1 {
 @DomName('Geoposition')
 @Unstable()
 class Geoposition extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Geoposition._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Geoposition.coords')
   @DocsEditable()
@@ -13057,6 +13228,8 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
    * * [state]
    */
   static bool get supportsState => true;
+  // To suppress missing implicit constructor warnings.
+  factory History._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('History.length')
   @DocsEditable()
@@ -13150,7 +13323,9 @@ class HmacParams extends Algorithm {
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory HtmlAllCollection._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLAllCollection.length')
   @DocsEditable()
@@ -13227,7 +13402,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
@@ -14098,7 +14275,7 @@ class HttpRequest extends XmlHttpRequestEventTarget {
   Object get response native "XMLHttpRequest_response_Getter";
 
   /**
-   * The response in string form or `null on failure.
+   * The response in String form or empty String on failure.
    */
   @DomName('XMLHttpRequest.responseText')
   @DocsEditable()
@@ -14409,6 +14586,8 @@ class IFrameElement extends HtmlElement {
 @DomName('ImageBitmap')
 @Experimental() // untriaged
 class ImageBitmap extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ImageBitmap.height')
   @DocsEditable()
@@ -14436,6 +14615,8 @@ class ImageData extends NativeFieldWrapperClass1 {
     return __data;
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory ImageData._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ImageData.data')
   @DocsEditable()
@@ -15685,6 +15866,8 @@ abstract class ButtonInputElement implements InputElementBase {
 // http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
 @Experimental()
 class InputMethodContext extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('InputMethodContext.composition')
   @DocsEditable()
@@ -16122,6 +16305,8 @@ class LinkElement extends HtmlElement {
 @DocsEditable()
 @DomName('Location')
 class Location extends NativeFieldWrapperClass1 implements LocationBase {
+  // To suppress missing implicit constructor warnings.
+  factory Location._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
@@ -16982,6 +17167,8 @@ class MediaElement extends HtmlElement {
 @DomName('MediaError')
 @Unstable()
 class MediaError extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaError.MEDIA_ERR_ABORTED')
   @DocsEditable()
@@ -17022,6 +17209,8 @@ class MediaError extends NativeFieldWrapperClass1 {
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
 @Experimental()
 class MediaKeyError extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
   @DocsEditable()
@@ -17238,6 +17427,8 @@ class MediaKeySession extends EventTarget {
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
 @Experimental()
 class MediaKeys extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaKeys.MediaKeys')
   @DocsEditable()
@@ -17268,6 +17459,8 @@ class MediaKeys extends NativeFieldWrapperClass1 {
 @DomName('MediaList')
 @Unstable()
 class MediaList extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MediaList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaList.length')
   @DocsEditable()
@@ -17305,6 +17498,8 @@ class MediaList extends NativeFieldWrapperClass1 {
 @DomName('MediaQueryList')
 @Unstable()
 class MediaQueryList extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MediaQueryList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaQueryList.matches')
   @DocsEditable()
@@ -17334,6 +17529,8 @@ class MediaQueryList extends NativeFieldWrapperClass1 {
 @DomName('MediaQueryListListener')
 @Unstable()
 abstract class MediaQueryListListener extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MediaQueryListListener._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MediaQueryListListener.queryChanged')
   @DocsEditable()
@@ -17612,7 +17809,14 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
+  static void _getSources(MediaStreamTrackSourcesCallback callback) native "MediaStreamTrack_getSources_Callback";
+
+  static Future<List<SourceInfo>> getSources() {
+    var completer = new Completer<List<SourceInfo>>();
+    _getSources(
+        (value) { completer.complete(value); });
+    return completer.future;
+  }
 
   @DomName('MediaStreamTrack.addEventListener')
   @DocsEditable()
@@ -17684,6 +17888,8 @@ typedef void MediaStreamTrackSourcesCallback(List<SourceInfo> sources);
 @DomName('MemoryInfo')
 @Experimental() // nonstandard
 class MemoryInfo extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MemoryInfo.jsHeapSizeLimit')
   @DocsEditable()
@@ -17743,6 +17949,8 @@ class MenuElement extends HtmlElement {
 @DomName('MessageChannel')
 @Unstable()
 class MessageChannel extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MessageChannel.port1')
   @DocsEditable()
@@ -17911,6 +18119,8 @@ class MetaElement extends HtmlElement {
 // http://www.w3.org/TR/file-system-api/#the-metadata-interface
 @Experimental()
 class Metadata extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Metadata._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Metadata.modificationTime')
   @DocsEditable()
@@ -18079,6 +18289,8 @@ class MidiAccess extends EventTarget {
 @DomName('MIDIAccessPromise')
 @Experimental() // untriaged
 class MidiAccessPromise extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MidiAccessPromise._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MIDIAccessPromise.then')
   @DocsEditable()
@@ -18250,6 +18462,8 @@ class MidiPort extends EventTarget {
 @DomName('MimeType')
 @Experimental() // non-standard
 class MimeType extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MimeType.description')
   @DocsEditable()
@@ -18278,7 +18492,9 @@ class MimeType extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
+class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
@@ -18615,7 +18831,7 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 
   @DomName('MutationObserver.MutationObserver')
   @DocsEditable()
-  factory MutationObserver(MutationCallback callback) => _create(callback);
+  factory MutationObserver._(MutationCallback callback) => _create(callback);
 
   @DocsEditable()
   static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
@@ -18687,6 +18903,8 @@ class MutationObserver extends NativeFieldWrapperClass1 {
     _observe(target, options);
   }
 
+  factory MutationObserver(MutationCallback callback) =>
+      new MutationObserver._(_wrapBinaryZone(callback));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18698,6 +18916,8 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('MutationRecord')
 class MutationRecord extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
@@ -18804,6 +19024,8 @@ class NamedFlow extends EventTarget {
 @Experimental()
 // http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection
 class NamedFlowCollection extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory NamedFlowCollection._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebKitNamedFlowCollection.length')
   @DocsEditable()
@@ -18886,6 +19108,8 @@ class Navigator extends NativeFieldWrapperClass1 implements NavigatorOnLine, Nav
   }
 
 
+  // To suppress missing implicit constructor warnings.
+  factory Navigator._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Navigator.appCodeName')
   @DocsEditable()
@@ -19026,6 +19250,8 @@ class Navigator extends NativeFieldWrapperClass1 implements NavigatorOnLine, Nav
 @DomName('NavigatorID')
 @Experimental() // untriaged
 abstract class NavigatorID extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NavigatorID.appName')
   @DocsEditable()
@@ -19059,6 +19285,8 @@ abstract class NavigatorID extends NativeFieldWrapperClass1 {
 @DomName('NavigatorOnLine')
 @Experimental() // untriaged
 abstract class NavigatorOnLine extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory NavigatorOnLine._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NavigatorOnLine.onLine')
   @DocsEditable()
@@ -19078,6 +19306,8 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass1 {
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaError
 @Experimental()
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable()
@@ -19603,6 +19833,8 @@ class Node extends EventTarget {
 @DomName('NodeFilter')
 @Unstable()
 class NodeFilter extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NodeFilter.FILTER_ACCEPT')
   @DocsEditable()
@@ -19685,6 +19917,8 @@ class NodeIterator extends NativeFieldWrapperClass1 {
   factory NodeIterator(Node root, int whatToShow) {
     return document._createNodeIterator(root, whatToShow, null, false);
   }
+  // To suppress missing implicit constructor warnings.
+  factory NodeIterator._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable()
@@ -19724,7 +19958,9 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NodeList.length')
   @DocsEditable()
@@ -19967,6 +20203,8 @@ class Notification extends EventTarget {
 // http://www.w3.org/TR/notifications/#showing-a-notification
 @deprecated // deprecated
 class NotificationCenter extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory NotificationCenter._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -20515,6 +20753,8 @@ class ParamElement extends HtmlElement {
 @DomName('ParentNode')
 @Experimental() // untriaged
 abstract class ParentNode extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ParentNode._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
@@ -20549,6 +20789,8 @@ abstract class ParentNode extends NativeFieldWrapperClass1 {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
 @Experimental()
 class Path extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Path._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Path.Path')
   @DocsEditable()
@@ -20743,6 +20985,8 @@ class Performance extends EventTarget {
 // http://www.w3.org/TR/performance-timeline/#sec-PerformanceEntry-interface
 @Experimental()
 class PerformanceEntry extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
@@ -20804,6 +21048,8 @@ class PerformanceMeasure extends PerformanceEntry {
 @DomName('PerformanceNavigation')
 @Unstable()
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
   @DocsEditable()
@@ -20908,6 +21154,8 @@ class PerformanceResourceTiming extends PerformanceEntry {
 @DomName('PerformanceTiming')
 @Unstable()
 class PerformanceTiming extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PerformanceTiming.connectEnd')
   @DocsEditable()
@@ -21005,6 +21253,8 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 @DomName('Plugin')
 @Experimental() // non-standard
 class Plugin extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Plugin._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Plugin.description')
   @DocsEditable()
@@ -21045,7 +21295,9 @@ class Plugin extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
+class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PluginArray.length')
   @DocsEditable()
@@ -21156,6 +21408,8 @@ typedef void _PositionCallback(Geoposition position);
 @DomName('PositionError')
 @Unstable()
 class PositionError extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory PositionError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PositionError.PERMISSION_DENIED')
   @DocsEditable()
@@ -21339,6 +21593,8 @@ class ProgressEvent extends Event {
 @DomName('Promise')
 @Experimental() // untriaged
 class Promise extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Promise._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Promise._any')
   @DocsEditable()
@@ -21382,6 +21638,8 @@ class Promise extends NativeFieldWrapperClass1 {
 @DomName('PromiseResolver')
 @Experimental() // untriaged
 class PromiseResolver extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory PromiseResolver._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('PromiseResolver.fulfill')
   @DocsEditable()
@@ -21478,6 +21736,8 @@ class Range extends NativeFieldWrapperClass1 {
 
   factory Range.fromPoint(Point point) =>
       document._caretRangeFromPoint(point.x, point.y);
+  // To suppress missing implicit constructor warnings.
+  factory Range._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Range.END_TO_END')
   @DocsEditable()
@@ -22016,6 +22276,8 @@ class RtcDtmfToneChangeEvent extends Event {
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory RtcIceCandidate._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable()
@@ -22088,6 +22350,13 @@ class RtcPeerConnection extends EventTarget {
     _createAnswer(
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
+  }
+
+  @DomName('RTCPeerConnection.getStats')
+  Future<RtcStatsResponse> getStats(MediaStreamTrack selector) {
+    var completer = new Completer<RtcStatsResponse>();
+    _getStats((value) { completer.complete(value); }, selector);
     return completer.future;
   }
   // To suppress missing implicit constructor warnings.
@@ -22188,7 +22457,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
+  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
 
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
@@ -22280,6 +22549,8 @@ class RtcPeerConnection extends EventTarget {
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory RtcSessionDescription._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable()
@@ -22319,6 +22590,8 @@ class RtcSessionDescription extends NativeFieldWrapperClass1 {
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsReport
 @Experimental()
 class RtcStatsReport extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('RTCStatsReport.id')
   @DocsEditable()
@@ -22361,6 +22634,8 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id
 @Experimental()
 class RtcStatsResponse extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable()
@@ -22390,6 +22665,8 @@ class Screen extends NativeFieldWrapperClass1 {
   @DomName('Screen.availWidth')
   Rectangle get available => new Rectangle(_availLeft, _availTop, _availWidth,
       _availHeight);
+  // To suppress missing implicit constructor warnings.
+  factory Screen._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Screen.availHeight')
   @DocsEditable()
@@ -22549,6 +22826,8 @@ class ScriptElement extends HtmlElement {
 // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicy
 @Experimental()
 class SecurityPolicy extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SecurityPolicy._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SecurityPolicy.allowsEval')
   @DocsEditable()
@@ -22809,8 +23088,8 @@ class SelectElement extends HtmlElement {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options =
-        this.queryAll('option').where((e) => e is OptionElement).toList();
+    var options = this.querySelectorAll('option').where(
+        (e) => e is OptionElement).toList();
     return new UnmodifiableListView(options);
   }
 
@@ -22834,6 +23113,8 @@ class SelectElement extends HtmlElement {
 @DocsEditable()
 @DomName('Selection')
 class Selection extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Selection._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Selection.anchorNode')
   @DocsEditable()
@@ -23194,7 +23475,7 @@ class SourceBuffer extends EventTarget {
 @DomName('SourceBufferList')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 @Experimental()
-class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List<SourceBuffer> {
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -23323,6 +23604,8 @@ class SourceElement extends HtmlElement {
 @DomName('SourceInfo')
 @Experimental() // untriaged
 class SourceInfo extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SourceInfo.facing')
   @DocsEditable()
@@ -23381,6 +23664,8 @@ class SpanElement extends HtmlElement {
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar
 @Experimental()
 class SpeechGrammar extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechGrammar._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable()
@@ -23419,7 +23704,9 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
+class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
@@ -23542,6 +23829,8 @@ class SpeechInputEvent extends Event {
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_interface
 @Experimental()
 class SpeechInputResult extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechInputResult._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechInputResult.confidence')
   @DocsEditable()
@@ -23746,6 +24035,8 @@ class SpeechRecognition extends EventTarget {
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionalternative
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
@@ -23827,6 +24118,8 @@ class SpeechRecognitionEvent extends Event {
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresult
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechRecognitionResult.isFinal')
   @DocsEditable()
@@ -23853,6 +24146,8 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
 class SpeechSynthesis extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechSynthesis._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechSynthesis.paused')
   @DocsEditable()
@@ -24071,6 +24366,8 @@ class SpeechSynthesisUtterance extends EventTarget {
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
 class SpeechSynthesisVoice extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable()
@@ -24176,6 +24473,8 @@ class Storage extends NativeFieldWrapperClass1
   bool get isEmpty => _key(0) == null;
 
   bool get isNotEmpty => !isEmpty;
+  // To suppress missing implicit constructor warnings.
+  factory Storage._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Storage.length')
   @DocsEditable()
@@ -24313,6 +24612,8 @@ class StorageEvent extends Event {
 // http://www.w3.org/TR/file-system-api/
 @Experimental()
 class StorageInfo extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('StorageInfo.PERSISTENT')
   @DocsEditable()
@@ -24371,6 +24672,8 @@ class StorageInfoUsage {
 // http://www.w3.org/TR/quota-api/#idl-def-StorageQuota
 @Experimental()
 class StorageQuota extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('StorageQuota.queryUsageAndQuota')
   @DocsEditable()
@@ -24378,7 +24681,15 @@ class StorageQuota extends NativeFieldWrapperClass1 {
 
   @DomName('StorageQuota.requestQuota')
   @DocsEditable()
-  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "StorageQuota_requestQuota_Callback";
+  void _requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "StorageQuota_requestQuota_Callback";
+
+  Future<int> requestQuota(int newQuotaInBytes) {
+    var completer = new Completer<int>();
+    _requestQuota(newQuotaInBytes,
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24486,6 +24797,8 @@ class StyleElement extends HtmlElement {
 // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
 @Experimental() // nonstandard
 class StyleMedia extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('StyleMedia.type')
   @DocsEditable()
@@ -24506,6 +24819,8 @@ class StyleMedia extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('StyleSheet')
 class StyleSheet extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('StyleSheet.disabled')
   @DocsEditable()
@@ -25141,7 +25456,8 @@ class TemplateElement extends HtmlElement {
     // Need to do this first as the contents may get lifted if |node| is
     // template.
     // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents = (content as dynamic).queryAll(_allTemplatesSelectors);
+    var descendents = 
+        (content as dynamic).querySelectorAll(_allTemplatesSelectors);
     if (content is Element && (content as Element).isTemplate) {
       _bootstrap(content);
     }
@@ -25503,6 +25819,8 @@ class TextEvent extends UIEvent {
 @DocsEditable()
 @DomName('TextMetrics')
 class TextMetrics extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('TextMetrics.width')
   @DocsEditable()
@@ -25756,7 +26074,9 @@ class TextTrackCue extends EventTarget {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
+class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
@@ -25827,7 +26147,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
 @DomName('TextTrackList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
 @Experimental()
-class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List<TextTrack> {
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
@@ -25916,6 +26236,8 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 @DomName('TimeRanges')
 @Unstable()
 class TimeRanges extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('TimeRanges.length')
   @DocsEditable()
@@ -25973,6 +26295,8 @@ class TitleElement extends HtmlElement {
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
 class Touch extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Touch._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Touch.clientX')
   @DocsEditable()
@@ -26130,11 +26454,13 @@ class TouchEvent extends UIEvent {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
+class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
   factory TouchList() => document._createTouchList();
+  // To suppress missing implicit constructor warnings.
+  factory TouchList._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -26345,6 +26671,8 @@ class TreeWalker extends NativeFieldWrapperClass1 {
   factory TreeWalker(Node root, int whatToShow) {
     return document._createTreeWalker(root, whatToShow, null, false);
   }
+  // To suppress missing implicit constructor warnings.
+  factory TreeWalker._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
@@ -26553,6 +26881,8 @@ class UnknownElement extends HtmlElement {
 @DocsEditable()
 @DomName('URL')
 class Url extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Url._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('URL._createObjectUrlFromWebKitSource')
   @DocsEditable()
@@ -26610,6 +26940,8 @@ class Url extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('ValidityState')
 class ValidityState extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ValidityState.badInput')
   @DocsEditable()
@@ -27126,21 +27458,8 @@ class WheelEvent extends MouseEvent {
 
 @DocsEditable
 @DomName('Window')
-class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase64 {
+class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 {
 
-  /**
-   * Executes a [callback] after the immediate execution stack has completed.
-   *
-   * This differs from using Timer.run(callback)
-   * because Timer will run in about 4-15 milliseconds, depending on browser,
-   * depending on load. [setImmediate], in contrast, makes browser-specific
-   * changes in behavior to attempt to run immediately after the current
-   * frame unwinds, causing the future to complete after all processing has
-   * completed for the current event, but before any subsequent events.
-   */
-  void setImmediate(TimeoutHandler callback) {
-    _addMicrotaskCallback(callback);
-  }
   /**
    * Lookup a port by its [name].  Return null if no port is
    * registered under [name].
@@ -27197,12 +27516,25 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
     return completer.future;
   }
 
-  /// Checks if _setImmediate is supported.
-  static bool get _supportsSetImmediate => false;
-
-  /// Dartium stub for IE's setImmediate.
-  void _setImmediate(void callback()) {
-    throw new UnsupportedError('setImmediate is not supported');
+  /**
+   * Called to draw an animation frame and then request the window to repaint
+   * after [callback] has finished (creating the animation).
+   *
+   * Use this method only if you need to later call [cancelAnimationFrame]. If
+   * not, the preferred Dart idiom is to set animation frames by calling
+   * [animationFrame], which returns a Future.
+   *
+   * Returns a non-zero valued integer to represent the request id for this
+   * request. This value only needs to be saved if you intend to call
+   * [cancelAnimationFrame] so you can specify the particular animation to
+   * cancel.
+   *
+   * Note: The supplied [callback] needs to call [requestAnimationFrame] again
+   * for the animation to continue.
+   */
+  @DomName('Window.requestAnimationFrame')
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+    return _requestAnimationFrame(_wrapZone(callback));
   }
 
   /**
@@ -27712,7 +28044,7 @@ class Window extends EventTarget implements WindowBase, WindowTimers, WindowBase
 
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "Window_requestAnimationFrame_Callback";
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native "Window_requestAnimationFrame_Callback";
 
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -28143,6 +28475,8 @@ class _BeforeUnloadEventStreamProvider implements
 @DomName('WindowBase64')
 @Experimental() // untriaged
 abstract class WindowBase64 extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory WindowBase64._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WindowBase64.atob')
   @DocsEditable()
@@ -28153,39 +28487,6 @@ abstract class WindowBase64 extends NativeFieldWrapperClass1 {
   @DocsEditable()
   @Experimental() // untriaged
   String btoa(String string) native "WindowBase64_btoa_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WindowTimers')
-@Experimental() // untriaged
-abstract class WindowTimers extends NativeFieldWrapperClass1 {
-
-  @DomName('WindowTimers.clearInterval')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
-
-  @DomName('WindowTimers.clearTimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
-
-  @DomName('WindowTimers.setInterval')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
-
-  @DomName('WindowTimers.setTimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28287,6 +28588,8 @@ class WorkerConsole extends ConsoleBase {
 @DomName('WorkerCrypto')
 @Experimental() // untriaged
 class WorkerCrypto extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory WorkerCrypto._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WorkerCrypto.getRandomValues')
   @DocsEditable()
@@ -28304,7 +28607,7 @@ class WorkerCrypto extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('WorkerGlobalScope')
 @Experimental() // untriaged
-class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase64 {
+class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase64 {
   // To suppress missing implicit constructor warnings.
   factory WorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
@@ -28485,6 +28788,8 @@ class WorkerGlobalScope extends EventTarget implements WindowTimers, WindowBase6
 @DomName('WorkerPerformance')
 @Experimental() // untriaged
 class WorkerPerformance extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WorkerPerformance.now')
   @DocsEditable()
@@ -28504,6 +28809,8 @@ class WorkerPerformance extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
 @deprecated // experimental
 class XPathEvaluator extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory XPathEvaluator._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable()
@@ -28539,6 +28846,8 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
 @deprecated // experimental
 class XPathExpression extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('XPathExpression.evaluate')
   @DocsEditable()
@@ -28557,6 +28866,8 @@ class XPathExpression extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
 @deprecated // experimental
 class XPathNSResolver extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('XPathNSResolver.lookupNamespaceURI')
   @DocsEditable()
@@ -28575,6 +28886,8 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
 @deprecated // experimental
 class XPathResult extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory XPathResult._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('XPathResult.ANY_TYPE')
   @DocsEditable()
@@ -28773,6 +29086,8 @@ class XmlHttpRequestEventTarget extends EventTarget {
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
 class XmlSerializer extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory XmlSerializer._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable()
@@ -28802,6 +29117,8 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @deprecated // nonstandard
 class XsltProcessor extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory XsltProcessor._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable()
@@ -28926,6 +29243,8 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 abstract class _CSSValue extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -29026,7 +29345,9 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rectangle {
   Point get bottomLeft => new Point(this.left,
       this.top + this.height);
 
-  
+    // To suppress missing implicit constructor warnings.
+  factory _ClientRect._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('ClientRect.bottom')
   @DocsEditable()
   double get bottom native "ClientRect_bottom_Getter";
@@ -29097,7 +29418,9 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
+class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ClientRectList.length')
   @DocsEditable()
@@ -29165,6 +29488,8 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rectangle>
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 abstract class _Counter extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _Counter._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29176,7 +29501,9 @@ abstract class _Counter extends NativeFieldWrapperClass1 {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
+class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
@@ -29243,7 +29570,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
 @DomName('CSSValueList')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List {
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -29314,6 +29641,8 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @Experimental()
 // http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
 abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29331,6 +29660,8 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#databasesync
 @deprecated // deprecated
 abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _DatabaseSync._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29361,6 +29692,8 @@ abstract class _DirectoryEntrySync extends _EntrySync {
 // http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
 @Experimental()
 abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29378,6 +29711,8 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
 // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
 @Experimental() // non-standard
 class _DomPoint extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _DomPoint._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebKitPoint.WebKitPoint')
   @DocsEditable()
@@ -29445,6 +29780,8 @@ class _Entity extends Node {
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
 abstract class _EntrySync extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29475,6 +29812,8 @@ abstract class _FileEntrySync extends _EntrySync {
 // http://www.w3.org/TR/FileAPI/#FileReaderSync
 @Experimental()
 abstract class _FileReaderSync extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _FileReaderSync._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable()
@@ -29498,6 +29837,8 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
 @Experimental()
 abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29511,7 +29852,9 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
+class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('GamepadList.length')
   @DocsEditable()
@@ -29732,7 +30075,9 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
@@ -29827,6 +30172,8 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
 @DomName('PagePopupController')
 @deprecated // nonstandard
 abstract class _PagePopupController extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29841,6 +30188,8 @@ abstract class _PagePopupController extends NativeFieldWrapperClass1 {
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 abstract class _RGBColor extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -29866,6 +30215,8 @@ abstract class _RadioNodeList extends NodeList {
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 abstract class _Rect extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _Rect._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29904,7 +30255,9 @@ abstract class _SharedWorker extends EventTarget implements AbstractWorker {
 @DomName('SpeechInputResultList')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
 @Experimental()
-class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List<SpeechInputResult> {
+class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable()
@@ -29971,7 +30324,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
@@ -30036,7 +30391,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
+class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('StyleSheetList.length')
   @DocsEditable()
@@ -30107,6 +30464,8 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
 abstract class _SubtleCrypto extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30144,6 +30503,8 @@ abstract class _WebKitMediaSource extends EventTarget {
 @DomName('WebKitSourceBuffer')
 @Experimental() // untriaged
 abstract class _WebKitSourceBuffer extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitSourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30174,10 +30535,47 @@ abstract class _WebKitSourceBufferList extends EventTarget {
 
 
 @DocsEditable()
+@DomName('WindowTimers')
+@Experimental() // untriaged
+abstract class _WindowTimers extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WindowTimers.clearInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
+
+  @DomName('WindowTimers.clearTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
+
+  @DomName('WindowTimers.setInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
+
+  @DomName('WindowTimers.setTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WorkerLocation')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
 @Experimental()
 abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30192,6 +30590,8 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
 abstract class _WorkerNavigator extends NativeFieldWrapperClass1 implements NavigatorOnLine, NavigatorID {
+  // To suppress missing implicit constructor warnings.
+  factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31357,12 +31757,6 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   _EventStreamSubscription(this._target, this._eventType, onData,
       this._useCapture) : _onData = _wrapZone(onData) {
     _tryResume();
-  }
-
-  static _wrapZone(callback) {
-    // For performance reasons avoid wrapping if we are in the root zone.
-    if (Zone.current == Zone.ROOT) return callback;
-    return Zone.current.bindUnaryCallback(callback, runGuarded: true);
   }
 
   void cancel() {
@@ -33486,161 +33880,6 @@ class KeyboardEventStream {
   static CustomStream<KeyEvent> onKeyDown(EventTarget target) =>
       new _KeyboardEventHandler('keydown').forTarget(target);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-typedef void _MicrotaskCallback();
-
-/**
- * This class attempts to invoke a callback as soon as the current event stack
- * unwinds, but before the browser repaints.
- */
-abstract class _MicrotaskScheduler {
-  bool _nextMicrotaskFrameScheduled = false;
-  final _MicrotaskCallback _callback;
-
-  _MicrotaskScheduler(this._callback);
-
-  /**
-   * Creates the best possible microtask scheduler for the current platform.
-   */
-  factory _MicrotaskScheduler.best(_MicrotaskCallback callback) {
-    if (Window._supportsSetImmediate) {
-      return new _SetImmediateScheduler(callback);
-    } else if (MutationObserver.supported) {
-      return new _MutationObserverScheduler(callback);
-    }
-    return new _PostMessageScheduler(callback);
-  }
-
-  /**
-   * Schedules a microtask callback if one has not been scheduled already.
-   */
-  void maybeSchedule() {
-    if (this._nextMicrotaskFrameScheduled) {
-      return;
-    }
-    this._nextMicrotaskFrameScheduled = true;
-    this._schedule();
-  }
-
-  /**
-   * Does the actual scheduling of the callback.
-   */
-  void _schedule();
-
-  /**
-   * Handles the microtask callback and forwards it if necessary.
-   */
-  void _onCallback() {
-    // Ignore spurious messages.
-    if (!_nextMicrotaskFrameScheduled) {
-      return;
-    }
-    _nextMicrotaskFrameScheduled = false;
-    this._callback();
-  }
-}
-
-/**
- * Scheduler which uses window.postMessage to schedule events.
- */
-class _PostMessageScheduler extends _MicrotaskScheduler {
-  final _MICROTASK_MESSAGE = "DART-MICROTASK";
-
-  _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
-      // Messages from other windows do not cause a security risk as
-      // all we care about is that _handleMessage is called
-      // after the current event loop is unwound and calling the function is
-      // a noop when zero requests are pending.
-      window.onMessage.listen(this._handleMessage);
-  }
-
-  void _schedule() {
-    window.postMessage(_MICROTASK_MESSAGE, "*");
-  }
-
-  void _handleMessage(e) {
-    this._onCallback();
-  }
-}
-
-/**
- * Scheduler which uses a MutationObserver to schedule events.
- */
-class _MutationObserverScheduler extends _MicrotaskScheduler {
-  MutationObserver _observer;
-  Element _dummy;
-
-  _MutationObserverScheduler(_MicrotaskCallback callback): super(callback) {
-    // Mutation events get fired as soon as the current event stack is unwound
-    // so we just make a dummy event and listen for that.
-    _observer = new MutationObserver(this._handleMutation);
-    _dummy = new DivElement();
-    _observer.observe(_dummy, attributes: true);
-  }
-
-  void _schedule() {
-    // Toggle it to trigger the mutation event.
-    _dummy.hidden = !_dummy.hidden;
-  }
-
-  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
-    this._onCallback();
-  }
-}
-
-/**
- * Scheduler which uses window.setImmediate to schedule events.
- */
-class _SetImmediateScheduler extends _MicrotaskScheduler {
-  _SetImmediateScheduler(_MicrotaskCallback callback): super(callback);
-
-  void _schedule() {
-    window._setImmediate(_handleImmediate);
-  }
-
-  void _handleImmediate() {
-    this._onCallback();
-  }
-}
-
-List<TimeoutHandler> _pendingMicrotasks;
-_MicrotaskScheduler _microtaskScheduler = null;
-
-void _maybeScheduleMicrotaskFrame() {
-  if (_microtaskScheduler == null) {
-    _microtaskScheduler =
-      new _MicrotaskScheduler.best(_completeMicrotasks);
-  }
-  _microtaskScheduler.maybeSchedule();
-}
-
-/**
- * Registers a [callback] which is called after the current execution stack
- * unwinds.
- */
-void _addMicrotaskCallback(TimeoutHandler callback) {
-  if (_pendingMicrotasks == null) {
-    _pendingMicrotasks = <TimeoutHandler>[];
-    _maybeScheduleMicrotaskFrame();
-  }
-  _pendingMicrotasks.add(callback);
-}
-
-
-/**
- * Complete all pending microtasks.
- */
-void _completeMicrotasks() {
-  var callbacks = _pendingMicrotasks;
-  _pendingMicrotasks = null;
-  for (var callback in callbacks) {
-    callback();
-  }
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34894,6 +35133,39 @@ class Platform {
     // no-op, provided for dart2js polyfill.
   }
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+_wrapZone(callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
+  if (Zone.current == Zone.ROOT) return callback;
+  return Zone.current.bindUnaryCallback(callback, runGuarded: true);
+}
+
+_wrapBinaryZone(callback) {
+  if (Zone.current == Zone.ROOT) return callback;
+  return Zone.current.bindBinaryCallback(callback, runGuarded: true);
+}
+
+/**
+ * Alias for [querySelector]. Note this function is deprecated because its
+ * semantics will be changing in the future.
+ */
+@deprecated
+@Experimental()
+Element query(String relativeSelectors) => document.query(relativeSelectors);
+/**
+ * Alias for [querySelectorAll]. Note this function is deprecated because its
+ * semantics will be changing in the future.
+ */
+@deprecated
+@Experimental()
+ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
+
+Element querySelector(String selector) => document.querySelector(selector);
+ElementList querySelectorAll(String selector) => document.querySelectorAll(selector);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34997,6 +35269,11 @@ class _Utils {
       return isTypeSubclassOf(superclass.reflectedType, other);
     }
     return false;
+  }
+
+  static bool isTypeSubclassOfTag(Type type, String tagName) {
+    var element = new Element.tag(tagName);
+    return isTypeSubclassOf(type, element.runtimeType);
   }
 
   static window() native "Utils_window";
@@ -35137,7 +35414,7 @@ class _Utils {
     }
     // Inject all the already defined console variables.
     _consoleTempVariables._data.forEach(addArg);
-    
+
     // TODO(jacobr): remove the parentheses around the expresson once
     // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
     // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
@@ -35159,7 +35436,7 @@ class _Utils {
    * Returns a list of completions to use if the receiver is o.
    */
   static List<String> getCompletions(o) {
-    MirrorSystem system = currentMirrorSystem(); 
+    MirrorSystem system = currentMirrorSystem();
     var completions = new Set<String>();
     addAll(Map<Symbol, dynamic> map, bool isStatic) {
       map.forEach((symbol, mirror) {
@@ -35182,7 +35459,7 @@ class _Utils {
         addForClass(interface, isStatic);
       }
     }
-    
+
     if (o is Type) {
       addForClass(reflectClass(o), true);
     } else {
@@ -35419,6 +35696,46 @@ get _timerFactoryClosure =>
 get _pureIsolateTimerFactoryClosure =>
     ((int milliSeconds, void callback(Timer time), bool repeating) =>
   throw new UnimplementedError("Timers on background isolates "
+                               "are not supported in the browser"));
+
+class _ScheduleImmediateHelper {
+  MutationObserver _observer;
+  final DivElement _div = new DivElement();
+  Function _callback;
+
+  _ScheduleImmediateHelper() {
+    // Mutation events get fired as soon as the current event stack is unwound
+    // so we just make a dummy event and listen for that.
+    _observer = new MutationObserver(_handleMutation);
+    _observer.observe(_div, attributes: true);
+  }
+
+  void _schedule(callback) {
+    if (_callback != null) {
+      throw new StateError(
+          'Only one immediate callback can be scheduled at once');
+    }
+    _callback = callback;
+    // Toggle it to trigger the mutation event.
+    _div.hidden = !_div.hidden;
+  }
+
+  _handleMutation(List<MutationRecord> mutations, MutationObserver observer) {
+    var tmp = _callback;
+    _callback = null;
+    tmp();
+  }
+}
+
+final _ScheduleImmediateHelper _scheduleImmediateHelper =
+    new _ScheduleImmediateHelper();
+
+get _scheduleImmediateClosure => (void callback()) {
+  _scheduleImmediateHelper._schedule(callback);
+};
+
+get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
+  throw new UnimplementedError("scheduleMicrotask in background isolates "
                                "are not supported in the browser"));
 
 void _initializeCustomElement(Element e) {

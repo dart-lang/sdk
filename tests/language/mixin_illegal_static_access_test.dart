@@ -12,7 +12,7 @@ class M {
   static bar() => 87;
 }
 
-typedef C = S with M;
+class C = S with M;
 
 main() {
   Expect.equals(42, S.foo());

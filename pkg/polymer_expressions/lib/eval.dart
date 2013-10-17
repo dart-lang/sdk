@@ -6,6 +6,9 @@ library polymer_expressions.eval;
 
 import 'dart:async';
 import 'dart:collection';
+
+@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
+    override: 'polymer_expressions.eval')
 import 'dart:mirrors';
 
 import 'package:observe/observe.dart';
@@ -608,7 +611,8 @@ _toBool(v) => (v == null) ? false : v;
 Object call(Object receiver, List args) {
   var result;
   if (receiver is Method) {
-    result = receiver.mirror.invoke(receiver.symbol, args, null).reflectee;
+    Method method = receiver;
+    result = method.mirror.invoke(method.symbol, args, null).reflectee;
   } else {
     result = Function.apply(receiver, args, null);
   }

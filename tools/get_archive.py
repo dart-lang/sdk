@@ -342,7 +342,7 @@ def main():
   # Issue 13399 Quick fix, update with channel support.
   bot = 'inc-be'
   if args.debug:
-    bot = 'debug'
+    bot = 'debug-be'
 
   if positional[0] == 'dartium':
     GetDartiumRevision('Dartium', bot, DARTIUM_DIR, DARTIUM_VERSION,

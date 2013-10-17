@@ -36,16 +36,17 @@ void initPolymer(List<String> libraries, [String srcUrl]) {
 
     // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
     mdv.initialize();
-    registerCustomElement('polymer-element', () => new PolymerDeclaration());
+    document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
     for (var lib in libraries) {
       _loadLibrary(lib, srcUrl);
     }
 
-    // TODO(jmesserly): this should be in the custom_element polyfill, not here.
-    // notify the system that we are bootstrapped
-    document.body.dispatchEvent(
-        new CustomEvent('WebComponentsReady', canBubble: true));
+    Polymer._ready.complete();
+
+    // TODO(sigmund): move to boot.dart once it's ready.
+    document.body.style.transition = 'opacity 0.3s';
+    document.body.style.opacity = '1';
   });
 }
 
@@ -90,7 +91,7 @@ void _loadLibrary(String uriString, [String srcUrl]) {
     for (var m in c.metadata) {
       var meta = m.reflectee;
       if (meta is CustomTag) {
-        Polymer._registerClassMirror(meta.tagName, c);
+        Polymer.register(meta.tagName, getReflectedTypeWorkaround(c));
       }
     }
 

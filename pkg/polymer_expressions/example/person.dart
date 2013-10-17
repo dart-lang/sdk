@@ -7,7 +7,7 @@ library person;
 import 'package:observe/observe.dart';
 
 class Person extends ChangeNotifierBase {
-\  String _firstName;
+  String _firstName;
   String _lastName;
   List<String> _items;
 
@@ -16,15 +16,13 @@ class Person extends ChangeNotifierBase {
   String get firstName => _firstName;
 
   void set firstName(String value) {
-    _firstName = value;
-    notifyChange(new PropertyChangeRecord(#firstName));
+    _firstName = notifyPropertyChange(#firstName, _firstName, value);
   }
 
   String get lastName => _lastName;
 
   void set lastName(String value) {
-    _lastName = value;
-    notifyChange(new PropertyChangeRecord(#lastName));
+    _lastName = notifyPropertyChange(#lastName, _lastName, value);
   }
 
   String getFullName() => '$_firstName $_lastName';
@@ -32,10 +30,8 @@ class Person extends ChangeNotifierBase {
   List<String> get items => _items;
 
   void set items(List<String> value) {
-    _items = value;
-    notifyChange(new PropertyChangeRecord(#items));
+    _items = notifyPropertyChange(#items, _items, value);
   }
 
   String toString() => "Person(firstName: $_firstName, lastName: $_lastName)";
-
 }

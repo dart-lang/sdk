@@ -22,7 +22,7 @@ patch Timer _createPeriodicTimer(Duration duration,
 }
 
 patch class _AsyncRun {
-  patch static void _enqueueImmediate(void callback()) {
+  patch static void _scheduleImmediate(void callback()) {
     // TODO(9002): don't use the Timer to enqueue the immediate callback.
     _createTimer(Duration.ZERO, callback);
   }

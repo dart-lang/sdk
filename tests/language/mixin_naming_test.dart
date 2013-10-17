@@ -9,7 +9,7 @@ class M1 { }
 class M2 { }
 class M3 { }
 
-typedef C = S with M1, M2, M3;
+class C = S with M1, M2, M3;
 class D extends S with M1, M2, M3 { }
 
 class S_M1 { }

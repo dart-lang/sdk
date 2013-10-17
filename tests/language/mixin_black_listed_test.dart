@@ -25,17 +25,17 @@ class F1 extends Object with C
 , double /// 04: compile-time error
 , D {}
 
-typedef C2 = Object with num; /// 05: compile-time error
+class C2 = Object with num; /// 05: compile-time error
 
-typedef D2 = Object with C
+class D2 = Object with C
 , bool /// 06: compile-time error
 ;
 
-typedef E2 = Object with
+class E2 = Object with
 String, /// 07: compile-time error
 C;
 
-typedef F2 = Object with C,
+class F2 = Object with C,
 dynamic, /// 08: compile-time error
 D;
 

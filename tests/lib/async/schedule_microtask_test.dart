@@ -2,13 +2,98 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library run_async_test;
-
+import 'package:async_helper/async_helper.dart';
+import "package:expect/expect.dart";
 import 'dart:async';
-import '../../../pkg/unittest/lib/unittest.dart';
+
+
+Future testOneScheduleMicrotask() {
+  var completer = new Completer();
+  Timer.run(() {
+    runAsync(completer.complete);
+  });
+  return completer.future;
+}
+
+
+Future testMultipleScheduleMicrotask() {
+  var completer = new Completer();
+  Timer.run(() {
+    const TOTAL = 10;
+    int done = 0;
+    for (int i = 0; i < TOTAL; i++) {
+      runAsync(() {
+        done++;
+        if (done == TOTAL) completer.complete();;
+      });
+    }
+  });
+  return completer.future;
+}
+
+
+Future testScheduleMicrotaskThenTimer() {
+  var completer = new Completer();
+  Timer.run(() {
+    bool scheduleMicrotaskDone = false;
+    runAsync(() {
+      Expect.isFalse(scheduleMicrotaskDone);
+      scheduleMicrotaskDone = true;
+    });
+    Timer.run(() {
+      Expect.isTrue(scheduleMicrotaskDone);
+      completer.complete();
+    });
+  });
+  return completer.future;
+}
+
+
+Future testTimerThenScheduleMicrotask() {
+  var completer = new Completer();
+  Timer.run(() {
+    bool scheduleMicrotaskDone = false;
+    Timer.run(() {
+      Expect.isTrue(scheduleMicrotaskDone);
+      completer.complete();
+    });
+    runAsync(() {
+      Expect.isFalse(scheduleMicrotaskDone);
+      scheduleMicrotaskDone = true;
+    });
+  });
+  return completer.future;
+}
+
+
+Future testTimerThenScheduleMicrotaskChain() {
+  var completer = new Completer();
+  Timer.run(() {
+    const TOTAL = 10;
+    int scheduleMicrotaskDone = 0;
+    Timer.run(() {
+      Expect.equals(TOTAL, scheduleMicrotaskDone);
+      completer.complete();
+    });
+    Future scheduleMicrotaskCallback() {
+      scheduleMicrotaskDone++;
+      if (scheduleMicrotaskDone != TOTAL) {
+        runAsync(scheduleMicrotaskCallback);
+      }
+    }
+    runAsync(scheduleMicrotaskCallback);
+  });
+  return completer.future;
+}
+
 
 main() {
-  test("run async test", () {
-    scheduleMicrotask(expectAsync0(() {}));
-  });
+  asyncStart();
+  testOneScheduleMicrotask()
+    .then((_) => testMultipleScheduleMicrotask())
+    .then((_) => testScheduleMicrotaskThenTimer())
+    .then((_) => testTimerThenScheduleMicrotask())
+    .then((_) => testTimerThenScheduleMicrotaskChain())
+    .then((_) => asyncEnd());
 }
+

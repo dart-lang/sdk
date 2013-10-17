@@ -422,7 +422,8 @@ class _HashMapEntry {
   _HashMapEntry(this.key, this.value, this.hashCode, this.next);
 }
 
-abstract class _HashMapIterable<E> extends IterableBase<E> {
+abstract class _HashMapIterable<E> extends IterableBase<E>
+                                   implements EfficientLength {
   final HashMap _map;
   _HashMapIterable(this._map);
   int get length => _map.length;
@@ -828,7 +829,8 @@ class _LinkedHashMapEntry extends _HashMapEntry {
   }
 }
 
-class _LinkedHashMapKeyIterable<K> extends IterableBase<K> {
+class _LinkedHashMapKeyIterable<K> extends IterableBase<K>
+                                   implements EfficientLength {
   LinkedHashMap<K, dynamic> _map;
   _LinkedHashMapKeyIterable(this._map);
   Iterator<K> get iterator => new _LinkedHashMapKeyIterator<K>(_map);
@@ -838,7 +840,8 @@ class _LinkedHashMapKeyIterable<K> extends IterableBase<K> {
   int get length => _map.length;
 }
 
-class _LinkedHashMapValueIterable<V> extends IterableBase<V> {
+class _LinkedHashMapValueIterable<V> extends IterableBase<V>
+                                     implements EfficientLength {
   LinkedHashMap<dynamic, V> _map;
   _LinkedHashMapValueIterable(this._map);
   Iterator<K> get iterator => new _LinkedHashMapValueIterator<V>(_map);

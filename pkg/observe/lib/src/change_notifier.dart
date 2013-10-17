@@ -11,7 +11,7 @@ part of observe;
  * When a field, property, or indexable item is changed, a derived class should
  * call [notifyPropertyChange]. See that method for an example.
  */
-typedef ChangeNotifierBase = Object with ChangeNotifierMixin;
+class ChangeNotifierBase = Object with ChangeNotifierMixin;
 
 /**
  * Mixin implementing [Observable] object that performs its own change
@@ -71,8 +71,8 @@ abstract class ChangeNotifierMixin implements Observable {
    * setter:
    *
    *     var _myField;
-   *     get myField => _myField;
-   *     set myField(value) {
+   *     @reflectable get myField => _myField;
+   *     @reflectable set myField(value) {
    *       _myField = notifyPropertyChange(#myField, _myField, value);
    *     }
    */

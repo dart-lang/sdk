@@ -46,6 +46,7 @@ class FooBarModel extends ObservableBase {
   FooBarModel([this.foo, this.bar]);
 }
 
+@reflectable
 class FooBarNotifyModel extends ChangeNotifierBase implements FooBarModel {
   var _foo;
   var _bar;

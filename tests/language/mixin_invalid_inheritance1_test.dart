@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library formatter;
+class C<T> extends Object
+  with Malformed  /// 01: compile-time error
+  with T  /// 02: compile-time error
+  with T<int>  /// 03: compile-time error
+{}
 
-//import 'package:analyzer_experimental/src/services/formatter_impl.dart';
-
-//export 'package:analyzer_experimental/src/services/formatter_impl.dart'
-//  show CodeFormatter;
+main() => new C<C>();

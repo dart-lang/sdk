@@ -7,6 +7,13 @@ library EventCustomEventTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:js' as js;
+
+class DartPayloadData {
+  final dartValue;
+
+  DartPayloadData(this.dartValue);
+}
 
 main() {
   useHtmlConfiguration();
@@ -45,5 +52,35 @@ main() {
     document.body.append(script);
 
     expect(fired, isTrue);
+  });
+
+  test('custom events to JS', () {
+    expect(js.context['gotDartEvent'], isNull);
+    var scriptContents = '''
+      window.addEventListener('dart_custom_event', function(e) {
+        if (e.detail == 'dart_message') {
+          e.preventDefault();
+          window.gotDartEvent = true;
+        }
+        window.console.log('here' + e.detail);
+      }, false);''';
+
+    document.body.append(new ScriptElement()..text = scriptContents);
+
+    var event = new CustomEvent('dart_custom_event', detail: 'dart_message');
+    window.dispatchEvent(event);
+    expect(js.context['gotDartEvent'], isTrue);
+  });
+
+  test('custom data to Dart', () {
+    var data = new DartPayloadData(666);
+    var event = new CustomEvent('dart_custom_data_event', detail: data);
+
+    var future = window.on['dart_custom_data_event'].first.then((_) {
+      expect(event.detail.dartValue, 666);
+    });
+
+    document.body.dispatchEvent(event);
+    return future;
   });
 }

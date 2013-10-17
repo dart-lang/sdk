@@ -53,7 +53,7 @@ import 'dart:_js_helper' show
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForWebComponentType, getNativeInterceptor, 
+    findConstructorForWebComponentType, getNativeInterceptor,
     setDispatchProperty, findInterceptorForType;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
@@ -77,7 +77,6 @@ part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/KeyboardEventStream.dart';
-part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
@@ -91,6 +90,7 @@ part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
 part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_Platform.dart';
+part '$AUXILIARY_DIR/shared_html.dart';
 part '$AUXILIARY_DIR/Validators.dart';
 
 
@@ -113,9 +113,6 @@ Window get window => JS('Window', 'window');
  * Root node for all content in a web page.
  */
 HtmlDocument get document => JS('HtmlDocument', 'document');
-
-Element query(String selector) => document.query(selector);
-ElementList queryAll(String selector) => document.queryAll(selector);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.

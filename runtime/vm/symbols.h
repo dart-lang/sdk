@@ -288,6 +288,7 @@ class ObjectPointerVisitor;
   V(_LocalTypeVariableMirrorImpl, "_LocalTypeVariableMirrorImpl")              \
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
+  V(OptimizedOut, "<optimized out>")                                           \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

@@ -80,23 +80,23 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     return result;
   }
 
-  Iterable<K> get keys => _map.keys;
+  @reflectable Iterable<K> get keys => _map.keys;
 
-  Iterable<V> get values => _map.values;
+  @reflectable Iterable<V> get values => _map.values;
 
-  int get length =>_map.length;
+  @reflectable int get length =>_map.length;
 
-  bool get isEmpty => length == 0;
+  @reflectable bool get isEmpty => length == 0;
 
-  bool get isNotEmpty => !isEmpty;
+  @reflectable bool get isNotEmpty => !isEmpty;
 
-  bool containsValue(Object value) => _map.containsValue(value);
+  @reflectable bool containsValue(Object value) => _map.containsValue(value);
 
-  bool containsKey(Object key) => _map.containsKey(key);
+  @reflectable bool containsKey(Object key) => _map.containsKey(key);
 
-  V operator [](Object key) => _map[key];
+  @reflectable V operator [](Object key) => _map[key];
 
-  void operator []=(K key, V value) {
+  @reflectable void operator []=(K key, V value) {
     int len = _map.length;
     V oldValue = _map[key];
     _map[key] = value;

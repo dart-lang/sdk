@@ -160,7 +160,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * we do this most of the time, because it reduces the size unless there
    * is only one variable.
    */
-  final LinkedHashSet<String> collectedVariableDeclarations;
+  final Set<String> collectedVariableDeclarations;
 
   /**
    * Set of variables and parameters that have already been declared.
@@ -180,7 +180,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   SsaCodeGenerator(this.backend, CodegenWorkItem work)
     : this.work = work,
       declaredLocals = new Set<String>(),
-      collectedVariableDeclarations = new LinkedHashSet<String>(),
+      collectedVariableDeclarations = new Set<String>(),
       currentContainer = new js.Block.empty(),
       parameters = <js.Parameter>[],
       expressionStack = <js.Expression>[],
@@ -1827,7 +1827,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       TypeConstant type = constant;
       Element element = type.representedType.element;
       if (element != null && element.isClass()) {
-        backend.registerEscapingConstructorsOfClass(element, world);
+        backend.customElementsAnalysis.registerTypeConstant(element, world);
       }
     }
     push(backend.emitter.constantReference(constant));

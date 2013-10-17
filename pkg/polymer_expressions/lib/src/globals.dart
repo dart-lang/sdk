@@ -11,6 +11,7 @@
 library polymer_expressions.src.globals;
 
 import 'dart:collection';
+import 'package:observe/observe.dart' show reflectable;
 
 /**
  * Returns an [Iterable] of [IndexedValue]s where the nth value holds the nth
@@ -19,13 +20,12 @@ import 'dart:collection';
 Iterable<IndexedValue> enumerate(Iterable iterable) =>
     new EnumerateIterable(iterable);
 
-class IndexedValue<V> {
+@reflectable class IndexedValue<V> {
   final int index;
   final V value;
 
   IndexedValue(this.index, this.value);
 }
-
 
 /**
  * An [Iterable] of [IndexedValue]s where the nth value holds the nth
@@ -37,7 +37,8 @@ class EnumerateIterable<V> extends IterableBase<IndexedValue<V>> {
 
   EnumerateIterable(this._iterable);
 
-  Iterator<V> get iterator => new EnumerateIterator<V>(_iterable.iterator);
+  Iterator<IndexedValue<V>> get iterator =>
+      new EnumerateIterator<V>(_iterable.iterator);
 
   // Length related functions are independent of the mapping.
   int get length => _iterable.length;
@@ -53,7 +54,7 @@ class EnumerateIterable<V> extends IterableBase<IndexedValue<V>> {
 
 /** The [Iterator] returned by [EnumerateIterable.iterator]. */
 class EnumerateIterator<V> extends Iterator<IndexedValue<V>> {
-  final Iterator<IndexedValue<V>> _iterator;
+  final Iterator<V> _iterator;
   int _index = 0;
   IndexedValue<V> _current;
 

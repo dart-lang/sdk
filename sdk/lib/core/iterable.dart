@@ -25,6 +25,11 @@ part of dart.core;
  * You can implement Iterable in your own class.
  * If you do, then an instance of your Iterable class
  * can be the right-hand side of a for-in construct.
+ *
+ * Some subclasss of `Iterable` can be modified. It is generally not allowed
+ * to modify such collections while they are being iterated. Doing so will break
+ * the iteration, which is typically signalled by throwing a
+ * [ConcurrentModificationError] when it is detected.
  */
 abstract class Iterable<E> {
   const Iterable();
@@ -280,14 +285,15 @@ abstract class Iterable<E> {
   E elementAt(int index);
 }
 
-
 typedef E _Generator<E>(int index);
 
-class _GeneratorIterable<E> extends IterableBase<E> {
+class _GeneratorIterable<E> extends IterableBase<E>
+                            implements EfficientLength {
   final int _count;
   final _Generator<E> _generator;
   _GeneratorIterable(this._count, this._generator);
   Iterator<E> get iterator => new _GeneratorIterator(_count, _generator);
+  int get length => _count;
 }
 
 class _GeneratorIterator<E> implements Iterator<E> {

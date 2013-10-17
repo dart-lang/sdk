@@ -729,7 +729,6 @@ class Class : public Object {
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.
-  bool HasTypeArguments() const;
   intptr_t NumTypeArguments() const;
 
   // Return the number of type arguments that are specific to this class, i.e.
@@ -949,14 +948,11 @@ class Class : public Object {
   }
   void set_is_mixin_type_applied() const;
 
-  int num_native_fields() const {
+  uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
-  void set_num_native_fields(int value) const {
+  void set_num_native_fields(uint16_t value) const {
     raw_ptr()->num_native_fields_ = value;
-  }
-  static intptr_t num_native_fields_offset() {
-    return OFFSET_OF(RawClass, num_native_fields_);
   }
 
   RawCode* allocation_stub() const {
@@ -1037,24 +1033,24 @@ class Class : public Object {
   enum {
     kConstBit = 0,
     kImplementedBit = 1,
-    kAbstractBit = 2,
-    kPatchBit = 3,
-    kSynthesizedClassBit = 4,
-    kTypeFinalizedBit = 5,
-    kClassFinalizedBits = 6,
+    kTypeFinalizedBit = 2,
+    kClassFinalizedBits = 3,
     kClassFinalizedSize = 2,
+    kAbstractBit = 5,
+    kPatchBit = 6,
+    kSynthesizedClassBit = 7,
     kMarkedForParsingBit = 8,
     kMixinTypedefBit = 9,
     kMixinTypeAppliedBit = 10,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
-  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
-  class PatchBit : public BitField<bool, kPatchBit, 1> {};
-  class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
   class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
   class ClassFinalizedBits : public BitField<RawClass::ClassFinalizedState,
       kClassFinalizedBits, kClassFinalizedSize> {};  // NOLINT
+  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
+  class PatchBit : public BitField<bool, kPatchBit, 1> {};
+  class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
   class MixinTypedefBit : public BitField<bool, kMixinTypedefBit, 1> {};
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
@@ -1075,6 +1071,19 @@ class Class : public Object {
                                           const Array& args_desc,
                                           RawFunction::Kind kind) const;
   void CalculateFieldOffsets() const;
+
+  // Initial value for the cached number of type arguments.
+  static const intptr_t kUnknownNumTypeArguments = -1;
+
+  int16_t num_type_arguments() const {
+    return raw_ptr()->num_type_arguments_;
+  }
+  void set_num_type_arguments(intptr_t value) const;
+
+  int16_t num_own_type_arguments() const {
+    return raw_ptr()->num_own_type_arguments_;
+  }
+  void set_num_own_type_arguments(intptr_t value) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -1856,35 +1865,35 @@ class Function : public Object {
 
  private:
   enum KindTagBits {
-    kStaticBit = 0,
-    kConstBit = 1,
-    kOptimizableBit = 2,
-    kInlinableBit = 3,
-    kHasFinallyBit = 4,
-    kNativeBit = 5,
-    kAbstractBit = 6,
-    kExternalBit = 7,
-    kVisibleBit = 8,
-    kIntrinsicBit = 9,
-    kRecognizedBit = 10,
-    kRedirectingBit = 11,
-    kKindTagBit = 12,
+    kKindTagBit = 0,
     kKindTagSize = 4,
+    kStaticBit = 4,
+    kConstBit = 5,
+    kAbstractBit = 6,
+    kVisibleBit = 7,
+    kOptimizableBit = 8,
+    kInlinableBit = 9,
+    kIntrinsicBit = 10,
+    kRecognizedBit = 11,
+    kHasFinallyBit = 12,
+    kNativeBit = 13,
+    kRedirectingBit = 14,
+    kExternalBit = 15,
   };
-  class StaticBit : public BitField<bool, kStaticBit, 1> {};
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
-  class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
-  class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
-  class NativeBit : public BitField<bool, kNativeBit, 1> {};
-  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
-  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
-  class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
-  class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
-  class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
-  class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
+  class StaticBit : public BitField<bool, kStaticBit, 1> {};
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
+  class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
+  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
+  class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
+  class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
+  class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
+  class NativeBit : public BitField<bool, kNativeBit, 1> {};
+  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
@@ -2530,6 +2539,12 @@ class Library : public Object {
   static void CheckFunctionFingerprints();
 
   static bool IsPrivate(const String& name);
+  // Construct the full name of a corelib member.
+  static const String& PrivateCoreLibName(const String& member);
+  // Lookup class in the core lib which also contains various VM
+  // helper methods and classes. Allow look up of private classes.
+  static RawClass* LookupCoreClass(const String& class_name);
+
 
   // Return Function::null() if function does not exist in libs.
   static RawFunction* GetFunction(const GrowableArray<Library*>& libs,

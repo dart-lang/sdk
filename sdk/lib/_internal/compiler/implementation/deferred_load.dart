@@ -4,10 +4,6 @@
 
 library deferred_load;
 
-import 'dart:collection'
-       show LinkedHashMap,
-            LinkedHashSet;
-
 import 'dart2jslib.dart'
        show Compiler,
             CompilerTask,
@@ -37,15 +33,14 @@ import 'resolution/resolution.dart'
        show TreeElements;
 
 class DeferredLoadTask extends CompilerTask {
-  final Set<LibraryElement> deferredLibraries =
-      new LinkedHashSet<LibraryElement>();
+  final Set<LibraryElement> deferredLibraries = new Set<LibraryElement>();
 
   /// Records all elements that are deferred.
   ///
   /// Long term, we want to split deferred element into more than one
   /// file (one for each library that is deferred), and this field
   /// should become obsolete.
-  final Set<Element> allDeferredElements = new LinkedHashSet<Element>();
+  final Set<Element> allDeferredElements = new Set<Element>();
 
   DeferredLoadTask(Compiler compiler) : super(compiler);
 
@@ -78,8 +73,8 @@ class DeferredLoadTask extends CompilerTask {
       // 1. Only static or top-level elements are recorded.
       // 2. Only implementation is stored.
       Map<LibraryElement, Set<Element>> deferredElements =
-          new LinkedHashMap<LibraryElement, Set<Element>>();
-      Set<Element> eagerElements = new LinkedHashSet<Element>();
+          new Map<LibraryElement, Set<Element>>();
+      Set<Element> eagerElements = new Set<Element>();
 
       // Iterate through live local members of the main script.  Create
       // a root-set of elements that must be loaded eagerly
@@ -93,7 +88,7 @@ class DeferredLoadTask extends CompilerTask {
               Set<Element> deferredElementsFromLibrary =
                   deferredElements.putIfAbsent(
                       dependency.getLibrary(),
-                      () => new LinkedHashSet<Element>());
+                      () => new Set<Element>());
               deferredElementsFromLibrary.add(dependency);
             } else if (dependency.getLibrary() != mainApp) {
               eagerElements.add(dependency.implementation);
@@ -122,7 +117,7 @@ class DeferredLoadTask extends CompilerTask {
       // including it as a comment for how to extend this to support
       // multiple deferred files.
       Map<Element, List<LibraryElement>> reverseMap =
-          new LinkedHashMap<Element, List<LibraryElement>>();
+          new Map<Element, List<LibraryElement>>();
 
       deferredElements.forEach((LibraryElement library, Set<Element> map) {
         for (Element element in map) {
@@ -141,7 +136,7 @@ class DeferredLoadTask extends CompilerTask {
   /// transitive closure.
   Set<Element> allElementsResolvedFrom(Element element) {
     element = element.implementation;
-    Set<Element> result = new LinkedHashSet<Element>();
+    Set<Element> result = new Set<Element>();
     if (element.isGenerativeConstructor()) {
       // When instantiating a class, we record a reference to the
       // constructor, not the class itself.  We must add all the
@@ -179,8 +174,8 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   void addTransitiveClosureTo(Set<Element> elements) {
-    Set<Element> workSet = new LinkedHashSet.from(elements);
-    Set<Element> closure = new LinkedHashSet<Element>();
+    Set<Element> workSet = new Set.from(elements);
+    Set<Element> closure = new Set<Element>();
     while (!workSet.isEmpty) {
       Element current = workSet.first;
       workSet.remove(current);
@@ -224,7 +219,7 @@ class DeferredLoadTask extends CompilerTask {
 }
 
 class DependencyCollector extends Visitor {
-  final Set<Element> dependencies = new LinkedHashSet<Element>();
+  final Set<Element> dependencies = new Set<Element>();
   final TreeElements elements;
   final Compiler compiler;
 
@@ -240,9 +235,9 @@ class DependencyCollector extends Visitor {
   static Set<Element> collect(Element element, Compiler compiler) {
     TreeElements elements =
         compiler.enqueuer.resolution.getCachedElements(element);
-    if (elements == null) return new LinkedHashSet<Element>();
+    if (elements == null) return new Set<Element>();
     Node node = element.parseNode(compiler);
-    if (node == null) return new LinkedHashSet<Element>();
+    if (node == null) return new Set<Element>();
     var collector = new DependencyCollector(elements, compiler);
     node.accept(collector);
     collector.dependencies.addAll(elements.otherDependencies);

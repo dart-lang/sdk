@@ -9,7 +9,7 @@ class A {}
 class S {}
 class M {}
 
-typedef C = S with M implements A;
+class C = S with M implements A;
 
 void main() {
   new C();

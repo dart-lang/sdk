@@ -147,9 +147,8 @@ main() {
     expect(e is ErrorConstructorElement, isFalse);
   });
 
-  // Issue - 13711 Need to fix the handling of the created constructor.
-  // test('created cannot be called from nested constructor',
-  //     NestedCreatedConstructorElement.test);
+  test('created cannot be called from nested constructor',
+      NestedCreatedConstructorElement.test);
 
 
   // TODO(vsm): Port additional test from upstream here:
@@ -263,7 +262,10 @@ class NestedCreatedConstructorElement extends HtmlElement {
     register();
 
     // Exception should have occurred on upgrade.
-    var e = new Element.tag(tag);
+    var e;
+    expectGlobalError(() {
+      e = new Element.tag(tag);
+    });
     expect(e is NestedCreatedConstructorElement, isFalse);
     expect(e is HtmlElement, isTrue);
     // Should not have been set.

@@ -5,7 +5,7 @@
 library js_backend;
 
 import 'dart:async' show Future;
-import 'dart:collection' show LinkedHashMap, Queue;
+import 'dart:collection' show Queue;
 
 import '../closure.dart';
 import '../elements/elements.dart';
@@ -31,3 +31,4 @@ part 'minify_namer.dart';
 part 'namer.dart';
 part 'native_emitter.dart';
 part 'runtime_types.dart';
+part 'custom_elements_analysis.dart';

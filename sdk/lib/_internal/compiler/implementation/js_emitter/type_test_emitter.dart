@@ -233,8 +233,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
   // a set of variable points and use this to detect statically/dynamically
   // known subtype relations.
   Map<FunctionType, bool> getFunctionTypeChecksOn(DartType type) {
-    Map<FunctionType, bool> functionTypeMap =
-        new LinkedHashMap<FunctionType, bool>();
+    Map<FunctionType, bool> functionTypeMap = new Map<FunctionType, bool>();
     for (FunctionType functionType in checkedFunctionTypes) {
       if (compiler.types.isSubtype(type, functionType)) {
         functionTypeMap[functionType] = true;

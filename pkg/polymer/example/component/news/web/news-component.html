@@ -25,9 +25,14 @@
     </div>
   </template>
   <script type="application/dart">
+    import 'dart:html';
     import 'package:polymer/polymer.dart';
 
-    class XNews extends PolymerElement {}
+    class XNews extends UListElement with Polymer {
+      XNews.created() : super.created() {
+        polymerCreated();
+      }
+    }
 
     @initMethod
     _init() {

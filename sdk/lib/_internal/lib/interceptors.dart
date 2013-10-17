@@ -160,6 +160,10 @@ var interceptedNames;
  * The value of this variable is set by the compiler and contains only types
  * that are user extensions of native classes where the type occurs as a
  * constant in the program.
+ *
+ * The compiler, in CustomElementsAnalysis, assumes that [mapTypeToInterceptor]
+ * is accessed only by code that also calls [findIndexForWebComponentType].  If
+ * this assumption is invalidated, the compiler will have to be updated.
  */
 // TODO(sra): Mark this as initialized to a constant with unknown value.
 var mapTypeToInterceptor;

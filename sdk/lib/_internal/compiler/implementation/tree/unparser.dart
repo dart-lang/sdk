@@ -84,16 +84,16 @@ class Unparser implements Visitor {
   }
 
   visitNamedMixinApplication(NamedMixinApplication node) {
-    sb.write('typedef ');
+    if (!node.modifiers.nodes.isEmpty) {
+      visit(node.modifiers);
+      sb.write(' ');
+    }
+    sb.write('class ');
     visit(node.name);
     if (node.typeParameters != null) {
       visit(node.typeParameters);
     }
     sb.write(' = ');
-    if (!node.modifiers.nodes.isEmpty) {
-      visit(node.modifiers);
-      sb.write(' ');
-    }
     visit(node.mixinApplication);
     if (node.interfaces != null) {
       sb.write(' implements ');

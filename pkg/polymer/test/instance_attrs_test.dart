@@ -7,11 +7,17 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
 
+// Note: we use @CustomTag to make this type reflectable.
+@CustomTag('my-element')
+class MyElement extends PolymerElement {
+  MyElement.created() : super.created();
+}
+
 main() {
   useHtmlConfiguration();
 
   test('attributes were deserialized', () {
-    var elem = query('my-element').xtag;
+    var elem = query('my-element');
 
     expect(elem.attributes, {'foo': '123', 'bar': 'hi', 'baz': 'world'},
         reason: 'attributes should be copied to instance');

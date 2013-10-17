@@ -240,7 +240,9 @@ class Cursor extends Interceptor native "IDBCursor" {
       JS('void', '#.continue(#)', this, key);
     }
   }
-  
+    // To suppress missing implicit constructor warnings.
+  factory Cursor._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('IDBCursor.direction')
   @DocsEditable()
   final String direction;
@@ -552,6 +554,8 @@ class IdbFactory extends Interceptor native "IDBFactory" {
         '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this, this);
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
@@ -692,7 +696,9 @@ class Index extends Interceptor native "IDBIndex" {
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
-  
+    // To suppress missing implicit constructor warnings.
+  factory Index._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
   @annotation_Creates_SerializedScriptValue
@@ -779,6 +785,8 @@ class KeyRange extends Interceptor native "IDBKeyRange" {
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
+  // To suppress missing implicit constructor warnings.
+  factory KeyRange._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
@@ -954,6 +962,8 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
     return _createIndex(name, keyPath, options);
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
@@ -1343,4 +1353,6 @@ class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
 @DomName('IDBAny')
 @deprecated // nonstandard
 abstract class _IDBAny extends Interceptor native "IDBAny" {
+  // To suppress missing implicit constructor warnings.
+  factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
 }

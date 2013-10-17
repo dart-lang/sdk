@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patch class _AsyncRun {
-  /* patch */ static void _enqueueImmediate(void callback()) {
-    // TODO(9001): don't use the Timer to enqueue the immediate callback.
-    _createTimer(Duration.ZERO, callback);
-  }
+library observatory_main;
+
+main() {
 }

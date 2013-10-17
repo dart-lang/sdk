@@ -34,9 +34,9 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
   factory ObservableList.from(Iterable<E> other) =>
       new ObservableList<E>()..addAll(other);
 
-  int get length => _list.length;
+  @reflectable int get length => _list.length;
 
-  set length(int value) {
+  @reflectable set length(int value) {
     int len = _list.length;
     if (len == value) return;
 
@@ -54,9 +54,9 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
     _list.length = value;
   }
 
-  E operator [](int index) => _list[index];
+  @reflectable E operator [](int index) => _list[index];
 
-  void operator []=(int index, E value) {
+  @reflectable void operator []=(int index, E value) {
     var oldValue = _list[index];
     if (hasObservers) {
       _recordChange(new ListChangeRecord(index, addedCount: 1,

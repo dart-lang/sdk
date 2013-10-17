@@ -95,7 +95,7 @@ class Linter extends Transformer with PolymerTransformer {
         if (exists) return id;
         if (sourceId == transform.primaryInput.id) {
           logger.error('couldn\'t find imported asset "${id.path}" in package '
-              '"${id.package}".', span);
+              '"${id.package}".', span: span);
         }
       }));
     }
@@ -116,9 +116,9 @@ class Linter extends Transformer with PolymerTransformer {
         if (existing.hasConflict) continue;
         existing.hasConflict = true;
         logger.warning('duplicate definition for custom tag "$name".',
-          existing.span);
+          span: existing.span);
         logger.warning('duplicate definition for custom tag "$name" '
-          ' (second definition).', span);
+          ' (second definition).', span: span);
         continue;
       }
 
@@ -143,9 +143,11 @@ class _LoggerInterceptor implements Transform, TransformLogger {
   noSuchMethod(Invocation m) => reflect(_original).delegate(m);
 
   // form TransformLogger:
-  void warning(String message, [Span span]) => _write('warning', message, span);
+  void warning(String message, {AssetId asset, Span span})
+      => _write('warning', message, span);
 
-  void error(String message, [Span span]) => _write('error', message, span);
+  void error(String message, {AssetId asset, Span span})
+      => _write('error', message, span);
 
   void _write(String kind, String message, Span span) {
     _messages.add(_formatter(kind, message, span));
@@ -250,13 +252,13 @@ class _LinterVisitor extends TreeVisitor {
     if (href != null && href != '') return;
 
     // TODO(sigmund): warn also if href can't be resolved.
-    _logger.warning('link rel="$rel" missing href.', node.sourceSpan);
+    _logger.warning('link rel="$rel" missing href.', span: node.sourceSpan);
   }
 
   /** Produce warnings if using `<element>` instead of `<polymer-element>`. */
   void _validateElementElement(Element node) {
     _logger.warning('<element> elements are not supported, use'
-        ' <polymer-element> instead', node.sourceSpan);
+        ' <polymer-element> instead', span: node.sourceSpan);
   }
 
   /**
@@ -266,7 +268,7 @@ class _LinterVisitor extends TreeVisitor {
   void _validatePolymerElement(Element node) {
     if (_inPolymerElement) {
       _logger.error('Nested polymer element definitions are not allowed.',
-          node.sourceSpan);
+          span: node.sourceSpan);
       return;
     }
 
@@ -276,17 +278,17 @@ class _LinterVisitor extends TreeVisitor {
     if (tagName == null) {
       _logger.error('Missing tag name of the custom element. Please include an '
           'attribute like \'name="your-tag-name"\'.',
-          node.sourceSpan);
+          span: node.sourceSpan);
     } else if (!_isCustomTag(tagName)) {
       _logger.error('Invalid name "$tagName". Custom element names must have '
           'at least one dash and can\'t be any of the following names: '
           '${_invalidTagNames.keys.join(", ")}.',
-          node.sourceSpan);
+          span: node.sourceSpan);
     }
 
     if (_elements[extendsTag] == null && _isCustomTag(extendsTag)) {
       _logger.warning('custom element with name "$extendsTag" not found.',
-          node.sourceSpan);
+          span: node.sourceSpan);
     }
 
     var attrs = node.attributes['attributes'];
@@ -331,12 +333,12 @@ class _LinterVisitor extends TreeVisitor {
         // that the code is indeed using Dart.
         _logger.warning('script tag in polymer element with no type will '
             'be treated as JavaScript. Did you forget type="application/dart"?',
-            node.sourceSpan);
+            span: node.sourceSpan);
       }
       if (src != null && src.endsWith('.dart')) {
         _logger.warning('script tag with .dart source file but no type will '
             'be treated as JavaScript. Did you forget type="application/dart"?',
-            node.sourceSpan);
+            span: node.sourceSpan);
       }
       return;
     }
@@ -347,12 +349,12 @@ class _LinterVisitor extends TreeVisitor {
       if (!src.endsWith('.dart')) {
         _logger.warning('"application/dart" scripts should '
             'use the .dart file extension.',
-            node.sourceSpan);
+            span: node.sourceSpan);
       }
 
       if (node.innerHtml.trim() != '') {
         _logger.warning('script tag has "src" attribute and also has script '
-            'text.', node.sourceSpan);
+            'text.', span: node.sourceSpan);
       }
     }
   }
@@ -391,7 +393,7 @@ class _LinterVisitor extends TreeVisitor {
       // elements. Is there another way we can handle this warning that won't
       // generate false positives?
       _logger.warning('definition for Polymer element with tag name '
-          '"$customTagName" not found.', node.sourceSpan);
+          '"$customTagName" not found.', span: node.sourceSpan);
       return;
     }
 
@@ -402,7 +404,7 @@ class _LinterVisitor extends TreeVisitor {
           'this tag will not include the default properties of "$baseTag". '
           'To fix this, either write this tag as <$baseTag '
           'is="$customTagName"> or remove the "extends" attribute from '
-          'the custom element declaration.', node.sourceSpan);
+          'the custom element declaration.', span: node.sourceSpan);
       return;
     }
 
@@ -411,7 +413,7 @@ class _LinterVisitor extends TreeVisitor {
           'custom element "$customTagName" doesn\'t declare any type '
           'extensions. To fix this, either rewrite this tag as '
           '<$customTagName> or add \'extends="$nodeTag"\' to '
-          'the custom element declaration.', node.sourceSpan);
+          'the custom element declaration.', span: node.sourceSpan);
       return;
     }
 
@@ -419,7 +421,7 @@ class _LinterVisitor extends TreeVisitor {
       _logger.warning(
           'custom element "$customTagName" extends from "$baseTag". '
           'Did you mean to write <$baseTag is="$customTagName">?',
-          node.sourceSpan);
+          span: node.sourceSpan);
     }
   }
 
@@ -431,7 +433,7 @@ class _LinterVisitor extends TreeVisitor {
       var newName = toCamelCase(name);
       _logger.warning('PolymerElement no longer recognizes attribute names with '
           'dashes such as "$name". Use "$newName" or "${newName.toLowerCase()}" '
-          'instead (both forms are equivalent in HTML).', span);
+          'instead (both forms are equivalent in HTML).', span: span);
       return false;
     }
     return true;
@@ -444,13 +446,14 @@ class _LinterVisitor extends TreeVisitor {
           ' JavaScript event handler. Use the form '
           'on-event-name="handlerName" if you want a Dart handler '
           'that will automatically update the UI based on model changes.',
-          node.attributeSpans[name]);
+          span: node.attributeSpans[name]);
       return;
     }
 
     if (!_inPolymerElement) {
       _logger.warning('Inline event handlers are only supported inside '
-          'declarations of <polymer-element>.', node.attributeSpans[name]);
+          'declarations of <polymer-element>.',
+          span: node.attributeSpans[name]);
     }
 
     var eventName = name.substring('on-'.length);
@@ -459,14 +462,14 @@ class _LinterVisitor extends TreeVisitor {
       _logger.warning('Invalid event name "$name". After the "on-" the event '
           'name should not use dashes. For example use "on-$newEvent" or '
           '"on-${newEvent.toLowerCase()}" (both forms are equivalent in HTML).',
-          node.attributeSpans[name]);
+          span: node.attributeSpans[name]);
     }
 
     if (value.contains('.') || value.contains('(')) {
       _logger.warning('Invalid event handler body "$value". Declare a method '
           'in your custom element "void handlerName(event, detail, target)" '
           'and use the form $name="handlerName".',
-          node.attributeSpans[name]);
+          span: node.attributeSpans[name]);
     }
   }
 }

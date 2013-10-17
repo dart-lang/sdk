@@ -326,6 +326,8 @@ const int ZERO = RenderingContext.ZERO;
 @DomName('WebGLActiveInfo')
 @Unstable()
 class ActiveInfo extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ActiveInfo._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable()
@@ -351,6 +353,8 @@ class ActiveInfo extends NativeFieldWrapperClass1 {
 @DomName('ANGLEInstancedArrays')
 @Experimental() // untriaged
 class AngleInstancedArrays extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory AngleInstancedArrays._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ANGLEInstancedArrays.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE')
   @DocsEditable()
@@ -384,6 +388,8 @@ class AngleInstancedArrays extends NativeFieldWrapperClass1 {
 @DomName('WebGLBuffer')
 @Unstable()
 class Buffer extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Buffer._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -398,6 +404,8 @@ class Buffer extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental()
 class CompressedTextureAtc extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CompressedTextureAtc._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
   @DocsEditable()
@@ -424,6 +432,8 @@ class CompressedTextureAtc extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
 @Experimental() // experimental
 class CompressedTexturePvrtc extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CompressedTexturePvrtc._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
   @DocsEditable()
@@ -454,6 +464,8 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
 @Experimental() // experimental
 class CompressedTextureS3TC extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory CompressedTextureS3TC._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
   @DocsEditable()
@@ -483,6 +495,8 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass1 {
 @DomName('WebGLContextAttributes')
 @Unstable()
 class ContextAttributes extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
@@ -564,6 +578,8 @@ class ContextEvent extends Event {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
 @Experimental() // experimental
 class DebugRendererInfo extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DebugRendererInfo._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
   @DocsEditable()
@@ -586,6 +602,8 @@ class DebugRendererInfo extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
 @Experimental() // experimental
 class DebugShaders extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DebugShaders._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
@@ -604,6 +622,8 @@ class DebugShaders extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
 @Experimental() // experimental
 class DepthTexture extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DepthTexture._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
   @DocsEditable()
@@ -622,6 +642,8 @@ class DepthTexture extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental() // stable
 class DrawBuffers extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory DrawBuffers._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT0_WEBGL')
   @DocsEditable()
@@ -776,6 +798,8 @@ class DrawBuffers extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
 @Experimental()
 class ExtFragDepth extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ExtFragDepth._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -790,6 +814,8 @@ class ExtFragDepth extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental()
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ExtTextureFilterAnisotropic._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
   @DocsEditable()
@@ -811,6 +837,8 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 @DomName('WebGLFramebuffer')
 @Unstable()
 class Framebuffer extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Framebuffer._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -825,6 +853,8 @@ class Framebuffer extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental()
 class LoseContext extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory LoseContext._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
@@ -847,6 +877,8 @@ class LoseContext extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
 @Experimental() // experimental
 class OesElementIndexUint extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesElementIndexUint._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -861,6 +893,8 @@ class OesElementIndexUint extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
 @Experimental() // experimental
 class OesStandardDerivatives extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesStandardDerivatives._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
   @DocsEditable()
@@ -879,6 +913,8 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
 @Experimental() // experimental
 class OesTextureFloat extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesTextureFloat._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -893,6 +929,8 @@ class OesTextureFloat extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
 @Experimental()
 class OesTextureFloatLinear extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesTextureFloatLinear._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -907,6 +945,8 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
 @Experimental() // experimental
 class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesTextureHalfFloat._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable()
@@ -925,6 +965,8 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
 @Experimental()
 class OesTextureHalfFloatLinear extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesTextureHalfFloatLinear._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -939,6 +981,8 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental() // experimental
 class OesVertexArrayObject extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory OesVertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
   @DocsEditable()
@@ -972,6 +1016,8 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 @DomName('WebGLProgram')
 @Unstable()
 class Program extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Program._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -985,6 +1031,8 @@ class Program extends NativeFieldWrapperClass1 {
 @DomName('WebGLRenderbuffer')
 @Unstable()
 class Renderbuffer extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Renderbuffer._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -2853,6 +2901,8 @@ class RenderingContext extends CanvasRenderingContext {
 @DocsEditable()
 @DomName('WebGLShader')
 class Shader extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Shader._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2865,6 +2915,8 @@ class Shader extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('WebGLShaderPrecisionFormat')
 class ShaderPrecisionFormat extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory ShaderPrecisionFormat._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable()
@@ -2889,6 +2941,8 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('WebGLTexture')
 class Texture extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory Texture._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2901,6 +2955,8 @@ class Texture extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('WebGLUniformLocation')
 class UniformLocation extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory UniformLocation._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2915,5 +2971,7 @@ class UniformLocation extends NativeFieldWrapperClass1 {
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental() // experimental
 class VertexArrayObject extends NativeFieldWrapperClass1 {
+  // To suppress missing implicit constructor warnings.
+  factory VertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 
 }

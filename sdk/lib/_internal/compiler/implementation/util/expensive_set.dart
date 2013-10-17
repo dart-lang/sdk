@@ -9,14 +9,14 @@ part of dart2js.util;
  * excessive memory usage due to large sets. It acts as an ordinary
  * hash set, but it uses 10 times more memory (by default).
  */
-class ExpensiveSet<E> extends IterableBase<E> implements LinkedHashSet<E> {
+class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
 
   final List _sets;
 
   ExpensiveSet([int copies = 10]) : _sets = new List(copies) {
     assert(copies > 0);
     for (int i = 0; i < _sets.length; i++) {
-      _sets[i] = new LinkedHashSet<E>();
+      _sets[i] = new Set<E>();
     }
   }
 
@@ -27,6 +27,7 @@ class ExpensiveSet<E> extends IterableBase<E> implements LinkedHashSet<E> {
   Iterator<E> get iterator => _sets[0].iterator;
 
   bool contains(Object object) => _sets[0].contains(object);
+  E lookup(Object object) => _sets[0].lookup(object);
 
   void forEach(void action(E element)) {
     _sets[0].forEach(action);

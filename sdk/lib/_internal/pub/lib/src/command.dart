@@ -31,7 +31,7 @@ import 'utils.dart';
 
 /// The base class for commands for the pub executable.
 abstract class PubCommand {
-  /// The commands that Pub understands.
+  /// The commands that pub understands.
   static final Map<String, PubCommand> commands = _initCommands();
 
   SystemCache cache;
@@ -52,9 +52,13 @@ abstract class PubCommand {
   String get usage;
 
   /// Whether or not this command requires [entrypoint] to be defined. If false,
-  /// Pub won't look for a pubspec and [entrypoint] will be null when the
+  /// pub won't look for a pubspec and [entrypoint] will be null when the
   /// command runs.
-  final requiresEntrypoint = true;
+  bool get requiresEntrypoint => true;
+
+  /// Whether or not this command takes arguments in addition to options. If
+  /// false, pub will exit with an error if arguments are provided.
+  bool get takesArguments => false;
 
   /// Alternate names for this command. These names won't be used in the
   /// documentation, but they will work when invoked on the command line.
@@ -117,6 +121,13 @@ and include the results in a bug report on http://dartbug.com/new.
     }
 
     new Future.sync(() {
+      // Make sure there aren't unexpected arguments.
+      if (!takesArguments && commandOptions.rest.isNotEmpty) {
+        log.error('Command does not take any arguments.');
+        this.printUsage();
+        return flushThenExit(exit_codes.USAGE);
+      }
+
       if (requiresEntrypoint) {
         // TODO(rnystrom): Will eventually need better logic to walk up
         // subdirectories until we hit one that looks package-like. For now,

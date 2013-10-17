@@ -9,10 +9,10 @@ class A<T> {}
 class S {}
 class M<T> {}
 
-typedef C1 = S with M;
-typedef C2 = S with C2; /// 01: compile-time error
-typedef C3 = S with M implements A;
-typedef C4 = S with M implements C4; /// 02: compile-time error
+class C1 = S with M;
+class C2 = S with C2; /// 01: compile-time error
+class C3 = S with M implements A;
+class C4 = S with M implements C4; /// 02: compile-time error
 
 void main() {
   new C1();

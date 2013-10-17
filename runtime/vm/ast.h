@@ -60,6 +60,7 @@ namespace dart {
   V(TryCatch)                                                                  \
   V(Throw)                                                                     \
   V(InlinedFinally)                                                            \
+  V(StringInterpolate)                                                         \
 
 
 #define FORWARD_DECLARATION(BaseName) class BaseName##Node;
@@ -303,6 +304,26 @@ class ArrayNode : public AstNode {
   }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ArrayNode);
+};
+
+
+class StringInterpolateNode : public AstNode {
+ public:
+  StringInterpolateNode(intptr_t token_pos, ArrayNode* value)
+      : AstNode(token_pos), value_(value) { }
+
+  virtual void VisitChildren(AstNodeVisitor* visitor) const {
+    value_->Visit(visitor);
+  }
+
+  ArrayNode* value() const { return value_; }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(StringInterpolateNode);
+
+ private:
+  ArrayNode* value_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StringInterpolateNode);
 };
 
 

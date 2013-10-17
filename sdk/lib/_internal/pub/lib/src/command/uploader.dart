@@ -22,6 +22,7 @@ class UploaderCommand extends PubCommand {
   final description = "Manage uploaders for a package on pub.dartlang.org.";
   final usage = "pub uploader [options] {add/remove} <email>";
   final requiresEntrypoint = false;
+  bool get takesArguments => true;
 
   /// The URL of the package hosting server.
   Uri get server => Uri.parse(commandOptions['server']);
@@ -43,6 +44,7 @@ class UploaderCommand extends PubCommand {
 
     var rest = commandOptions.rest.toList();
 
+    // TODO(rnystrom): Use subcommands for these.
     var command = rest.removeAt(0);
     if (!['add', 'remove'].contains(command)) {
       log.error('Unknown uploader command "$command".');

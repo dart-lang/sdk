@@ -524,7 +524,7 @@ main() => new C<String>();
 
   static const MessageKind SWITCH_CASE_VALUE_OVERRIDES_EQUALS =
       const MessageKind(
-          "Error: 'case' expression value overrides 'operator=='.");
+          "Error: 'case' expression type overrides 'operator=='.");
 
   static const MessageKind INVALID_ARGUMENT_AFTER_NAMED = const MessageKind(
       "Error: Unnamed argument after named argument.");
@@ -587,7 +587,7 @@ main() {
   static const MessageKind TYPEDEF_FORMAL_WITH_DEFAULT = const MessageKind(
       "Error: A parameter of a typedef can't specify a default value.",
       howToFix:
-        "Try removing the default value or making the parameter optional.",
+        "Try removing the default value.",
       examples: const ["""
 typedef void F([int arg = 0]);
 
@@ -598,6 +598,22 @@ typedef void F({int arg: 0});
 
 main() {
   F f;
+}"""]);
+
+  static const MessageKind FUNCTION_TYPE_FORMAL_WITH_DEFAULT = const MessageKind(
+      "Error: A function type parameters can't specify a default value.",
+      howToFix:
+        "Try removing the default value.",
+      examples: const ["""
+foo(f(int i, [a = 1])) {}
+
+main() {
+  foo(1, 2);
+}""", """
+foo(f(int i, {a: 1})) {}
+
+main() {
+  foo(1, a: 2);
 }"""]);
 
   static const MessageKind FORMAL_DECLARED_CONST = const MessageKind(
@@ -696,6 +712,30 @@ main() { F f = null; }"""]);
 
   static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
       "Error: '#{type}' cannot be implemented.");
+
+  static const MessageKind CANNOT_EXTEND_MALFORMED = const MessageKind(
+      "Error: A class can't extend a malformed type.",
+      howToFix: "Try correcting the malformed type annotation or removing the "
+        "'extends' clause.",
+      examples: const ["""
+class A extends Malformed {}
+main() => new A();"""]);
+
+  static const MessageKind CANNOT_IMPLEMENT_MALFORMED = const MessageKind(
+      "Error: A class can't implement a malformed type.",
+      howToFix: "Try correcting the malformed type annotation or removing the "
+        "type from the 'implements' clause.",
+      examples: const ["""
+class A implements Malformed {}
+main() => new A();"""]);
+
+  static const MessageKind CANNOT_MIXIN_MALFORMED = const MessageKind(
+      "Error: A class can't mixin a malformed type.",
+      howToFix: "Try correcting the malformed type annotation or removing the "
+        "type from the 'with' clause.",
+      examples: const ["""
+class A extends Object with Malformed {}
+main() => new A();"""]);
 
   static const MessageKind CANNOT_MIXIN = const MessageKind(
       "Error: The type '#{type}' can't be mixed in.",

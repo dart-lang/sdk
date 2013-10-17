@@ -10,6 +10,8 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('x-target')
 class XTarget extends PolymerElement {
+  XTarget.created() : super.created();
+
   final Completer _found = new Completer();
   Future get foundSrc => _found.future;
 
@@ -21,7 +23,7 @@ class XTarget extends PolymerElement {
     testSrcForMustache();
   }
 
-  attributeChanged(name, oldValue) {
+  attributeChanged(name, oldValue, newValue) {
     testSrcForMustache();
     if (attributes[name] == '../testSource') {
       _found.complete();
@@ -36,6 +38,8 @@ class XTarget extends PolymerElement {
 
 @CustomTag('x-test')
 class XTest extends PolymerElement {
+  XTest.created() : super.created();
+
   @observable var src = 'testSource';
 }
 

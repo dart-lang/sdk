@@ -28,7 +28,7 @@ Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
   // So just print them as warnings.
   for (var e in parser.errors) {
     if (checkDocType || e.errorCode != 'expected-doctype-but-got-start-tag') {
-      logger.warning(e.message, e.span);
+      logger.warning(e.message, span: e.span);
     }
   }
   return document;

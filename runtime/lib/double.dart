@@ -211,7 +211,7 @@ class _Double implements double {
       native "Double_toStringAsPrecision";
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
-  int compareTo(Comparable other) {
+  int compareTo(num other) {
     final int EQUAL = 0, LESS = -1, GREATER = 1;
     if (this < other) {
       return LESS;

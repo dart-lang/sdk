@@ -114,6 +114,20 @@ main() {
         exitCode: 64);
   });
 
+  integration('an unexpected argument displays an error message', () {
+    schedulePub(args: ['version', 'unexpected'],
+        output: '''
+        Print pub version.
+
+        Usage: pub version
+         -h, --help    Print usage information for this command.
+        ''',
+        error: '''
+        Command does not take any arguments.
+        ''',
+        exitCode: 64);
+  });
+
   group('help', () {
     integration('shows help for a command', () {
       schedulePub(args: ['help', 'get'],

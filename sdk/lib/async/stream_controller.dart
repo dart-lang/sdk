@@ -560,10 +560,10 @@ abstract class _NoCallbacks {
   _NotificationHandler get _onCancel => null;
 }
 
-typedef _NoCallbackAsyncStreamController/*<T>*/ = _StreamController/*<T>*/
+class _NoCallbackAsyncStreamController/*<T>*/ = _StreamController/*<T>*/
        with _AsyncStreamControllerDispatch/*<T>*/, _NoCallbacks;
 
-typedef _NoCallbackSyncStreamController/*<T>*/ = _StreamController/*<T>*/
+class _NoCallbackSyncStreamController/*<T>*/ = _StreamController/*<T>*/
        with _SyncStreamControllerDispatch/*<T>*/, _NoCallbacks;
 
 typedef void _NotificationHandler();

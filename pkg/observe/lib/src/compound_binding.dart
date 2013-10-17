@@ -65,11 +65,11 @@ class CompoundBinding extends ChangeNotifierBase {
     if (combinator != null) _scheduleResolve();
   }
 
-  get value => _value;
-
   int get length => _observers.length;
 
-  void set value(newValue) {
+  @reflectable get value => _value;
+
+  @reflectable void set value(newValue) {
     _value = notifyPropertyChange(#value, _value, newValue);
   }
 

@@ -400,7 +400,6 @@ class RawObject {
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
-  static bool IsImplementationClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
@@ -496,12 +495,14 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   intptr_t id_;  // Class Id, also index in the class table.
+  intptr_t token_pos_;
+  intptr_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   intptr_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
-  intptr_t num_native_fields_;  // Number of native fields in class.
-  intptr_t token_pos_;
+  int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
+  int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
+  uint16_t num_native_fields_;  // Number of native fields in class.
   uint16_t state_bits_;
 
   friend class Instance;
@@ -1698,13 +1699,6 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
          (kNullCid == kExternalTypedDataInt8ArrayCid + 12));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat32x4ArrayCid);
-}
-
-
-inline bool RawObject::IsImplementationClassId(intptr_t index) {
-  return IsBuiltinListClassId(index) ||
-      IsStringClassId(index) ||
-      IsNumberClassId(index);
 }
 
 

@@ -1489,8 +1489,8 @@ class I<T> { }
 class J<T> { }
 class S<T> { }
 class M<T> { }
-typedef A<U, V> = Object with M<Map<U, V>> implements I<V>;
-typedef C<T, K> = S<T> with A<T, List<K>> implements J<K>;
+class A<U, V> = Object with M<Map<U, V>> implements I<V>;
+class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
 Before the call to ApplyMixinTypedef, the VM has already synthesized 2 mixin
 application classes Object&M and S&A:
@@ -2593,16 +2593,6 @@ void ClassFinalizer::ReportError(const Error& prev_error,
     error ^= Parser::FormatErrorWithAppend(
         prev_error, script, token_pos, "Error", format, args);
   }
-  va_end(args);
-  ReportError(error);
-}
-
-
-void ClassFinalizer::ReportError(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const Error& error = Error::Handle(
-      Parser::FormatError(Script::Handle(), -1, "Error", format, args));
   va_end(args);
   ReportError(error);
 }

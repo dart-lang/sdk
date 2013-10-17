@@ -9,11 +9,15 @@ import 'package:polymer/platform.dart' as Platform;
 import 'package:polymer/polymer.dart';
 
 class XFoo extends PolymerElement {
+  XFoo.created() : super.created();
+
   @observable var foo = '';
   @observable String baz = '';
 }
 
 class XBar extends XFoo {
+  XBar.created() : super.created();
+
   @observable int zot = 3;
   @observable bool zim = false;
   @observable String str = 'str';
@@ -21,6 +25,8 @@ class XBar extends XFoo {
 }
 
 class XCompose extends PolymerElement {
+  XCompose.created() : super.created();
+
   @observable bool zim = false;
 }
 

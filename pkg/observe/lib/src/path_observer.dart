@@ -62,14 +62,14 @@ class PathObserver extends ChangeNotifierBase {
   get object => _values[0];
 
   /** Gets the last reported value at this path. */
-  get value {
+  @reflectable get value {
     if (!_isValid) return null;
     if (!hasObservers) _updateValues();
     return _values.last;
   }
 
   /** Sets the value at this path. */
-  void set value(Object value) {
+  @reflectable void set value(Object value) {
     int len = _segments.length;
 
     // TODO(jmesserly): throw if property cannot be set?

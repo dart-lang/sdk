@@ -8,19 +8,27 @@ part of dart.collection;
  * A [Queue] is a collection that can be manipulated at both ends. One
  * can iterate over the elements of a queue through [forEach] or with
  * an [Iterator].
+ *
+ * It is generally not allowed to modify the queue (add or remove entries) while
+ * an operation on the queue is being performed, for example during a call to
+ * [forEach].
+ * Modifying the queue while it is being iterated will most likely break the
+ * iteration.
+ * This goes both for using the [iterator] directly, or for iterating an
+ * `Iterable` returned by a method like [map] or [where].
  */
-abstract class Queue<E> implements Iterable<E> {
+abstract class Queue<E> implements Iterable<E>, EfficientLength {
 
   /**
    * Creates a queue.
    */
-  factory Queue() => new ListQueue<E>();
+  factory Queue() = ListQueue<E>;
 
   /**
    * Creates a queue with the elements of [other]. The order in
    * the queue will be the order provided by the iterator of [other].
    */
-  factory Queue.from(Iterable<E> other) => new ListQueue<E>.from(other);
+  factory Queue.from(Iterable<E> other) = ListQueue<E>.from;
 
   /**
    * Removes and returns the first element of this queue. Throws an
@@ -56,7 +64,6 @@ abstract class Queue<E> implements Iterable<E> {
    * contained no element equal to [value].
    */
   bool remove(Object object);
-
 
   /**
    * Adds all elements of [iterable] at the end of the queue. The
@@ -304,27 +311,22 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
 
 class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
-  DoubleLinkedQueueEntry<E> _currentEntry = null;
+  DoubleLinkedQueueEntry<E> _nextEntry = null;
   E _current;
 
   _DoubleLinkedQueueIterator(_DoubleLinkedQueueEntrySentinel<E> sentinel)
-      : _sentinel = sentinel, _currentEntry = sentinel;
+      : _sentinel = sentinel, _nextEntry = sentinel._next;
 
   bool moveNext() {
     // When [_currentEntry] it is set to [:null:] then it is at the end.
-    if (_currentEntry == null) {
-      assert(_current == null);
-      return false;
+    if (!identical(_nextEntry, _sentinel)) {
+      _current = _nextEntry._element;
+      _nextEntry = _nextEntry._next;
+      return true;
     }
-    _currentEntry = _currentEntry._next;
-    if (identical(_currentEntry, _sentinel)) {
-      _currentEntry = null;
-      _current = null;
-      _sentinel = null;
-      return false;
-    }
-    _current = _currentEntry.element;
-    return true;
+    _current = null;
+    _nextEntry = _sentinel = null;  // Still identical.
+    return false;
   }
 
   E get current => _current;

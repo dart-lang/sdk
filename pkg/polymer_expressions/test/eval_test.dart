@@ -6,6 +6,10 @@ library eval_test;
 
 import 'dart:async';
 
+// NOTE: this import is unused, but we use it to cause all mirrors to be
+// enabled. The tests reflect on LinkedHashMap.length and String.length.
+import 'dart:mirrors';
+
 import 'package:polymer_expressions/eval.dart';
 import 'package:polymer_expressions/filter.dart';
 import 'package:polymer_expressions/parser.dart';
@@ -325,7 +329,8 @@ main() {
 
 }
 
-class Foo extends Object with ChangeNotifierMixin {
+@reflectable
+class Foo extends ChangeNotifierBase {
   String _name;
   String get name => _name;
   void set name(String n) {
@@ -395,5 +400,5 @@ expectObserve(String s, {
 // Regression test from https://code.google.com/p/dart/issues/detail?id=13459
 class WordElement extends ObservableBase {
   @observable List chars1 = 'abcdefg'.split('');
-  List filteredList(List original) => [original[0], original[1]];
+  @reflectable List filteredList(List original) => [original[0], original[1]];
 }

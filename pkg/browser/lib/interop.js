@@ -14,7 +14,7 @@ function ReceivePortSync() {
 }
 
 // Type for remote proxies to Dart objects with dart2js.
-function DartProxy(o) {
+function DartObject(o) {
   this.o = o;
 }
 
@@ -250,17 +250,40 @@ function DartProxy(o) {
     return Object.keys(this.map).length;
   }
 
-  // Adds an object to the table and return an ID for serialization.
-  ProxiedObjectTable.prototype.add = function (obj) {
-    for (var ref in this.map) {
-      var o = this.map[ref];
-      if (o === obj) {
-        return ref;
+  var _dartRefPropertyName = "_$dart_ref";
+
+  // attempts to add an unenumerable property to o. If that is not allowed
+  // it silently fails.
+  function _defineProperty(o, name, value) {
+    if (Object.isExtensible(o)) {
+      try {
+        Object.defineProperty(o, name, { 'value': value });
+      } catch (e) {
+        // object is native and lies about being extensible
+        // see https://bugzilla.mozilla.org/show_bug.cgi?id=775185
       }
     }
-    var ref = this.name + '-' + this._nextId++;
-    this.map[ref] = obj;
-    return ref;
+  }
+
+  // Adds an object to the table and return an ID for serialization.
+  ProxiedObjectTable.prototype.add = function (obj, id) {
+    if (id != null) {
+      this.map[id] = obj;
+      return id;
+    } else {
+      var ref = obj[_dartRefPropertyName];
+      if (ref == null) {
+        ref = this.name + '-' + this._nextId++;
+        this.map[ref] = obj;
+        _defineProperty(obj, _dartRefPropertyName, ref);
+      }
+      return ref;
+    }
+  }
+
+  // Gets the object or function corresponding to this ID.
+  ProxiedObjectTable.prototype.contains = function (id) {
+    return this.map.hasOwnProperty(id);
   }
 
   // Gets the object or function corresponding to this ID.
@@ -328,7 +351,7 @@ function DartProxy(o) {
   proxiedObjectTable._initialize()
 
   // Type for remote proxies to Dart objects.
-  function DartProxy(id, sendPort) {
+  function DartObject(id, sendPort) {
     this.id = id;
     this.port = sendPort;
   }
@@ -361,7 +384,7 @@ function DartProxy(o) {
                  proxiedObjectTable.add(message),
                  proxiedObjectTable.sendPort ];
       }
-    } else if (message instanceof DartProxy) {
+    } else if (message instanceof DartObject) {
       // Remote object proxy.
       return [ 'objref', message.id, message.port ];
     } else {
@@ -402,6 +425,9 @@ function DartProxy(o) {
       return proxiedObjectTable.get(id);
     } else {
       // Remote function.  Forward to its port.
+      if (proxiedObjectTable.contains(id)) {
+        return proxiedObjectTable.get(id);
+      }
       var f = function () {
         var args = Array.prototype.slice.apply(arguments);
         args.splice(0, 0, this);
@@ -413,11 +439,12 @@ function DartProxy(o) {
       // Cache the remote id and port.
       f._dart_id = id;
       f._dart_port = port;
+      proxiedObjectTable.add(f, id);
       return f;
     }
   }
 
-  // Creates a DartProxy to forwards to the remote object.
+  // Creates a DartObject to forwards to the remote object.
   function deserializeObject(message) {
     var id = message[1];
     var port = message[2];
@@ -427,7 +454,12 @@ function DartProxy(o) {
       return proxiedObjectTable.get(id);
     } else {
       // Remote object.
-      return new DartProxy(id, port);
+      if (proxiedObjectTable.contains(id)) {
+        return proxiedObjectTable.get(id);
+      }
+      proxy = new DartObject(id, port);
+      proxiedObjectTable.add(proxy, id);
+      return proxy;
     }
   }
 

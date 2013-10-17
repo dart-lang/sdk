@@ -43,10 +43,10 @@ $endif
     children.addAll(copy);
   }
 
-  Element query(String selectors) => _querySelector(selectors);
-
-  List<Element> queryAll(String selectors) =>
+  ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -83,5 +83,26 @@ $endif
     this.append(new DocumentFragment.html(text));
   }
 
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('DocumentFragment.querySelector')
+  Element query(String relativeSelectors) {
+    return querySelector(relativeSelectors);
+  }
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @Experimental()
+  @DomName('DocumentFragment.querySelectorAll')
+  ElementList queryAll(String relativeSelectors) {
+    return querySelectorAll(relativeSelectors);
+  }
 $!MEMBERS
 }

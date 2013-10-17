@@ -578,10 +578,30 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *
    * [selectors] should be a string using CSS selector syntax.
    *
-   *     var items = element.query('.itemClassName');
+   *     var items = element.querySelectorAll('.itemClassName');
    */
-  ElementList queryAll(String selectors) =>
+  @DomName('Element.querySelectorAll')
+  ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+  /** 
+   * Alias for [querySelector]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @DomName('Element.querySelector')
+  @Experimental()
+  Element query(String relativeSelectors) => querySelector(relativeSelectors);
+
+  /** 
+   * Alias for [querySelectorAll]. Note this function is deprecated because its
+   * semantics will be changing in the future.
+   */
+  @deprecated
+  @DomName('Element.querySelectorAll')
+  @Experimental()
+  ElementList queryAll(String relativeSelectors) =>
+      querySelectorAll(relativeSelectors);
 
   /**
    * The set of CSS classes applied to this element.

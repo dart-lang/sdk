@@ -9,6 +9,8 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('my-element')
 class MyElement extends PolymerElement {
+  MyElement.created() : super.created();
+
   @published double volume;
   @published int factor;
   @published bool crankIt;

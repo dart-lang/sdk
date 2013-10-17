@@ -620,6 +620,9 @@ class CompileTimeConstantEvaluator extends Visitor {
 
     Send send = node.send;
     FunctionElement constructor = elements[send];
+    if (Elements.isUnresolved(constructor)) {
+      return signalNotCompileTimeConstant(node);
+    }
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.

@@ -187,7 +187,8 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
  * All operations are defined in terms of `length`, `operator[]` and
  * `operator[]=`, which need to be implemented.
  */
-typedef FixedLengthListBase<E> = ListBase<E> with FixedLengthListMixin<E>;
+abstract class FixedLengthListBase<E> =
+    ListBase<E> with FixedLengthListMixin<E>;
 
 /**
  * Abstract implementation of an unmodifiable list.
@@ -195,7 +196,8 @@ typedef FixedLengthListBase<E> = ListBase<E> with FixedLengthListMixin<E>;
  * All operations are defined in terms of `length` and `operator[]`,
  * which need to be implemented.
  */
-typedef UnmodifiableListBase<E> = ListBase<E> with UnmodifiableListMixin<E>;
+abstract class UnmodifiableListBase<E> =
+    ListBase<E> with UnmodifiableListMixin<E>;
 
 class _ListIndicesIterable extends ListIterable<int> {
   List _backedList;

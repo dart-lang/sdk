@@ -3625,9 +3625,9 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(isolate, library, Library);
   }
-  if (field_count <= 0) {
+  if (!Utils::IsUint(16, field_count)) {
     return Api::NewError(
-        "Negative field_count passed to Dart_CreateNativeWrapperClass");
+        "Invalid field_count passed to Dart_CreateNativeWrapperClass");
   }
   CHECK_CALLBACK_STATE(isolate);
 
