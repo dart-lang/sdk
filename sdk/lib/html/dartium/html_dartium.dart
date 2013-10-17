@@ -9832,7 +9832,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
-  /** 
+  /**
    * Alias for [querySelector]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -9841,7 +9841,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @Experimental()
   Element query(String relativeSelectors) => querySelector(relativeSelectors);
 
-  /** 
+  /**
    * Alias for [querySelectorAll]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -10400,6 +10400,9 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     }
 
     treeSanitizer.sanitizeTree(fragment);
+    // Copy the fragment over to the main document (fix for 14184)
+    document.adoptNode(fragment);
+
     return fragment;
   }
 

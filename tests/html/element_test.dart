@@ -220,6 +220,16 @@ main() {
       expect(node.parent, isNull);
       expect(node.innerHtml, 'foobar');
     });
+
+    test('.html can fire events', () {
+      var e = new Element.html('<button>aha</button>');
+      var gotEvent = false;
+      e.onClick.listen((_) {
+        gotEvent = true;
+      });
+      e.click();
+      expect(gotEvent, isTrue, reason: 'click should have raised click event');
+    });
   });
 
   group('eventListening', () {
