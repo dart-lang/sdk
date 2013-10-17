@@ -1261,7 +1261,10 @@ class Transaction extends EventTarget native "IDBTransaction" {
     });
 
     this.onAbort.first.then((e) {
-      completer.completeError(e);
+      // Avoid completing twice if an error occurs.
+      if (!completer.isCompleted) {
+        completer.completeError(e);
+      }
     });
 
     return completer.future;
