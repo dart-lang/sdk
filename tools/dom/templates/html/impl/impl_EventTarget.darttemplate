@@ -51,6 +51,17 @@ class Events {
   }
 }
 
+class ElementEvents extends Events {
+  /* Raw event target. */
+  final Element _ptr;
+
+  ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
+
+  Stream operator [](String type) {
+    return new _ElementEventStreamImpl(_ptr, type, false);
+  }
+}
+
 /**
  * Base class for all browser objects that support events.
  *

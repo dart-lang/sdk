@@ -10454,6 +10454,12 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     _innerHtml = html;
   }
 
+  /**
+   * This is an ease-of-use accessor for event streams which should only be
+   * used when an explicit accessor is not available.
+   */
+  ElementEvents get on => new ElementEvents(this);
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -11972,6 +11978,17 @@ class Events {
 
   Stream operator [](String type) {
     return new _EventStream(_ptr, type, false);
+  }
+}
+
+class ElementEvents extends Events {
+  /* Raw event target. */
+  final Element _ptr;
+
+  ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
+
+  Stream operator [](String type) {
+    return new _ElementEventStreamImpl(_ptr, type, false);
   }
 }
 
@@ -31625,6 +31642,8 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    * [delegate](http://api.jquery.com/delegate/).
    */
   Stream<T> matches(String selector);
+
+  StreamSubscription<T> capture(void onData(T event));
 }
 
 /**
@@ -31641,6 +31660,10 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
         e._selector = selector;
         return e;
       });
+
+  StreamSubscription<T> capture(void onData(T event)) =>
+    new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, true);
 }
 
 /**
@@ -31649,17 +31672,12 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
  */
 class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     implements ElementStream<T> {
-  final _StreamPool _pool;
-  Stream<T> _stream;
+  final Iterable<Element> _targetList;
+  final bool _useCapture;
+  final String _eventType;
 
-  _ElementListEventStreamImpl(targetList, eventType, useCapture) :
-      _pool = new _StreamPool.broadcast() {
-    for (Element target in targetList) {
-      var stream = new _EventStream(target, eventType, useCapture);
-      _pool.add(stream);
-    }
-    _stream = _pool.stream;
-  }
+  _ElementListEventStreamImpl(
+      this._targetList, this._eventType, this._useCapture);
 
   Stream<T> matches(String selector) => this.where(
       (event) => event.target.matchesWithAncestors(selector)).map((e) {
@@ -31667,16 +31685,30 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
         return e;
       });
 
-  // Delegate all regular Stream behavor to our wrapped Stream.
+  // Delegate all regular Stream behavior to a wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
       { Function onError,
         void onDone(),
-        bool cancelOnError}) =>
-      _stream.listen(onData, onError: onError, onDone: onDone,
+        bool cancelOnError}) {
+    var pool = new _StreamPool.broadcast();
+    for (var target in _targetList) {
+      pool.add(new _EventStream(target, _eventType, _useCapture));
+    }
+    return pool.stream.listen(onData, onError: onError, onDone: onDone,
           cancelOnError: cancelOnError);
+  }
+
+  StreamSubscription<T> capture(void onData(T event)) {
+    var pool = new _StreamPool.broadcast();
+    for (var target in _targetList) {
+      pool.add(new _EventStream(target, _eventType, true));
+    }
+    return pool.stream.listen(onData);
+  }
+
   Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
                                void onCancel(StreamSubscription subscription)})
-      => _stream;
+      => this;
   bool get isBroadcast => true;
 }
 

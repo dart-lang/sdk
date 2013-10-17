@@ -1383,6 +1383,12 @@ $endif
     _innerHtml = html;
   }
 
+  /**
+   * This is an ease-of-use accessor for event streams which should only be
+   * used when an explicit accessor is not available.
+   */
+  ElementEvents get on => new ElementEvents(this);
+
 $!MEMBERS
 }
 

@@ -859,6 +859,43 @@ main() {
       query('.i').click();
       expect(firedEvent5, true);
     });
+
+    test('event ordering', () {
+      var a = new DivElement();
+      var b = new DivElement();
+      a.append(b);
+      var c = new DivElement();
+      b.append(c);
+
+      var eventOrder = [];
+
+      a.on['custom_event'].listen((_) {
+        eventOrder.add('a no-capture');
+      });
+
+      a.on['custom_event'].capture((_) {
+        eventOrder.add('a capture');
+      });
+
+      b.on['custom_event'].listen((_) {
+        eventOrder.add('b no-capture');
+      });
+
+      b.on['custom_event'].capture((_) {
+        eventOrder.add('b capture');
+      });
+
+      document.body.append(a);
+
+      var event = new Event('custom_event', canBubble: true);
+      c.dispatchEvent(event);
+      expect(eventOrder, [
+        'a capture',
+        'b capture',
+        'b no-capture',
+        'a no-capture'
+      ]);
+    });
   });
 
   group('ElementList', () {
