@@ -387,46 +387,19 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
 
 // Deprecated.
 // TODO(turnidge): Remove all uses and delete.
-DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  CHECK_CALLBACK_STATE(isolate);
-
-  va_list args;
-  va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
-  va_end(args);
-
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
-
-  const String& message = String::Handle(isolate, String::New(buffer));
-  return Api::NewHandle(isolate, ApiError::New(message));
+DART_EXPORT Dart_Handle Dart_Error(const char* error) {
+  return Dart_NewApiError(error);
 }
 
 
 // TODO(turnidge): This clones Api::NewError.  I need to use va_copy to
 // fix this but not sure if it available on all of our builds.
-DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...) {
+DART_EXPORT Dart_Handle Dart_NewApiError(const char* error) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
-  va_list args;
-  va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
-  va_end(args);
-
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
-
-  const String& message = String::Handle(isolate, String::New(buffer));
+  const String& message = String::Handle(isolate, String::New(error));
   return Api::NewHandle(isolate, ApiError::New(message));
 }
 

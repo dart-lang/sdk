@@ -290,10 +290,10 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
                                          Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
-    return Dart_Error("not a library");
+    return Dart_NewApiError("not a library");
   }
   if (!Dart_IsString(url)) {
-    return Dart_Error("url is not a string");
+    return Dart_NewApiError("url is not a string");
   }
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);

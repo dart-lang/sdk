@@ -22,17 +22,19 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
 
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
-  return Dart_NewApiError("Unreachable code in Builtin::Source (%d).", id);
+  return DartUtils::NewError("Unreachable code in Builtin::Source (%d).", id);
 }
 
 
 Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* uri) {
-  return Dart_NewApiError("Unreachable code in Builtin::PartSource (%d).", id);
+  return DartUtils::NewError(
+      "Unreachable code in Builtin::PartSource (%d).", id);
 }
 
 
 Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
-  return Dart_NewApiError("Unreachable code in Builtin::GetSource (%s).", uri);
+  return DartUtils::NewError(
+      "Unreachable code in Builtin::GetSource (%s).", uri);
 }
 
 

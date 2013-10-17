@@ -21,7 +21,7 @@ Dart_Handle Extensions::LoadExtension(const char* extension_url,
   char* library_path = strdup(extension_url);
 
   if (library_path == NULL) {
-    return Dart_Error("Out of memory in LoadExtension");
+    return Dart_NewApiError("Out of memory in LoadExtension");
   }
 
   // Extract the path and the extension name from the url.
@@ -32,7 +32,7 @@ Dart_Handle Extensions::LoadExtension(const char* extension_url,
   void* library_handle = LoadExtensionLibrary(library_path, extension_name);
   if (library_handle == NULL) {
     free(library_path);
-    return Dart_Error("cannot find extension library");
+    return Dart_NewApiError("cannot find extension library");
   }
 
   const char* strings[] = { extension_name, "_Init", NULL };
@@ -44,7 +44,7 @@ Dart_Handle Extensions::LoadExtension(const char* extension_url,
   free(library_path);
 
   if (fn == NULL) {
-    return Dart_Error("cannot find initialization function in extension");
+    return Dart_NewApiError("cannot find initialization function in extension");
   }
   return (*fn)(parent_library);
 }

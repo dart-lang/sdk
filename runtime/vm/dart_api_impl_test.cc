@@ -67,7 +67,7 @@ TEST_CASE(ErrorHandleTypes) {
   const String& fatal_message = String::Handle(String::New("FatalError"));
 
   Dart_Handle not_error = NewString("NotError");
-  Dart_Handle api_error = Dart_NewApiError("Api%s", "Error");
+  Dart_Handle api_error = Api::NewError("Api%s", "Error");
   Dart_Handle exception_error =
       Dart_NewUnhandledExceptionError(NewString("ExceptionError"));
   Dart_Handle compile_error =
@@ -168,7 +168,7 @@ TEST_CASE(Dart_PropagateError) {
 
 
 TEST_CASE(Dart_Error) {
-  Dart_Handle error = Dart_Error("An %s", "error");
+  Dart_Handle error = Api::NewError("An %s", "error");
   EXPECT(Dart_IsError(error));
   EXPECT_STREQ("An error", Dart_GetError(error));
 }
@@ -3399,7 +3399,7 @@ TEST_CASE(InjectNativeFields4) {
   // TODO(12455) Need better validation.
   // We expect the test script to fail finalization with the error below:
   EXPECT(Dart_IsError(result));
-  Dart_Handle expected_error = Dart_Error(
+  Dart_Handle expected_error = DartUtils::NewError(
       "'dart:test-lib': Error: line 1 pos 36: "
       "class 'NativeFields' is trying to extend a native fields class, "
       "but library '%s' has no native resolvers",
@@ -3830,7 +3830,7 @@ TEST_CASE(New) {
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
   Dart_Handle bad_args[1];
-  bad_args[0] = Dart_Error("myerror");
+  bad_args[0] = Dart_NewApiError("myerror");
 
   // Invoke the unnamed constructor.
   Dart_Handle result = Dart_New(type, Dart_Null(), 0, NULL);
@@ -3947,7 +3947,7 @@ TEST_CASE(New) {
   EXPECT(Dart_IsNull(result));
 
   // Pass an error class object.  Error is passed through.
-  result = Dart_New(Dart_Error("myerror"), NewString("named"), 1, args);
+  result = Dart_New(Dart_NewApiError("myerror"), NewString("named"), 1, args);
   EXPECT_ERROR(result, "myerror");
 
   // Pass a bad class object.
@@ -4621,7 +4621,7 @@ TEST_CASE(LoadScript) {
       "}";
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle source = NewString(kScriptChars);
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
   result = Dart_SetLibraryTagHandler(library_handler);
@@ -4794,7 +4794,7 @@ TEST_CASE(LookupLibrary) {
       "Dart_LookupLibrary expects argument 'url' to be of type String.",
       Dart_GetError(result));
 
-  result = Dart_LookupLibrary(Dart_Error("incoming error"));
+  result = Dart_LookupLibrary(Dart_NewApiError("incoming error"));
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
@@ -4812,7 +4812,7 @@ TEST_CASE(LibraryName) {
   Dart_Handle url = NewString("library1_url");
   Dart_Handle source = NewString(kLibrary1Chars);
   Dart_Handle lib = Dart_LoadLibrary(url, source);
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   EXPECT_VALID(lib);
 
   Dart_Handle result = Dart_LibraryName(Dart_Null());
@@ -4845,7 +4845,7 @@ TEST_CASE(LibraryUrl) {
   Dart_Handle url = NewString("library1_url");
   Dart_Handle source = NewString(kLibrary1Chars);
   Dart_Handle lib = Dart_LoadLibrary(url, source);
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   EXPECT_VALID(lib);
 
   Dart_Handle result = Dart_LibraryUrl(Dart_Null());
@@ -4984,7 +4984,7 @@ TEST_CASE(LibraryImportLibrary) {
       "library library1_name;";
   const char* kLibrary2Chars =
       "library library2_name;";
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
   Dart_Handle url = NewString("library1_url");
@@ -5078,7 +5078,7 @@ TEST_CASE(ImportLibraryWithPrefix) {
 TEST_CASE(LoadLibrary) {
   const char* kLibrary1Chars =
       "library library1_name;";
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
   Dart_Handle url = NewString("library1_url");
@@ -5146,7 +5146,7 @@ TEST_CASE(LoadSource) {
       "part of library1_name;\n// Something innocuous";
   const char* kBadSourceChars =
       ")";
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
   // Load up a library.
@@ -5525,7 +5525,7 @@ TEST_CASE(SetNativeResolver) {
       "  static bar() native \"SomeNativeFunction2\";"
       "  static baz() native \"SomeNativeFunction3\";"
       "}";
-  Dart_Handle error = Dart_Error("incoming error");
+  Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
   // Load a test script.
