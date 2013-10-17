@@ -12,28 +12,28 @@ main() {
   useCompactVMConfiguration();
 
   group('replaces Observable for ChangeNotifier', () {
-    _testClause('extends ObservableBase', 'extends ChangeNotifierBase');
-    _testClause('extends Base with ObservableMixin',
-        'extends Base with ChangeNotifierMixin');
-    _testClause('extends Base<T> with ObservableMixin',
-        'extends Base<T> with ChangeNotifierMixin');
-    _testClause('extends Base with Mixin, ObservableMixin',
-        'extends Base with Mixin, ChangeNotifierMixin');
-    _testClause('extends Base with ObservableMixin, Mixin',
-        'extends Base with ChangeNotifierMixin, Mixin');
-    _testClause('extends Base with Mixin<T>, ObservableMixin',
-        'extends Base with Mixin<T>, ChangeNotifierMixin');
-    _testClause('extends Base with Mixin, ObservableMixin, Mixin2',
-        'extends Base with Mixin, ChangeNotifierMixin, Mixin2');
-    _testClause('extends ObservableBase implements Interface',
-        'extends ChangeNotifierBase implements Interface');
-    _testClause('extends ObservableBase implements Interface<T>',
-        'extends ChangeNotifierBase implements Interface<T>');
-    _testClause('extends Base with ObservableMixin implements Interface',
-        'extends Base with ChangeNotifierMixin implements Interface');
+    _testClause('extends Observable', 'extends ChangeNotifier');
+    _testClause('extends Base with Observable',
+        'extends Base with ChangeNotifier');
+    _testClause('extends Base<T> with Observable',
+        'extends Base<T> with ChangeNotifier');
+    _testClause('extends Base with Mixin, Observable',
+        'extends Base with Mixin, ChangeNotifier');
+    _testClause('extends Base with Observable, Mixin',
+        'extends Base with ChangeNotifier, Mixin');
+    _testClause('extends Base with Mixin<T>, Observable',
+        'extends Base with Mixin<T>, ChangeNotifier');
+    _testClause('extends Base with Mixin, Observable, Mixin2',
+        'extends Base with Mixin, ChangeNotifier, Mixin2');
+    _testClause('extends Observable implements Interface',
+        'extends ChangeNotifier implements Interface');
+    _testClause('extends Observable implements Interface<T>',
+        'extends ChangeNotifier implements Interface<T>');
+    _testClause('extends Base with Observable implements Interface',
+        'extends Base with ChangeNotifier implements Interface');
     _testClause(
-        'extends Base with Mixin, ObservableMixin implements I1, I2',
-        'extends Base with Mixin, ChangeNotifierMixin implements I1, I2');
+        'extends Base with Mixin, Observable implements I1, I2',
+        'extends Base with Mixin, ChangeNotifier implements I1, I2');
   });
 
   group('fixes contructor calls ', () {
@@ -150,7 +150,7 @@ String _sampleObservable(String annotation) => '''
 library A_foo;
 import 'package:observe/observe.dart';
 
-class A extends ObservableBase {
+class A extends Observable {
   @$annotation int foo;
   A(this.foo);
 }
@@ -159,7 +159,7 @@ class A extends ObservableBase {
 String _sampleObservableOutput(String annotation) =>
     "library A_foo;\n"
     "import 'package:observe/observe.dart';\n\n"
-    "class A extends ChangeNotifierBase {\n"
+    "class A extends ChangeNotifier {\n"
     "  @reflectable @$annotation int get foo => __\$foo; int __\$foo; "
       "${_makeSetter('int', 'foo')}\n"
     "  A(foo) : __\$foo = foo;\n"
@@ -169,7 +169,7 @@ _makeSetter(type, name) => '@reflectable set $name($type value) { '
     '__\$$name = notifyPropertyChange(#$name, __\$$name, value); }';
 
 String _complexObservable(String annotation) => '''
-class Foo extends ObservableBase {
+class Foo extends Observable {
   @$annotation
   @otherMetadata
       Foo
@@ -181,7 +181,7 @@ class Foo extends ObservableBase {
 ''';
 
 String _complexObservableOutput(String meta) =>
-    "class Foo extends ChangeNotifierBase {\n"
+    "class Foo extends ChangeNotifier {\n"
     "  @reflectable @$meta\n"
     "  @otherMetadata\n"
     "      Foo\n"

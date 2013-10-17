@@ -61,7 +61,7 @@ void main() {
 }
 
 void _observeTests(createModel(x)) {
-  final watch = createModel(null) is! ChangeNotifierMixin;
+  final watch = createModel(null) is! ChangeNotifier;
 
   // Track the subscriptions so we can clean them up in tearDown.
   List subs;
@@ -109,7 +109,7 @@ void _observeTests(createModel(x)) {
 
     subs.add(t.changes.listen(expectAsync1((records) {
       called++;
-      expectChanges(records, _changedValue(watch ? 1 : 2));
+      expectPropertyChanges(records, watch ? 1 : 2);
     })));
 
     t.value = 41;
@@ -123,7 +123,7 @@ void _observeTests(createModel(x)) {
 
     subs.add(t.changes.listen(expectAsync1((records) {
       called++;
-      expectChanges(records, _changedValue(1));
+      expectPropertyChanges(records, 1);
       if (called == 1) {
         // Cause another change
         t.value = 777;
@@ -137,7 +137,7 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
 
     verifyRecords(records) {
-      expectChanges(records, _changedValue(watch ? 1 : 2));
+      expectPropertyChanges(records, watch ? 1 : 2);
     };
 
     subs.add(t.changes.listen(expectAsync1(verifyRecords)));
@@ -156,25 +156,25 @@ void _observeTests(createModel(x)) {
     expectChanges(records, [], reason: 'changes delived async');
 
     performMicrotaskCheckpoint();
-    expectChanges(records, _changedValue(watch ? 1 : 2));
+    expectPropertyChanges(records, watch ? 1 : 2);
     records.clear();
 
     t.value = 777;
     expectChanges(records, [], reason: 'changes delived async');
 
     performMicrotaskCheckpoint();
-    expectChanges(records, _changedValue(1));
+    expectPropertyChanges(records, 1);
 
     // Has no effect if there are no changes
     performMicrotaskCheckpoint();
-    expectChanges(records, _changedValue(1));
+    expectPropertyChanges(records, 1);
   });
 
   observeTest('cancel listening', () {
     var t = createModel(123);
     var sub;
     sub = t.changes.listen(expectAsync1((records) {
-      expectChanges(records, _changedValue(1));
+      expectPropertyChanges(records, 1);
       sub.cancel();
       t.value = 777;
       scheduleMicrotask(Observable.dirtyCheck);
@@ -186,12 +186,12 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
     var sub;
     sub = t.changes.listen(expectAsync1((records) {
-      expectChanges(records, _changedValue(1));
+      expectPropertyChanges(records, 1);
       sub.cancel();
 
       scheduleMicrotask(expectAsync0(() {
         subs.add(t.changes.listen(expectAsync1((records) {
-          expectChanges(records, _changedValue(1));
+          expectPropertyChanges(records, 1);
         })));
         t.value = 777;
         scheduleMicrotask(Observable.dirtyCheck);
@@ -207,12 +207,12 @@ void _observeTests(createModel(x)) {
     t.value = 42;
 
     performMicrotaskCheckpoint();
-    expectChanges(records, _changedValue(1));
+    expectPropertyChanges(records, 1);
 
     // Verify that mutation operations on the list fail:
 
     expect(() {
-      records[0] = new PropertyChangeRecord(#value);
+      records[0] = new PropertyChangeRecord(t, #value, 0, 1);
     }, throwsUnsupportedError);
 
     expect(() { records.clear(); }, throwsUnsupportedError);
@@ -224,10 +224,10 @@ void _observeTests(createModel(x)) {
     var t = createModel(123);
     var records = [];
     subs.add(t.changes.listen((r) { records.addAll(r); }));
-    t.notifyChange(new PropertyChangeRecord(#value));
+    t.notifyChange(new PropertyChangeRecord(t, #value, 123, 42));
 
     performMicrotaskCheckpoint();
-    expectChanges(records, _changedValue(1));
+    expectPropertyChanges(records, 1);
     expect(t.value, 123, reason: 'value did not actually change.');
   });
 
@@ -239,15 +239,23 @@ void _observeTests(createModel(x)) {
         reason: 'notifyPropertyChange returns newValue');
 
     performMicrotaskCheckpoint();
-    expectChanges(records, _changedValue(1));
+    expectPropertyChanges(records, 1);
     expect(t.value, 123, reason: 'value did not actually change.');
   });
 }
 
-_changedValue(len) => new List.filled(len, new PropertyChangeRecord(#value));
+expectPropertyChanges(records, int number) {
+  expect(records.length, number, reason: 'expected $number change records');
+  for (var record in records) {
+    expect(record is PropertyChangeRecord, true, reason:
+        'record should be PropertyChangeRecord');
+    expect((record as PropertyChangeRecord).name, #value, reason:
+        'record should indicate a change to the "value" property');
+  }
+}
 
 // A test model based on dirty checking.
-class WatcherModel<T> extends ObservableBase {
+class WatcherModel<T> extends Observable {
   @observable T value;
 
   WatcherModel([T initialValue]) : value = initialValue;

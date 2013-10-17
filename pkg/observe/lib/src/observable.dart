@@ -5,87 +5,27 @@
 part of observe;
 
 /**
- * Interface representing an observable object. This is used by data in
- * model-view architectures to notify interested parties of [changes].
+ * Represents an object with observable properties. This is used by data in
+ * model-view architectures to notify interested parties of [changes] to the
+ * object's properties (fields or getter/setter pairs).
  *
- * This object does not require any specific technique to implement
- * observability. If you mixin [ObservableMixin], [dirtyCheck] will know to
- * check for changes on the object. You may also implement change notification
- * yourself, by calling [notifyChange].
+ * The interface does not require any specific technique to implement
+ * observability. You can implement it in the following ways:
  *
- * You can use [ObservableBase] or [ObservableMixin] to implement this.
+ * - extend or mixin this class, and let the application call [dirtyCheck]
+ *   periodically to check for changes to your object.
+ * - extend or mixin [ChangeNotifier], and implement change notifications
+ *   manually by calling [notifyPropertyChange] from your setters.
+ * - implement this interface and provide your own implementation.
  */
 abstract class Observable {
   /**
-   * The stream of change records to this object. Records will be delivered
-   * asynchronously.
-   *
-   * [deliverChanges] can be called to force synchronous delivery.
-   */
-  Stream<List<ChangeRecord>> get changes;
-
-  /**
-   * Synchronously deliver pending [changes]. Returns true if any records were
-   * delivered, otherwise false.
-   */
-  // TODO(jmesserly): this is a bit different from the ES Harmony version, which
-  // allows delivery of changes to a particular observer:
-  // http://wiki.ecmascript.org/doku.php?id=harmony:observe#object.deliverchangerecords
-  //
-  // The rationale for that, and for async delivery in general, is the principal
-  // that you shouldn't run code (observers) when it doesn't expect to be run.
-  // If you do that, you risk violating invariants that the code assumes.
-  //
-  // For this reason, we need to match the ES Harmony version. The way we can do
-  // this in Dart is to add a method on StreamSubscription (possibly by
-  // subclassing Stream* types) that immediately delivers records for only
-  // that subscription. Alternatively, we could consider using something other
-  // than Stream to deliver the multicast change records, and provide an
-  // Observable->Stream adapter.
-  //
-  // Also: we should be delivering changes to the observer (subscription) based
-  // on the birth order of the observer. This is for compatibility with ES
-  // Harmony as well as predictability for app developers.
-  bool deliverChanges();
-
-  /**
-   * Notify observers of a change.
-   *
-   * For most objects [ObservableMixin.notifyPropertyChange] is more
-   * convenient, but collections sometimes deliver other types of changes such
-   * as a [ListChangeRecord].
-   */
-  void notifyChange(ChangeRecord record);
-
-  /**
-   * True if this object has any observers, and should call
-   * [notifyChange] for changes.
-   */
-  bool get hasObservers;
-
-  /**
-   * Performs dirty checking of objects that inherit from [ObservableMixin].
+   * Performs dirty checking of objects that inherit from [Observable].
    * This scans all observed objects using mirrors and determines if any fields
    * have changed. If they have, it delivers the changes for the object.
    */
   static void dirtyCheck() => dirtyCheckObservables();
-}
 
-/**
- * Base class implementing [Observable].
- *
- * When a field, property, or indexable item is changed, the change record
- * will be sent to [changes].
- */
-class ObservableBase = Object with ObservableMixin;
-
-/**
- * Mixin for implementing [Observable] objects.
- *
- * When a field, property, or indexable item is changed, the change record
- * will be sent to [changes].
- */
-abstract class ObservableMixin implements Observable {
   StreamController _changes;
   InstanceMirror _mirror;
 
@@ -94,6 +34,12 @@ abstract class ObservableMixin implements Observable {
 
   static final _objectType = reflectClass(Object);
 
+  /**
+   * The stream of change records to this object. Records will be delivered
+   * asynchronously.
+   *
+   * [deliverChanges] can be called to force synchronous delivery.
+   */
   Stream<List<ChangeRecord>> get changes {
     if (_changes == null) {
       _changes = new StreamController.broadcast(sync: true,
@@ -102,6 +48,10 @@ abstract class ObservableMixin implements Observable {
     return _changes.stream;
   }
 
+  /**
+   * True if this object has any observers, and should call
+   * [notifyChange] for changes.
+   */
   bool get hasObservers => _changes != null && _changes.hasListener;
 
   void _observed() {
@@ -144,6 +94,28 @@ abstract class ObservableMixin implements Observable {
     }
   }
 
+  /**
+   * Synchronously deliver pending [changes]. Returns true if any records were
+   * delivered, otherwise false.
+   */
+  // TODO(jmesserly): this is a bit different from the ES Harmony version, which
+  // allows delivery of changes to a particular observer:
+  // http://wiki.ecmascript.org/doku.php?id=harmony:observe#object.deliverchangerecords
+  //
+  // The rationale for that, and for async delivery in general, is the principal
+  // that you shouldn't run code (observers) when it doesn't expect to be run.
+  // If you do that, you risk violating invariants that the code assumes.
+  //
+  // For this reason, we need to match the ES Harmony version. The way we can do
+  // this in Dart is to add a method on StreamSubscription (possibly by
+  // subclassing Stream* types) that immediately delivers records for only
+  // that subscription. Alternatively, we could consider using something other
+  // than Stream to deliver the multicast change records, and provide an
+  // Observable->Stream adapter.
+  //
+  // Also: we should be delivering changes to the observer (subscription) based
+  // on the birth order of the observer. This is for compatibility with ES
+  // Harmony as well as predictability for app developers.
   bool deliverChanges() {
     if (_values == null || !hasObservers) return false;
 
@@ -154,9 +126,9 @@ abstract class ObservableMixin implements Observable {
 
     _values.forEach((name, oldValue) {
       var newValue = _mirror.getField(name).reflectee;
-      if (!identical(oldValue, newValue)) {
+      if (oldValue != newValue) {
         if (records == null) records = [];
-        records.add(new PropertyChangeRecord(name));
+        records.add(new PropertyChangeRecord(this, name, oldValue, newValue));
         _values[name] = newValue;
       }
     });
@@ -171,7 +143,7 @@ abstract class ObservableMixin implements Observable {
    * Notify that the field [name] of this object has been changed.
    *
    * The [oldValue] and [newValue] are also recorded. If the two values are
-   * identical, no change will be recorded.
+   * equal, no change will be recorded.
    *
    * For convenience this returns [newValue].
    */
@@ -179,9 +151,17 @@ abstract class ObservableMixin implements Observable {
       => _notifyPropertyChange(this, field, oldValue, newValue);
 
   /**
-   * Notify a change manually. This is *not* required for fields, but can be
-   * used for computed properties. *Note*: unlike [ChangeNotifierMixin] this
-   * will not schedule [deliverChanges]; use [Observable.dirtyCheck] instead.
+   * Notify observers of a change.
+   *
+   * For most objects [Observable.notifyPropertyChange] is more convenient, but
+   * collections sometimes deliver other types of changes such as a
+   * [ListChangeRecord].
+   *
+   * Notes:
+   * - This is *not* required for fields if you mixin or extend [Observable],
+   *   but you can use it for computed properties.
+   * - Unlike [ChangeNotifier] this will not schedule [deliverChanges]; use
+   *   [Observable.dirtyCheck] instead.
    */
   void notifyChange(ChangeRecord record) {
     if (!hasObservers) return;
@@ -192,12 +172,18 @@ abstract class ObservableMixin implements Observable {
 }
 
 /**
+ * *Deprecated* use [Observable.notifyPropertyChange] instead.
+ *
+ * This API should not be used as it creates a
+ * [PropertyChangeRecord] without oldValue and newValue.
+ *
  * Notify the property change. Shorthand for:
  *
- *     target.notifyChange(new PropertyChangeRecord(targetName));
+ *     target.notifyChange(new PropertyChangeRecord(target, name, null, null));
  */
-void notifyProperty(Observable target, Symbol targetName) {
-  target.notifyChange(new PropertyChangeRecord(targetName));
+@deprecated
+void notifyProperty(Observable target, Symbol name) {
+  target.notifyChange(new PropertyChangeRecord(target, name, null, null));
 }
 
 // TODO(jmesserly): remove the instance method and make this top-level method
@@ -205,10 +191,8 @@ void notifyProperty(Observable target, Symbol targetName) {
 _notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
     Object newValue) {
 
-  // TODO(jmesserly): should this be == instead of identical, to prevent
-  // spurious loops?
-  if (obj.hasObservers && !identical(oldValue, newValue)) {
-    obj.notifyChange(new PropertyChangeRecord(field));
+  if (obj.hasObservers && oldValue != newValue) {
+    obj.notifyChange(new PropertyChangeRecord(obj, field, oldValue, newValue));
   }
   return newValue;
 }

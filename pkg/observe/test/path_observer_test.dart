@@ -15,15 +15,6 @@ main() {
 
 observePath(obj, path) => new PathObserver(obj, path);
 
-toSymbolMap(Map map) {
-  var result = new ObservableMap.linked();
-  map.forEach((key, value) {
-    if (value is Map) value = toSymbolMap(value);
-    result[new Symbol(key)] = value;
-  });
-  return result;
-}
-
 observePathTests() {
   observeTest('Degenerate Values', () {
     expect(observePath(null, '').value, null);
@@ -66,45 +57,45 @@ observePathTests() {
 
 
   observeTest('get value at path ObservableMap', () {
-    var obj = toSymbolMap({'a': {'b': {'c': 1}}});
+    var obj = toObservable({'a': {'b': {'c': 1}}});
 
     expect(observePath(obj, '').value, obj);
-    expect(observePath(obj, 'a').value, obj[#a]);
-    expect(observePath(obj, 'a.b').value, obj[#a][#b]);
+    expect(observePath(obj, 'a').value, obj['a']);
+    expect(observePath(obj, 'a.b').value, obj['a']['b']);
     expect(observePath(obj, 'a.b.c').value, 1);
 
-    obj[#a][#b][#c] = 2;
+    obj['a']['b']['c'] = 2;
     expect(observePath(obj, 'a.b.c').value, 2);
 
-    obj[#a][#b] = toSymbolMap({'c': 3});
+    obj['a']['b'] = toObservable({'c': 3});
     expect(observePath(obj, 'a.b.c').value, 3);
 
-    obj[#a] = toSymbolMap({'b': 4});
+    obj['a'] = toObservable({'b': 4});
     expect(observePath(obj, 'a.b.c').value, null);
     expect(observePath(obj, 'a.b').value, 4);
   });
 
   observeTest('set value at path', () {
-    var obj = toSymbolMap({});
+    var obj = toObservable({});
     observePath(obj, 'foo').value = 3;
-    expect(obj[#foo], 3);
+    expect(obj['foo'], 3);
 
-    var bar = toSymbolMap({ 'baz': 3 });
+    var bar = toObservable({ 'baz': 3 });
     observePath(obj, 'bar').value = bar;
-    expect(obj[#bar], bar);
+    expect(obj['bar'], bar);
 
     observePath(obj, 'bar.baz.bat').value = 'not here';
     expect(observePath(obj, 'bar.baz.bat').value, null);
   });
 
   observeTest('set value back to same', () {
-    var obj = toSymbolMap({});
+    var obj = toObservable({});
     var path = observePath(obj, 'foo');
     var values = [];
     path.changes.listen((_) { values.add(path.value); });
 
     path.value = 3;
-    expect(obj[#foo], 3);
+    expect(obj['foo'], 3);
     expect(path.value, 3);
 
     observePath(obj, 'foo').value = 2;
@@ -121,16 +112,16 @@ observePathTests() {
   });
 
   observeTest('Observe and Unobserve - Paths', () {
-    var arr = toSymbolMap({});
+    var arr = toObservable({});
 
-    arr[#foo] = 'bar';
+    arr['foo'] = 'bar';
     var fooValues = [];
     var fooPath = observePath(arr, 'foo');
     var fooSub = fooPath.changes.listen((_) {
       fooValues.add(fooPath.value);
     });
-    arr[#foo] = 'baz';
-    arr[#bat] = 'bag';
+    arr['foo'] = 'baz';
+    arr['bat'] = 'bag';
     var batValues = [];
     var batPath = observePath(arr, 'bat');
     var batSub = batPath.changes.listen((_) {
@@ -141,11 +132,11 @@ observePathTests() {
     expect(fooValues, ['baz']);
     expect(batValues, []);
 
-    arr[#foo] = 'bar';
+    arr['foo'] = 'bar';
     fooSub.cancel();
-    arr[#bat] = 'boo';
+    arr['bat'] = 'boo';
     batSub.cancel();
-    arr[#bat] = 'boot';
+    arr['bat'] = 'boot';
 
     performMicrotaskCheckpoint();
     expect(fooValues, ['baz']);
@@ -206,26 +197,26 @@ observePathTests() {
   }
 
   observeTest('observe map', () {
-    var model = toSymbolMap({'a': 1});
+    var model = toObservable({'a': 1});
     var path = observePath(model, 'a');
 
     var values = [path.value];
     var sub = path.changes.listen((_) { values.add(path.value); });
     expect(values, [1]);
 
-    model[#a] = 2;
+    model['a'] = 2;
     performMicrotaskCheckpoint();
     expect(values, [1, 2]);
 
     sub.cancel();
-    model[#a] = 3;
+    model['a'] = 3;
     performMicrotaskCheckpoint();
     expect(values, [1, 2]);
   });
 }
 
 @reflectable
-class TestModel extends ChangeNotifierBase {
+class TestModel extends ChangeNotifier {
   var _a, _b, _c;
 
   TestModel();
@@ -249,7 +240,7 @@ class TestModel extends ChangeNotifierBase {
   }
 }
 
-class WatcherModel extends ObservableBase {
+class WatcherModel extends Observable {
   // TODO(jmesserly): dart2js does not let these be on the same line:
   // @observable var a, b, c;
   @observable var a;

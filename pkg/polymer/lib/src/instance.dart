@@ -898,7 +898,7 @@ class _PolymerBinding extends NodeBinding {
 
   void _propertyValueChanged(List<ChangeRecord> records) {
     for (var record in records) {
-      if (record.changes(_property)) {
+      if (record is PropertyChangeRecord && record.name == _property) {
         final newValue = _target.getField(_property).reflectee;
         if (!identical(_lastValue, newValue)) {
           value = newValue;
@@ -942,7 +942,7 @@ final Expando _eventHandledTable = new Expando<Set<Node>>();
  *
  * See [Polymer].
  */
-class PolymerElement extends HtmlElement with Polymer, ObservableMixin {
+class PolymerElement extends HtmlElement with Polymer, Observable {
   PolymerElement.created() : super.created() {
     polymerCreated();
   }

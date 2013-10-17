@@ -92,7 +92,7 @@ templateElementTests() {
     var template = div.nodes[0];
     template.remove();
 
-    recursivelySetTemplateModel(template, toSymbolMap({}));
+    recursivelySetTemplateModel(template, toObservable({}));
     performMicrotaskCheckpoint();
     expect(template.nodes.length, 0);
     expect(template.nextNode, null);
@@ -103,7 +103,7 @@ templateElementTests() {
     var template = div.nodes[0];
     var doc = document.implementation.createHtmlDocument('');
     doc.adoptNode(div);
-    recursivelySetTemplateModel(template, toSymbolMap({}));
+    recursivelySetTemplateModel(template, toObservable({}));
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
   });
@@ -120,12 +120,12 @@ templateElementTests() {
     var div = createTestHtml('<template bind if="{{ foo }}">text</template>');
     // Note: changed this value from 0->null because zero is not falsey in Dart.
     // See https://code.google.com/p/dart/issues/detail?id=11956
-    var m = toSymbolMap({ 'foo': null });
+    var m = toObservable({ 'foo': null });
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[#foo] = 1;
+    m['foo'] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'text');
@@ -134,12 +134,12 @@ templateElementTests() {
   observeTest('Template Bind If, 2', () {
     var div = createTestHtml(
         '<template bind="{{ foo }}" if="{{ bar }}">{{ bat }}</template>');
-    var m = toSymbolMap({ 'bar': null, 'foo': { 'bat': 'baz' } });
+    var m = toObservable({ 'bar': null, 'foo': { 'bat': 'baz' } });
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[#bar] = 1;
+    m['bar'] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'baz');
@@ -149,12 +149,12 @@ templateElementTests() {
     var div = createTestHtml('<template if="{{ foo }}">{{ value }}</template>');
     // Note: changed this value from 0->null because zero is not falsey in Dart.
     // See https://code.google.com/p/dart/issues/detail?id=11956
-    var m = toSymbolMap({ 'foo': null, 'value': 'foo' });
+    var m = toObservable({ 'foo': null, 'value': 'foo' });
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[#foo] = 1;
+    m['foo'] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'foo');
@@ -165,12 +165,12 @@ templateElementTests() {
         '<template repeat="{{ foo }}" if="{{ bar }}">{{ }}</template>');
     // Note: changed this value from 0->null because zero is not falsey in Dart.
     // See https://code.google.com/p/dart/issues/detail?id=11956
-    var m = toSymbolMap({ 'bar': null, 'foo': [1, 2, 3] });
+    var m = toObservable({ 'bar': null, 'foo': [1, 2, 3] });
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
-    m[#bar] = 1;
+    m['bar'] = 1;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '1');
@@ -180,18 +180,18 @@ templateElementTests() {
 
   observeTest('TextTemplateWithNullStringBinding', () {
     var div = createTestHtml('<template bind={{}}>a{{b}}c</template>');
-    var model = toSymbolMap({'b': 'B'});
+    var model = toObservable({'b': 'B'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[#b] = 'b';
+    model['b'] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
 
-    model[#b] = null;
+    model['b'] = null;
     deliverChanges(model);
     expect(div.nodes.last.text, 'ac');
 
@@ -204,22 +204,22 @@ templateElementTests() {
   observeTest('TextTemplateWithBindingPath', () {
     var div = createTestHtml(
         '<template bind="{{ data }}">a{{b}}c</template>');
-    var model = toSymbolMap({ 'data': {'b': 'B'} });
+    var model = toObservable({ 'data': {'b': 'B'} });
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[#data][#b] = 'b';
+    model['data']['b'] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
 
-    model[#data] = toSymbols({'b': 'X'});
+    model['data'] = toObservable({'b': 'X'});
     deliverChanges(model);
     expect(div.nodes.last.text, 'aXc');
 
-    model[#data] = null;
+    model['data'] = null;
     deliverChanges(model);
     expect(div.nodes.last.text, 'ac');
   });
@@ -227,26 +227,26 @@ templateElementTests() {
   observeTest('TextTemplateWithBindingAndConditional', () {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{ d }}">a{{b}}c</template>');
-    var model = toSymbolMap({'b': 'B', 'd': 1});
+    var model = toObservable({'b': 'B', 'd': 1});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[#b] = 'b';
+    model['b'] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
 
     // TODO(jmesserly): MDV set this to empty string and relies on JS conversion
     // rules. Is that intended?
     // See https://github.com/toolkitchen/mdv/issues/59
-    model[#d] = null;
+    model['d'] = null;
     deliverChanges(model);
     expect(div.nodes.length, 1);
 
-    model[#d] = 'here';
-    model[#b] = 'd';
+    model['d'] = 'here';
+    model['b'] = 'd';
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
@@ -257,14 +257,14 @@ templateElementTests() {
     var div = createTestHtml(
         '<template bind="{{ b }}">a{{value}}c</template>');
     expect(div.nodes.length, 1);
-    var model = toSymbolMap({'b': {'value': 'B'}});
+    var model = toObservable({'b': {'value': 'B'}});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
-    model[#b] = toSymbols({'value': 'b'});
+    model['b'] = toObservable({'value': 'b'});
     deliverChanges(model);
     expect(div.nodes.last.text, 'abc');
   });
@@ -274,18 +274,18 @@ templateElementTests() {
         '<template bind="{{}}">'
         '<div foo="a{{b}}c"></div>'
         '</template>');
-    var model = toSymbolMap({'b': 'B'});
+    var model = toObservable({'b': 'B'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
     expect(div.nodes.last.attributes['foo'], 'aBc');
 
-    model[#b] = 'b';
+    model['b'] = 'b';
     deliverChanges(model);
     expect(div.nodes.last.attributes['foo'], 'abc');
 
-    model[#b] = 'X';
+    model['b'] = 'X';
     deliverChanges(model);
     expect(div.nodes.last.attributes['foo'], 'aXc');
   });
@@ -295,7 +295,7 @@ templateElementTests() {
         '<template bind="{{}}">'
         '<div foo?="{{b}}"></div>'
         '</template>');
-    var model = toSymbolMap({'b': 'b'});
+    var model = toObservable({'b': 'b'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -303,7 +303,7 @@ templateElementTests() {
     expect(div.nodes.last.attributes['foo'], '');
     expect(div.nodes.last.attributes, isNot(contains('foo?')));
 
-    model[#b] = null;
+    model['b'] = null;
     deliverChanges(model);
     expect(div.nodes.last.attributes, isNot(contains('foo')));
   });
@@ -312,7 +312,7 @@ templateElementTests() {
     var div = createTestHtml(
         '<template repeat="{{}}"">text</template>');
 
-    var model = toSymbols([0, 1, 2]);
+    var model = toObservable([0, 1, 2]);
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -322,7 +322,7 @@ templateElementTests() {
     deliverChanges(model);
     expect(div.nodes.length, 2);
 
-    model.addAll(toSymbols([3, 4]));
+    model.addAll(toObservable([3, 4]));
     deliverChanges(model);
     expect(div.nodes.length, 4);
 
@@ -334,7 +334,7 @@ templateElementTests() {
   observeTest('Repeat - Reuse Instances', () {
     var div = createTestHtml('<template repeat>{{ val }}</template>');
 
-    var model = toSymbols([
+    var model = toObservable([
       {'val': 10},
       {'val': 5},
       {'val': 2},
@@ -350,7 +350,7 @@ templateElementTests() {
     addExpandos(template.nextNode);
     checkExpandos(template.nextNode);
 
-    model.sort((a, b) => a[#val] - b[#val]);
+    model.sort((a, b) => a['val'] - b['val']);
     deliverChanges(model);
     checkExpandos(template.nextNode);
 
@@ -360,7 +360,7 @@ templateElementTests() {
     checkExpandos(template.nextNode);
 
     for (var item in model) {
-      item[#val] += 1;
+      item['val'] += 1;
     }
 
     deliverChanges(model);
@@ -395,7 +395,7 @@ templateElementTests() {
     var div = createTestHtml(
         '<template repeat>text</template>');
 
-    var model = toSymbols([0, 1, 2]);
+    var model = toObservable([0, 1, 2]);
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -405,7 +405,7 @@ templateElementTests() {
     deliverChanges(model);
     expect(div.nodes.length, 2);
 
-    model.addAll(toSymbols([3, 4]));
+    model.addAll(toObservable([3, 4]));
     deliverChanges(model);
     expect(div.nodes.length, 4);
 
@@ -417,7 +417,7 @@ templateElementTests() {
   observeTest('Removal from iteration needs to unbind', () {
     var div = createTestHtml(
         '<template repeat="{{}}"><a>{{v}}</a></template>');
-    var model = toSymbols([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3}, {'v': 4}]);
+    var model = toObservable([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3}, {'v': 4}]);
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
 
@@ -434,8 +434,8 @@ templateElementTests() {
       expect(nodes[i].text, '$i');
     }
 
-    vs[3][#v] = 33;
-    vs[4][#v] = 44;
+    vs[3]['v'] = 33;
+    vs[4]['v'] = 44;
     deliverChanges(model);
     for (var i = 0; i < 5; i++) {
       expect(nodes[i].text, '$i');
@@ -445,7 +445,7 @@ templateElementTests() {
   observeTest('DOM Stability on Iteration', () {
     var div = createTestHtml(
         '<template repeat="{{}}">{{}}</template>');
-    var model = toSymbols([1, 2, 3, 4, 5]);
+    var model = toObservable([1, 2, 3, 4, 5]);
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -496,7 +496,7 @@ templateElementTests() {
         '<template repeat="{{}}">{{value}}</template>');
     expect(div.nodes.length, 1);
 
-    var model = toSymbols([
+    var model = toObservable([
       {'value': 0},
       {'value': 1},
       {'value': 2}
@@ -509,14 +509,14 @@ templateElementTests() {
     expect(div.nodes[2].text, '1');
     expect(div.nodes[3].text, '2');
 
-    model[1][#value] = 'One';
+    model[1]['value'] = 'One';
     deliverChanges(model);
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '0');
     expect(div.nodes[2].text, 'One');
     expect(div.nodes[3].text, '2');
 
-    model.replaceRange(0, 1, toSymbols([{'value': 'Zero'}]));
+    model.replaceRange(0, 1, toObservable([{'value': 'Zero'}]));
     deliverChanges(model);
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, 'Zero');
@@ -529,21 +529,21 @@ templateElementTests() {
         '<template bind="{{}}">'
         '<input value="{{x}}">'
         '</template>');
-    var model = toSymbolMap({'x': 'hi'});
+    var model = toObservable({'x': 'hi'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
     expect(div.nodes.length, 2);
     expect(div.nodes.last.value, 'hi');
 
-    model[#x] = 'bye';
+    model['x'] = 'bye';
     expect(div.nodes.last.value, 'hi');
     deliverChanges(model);
     expect(div.nodes.last.value, 'bye');
 
     div.nodes.last.value = 'hello';
     dispatchEvent('input', div.nodes.last);
-    expect(model[#x], 'hello');
+    expect(model['x'], 'hello');
     deliverChanges(model);
     expect(div.nodes.last.value, 'hello');
   });
@@ -557,7 +557,7 @@ templateElementTests() {
         '</template>'
         '<template bind="{{ XY }}" id="t2" ref="t1"></template>');
 
-    var model = toSymbolMap({
+    var model = toObservable({
       'XX': {'name': 'Leela', 'title': 'Captain'},
       'XY': {'name': 'Fry', 'title': 'Delivery boy'},
       'XZ': {'name': 'Zoidberg', 'title': 'Doctor'}
@@ -594,7 +594,7 @@ templateElementTests() {
 
   observeTest('Bind', () {
     var div = createTestHtml('<template bind="{{}}">Hi {{ name }}</template>');
-    var model = toSymbolMap({'name': 'Leela'});
+    var model = toObservable({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -608,7 +608,7 @@ templateElementTests() {
         '</template>');
     var t = div.nodes.first;
 
-    var model = toSymbolMap({'name': 'Leela'});
+    var model = toObservable({'name': 'Leela'});
     t.bind('bind', model, '');
 
     deliverChanges(model);
@@ -617,7 +617,7 @@ templateElementTests() {
 
   observeTest('BindPlaceHolderHasNewLine', () {
     var div = createTestHtml('<template bind="{{}}">Hi {{\nname\n}}</template>');
-    var model = toSymbolMap({'name': 'Leela'});
+    var model = toObservable({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -637,7 +637,7 @@ templateElementTests() {
 
     expect(t2.ref, t1);
 
-    var model = toSymbolMap({'name': 'Fry'});
+    var model = toObservable({'name': 'Fry'});
     recursivelySetTemplateModel(div, model);
 
     deliverChanges(model);
@@ -645,7 +645,7 @@ templateElementTests() {
   });
 
   observeTest('BindChanged', () {
-    var model = toSymbolMap({
+    var model = toObservable({
       'XX': {'name': 'Leela', 'title': 'Captain'},
       'XY': {'name': 'Fry', 'title': 'Delivery boy'},
       'XZ': {'name': 'Zoidberg', 'title': 'Doctor'}
@@ -684,7 +684,7 @@ templateElementTests() {
         '<template repeat="{{ contacts }}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
-    var m = toSymbols({
+    var m = toObservable({
       'contacts': [
         {'name': 'Raf'},
         {'name': 'Arv'},
@@ -697,34 +697,34 @@ templateElementTests() {
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
 
-    m[#contacts].add(toSymbols({'name': 'Alex'}));
+    m['contacts'].add(toObservable({'name': 'Alex'}));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal', 'Hi Alex']);
 
-    m[#contacts].replaceRange(0, 2,
-        toSymbols([{'name': 'Rafael'}, {'name': 'Erik'}]));
+    m['contacts'].replaceRange(0, 2,
+        toObservable([{'name': 'Rafael'}, {'name': 'Erik'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Neal', 'Hi Alex']);
 
-    m[#contacts].removeRange(1, 3);
+    m['contacts'].removeRange(1, 3);
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Alex']);
 
-    m[#contacts].insertAll(1,
-        toSymbols([{'name': 'Erik'}, {'name': 'Dimitri'}]));
+    m['contacts'].insertAll(1,
+        toObservable([{'name': 'Erik'}, {'name': 'Dimitri'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
-    m[#contacts].replaceRange(0, 1,
-        toSymbols([{'name': 'Tab'}, {'name': 'Neal'}]));
+    m['contacts'].replaceRange(0, 1,
+        toObservable([{'name': 'Tab'}, {'name': 'Neal'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
-    m[#contacts] = toSymbols([{'name': 'Alex'}]);
+    m['contacts'] = toObservable([{'name': 'Alex'}]);
     deliverChanges(m);
     assertNodesAre(div, ['Hi Alex']);
 
-    m[#contacts].length = 0;
+    m['contacts'].length = 0;
     deliverChanges(m);
     assertNodesAre(div, []);
   });
@@ -734,7 +734,7 @@ templateElementTests() {
         '<template repeat="{{ contacts }}">'
           'Hi {{ name }}'
         '</template>');
-    var m = toSymbols({
+    var m = toObservable({
       'contacts': [
         {'name': 'Raf'},
         {'name': 'Arv'},
@@ -753,7 +753,7 @@ templateElementTests() {
     var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
-    var m = toSymbols([
+    var m = toObservable([
       {'name': 'Raf'},
       {'name': 'Arv'},
       {'name': 'Neal'}
@@ -764,11 +764,11 @@ templateElementTests() {
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
 
-    m.add(toSymbols({'name': 'Alex'}));
+    m.add(toObservable({'name': 'Alex'}));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal', 'Hi Alex']);
 
-    m.replaceRange(0, 2, toSymbols([{'name': 'Rafael'}, {'name': 'Erik'}]));
+    m.replaceRange(0, 2, toObservable([{'name': 'Rafael'}, {'name': 'Erik'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Neal', 'Hi Alex']);
 
@@ -776,16 +776,16 @@ templateElementTests() {
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Alex']);
 
-    m.insertAll(1, toSymbols([{'name': 'Erik'}, {'name': 'Dimitri'}]));
+    m.insertAll(1, toObservable([{'name': 'Erik'}, {'name': 'Dimitri'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
-    m.replaceRange(0, 1, toSymbols([{'name': 'Tab'}, {'name': 'Neal'}]));
+    m.replaceRange(0, 1, toObservable([{'name': 'Tab'}, {'name': 'Neal'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
     m.length = 0;
-    m.add(toSymbols({'name': 'Alex'}));
+    m.add(toObservable({'name': 'Alex'}));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Alex']);
   });
@@ -800,7 +800,7 @@ templateElementTests() {
     expect(div.nodes.length, 1);
 
     t.attributes['iterate'] = '';
-    m = toSymbols({});
+    m = toObservable({});
     recursivelySetTemplateModel(div, m);
 
     deliverChanges(m);
@@ -811,7 +811,7 @@ templateElementTests() {
     var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
-    var m = toSymbols([
+    var m = toObservable([
       {'name': 'Raf'},
       {'name': 'Arv'},
       {'name': 'Neal'}
@@ -824,7 +824,7 @@ templateElementTests() {
     var node2 = div.nodes[2];
     var node3 = div.nodes[3];
 
-    m.replaceRange(1, 2, toSymbols([{'name': 'Erik'}]));
+    m.replaceRange(1, 2, toObservable([{'name': 'Erik'}]));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Raf', 'Hi Erik', 'Hi Neal']);
     expect(div.nodes[1], node1,
@@ -835,7 +835,7 @@ templateElementTests() {
         reason: 'model[2] did not change so the node should not have changed');
 
     node2 = div.nodes[2];
-    m.insert(0, toSymbols({'name': 'Alex'}));
+    m.insert(0, toObservable({'name': 'Alex'}));
     deliverChanges(m);
     assertNodesAre(div, ['Hi Alex', 'Hi Raf', 'Hi Erik', 'Hi Neal']);
   });
@@ -844,7 +844,7 @@ templateElementTests() {
     var div = createTestHtml(
       '<template bind="{{}}"><span><span>{{ foo }}</span></span></template>');
 
-    var model = toSymbolMap({'foo': 'bar'});
+    var model = toObservable({'foo': 'bar'});
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
 
@@ -857,7 +857,7 @@ templateElementTests() {
           '<input type="checkbox" checked="{{a}}">'
         '</template>');
     var t = div.nodes.first;
-    var m = toSymbols({
+    var m = toObservable({
       'a': true
     });
     t.bind('bind', m, '');
@@ -876,7 +876,7 @@ templateElementTests() {
   nestedHelper(s, start) {
     var div = createTestHtml(s);
 
-    var m = toSymbols({
+    var m = toObservable({
       'a': {
         'b': 1,
         'c': {'d': 2}
@@ -891,11 +891,11 @@ templateElementTests() {
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, '2');
 
-    m[#a][#b] = 11;
+    m['a']['b'] = 11;
     deliverChanges(m);
     expect(div.nodes[start].text, '11');
 
-    m[#a][#c] = toSymbols({'d': 22});
+    m['a']['c'] = toObservable({'d': 22});
     deliverChanges(m);
     expect(div.nodes[start + 2].text, '22');
   }
@@ -922,7 +922,7 @@ templateElementTests() {
   nestedIterateInstantiateHelper(s, start) {
     var div = createTestHtml(s);
 
-    var m = toSymbols({
+    var m = toObservable({
       'a': [
         {
           'b': 1,
@@ -946,7 +946,7 @@ templateElementTests() {
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, '22');
 
-    m[#a][1] = toSymbols({
+    m['a'][1] = toObservable({
       'b': 3,
       'c': {'d': 33}
     });
@@ -980,7 +980,7 @@ templateElementTests() {
   nestedIterateIterateHelper(s, start) {
     var div = createTestHtml(s);
 
-    var m = toSymbols({
+    var m = toObservable({
       'a': [
         {
           'b': 1,
@@ -1006,7 +1006,7 @@ templateElementTests() {
     expect(div.nodes[i++].text, '21');
     expect(div.nodes[i++].text, '22');
 
-    m[#a][1] = toSymbols({
+    m['a'][1] = toObservable({
       'b': 3,
       'c': [{'d': 31}, {'d': 32}, {'d': 33}]
     });
@@ -1047,7 +1047,7 @@ templateElementTests() {
           '<template ref="t" repeat="{{items}}"></template>'
         '</template>');
 
-    var m = toSymbols([
+    var m = toObservable([
       {
         'name': 'Item 1',
         'items': [
@@ -1085,7 +1085,7 @@ templateElementTests() {
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, 'Item 2');
 
-    m[0] = toSymbols({'name': 'Item 1 changed'});
+    m[0] = toObservable({'name': 'Item 1 changed'});
 
     i = 1;
     deliverChanges(m);
@@ -1104,7 +1104,7 @@ templateElementTests() {
           '</select>'
         '</template>');
 
-    var m = toSymbols({
+    var m = toObservable({
       'selected': 1,
       'groups': [{
         'name': 'one', 'items': [{ 'val': 0 }, { 'val': 1 }]
@@ -1146,7 +1146,7 @@ templateElementTests() {
           '</template>'
         '</tbody></table>');
 
-    var m = toSymbols([
+    var m = toObservable([
       [{ 'val': 0 }, { 'val': 1 }],
       [{ 'val': 2 }, { 'val': 3 }]
     ]);
@@ -1183,7 +1183,7 @@ templateElementTests() {
           '</tr>'
         '</tbody></table>');
 
-    var m = toSymbols([
+    var m = toObservable([
       [{ 'val': 0 }, { 'val': 1 }],
       [{ 'val': 2 }, { 'val': 3 }]
     ]);
@@ -1224,7 +1224,7 @@ templateElementTests() {
           '</template>'
         '</ul>');
 
-    var m = toSymbols([
+    var m = toObservable([
       {
         'name': 'Item 1',
         'items': [
@@ -1252,7 +1252,7 @@ templateElementTests() {
         '</p>'
       '</template>');
 
-    var m = toSymbols({
+    var m = toObservable({
       'a': {
         'b': {
           'c': 42
@@ -1279,7 +1279,7 @@ templateElementTests() {
 
   observeTest('TemplateContentRemovedEmptyArray', () {
     var div = createTestHtml('<template iterate>Remove me</template>');
-    var model = toSymbols([]);
+    var model = toObservable([]);
 
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
@@ -1296,7 +1296,7 @@ templateElementTests() {
           '</template>'
         '</template>');
 
-    var model = toSymbolMap({
+    var model = toObservable({
       'a': 1,
       'b': 2
     });
@@ -1313,7 +1313,7 @@ templateElementTests() {
     var div = createTestHtml(
         '<template bind="{{}}" if="{{}}">{{ a }}</template>');
 
-    var model = toSymbolMap({'a': 42});
+    var model = toObservable({'a': 42});
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
     expect(div.nodes[1].text, '42');
@@ -1323,7 +1323,7 @@ templateElementTests() {
     deliverChanges(model);
     expect(div.nodes.length, 1);
 
-    model = toSymbols({'a': 42});
+    model = toObservable({'a': 42});
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
     expect(div.nodes[1].text, '42');
@@ -1341,7 +1341,7 @@ templateElementTests() {
           '</template>'
         '</template>');
 
-    var m = toSymbols({
+    var m = toObservable({
       'name': 'Hermes',
       'wife': {
         'name': 'LaBarbara'
@@ -1354,12 +1354,12 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Name: Hermes');
     expect(div.nodes[3].text, 'Wife: LaBarbara');
 
-    m[#child] = toSymbols({'name': 'Dwight'});
+    m['child'] = toObservable({'name': 'Dwight'});
     deliverChanges(m);
     expect(div.nodes.length, 6);
     expect(div.nodes[5].text, 'Child: Dwight');
 
-    m.remove(#wife);
+    m.remove('wife');
     deliverChanges(m);
     expect(div.nodes.length, 5);
     expect(div.nodes[4].text, 'Child: Dwight');
@@ -1372,7 +1372,7 @@ templateElementTests() {
           '<template bind="{{friend}}" if="{{friend}}" ref="t"></template>'
         '</template>');
 
-    var m = toSymbols({
+    var m = toObservable({
       'name': 'Fry',
       'friend': {
         'name': 'Bender'
@@ -1385,12 +1385,12 @@ templateElementTests() {
     expect(div.nodes[1].text, 'Name: Fry');
     expect(div.nodes[3].text, 'Name: Bender');
 
-    m[#friend][#friend] = toSymbols({'name': 'Leela'});
+    m['friend']['friend'] = toObservable({'name': 'Leela'});
     deliverChanges(m);
     expect(div.nodes.length, 7);
     expect(div.nodes[5].text, 'Name: Leela');
 
-    m[#friend] = toSymbols({'name': 'Leela'});
+    m['friend'] = toObservable({'name': 'Leela'});
     deliverChanges(m);
     expect(div.nodes.length, 5);
     expect(div.nodes[3].text, 'Name: Leela');
@@ -1402,11 +1402,11 @@ templateElementTests() {
           '<template bind></template>'
         '</template>');
 
-    var m = toSymbols([{ 'foo': 'bar' }]);
+    var m = toObservable([{ 'foo': 'bar' }]);
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
 
-    m.add(toSymbols({ 'foo': 'baz' }));
+    m.add(toObservable({ 'foo': 'baz' }));
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
 
@@ -1420,7 +1420,7 @@ templateElementTests() {
 
     var div = createTestHtml('<template repeat>{{ foo }}</template>');
 
-    var m = toSymbols([{ 'foo': 'bar' }, { 'foo': 'bat'}]);
+    var m = toObservable([{ 'foo': 'bar' }, { 'foo': 'bat'}]);
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
 
@@ -1441,7 +1441,7 @@ templateElementTests() {
           '<template bind ref=src></template>'
         '</template>');
 
-    var m = toSymbols({'foo': 'bar'});
+    var m = toObservable({'foo': 'bar'});
     recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
 
@@ -1459,7 +1459,7 @@ templateElementTests() {
     // Note: this test data is a little different from the JS version, because
     // we allow binding to the "length" field of the Map in preference to
     // binding keys.
-    var m = toSymbols({
+    var m = toObservable({
       'a': [
         [],
         { 'b': [1,2,3,4] },
@@ -1496,7 +1496,7 @@ templateElementTests() {
         '<template repeat="{{}}">'
           '<template ref="a" bind="{{}}"></template>'
         '</template>');
-    var model = toSymbols([]);
+    var model = toObservable([]);
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
 
@@ -1558,7 +1558,7 @@ templateElementTests() {
     if (ShadowRoot.supported) {
       var root = createShadowTestHtml(
           '<template bind="{{}}">Hi {{ name }}</template>');
-      var model = toSymbolMap({'name': 'Leela'});
+      var model = toObservable({'name': 'Leela'});
       recursivelySetTemplateModel(root, model);
       deliverChanges(model);
       expect(root.nodes[1].text, 'Hi Leela');
@@ -1567,7 +1567,7 @@ templateElementTests() {
 
   observeTest('BindShadowDOM createInstance', () {
     if (ShadowRoot.supported) {
-      var model = toSymbolMap({'name': 'Leela'});
+      var model = toObservable({'name': 'Leela'});
       var template = new Element.html('<template>Hi {{ name }}</template>');
       var root = createShadowTestHtml('');
       root.nodes.add(template.createInstance(model));
@@ -1575,7 +1575,7 @@ templateElementTests() {
       performMicrotaskCheckpoint();
       expect(root.text, 'Hi Leela');
 
-      model[#name] = 'Fry';
+      model['name'] = 'Fry';
       performMicrotaskCheckpoint();
       expect(root.text, 'Hi Fry');
     }
@@ -1585,7 +1585,7 @@ templateElementTests() {
     if (ShadowRoot.supported) {
       var root = createShadowTestHtml(
           '<template id=foo>Hi</template><template bind ref=foo></template>');
-      recursivelySetTemplateModel(root, toSymbolMap({}));
+      recursivelySetTemplateModel(root, toObservable({}));
       performMicrotaskCheckpoint();
       expect(root.nodes.length, 3);
     }
@@ -1601,7 +1601,7 @@ templateElementTests() {
       '</template>');
 
     var syntax = new UnbindingInNestedBindSyntax();
-    var model = toSymbolMap({
+    var model = toObservable({
       'outer': {
         'inner': {
           'age': 42
@@ -1614,13 +1614,13 @@ templateElementTests() {
     deliverChanges(model);
     expect(syntax.count, 1);
 
-    var inner = model[#outer][#inner];
-    model[#outer] = null;
+    var inner = model['outer']['inner'];
+    model['outer'] = null;
 
     deliverChanges(model);
     expect(syntax.count, 1);
 
-    model[#outer] = toSymbols({'inner': {'age': 2}});
+    model['outer'] = toObservable({'inner': {'age': 2}});
     syntax.expectedAge = 2;
 
     deliverChanges(model);
@@ -1646,7 +1646,7 @@ templateElementTests() {
         '</template>'
       '</template>');
     var outer = div.nodes.first;
-    var model = toSymbolMap({'b': {'foo': 'bar'}});
+    var model = toObservable({'b': {'foo': 'bar'}});
 
     var host = new DivElement();
     var instance = outer.createInstance(model, new TestBindingSyntax());
@@ -1726,7 +1726,7 @@ class UnbindingInNestedBindSyntax extends BindingDelegate {
     if (name != 'text' || path != 'age')
       return;
 
-    expect(model[#age], expectedAge);
+    expect(model['age'], expectedAge);
     count++;
   }
 }
@@ -1743,8 +1743,8 @@ void deliverChanges(model) {
 void expectObservable(model) {
   if (model is! Observable) {
     // This is here to eagerly catch a bug in the test; it means the test
-    // forgot a toSymbols somewhere.
-    expect(identical(toSymbols(model), model), true,
+    // forgot a toObservable somewhere.
+    expect(identical(toObservable(model), model), true,
         reason: 'model type "${model.runtimeType}" should be observable');
     return;
   }
@@ -1759,8 +1759,6 @@ void expectObservable(model) {
     });
   }
 }
-
-toSymbols(obj) => toObservable(_deepToSymbol(obj));
 
 _deepToSymbol(value) {
   if (value is Map) {

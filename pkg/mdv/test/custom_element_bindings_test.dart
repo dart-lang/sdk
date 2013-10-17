@@ -6,6 +6,7 @@ library custom_element_bindings_test;
 
 import 'dart:html';
 import 'package:mdv/mdv.dart' as mdv;
+import 'package:observe/observe.dart' show toObservable;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'mdv_test_utils.dart';
@@ -43,7 +44,7 @@ customElementBindingsTest() {
 
   observeTest('override bind/unbind/unbindAll', () {
     var element = new MyCustomElement();
-    var model = toSymbolMap({'a': new Point(123, 444), 'b': new Monster(100)});
+    var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
 
     element.bind('my-point', model, 'a');
     element.bind('scary-monster', model, 'b');
@@ -51,29 +52,29 @@ customElementBindingsTest() {
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
 
-    expect(element.myPoint, model[#a]);
-    expect(element.scaryMonster, model[#b]);
+    expect(element.myPoint, model['a']);
+    expect(element.scaryMonster, model['b']);
 
-    model[#a] = null;
+    model['a'] = null;
     performMicrotaskCheckpoint();
     expect(element.myPoint, null);
     element.unbind('my-point');
 
-    model[#a] = new Point(1, 2);
-    model[#b] = new Monster(200);
+    model['a'] = new Point(1, 2);
+    model['b'] = new Monster(200);
     performMicrotaskCheckpoint();
-    expect(element.scaryMonster, model[#b]);
+    expect(element.scaryMonster, model['b']);
     expect(element.myPoint, null, reason: 'a was unbound');
 
     element.unbindAll();
-    model[#b] = null;
+    model['b'] = null;
     performMicrotaskCheckpoint();
     expect(element.scaryMonster.health, 200);
   });
 
   observeTest('override attribute setter', () {
     var element = new WithAttrsCustomElement().real;
-    var model = toSymbolMap({'a': 1, 'b': 2});
+    var model = toObservable({'a': 1, 'b': 2});
     element.bind('hidden?', model, 'a');
     element.bind('id', model, 'b');
 
@@ -81,22 +82,22 @@ customElementBindingsTest() {
     expect(element.attributes['hidden'], '');
     expect(element.id, '2');
 
-    model[#a] = null;
+    model['a'] = null;
     performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')),
         reason: 'null is false-y');
 
-    model[#a] = false;
+    model['a'] = false;
     performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')));
 
-    model[#a] = 'foo';
+    model['a'] = 'foo';
     // TODO(jmesserly): this is here to force an ordering between the two
     // changes. Otherwise the order depends on what order StreamController
     // chooses to fire the two listeners in.
     performMicrotaskCheckpoint();
 
-    model[#b] = 'x';
+    model['b'] = 'x';
     performMicrotaskCheckpoint();
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
@@ -115,7 +116,7 @@ customElementBindingsTest() {
 
   observeTest('template bind uses overridden custom element bind', () {
 
-    var model = toSymbolMap({'a': new Point(123, 444), 'b': new Monster(100)});
+    var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
 
     var div = createTestHtml('<template bind>'
           '<my-custom-element my-point="{{a}}" scary-monster="{{b}}">'
@@ -137,13 +138,13 @@ customElementBindingsTest() {
     expect(element.xtag is MyCustomElement, true,
         reason: '${element.xtag} should be a MyCustomElement');
 
-    expect(element.xtag.myPoint, model[#a]);
-    expect(element.xtag.scaryMonster, model[#b]);
+    expect(element.xtag.myPoint, model['a']);
+    expect(element.xtag.scaryMonster, model['b']);
 
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
 
-    model[#a] = null;
+    model['a'] = null;
     performMicrotaskCheckpoint();
     expect(element.xtag.myPoint, null);
 
@@ -152,8 +153,8 @@ customElementBindingsTest() {
 
     expect(element.parentNode, null, reason: 'element was detached');
 
-    model[#a] = new Point(1, 2);
-    model[#b] = new Monster(200);
+    model['a'] = new Point(1, 2);
+    model['b'] = new Monster(200);
     performMicrotaskCheckpoint();
 
     expect(element.xtag.myPoint, null, reason: 'model was unbound');

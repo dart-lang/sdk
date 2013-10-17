@@ -73,7 +73,7 @@ main() {
 }
 
 @reflectable
-class NotifyModel extends ChangeNotifierBase {
+class NotifyModel extends ChangeNotifier {
   var _x;
   NotifyModel([this._x]);
 

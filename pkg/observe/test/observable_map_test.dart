@@ -27,7 +27,7 @@ main() {
       map = toObservable({'a': 1, 'b': 2, 'c': 3});
       changes = null;
       sub = map.changes.listen((records) {
-        changes = records.where((r) => r.changes(#length)).toList();
+        changes = getPropertyChangeRecords(records, #length);
       });
     });
 
@@ -37,14 +37,14 @@ main() {
       map['d'] = 4;
       expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(map, 3, 4)]);
     });
 
     observeTest('putIfAbsent changes length', () {
       map.putIfAbsent('d', () => 4);
       expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(map, 3, 4)]);
     });
 
     observeTest('remove changes length', () {
@@ -52,7 +52,10 @@ main() {
       map.remove('a');
       expect(map, {'b': 2});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange, _lengthChange]);
+      expectChanges(changes, [
+        _lengthChange(map, 3, 2),
+        _lengthChange(map, 2, 1)
+      ]);
     });
 
     observeTest('remove non-existent item does not change length', () {
@@ -73,7 +76,7 @@ main() {
       map.clear();
       expect(map, {});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(map, 3, 0)]);
     });
   });
 
@@ -86,7 +89,8 @@ main() {
       map = toObservable({'a': 1, 'b': 2, 'c': 3});
       changes = null;
       sub = map.changes.listen((records) {
-        changes = records.where((r) => r.changes('b')).toList();
+        changes = records.where((r) => r is MapChangeRecord && r.key == 'b')
+            .toList();
       });
     });
 
@@ -103,14 +107,14 @@ main() {
       map['b'] = null;
       expect(map, {'a': 1, 'b': null, 'c': 3});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_change('b')]);
+      expectChanges(changes, [_changeKey('b', 2, null)]);
     });
 
     observeTest('set item to value', () {
       map['b'] = 777;
       expect(map, {'a': 1, 'b': 777, 'c': 3});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_change('b')]);
+      expectChanges(changes, [_changeKey('b', 2, 777)]);
     });
 
     observeTest('putIfAbsent does not change if already there', () {
@@ -132,7 +136,10 @@ main() {
       map['b'] = 42;
       expect(map, {'a': 1, 'b': 42, 'c': 3});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_change('b'), _change('b')]);
+      expectChanges(changes, [
+        _changeKey('b', 2, 9001),
+        _changeKey('b', 9001, 42)
+      ]);
     });
 
     observeTest('remove other items', () {
@@ -146,7 +153,7 @@ main() {
       map.remove('b');
       expect(map, {'a': 1, 'c': 3});
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_change('b', isRemove: true)]);
+      expectChanges(changes, [_removeKey('b', 2)]);
     });
 
     observeTest('remove and add back', () {
@@ -155,7 +162,7 @@ main() {
       expect(map, {'a': 1, 'b': 2, 'c': 3});
       performMicrotaskCheckpoint();
       expectChanges(changes,
-          [_change('b', isRemove: true), _change('b', isInsert: true)]);
+          [_removeKey('b', 2), _insertKey('b', 2)]);
     });
   });
 
@@ -206,8 +213,8 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _lengthChange,
-        _change('c', isInsert: true),
+        _lengthChange(map, 2, 3),
+        _insertKey('c', 3),
       ]);
     });
 
@@ -220,9 +227,9 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _change('a'),
-        _lengthChange,
-        _change('c', isInsert: true)
+        _changeKey('a', 1, 42),
+        _lengthChange(map, 2, 3),
+        _insertKey('c', 3)
       ]);
     });
 
@@ -232,8 +239,8 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _change('b', isRemove: true),
-        _lengthChange,
+        _removeKey('b', 2),
+        _lengthChange(map, 2, 1),
       ]);
     });
 
@@ -243,15 +250,19 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _change('a', isRemove: true),
-        _change('b', isRemove: true),
-        _lengthChange,
+        _removeKey('a', 1),
+        _removeKey('b', 2),
+        _lengthChange(map, 2, 0),
       ]);
     });
   });
 }
 
-final _lengthChange = new PropertyChangeRecord(#length);
+_lengthChange(map, int oldValue, int newValue) =>
+    new PropertyChangeRecord(map, #length, oldValue, newValue);
 
-_change(key, {isInsert: false, isRemove: false}) =>
-    new MapChangeRecord(key, isInsert: isInsert, isRemove: isRemove);
+_changeKey(key, old, newValue) => new MapChangeRecord(key, old, newValue);
+
+_insertKey(key, newValue) => new MapChangeRecord.insert(key, newValue);
+
+_removeKey(key, oldValue) => new MapChangeRecord.remove(key, oldValue);

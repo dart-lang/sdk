@@ -330,7 +330,7 @@ main() {
 }
 
 @reflectable
-class Foo extends ChangeNotifierBase {
+class Foo extends ChangeNotifier {
   String _name;
   String get name => _name;
   void set name(String n) {
@@ -398,7 +398,7 @@ expectObserve(String s, {
 }
 
 // Regression test from https://code.google.com/p/dart/issues/detail?id=13459
-class WordElement extends ObservableBase {
+class WordElement extends Observable {
   @observable List chars1 = 'abcdefg'.split('');
   @reflectable List filteredList(List original) => [original[0], original[1]];
 }

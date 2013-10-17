@@ -4,6 +4,8 @@
 
 library observe.test.observe_test_utils;
 
+import 'package:observe/observe.dart';
+
 import 'package:unittest/unittest.dart';
 
 import 'package:observe/src/microtask.dart';
@@ -13,6 +15,12 @@ export 'package:observe/src/microtask.dart';
 // For now just use the toString.
 expectChanges(actual, expected, {reason}) =>
     expect('$actual', '$expected', reason: reason);
+
+List getListChangeRecords(List changes, int index) => changes
+    .where((c) => c is ListChangeRecord && c.indexChanged(index)).toList();
+
+List getPropertyChangeRecords(List changes, Symbol property) => changes
+    .where((c) => c is PropertyChangeRecord && c.name == property).toList();
 
 /**
  * This is a special kind of unit [test], that supports

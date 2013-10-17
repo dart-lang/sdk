@@ -6,6 +6,7 @@ library node_bindings_test;
 
 import 'dart:html';
 import 'package:mdv/mdv.dart' as mdv;
+import 'package:observe/observe.dart' show toObservable;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'mdv_test_utils.dart';
@@ -33,16 +34,16 @@ nodeBindingTests() {
 
   observeTest('Text', () {
     var text = new Text('hi');
-    var model = toSymbolMap({'a': 1});
+    var model = toObservable({'a': 1});
     text.bind('text', model, 'a');
     expect(text.text, '1');
 
-    model[#a] = 2;
+    model['a'] = 2;
     performMicrotaskCheckpoint();
     expect(text.text, '2');
 
     text.unbind('text');
-    model[#a] = 3;
+    model['a'] = 3;
     performMicrotaskCheckpoint();
     expect(text.text, '2');
 
@@ -51,7 +52,7 @@ nodeBindingTests() {
 
   observeTest('Element', () {
     var element = new DivElement();
-    var model = toSymbolMap({'a': 1, 'b': 2});
+    var model = toObservable({'a': 1, 'b': 2});
     element.bind('hidden?', model, 'a');
     element.bind('id', model, 'b');
 
@@ -59,17 +60,17 @@ nodeBindingTests() {
     expect(element.attributes['hidden'], '');
     expect(element.id, '2');
 
-    model[#a] = null;
+    model['a'] = null;
     performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')),
         reason: 'null is false-y');
 
-    model[#a] = false;
+    model['a'] = false;
     performMicrotaskCheckpoint();
     expect(element.attributes, isNot(contains('hidden')));
 
-    model[#a] = 'foo';
-    model[#b] = 'x';
+    model['a'] = 'foo';
+    model['b'] = 'x';
     performMicrotaskCheckpoint();
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
@@ -79,27 +80,27 @@ nodeBindingTests() {
   inputTextAreaValueTest(String tagName) {
     var el = new Element.tag(tagName);
     testDiv.nodes.add(el);
-    var model = toSymbolMap({'x': 42});
+    var model = toObservable({'x': 42});
     el.bind('value', model, 'x');
     expect(el.value, '42');
 
-    model[#x] = 'Hi';
+    model['x'] = 'Hi';
     expect(el.value, '42', reason: 'changes delivered async');
     performMicrotaskCheckpoint();
     expect(el.value, 'Hi');
 
     el.value = 'changed';
     dispatchEvent('input', el);
-    expect(model[#x], 'changed');
+    expect(model['x'], 'changed');
 
     el.unbind('value');
 
     el.value = 'changed again';
     dispatchEvent('input', el);
-    expect(model[#x], 'changed');
+    expect(model['x'], 'changed');
 
     el.bind('value', model, 'x');
-    model[#x] = null;
+    model['x'] = null;
     performMicrotaskCheckpoint();
     expect(el.value, '');
   }
@@ -110,24 +111,24 @@ nodeBindingTests() {
   observeTest('Radio Input', () {
     var input = new InputElement();
     input.type = 'radio';
-    var model = toSymbolMap({'x': true});
+    var model = toObservable({'x': true});
     input.bind('checked', model, 'x');
     expect(input.checked, true);
 
-    model[#x] = false;
+    model['x'] = false;
     expect(input.checked, true);
     performMicrotaskCheckpoint();
     expect(input.checked, false,reason: 'model change should update checked');
 
     input.checked = true;
     dispatchEvent('change', input);
-    expect(model[#x], true, reason: 'input.checked should set model');
+    expect(model['x'], true, reason: 'input.checked should set model');
 
     input.unbind('checked');
 
     input.checked = false;
     dispatchEvent('change', input);
-    expect(model[#x], true,
+    expect(model['x'], true,
         reason: 'disconnected binding should not fire');
   });
 
@@ -135,20 +136,20 @@ nodeBindingTests() {
     var input = new InputElement();
     testDiv.append(input);
     input.type = 'checkbox';
-    var model = toSymbolMap({'x': true});
+    var model = toObservable({'x': true});
     input.bind('checked', model, 'x');
     expect(input.checked, true);
 
-    model[#x] = false;
+    model['x'] = false;
     expect(input.checked, true, reason: 'changes delivered async');
     performMicrotaskCheckpoint();
     expect(input.checked, false);
 
     input.click();
-    expect(model[#x], true);
+    expect(model['x'], true);
     performMicrotaskCheckpoint();
 
     input.click();
-    expect(model[#x], false);
+    expect(model['x'], false);
   });
 }

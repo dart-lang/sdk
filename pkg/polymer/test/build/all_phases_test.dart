@@ -181,7 +181,7 @@ String _sampleObservable(String className, String fieldName) => '''
 library ${className}_$fieldName;
 import 'package:observe/observe.dart';
 
-class $className extends ObservableBase {
+class $className extends Observable {
   @observable int $fieldName;
   $className(this.$fieldName);
 }
@@ -190,7 +190,7 @@ class $className extends ObservableBase {
 String _sampleObservableOutput(String className, String field) =>
     "library ${className}_$field;\n"
     "import 'package:observe/observe.dart';\n\n"
-    "class $className extends ChangeNotifierBase {\n"
+    "class $className extends ChangeNotifier {\n"
     "  @reflectable @observable int get $field => __\$$field; "
       "int __\$$field; "
       "@reflectable set $field(int value) { "

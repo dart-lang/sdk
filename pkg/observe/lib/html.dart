@@ -16,7 +16,9 @@ import 'observe.dart';
 /** An observable version of [window.location.hash]. */
 final ObservableLocationHash windowLocation = new ObservableLocationHash._();
 
-class ObservableLocationHash extends ChangeNotifierBase {
+class ObservableLocationHash extends ChangeNotifier {
+  Object _currentHash;
+
   ObservableLocationHash._() {
     // listen on changes to #hash in the URL
     // Note: listen on both popState and hashChange, because IE9 doesn't support
@@ -25,6 +27,8 @@ class ObservableLocationHash extends ChangeNotifierBase {
     // changes.
     window.onHashChange.listen(_notifyHashChange);
     window.onPopState.listen(_notifyHashChange);
+
+    _currentHash = hash;
   }
 
   @reflectable String get hash => window.location.hash;
@@ -41,7 +45,9 @@ class ObservableLocationHash extends ChangeNotifierBase {
   }
 
   void _notifyHashChange(_) {
-    notifyChange(new PropertyChangeRecord(#hash));
+    var oldValue = _currentHash;
+    _currentHash = hash;
+    notifyPropertyChange(#hash, oldValue, _currentHash);
   }
 }
 

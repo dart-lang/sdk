@@ -11,30 +11,41 @@ part of observe;
 // backing store.
 
 // TODO(jmesserly): should we summarize map changes like we do for list changes?
-class MapChangeRecord extends ChangeRecord {
-  /** The map key that changed. */
-  final key;
+class MapChangeRecord<K, V> extends ChangeRecord {
+  // TODO(jmesserly): we could store this more compactly if it matters, with
+  // subtypes for inserted and removed.
 
-  // TODO(jmesserly): we could store this more compactly if it matters.
+  /** The map key that changed. */
+  final K key;
+
+  /** The previous value associated with this key. */
+  final V oldValue;
+
+  /** The new value associated with this key. */
+  final V newValue;
+
   /** True if this key was inserted. */
   final bool isInsert;
 
   /** True if this key was removed. */
   final bool isRemove;
 
-  MapChangeRecord(this.key, {this.isInsert: false, this.isRemove: false}) {
-    if (isInsert && isRemove) {
-      throw new ArgumentError(
-          '$key cannot be inserted and removed in the same change');
-    }
-  }
+  MapChangeRecord(this.key, this.oldValue, this.newValue)
+      : isInsert = false, isRemove = false;
 
-  // Use == on the key, to match equality semantics of most Maps.
+  MapChangeRecord.insert(this.key, this.newValue)
+      : isInsert = true, isRemove = false;
+
+  MapChangeRecord.remove(this.key, this.oldValue)
+      : isInsert = false, isRemove = true;
+
+  /// *Deprecated* compare [key]s instead.
+  @deprecated
   bool changes(otherKey) => key == otherKey;
 
   String toString() {
     var kind = isInsert ? 'insert' : isRemove ? 'remove' : 'set';
-    return '#<MapChangeRecord $kind $key>';
+    return '#<MapChangeRecord $kind $key from: $oldValue to: $newValue>';
   }
 }
 
@@ -43,7 +54,7 @@ class MapChangeRecord extends ChangeRecord {
  * removed, or replaced, then observers that are listening to [changes]
  * will be notified.
  */
-class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
+class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
   final Map<K, V> _map;
 
   /** Creates an observable map. */
@@ -103,9 +114,9 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     if (hasObservers) {
       if (len != _map.length) {
         notifyPropertyChange(#length, len, _map.length);
-        notifyChange(new MapChangeRecord(key, isInsert: true));
-      } else if (!identical(oldValue, value)) {
-        notifyChange(new MapChangeRecord(key));
+        notifyChange(new MapChangeRecord.insert(key, value));
+      } else if (oldValue != value) {
+        notifyChange(new MapChangeRecord(key, oldValue, value));
       }
     }
   }
@@ -119,7 +130,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     V result = _map.putIfAbsent(key, ifAbsent);
     if (hasObservers && len != _map.length) {
       notifyPropertyChange(#length, len, _map.length);
-      notifyChange(new MapChangeRecord(key, isInsert: true));
+      notifyChange(new MapChangeRecord.insert(key, result));
     }
     return result;
   }
@@ -128,7 +139,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     int len = _map.length;
     V result =  _map.remove(key);
     if (hasObservers && len != _map.length) {
-      notifyChange(new MapChangeRecord(key, isRemove: true));
+      notifyChange(new MapChangeRecord.remove(key, result));
       notifyPropertyChange(#length, len, _map.length);
     }
     return result;
@@ -138,7 +149,7 @@ class ObservableMap<K, V> extends ChangeNotifierBase implements Map<K, V> {
     int len = _map.length;
     if (hasObservers && len > 0) {
       _map.forEach((key, value) {
-        notifyChange(new MapChangeRecord(key, isRemove: true));
+        notifyChange(new MapChangeRecord.remove(key, value));
       });
       notifyPropertyChange(#length, len, 0);
     }
