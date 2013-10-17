@@ -15,7 +15,6 @@ chromium and headless dartium.
 
 import imp
 import os
-import platform
 import re
 import socket
 import subprocess
@@ -135,10 +134,7 @@ def FixJavaHome():
   buildbot_javahome = os.getenv('BUILDBOT_JAVA_HOME')
   if buildbot_javahome:
     current_pwd = os.getenv('PWD')
-    if platform.system() != 'Windows':
-      java_home = '/usr/lib/jvm/java-6-sun' # Hackety-hack. Please remove!
-    else:
-      java_home = os.path.join(current_pwd, buildbot_javahome)
+    java_home = os.path.join(current_pwd, buildbot_javahome)
     java_bin = os.path.join(java_home, 'bin')
     os.environ['JAVA_HOME'] = java_home
     os.environ['PATH'] = '%s;%s' % (java_bin, os.environ['PATH'])
