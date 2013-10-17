@@ -23566,7 +23566,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
      }
 
     if (!isNative) {
-      var doc = _getTemplateContentsOwner(templateElement.ownerDocument);
+      var doc = _getTemplateContentsOwner(templateElement.document);
       templateElement._templateContent = doc.createDocumentFragment();
     }
 
@@ -23615,7 +23615,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
   //       + <td>Bar</td>
   //
   static Element _extractTemplateFromAttributeTemplate(Element el) {
-    var template = el.ownerDocument.createElement('template');
+    var template = el.document.createElement('template');
     el.parentNode.insertBefore(template, el);
 
     for (var name in el.attributes.keys.toList()) {

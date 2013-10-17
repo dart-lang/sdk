@@ -114,7 +114,7 @@ class _CheckedBinding extends _InputBinding {
             el.name == element.name;
       });
     } else {
-      var radios = element.ownerDocument.queryAll(
+      var radios = element.document.queryAll(
           'input[type="radio"][name="${element.name}"]');
       return radios.where((el) => el != element && el.form == null);
     }
