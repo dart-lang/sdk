@@ -420,18 +420,21 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     implements ClassMirror {
   _LocalClassMirrorImpl(reflectee,
-                        this._reflectedType,
+                        reflectedType,
                         String simpleName,
                         this._isGeneric,
                         this._isMixinTypedef,
                         this._isGenericDeclaration)
       : this._simpleName = _s(simpleName),
+        this._reflectedType = reflectedType,
+        this._instantiator = reflectedType,
         super(reflectee);
 
   final Type _reflectedType;
   final bool _isGeneric;
   final bool _isMixinTypedef;
   final bool _isGenericDeclaration;
+  Type _instantiator;
 
   TypeMirror _instantiateInContextOf(declaration) => this;
 
@@ -493,6 +496,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         return null;
       }
       _trueSuperclassField = _Mirrors._reflectType(supertype);
+      _trueSuperclassField._instantiator = _instantiator;
     }
     return _trueSuperclassField;
   }
@@ -503,7 +507,10 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   var _superinterfaces;
   List<ClassMirror> get superinterfaces {
     if (_superinterfaces == null) {
-      _superinterfaces = _interfaces(_reflectee)
+      _superinterfaces = isOriginalDeclaration
+          ? _nativeInterfaces(_reflectedType)
+          : _nativeInterfacesInstantiated(_reflectedType);
+      _superinterfaces = _superinterfaces
           .map((i) => _Mirrors._reflectType(i)).toList(growable:false);
     }
     return _superinterfaces;
@@ -512,7 +519,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   get _mixinApplicationName {
     var mixins = new List<ClassMirror>();
     var klass = this;
-    while (_computeMixin(klass._reflectee) != null) {
+    while (_nativeMixin(klass._reflectedType) != null) {
       mixins.add(klass.mixin);
       klass = klass.superclass;
     }
@@ -526,9 +533,14 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   ClassMirror get mixin {
     if (_mixin == null) {
       if (_isMixinTypedef) {
-        _mixin = _trueSuperclass.mixin;
+        Type mixinType = isOriginalDeclaration
+            ? _nativeMixin(_trueSuperclass._reflectedType)
+            : _nativeMixinInstantiated(_trueSuperclass._reflectedType, _instantiator);
+        _mixin = _Mirrors._reflectType(mixinType);
       } else {
-        var mixinType = _computeMixin(_reflectee);
+        Type mixinType = isOriginalDeclaration
+            ? _nativeMixin(_reflectedType)
+            : _nativeMixinInstantiated(_reflectedType, _instantiator);
         if (mixinType == null) {
           // The reflectee is not a mixin application.
           _mixin = this;
@@ -709,11 +721,17 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   static _supertypeInstantiated(reflectedType)
       native "ClassMirror_supertype_instantiated";
 
-  static _interfaces(reflectee)
+  static _nativeInterfaces(reflectedType)
       native "ClassMirror_interfaces";
 
-  static _computeMixin(reflectee)
+  static _nativeInterfacesInstantiated(reflectedType)
+      native "ClassMirror_interfaces_instantiated";
+
+  static _nativeMixin(reflectedType)
       native "ClassMirror_mixin";
+
+  static _nativeMixinInstantiated(reflectedType, instantiator)
+      native "ClassMirror_mixin_instantiated";
 
   _computeMembers(reflectee)
       native "ClassMirror_members";
@@ -744,6 +762,8 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirrorImpl(reflectee, reflectedType)
       : super(reflectee, reflectedType, null, false, false, false);
+
+  bool get _isAnonymousMixinApplication => false;
 
   // FunctionTypeMirrors have a simpleName generated from their signature.
   Symbol _simpleName = null;
@@ -868,6 +888,13 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   TypeMirror get originalDeclaration => this;
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
+
+  operator ==(other) {
+    return other is TypeVariableMirror 
+        && simpleName == other.simpleName
+        && owner == other.owner;
+  }
+  int get hashCode => simpleName.hashCode;
 
   static DeclarationMirror _TypeVariableMirror_owner(reflectee)
       native "TypeVariableMirror_owner";

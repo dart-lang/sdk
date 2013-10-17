@@ -709,6 +709,14 @@ class Class : public Object {
   // in superclass clauses.
   RawAbstractType* RareType() const;
 
+  // Return the Type whose arguments are the type parameters declared by this
+  // class preceded by the type arguments declared for superclasses, etc.
+  // e.g. given
+  // class B<T, S>
+  // class C<R> extends B<R, int>
+  // C.DeclarationType() --> C [R, int, R]
+  RawAbstractType* DeclarationType() const;
+
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
 

@@ -183,11 +183,8 @@ mirrors/closures_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12282
 mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
-mirrors/generic_interface_test/01: RuntimeError # Issue 14113
 mirrors/immutable_collections_test: RuntimeError # Issue 14027
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
-mirrors/generic_mixin_test/01: RuntimeError # Issue 14114
-mirrors/generic_mixin_test/02: RuntimeError # Issue 14113
 
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
@@ -237,6 +234,7 @@ mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 mirrors/typedef_metadata_test: Fail
 mirrors/mixin_test: Fail
 mirrors/mixin_application_test/none: Fail
+mirrors/generic_mixin_test: Fail
 mirrors/generic_mixin_applications_test: Fail
 
 [ $compiler == none && $runtime == dartium ]

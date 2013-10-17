@@ -843,9 +843,8 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
-  const AbstractType& stripped_type = AbstractType::Handle(cls.RareType());
   return CreateClassMirror(cls,
-                           stripped_type,
+                           AbstractType::Handle(cls.DeclarationType()),
                            Bool::True(),  // is_declaration
                            Object::null_instance());
 }
@@ -967,6 +966,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   ASSERT(!type.IsMalformed());
   ASSERT(type.IsFinalized());
+  if (!type.HasResolvedTypeClass()) {
+    Exceptions::ThrowArgumentError(type);
+    UNREACHABLE();
+  }
   const Class& cls = Class::Handle(type.type_class());
   const AbstractType& super_type = AbstractType::Handle(cls.super_type());
   ASSERT(super_type.IsNull() || super_type.IsFinalized());
@@ -977,6 +980,10 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   ASSERT(!type.IsMalformed());
   ASSERT(type.IsFinalized());
+  if (!type.HasResolvedTypeClass()) {
+    Exceptions::ThrowArgumentError(type);
+    UNREACHABLE();
+  }
   const Class& cls = Class::Handle(type.type_class());
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   AbstractType& result = AbstractType::Handle(super_type.raw());
@@ -1001,22 +1008,118 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Class& klass = Class::Handle(ref.GetClassReferent());
-
-  const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  if (!type.HasResolvedTypeClass()) {
+    Exceptions::ThrowArgumentError(type);
+    UNREACHABLE();
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
     ThrowInvokeError(error);
   }
 
-  return klass.interfaces();
+  return cls.interfaces();
+}
+
+DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  if (!type.HasResolvedTypeClass()) {
+    Exceptions::ThrowArgumentError(type);
+    UNREACHABLE();
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(isolate));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+  }
+
+  AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(type.arguments());
+  Error& bound_error = Error::Handle();
+
+  Array& interfaces = Array::Handle(cls.interfaces());
+  Array& interfaces_inst = Array::Handle(Array::New(interfaces.Length()));
+  AbstractType& interface = AbstractType::Handle();
+
+  for (int i = 0; i < interfaces.Length(); i++) {
+    interface ^= interfaces.At(i);
+    ASSERT(interface.IsType());
+    if (!interface.IsInstantiated()) {
+      bound_error ^= Object::null();
+      interface ^= interface.InstantiateFrom(type_args, &bound_error);
+      if (!bound_error.IsNull()) {
+        ThrowInvokeError(bound_error);
+        UNREACHABLE();
+      }
+      interface ^= interface.Canonicalize();
+      ASSERT(interface.IsType());
+    }
+    interfaces_inst.SetAt(i, interface);
+  }
+
+  return interfaces_inst.raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Class& klass = Class::Handle(ref.GetClassReferent());
-  return klass.mixin();
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  if (!type.HasResolvedTypeClass()) {
+    Exceptions::ThrowArgumentError(type);
+    UNREACHABLE();
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  const AbstractType& mixin_type = AbstractType::Handle(cls.mixin());
+  ASSERT(mixin_type.IsNull() || mixin_type.IsFinalized());
+  return mixin_type.raw();
+}
+
+
+DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType,
+                               instantiator,
+                               arguments->NativeArgAt(1));
+  ASSERT(!type.IsMalformed());
+  ASSERT(type.IsFinalized());
+  if (!type.HasResolvedTypeClass()) {
+    Exceptions::ThrowArgumentError(type);
+    UNREACHABLE();
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  const AbstractType& mixin_type = AbstractType::Handle(cls.mixin());
+  if (mixin_type.IsNull()) {
+    return mixin_type.raw();
+  }
+  ASSERT(mixin_type.IsFinalized());
+
+  ASSERT(!instantiator.IsMalformed());
+  ASSERT(instantiator.IsFinalized());
+
+  AbstractType& result = AbstractType::Handle(mixin_type.raw());
+
+  ASSERT(mixin_type.IsType());
+  if (!mixin_type.IsInstantiated()) {
+    AbstractTypeArguments& type_args =
+        AbstractTypeArguments::Handle(instantiator.arguments());
+    Error& bound_error = Error::Handle();
+    result ^= mixin_type.InstantiateFrom(type_args, &bound_error);
+    if (!bound_error.IsNull()) {
+      ThrowInvokeError(bound_error);
+      UNREACHABLE();
+    }
+    result ^= result.Canonicalize();
+    ASSERT(result.IsType());
+  }
+
+  ASSERT(result.IsFinalized());
+  return result.raw();
 }
 
 
@@ -1121,7 +1224,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       // TODO(12478): Should not need to filter out dynamic.
       if (!klass.IsCanonicalSignatureClass() &&
           !klass.IsDynamicClass()) {
-        type = klass.RareType();
+        type = klass.DeclarationType();
         member_mirror = CreateClassMirror(klass,
                                           type,
                                           Bool::True(),  // is_declaration
@@ -1196,7 +1299,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_owner, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   const Class& owner = Class::Handle(param.parameterized_class());
-  const AbstractType& type = AbstractType::Handle(owner.RareType());
+  const AbstractType& type = AbstractType::Handle(owner.DeclarationType());
   return CreateClassMirror(owner,
                            type,
                            Bool::True(),  // is_declaration
@@ -1570,6 +1673,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   ASSERT(!type.IsNull());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(type.arguments());
+  if (!type.IsInstantiated()) {
+    // Must have been a declaration type.
+    AbstractType& rare_type = AbstractType::Handle(klass.RareType());
+    ASSERT(rare_type.IsInstantiated());
+    type_arguments = rare_type.arguments();
+  }
 
   Class& redirected_klass = Class::Handle(klass.raw());
   Function& redirected_constructor = Function::Handle(lookup_constructor.raw());
@@ -1786,7 +1895,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_owner, 1) {
     return CreateLibraryMirror(Library::Handle(owner.library()));
   }
 
-  AbstractType& type = AbstractType::Handle(owner.RareType());
+  AbstractType& type = AbstractType::Handle(owner.DeclarationType());
   return CreateClassMirror(owner, type, Bool::True(), Object::null_instance());
 }
 
