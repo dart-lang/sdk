@@ -65,7 +65,7 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
-
+main_test: Fail # dart2dart needs to check for both main() and main(args).
 
 # Library changes
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
