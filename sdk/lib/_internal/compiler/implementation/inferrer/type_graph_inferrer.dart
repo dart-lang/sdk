@@ -13,7 +13,7 @@ import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, SourceString, TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
-import '../util/util.dart' show Spannable;
+import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
 import '../dart2jslib.dart' show invariant;
 
@@ -342,7 +342,7 @@ class WorkQueue {
     element.inQueue = true;
   }
 
-  void addAll(Iterable<TypeInformation> all) {
+  void addAll(all) {
     all.forEach(add);
   }
 
@@ -723,7 +723,7 @@ class TypeGraphInferrerEngine
   // [SimpleTypesInferrer].
   Iterable<Element> sortResolvedElements() {
     int max = 0;
-    Map<int, Set<Element>> methodSizes = new Map<int, Set<Element>>();
+    Map<int, Setlet<Element>> methodSizes = new Map<int, Setlet<Element>>();
     compiler.enqueuer.resolution.resolvedElements.forEach(
       (Element element, TreeElementMapping mapping) {
         element = element.implementation;
@@ -743,17 +743,16 @@ class TypeGraphInferrerEngine
         // length order.
         int length = mapping.selectors.length;
         max = length > max ? length : max;
-        Set<Element> set = methodSizes.putIfAbsent(
-            length, () => new Set<Element>());
+        Setlet<Element> set = methodSizes.putIfAbsent(
+            length, () => new Setlet<Element>());
         set.add(element);
     });
 
     List<Element> result = <Element>[];
-
     for (int i = 0; i <= max; i++) {
-      Set<Element> set = methodSizes[i];
+      Setlet<Element> set = methodSizes[i];
       if (set != null) {
-        result.addAll(set);
+        set.forEach((each) => result.add(each));
       }
     }
     return result;

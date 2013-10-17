@@ -46,7 +46,7 @@ abstract class TypeInformation {
   bool get isConcrete => false;
 
   TypeInformation([users, assignments])
-      : users = (users == null) ? new Set<TypeInformation>() : users,
+      : users = (users == null) ? new Setlet<TypeInformation>() : users,
         assignments = (assignments == null) ? <TypeInformation>[] : assignments;
 
 
@@ -176,8 +176,8 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  */
 class ElementTypeInformation extends TypeInformation {
   final Element element;
-  final Map<Element, Set<Spannable>> callers =
-      new Map<Element, Set<Spannable>>();
+  final Map<Element, Setlet<Spannable>> callers =
+      new Map<Element, Setlet<Spannable>>();
 
   ElementTypeInformation.internal(this.element, assignments)
       : super(null, assignments);
@@ -192,11 +192,11 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   void addCall(Element caller, Spannable node) {
-    callers.putIfAbsent(caller, () => new Set<Spannable>()).add(node);
+    callers.putIfAbsent(caller, () => new Setlet<Spannable>()).add(node);
   }
 
   void removeCall(Element caller, Spannable node) {
-    Set<Spannable> calls = callers[caller];
+    Setlet<Spannable> calls = callers[caller];
     if (calls == null) return;
     calls.remove(node);
     if (calls.isEmpty) {

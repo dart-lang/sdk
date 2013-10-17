@@ -10,7 +10,7 @@ import '../dart_types.dart'
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link, Spannable;
+import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
          ElementTypeMask, TypeSystem, MinimalInferrerEngine;
@@ -379,7 +379,7 @@ class SimpleTypeInferrerVisitor<T>
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
   final InferrerEngine<T, TypeSystem<T>> inferrer;
-  final Set<Element> capturedVariables = new Set<Element>();
+  final Setlet<Element> capturedVariables = new Setlet<Element>();
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
                                      this.outermostElement,

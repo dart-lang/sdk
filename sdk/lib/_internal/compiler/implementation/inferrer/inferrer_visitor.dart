@@ -139,8 +139,8 @@ class VariableScope<T> {
 
   void forEachLocalUntilNode(Node node,
                              void f(Element element, T type),
-                             [Set<Element> seenLocals]) {
-    if (seenLocals == null) seenLocals = new Set<Element>();
+                             [Setlet<Element> seenLocals]) {
+    if (seenLocals == null) seenLocals = new Setlet<Element>();
     if (variables != null) {
       variables.forEach((element, type) {
         if (seenLocals.contains(element)) return;

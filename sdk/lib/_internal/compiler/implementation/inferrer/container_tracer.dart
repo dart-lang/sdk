@@ -133,7 +133,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
 
   // The set of [TypeInformation] where the traced container could
   // flow in, and operations done on them.
-  final Set<TypeInformation> allUsers = new Set<TypeInformation>();
+  final Setlet<TypeInformation> allUsers = new Setlet<TypeInformation>();
 
   // The list of found assignments to the container.
   final List<TypeInformation> assignments = <TypeInformation>[];
@@ -142,14 +142,14 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   bool continueAnalyzing = true;
 
   static const int MAX_ANALYSIS_COUNT = 11;
-  final Set<Element> analyzedElements = new Set<Element>();
+  final Setlet<Element> analyzedElements = new Setlet<Element>();
 
   ContainerTracerVisitor(this.container, inferrer)
       : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
   void run() {
     // Add the assignments found at allocation site.
-    assignments.addAll(container.elementType.assignments);
+    container.elementType.assignments.forEach((each) => assignments.add(each));
 
     // Collect the [TypeInformation] where the container can flow in,
     // as well as the operations done on all these [TypeInformation]s.
