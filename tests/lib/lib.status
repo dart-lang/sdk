@@ -167,7 +167,6 @@ async/timer_test: Fail, Pass
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
-mirrors/typevariable_mirror_metadata_test: Pass, Fail, OK # VM now reports name conflict with type parameters
 
 [ $compiler == none  ]
 async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
@@ -211,9 +210,6 @@ mirrors/generic_mixin_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
-
-# test issue 14016
-mirrors/typevariable_mirror_metadata_test: fail
 
 [ $compiler == dart2analyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093

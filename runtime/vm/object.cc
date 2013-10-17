@@ -7015,17 +7015,11 @@ static RawString* MakeFunctionMetaName(const Function& func) {
 
 
 static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
-  const Array& parts = Array::Handle(Array::New(3));
-  String& part = String::Handle();
-  part ^= MakeClassMetaName(Class::Handle(param.parameterized_class()));
-  parts.SetAt(0, part);
-  // We need to choose something different from field/function names, because it
-  // is allowed to have type parameters and fields/functions with the same name
-  // in a class.
-  parts.SetAt(1, Symbols::Slash());
-  part ^= param.name();
-  parts.SetAt(2, part);
-  return String::ConcatAll(parts);
+  const String& cname = String::Handle(
+      MakeClassMetaName(Class::Handle(param.parameterized_class())));
+  String& pname = String::Handle(param.name());
+  pname = String::Concat(Symbols::At(), pname);
+  return String::Concat(cname, pname);
 }
 
 
