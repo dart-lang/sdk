@@ -30,4 +30,7 @@ class LazyTrace implements Trace {
   Trace foldFrames(bool predicate(frame)) =>
     new LazyTrace(() => _trace.foldFrames(predicate));
   String toString() => _trace.toString();
+
+  // Work around issue 14075.
+  set frames(_) => throw new UnimplementedError();
 }
