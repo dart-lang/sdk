@@ -100,7 +100,12 @@ void CPUFeatures::InitOnce() {
   ASSERT(CPUInfoContainsString("ARMv7"));  // Implements ARMv7.
   ASSERT(CPUInfoContainsString("vfp"));  // Has floating point unit.
   // Has integer division.
-  integer_division_supported_ = CPUInfoContainsString("idiva");
+  if (CPUInfoContainsString("QCT APQ8064")) {
+    // Special case for Qualcomm Krait CPUs in Nexus 4 and 7.
+    integer_division_supported_ = true;
+  } else {
+    integer_division_supported_ = CPUInfoContainsString("idiva");
+  }
   neon_supported_ = CPUInfoContainsString("neon");
 #endif  // defined(USING_SIMULATOR)
 #if defined(DEBUG)
