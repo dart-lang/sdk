@@ -15,6 +15,12 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
+Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19-roll r576: Please triage this failure

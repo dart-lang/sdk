@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
+
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 

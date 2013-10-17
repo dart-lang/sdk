@@ -167,6 +167,7 @@ async/timer_test: Fail, Pass
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
+mirrors/typevariable_mirror_metadata_test: Pass, Fail, OK # VM now reports name conflict with type parameters
 
 [ $compiler == none  ]
 async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.

@@ -14,12 +14,6 @@ mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 throwing_lazy_variable_test: Fail # Issue 5802
-type_variable_conflict_test/01: Fail # Issue 13701
-type_variable_conflict_test/02: Fail # Issue 13701
-type_variable_conflict_test/03: Fail # Issue 13701
-type_variable_conflict_test/04: Fail # Issue 13701
-type_variable_conflict_test/05: Fail # Issue 13701
-type_variable_conflict_test/06: Fail # Issue 13701
 f_bounded_equality_test: RuntimeError # Issue 14000
 
 # These bugs refer currently ongoing language discussions.
