@@ -14,6 +14,12 @@ symbol_test/03: Fail, Pass # bug 11669
 symbol_test/none: Fail # bug 11669
 error_stack_trace2_test: Fail  # Bug 5802
 
+[ $compiler == none && $runtime == drt ]
+main_test: Fail  # Dartium needs to check for both main() and main(args).
+
+[ $compiler == none && $runtime == dartium ]
+main_test: Fail  # Dartium needs to check for both main() and main(args).
+
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 

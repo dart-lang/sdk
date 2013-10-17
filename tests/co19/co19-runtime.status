@@ -10,7 +10,6 @@ Language/13_Statements/03_Variable_Declaration_A04_t02: MissingCompileTimeError 
 Language/13_Statements/03_Variable_Declaration_A04_t05: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t06: MissingCompileTimeError # Issue 7052
 
-[ $compiler == none && $runtime == vm ]
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Dart issue 5802
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Dart issue 5894
 
@@ -30,6 +29,51 @@ LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 463
 
 LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
+
+Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
+Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
+Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
+Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
+Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
+Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
+Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
+Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535
+Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
+Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
+Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
+Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
+Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
+Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # co19 issue
+Language/14_Libraries_and_Scripts/5_URIs_A01_t04: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t05: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t14: fail # Issue 12521
+Language/14_Libraries_and_Scripts/5_URIs_A01_t15: fail # Issue 12521
+
+LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
+
+# All isolate are being ignored at the moment as the library will go through some changes.
+LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # VM triage, check spec.
+
+Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r587: Please triage this failure
+Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r587: Please triage this failure
+
+LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # Issue 13543
+LibTest/typed_data/Float32x4/clamp_A02_t01: Pass, Fail # Issue 13543
+LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13543
+LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13543
+Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: MissingCompileTimeError # co19-roll r607: Please triage this failure
+Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: MissingCompileTimeError # co19-roll r607: Please triage this failure
+LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
 
 [ $compiler == none && $runtime == vm && $checked ]
@@ -58,40 +102,6 @@ LibTest/core/double/toInt_A01_t01: Fail
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
-[ $compiler == none && $runtime == vm ]
-Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
-Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
-Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
-Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
-Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
-Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
-Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535
-Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
-Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
-Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
-Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
-Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
-Language/14_Libraries_and_Scripts/5_URIs_A01_t04: fail # Issue 12521
-Language/14_Libraries_and_Scripts/5_URIs_A01_t05: fail # Issue 12521
-Language/14_Libraries_and_Scripts/5_URIs_A01_t14: fail # Issue 12521
-Language/14_Libraries_and_Scripts/5_URIs_A01_t15: fail # Issue 12521
-
-LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
-
-# All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
-LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.
-LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # VM triage, check spec.
-
-Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r587: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r587: Please triage this failure
-
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # Dart issue 12861
@@ -119,18 +129,6 @@ Language/12_Expressions/12_Instance_Creation_A01_t08: CompileTimeError # co19-ro
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
 Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
-
-[ $compiler == none && $runtime == vm ]
-LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # Issue 13543
-LibTest/typed_data/Float32x4/clamp_A02_t01: Pass, Fail # Issue 13543
-LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13543
-LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13543
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: MissingCompileTimeError # co19-roll r607: Please triage this failure
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: MissingCompileTimeError # co19-roll r607: Please triage this failure
-LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $unchecked ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
