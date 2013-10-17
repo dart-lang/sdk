@@ -360,8 +360,7 @@ static int ParseArguments(int argc,
 }
 
 
-static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
-                                       const char* script_name) {
+static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
   int options_count = options->count();
   Dart_Handle dart_arguments = Dart_NewList(options_count);
   if (Dart_IsError(dart_arguments)) {
@@ -377,6 +376,15 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     if (Dart_IsError(result)) {
       return result;
     }
+  }
+  return dart_arguments;
+}
+
+
+static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
+  Dart_Handle dart_arguments = CreateRuntimeOptions(options);
+  if (Dart_IsError(dart_arguments)) {
+    return dart_arguments;
   }
   Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
   if (Dart_IsError(io_lib_url)) {
@@ -827,8 +835,7 @@ int main(int argc, char** argv) {
     }
 
     // Create a dart options object that can be accessed from dart code.
-    Dart_Handle options_result =
-        SetupRuntimeOptions(&dart_options, script_name);
+    Dart_Handle options_result = SetupRuntimeOptions(&dart_options);
     if (Dart_IsError(options_result)) {
       return DartErrorExit(options_result);
     }
@@ -856,7 +863,17 @@ int main(int argc, char** argv) {
       }
     } else {
       // Lookup and invoke the top level main function.
-      result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
+      Dart_Handle main_args[1];
+      main_args[0] = CreateRuntimeOptions(&dart_options);
+      result = Dart_Invoke(library, DartUtils::NewString("main"), 1, main_args);
+      // TODO(iposva): Return a special error type for mismatched argument
+      // counts from Dart_Invoke to avoid the string comparison.
+      const char* expected_error = "Dart_Invoke: wrong argument count for "
+          "function 'main': 1 passed, 0 expected.";
+      if (Dart_IsError(result) &&
+          strcmp(expected_error, Dart_GetError(result)) == 0) {
+        result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
+      }
       if (Dart_IsError(result)) {
         return DartErrorExit(result);
       }
