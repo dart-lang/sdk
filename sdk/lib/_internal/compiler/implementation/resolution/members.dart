@@ -603,7 +603,7 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
-  void resolveRedirectionChain(FunctionElement constructor, Node node) {
+  void resolveRedirectionChain(FunctionElement constructor, Spannable node) {
     FunctionElementX current = constructor;
     List<Element> seen = new List<Element>();
     // Follow the chain of redirections and check for cycles.
@@ -1156,7 +1156,7 @@ class ResolverTask extends CompilerTask {
     }));
   }
 
-  error(Node node, MessageKind kind, [arguments = const {}]) {
+  error(Spannable node, MessageKind kind, [arguments = const {}]) {
     // TODO(ahe): Make non-fatal.
     compiler.reportFatalError(node, kind, arguments);
   }
