@@ -65,6 +65,12 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
+[ $system == windows && $runtime == ff ]
+polymer/test/events_test: Pass, Fail # Issue 14167
+polymer/test/prop_attr_bind_reflection_test: Pass, Fail # Issue 14167
+polymer/test/prop_attr_reflection_test: Pass, Fail # Issue 14167
+polymer/test/take_attributes_test: Pass, Fail # Issue 14167
+
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 crypto/test/hmac_sha1_test: Pass, Fail # Issue 11407.
