@@ -316,11 +316,16 @@ main() {
 
   test('js instantiation : typed array', () {
     if (Platform.supportsTypedData) {
-      final codeUnits = "test".codeUnits;
-      final buf = new JsObject(context['ArrayBuffer'], [codeUnits.length]);
-      final bufView = new JsObject(context['Uint8Array'], [buf]);
-      for (var i = 0; i < codeUnits.length; i++) {
-        bufView[i] = codeUnits[i];
+      // Safari's ArrayBuffer is not a Function and so doesn't support bind
+      // which JsObject's constructor relies on.
+      // bug: https://bugs.webkit.org/show_bug.cgi?id=122976
+      if (context['ArrayBuffer']['bind'] != null) {
+        final codeUnits = "test".codeUnits;
+        final buf = new JsObject(context['ArrayBuffer'], [codeUnits.length]);
+        final bufView = new JsObject(context['Uint8Array'], [buf]);
+        for (var i = 0; i < codeUnits.length; i++) {
+          bufView[i] = codeUnits[i];
+        }
       }
     }
   });
@@ -328,8 +333,9 @@ main() {
   test('js instantiation : >10 parameters', () {
     final o = new JsObject(context['Baz'], [1,2,3,4,5,6,7,8,9,10,11]);
     for (var i = 1; i <= 11; i++) {
-      o["f$i"] = i;
+      expect(o["f$i"], i);
     }
+    expect(o['constructor'], same(context['Baz']));
   });
 
   test('write global field', () {

@@ -468,52 +468,16 @@ function DartObject(o) {
   function construct(args) {
     args = args.map(deserialize);
     var constructor = args[0];
-    args = Array.prototype.slice.call(args, 1);
 
-    // Until 10 args, the 'new' operator is used. With more arguments we use a
-    // generic way that may not work, particularly when the constructor does not
-    // have an "apply" method.
-    var ret = null;
-    if (args.length === 0) {
-      ret = new constructor();
-    } else if (args.length === 1) {
-      ret = new constructor(args[0]);
-    } else if (args.length === 2) {
-      ret = new constructor(args[0], args[1]);
-    } else if (args.length === 3) {
-      ret = new constructor(args[0], args[1], args[2]);
-    } else if (args.length === 4) {
-      ret = new constructor(args[0], args[1], args[2], args[3]);
-    } else if (args.length === 5) {
-      ret = new constructor(args[0], args[1], args[2], args[3], args[4]);
-    } else if (args.length === 6) {
-      ret = new constructor(args[0], args[1], args[2], args[3], args[4],
-                            args[5]);
-    } else if (args.length === 7) {
-      ret = new constructor(args[0], args[1], args[2], args[3], args[4],
-                            args[5], args[6]);
-    } else if (args.length === 8) {
-      ret = new constructor(args[0], args[1], args[2], args[3], args[4],
-                            args[5], args[6], args[7]);
-    } else if (args.length === 9) {
-      ret = new constructor(args[0], args[1], args[2], args[3], args[4],
-                            args[5], args[6], args[7], args[8]);
-    } else if (args.length === 10) {
-      ret = new constructor(args[0], args[1], args[2], args[3], args[4],
-                            args[5], args[6], args[7], args[8], args[9]);
-    } else {
-      // Dummy Type with correct constructor.
-      var Type = function(){};
-      Type.prototype = constructor.prototype;
-
-      // Create a new instance
-      var instance = new Type();
-
-      // Call the original constructor.
-      ret = constructor.apply(instance, args);
-      ret = Object(ret) === ret ? ret : instance;
-    }
-    return serialize(ret);
+    // The following code solves the problem of invoking a JavaScript
+    // constructor with an unknown number arguments.
+    // First bind the constructor to the argument list using bind.apply().
+    // The first argument to bind() is the binding of 'this', make it 'null'
+    // After that, use the JavaScript 'new' operator which overrides any binding
+    // of 'this' with the new instance.
+    args[0] = null;
+    var factoryFunction = constructor.bind.apply(constructor, args);
+    return serialize(new factoryFunction());
   }
 
   // Remote handler to return the top-level JavaScript context.
