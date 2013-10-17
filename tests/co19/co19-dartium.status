@@ -38,7 +38,6 @@ Language/12_Expressions/05_Strings_A02_t48: Fail # Issue 13719: Please triage th
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: Fail # Issue 13719: Please triage this failure.
-Language/12_Expressions/18_Assignment_A01_t07: Fail  # co19-roll r607: Please triage this failure
 Language/12_Expressions/18_Assignment_A04_t09: Fail # co19-roll r607: Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A08_t02: Fail # Issue 13719: Please triage this failure.
 Language/13_Statements/02_Expression_Statements_A01_t13: Fail # co19-roll r607: Please triage this failure
