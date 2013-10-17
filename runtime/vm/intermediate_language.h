@@ -3757,6 +3757,8 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
 };
