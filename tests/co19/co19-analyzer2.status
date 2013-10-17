@@ -36,27 +36,12 @@ Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 
 # co19 issue #455, undeclared identifier is static warning
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
-Language/13_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
-
-# co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
-
-# co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
-Language/07_Classes/3_Setters_A08_t03: fail, OK
-
-# co19 issue #593: Conditional expressions are now allowed as constant expressions
-Language/12_Expressions/01_Constants_A15_t16: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
 Language/12_Expressions/01_Constants_A16_t02: fail, OK
-
-# co19 issue #420, "throw" requires expression, "rethrow" should be used instead
-Language/12_Expressions/08_Throw_A05_t01: fail, OK
-Language/12_Expressions/08_Throw_A05_t02: fail, OK
-Language/12_Expressions/08_Throw_A05_t03: fail, OK
 
 # co19 issue #454 (wrongly closed)
 Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
@@ -79,12 +64,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
 # co19 issue #615: Expect import missing
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
-
-# co19 issue #617: "hasNext" is not a function; "Expec"
-LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail, OK
-
-# co19 issue #623: main() { {}; } is block and empty statement, not a map
-Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
 
 # co19 issue #626: StreamTransformers have been refactored.
 LibTest/async/EventTransformStream/EventTransformStream_A01_t01: Fail

@@ -16,8 +16,6 @@ Language/05_Variables/05_Variables_A06_t03: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t04: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t05: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t06: fail, pass, ok # co19 issue 624
-Language/12_Expressions/05_Strings_A02_t46: fail, pass, ok # co19 issue 612
-Language/12_Expressions/05_Strings_A02_t48: fail, pass, ok # co19 issue 612
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
@@ -27,8 +25,6 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-ro
 
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r607: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
-Language/13_Statements/02_Expression_Statements_A01_t13: MissingCompileTimeError # co19-roll r607: Please triage this failure
-LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/forEach_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
