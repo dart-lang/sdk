@@ -36,12 +36,7 @@ class _List<E> implements List<E> {
   }
 
   void setAll(int index, Iterable<E> iterable) {
-    if (index < 0 || index > length) {
-      throw new RangeError.range(index, 0, length);
-    }
-    for (var element in iterable) {
-      [index++] = element;
-    }
+    IterableMixinWorkaround.setAllList(this, index, iterable);
   }
 
   E removeAt(int index) {
