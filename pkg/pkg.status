@@ -36,6 +36,18 @@ stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 sequence_zip/test/stream_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
+[ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
+polymer/example: Skip # Uses dart:html
+polymer/test/attr_deserialize_test: Skip # uses dart:html
+polymer/test/attr_mustache_test: Skip #uses dart:html
+polymer/test/event_path_test: Skip #uses dart:html
+polymer/test/events_test: Skip #uses dart:html
+polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
+polymer/test/prop_attr_reflection_test: Skip #uses dart:html
+polymer/test/publish_attributes_test: Skip #uses dart:html
+polymer/test/take_attributes_test: Skip #uses dart:html
+
 [$compiler == dart2dart]
 *: Skip
 
@@ -88,16 +100,6 @@ polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 path/test/browser_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
-polymer/test/attr_deserialize_test: Fail, OK # Uses dart:html
-polymer/test/attr_mustache_test: Fail, OK # Uses dart:html
-polymer/test/event_path_test: Fail, OK # Uses dart:html
-polymer/test/events_test: Fail, OK # Uses dart:html
-polymer/test/instance_attrs_test: Fail, OK # Uses dart:html
-polymer/test/prop_attr_reflection_test: Fail, OK # Uses dart:html
-polymer/test/prop_attr_bind_reflection_test: Fail, OK # Uses dart:html
-polymer/test/publish_attributes_test: Fail, OK # Uses dart:html
-polymer/test/take_attributes_test: Fail, OK # Uses dart:html
-polymer/example: Fail, OK # Uses dart:html
 
 [ $runtime == vm && $system == windows ]
 docgen/test/single_library_test: Fail # Issue 11985
