@@ -6423,6 +6423,7 @@ class CustomEvent extends Event native "CustomEvent" {
   @DomName('CustomEvent._detail')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   final dynamic _get__detail;
 
   @JSName('initCustomEvent')
