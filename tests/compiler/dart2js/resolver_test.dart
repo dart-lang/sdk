@@ -443,7 +443,7 @@ testTypeAnnotation() {
       compiler.warnings[0].message);
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
-  compiler.clearWarnings();
+  compiler.clearMessages();
 
   // Test that there is no warning after defining Foo.
   compiler.parseScript("class Foo {}");
@@ -465,7 +465,7 @@ testSuperclass() {
   var cannotResolveBar = new Message(MessageKind.CANNOT_EXTEND_MALFORMED,
                                      {'typeName': 'Bar'}, false);
   Expect.equals(cannotResolveBar, compiler.errors[0].message);
-  compiler.clearErrors();
+  compiler.clearMessages();
 
   compiler = new MockCompiler();
   compiler.parseScript("class Foo extends Bar {}");
@@ -490,7 +490,7 @@ testVarSuperclass() {
       new Message(
           MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'var'}, false),
       compiler.errors[0].message);
-  compiler.clearErrors();
+  compiler.clearMessages();
 }
 
 testOneInterface() {
@@ -502,7 +502,7 @@ testOneInterface() {
       new Message(
           MessageKind.CANNOT_RESOLVE_TYPE.warning, {'typeName': 'bar'}, false),
       compiler.errors[0].message);
-  compiler.clearErrors();
+  compiler.clearMessages();
 
   // Add the abstract class to the world and make sure everything is setup
   // correctly.
@@ -616,6 +616,7 @@ resolveConstructor(String script, String statement, String className,
                    String constructor, int expectedElementCount,
                    {List expectedWarnings: const [],
                     List expectedErrors: const [],
+                    List expectedInfos: const [],
                     String corelib: DEFAULT_CORELIB}) {
   MockCompiler compiler = new MockCompiler(coreSource: corelib);
   compiler.parseScript(script);
@@ -642,6 +643,7 @@ resolveConstructor(String script, String statement, String className,
 
   compareWarningKinds(script, expectedWarnings, compiler.warnings);
   compareWarningKinds(script, expectedErrors, compiler.errors);
+  compareWarningKinds(script, expectedInfos, compiler.infos);
 }
 
 testClassHierarchy() {
@@ -739,7 +741,7 @@ testInitializers() {
                 A() : this.foo = 1, this.foo = 2;
               }""";
   resolveConstructor(script, "A a = new A();", "A", "", 2,
-                     expectedWarnings: [MessageKind.ALREADY_INITIALIZED],
+                     expectedInfos: [MessageKind.ALREADY_INITIALIZED],
                      expectedErrors: [MessageKind.DUPLICATE_INITIALIZER]);
 
   script = """class A {
@@ -918,22 +920,25 @@ testOverrideHashCodeCheck() {
         new A() == new B();
       }""";
   asyncTest(() => compileScript(script).then((compiler) {
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(0, compiler.infos.length);
+    Expect.equals(1, compiler.hints.length);
     Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
-                  compiler.warnings[0].message.kind);
+                  compiler.hints[0].message.kind);
     Expect.equals(0, compiler.errors.length);
   }));
 }
 
 testConstConstructorAndNonFinalFields() {
-  void expect(compiler, List errors, List warnings) {
+  void expect(compiler, List errors, List infos) {
     Expect.equals(errors.length, compiler.errors.length);
     for (int i = 0 ; i < errors.length ; i++) {
       Expect.equals(errors[i], compiler.errors[i].message.kind);
     }
-    Expect.equals(warnings.length, compiler.warnings.length);
-    for (int i = 0 ; i < warnings.length ; i++) {
-      Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(infos.length, compiler.infos.length);
+    for (int i = 0 ; i < infos.length ; i++) {
+      Expect.equals(infos[i], compiler.infos[i].message.kind);
     }
   }
 

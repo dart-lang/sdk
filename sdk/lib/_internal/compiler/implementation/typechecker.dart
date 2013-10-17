@@ -37,7 +37,6 @@ class MemberKind {
   String toString() => name;
 }
 
-
 /**
  * [ElementAccess] represents the access of [element], either as a property
  * access or invocation.
@@ -160,6 +159,47 @@ class TypeLiteralAccess extends ElementAccess {
   String toString() => 'TypeLiteralAccess($element)';
 }
 
+/// An is-expression that potentially promotes a variable.
+class TypePromotion {
+  final Send node;
+  final VariableElement variable;
+  final DartType type;
+  final List<TypePromotionMessage> messages = <TypePromotionMessage>[];
+
+  TypePromotion(this.node, this.variable, this.type);
+
+  bool get isValid => messages.isEmpty;
+
+  TypePromotion copy() {
+    return new TypePromotion(node, variable, type)..messages.addAll(messages);
+  }
+
+  void addHint(Spannable spannable, MessageKind kind, [Map arguments]) {
+    messages.add(new TypePromotionMessage(api.Diagnostic.HINT,
+        spannable, kind, arguments));
+  }
+
+  void addInfo(Spannable spannable, MessageKind kind, [Map arguments]) {
+    messages.add(new TypePromotionMessage(api.Diagnostic.INFO,
+        spannable, kind, arguments));
+  }
+
+  String toString() {
+    return 'Promote ${variable} to ${type}';
+  }
+}
+
+/// A hint or info message attached to a type promotion.
+class TypePromotionMessage {
+  api.Diagnostic diagnostic;
+  Spannable spannable;
+  MessageKind messageKind;
+  Map messageArguments;
+
+  TypePromotionMessage(this.diagnostic, this.spannable, this.messageKind,
+                       [this.messageArguments]);
+}
+
 class TypeCheckerVisitor extends Visitor<DartType> {
   final Compiler compiler;
   final TreeElements elements;
@@ -182,43 +222,60 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType objectType;
   DartType listType;
 
-  Map<Node, Map<VariableElement, DartType>> shownTypesMap =
-      new Map<Node, Map<VariableElement, DartType>>();
+  Map<Node, List<TypePromotion>> shownTypePromotionsMap =
+      new Map<Node, List<TypePromotion>>();
 
-  Map<VariableElement, Link<DartType>> knownTypesMap =
-      new Map<VariableElement, Link<DartType>>();
+  Map<VariableElement, Link<TypePromotion>> typePromotionsMap =
+      new Map<VariableElement, Link<TypePromotion>>();
 
-  void showType(Node node, VariableElement element, DartType type) {
-    Map<VariableElement, DartType> shownTypes = shownTypesMap.putIfAbsent(node,
-        () => new Map<VariableElement, DartType>());
-    shownTypes[element] = type;
+  Set<TypePromotion> reportedTypePromotions = new Set<TypePromotion>();
+
+  void showTypePromotion(Node node, TypePromotion typePromotion) {
+    List<TypePromotion> shownTypePromotions =
+        shownTypePromotionsMap.putIfAbsent(node, () => <TypePromotion>[]);
+    shownTypePromotions.add(typePromotion);
   }
 
-  void registerKnownType(VariableElement element, DartType type) {
-    Link<DartType> knownTypes =
-        knownTypesMap.putIfAbsent(element, () => const Link<DartType>());
-    knownTypesMap[element] = knownTypes.prepend(type);
+  void registerKnownTypePromotion(TypePromotion typePromotion) {
+    VariableElement variable = typePromotion.variable;
+    Link<TypePromotion> knownTypes =
+        typePromotionsMap.putIfAbsent(variable,
+                                      () => const Link<TypePromotion>());
+    typePromotionsMap[variable] = knownTypes.prepend(typePromotion);
   }
 
-  void unregisterKnownType(VariableElement element) {
-    Link<DartType> knownTypes = knownTypesMap[element].tail;
+  void unregisterKnownTypePromotion(TypePromotion typePromotion) {
+    VariableElement variable = typePromotion.variable;
+    Link<TypePromotion> knownTypes = typePromotionsMap[variable].tail;
     if (knownTypes.isEmpty) {
-      knownTypesMap.remove(element);
+      typePromotionsMap.remove(variable);
     } else {
-      knownTypesMap[element] = knownTypes;
+      typePromotionsMap[variable] = knownTypes;
     }
   }
 
-  Map<VariableElement, DartType> getShownTypesFor(Node node) {
-    Map<VariableElement, DartType> shownTypes = shownTypesMap[node];
-    return shownTypes != null ? shownTypes : const {};
+  List<TypePromotion> getShownTypePromotionsFor(Node node) {
+    List<TypePromotion> shownTypePromotions = shownTypePromotionsMap[node];
+    return shownTypePromotions != null ? shownTypePromotions : const [];
+  }
+
+  TypePromotion getKnownTypePromotion(VariableElement element) {
+    Link<TypePromotion> promotions = typePromotionsMap[element];
+    if (promotions != null) {
+      while (!promotions.isEmpty) {
+        TypePromotion typePromotion = promotions.head;
+        if (typePromotion.isValid) {
+          return typePromotion;
+        }
+        promotions = promotions.tail;
+      }
+    }
+    return null;
   }
 
   DartType getKnownType(VariableElement element) {
-    Link<DartType> promotions = knownTypesMap[element];
-    if (promotions != null) {
-      return promotions.head;
-    }
+    TypePromotion typePromotion = getKnownTypePromotion(element);
+    if (typePromotion != null) return typePromotion.type;
     return element.computeType(compiler);
   }
 
@@ -247,8 +304,27 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   reportTypeInfo(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportDiagnostic(compiler.spanFromSpannable(node),
-        '${kind.message(arguments)}', api.Diagnostic.INFO);
+    compiler.reportInfo(node, kind, arguments);
+  }
+
+  reportTypePromotionHint(TypePromotion typePromotion) {
+    if (!reportedTypePromotions.contains(typePromotion)) {
+      reportedTypePromotions.add(typePromotion);
+      for (TypePromotionMessage message in typePromotion.messages) {
+        switch (message.diagnostic) {
+          case api.Diagnostic.HINT:
+            compiler.reportHint(message.spannable,
+                                message.messageKind,
+                                message.messageArguments);
+            break;
+          case api.Diagnostic.INFO:
+            compiler.reportInfo(message.spannable,
+                                message.messageKind,
+                                message.messageArguments);
+            break;
+        }
+      }
+    }
   }
 
   // TODO(karlklose): remove these functions.
@@ -285,27 +361,84 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return result;
   }
 
+  void checkTypePromotion(Node node, TypePromotion typePromotion,
+                          {bool checkAccesses: false}) {
+    VariableElement variable = typePromotion.variable;
+    SourceString variableName = variable.name;
+    List<Node> potentialMutationsIn =
+        elements.getPotentialMutationsIn(node, variable);
+    if (!potentialMutationsIn.isEmpty) {
+      typePromotion.addHint(typePromotion.node,
+          MessageKind.POTENTIAL_MUTATION,
+          {'variableName': variableName, 'shownType': typePromotion.type});
+      for (Node mutation in potentialMutationsIn) {
+        typePromotion.addInfo(mutation,
+            MessageKind.POTENTIAL_MUTATION_HERE,
+            {'variableName': variableName});
+      }
+    }
+    List<Node> potentialMutationsInClosures =
+        elements.getPotentialMutationsInClosure(variable);
+    if (!potentialMutationsInClosures.isEmpty) {
+      typePromotion.addHint(typePromotion.node,
+          MessageKind.POTENTIAL_MUTATION_IN_CLOSURE,
+          {'variableName': variableName, 'shownType': typePromotion.type});
+      for (Node mutation in potentialMutationsInClosures) {
+        typePromotion.addInfo(mutation,
+            MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE,
+            {'variableName': variableName});
+      }
+    }
+    if (checkAccesses) {
+      List<Node> accesses = elements.getAccessesByClosureIn(node, variable);
+      List<Node> mutations = elements.getPotentialMutations(variable);
+      if (!accesses.isEmpty && !mutations.isEmpty) {
+        typePromotion.addHint(typePromotion.node,
+            MessageKind.ACCESSED_IN_CLOSURE,
+            {'variableName': variableName, 'shownType': typePromotion.type});
+        for (Node access in accesses) {
+          typePromotion.addInfo(access,
+              MessageKind.ACCESSED_IN_CLOSURE_HERE,
+              {'variableName': variableName});
+        }
+        for (Node mutation in mutations) {
+          typePromotion.addInfo(mutation,
+              MessageKind.POTENTIAL_MUTATION_HERE,
+              {'variableName': variableName});
+        }
+      }
+    }
+  }
+
+  void reshowTypePromotions(Node node, Node receiver, Node argument) {
+    for (TypePromotion typePromotion in  getShownTypePromotionsFor(receiver)) {
+      typePromotion = typePromotion.copy();
+      checkTypePromotion(argument, typePromotion);
+      showTypePromotion(node, typePromotion);
+    }
+
+    for (TypePromotion typePromotion in getShownTypePromotionsFor(argument)) {
+      typePromotion = typePromotion.copy();
+      checkTypePromotion(argument, typePromotion);
+      showTypePromotion(node, typePromotion);
+    }
+  }
+
   /// Analyze [node] in the context of the known types shown in [context].
   DartType analyzeInPromotedContext(Node context, Node node) {
-    Link<VariableElement> knownForArgument = const Link<VariableElement>();
-    Map<VariableElement, DartType> shownForReceiver =
-        getShownTypesFor(context);
-    shownForReceiver.forEach((VariableElement variable, DartType type) {
-      if (elements.isPotentiallyMutatedIn(node, variable)) return;
-      if (elements.isPotentiallyMutatedInClosure(variable)) return;
-      if (elements.isAccessedByClosureIn(node, variable) &&
-          elements.isPotentiallyMutated(variable)) {
-        return;
-      }
-      knownForArgument = knownForArgument.prepend(variable);
-      registerKnownType(variable, type);
-    });
+    Link<TypePromotion> knownForNode = const Link<TypePromotion>();
+    for (TypePromotion typePromotion in  getShownTypePromotionsFor(context)) {
+      typePromotion = typePromotion.copy();
+      checkTypePromotion(node, typePromotion, checkAccesses: true);
+      knownForNode = knownForNode.prepend(typePromotion);
+      registerKnownTypePromotion(typePromotion);
+    }
 
     final DartType type = analyze(node);
 
-    while (!knownForArgument.isEmpty) {
-      unregisterKnownType(knownForArgument.head);
-      knownForArgument = knownForArgument.tail;
+    while (!knownForNode.isEmpty) {
+      unregisterKnownTypePromotion(knownForNode.head);
+      knownForNode = knownForNode.tail;
     }
 
     return type;
@@ -477,49 +610,68 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   }
 
-  ElementAccess lookupMember(Node node, DartType type, SourceString name,
-                             MemberKind memberKind) {
-    if (type.treatAsDynamic) {
+  ElementAccess lookupMember(Node node, DartType receiverType,
+                             SourceString name,
+                             MemberKind memberKind, Element receiverElement) {
+    if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
     }
-    DartType originalType = type;
-    while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
-      TypeVariableType variable = type;
-      type = variable.element.bound;
-      if (type == originalType) {
-        type = compiler.objectClass.rawType;
+    Member getMember(DartType type) {
+      DartType originalType = type;
+      while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
+        TypeVariableType variable = type;
+        type = variable.element.bound;
+        if (type == originalType) {
+          type = compiler.objectClass.rawType;
+        }
       }
+      if (type.kind == TypeKind.FUNCTION || type.kind == TypeKind.TYPEDEF) {
+        // TODO(karlklose): handle calling `call` on the function type. Do we
+        // have to type-check the arguments against the function type?
+        type = compiler.functionClass.rawType;
+      }
+      assert(invariant(node, type.kind == TypeKind.INTERFACE,
+          message: "unexpected type kind ${type.kind}."));
+      InterfaceType interface = type;
+      return interface.lookupMember(name,
+          isSetter: identical(memberKind, MemberKind.SETTER));
     }
-    if (type.kind == TypeKind.FUNCTION || type.kind == TypeKind.TYPEDEF) {
-      // TODO(karlklose): handle calling `call` on the function type. Do we have
-      // to type-check the arguments against the function type.
-      type = compiler.functionClass.rawType;
-    }
-    assert(invariant(node, type.kind == TypeKind.INTERFACE,
-        message: "unexpected type kind ${type.kind}."));
-    InterfaceType interface = type;
-    Member member = interface.lookupMember(name,
-        isSetter: identical(memberKind, MemberKind.SETTER));
+    Member member = getMember(receiverType);
     if (member != null) {
       checkPrivateAccess(node, member.element, name);
       return new MemberAccess(member);
     }
+    if (receiverElement != null &&
+        (receiverElement.isVariable() || receiverElement.isParameter())) {
+      Link<TypePromotion> typePromotions = typePromotionsMap[receiverElement];
+      if (typePromotions != null) {
+        while (!typePromotions.isEmpty) {
+          TypePromotion typePromotion = typePromotions.head;
+          if (!typePromotion.isValid) {
+            if (getMember(typePromotion.type) != null) {
+              reportTypePromotionHint(typePromotion);
+            }
+          }
+          typePromotions = typePromotions.tail;
+        }
+      }
+    }
     switch (memberKind) {
       case MemberKind.METHOD:
         reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-            {'className': type.name, 'memberName': name});
+            {'className': receiverType.name, 'memberName': name});
         break;
       case MemberKind.OPERATOR:
         reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
-            {'className': type.name, 'memberName': name});
+            {'className': receiverType.name, 'memberName': name});
         break;
       case MemberKind.GETTER:
         reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
-            {'className': type.name, 'memberName': name});
+            {'className': receiverType.name, 'memberName': name});
         break;
       case MemberKind.SETTER:
         reportTypeWarning(node, MessageKind.PROPERTY_NOT_FOUND,
-            {'className': type.name, 'memberName': name});
+            {'className': receiverType.name, 'memberName': name});
         break;
     }
     return const DynamicAccess();
@@ -527,7 +679,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType lookupMemberType(Node node, DartType type, SourceString name,
                             MemberKind memberKind) {
-    return lookupMember(node, type, name, memberKind).computeType(compiler);
+    return lookupMember(node, type, name, memberKind, null).computeType(compiler);
   }
 
   void analyzeArguments(Send send, Element element, DartType type,
@@ -658,7 +810,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return const DynamicAccess();
       }
       TypeKind receiverKind = receiverType.kind;
-      return lookupMember(node, receiverType, name, memberKind);
+      return lookupMember(node, receiverType, name, memberKind,
+          elements[node.receiver]);
     } else {
       return computeResolvedAccess(node, name, element, memberKind);
     }
@@ -672,7 +825,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                                       Element element, MemberKind memberKind) {
     if (element == null) {
       // foo() where foo is unresolved.
-      return lookupMember(node, thisType, name, memberKind);
+      return lookupMember(node, thisType, name, memberKind, null);
     } else if (element.isErroneous()) {
       // foo() where foo is erroneous.
       return const DynamicAccess();
@@ -688,7 +841,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return createResolvedAccess(node, name, element);
     } else if (element.isMember()) {
       // foo() where foo is an instance member.
-      return lookupMember(node, thisType, name, memberKind);
+      return lookupMember(node, thisType, name, memberKind, null);
     } else if (element.isFunction()) {
       // foo() where foo is a method in the same class.
       return createResolvedAccess(node, name, element);
@@ -713,9 +866,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   ElementAccess createPromotedAccess(Element element) {
     if (element.isVariable() || element.isParameter()) {
-      Link<DartType> knownTypes = knownTypesMap[element];
-      if (knownTypes != null) {
-        return new PromotedAccess(element, knownTypes.head);
+      TypePromotion typePromotion = getKnownTypePromotion(element);
+      if (typePromotion != null) {
+        return new PromotedAccess(element, typePromotion.type);
       }
     }
     return new ResolvedAccess(element);
@@ -776,10 +929,28 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             (variable.isVariable() || variable.isParameter())) {
           DartType knownType = getKnownType(variable);
           if (!knownType.isDynamic) {
-            DartType isType = elements.getType(node.arguments.head);
-            if (types.isMoreSpecific(isType, knownType)) {
-              showType(node, variable, isType);
+            DartType shownType = elements.getType(node.arguments.head);
+            TypePromotion typePromotion =
+                new TypePromotion(node, variable, shownType);
+            if (!types.isMoreSpecific(shownType, knownType)) {
+              SourceString variableName = variable.name;
+              if (types.isMoreSpecific(shownType.asRaw(), knownType)) {
+                //trace('$node');
+                typePromotion.addHint(node,
+                    MessageKind.NOT_MORE_SPECIFIC_RAW,
+                    {'variableName': variableName,
+                     'shownType': shownType,
+                     'knownType': knownType,
+                     'shownTypeRaw': shownType.asRaw()});
+              } else {
+                typePromotion.addHint(node,
+                    MessageKind.NOT_MORE_SPECIFIC,
+                    {'variableName': variableName,
+                     'shownType': shownType,
+                     'knownType': knownType});
+              }
             }
+            showTypePromotion(node, typePromotion);
           }
         }
       }
@@ -809,14 +980,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         final DartType argumentType =
             analyzeInPromotedContext(receiver, argument);
 
-        void reshowTypes(VariableElement variable, DartType type) {
-          if (elements.isPotentiallyMutatedIn(argument, variable)) return;
-          if (elements.isPotentiallyMutatedInClosure(variable)) return;
-          showType(node, variable, type);
-        }
-
-        getShownTypesFor(receiver).forEach(reshowTypes);
-        getShownTypesFor(argument).forEach(reshowTypes);
+        reshowTypePromotions(node, receiver, argument);
 
         checkAssignable(argument, argumentType, boolType);
         return boolType;
@@ -846,7 +1010,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       // TODO(karlklose): handle `void` in expression context by calling
       // [analyzeNonVoid] instead of [analyze].
       ElementAccess access = receiverType.isVoid ? const DynamicAccess()
-          : lookupMember(node, receiverType, operatorName, MemberKind.OPERATOR);
+          : lookupMember(node, receiverType, operatorName,
+                         MemberKind.OPERATOR, null);
       LinkBuilder<DartType> argumentTypesBuilder = new LinkBuilder<DartType>();
       DartType resultType =
           analyzeInvocation(node, access, argumentTypesBuilder);

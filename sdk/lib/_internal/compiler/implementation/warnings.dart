@@ -1280,6 +1280,41 @@ Please include the following information:
   below as well as the source location above).
 ''');
 
+  static const MessageKind POTENTIAL_MUTATION = const MessageKind(
+      "Hint: Variable '#{variableName}' is not known to be of type "
+      "'#{shownType}' because it is potentially mutated in the scope for "
+      "promotion.");
+
+  static const MessageKind POTENTIAL_MUTATION_HERE = const MessageKind(
+      "Info: Variable '#{variableName}' is potentially mutated here.");
+
+  static const MessageKind POTENTIAL_MUTATION_IN_CLOSURE = const MessageKind(
+      "Hint: Variable '#{variableName}' is not known to be of type "
+      "'#{shownType}' because it is potentially mutated within a closure.");
+
+  static const MessageKind POTENTIAL_MUTATION_IN_CLOSURE_HERE =
+      const MessageKind(
+          "Info: Variable '#{variableName}' is potentially mutated in a "
+          "closure here.");
+
+  static const MessageKind ACCESSED_IN_CLOSURE = const MessageKind(
+      "Hint: Variable '#{variableName}' is not known to be of type "
+      "'#{shownType}' because it is accessed by a closure in the scope for "
+      "promotion and potentially mutated in the scope of '#{variableName}'.");
+
+  static const MessageKind ACCESSED_IN_CLOSURE_HERE = const MessageKind(
+      "Info: Variable '#{variableName}' is accessed in a closure here.");
+
+  static const MessageKind NOT_MORE_SPECIFIC = const MessageKind(
+      "Hint: Variable '#{variableName}' is not shown to have type "
+      "'#{shownType}' because '#{shownType}' is not more specific than the "
+      "known type '#{knownType}' of '#{variableName}'.");
+
+  static const MessageKind NOT_MORE_SPECIFIC_RAW = const MessageKind(
+      "Hint: Variable '#{variableName}' is not shown to have type "
+      "'#{shownType}' because '#{shownType}' is not more specific than the "
+      "known type '#{knownType}' of '#{variableName}'.",
+      howToFix: "Try replacing '#{shownType}' with '#{shownTypeRaw}'.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

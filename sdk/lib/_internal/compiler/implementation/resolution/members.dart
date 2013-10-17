@@ -40,18 +40,18 @@ abstract class TreeElements {
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
 
-  /// Returns [:true:] if [element] is potentially mutated anywhere in its
+  /// Returns a list of nodes that potentially mutate [element] anywhere in its
   /// scope.
-  bool isPotentiallyMutated(VariableElement element);
+  List<Node> getPotentialMutations(VariableElement element);
 
-  /// Returns [:true:] if [element] is potentially mutated in [node].
-  bool isPotentiallyMutatedIn(Node node, VariableElement element);
+  /// Returns a list of nodes that potentially mutate [element] in [node].
+  List<Node> getPotentialMutationsIn(Node node, VariableElement element);
 
-  /// Returns [:true:] if [element] is potentially mutated in a closure.
-  bool isPotentiallyMutatedInClosure(VariableElement element);
+  /// Returns a list of nodes that potentially mutate [element] in a closure.
+  List<Node> getPotentialMutationsInClosure(VariableElement element);
 
-  /// Returns [:true:] if [element] is accessed by a closure in [node].
-  bool isAccessedByClosureIn(Node node, VariableElement element);
+  /// Returns a list of nodes that access [element] within a closure in [node].
+  List<Node> getAccessesByClosureIn(Node node, VariableElement element);
 }
 
 class TreeElementMapping implements TreeElements {
@@ -61,14 +61,15 @@ class TreeElementMapping implements TreeElements {
   final Setlet<Node> superUses = new Setlet<Node>();
   final Setlet<Element> otherDependencies = new Setlet<Element>();
   final Map<Node, Constant> constants = new Map<Node, Constant>();
-  final Setlet<VariableElement> potentiallyMutated =
-      new Setlet<VariableElement>();
-  final Map<Node, Setlet<VariableElement>> potentiallyMutatedIn =
-      new Map<Node, Setlet<VariableElement>>();
-  final Setlet<VariableElement> potentiallyMutatedInClosure =
-      new Setlet<VariableElement>();
-  final Map<Node, Setlet<VariableElement>> accessedByClosureIn =
-      new Map<Node, Setlet<VariableElement>>();
+  final Map<VariableElement, List<Node>> potentiallyMutated =
+      new Map<VariableElement, List<Node>>();
+  final Map<Node, Map<VariableElement, List<Node>>> potentiallyMutatedIn =
+      new Map<Node,  Map<VariableElement, List<Node>>>();
+  final Map<VariableElement, List<Node>> potentiallyMutatedInClosure =
+      new Map<VariableElement, List<Node>>();
+  final Map<Node, Map<VariableElement, List<Node>>> accessedByClosureIn =
+      new Map<Node, Map<VariableElement, List<Node>>>();
+
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
@@ -179,40 +180,58 @@ class TreeElementMapping implements TreeElements {
     otherDependencies.add(element.implementation);
   }
 
-  bool isPotentiallyMutated(VariableElement element) {
-    return potentiallyMutated.contains(element);
+  List<Node> getPotentialMutations(VariableElement element) {
+    List<Node> mutations = potentiallyMutated[element];
+    if (mutations == null) return const <Node>[];
+    return mutations;
   }
 
-  void setPotentiallyMutated(VariableElement element) {
-    potentiallyMutated.add(element);
+  void setPotentiallyMutated(VariableElement element, Node mutationNode) {
+    potentiallyMutated.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
-  bool isPotentiallyMutatedIn(Node node, VariableElement element) {
-    Setlet<Element> mutatedIn = potentiallyMutatedIn[node];
-    return mutatedIn != null && mutatedIn.contains(element);
+  List<Node> getPotentialMutationsIn(Node node, VariableElement element) {
+    Map<VariableElement, List<Node>> mutationsIn = potentiallyMutatedIn[node];
+    if (mutationsIn == null) return const <Node>[];
+    List<Node> mutations = mutationsIn[element];
+    if (mutations == null) return const <Node>[];
+    return mutations;
   }
 
-  void setPotentiallyMutatedIn(Node node, VariableElement element) {
-    potentiallyMutatedIn.putIfAbsent(
-        node, () => new Setlet<VariableElement>()).add(element);
+  void registerPotentiallyMutatedIn(Node contextNode, VariableElement element,
+                                    Node mutationNode) {
+    Map<VariableElement, List<Node>> mutationMap =
+      potentiallyMutatedIn.putIfAbsent(contextNode,
+          () => new Map<VariableElement, List<Node>>());
+    mutationMap.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
-  bool isPotentiallyMutatedInClosure(VariableElement element) {
-    return potentiallyMutatedInClosure.contains(element);
+  List<Node> getPotentialMutationsInClosure(VariableElement element) {
+    List<Node> mutations = potentiallyMutatedInClosure[element];
+    if (mutations == null) return const <Node>[];
+    return mutations;
   }
 
-  void setPotentiallyMutatedInClosure(VariableElement element) {
-    potentiallyMutatedInClosure.add(element);
+  void registerPotentiallyMutatedInClosure(VariableElement element,
+                                           Node mutationNode) {
+    potentiallyMutatedInClosure.putIfAbsent(
+        element, () => <Node>[]).add(mutationNode);
   }
 
-  bool isAccessedByClosureIn(Node node, VariableElement element) {
-    Setlet<Element> accessedIn = accessedByClosureIn[node];
-    return accessedIn != null && accessedIn.contains(element);
+  List<Node> getAccessesByClosureIn(Node node, VariableElement element) {
+    Map<VariableElement, List<Node>> accessesIn = accessedByClosureIn[node];
+    if (accessesIn == null) return const <Node>[];
+    List<Node> accesses = accessesIn[element];
+    if (accesses == null) return const <Node>[];
+    return accesses;
   }
 
-  void setAccessedByClosureIn(Node node, VariableElement element) {
-    accessedByClosureIn.putIfAbsent(
-        node, () => new Setlet<VariableElement>()).add(element);
+  void setAccessedByClosureIn(Node contextNode, VariableElement element,
+                              Node accessNode) {
+    Map<VariableElement, List<Node>> accessMap =
+        accessedByClosureIn.putIfAbsent(contextNode,
+          () => new Map<VariableElement, List<Node>>());
+    accessMap.putIfAbsent(element, () => <Node>[]).add(accessNode);
   }
 
   String toString() => 'TreeElementMapping($currentElement)';
@@ -2535,7 +2554,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       if (isPotentiallyMutableTarget(target)) {
         if (enclosingElement != target.enclosingElement) {
           for (Node scope in promotionScope) {
-            mapping.setAccessedByClosureIn(scope, target);
+            mapping.setAccessedByClosureIn(scope, target, node);
           }
         }
       }
@@ -2666,12 +2685,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
         compiler.backend.registerThrowNoSuchMethod(mapping);
       }
       if (isPotentiallyMutableTarget(target)) {
-        mapping.setPotentiallyMutated(target);
+        mapping.setPotentiallyMutated(target, node);
         if (enclosingElement != target.enclosingElement) {
-          mapping.setPotentiallyMutatedInClosure(target);
+          mapping.registerPotentiallyMutatedInClosure(target, node);
         }
         for (Node scope in promotionScope) {
-          mapping.setPotentiallyMutatedIn(scope, target);
+          mapping.registerPotentiallyMutatedIn(scope, target, node);
         }
       }
     }

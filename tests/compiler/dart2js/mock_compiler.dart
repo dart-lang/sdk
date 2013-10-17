@@ -211,6 +211,8 @@ class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
+  List<WarningMessage> hints;
+  List<WarningMessage> infos;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
@@ -227,7 +229,7 @@ class MockCompiler extends Compiler {
                 bool analyzeOnly: false,
                 bool emitJavaScript: true,
                 bool preserveComments: false})
-      : warnings = [], errors = [],
+      : warnings = [], errors = [], hints = [], infos = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
@@ -311,6 +313,22 @@ class MockCompiler extends Compiler {
     reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.ERROR);
   }
 
+  void reportInfo(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    Message message = errorCode.message(arguments);
+    infos.add(new WarningMessage(node, message));
+    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.INFO);
+  }
+
+  void reportHint(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    Message message = errorCode.message(arguments);
+    hints.add(new WarningMessage(node, message));
+    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.HINT);
+  }
+
   void reportFatalError(Spannable node,
                         MessageKind errorCode,
                         [Map arguments = const {}]) {
@@ -321,8 +339,12 @@ class MockCompiler extends Compiler {
     var diagnostic = new WarningMessage(null, message.message);
     if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
-    } else {
+    } else if (kind == api.Diagnostic.WARNING) {
       warnings.add(diagnostic);
+    } else if (kind == api.Diagnostic.INFO) {
+      infos.add(diagnostic);
+    } else if (kind == api.Diagnostic.HINT) {
+      hints.add(diagnostic);
     }
     reportDiagnostic(span, "$message", kind);
   }
@@ -339,12 +361,11 @@ class MockCompiler extends Compiler {
 
   bool get compilationFailed => !errors.isEmpty;
 
-  void clearWarnings() {
+  void clearMessages() {
     warnings = [];
-  }
-
-  void clearErrors() {
     errors = [];
+    hints = [];
+    infos = [];
   }
 
   CollectingTreeElements resolveStatement(String text) {

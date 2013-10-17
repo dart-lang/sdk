@@ -343,16 +343,16 @@ testPatchSignatureCheck() {
     container.ensureResolved(compiler);
     container.parseNode(compiler);
 
-    void expect(String methodName, List warnings, List errors) {
-      compiler.warnings.clear();
-      compiler.errors.clear();
+    void expect(String methodName, List infos, List errors) {
+      compiler.clearMessages();
       compiler.resolver.resolveMethodElement(
           ensure(compiler, methodName, container.lookupLocalMember,
               expectIsPatched: true, checkHasBody: true));
-      Expect.equals(warnings.length, compiler.warnings.length,
-                    "Unexpected warnings: ${compiler.warnings} on $methodName");
-      for (int i = 0 ; i < warnings.length ; i++) {
-        Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+      Expect.equals(0, compiler.warnings.length);
+      Expect.equals(infos.length, compiler.infos.length,
+                    "Unexpected infos: ${compiler.infos} on $methodName");
+      for (int i = 0 ; i < infos.length ; i++) {
+        Expect.equals(infos[i], compiler.infos[i].message.kind);
       }
       Expect.equals(errors.length, compiler.errors.length,
                     "Unexpected errors: ${compiler.errors} on $methodName");
@@ -551,8 +551,9 @@ testPatchNonExternalTopLevel() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NON_EXTERNAL);
-    Expect.equals(1, compiler.warnings.length);
-    Expect.isTrue(compiler.warnings[0].message.kind ==
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
+    Expect.isTrue(compiler.infos[0].message.kind ==
         MessageKind.PATCH_POINT_TO_FUNCTION);
   }));
 }
@@ -578,8 +579,9 @@ testPatchNonExternalMember() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NON_EXTERNAL);
-    Expect.equals(1, compiler.warnings.length);
-    Expect.isTrue(compiler.warnings[0].message.kind ==
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
+    Expect.isTrue(compiler.infos[0].message.kind ==
         MessageKind.PATCH_POINT_TO_FUNCTION);
   }));
 }
@@ -597,9 +599,10 @@ testPatchNonClass() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NON_CLASS);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
     Expect.isTrue(
-        compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_CLASS);
+        compiler.infos[0].message.kind == MessageKind.PATCH_POINT_TO_CLASS);
   }));
 }
 
@@ -616,9 +619,10 @@ testPatchNonGetter() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NON_GETTER);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
     Expect.isTrue(
-        compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_GETTER);
+        compiler.infos[0].message.kind == MessageKind.PATCH_POINT_TO_GETTER);
   }));
 }
 
@@ -635,9 +639,10 @@ testPatchNoGetter() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NO_GETTER);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
     Expect.isTrue(
-        compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_GETTER);
+        compiler.infos[0].message.kind == MessageKind.PATCH_POINT_TO_GETTER);
   }));
 }
 
@@ -654,9 +659,10 @@ testPatchNonSetter() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NON_SETTER);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
     Expect.isTrue(
-        compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_SETTER);
+        compiler.infos[0].message.kind == MessageKind.PATCH_POINT_TO_SETTER);
   }));
 }
 
@@ -673,9 +679,10 @@ testPatchNoSetter() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NO_SETTER);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
     Expect.isTrue(
-        compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_SETTER);
+        compiler.infos[0].message.kind == MessageKind.PATCH_POINT_TO_SETTER);
   }));
 }
 
@@ -692,9 +699,10 @@ testPatchNonFunction() {
     Expect.equals(1, compiler.errors.length);
     Expect.isTrue(
         compiler.errors[0].message.kind == MessageKind.PATCH_NON_FUNCTION);
-    Expect.equals(1, compiler.warnings.length);
+    Expect.equals(0, compiler.warnings.length);
+    Expect.equals(1, compiler.infos.length);
     Expect.isTrue(
-        compiler.warnings[0].message.kind ==
+        compiler.infos[0].message.kind ==
             MessageKind.PATCH_POINT_TO_FUNCTION);
   }));
 }

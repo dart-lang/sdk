@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
@@ -58,7 +57,8 @@ main() {
                 testFunctionTypeLookup,
                 testTypedefLookup,
                 testTypeLiteral,
-                testInitializers];
+                testInitializers,
+                testTypePromotionHints];
   for (Function test in tests) {
     setup();
     test();
@@ -94,13 +94,13 @@ testReturn() {
 testFor() {
   analyze("for (var x;true;x = x + 1) {}");
   analyze("for (var x;null;x = x + 1) {}");
-  analyze("for (var x;0;x = x + 1) {}", NOT_ASSIGNABLE);
-  analyze("for (var x;'';x = x + 1) {}", NOT_ASSIGNABLE);
+  analyze("for (var x;0;x = x + 1) {}", warnings: NOT_ASSIGNABLE);
+  analyze("for (var x;'';x = x + 1) {}", warnings: NOT_ASSIGNABLE);
 
    analyze("for (;true;) {}");
    analyze("for (;null;) {}");
-   analyze("for (;0;) {}", NOT_ASSIGNABLE);
-   analyze("for (;'';) {}", NOT_ASSIGNABLE);
+   analyze("for (;0;) {}", warnings: NOT_ASSIGNABLE);
+   analyze("for (;'';) {}", warnings: NOT_ASSIGNABLE);
 
   // Foreach tests
 //  TODO(karlklose): for each is not yet implemented.
@@ -114,15 +114,15 @@ testFor() {
 testWhile() {
   analyze("while (true) {}");
   analyze("while (null) {}");
-  analyze("while (0) {}", NOT_ASSIGNABLE);
-  analyze("while ('') {}", NOT_ASSIGNABLE);
+  analyze("while (0) {}", warnings: NOT_ASSIGNABLE);
+  analyze("while ('') {}", warnings: NOT_ASSIGNABLE);
 
   analyze("do {} while (true);");
   analyze("do {} while (null);");
-  analyze("do {} while (0);", NOT_ASSIGNABLE);
-  analyze("do {} while ('');", NOT_ASSIGNABLE);
-  analyze("do { int i = 0.5; } while (true);", NOT_ASSIGNABLE);
-  analyze("do { int i = 0.5; } while (null);", NOT_ASSIGNABLE);
+  analyze("do {} while (0);", warnings: NOT_ASSIGNABLE);
+  analyze("do {} while ('');", warnings: NOT_ASSIGNABLE);
+  analyze("do { int i = 0.5; } while (true);", warnings: NOT_ASSIGNABLE);
+  analyze("do { int i = 0.5; } while (null);", warnings: NOT_ASSIGNABLE);
 }
 
 testTry() {
@@ -130,27 +130,32 @@ testTry() {
   analyze("try {} catch (e) { int i = e;} finally {}");
   analyze("try {} catch (e, s) { int i = e; StackTrace j = s; } finally {}");
   analyze("try {} on String catch (e) {} finally {}");
-  analyze("try { int i = ''; } finally {}", NOT_ASSIGNABLE);
-  analyze("try {} finally { int i = ''; }", NOT_ASSIGNABLE);
+  analyze("try { int i = ''; } finally {}", warnings: NOT_ASSIGNABLE);
+  analyze("try {} finally { int i = ''; }", warnings: NOT_ASSIGNABLE);
   analyze("try {} on String catch (e) { int i = e; } finally {}",
-      NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("try {} catch (e, s) { int i = e; int j = s; } finally {}",
-      NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("try {} on String catch (e, s) { int i = e; int j = s; } finally {}",
-      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
 }
 
 
 testSwitch() {
   analyze("switch (0) { case 1: break; case 2: break; }");
   analyze("switch (0) { case 1: int i = ''; break; case 2: break; }",
-      NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("switch (0) { case '': break; }",
-      NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("switch ('') { case 1: break; case 2: break; }",
-      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   analyze("switch (1.5) { case 1: break; case 2: break; }",
-      [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+          warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+
+  analyze("switch (null) { case '': break; case 2: break; }",
+          infos: [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
+                  MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE],
+          errors: [MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL]);
 }
 
 testOperators() {
@@ -160,44 +165,44 @@ testOperators() {
     analyze("{ var i = 1 ${op} 2; }");
     analyze("{ var i = 1; i ${op}= 2; }");
     analyze("{ int i; var j = (i = true) ${op} 2; }",
-            [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
     analyze("{ int i; var j = 1 ${op} (i = true); }",
-            [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+            warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['-', '~']) {
     analyze("{ var i = ${op}1; }");
     analyze("{ int i; var j = ${op}(i = true); }",
-        [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
   }
   for (final op in ['++', '--']) {
     analyze("{ int i = 1; int j = i${op}; }");
-    analyze("{ int i = 1; bool j = i${op}; }", NOT_ASSIGNABLE);
+    analyze("{ int i = 1; bool j = i${op}; }", warnings: NOT_ASSIGNABLE);
     analyze("{ bool b = true; bool j = b${op}; }",
-        MessageKind.OPERATOR_NOT_FOUND);
+            warnings: MessageKind.OPERATOR_NOT_FOUND);
     analyze("{ bool b = true; int j = ${op}b; }",
-        MessageKind.OPERATOR_NOT_FOUND);
+            warnings: MessageKind.OPERATOR_NOT_FOUND);
   }
   for (final op in ['||', '&&']) {
     analyze("{ bool b = (true ${op} false); }");
-    analyze("{ int b = true ${op} false; }", NOT_ASSIGNABLE);
-    analyze("{ bool b = (1 ${op} false); }", NOT_ASSIGNABLE);
-    analyze("{ bool b = (true ${op} 2); }", NOT_ASSIGNABLE);
+    analyze("{ int b = true ${op} false; }", warnings: NOT_ASSIGNABLE);
+    analyze("{ bool b = (1 ${op} false); }", warnings: NOT_ASSIGNABLE);
+    analyze("{ bool b = (true ${op} 2); }", warnings: NOT_ASSIGNABLE);
   }
   for (final op in ['>', '<', '<=', '>=']) {
     analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", NOT_ASSIGNABLE);
+    analyze("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
     analyze("{ int i; bool b = (i = true) ${op} 2; }",
-            [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            warnings: [NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
     analyze("{ int i; bool b = 1 ${op} (i = true); }",
-            [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
+            warnings: [NOT_ASSIGNABLE, NOT_ASSIGNABLE]);
   }
   for (final op in ['==', '!=']) {
     analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", NOT_ASSIGNABLE);
+    analyze("{ int i = 1 ${op} 2; }", warnings: NOT_ASSIGNABLE);
     analyze("{ int i; bool b = (i = true) ${op} 2; }",
-        NOT_ASSIGNABLE);
+            warnings: NOT_ASSIGNABLE);
     analyze("{ int i; bool b = 1 ${op} (i = true); }",
-        NOT_ASSIGNABLE);
+            warnings: NOT_ASSIGNABLE);
   }
 }
 
@@ -208,14 +213,14 @@ void testConstructorInvocationArgumentCount() {
   """);
   // calls to untyped constructor C1
   analyze("new C1(1, 2);");
-  analyze("new C1();", MessageKind.MISSING_ARGUMENT);
-  analyze("new C1(1);", MessageKind.MISSING_ARGUMENT);
-  analyze("new C1(1, 2, 3);", MessageKind.ADDITIONAL_ARGUMENT);
+  analyze("new C1();", warnings: MessageKind.MISSING_ARGUMENT);
+  analyze("new C1(1);", warnings: MessageKind.MISSING_ARGUMENT);
+  analyze("new C1(1, 2, 3);", warnings: MessageKind.ADDITIONAL_ARGUMENT);
   // calls to typed constructor C2
   analyze("new C2(1, 2);");
-  analyze("new C2();", MessageKind.MISSING_ARGUMENT);
-  analyze("new C2(1);", MessageKind.MISSING_ARGUMENT);
-  analyze("new C2(1, 2, 3);", MessageKind.ADDITIONAL_ARGUMENT);
+  analyze("new C2();", warnings: MessageKind.MISSING_ARGUMENT);
+  analyze("new C2(1);", warnings: MessageKind.MISSING_ARGUMENT);
+  analyze("new C2(1, 2, 3);", warnings: MessageKind.ADDITIONAL_ARGUMENT);
 }
 
 void testConstructorInvocationArgumentTypes() {
@@ -232,20 +237,20 @@ void testConstructorInvocationArgumentTypes() {
   analyze("new C1('string');");
   analyze("new C2(42);");
   analyze("new C2('string');",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("new C3(42);");
   analyze("new C3('string');",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("new C3.named(42);");
   analyze("new C3.named('string');",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
 }
 
 void testMethodInvocationArgumentCount() {
   compiler.parseScript(CLASS_WITH_METHODS);
 
   check(String text, [expectedWarnings]) {
-    analyze("{ ClassWithMethods c; $text }", expectedWarnings);
+    analyze("{ ClassWithMethods c; $text }", warnings: expectedWarnings);
   }
 
   check("c.untypedNoArgumentMethod(1);", MessageKind.ADDITIONAL_ARGUMENT);
@@ -335,7 +340,7 @@ void testMethodInvocations() {
                int localMethod(String str) { return 0; }
                $text
                }
-               """, expectedWarnings);
+               """, warnings: expectedWarnings);
   }
 
   check("int k = c.untypedNoArgumentMethod();");
@@ -666,7 +671,7 @@ void testControlFlow() {
 testNewExpression() {
   compiler.parseScript("class A {}");
   analyze("A a = new A();");
-  analyze("int i = new A();", NOT_ASSIGNABLE);
+  analyze("int i = new A();", warnings: NOT_ASSIGNABLE);
 
 // TODO(karlklose): constructors are not yet implemented.
 //  compiler.parseScript(
@@ -702,17 +707,17 @@ testNewExpression() {
 testConditionalExpression() {
   analyze("int i = true ? 2 : 1;");
   analyze("int i = true ? 'hest' : 1;");
-  analyze("int i = true ? 'hest' : 'fisk';", NOT_ASSIGNABLE);
+  analyze("int i = true ? 'hest' : 'fisk';", warnings: NOT_ASSIGNABLE);
   analyze("String s = true ? 'hest' : 'fisk';");
 
   analyze("true ? 1 : 2;");
   analyze("null ? 1 : 2;");
-  analyze("0 ? 1 : 2;", NOT_ASSIGNABLE);
-  analyze("'' ? 1 : 2;", NOT_ASSIGNABLE);
+  analyze("0 ? 1 : 2;", warnings: NOT_ASSIGNABLE);
+  analyze("'' ? 1 : 2;", warnings: NOT_ASSIGNABLE);
   analyze("{ int i; true ? i = 2.7 : 2; }",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("{ int i; true ? 2 : i = 2.7; }",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("{ int i; i = true ? 2.7 : 2; }");
 }
 
@@ -720,13 +725,13 @@ testIfStatement() {
   analyze("if (true) {}");
   analyze("if (null) {}");
   analyze("if (0) {}",
-  NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("if ('') {}",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("{ int i = 27; if (true) { i = 2.7; } else {} }",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
   analyze("{ int i = 27; if (true) {} else { i = 2.7; } }",
-          NOT_ASSIGNABLE);
+          warnings: NOT_ASSIGNABLE);
 }
 
 testThis() {
@@ -830,7 +835,7 @@ testOperatorsAssignability() {
       """;
 
   check(String text, [expectedWarnings]) {
-    analyze('$header $text }', expectedWarnings);
+    analyze('$header $text }', warnings: expectedWarnings);
   }
 
   // Positive tests on operators.
@@ -1175,16 +1180,16 @@ class Test<S extends T, T extends S> {
 void testFunctionTypeLookup() {
   analyze('(int f(int)) => f.toString;');
   analyze('(int f(int)) => f.toString();');
-  analyze('(int f(int)) => f.foo;', MEMBER_NOT_FOUND);
-  analyze('(int f(int)) => f.foo();', MessageKind.METHOD_NOT_FOUND);
+  analyze('(int f(int)) => f.foo;', warnings: MEMBER_NOT_FOUND);
+  analyze('(int f(int)) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
 void testTypedefLookup() {
   compiler.parseScript("typedef int F(int);");
   analyze('(F f) => f.toString;');
   analyze('(F f) => f.toString();');
-  analyze('(F f) => f.foo;', MEMBER_NOT_FOUND);
-  analyze('(F f) => f.foo();', MessageKind.METHOD_NOT_FOUND);
+  analyze('(F f) => f.foo;', warnings: MEMBER_NOT_FOUND);
+  analyze('(F f) => f.foo();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
 void testTypeLiteral() {
@@ -1196,27 +1201,27 @@ void testTypeLiteral() {
 
   // Check direct access.
   analyze('Type m() => int;');
-  analyze('int m() => int;', NOT_ASSIGNABLE);
+  analyze('int m() => int;', warnings: NOT_ASSIGNABLE);
 
   // Check access in assignment.
   analyze('m(Type val) => val = Class;');
-  analyze('m(int val) => val = Class;', NOT_ASSIGNABLE);
+  analyze('m(int val) => val = Class;', warnings: NOT_ASSIGNABLE);
 
   // Check access as argument.
   analyze('m(Type val) => m(int);');
-  analyze('m(int val) => m(int);', NOT_ASSIGNABLE);
+  analyze('m(int val) => m(int);', warnings: NOT_ASSIGNABLE);
 
   // Check access as argument in member access.
   analyze('m(Type val) => m(int).foo;');
-  analyze('m(int val) => m(int).foo;', NOT_ASSIGNABLE);
+  analyze('m(int val) => m(int).foo;', warnings: NOT_ASSIGNABLE);
 
   // Check static property access.
   analyze('m() => Class.field;');
-  analyze('m() => (Class).field;', MEMBER_NOT_FOUND);
+  analyze('m() => (Class).field;', warnings: MEMBER_NOT_FOUND);
 
   // Check static method access.
   analyze('m() => Class.method();');
-  analyze('m() => (Class).method();', MessageKind.METHOD_NOT_FOUND);
+  analyze('m() => (Class).method();', warnings: MessageKind.METHOD_NOT_FOUND);
 }
 
 void testInitializers() {
@@ -1435,7 +1440,7 @@ void testGetterSetterInvocation() {
                            ''');
 
   check(String text, [expectedWarnings]) {
-    analyze('{ $text }', expectedWarnings);
+    analyze('{ $text }', warnings: expectedWarnings);
   }
 
   check("variable = '';");
@@ -1500,6 +1505,139 @@ void testGetterSetterInvocation() {
   // TODO(johnniwinther): Check read of property without getter.
   //check("int v = sc.setterField;", MessageKind.CANNOT_RESOLVE_GETTER);
   check("sc.setterField = 0;");
+}
+
+testTypePromotionHints() {
+  compiler.parseScript(r'''class A {
+                             var a = "a";
+                           }
+                           class B extends A {
+                             var b = "b";
+                           }
+                           class C {
+                             var c = "c";
+                           }
+                           class D<T> {
+                             T d;
+                           }
+                           class E<T> extends D<T> {
+                             T e;
+                           }
+                           ''');
+
+  check(String text, {warnings, hints, infos}) {
+    analyze('{ $text }', warnings: warnings, hints: hints, infos: infos);
+  }
+
+  check(r'''
+            A a = new B();
+            if (a is C) {
+              var x = a.c;
+            }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [MessageKind.NOT_MORE_SPECIFIC],
+        infos: []);
+
+  check(r'''
+            A a = new B();
+            if (a is C) {
+              var x = '${a.c}${a.c}';
+            }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
+                   MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [MessageKind.NOT_MORE_SPECIFIC],
+        infos: []);
+
+  check(r'''
+            A a = new B();
+            if (a is C) {
+              var x = '${a.d}${a.d}'; // Type promotion wouldn't help.
+            }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
+                   MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [],
+        infos: []);
+
+  check('''
+           D d = new E();
+           if (d is E<int>) {
+             var x = d.e;
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [MessageKind.NOT_MORE_SPECIFIC_RAW],
+        infos: []);
+
+  check('''
+           D d = new E();
+           if (d is E<int>) {
+             var x = d.f; // Type promotion wouldn't help.
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [],
+        infos: []);
+
+  check('''
+           A a = new B();
+           if (a is B) {
+             a = null;
+             var x = a.b;
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [MessageKind.POTENTIAL_MUTATION],
+        infos: [MessageKind.POTENTIAL_MUTATION_HERE]);
+
+  check('''
+           A a = new B();
+           if (a is B) {
+             a = null;
+             var x = a.c; // Type promotion wouldn't help.
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [],
+        infos: []);
+
+  check('''
+           A a = new B();
+           local() { a = new A(); }
+           if (a is B) {
+             var x = a.b;
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE],
+        infos: [MessageKind.POTENTIAL_MUTATION_IN_CLOSURE_HERE]);
+
+  check('''
+           A a = new B();
+           local() { a = new A(); }
+           if (a is B) {
+             var x = a.c; // Type promotion wouldn't help.
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [],
+        infos: []);
+
+  check('''
+           A a = new B();
+           if (a is B) {
+             var x = () => a;
+             var y = a.b;
+           }
+           a = new A();''',
+      warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+      hints: [MessageKind.ACCESSED_IN_CLOSURE],
+      infos: [MessageKind.ACCESSED_IN_CLOSURE_HERE,
+              MessageKind.POTENTIAL_MUTATION_HERE]);
+
+  check('''
+           A a = new B();
+           if (a is B) {
+             var x = () => a;
+             var y = a.c; // Type promotion wouldn't help.
+           }
+           a = new A();''',
+      warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+      hints: [],
+      infos: []);
 }
 
 const CLASS_WITH_METHODS = '''
@@ -1642,18 +1780,24 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   // Type check last class declaration or member.
   TypeCheckerVisitor checker =
       new TypeCheckerVisitor(compiler, mapping, types);
-  compiler.clearWarnings();
+  compiler.clearMessages();
   checker.analyze(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
 
   compiler.diagnosticHandler = null;
 }
 
-analyze(String text, [expectedWarnings, expectedErrors]) {
-  if (expectedWarnings == null) expectedWarnings = [];
-  if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
-  if (expectedErrors == null) expectedErrors = [];
-  if (expectedErrors is !List) expectedErrors = [expectedErrors];
+/**
+ * Analyze the statement [text] and check messages from the type checker.
+ * [errors] and [warnings] can be either [:null:], a single [MessageKind] or
+ * a list of [MessageKind]s. If [hints] and [infos] are [:null:] the
+ * corresponding message kinds are ignored.
+ */
+analyze(String text, {errors, warnings, List hints, List infos}) {
+  if (warnings == null) warnings = [];
+  if (warnings is !List) warnings = [warnings];
+  if (errors == null) errors = [];
+  if (errors is !List) errors = [errors];
 
   compiler.diagnosticHandler = createHandler(compiler, text);
 
@@ -1669,11 +1813,12 @@ analyze(String text, [expectedWarnings, expectedErrors]) {
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
-  compiler.clearWarnings();
-  compiler.clearErrors();
+  compiler.clearMessages();
   checker.analyze(node);
-  compareWarningKinds(text, expectedWarnings, compiler.warnings);
-  compareWarningKinds(text, expectedErrors, compiler.errors);
+  compareWarningKinds(text, warnings, compiler.warnings);
+  compareWarningKinds(text, errors, compiler.errors);
+  if (hints != null) compareWarningKinds(text, hints, compiler.hints);
+  if (infos != null) compareWarningKinds(text, infos, compiler.infos);
   compiler.diagnosticHandler = null;
 }
 
@@ -1701,7 +1846,7 @@ analyzeIn(Element element, String text, [expectedWarnings]) {
   TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
-  compiler.clearWarnings();
+  compiler.clearMessages();
   checker.analyze(node);
   generateOutput(text);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
