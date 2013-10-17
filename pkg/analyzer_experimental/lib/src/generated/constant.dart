@@ -292,7 +292,7 @@ class ConstantValueComputer {
  *
  * </blockquote>
  */
-class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
+class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   EvaluationResultImpl visitAdjacentStrings(AdjacentStrings node) {
     EvaluationResultImpl result = null;
     for (StringLiteral string in node.strings) {

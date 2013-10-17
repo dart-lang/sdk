@@ -205,7 +205,7 @@ class Parser {
       gatherTodoComments(token);
       return compilationUnit;
     } finally {
-      instrumentation.log();
+      instrumentation.log2(2);
     }
   }
 
@@ -1368,7 +1368,8 @@ class Parser {
    *
    * <pre>
    * classDeclaration ::=
-   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}'
+   *     metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}' |
+   *     metadata 'abstract'? 'class' mixinApplicationClass
    * </pre>
    *
    * @param commentAndMetadata the metadata to be associated with the member
@@ -1376,8 +1377,19 @@ class Parser {
    *          not given
    * @return the class declaration that was parsed
    */
-  ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata, Token abstractKeyword) {
+  CompilationUnitMember parseClassDeclaration(CommentAndMetadata commentAndMetadata, Token abstractKeyword) {
     Token keyword = expect(Keyword.CLASS);
+    if (matchesIdentifier()) {
+      Token next = peek();
+      if (matches4(next, TokenType.LT)) {
+        next = skipTypeParameterList(next);
+        if (next != null && matches4(next, TokenType.EQ)) {
+          return parseClassTypeAlias(commentAndMetadata, keyword);
+        }
+      } else if (matches4(next, TokenType.EQ)) {
+        return parseClassTypeAlias(commentAndMetadata, keyword);
+      }
+    }
     SimpleIdentifier name = parseSimpleIdentifier();
     String className = name.name;
     TypeParameterList typeParameters = null;
@@ -3187,12 +3199,6 @@ class Parser {
    * @return the list literal that was parsed
    */
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
-    if (typeArguments != null) {
-      int num = typeArguments.arguments.length;
-      if (num != 1) {
-        reportError(ParserErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, typeArguments, [num]);
-      }
-    }
     if (matches5(TokenType.INDEX)) {
       BeginToken leftBracket = new BeginToken(TokenType.OPEN_SQUARE_BRACKET, _currentToken.offset);
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
@@ -3299,12 +3305,6 @@ class Parser {
    * @return the map literal that was parsed
    */
   MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
-    if (typeArguments != null) {
-      int num = typeArguments.arguments.length;
-      if (num != 2) {
-        reportError(ParserErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, typeArguments, [num]);
-      }
-    }
     Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
     List<MapLiteralEntry> entries = new List<MapLiteralEntry>();
     if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
@@ -4501,10 +4501,12 @@ class Parser {
       if (matches4(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
         if (next != null && matches4(next, TokenType.EQ)) {
-          return parseClassTypeAlias(commentAndMetadata, keyword);
+          TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+          return typeAlias;
         }
       } else if (matches4(next, TokenType.EQ)) {
-        return parseClassTypeAlias(commentAndMetadata, keyword);
+        TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+        return typeAlias;
       }
     }
     return parseFunctionTypeAlias(commentAndMetadata, keyword);
@@ -5691,118 +5693,117 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
   static final ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = new ParserErrorCode.con3('CONTINUE_OUTSIDE_OF_LOOP', 18, "A continue statement cannot be used outside of a loop or switch statement");
   static final ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE = new ParserErrorCode.con3('CONTINUE_WITHOUT_LABEL_IN_CASE', 19, "A continue statement in a switch statement must have a label as a target");
   static final ParserErrorCode DEPRECATED_ARGUMENT_DEFINITION_TEST = new ParserErrorCode.con3('DEPRECATED_ARGUMENT_DEFINITION_TEST', 20, "The argument definition test ('?' operator) has been deprecated");
-  static final ParserErrorCode DIRECTIVE_AFTER_DECLARATION = new ParserErrorCode.con3('DIRECTIVE_AFTER_DECLARATION', 21, "Directives must appear before any declarations");
-  static final ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = new ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 22, "The label %s was already used in this switch statement");
-  static final ParserErrorCode DUPLICATED_MODIFIER = new ParserErrorCode.con3('DUPLICATED_MODIFIER', 23, "The modifier '%s' was already specified.");
-  static final ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND = new ParserErrorCode.con3('EQUALITY_CANNOT_BE_EQUALITY_OPERAND', 24, "Equality expression cannot be operand of another equality expression.");
-  static final ParserErrorCode EXPECTED_CASE_OR_DEFAULT = new ParserErrorCode.con3('EXPECTED_CASE_OR_DEFAULT', 25, "Expected 'case' or 'default'");
-  static final ParserErrorCode EXPECTED_CLASS_MEMBER = new ParserErrorCode.con3('EXPECTED_CLASS_MEMBER', 26, "Expected a class member");
-  static final ParserErrorCode EXPECTED_EXECUTABLE = new ParserErrorCode.con3('EXPECTED_EXECUTABLE', 27, "Expected a method, getter, setter or operator declaration");
-  static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con3('EXPECTED_LIST_OR_MAP_LITERAL', 28, "Expected a list or map literal");
-  static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con3('EXPECTED_STRING_LITERAL', 29, "Expected a string literal");
-  static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con3('EXPECTED_TOKEN', 30, "Expected to find '%s'");
-  static final ParserErrorCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS = new ParserErrorCode.con3('EXPECTED_ONE_LIST_TYPE_ARGUMENTS', 31, "List literal requires exactly one type arguments or none, but %d found");
-  static final ParserErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS = new ParserErrorCode.con3('EXPECTED_TWO_MAP_TYPE_ARGUMENTS', 32, "Map literal requires exactly two type arguments or none, but %d found");
-  static final ParserErrorCode EXPECTED_TYPE_NAME = new ParserErrorCode.con3('EXPECTED_TYPE_NAME', 33, "Expected a type name");
-  static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con3('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 34, "Export directives must preceed part directives");
-  static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con3('EXTERNAL_AFTER_CONST', 35, "The modifier 'external' should be before the modifier 'const'");
-  static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con3('EXTERNAL_AFTER_FACTORY', 36, "The modifier 'external' should be before the modifier 'factory'");
-  static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con3('EXTERNAL_AFTER_STATIC', 37, "The modifier 'external' should be before the modifier 'static'");
-  static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con3('EXTERNAL_CLASS', 38, "Classes cannot be declared to be 'external'");
-  static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_CONSTRUCTOR_WITH_BODY', 39, "External constructors cannot have a body");
-  static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con3('EXTERNAL_FIELD', 40, "Fields cannot be declared to be 'external'");
-  static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_GETTER_WITH_BODY', 41, "External getters cannot have a body");
-  static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_METHOD_WITH_BODY', 42, "External methods cannot have a body");
-  static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_OPERATOR_WITH_BODY', 43, "External operators cannot have a body");
-  static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_SETTER_WITH_BODY', 44, "External setters cannot have a body");
-  static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con3('EXTERNAL_TYPEDEF', 45, "Type aliases cannot be declared to be 'external'");
-  static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con3('FACTORY_TOP_LEVEL_DECLARATION', 46, "Top-level declarations cannot be declared to be 'factory'");
-  static final ParserErrorCode FACTORY_WITHOUT_BODY = new ParserErrorCode.con3('FACTORY_WITHOUT_BODY', 47, "A non-redirecting 'factory' constructor must have a body");
-  static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con3('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 48, "Field initializers can only be used in a constructor");
-  static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con3('FINAL_AND_VAR', 49, "Members cannot be declared to be both 'final' and 'var'");
-  static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con3('FINAL_CLASS', 50, "Classes cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con3('FINAL_CONSTRUCTOR', 51, "A constructor cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con3('FINAL_METHOD', 52, "Getters, setters and methods cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con3('FINAL_TYPEDEF', 53, "Type aliases cannot be declared to be 'final'");
-  static final ParserErrorCode FUNCTION_TYPED_PARAMETER_VAR = new ParserErrorCode.con3('FUNCTION_TYPED_PARAMETER_VAR', 54, "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type");
-  static final ParserErrorCode GETTER_IN_FUNCTION = new ParserErrorCode.con3('GETTER_IN_FUNCTION', 55, "Getters cannot be defined within methods or functions");
-  static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con3('GETTER_WITH_PARAMETERS', 56, "Getter should be declared without a parameter list");
-  static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con3('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 57, "Illegal assignment to non-assignable expression");
-  static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con3('IMPLEMENTS_BEFORE_EXTENDS', 58, "The extends clause must be before the implements clause");
-  static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con3('IMPLEMENTS_BEFORE_WITH', 59, "The with clause must be before the implements clause");
-  static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con3('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 60, "Import directives must preceed part directives");
-  static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con3('INITIALIZED_VARIABLE_IN_FOR_EACH', 61, "The loop variable in a for-each loop cannot be initialized");
-  static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con3('INVALID_CODE_POINT', 62, "The escape sequence '%s' is not a valid code point");
-  static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con3('INVALID_COMMENT_REFERENCE', 63, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
-  static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con3('INVALID_HEX_ESCAPE', 64, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
-  static final ParserErrorCode INVALID_OPERATOR = new ParserErrorCode.con3('INVALID_OPERATOR', 65, "The string '%s' is not a valid operator");
-  static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 66, "The operator '%s' cannot be used with 'super'");
-  static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con3('INVALID_UNICODE_ESCAPE', 67, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
-  static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con3('LIBRARY_DIRECTIVE_NOT_FIRST', 68, "The library directive must appear before all other directives");
-  static final ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER = new ParserErrorCode.con3('LOCAL_FUNCTION_DECLARATION_MODIFIER', 69, "Local function declarations cannot specify any modifier");
-  static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con3('MISSING_ASSIGNABLE_SELECTOR', 70, "Missing selector such as \".<identifier>\" or \"[0]\"");
-  static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con3('MISSING_CATCH_OR_FINALLY', 71, "A try statement must have either a catch or finally clause");
-  static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con3('MISSING_CLASS_BODY', 72, "A class definition must have a body, even if it is empty");
-  static final ParserErrorCode MISSING_CLOSING_PARENTHESIS = new ParserErrorCode.con3('MISSING_CLOSING_PARENTHESIS', 73, "The closing parenthesis is missing");
-  static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con3('MISSING_CONST_FINAL_VAR_OR_TYPE', 74, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
-  static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con3('MISSING_EXPRESSION_IN_THROW', 75, "Throw expressions must compute the object to be thrown");
-  static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con3('MISSING_FUNCTION_BODY', 76, "A function body must be provided");
-  static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con3('MISSING_FUNCTION_PARAMETERS', 77, "Functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con3('MISSING_IDENTIFIER', 78, "Expected an identifier");
-  static final ParserErrorCode MISSING_KEYWORD_OPERATOR = new ParserErrorCode.con3('MISSING_KEYWORD_OPERATOR', 79, "Operator declarations must be preceeded by the keyword 'operator'");
-  static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con3('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 80, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con3('MISSING_NAME_IN_PART_OF_DIRECTIVE', 81, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con3('MISSING_STATEMENT', 82, "Expected a statement");
-  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 83, "There is no '%s' to close the parameter group");
-  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con3('MISSING_TYPEDEF_PARAMETERS', 84, "Type aliases for functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con3('MISSING_VARIABLE_IN_FOR_EACH', 85, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
-  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con3('MIXED_PARAMETER_GROUPS', 86, "Cannot have both positional and named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con3('MULTIPLE_EXTENDS_CLAUSES', 87, "Each class definition can have at most one extends clause");
-  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con3('MULTIPLE_IMPLEMENTS_CLAUSES', 88, "Each class definition can have at most one implements clause");
-  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con3('MULTIPLE_LIBRARY_DIRECTIVES', 89, "Only one library directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con3('MULTIPLE_NAMED_PARAMETER_GROUPS', 90, "Cannot have multiple groups of named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con3('MULTIPLE_PART_OF_DIRECTIVES', 91, "Only one part-of directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con3('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 92, "Cannot have multiple groups of positional parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 93, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
-  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con3('MULTIPLE_WITH_CLAUSES', 94, "Each class definition can have at most one with clause");
-  static final ParserErrorCode NAMED_FUNCTION_EXPRESSION = new ParserErrorCode.con3('NAMED_FUNCTION_EXPRESSION', 95, "Function expressions cannot be named");
-  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con3('NAMED_PARAMETER_OUTSIDE_GROUP', 96, "Named parameters must be enclosed in curly braces ('{' and '}')");
-  static final ParserErrorCode NATIVE_CLAUSE_IN_NON_SDK_CODE = new ParserErrorCode.con3('NATIVE_CLAUSE_IN_NON_SDK_CODE', 97, "Native clause can only be used in the SDK and code that is loaded through native extensions");
-  static final ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = new ParserErrorCode.con3('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 98, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
-  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con3('NON_CONSTRUCTOR_FACTORY', 99, "Only constructors can be declared to be a 'factory'");
-  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con3('NON_IDENTIFIER_LIBRARY_NAME', 100, "The name of a library must be an identifier");
-  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con3('NON_PART_OF_DIRECTIVE_IN_PART', 101, "The part-of directive must be the only directive in a part");
-  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 102, "The operator '%s' is not user definable");
-  static final ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = new ParserErrorCode.con3('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 103, "Normal parameters must occur before optional parameters");
-  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con3('POSITIONAL_AFTER_NAMED_ARGUMENT', 104, "Positional arguments must occur before named arguments");
-  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con3('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 105, "Positional parameters must be enclosed in square brackets ('[' and ']')");
-  static final ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR = new ParserErrorCode.con3('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR', 106, "Only factory constructor can specify '=' redirection.");
-  static final ParserErrorCode SETTER_IN_FUNCTION = new ParserErrorCode.con3('SETTER_IN_FUNCTION', 107, "Setters cannot be defined within methods or functions");
-  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con3('STATIC_AFTER_CONST', 108, "The modifier 'static' should be before the modifier 'const'");
-  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con3('STATIC_AFTER_FINAL', 109, "The modifier 'static' should be before the modifier 'final'");
-  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con3('STATIC_AFTER_VAR', 110, "The modifier 'static' should be before the modifier 'var'");
-  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con3('STATIC_CONSTRUCTOR', 111, "Constructors cannot be static");
-  static final ParserErrorCode STATIC_GETTER_WITHOUT_BODY = new ParserErrorCode.con3('STATIC_GETTER_WITHOUT_BODY', 112, "A 'static' getter must have a body");
-  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con3('STATIC_OPERATOR', 113, "Operators cannot be static");
-  static final ParserErrorCode STATIC_SETTER_WITHOUT_BODY = new ParserErrorCode.con3('STATIC_SETTER_WITHOUT_BODY', 114, "A 'static' setter must have a body");
-  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con3('STATIC_TOP_LEVEL_DECLARATION', 115, "Top-level declarations cannot be declared to be 'static'");
-  static final ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = new ParserErrorCode.con3('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 116, "The 'default' case should be the last case in a switch statement");
-  static final ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = new ParserErrorCode.con3('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 117, "The 'default' case can only be declared once");
-  static final ParserErrorCode TOP_LEVEL_OPERATOR = new ParserErrorCode.con3('TOP_LEVEL_OPERATOR', 118, "Operators must be declared within a class");
-  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 119, "There is no '%s' to open a parameter group");
-  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con3('UNEXPECTED_TOKEN', 120, "Unexpected token '%s'");
-  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con3('WITH_BEFORE_EXTENDS', 121, "The extends clause must be before the with clause");
-  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con3('WITH_WITHOUT_EXTENDS', 122, "The with clause cannot be used without an extends clause");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con3('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 123, "The default value of a named parameter should be preceeded by ':'");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con3('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 124, "The default value of a positional parameter should be preceeded by '='");
-  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 125, "Expected '%s' to close parameter group");
-  static final ParserErrorCode VAR_AND_TYPE = new ParserErrorCode.con3('VAR_AND_TYPE', 126, "Variables cannot be declared using both 'var' and a type name; remove the 'var'");
-  static final ParserErrorCode VAR_AS_TYPE_NAME = new ParserErrorCode.con3('VAR_AS_TYPE_NAME', 127, "The keyword 'var' cannot be used as a type name");
-  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con3('VAR_CLASS', 128, "Classes cannot be declared to be 'var'");
-  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con3('VAR_RETURN_TYPE', 129, "The return type cannot be 'var'");
-  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con3('VAR_TYPEDEF', 130, "Type aliases cannot be declared to be 'var'");
-  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con3('VOID_PARAMETER', 131, "Parameters cannot have a type of 'void'");
-  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con3('VOID_VARIABLE', 132, "Variables cannot have a type of 'void'");
+  static final ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS = new ParserErrorCode.con3('DEPRECATED_CLASS_TYPE_ALIAS', 21, "The 'typedef' mixin application was replaced with 'class'");
+  static final ParserErrorCode DIRECTIVE_AFTER_DECLARATION = new ParserErrorCode.con3('DIRECTIVE_AFTER_DECLARATION', 22, "Directives must appear before any declarations");
+  static final ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = new ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 23, "The label %s was already used in this switch statement");
+  static final ParserErrorCode DUPLICATED_MODIFIER = new ParserErrorCode.con3('DUPLICATED_MODIFIER', 24, "The modifier '%s' was already specified.");
+  static final ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND = new ParserErrorCode.con3('EQUALITY_CANNOT_BE_EQUALITY_OPERAND', 25, "Equality expression cannot be operand of another equality expression.");
+  static final ParserErrorCode EXPECTED_CASE_OR_DEFAULT = new ParserErrorCode.con3('EXPECTED_CASE_OR_DEFAULT', 26, "Expected 'case' or 'default'");
+  static final ParserErrorCode EXPECTED_CLASS_MEMBER = new ParserErrorCode.con3('EXPECTED_CLASS_MEMBER', 27, "Expected a class member");
+  static final ParserErrorCode EXPECTED_EXECUTABLE = new ParserErrorCode.con3('EXPECTED_EXECUTABLE', 28, "Expected a method, getter, setter or operator declaration");
+  static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con3('EXPECTED_LIST_OR_MAP_LITERAL', 29, "Expected a list or map literal");
+  static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con3('EXPECTED_STRING_LITERAL', 30, "Expected a string literal");
+  static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con3('EXPECTED_TOKEN', 31, "Expected to find '%s'");
+  static final ParserErrorCode EXPECTED_TYPE_NAME = new ParserErrorCode.con3('EXPECTED_TYPE_NAME', 32, "Expected a type name");
+  static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con3('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 33, "Export directives must preceed part directives");
+  static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con3('EXTERNAL_AFTER_CONST', 34, "The modifier 'external' should be before the modifier 'const'");
+  static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con3('EXTERNAL_AFTER_FACTORY', 35, "The modifier 'external' should be before the modifier 'factory'");
+  static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con3('EXTERNAL_AFTER_STATIC', 36, "The modifier 'external' should be before the modifier 'static'");
+  static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con3('EXTERNAL_CLASS', 37, "Classes cannot be declared to be 'external'");
+  static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_CONSTRUCTOR_WITH_BODY', 38, "External constructors cannot have a body");
+  static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con3('EXTERNAL_FIELD', 39, "Fields cannot be declared to be 'external'");
+  static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_GETTER_WITH_BODY', 40, "External getters cannot have a body");
+  static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_METHOD_WITH_BODY', 41, "External methods cannot have a body");
+  static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_OPERATOR_WITH_BODY', 42, "External operators cannot have a body");
+  static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_SETTER_WITH_BODY', 43, "External setters cannot have a body");
+  static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con3('EXTERNAL_TYPEDEF', 44, "Type aliases cannot be declared to be 'external'");
+  static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con3('FACTORY_TOP_LEVEL_DECLARATION', 45, "Top-level declarations cannot be declared to be 'factory'");
+  static final ParserErrorCode FACTORY_WITHOUT_BODY = new ParserErrorCode.con3('FACTORY_WITHOUT_BODY', 46, "A non-redirecting 'factory' constructor must have a body");
+  static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con3('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 47, "Field initializers can only be used in a constructor");
+  static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con3('FINAL_AND_VAR', 48, "Members cannot be declared to be both 'final' and 'var'");
+  static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con3('FINAL_CLASS', 49, "Classes cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con3('FINAL_CONSTRUCTOR', 50, "A constructor cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con3('FINAL_METHOD', 51, "Getters, setters and methods cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con3('FINAL_TYPEDEF', 52, "Type aliases cannot be declared to be 'final'");
+  static final ParserErrorCode FUNCTION_TYPED_PARAMETER_VAR = new ParserErrorCode.con3('FUNCTION_TYPED_PARAMETER_VAR', 53, "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type");
+  static final ParserErrorCode GETTER_IN_FUNCTION = new ParserErrorCode.con3('GETTER_IN_FUNCTION', 54, "Getters cannot be defined within methods or functions");
+  static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con3('GETTER_WITH_PARAMETERS', 55, "Getter should be declared without a parameter list");
+  static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con3('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 56, "Illegal assignment to non-assignable expression");
+  static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con3('IMPLEMENTS_BEFORE_EXTENDS', 57, "The extends clause must be before the implements clause");
+  static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con3('IMPLEMENTS_BEFORE_WITH', 58, "The with clause must be before the implements clause");
+  static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con3('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 59, "Import directives must preceed part directives");
+  static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con3('INITIALIZED_VARIABLE_IN_FOR_EACH', 60, "The loop variable in a for-each loop cannot be initialized");
+  static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con3('INVALID_CODE_POINT', 61, "The escape sequence '%s' is not a valid code point");
+  static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con3('INVALID_COMMENT_REFERENCE', 62, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
+  static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con3('INVALID_HEX_ESCAPE', 63, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
+  static final ParserErrorCode INVALID_OPERATOR = new ParserErrorCode.con3('INVALID_OPERATOR', 64, "The string '%s' is not a valid operator");
+  static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 65, "The operator '%s' cannot be used with 'super'");
+  static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con3('INVALID_UNICODE_ESCAPE', 66, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
+  static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con3('LIBRARY_DIRECTIVE_NOT_FIRST', 67, "The library directive must appear before all other directives");
+  static final ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER = new ParserErrorCode.con3('LOCAL_FUNCTION_DECLARATION_MODIFIER', 68, "Local function declarations cannot specify any modifier");
+  static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con3('MISSING_ASSIGNABLE_SELECTOR', 69, "Missing selector such as \".<identifier>\" or \"[0]\"");
+  static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con3('MISSING_CATCH_OR_FINALLY', 70, "A try statement must have either a catch or finally clause");
+  static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con3('MISSING_CLASS_BODY', 71, "A class definition must have a body, even if it is empty");
+  static final ParserErrorCode MISSING_CLOSING_PARENTHESIS = new ParserErrorCode.con3('MISSING_CLOSING_PARENTHESIS', 72, "The closing parenthesis is missing");
+  static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con3('MISSING_CONST_FINAL_VAR_OR_TYPE', 73, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
+  static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con3('MISSING_EXPRESSION_IN_THROW', 74, "Throw expressions must compute the object to be thrown");
+  static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con3('MISSING_FUNCTION_BODY', 75, "A function body must be provided");
+  static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con3('MISSING_FUNCTION_PARAMETERS', 76, "Functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con3('MISSING_IDENTIFIER', 77, "Expected an identifier");
+  static final ParserErrorCode MISSING_KEYWORD_OPERATOR = new ParserErrorCode.con3('MISSING_KEYWORD_OPERATOR', 78, "Operator declarations must be preceeded by the keyword 'operator'");
+  static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con3('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 79, "Library directives must include a library name");
+  static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con3('MISSING_NAME_IN_PART_OF_DIRECTIVE', 80, "Library directives must include a library name");
+  static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con3('MISSING_STATEMENT', 81, "Expected a statement");
+  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 82, "There is no '%s' to close the parameter group");
+  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con3('MISSING_TYPEDEF_PARAMETERS', 83, "Type aliases for functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con3('MISSING_VARIABLE_IN_FOR_EACH', 84, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
+  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con3('MIXED_PARAMETER_GROUPS', 85, "Cannot have both positional and named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con3('MULTIPLE_EXTENDS_CLAUSES', 86, "Each class definition can have at most one extends clause");
+  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con3('MULTIPLE_IMPLEMENTS_CLAUSES', 87, "Each class definition can have at most one implements clause");
+  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con3('MULTIPLE_LIBRARY_DIRECTIVES', 88, "Only one library directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con3('MULTIPLE_NAMED_PARAMETER_GROUPS', 89, "Cannot have multiple groups of named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con3('MULTIPLE_PART_OF_DIRECTIVES', 90, "Only one part-of directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con3('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 91, "Cannot have multiple groups of positional parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 92, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con3('MULTIPLE_WITH_CLAUSES', 93, "Each class definition can have at most one with clause");
+  static final ParserErrorCode NAMED_FUNCTION_EXPRESSION = new ParserErrorCode.con3('NAMED_FUNCTION_EXPRESSION', 94, "Function expressions cannot be named");
+  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con3('NAMED_PARAMETER_OUTSIDE_GROUP', 95, "Named parameters must be enclosed in curly braces ('{' and '}')");
+  static final ParserErrorCode NATIVE_CLAUSE_IN_NON_SDK_CODE = new ParserErrorCode.con3('NATIVE_CLAUSE_IN_NON_SDK_CODE', 96, "Native clause can only be used in the SDK and code that is loaded through native extensions");
+  static final ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = new ParserErrorCode.con3('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 97, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
+  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con3('NON_CONSTRUCTOR_FACTORY', 98, "Only constructors can be declared to be a 'factory'");
+  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con3('NON_IDENTIFIER_LIBRARY_NAME', 99, "The name of a library must be an identifier");
+  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con3('NON_PART_OF_DIRECTIVE_IN_PART', 100, "The part-of directive must be the only directive in a part");
+  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 101, "The operator '%s' is not user definable");
+  static final ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = new ParserErrorCode.con3('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 102, "Normal parameters must occur before optional parameters");
+  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con3('POSITIONAL_AFTER_NAMED_ARGUMENT', 103, "Positional arguments must occur before named arguments");
+  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con3('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 104, "Positional parameters must be enclosed in square brackets ('[' and ']')");
+  static final ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR = new ParserErrorCode.con3('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR', 105, "Only factory constructor can specify '=' redirection.");
+  static final ParserErrorCode SETTER_IN_FUNCTION = new ParserErrorCode.con3('SETTER_IN_FUNCTION', 106, "Setters cannot be defined within methods or functions");
+  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con3('STATIC_AFTER_CONST', 107, "The modifier 'static' should be before the modifier 'const'");
+  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con3('STATIC_AFTER_FINAL', 108, "The modifier 'static' should be before the modifier 'final'");
+  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con3('STATIC_AFTER_VAR', 109, "The modifier 'static' should be before the modifier 'var'");
+  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con3('STATIC_CONSTRUCTOR', 110, "Constructors cannot be static");
+  static final ParserErrorCode STATIC_GETTER_WITHOUT_BODY = new ParserErrorCode.con3('STATIC_GETTER_WITHOUT_BODY', 111, "A 'static' getter must have a body");
+  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con3('STATIC_OPERATOR', 112, "Operators cannot be static");
+  static final ParserErrorCode STATIC_SETTER_WITHOUT_BODY = new ParserErrorCode.con3('STATIC_SETTER_WITHOUT_BODY', 113, "A 'static' setter must have a body");
+  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con3('STATIC_TOP_LEVEL_DECLARATION', 114, "Top-level declarations cannot be declared to be 'static'");
+  static final ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = new ParserErrorCode.con3('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 115, "The 'default' case should be the last case in a switch statement");
+  static final ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = new ParserErrorCode.con3('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 116, "The 'default' case can only be declared once");
+  static final ParserErrorCode TOP_LEVEL_OPERATOR = new ParserErrorCode.con3('TOP_LEVEL_OPERATOR', 117, "Operators must be declared within a class");
+  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 118, "There is no '%s' to open a parameter group");
+  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con3('UNEXPECTED_TOKEN', 119, "Unexpected token '%s'");
+  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con3('WITH_BEFORE_EXTENDS', 120, "The extends clause must be before the with clause");
+  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con3('WITH_WITHOUT_EXTENDS', 121, "The with clause cannot be used without an extends clause");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con3('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 122, "The default value of a named parameter should be preceeded by ':'");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con3('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 123, "The default value of a positional parameter should be preceeded by '='");
+  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 124, "Expected '%s' to close parameter group");
+  static final ParserErrorCode VAR_AND_TYPE = new ParserErrorCode.con3('VAR_AND_TYPE', 125, "Variables cannot be declared using both 'var' and a type name; remove the 'var'");
+  static final ParserErrorCode VAR_AS_TYPE_NAME = new ParserErrorCode.con3('VAR_AS_TYPE_NAME', 126, "The keyword 'var' cannot be used as a type name");
+  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con3('VAR_CLASS', 127, "Classes cannot be declared to be 'var'");
+  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con3('VAR_RETURN_TYPE', 128, "The return type cannot be 'var'");
+  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con3('VAR_TYPEDEF', 129, "Type aliases cannot be declared to be 'var'");
+  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con3('VOID_PARAMETER', 130, "Parameters cannot have a type of 'void'");
+  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con3('VOID_VARIABLE', 131, "Variables cannot have a type of 'void'");
   static final List<ParserErrorCode> values = [
       ABSTRACT_CLASS_MEMBER,
       ABSTRACT_STATIC_METHOD,
@@ -5825,6 +5826,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
       CONTINUE_OUTSIDE_OF_LOOP,
       CONTINUE_WITHOUT_LABEL_IN_CASE,
       DEPRECATED_ARGUMENT_DEFINITION_TEST,
+      DEPRECATED_CLASS_TYPE_ALIAS,
       DIRECTIVE_AFTER_DECLARATION,
       DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
       DUPLICATED_MODIFIER,
@@ -5835,8 +5837,6 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
       EXPECTED_LIST_OR_MAP_LITERAL,
       EXPECTED_STRING_LITERAL,
       EXPECTED_TOKEN,
-      EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
-      EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
       EXPECTED_TYPE_NAME,
       EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
       EXTERNAL_AFTER_CONST,

@@ -221,13 +221,6 @@ mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 
-# Will be fixed by next roll?
-mirrors/typedef_metadata_test: Fail
-mirrors/mixin_test: Fail
-mirrors/mixin_application_test/none: Fail
-mirrors/generic_mixin_test: Fail
-mirrors/generic_mixin_applications_test: Fail
-
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.

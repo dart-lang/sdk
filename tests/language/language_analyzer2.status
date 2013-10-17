@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-switch_bad_case_test/02: Fail # missing error in double in switch case expr
-
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
@@ -15,28 +13,10 @@ built_in_identifier_prefix_test: fail # Issue 12694
 class_literal_test: fail
 constructor_call_as_function_test/01: fail
 
-# TBF: It is a static type warning if a type parameter is a supertype of its upper bound.
-cyclic_type_variable_test/01: fail
-cyclic_type_variable_test/02: fail
-cyclic_type_variable_test/03: fail
-cyclic_type_variable_test/04: fail
-
-# TBF: It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
-default_factory2_test/01: fail # Issue 12701
-
 # TBF: It is a static warning if the function type of k' is not a subtype of the type of k.
 default_implementation2_test: fail
 
-# TBD: F-bounded quantification
-f_bounded_quantification_test/01: fail # Issue 12704
-f_bounded_quantification_test/02: fail # Issue 12704
-
 function_type_alias9_test/00: crash # Issue 11987
-
-list_literal_syntax_test/01: fail # Issue 12103
-list_literal_syntax_test/02: fail # Issue 12103
-list_literal_syntax_test/03: fail # Issue 12103
-malformed_test/none: fail # Issue 12696
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/02: fail
@@ -47,17 +27,34 @@ method_override8_test/03: Fail # Issue 11496
 # TBF: prefix T hidden by type variable T in 'new T.Class()'
 prefix10_negative_test: fail
 
-# TBF: no error if A in our library, B extends A in other library, reference B._private from Test extends B in our library.
-private_member1_negative_test: fail
-private_member2_negative_test: fail
-private_member3_negative_test: fail
-
 built_in_identifier_test/none: Fail # Issue 13023
+
+# test issue 13807, missing support for type promotion
+type_promotion_closure_test/none: Fail # Issue 13807
+type_promotion_functions_test/none: Fail # Issue 13807
+type_promotion_local_test/none: Fail # Issue 13807
+type_promotion_logical_and_test/none: Fail # Issue 13807
+type_promotion_multiple_test/none: Fail # Issue 13807
+type_promotion_parameter_test/none: Fail # Issue 13807
+
+# Missing checks for cyclic typedefs (through bounds)
+cyclic_typedef_test/10: Fail # Issue 13906
+cyclic_typedef_test/11: Fail # Issue 13906
+
+
+# Please add new failing tests before this line.
+# Section below is for invalid tests.
+#
+#
+
+
+
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
 lazy_static3_test: fail
 
+# test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
@@ -82,12 +79,9 @@ cascade_test/none: fail # Issue 11577
 
 # test issue 11578, redirecting factory with not subtype
 factory5_test/none: fail # Issue 11578
-factory_redirection_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
-
-redirecting_factory_malbounded_test/none: Fail # Issue 12827
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
@@ -150,14 +144,6 @@ type_parameter_test/none: fail
 # test issue 12161, type variable in static, malformed type, static warning
 type_variable_static_context_negative_test: fail
 
-# test issue 12162, 'a' has dynamic type, so it statically it is assignable to anything
-type_variable_bounds2_test/00: fail # Issue 12162
-type_variable_bounds2_test/01: fail # Issue 12162
-type_variable_bounds2_test/02: fail # Issue 12162
-type_variable_bounds2_test/03: fail # Issue 12162
-type_variable_bounds2_test/04: fail # Issue 12162
-type_variable_bounds2_test/06: fail # Issue 12162
-
 # test issue 12163, unresolved identifier is static warning in static context
 unresolved_in_factory_negative_test: fail # Issue 12163
 unresolved_top_level_var_negative_test: fail # Issue 12163
@@ -186,12 +172,26 @@ static_field_test/04: fail # Issue 12541
 # test issue 13787; duplicate exports of the same declaration is not handled
 duplicate_export_test: fail # Issue 13787
 
-type_variable_conflict_test/01: Fail # Issue 13703
-type_variable_conflict_test/02: Fail # Issue 13703
-type_variable_conflict_test/03: Fail # Issue 13703
-type_variable_conflict_test/04: Fail # Issue 13703
-type_variable_conflict_test/05: Fail # Issue 13703
-type_variable_conflict_test/06: Fail # Issue 13703
+# test issue 13916, Looks as no warning should be in this redirecting factory
+redirecting_factory_infinite_steps_test/01: fail
+
+# test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
+default_factory2_test/none: fail
+
+# test issue 14021, it is warning, not an error to reference private (undefined) identifier
+private_member1_negative_test: fail
+private_member2_negative_test: fail
+private_member3_negative_test: fail
+
+# test issue 14079
+malformed_test/none: fail # test issue 14079, legit warnings for malformed type
+malformed_test/05: fail # test issue 14079, it is not error, but warning to instantiate malformed type
+malformed_test/06: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
+
+#
+# Please don't add new items here.
+# This is section for invalid tests.
+#
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail

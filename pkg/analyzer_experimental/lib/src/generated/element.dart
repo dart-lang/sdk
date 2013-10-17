@@ -1319,6 +1319,13 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   bool get isAbstract;
 
   /**
+   * Return `true` if this setter for final variable, so it causes warning when used.
+   *
+   * @return `true` if this accessor is excluded setter
+   */
+  bool get isExcludedSetter;
+
+  /**
    * Return `true` if this accessor represents a getter.
    *
    * @return `true` if this accessor represents a getter
@@ -1386,6 +1393,20 @@ abstract class PropertyInducingElement implements VariableElement {
  * @coverage dart.engine.element
  */
 abstract class ShowElementCombinator implements NamespaceCombinator {
+
+  /**
+   * Return the offset of the character immediately following the last character of this node.
+   *
+   * @return the offset of the character just past this node
+   */
+  int get end;
+
+  /**
+   * Return the offset of the 'show' keyword of this element.
+   *
+   * @return the offset of the 'show' keyword of this element
+   */
+  int get offset;
 
   /**
    * Return an array containing the names that are to be made visible in the importing library if
@@ -4445,6 +4466,57 @@ class Modifier extends Enum<Modifier> {
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   /**
+   * Return an element that represents the given conflicting elements.
+   *
+   * @param context the analysis context in which the multiply defined elements are defined
+   * @param firstElement the first element that conflicts
+   * @param secondElement the second element that conflicts
+   */
+  static Element fromElements(AnalysisContext context, Element firstElement, Element secondElement) {
+    List<Element> conflictingElements = computeConflictingElements(firstElement, secondElement);
+    int length = conflictingElements.length;
+    if (length == 0) {
+      return null;
+    } else if (length == 1) {
+      return conflictingElements[0];
+    }
+    return new MultiplyDefinedElementImpl(context, conflictingElements);
+  }
+
+  /**
+   * Add the given element to the list of elements. If the element is a multiply-defined element,
+   * add all of the conflicting elements that it represents.
+   *
+   * @param elements the list to which the element(s) are to be added
+   * @param element the element(s) to be added
+   */
+  static void add(Set<Element> elements, Element element) {
+    if (element is MultiplyDefinedElementImpl) {
+      for (Element conflictingElement in ((element as MultiplyDefinedElementImpl))._conflictingElements) {
+        javaSetAdd(elements, conflictingElement);
+      }
+    } else {
+      javaSetAdd(elements, element);
+    }
+  }
+
+  /**
+   * Use the given elements to construct an array of conflicting elements. If either of the given
+   * elements are multiply-defined elements then the conflicting elements they represent will be
+   * included in the array. Otherwise, the element itself will be included.
+   *
+   * @param firstElement the first element to be included
+   * @param secondElement the second element to be included
+   * @return an array containing all of the conflicting elements
+   */
+  static List<Element> computeConflictingElements(Element firstElement, Element secondElement) {
+    Set<Element> elements = new Set<Element>();
+    add(elements, firstElement);
+    add(elements, secondElement);
+    return new List.from(elements);
+  }
+
+  /**
    * The analysis context in which the multiply defined elements are defined.
    */
   AnalysisContext _context;
@@ -4463,22 +4535,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * Initialize a newly created element to represent a list of conflicting elements.
    *
    * @param context the analysis context in which the multiply defined elements are defined
-   * @param firstElement the first element that conflicts
-   * @param secondElement the second element that conflicts
-   */
-  MultiplyDefinedElementImpl.con1(AnalysisContext context, Element firstElement, Element secondElement) {
-    this._context = context;
-    _name = firstElement.name;
-    _conflictingElements = computeConflictingElements(firstElement, secondElement);
-  }
-
-  /**
-   * Initialize a newly created element to represent a list of conflicting elements.
-   *
-   * @param context the analysis context in which the multiply defined elements are defined
    * @param conflictingElements the elements that conflict
    */
-  MultiplyDefinedElementImpl.con2(AnalysisContext context, List<Element> conflictingElements) {
+  MultiplyDefinedElementImpl(AnalysisContext context, List<Element> conflictingElements) {
     this._context = context;
     _name = conflictingElements[0].name;
     this._conflictingElements = conflictingElements;
@@ -4521,39 +4580,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return builder.toString();
   }
   void visitChildren(ElementVisitor visitor) {
-  }
-
-  /**
-   * Add the given element to the list of elements. If the element is a multiply-defined element,
-   * add all of the conflicting elements that it represents.
-   *
-   * @param elements the list to which the element(s) are to be added
-   * @param element the element(s) to be added
-   */
-  void add(Set<Element> elements, Element element) {
-    if (element is MultiplyDefinedElementImpl) {
-      for (Element conflictingElement in ((element as MultiplyDefinedElementImpl))._conflictingElements) {
-        javaSetAdd(elements, conflictingElement);
-      }
-    } else {
-      javaSetAdd(elements, element);
-    }
-  }
-
-  /**
-   * Use the given elements to construct an array of conflicting elements. If either of the given
-   * elements are multiply-defined elements then the conflicting elements they represent will be
-   * included in the array. Otherwise, the element itself will be included.
-   *
-   * @param firstElement the first element to be included
-   * @param secondElement the second element to be included
-   * @return an array containing all of the conflicting elements
-   */
-  List<Element> computeConflictingElements(Element firstElement, Element secondElement) {
-    Set<Element> elements = new Set<Element>();
-    add(elements, firstElement);
-    add(elements, secondElement);
-    return new List.from(elements);
   }
 }
 /**
@@ -4812,6 +4838,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   }
   PropertyInducingElement get variable => _variable;
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+  bool get isExcludedSetter => isSetter && _variable.isFinal;
   bool get isGetter => hasModifier(Modifier.GETTER);
   bool get isSetter => hasModifier(Modifier.SETTER);
   bool get isStatic => hasModifier(Modifier.STATIC);
@@ -4939,7 +4966,33 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
    * imported library.
    */
   List<String> _shownNames = StringUtilities.EMPTY_ARRAY;
+
+  /**
+   * The offset of the character immediately following the last character of this node.
+   */
+  int _end = -1;
+
+  /**
+   * The offset of the 'show' keyword of this element.
+   */
+  int _offset = 0;
+  int get end => _end;
+  int get offset => _offset;
   List<String> get shownNames => _shownNames;
+
+  /**
+   * Set the the offset of the character immediately following the last character of this node.
+   */
+  void set end(int endOffset) {
+    this._end = endOffset;
+  }
+
+  /**
+   * Sets the offset of the 'show' keyword of this directive.
+   */
+  void set offset(int offset) {
+    this._offset = offset;
+  }
 
   /**
    * Set the names that are to be made visible in the importing library if they are defined in the
@@ -5532,12 +5585,14 @@ class ParameterMember extends VariableMember implements ParameterElement {
     if (baseParameter == null || definingType.typeArguments.length == 0) {
       return baseParameter;
     }
-    Type2 baseType = baseParameter.type;
-    List<Type2> argumentTypes = definingType.typeArguments;
-    List<Type2> parameterTypes = TypeParameterTypeImpl.getTypes(definingType.typeParameters);
-    Type2 substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
-      return baseParameter;
+    if (baseParameter is! FieldFormalParameterElement) {
+      Type2 baseType = baseParameter.type;
+      List<Type2> argumentTypes = definingType.typeArguments;
+      List<Type2> parameterTypes = TypeParameterTypeImpl.getTypes(definingType.typeParameters);
+      Type2 substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+      if (baseType == substitutedType) {
+        return baseParameter;
+      }
     }
     return new ParameterMember(baseParameter, definingType);
   }
@@ -5662,6 +5717,7 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     return variable;
   }
   bool get isAbstract => baseElement.isAbstract;
+  bool get isExcludedSetter => baseElement.isExcludedSetter;
   bool get isGetter => baseElement.isGetter;
   bool get isSetter => baseElement.isSetter;
   String toString() {
@@ -6930,11 +6986,19 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   bool operator ==(Object object) => object is TypeParameterTypeImpl && element == ((object as TypeParameterTypeImpl)).element;
   TypeParameterElement get element => super.element as TypeParameterElement;
   int get hashCode => element.hashCode;
-  bool isMoreSpecificThan(Type2 type) {
-    Type2 upperBound = element.bound;
-    return type == upperBound;
+  bool isMoreSpecificThan(Type2 s) {
+    if (this == s) {
+      return true;
+    }
+    if (s.isBottom) {
+      return true;
+    }
+    if (s.isDynamic) {
+      return true;
+    }
+    return isMoreSpecificThan3(s, new Set<Type2>());
   }
-  bool isSubtypeOf(Type2 type) => true;
+  bool isSubtypeOf(Type2 s) => isMoreSpecificThan(s);
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
@@ -6943,6 +7007,27 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       }
     }
     return this;
+  }
+  bool isMoreSpecificThan3(Type2 s, Set<Type2> visitedTypes) {
+    Type2 bound = element.bound;
+    if (s == bound) {
+      return true;
+    }
+    if (s.isObject) {
+      return true;
+    }
+    if (bound == null) {
+      return false;
+    }
+    if (bound is TypeParameterTypeImpl) {
+      TypeParameterTypeImpl boundTypeParameter = bound as TypeParameterTypeImpl;
+      if (visitedTypes.contains(bound)) {
+        return false;
+      }
+      javaSetAdd(visitedTypes, bound);
+      return boundTypeParameter.isMoreSpecificThan3(s, visitedTypes);
+    }
+    return bound.isMoreSpecificThan(s);
   }
 }
 /**

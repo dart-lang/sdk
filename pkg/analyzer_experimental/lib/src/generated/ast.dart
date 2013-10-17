@@ -4,8 +4,6 @@ library engine.ast;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
-import 'error.dart';
-import 'source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
@@ -2780,26 +2778,6 @@ class CompilationUnit extends ASTNode {
   CompilationUnitElement element;
 
   /**
-   * The line information for this compilation unit.
-   */
-  LineInfo lineInfo;
-
-  /**
-   * The parsing errors encountered when the receiver was parsed.
-   */
-  List<AnalysisError> _parsingErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The resolution errors encountered when the receiver was resolved.
-   */
-  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
-
-  /**
-   * The hints reported when the receiver was analyzed.
-   */
-  List<AnalysisError> _hints = AnalysisError.NO_ERRORS;
-
-  /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    *
    * @param beginToken the first token in the token stream
@@ -2831,39 +2809,6 @@ class CompilationUnit extends ASTNode {
   accept(ASTVisitor visitor) => visitor.visitCompilationUnit(this);
   Token get beginToken => _beginToken;
   Token get endToken => _endToken;
-
-  /**
-   * Return an array containing all of the errors associated with the receiver. The array will be
-   * empty if the receiver has not been resolved and there were no parse errors.
-   *
-   * @return the errors associated with the receiver
-   */
-  List<AnalysisError> get errors {
-    List<AnalysisError> parserErrors = parsingErrors;
-    List<AnalysisError> resolverErrors = resolutionErrors;
-    List<AnalysisError> hints = this.hints;
-    if (resolverErrors.length == 0 && hints.length == 0) {
-      return parserErrors;
-    } else if (parserErrors.length == 0 && hints.length == 0) {
-      return resolverErrors;
-    } else if (parserErrors.length == 0 && resolverErrors.length == 0) {
-      return hints;
-    } else {
-      List<AnalysisError> allErrors = new List<AnalysisError>(parserErrors.length + resolverErrors.length + hints.length);
-      JavaSystem.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
-      JavaSystem.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
-      JavaSystem.arraycopy(hints, 0, allErrors, parserErrors.length + resolverErrors.length, hints.length);
-      return allErrors;
-    }
-  }
-
-  /**
-   * Return an array containing all of the hints associated with the receiver. The array will be
-   * empty if the receiver has not been analyzed.
-   *
-   * @return the hints associated with the receiver
-   */
-  List<AnalysisError> get hints => _hints;
   int get length {
     Token endToken = this.endToken;
     if (endToken == null) {
@@ -2874,54 +2819,12 @@ class CompilationUnit extends ASTNode {
   int get offset => 0;
 
   /**
-   * Return an array containing all of the parsing errors associated with the receiver.
-   *
-   * @return the parsing errors associated with the receiver
-   */
-  List<AnalysisError> get parsingErrors => _parsingErrors;
-
-  /**
-   * Return an array containing all of the resolution errors associated with the receiver. The array
-   * will be empty if the receiver has not been resolved.
-   *
-   * @return the resolution errors associated with the receiver
-   */
-  List<AnalysisError> get resolutionErrors => _resolutionErrors;
-
-  /**
    * Return the script tag at the beginning of the compilation unit, or `null` if there is no
    * script tag in this compilation unit.
    *
    * @return the script tag at the beginning of the compilation unit
    */
   ScriptTag get scriptTag => _scriptTag;
-
-  /**
-   * Set the reported hints associated with this compilation unit.
-   *
-   * @param the hints to be associated with this compilation unit
-   */
-  void set hints(List<AnalysisError> errors) {
-    _hints = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
-
-  /**
-   * Set the parse errors associated with this compilation unit to the given errors.
-   *
-   * @param the parse errors to be associated with this compilation unit
-   */
-  void set parsingErrors(List<AnalysisError> errors) {
-    _parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
-
-  /**
-   * Set the resolution errors associated with this compilation unit to the given errors.
-   *
-   * @param the resolution errors to be associated with this compilation unit
-   */
-  void set resolutionErrors(List<AnalysisError> errors) {
-    _resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
-  }
 
   /**
    * Set the script tag at the beginning of the compilation unit to the given script tag.
@@ -4028,7 +3931,7 @@ abstract class Directive extends AnnotatedNode {
    * The element associated with this directive, or `null` if the AST structure has not been
    * resolved or if this directive could not be resolved.
    */
-  Element element;
+  Element _element;
 
   /**
    * Initialize a newly create directive.
@@ -4047,12 +3950,30 @@ abstract class Directive extends AnnotatedNode {
   Directive({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
 
   /**
+   * Return the element associated with this directive, or `null` if the AST structure has not
+   * been resolved or if this directive could not be resolved. Examples of the latter case include a
+   * directive that contains an invalid URL or a URL that does not exist.
+   *
+   * @return the element associated with this directive
+   */
+  Element get element => _element;
+
+  /**
    * Return the token representing the keyword that introduces this directive ('import', 'export',
    * 'library' or 'part').
    *
    * @return the token representing the keyword that introduces this directive
    */
   Token get keyword;
+
+  /**
+   * Set the element associated with this directive to the given element.
+   *
+   * @param element the element associated with this directive
+   */
+  void set element(Element element) {
+    this._element = element;
+  }
 }
 /**
  * Instances of the class `DoStatement` represent a do statement.
@@ -6715,6 +6636,7 @@ class ImportDirective extends NamespaceDirective {
    */
   ImportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, asToken, prefix, combinators, semicolon);
   accept(ASTVisitor visitor) => visitor.visitImportDirective(this);
+  ImportElement get element => super.element as ImportElement;
 
   /**
    * Return the prefix to be used with the imported names, or `null` if the imported names are
@@ -6724,11 +6646,11 @@ class ImportDirective extends NamespaceDirective {
    */
   SimpleIdentifier get prefix => _prefix;
   LibraryElement get uriElement {
-    Element element = this.element;
-    if (element is ImportElement) {
-      return ((element as ImportElement)).importedLibrary;
+    ImportElement element = this.element;
+    if (element == null) {
+      return null;
     }
-    return null;
+    return element.importedLibrary;
   }
 
   /**
@@ -12934,7 +12856,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
  *
  * @coverage dart.engine.ast
  */
-class NodeLocator extends GeneralizingASTVisitor<Object> {
+class NodeLocator extends UnifyingASTVisitor<Object> {
 
   /**
    * The start offset of the range used to identify the node.
@@ -13688,7 +13610,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    _writer.print("typedef ");
+    _writer.print("class ");
     visit(node.name);
     visit(node.typeParameters);
     _writer.print(" = ");
@@ -14425,6 +14347,127 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   }
 }
 /**
+ * Instances of the class `UnifyingASTVisitor` implement an AST visitor that will recursively
+ * visit all of the nodes in an AST structure (like instances of the class
+ * [RecursiveASTVisitor]). In addition, every node will also be visited by using a single
+ * unified [visitNode] method.
+ *
+ * Subclasses that override a visit method must either invoke the overridden visit method or
+ * explicitly invoke the more general [visitNode] method. Failure to do so will
+ * cause the children of the visited node to not be visited.
+ *
+ * @coverage dart.engine.ast
+ */
+class UnifyingASTVisitor<R> implements ASTVisitor<R> {
+  R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
+  R visitAnnotation(Annotation node) => visitNode(node);
+  R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => visitNode(node);
+  R visitArgumentList(ArgumentList node) => visitNode(node);
+  R visitAsExpression(AsExpression node) => visitNode(node);
+  R visitAssertStatement(AssertStatement node) => visitNode(node);
+  R visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
+  R visitBinaryExpression(BinaryExpression node) => visitNode(node);
+  R visitBlock(Block node) => visitNode(node);
+  R visitBlockFunctionBody(BlockFunctionBody node) => visitNode(node);
+  R visitBooleanLiteral(BooleanLiteral node) => visitNode(node);
+  R visitBreakStatement(BreakStatement node) => visitNode(node);
+  R visitCascadeExpression(CascadeExpression node) => visitNode(node);
+  R visitCatchClause(CatchClause node) => visitNode(node);
+  R visitClassDeclaration(ClassDeclaration node) => visitNode(node);
+  R visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
+  R visitComment(Comment node) => visitNode(node);
+  R visitCommentReference(CommentReference node) => visitNode(node);
+  R visitCompilationUnit(CompilationUnit node) => visitNode(node);
+  R visitConditionalExpression(ConditionalExpression node) => visitNode(node);
+  R visitConstructorDeclaration(ConstructorDeclaration node) => visitNode(node);
+  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => visitNode(node);
+  R visitConstructorName(ConstructorName node) => visitNode(node);
+  R visitContinueStatement(ContinueStatement node) => visitNode(node);
+  R visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
+  R visitDefaultFormalParameter(DefaultFormalParameter node) => visitNode(node);
+  R visitDoStatement(DoStatement node) => visitNode(node);
+  R visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
+  R visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);
+  R visitEmptyStatement(EmptyStatement node) => visitNode(node);
+  R visitExportDirective(ExportDirective node) => visitNode(node);
+  R visitExpressionFunctionBody(ExpressionFunctionBody node) => visitNode(node);
+  R visitExpressionStatement(ExpressionStatement node) => visitNode(node);
+  R visitExtendsClause(ExtendsClause node) => visitNode(node);
+  R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
+  R visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
+  R visitForEachStatement(ForEachStatement node) => visitNode(node);
+  R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+  R visitForStatement(ForStatement node) => visitNode(node);
+  R visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
+  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => visitNode(node);
+  R visitFunctionExpression(FunctionExpression node) => visitNode(node);
+  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => visitNode(node);
+  R visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
+  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => visitNode(node);
+  R visitHideCombinator(HideCombinator node) => visitNode(node);
+  R visitIfStatement(IfStatement node) => visitNode(node);
+  R visitImplementsClause(ImplementsClause node) => visitNode(node);
+  R visitImportDirective(ImportDirective node) => visitNode(node);
+  R visitIndexExpression(IndexExpression node) => visitNode(node);
+  R visitInstanceCreationExpression(InstanceCreationExpression node) => visitNode(node);
+  R visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
+  R visitInterpolationExpression(InterpolationExpression node) => visitNode(node);
+  R visitInterpolationString(InterpolationString node) => visitNode(node);
+  R visitIsExpression(IsExpression node) => visitNode(node);
+  R visitLabel(Label node) => visitNode(node);
+  R visitLabeledStatement(LabeledStatement node) => visitNode(node);
+  R visitLibraryDirective(LibraryDirective node) => visitNode(node);
+  R visitLibraryIdentifier(LibraryIdentifier node) => visitNode(node);
+  R visitListLiteral(ListLiteral node) => visitNode(node);
+  R visitMapLiteral(MapLiteral node) => visitNode(node);
+  R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+  R visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
+  R visitMethodInvocation(MethodInvocation node) => visitNode(node);
+  R visitNamedExpression(NamedExpression node) => visitNode(node);
+  R visitNativeClause(NativeClause node) => visitNode(node);
+  R visitNativeFunctionBody(NativeFunctionBody node) => visitNode(node);
+  R visitNode(ASTNode node) {
+    node.visitChildren(this);
+    return null;
+  }
+  R visitNullLiteral(NullLiteral node) => visitNode(node);
+  R visitParenthesizedExpression(ParenthesizedExpression node) => visitNode(node);
+  R visitPartDirective(PartDirective node) => visitNode(node);
+  R visitPartOfDirective(PartOfDirective node) => visitNode(node);
+  R visitPostfixExpression(PostfixExpression node) => visitNode(node);
+  R visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
+  R visitPrefixExpression(PrefixExpression node) => visitNode(node);
+  R visitPropertyAccess(PropertyAccess node) => visitNode(node);
+  R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => visitNode(node);
+  R visitRethrowExpression(RethrowExpression node) => visitNode(node);
+  R visitReturnStatement(ReturnStatement node) => visitNode(node);
+  R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+  R visitShowCombinator(ShowCombinator node) => visitNode(node);
+  R visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);
+  R visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
+  R visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+  R visitStringInterpolation(StringInterpolation node) => visitNode(node);
+  R visitSuperConstructorInvocation(SuperConstructorInvocation node) => visitNode(node);
+  R visitSuperExpression(SuperExpression node) => visitNode(node);
+  R visitSwitchCase(SwitchCase node) => visitNode(node);
+  R visitSwitchDefault(SwitchDefault node) => visitNode(node);
+  R visitSwitchStatement(SwitchStatement node) => visitNode(node);
+  R visitSymbolLiteral(SymbolLiteral node) => visitNode(node);
+  R visitThisExpression(ThisExpression node) => visitNode(node);
+  R visitThrowExpression(ThrowExpression node) => visitNode(node);
+  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => visitNode(node);
+  R visitTryStatement(TryStatement node) => visitNode(node);
+  R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+  R visitTypeName(TypeName node) => visitNode(node);
+  R visitTypeParameter(TypeParameter node) => visitNode(node);
+  R visitTypeParameterList(TypeParameterList node) => visitNode(node);
+  R visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
+  R visitVariableDeclarationList(VariableDeclarationList node) => visitNode(node);
+  R visitVariableDeclarationStatement(VariableDeclarationStatement node) => visitNode(node);
+  R visitWhileStatement(WhileStatement node) => visitNode(node);
+  R visitWithClause(WithClause node) => visitNode(node);
+}
+/**
  * Instances of the class `ASTCloner` implement an object that will clone any AST structure
  * that it visits. The cloner will only clone the structure, it will not preserve any resolution
  * results or properties associated with the nodes.
@@ -14461,10 +14504,6 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(node.newKeyword, clone2(node.identifier));
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
     CompilationUnit clone = new CompilationUnit.full(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
-    clone.lineInfo = node.lineInfo;
-    clone.parsingErrors = node.parsingErrors;
-    clone.resolutionErrors = node.resolutionErrors;
-    clone.hints = node.hints;
     return clone;
   }
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
@@ -14723,67 +14762,132 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
 /**
  * Instances of the class {@code NodeList} represent a list of AST nodes that have a common parent.
  */
-class NodeList<E extends ASTNode> extends ListWrapper<E> {
+class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
+  /**
+   * Create an empty list with the given owner. This is a convenience method that allows the
+   * compiler to determine the correct value of the type argument [E] without needing to
+   * explicitly specify it.
+   *
+   * @param owner the node that is the parent of each of the elements in the list
+   * @return the list that was created
+   */
+  static NodeList create(ASTNode owner) => new NodeList(owner);
+
   /**
    * The node that is the parent of each of the elements in the list.
    */
   ASTNode owner;
+
   /**
-   * The elements of the list.
+   * The elements contained in the list.
    */
-  List<E> elements = new List<E>();
+  List<E> _elements = <E> [];
+
   /**
    * Initialize a newly created list of nodes to be empty.
+   *
    * @param owner the node that is the parent of each of the elements in the list
    */
-  NodeList(ASTNode this.owner);
+  NodeList(this.owner);
+
   /**
    * Use the given visitor to visit each of the nodes in this list.
+   *
    * @param visitor the visitor to be used to visit the elements of this list
    */
   accept(ASTVisitor visitor) {
-    for (E element in elements) {
+    for (E element in _elements) {
       element.accept(visitor);
     }
   }
   void add(E node) {
+    insert(length, node);
+  }
+  void insert(int index, E node) {
+    int length = _elements.length;
+    if (index < 0 || index > length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
     owner.becomeParentOf(node);
-    elements.add(node);
+    if (length == 0) {
+      _elements = <E> [node];
+    } else {
+      List<E> newElements = new List<E>(length + 1);
+      JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
+      newElements[index] = node;
+      JavaSystem.arraycopy(_elements, index, newElements, index + 1, length - index);
+      _elements = newElements;
+    }
   }
   bool addAll(Iterable<E> nodes) {
-    if (nodes != null) {
+    if (nodes != null && !nodes.isEmpty) {
+      int oldCount = _elements.length;
+      int newCount = nodes.length;
+      List<E> newElements = new List<E>(oldCount + newCount);
+      JavaSystem.arraycopy(_elements, 0, newElements, 0, oldCount);
+      int index = oldCount;
       for (E node in nodes) {
-        add(node);
+        owner.becomeParentOf(node);
+        newElements[index++] = node;
       }
+      _elements = newElements;
       return true;
     }
     return false;
   }
+  E operator[](int index) {
+    if (index < 0 || index >= _elements.length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
+    return _elements[index] as E;
+  }
+
   /**
    * Return the first token included in this node's source range.
+   *
    * @return the first token included in this node's source range
    */
   Token get beginToken {
-    if (elements.isEmpty) {
+    if (_elements.length == 0) {
       return null;
     }
-    return elements[0].beginToken;
+    return _elements[0].beginToken;
   }
+
   /**
    * Return the last token included in this node list's source range.
+   *
    * @return the last token included in this node list's source range
    */
   Token get endToken {
-    if (elements.isEmpty) {
+    if (_elements.length == 0) {
       return null;
     }
-    return elements[elements.length - 1].endToken;
+    return _elements[_elements.length - 1].endToken;
   }
-  /**
-   * Return the node that is the parent of each of the elements in the list.
-   * @return the node that is the parent of each of the elements in the list
-   */
-  ASTNode getOwner() {
-    return owner;
+  E removeAt(int index) {
+    if (index < 0 || index >= _elements.length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
+    E removedNode = _elements[index] as E;
+    int length = _elements.length;
+    if (length == 1) {
+      _elements = ASTNode.EMPTY_ARRAY;
+      return removedNode;
+    }
+    List<E> newElements = new List<E>(length - 1);
+    JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
+    JavaSystem.arraycopy(_elements, index + 1, newElements, index, length - index - 1);
+    _elements = newElements;
+    return removedNode;
   }
+  void operator[]=(int index, E node) {
+    if (index < 0 || index >= _elements.length) {
+      throw new RangeError("Index: ${index}, Size: ${_elements.length}");
+    }
+    _elements[index] as E;
+    owner.becomeParentOf(node);
+    _elements[index] = node;
+  }
+  int get length => _elements.length;
 }

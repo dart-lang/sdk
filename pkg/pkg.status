@@ -290,5 +290,14 @@ observe/test/observe_test: fail
 # pkg issue 13945; Missing inherited member 'Trace.frames'
 observe/test/observe_test: fail
 
+[ $compiler == dart2analyzer ]
+# pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
+custom_element/test/analyzer_test: fail
+mdv/test/analyzer_test: fail
+observe/test/observe_test: fail
+
+# pkg issue 13945; Missing inherited member 'Trace.frames'
+observe/test/observe_test: fail
+
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 polymer/test/prop_attr_reflection_test: fail # Issue 14036

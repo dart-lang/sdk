@@ -18,3 +18,6 @@ dart2js_test: Skip # Uses dart:io.
 
 [ $compiler == dartanalyzer ]
 dart2js_test: fail # dart2js issue 13919 - excluded setter for final var
+
+[ $compiler == dart2analyzer ]
+dart2js_test: fail # dart2js issue 13919 - excluded setter for final var

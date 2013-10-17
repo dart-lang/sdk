@@ -114,6 +114,51 @@ class ElementLocationImplTest extends EngineTestCase {
     });
   }
 }
+class MultiplyDefinedElementImplTest extends EngineTestCase {
+  void test_fromElements_conflicting() {
+    Element firstElement = ElementFactory.localVariableElement2("xx");
+    Element secondElement = ElementFactory.localVariableElement2("yy");
+    Element result = MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement);
+    EngineTestCase.assertInstanceOf(MultiplyDefinedElement, result);
+    List<Element> elements = ((result as MultiplyDefinedElement)).conflictingElements;
+    EngineTestCase.assertLength(2, elements);
+    for (int i = 0; i < elements.length; i++) {
+      EngineTestCase.assertInstanceOf(LocalVariableElement, elements[i]);
+    }
+  }
+  void test_fromElements_multiple() {
+    Element firstElement = ElementFactory.localVariableElement2("xx");
+    Element secondElement = ElementFactory.localVariableElement2("yy");
+    Element thirdElement = ElementFactory.localVariableElement2("zz");
+    Element result = MultiplyDefinedElementImpl.fromElements(null, MultiplyDefinedElementImpl.fromElements(null, firstElement, secondElement), thirdElement);
+    EngineTestCase.assertInstanceOf(MultiplyDefinedElement, result);
+    List<Element> elements = ((result as MultiplyDefinedElement)).conflictingElements;
+    EngineTestCase.assertLength(3, elements);
+    for (int i = 0; i < elements.length; i++) {
+      EngineTestCase.assertInstanceOf(LocalVariableElement, elements[i]);
+    }
+  }
+  void test_fromElements_nonConflicting() {
+    Element element = ElementFactory.localVariableElement2("xx");
+    JUnitTestCase.assertSame(element, MultiplyDefinedElementImpl.fromElements(null, element, element));
+  }
+  static dartSuite() {
+    _ut.group('MultiplyDefinedElementImplTest', () {
+      _ut.test('test_fromElements_conflicting', () {
+        final __test = new MultiplyDefinedElementImplTest();
+        runJUnitTest(__test, __test.test_fromElements_conflicting);
+      });
+      _ut.test('test_fromElements_multiple', () {
+        final __test = new MultiplyDefinedElementImplTest();
+        runJUnitTest(__test, __test.test_fromElements_multiple);
+      });
+      _ut.test('test_fromElements_nonConflicting', () {
+        final __test = new MultiplyDefinedElementImplTest();
+        runJUnitTest(__test, __test.test_fromElements_nonConflicting);
+      });
+    });
+  }
+}
 class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
     JUnitTestCase.assertNotNull(new LibraryElementImpl(createAnalysisContext(), ASTFactory.libraryIdentifier2(["l"])));
@@ -205,16 +250,6 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 }
 class TypeParameterTypeImplTest extends EngineTestCase {
-  void fail_isMoreSpecificThan_typeArguments_object() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(ElementFactory.object.type));
-  }
-  void fail_isMoreSpecificThan_typeArguments_self() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
-  }
   void test_creation() {
     JUnitTestCase.assertNotNull(new TypeParameterTypeImpl(new TypeParameterElementImpl(ASTFactory.identifier3("E"))));
   }
@@ -222,6 +257,56 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     JUnitTestCase.assertEquals(element, type.element);
+  }
+  void test_isMoreSpecificThan_typeArguments_bottom() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(BottomTypeImpl.instance));
+  }
+  void test_isMoreSpecificThan_typeArguments_dynamic() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.instance));
+  }
+  void test_isMoreSpecificThan_typeArguments_object() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(ElementFactory.object.type));
+  }
+  void test_isMoreSpecificThan_typeArguments_resursive() {
+    ClassElementImpl classS = ElementFactory.classElement2("A", []);
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(ASTFactory.identifier3("U"));
+    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    typeParameterT.bound = typeParameterTypeU;
+    typeParameterU.bound = typeParameterTypeU;
+    JUnitTestCase.assertFalse(typeParameterTypeT.isMoreSpecificThan(classS.type));
+  }
+  void test_isMoreSpecificThan_typeArguments_self() {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(ASTFactory.identifier3("E"));
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    JUnitTestCase.assertTrue(type.isMoreSpecificThan(type));
+  }
+  void test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes() {
+    ClassElement classA = ElementFactory.classElement2("A", []);
+    ClassElement classB = ElementFactory.classElement("B", classA.type, []);
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    typeParameterT.bound = typeB;
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(typeA));
+  }
+  void test_isMoreSpecificThan_typeArguments_transitivity_typeParameters() {
+    ClassElementImpl classS = ElementFactory.classElement2("A", []);
+    TypeParameterElementImpl typeParameterU = new TypeParameterElementImpl(ASTFactory.identifier3("U"));
+    typeParameterU.bound = classS.type;
+    TypeParameterTypeImpl typeParameterTypeU = new TypeParameterTypeImpl(typeParameterU);
+    TypeParameterElementImpl typeParameterT = new TypeParameterElementImpl(ASTFactory.identifier3("T"));
+    typeParameterT.bound = typeParameterTypeU;
+    TypeParameterTypeImpl typeParameterTypeT = new TypeParameterTypeImpl(typeParameterT);
+    JUnitTestCase.assertTrue(typeParameterTypeT.isMoreSpecificThan(classS.type));
   }
   void test_isMoreSpecificThan_typeArguments_upperBound() {
     ClassElementImpl classS = ElementFactory.classElement2("A", []);
@@ -252,6 +337,34 @@ class TypeParameterTypeImplTest extends EngineTestCase {
       _ut.test('test_getElement', () {
         final __test = new TypeParameterTypeImplTest();
         runJUnitTest(__test, __test.test_getElement);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_bottom', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_bottom);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_dynamic', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_dynamic);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_object', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_object);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_resursive', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_resursive);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_self', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_self);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_transitivity_interfaceTypes);
+      });
+      _ut.test('test_isMoreSpecificThan_typeArguments_transitivity_typeParameters', () {
+        final __test = new TypeParameterTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_transitivity_typeParameters);
       });
       _ut.test('test_isMoreSpecificThan_typeArguments_upperBound', () {
         final __test = new TypeParameterTypeImplTest();
@@ -996,11 +1109,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertFalse(typeA.isSubtypeOf(typeC));
   }
   void test_isSubtypeOf_typeArguments() {
+    Type2 dynamicType = DynamicTypeImpl.instance;
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classI = ElementFactory.classElement2("I", []);
     ClassElement classJ = ElementFactory.classElement("J", classI.type, []);
     ClassElement classK = ElementFactory.classElement2("K", []);
     InterfaceType typeA = classA.type;
+    InterfaceType typeA_dynamic = typeA.substitute4(<Type2> [dynamicType]);
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
     InterfaceTypeImpl typeAJ = new InterfaceTypeImpl.con1(classA);
     InterfaceTypeImpl typeAK = new InterfaceTypeImpl.con1(classA);
@@ -1010,10 +1125,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(typeAJ.isSubtypeOf(typeAI));
     JUnitTestCase.assertFalse(typeAI.isSubtypeOf(typeAJ));
     JUnitTestCase.assertTrue(typeAI.isSubtypeOf(typeAI));
-    JUnitTestCase.assertTrue(typeA.isSubtypeOf(typeAI));
-    JUnitTestCase.assertTrue(typeA.isSubtypeOf(typeAJ));
-    JUnitTestCase.assertTrue(typeAI.isSubtypeOf(typeA));
-    JUnitTestCase.assertTrue(typeAJ.isSubtypeOf(typeA));
+    JUnitTestCase.assertTrue(typeA_dynamic.isSubtypeOf(typeAI));
+    JUnitTestCase.assertTrue(typeA_dynamic.isSubtypeOf(typeAJ));
+    JUnitTestCase.assertTrue(typeAI.isSubtypeOf(typeA_dynamic));
+    JUnitTestCase.assertTrue(typeAJ.isSubtypeOf(typeA_dynamic));
     JUnitTestCase.assertFalse(typeAI.isSubtypeOf(typeAK));
     JUnitTestCase.assertFalse(typeAK.isSubtypeOf(typeAI));
   }
@@ -2859,4 +2974,5 @@ main() {
   ElementLocationImplTest.dartSuite();
   ElementImplTest.dartSuite();
   LibraryElementImplTest.dartSuite();
+  MultiplyDefinedElementImplTest.dartSuite();
 }
