@@ -11,9 +11,13 @@ import 'package:polymer/polymer.dart';
 @CustomTag('my-element')
 class MyElement extends PolymerElement {
   MyElement.created() : super.created();
+
+  // This is here so that [attributes] can be read via mirrors in polymer
+  // expressions (@CustomTag in this class makes the attribute reflectable).
+  get attributes => super.attributes;
 }
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   test('attributes were deserialized', () {

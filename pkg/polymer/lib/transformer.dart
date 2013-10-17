@@ -25,7 +25,7 @@ List<List<Transformer>> createDeployPhases(TransformOptions options) {
   return [
     [new InlineCodeExtractor(options)],
     [new ObservableTransformer()],
-    [new ImportedElementInliner(options)],
+    [new ImportInliner(options)],
     [new ScriptCompactor(options)],
     [new PolyfillInjector(options)]
   ];

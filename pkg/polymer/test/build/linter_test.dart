@@ -15,10 +15,41 @@ import 'common.dart';
 void main() {
   useCompactVMConfiguration();
   _testLinter('nothing to report', {
-      'a|web/test.html': '<!DOCTYPE html><html></html>',
+      'a|lib/test.html': '<!DOCTYPE html><html></html>',
     }, {
-      'a|web/test.html.messages': '',
+      'a|lib/test.html.messages': ''
     });
+
+  group('must use init.dart, dart.js, not boot.js', () {
+    _testLinter('nothing to report', {
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '<script type="application/dart" src="packages/polymer/init.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, {
+        'a|web/test.html.messages': '',
+      });
+
+    _testLinter('missing init.dart and dart.js', {
+        'a|web/test.html': '<!DOCTYPE html><html></html>',
+      }, {
+        'a|web/test.html.messages': 'error: $USE_INIT_DART\n'
+                                    'error: $USE_DART_JS',
+      });
+
+    _testLinter('using deprecated boot.js', {
+        'a|web/test.html': '<!DOCTYPE html><html>\n'
+            '<script src="packages/polymer/boot.js"></script>'
+            '<script type="application/dart" src="packages/polymer/init.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+            '</html>',
+      }, {
+        'a|web/test.html.messages': 'warning: $BOOT_JS_DEPRECATED '
+                                    '(web/test.html 1 0)',
+      });
+  });
 
   group('doctype warning', () {
     _testLinter('in web', {
@@ -26,7 +57,9 @@ void main() {
       }, {
         'a|web/test.html.messages':
             'warning: Unexpected start tag (html). Expected DOCTYPE. '
-            '(web/test.html 0 0)',
+            '(web/test.html 0 0)\n'
+            'error: $USE_INIT_DART\n'
+            'error: $USE_DART_JS',
       });
 
     _testLinter('in lib', {

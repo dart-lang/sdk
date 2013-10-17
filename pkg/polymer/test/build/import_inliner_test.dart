@@ -13,7 +13,7 @@ import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
-  var phases = [[new ImportedElementInliner(new TransformOptions())]];
+  var phases = [[new ImportInliner(new TransformOptions())]];
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
@@ -264,6 +264,45 @@ void main() {
           '</head><body>'
           '<polymer-element>1</polymer-element>'
           '<polymer-element>2</polymer-element></body></html>',
+    });
+
+  testPhases('imports cycle, 1-step lasso, scripts too', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_1.html">'
+          '</head></html>',
+      'a|web/test_1.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_2.html">'
+          '</head><body><polymer-element>1</polymer-element>'
+          '<script src="s1"></script></html>',
+      'a|web/test_2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_1.html">'
+          '</head><body><polymer-element>2</polymer-element>'
+          '<script src="s2"></script></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<polymer-element>2</polymer-element>'
+          '<script src="s2"></script>'
+          '<polymer-element>1</polymer-element>'
+          '<script src="s1"></script></body></html>',
+      'a|web/test_1.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<polymer-element>2</polymer-element>'
+          '<script src="s2"></script>'
+          '<polymer-element>1</polymer-element>'
+          '<script src="s1"></script></body></html>',
+      'a|web/test_2.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<polymer-element>1</polymer-element>'
+          '<script src="s1"></script>'
+          '<polymer-element>2</polymer-element>'
+          '<script src="s2"></script></body></html>',
     });
 
   testPhases('imports cycle, 2-step lasso', phases, {

@@ -19,7 +19,7 @@ class MyElement extends PolymerElement {
   @published Object json;
 }
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   test('attributes were deserialized', () {

@@ -61,25 +61,20 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         return;
       }
 
-      if (!jsInteropFound) {
-        // JS interop code is required for Polymer CSS shimming.
+      _addScript(urlSegment) {
         document.body.nodes.insert(0, parseFragment(
-            '<script src="packages/browser/interop.js"></script>\n'));
+              '<script src="packages/$urlSegment"></script>\n'));
       }
 
+      // JS interop code is required for Polymer CSS shimming.
+      if (!jsInteropFound) _addScript('browser/interop.js');
       if (!customElementFound) {
-        document.body.nodes.insert(0, parseFragment(
-            '<script src="packages/custom_element/custom-elements.debug.js">'
-            '</script>\n'));
+        _addScript('custom_element/custom-elements.debug.js');
       }
 
-      if (!shadowDomFound) {
-        // Insert at the beginning (this polyfill needs to run as early as
-        // possible).
-        // TODO(jmesserly): this is .debug to workaround issue 13046.
-        document.body.nodes.insert(0, parseFragment(
-            '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n'));
-      }
+      // This polyfill needs to be the first one on the body
+      // TODO(jmesserly): this is .debug to workaround issue 13046.
+      if (!shadowDomFound) _addScript('shadow_dom/shadow_dom.debug.js');
 
       transform.addOutput(
           new Asset.fromString(transform.primaryInput.id, document.outerHtml));

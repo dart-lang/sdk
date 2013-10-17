@@ -46,7 +46,8 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
       for (var tag in document.queryAll('script')) {
         var src = tag.attributes['src'];
         if (src != null) {
-          if (src == 'packages/polymer/boot.js') {
+          if (src == 'packages/polymer/boot.js' ||
+              src == 'packages/polymer/init.dart') {
             tag.remove();
             continue;
           }
@@ -85,10 +86,8 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         document.body.nodes.add(bootstrapScript);
         document.body.nodes.add(parseFragment(
             '<script src="packages/browser/dart.js"></script>'));
-      } else if (dartLoaderTag.parent != document.body) {
-        document.body.nodes.add(bootstrapScript);
       } else {
-        document.body.insertBefore(bootstrapScript, dartLoaderTag);
+        dartLoaderTag.parent.insertBefore(bootstrapScript, dartLoaderTag);
       }
 
       var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
@@ -111,8 +110,6 @@ const MAIN_HEADER = """
 library app_bootstrap;
 
 import 'package:polymer/polymer.dart';
-@MirrorsUsed(symbols: 'main', override: 'app_bootstrap')
-import 'dart:mirrors' show currentMirrorSystem, MirrorsUsed;
 """;
 
 const _mainPrefix = """
@@ -121,8 +118,7 @@ void main() {
   initPolymer([
 """;
 
-// TODO(sigmund): investigate alternative to get the baseUri (dartbug.com/12612)
 const _mainSuffix = """
-    ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+    ]);
 }
 """;

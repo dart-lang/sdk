@@ -408,7 +408,7 @@ abstract class Polymer implements Element {
 
   void asyncUnbindAll() {
     if (_unbound == true) return;
-    _unbindLog.info('[$localName] asyncUnbindAll');
+    _unbindLog.fine('[$localName] asyncUnbindAll');
     _unbindAllJob = job(_unbindAllJob, unbindAll, const Duration(seconds: 0));
   }
 
@@ -432,7 +432,7 @@ abstract class Polymer implements Element {
           '[$localName] already unbound, cannot cancel unbindAll');
       return;
     }
-    _unbindLog.info('[$localName] cancelUnbindAll');
+    _unbindLog.fine('[$localName] cancelUnbindAll');
     if (_unbindAllJob != null) {
       _unbindAllJob.stop();
       _unbindAllJob = null;
@@ -491,7 +491,7 @@ abstract class Polymer implements Element {
   }
 
   void _observe(String name, void callback(newValue, oldValue)) {
-    _observeLog.info('[$localName] watching [$name]');
+    _observeLog.fine('[$localName] watching [$name]');
     // TODO(jmesserly): this is a little different than the JS version so we
     // can pass the oldValue, which is missing from Dart's PathObserver.
     // This probably gives us worse performance.
@@ -565,8 +565,8 @@ abstract class Polymer implements Element {
   static NodeBinding _bindProperties(Polymer inA, Symbol inProperty,
         Object inB, String inPath) {
 
-    if (_bindLog.isLoggable(Level.INFO)) {
-      _bindLog.info('[$inB]: bindProperties: [$inPath] to '
+    if (_bindLog.isLoggable(Level.FINE)) {
+      _bindLog.fine('[$inB]: bindProperties: [$inPath] to '
           '[${inA.localName}].[$inProperty]');
     }
 
@@ -590,8 +590,8 @@ abstract class Polymer implements Element {
     var events = _declaration._eventDelegates;
     if (events.isEmpty) return;
 
-    if (_eventsLog.isLoggable(Level.INFO)) {
-      _eventsLog.info('[$localName] addHostListeners: $events');
+    if (_eventsLog.isLoggable(Level.FINE)) {
+      _eventsLog.fine('[$localName] addHostListeners: $events');
     }
     addNodeListeners(this, events.keys, hostEventListener);
   }
@@ -603,8 +603,8 @@ abstract class Polymer implements Element {
     var events = templateDelegates[template];
     if (events == null) return;
 
-    if (_eventsLog.isLoggable(Level.INFO)) {
-      _eventsLog.info('[$localName] addInstanceListeners: $events');
+    if (_eventsLog.isLoggable(Level.FINE)) {
+      _eventsLog.fine('[$localName] addInstanceListeners: $events');
     }
     addNodeListeners(root, events, instanceEventListener);
   }
@@ -626,14 +626,14 @@ abstract class Polymer implements Element {
     // https://github.com/Polymer/polymer/issues/292
     if (!event.bubbles) return;
 
-    bool log = _eventsLog.isLoggable(Level.INFO);
+    bool log = _eventsLog.isLoggable(Level.FINE);
     if (log) {
-      _eventsLog.info('>>> [$localName]: hostEventListener(${event.type})');
+      _eventsLog.fine('>>> [$localName]: hostEventListener(${event.type})');
     }
 
     var h = findEventDelegate(event);
     if (h != null) {
-      if (log) _eventsLog.info('[$localName] found host handler name [$h]');
+      if (log) _eventsLog.fine('[$localName] found host handler name [$h]');
       var detail = event is CustomEvent ?
           (event as CustomEvent).detail : null;
       // TODO(jmesserly): cache the symbols?
@@ -641,7 +641,7 @@ abstract class Polymer implements Element {
     }
 
     if (log) {
-      _eventsLog.info('<<< [$localName]: hostEventListener(${event.type})');
+      _eventsLog.fine('<<< [$localName]: hostEventListener(${event.type})');
     }
   }
 
@@ -651,8 +651,8 @@ abstract class Polymer implements Element {
   /** Call [methodName] method on [this] with [args], if the method exists. */
   // TODO(jmesserly): I removed the [node] argument as it was unused. Reconcile.
   void dispatchMethod(Symbol methodName, List args) {
-    bool log = _eventsLog.isLoggable(Level.INFO);
-    if (log) _eventsLog.info('>>> [$localName]: dispatch $methodName');
+    bool log = _eventsLog.isLoggable(Level.FINE);
+    if (log) _eventsLog.fine('>>> [$localName]: dispatch $methodName');
 
     // TODO(sigmund): consider making event listeners list all arguments
     // explicitly. Unless VM mirrors are optimized first, this reflectClass call
@@ -669,7 +669,7 @@ abstract class Polymer implements Element {
     }
     self.invoke(methodName, args);
 
-    if (log) _eventsLog.info('<<< [$localName]: dispatch $methodName');
+    if (log) _eventsLog.fine('<<< [$localName]: dispatch $methodName');
 
     // TODO(jmesserly): workaround for HTML events not supporting zones.
     performMicrotaskCheckpoint();
@@ -686,8 +686,8 @@ abstract class Polymer implements Element {
     // https://github.com/Polymer/polymer/issues/292
     if (!event.bubbles) return;
 
-    bool log = _eventsLog.isLoggable(Level.INFO);
-    if (log) _eventsLog.info('>>> [$localName]: listenLocal [${event.type}]');
+    bool log = _eventsLog.isLoggable(Level.FINE);
+    if (log) _eventsLog.fine('>>> [$localName]: listenLocal [${event.type}]');
 
     final eventOn = '$_EVENT_PREFIX${_eventNameFromType(event.type)}';
     if (event.path == null) {
@@ -696,7 +696,7 @@ abstract class Polymer implements Element {
       _listenLocalEventPath(host, event, eventOn);
     }
 
-    if (log) _eventsLog.info('<<< [$localName]: listenLocal [${event.type}]');
+    if (log) _eventsLog.fine('<<< [$localName]: listenLocal [${event.type}]');
   }
 
   static void _listenLocalEventPath(Polymer host, Event event, String eventOn) {
@@ -726,8 +726,8 @@ abstract class Polymer implements Element {
   static void _listenLocalNoEventPath(Polymer host, Event event,
       String eventOn) {
 
-    if (_eventsLog.isLoggable(Level.INFO)) {
-      _eventsLog.info('event.path() not supported for ${event.type}');
+    if (_eventsLog.isLoggable(Level.FINE)) {
+      _eventsLog.fine('event.path() not supported for ${event.type}');
     }
 
     var target = event.target;
@@ -764,8 +764,8 @@ abstract class Polymer implements Element {
     // listener, and if so, to determine lazily what's the target method.
     var name = node is Element ? (node as Element).attributes[eventOn] : null;
     if (name != null && _handleIfNotHandled(node, event)) {
-      if (_eventsLog.isLoggable(Level.INFO)) {
-        _eventsLog.info('[${ctrlr.localName}] found handler name [$name]');
+      if (_eventsLog.isLoggable(Level.FINE)) {
+        _eventsLog.fine('[${ctrlr.localName}] found handler name [$name]');
       }
       var detail = event is CustomEvent ?
           (event as CustomEvent).detail : null;

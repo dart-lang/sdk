@@ -47,7 +47,8 @@ class Linter extends Transformer with PolymerTransformer {
     seen.add(id);
     return readPrimaryAsHtml(wrapper).then((document) {
       return _collectElements(document, id, wrapper, seen).then((elements) {
-        new _LinterVisitor(wrapper, elements).visit(document);
+        bool isEntrypoint = options.isHtmlEntryPoint(id);
+        new _LinterVisitor(wrapper, elements, isEntrypoint).run(document);
         var messagesId = id.addExtension('.messages');
         wrapper.addOutput(new Asset.fromString(messagesId,
             wrapper._messages.join('\n')));
@@ -90,7 +91,8 @@ class Linter extends Transformer with PolymerTransformer {
       var href = tag.attributes['href'];
       var span = tag.sourceSpan;
       var id = resolve(sourceId, href, logger, span);
-      if (id == null) continue;
+      if (id == null ||
+          (id.package == 'polymer' && id.path == 'lib/init.html')) continue;
       importIds.add(assetExists(id, transform).then((exists) {
         if (exists) return id;
         if (sourceId == transform.primaryInput.id) {
@@ -218,9 +220,12 @@ class _ElementSummary {
 class _LinterVisitor extends TreeVisitor {
   TransformLogger _logger;
   bool _inPolymerElement = false;
+  bool _dartJSSeen = false;
+  bool _initSeen = false;
+  bool _isEntrypoint;
   Map<String, _ElementSummary> _elements;
 
-  _LinterVisitor(this._logger, this._elements) {
+  _LinterVisitor(this._logger, this._elements, this._isEntrypoint) {
     // We normalize the map, so each element has a direct reference to any
     // element it extends from.
     for (var tag in _elements.values) {
@@ -243,10 +248,29 @@ class _LinterVisitor extends TreeVisitor {
     }
   }
 
+  void run(Document doc) {
+    visit(doc);
+
+    if (_isEntrypoint && !_initSeen) {
+      _logger.error(USE_INIT_DART, span: doc.body.sourceSpan);
+    } 
+
+    if (_isEntrypoint && !_dartJSSeen) {
+      // TODO(sigmund): remove this when webkitStartDart is gone.
+      _logger.error(USE_DART_JS, span: doc.body.sourceSpan);
+    }
+  }
+
   /** Produce warnings for invalid link-rel tags. */
   void _validateLinkElement(Element node) {
     var rel = node.attributes['rel'];
     if (rel != 'import' && rel != 'stylesheet') return;
+
+    if (rel == 'import' && _initSeen) {
+      _logger.warning(
+          "Move HTML imports above the 'polymer/init.dart' script tag",
+          span: node.sourceSpan);
+    }
 
     var href = node.attributes['href'];
     if (href != null && href != '') return;
@@ -340,22 +364,40 @@ class _LinterVisitor extends TreeVisitor {
             'be treated as JavaScript. Did you forget type="application/dart"?',
             span: node.sourceSpan);
       }
+    }
+
+    if (src == null) return;
+
+    if (src == 'packages/polymer/boot.js') {
+      _logger.warning(BOOT_JS_DEPRECATED, span: node.sourceSpan);
+      return;
+    }
+    if (src == 'packages/browser/dart.js' ||
+        src == 'packages/unittest/test_controller.js') {
+      _dartJSSeen = true;
+      return;
+    }
+
+    if (src == 'packages/polymer/init.dart') {
+      _initSeen = true;
+      if (scriptType != 'application/dart') {
+        _logger.warning('wrong script type, expected type="application/dart".',
+            span: node.sourceSpan);
+      }
       return;
     }
 
     if (scriptType != 'application/dart') return;
 
-    if (src != null) {
-      if (!src.endsWith('.dart')) {
-        _logger.warning('"application/dart" scripts should '
-            'use the .dart file extension.',
-            span: node.sourceSpan);
-      }
+    if (!src.endsWith('.dart')) {
+      _logger.warning('"application/dart" scripts should '
+          'use the .dart file extension.',
+          span: node.sourceSpan);
+    }
 
-      if (node.innerHtml.trim() != '') {
-        _logger.warning('script tag has "src" attribute and also has script '
-            'text.', span: node.sourceSpan);
-      }
+    if (node.innerHtml.trim() != '') {
+      _logger.warning('script tag has "src" attribute and also has script '
+          'text.', span: node.sourceSpan);
     }
   }
 
@@ -497,6 +539,24 @@ bool _isCustomTag(String name) {
   return !_invalidTagNames.containsKey(name);
 }
 
-final String _RED_COLOR = '\u001b[31m';
-final String _MAGENTA_COLOR = '\u001b[35m';
-final String _NO_COLOR = '\u001b[0m';
+const String _RED_COLOR = '\u001b[31m';
+const String _MAGENTA_COLOR = '\u001b[35m';
+const String _NO_COLOR = '\u001b[0m';
+
+const String USE_INIT_DART = 
+    'To run a polymer applications, make sure to include '
+    '\'<script type="application/dart" src="packages/polymer/init.dart">'
+    '</script>\' in your page, after all HTML imports.';
+
+const String USE_DART_JS =
+    'To run a polymer applications in Dartium, make sure to include'
+    '\'<script src="packages/browser/dart.js"></script>\' in your page';
+
+const String BOOT_JS_DEPRECATED = 
+    '"boot.js" is now deprecated. Instead, you can initialize your polymer '
+    'application by calling "initPolymer()" in your main. If you don\'t have a '
+    'main, then you can include our generic main by adding the following '
+    'script tag to your page: \'<script type="application/dart" '
+    'src="packages/polymer/init.dart"> </script>\'. Additionally you need to '
+    'include: \'<script src="packages/browser/dart.js"></script>\' in the page '
+    'too. Make sure these script tags come after all HTML imports.';

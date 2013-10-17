@@ -988,7 +988,7 @@ class StandardTestSuite extends TestSuite {
         // If necessary, run the Polymer deploy steps.
         // TODO(jmesserly): this should be generalized for any tests that
         // require Pub deploy, not just polymer.
-        if (customHtml.readAsStringSync().contains('polymer/boot.js')) {
+        if (customHtml.readAsStringSync().contains('polymer/init.dart')) {
           if (compiler != 'none') {
             commands.add(_polymerDeployCommand(
                 customHtmlPath, tempDir, optionsFromFile));

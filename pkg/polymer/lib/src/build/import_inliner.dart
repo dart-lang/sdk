@@ -13,13 +13,14 @@ import 'package:html5lib/dom.dart' show Document, Node, DocumentFragment;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
 import 'common.dart';
 
-/** Recursively inlines polymer-element definitions from html imports. */
-// TODO(sigmund): make sure we match semantics of html-imports for tags other
-// than polymer-element (see dartbug.com/12613).
-class ImportedElementInliner extends Transformer with PolymerTransformer {
+/** Recursively inlines the contents of HTML imports. */
+// TODO(sigmund): currently we just inline polymer-element and script tags, we
+// need to make sure we match semantics of html-imports for other tags too.
+// (see dartbug.com/12613).
+class ImportInliner extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
-  ImportedElementInliner(this.options);
+  ImportInliner(this.options);
 
   /** Only run on entry point .html files. */
   Future<bool> isPrimary(Asset input) =>
@@ -53,9 +54,9 @@ class ImportedElementInliner extends Transformer with PolymerTransformer {
   }
 
   /**
-   * Visits imports in [document] and add their polymer-element definitions to
-   * [elements], unless they have already been [seen]. Elements are added in the
-   * order they appear, transitive imports are added first.
+   * Visits imports in [document] and add their polymer-element and script tags
+   * to [elements], unless they have already been [seen]. Elements are added in
+   * the order they appear, transitive imports are added first.
    */
   Future<bool> _visitImports(Document document, AssetId sourceId,
       Transform transform, Set<AssetId> seen, List<Node> elements) {
@@ -66,7 +67,8 @@ class ImportedElementInliner extends Transformer with PolymerTransformer {
       var href = tag.attributes['href'];
       var id = resolve(sourceId, href, transform.logger, tag.sourceSpan);
       hasImports = true;
-      if (id == null || seen.contains(id)) continue;
+      if (id == null || seen.contains(id) ||
+         (id.package == 'polymer' && id.path == 'lib/init.html')) continue;
       importIds.add(id);
     }
 
@@ -76,25 +78,37 @@ class ImportedElementInliner extends Transformer with PolymerTransformer {
     return Future.forEach(importIds, (id) {
       if (seen.contains(id)) return new Future.value(null);
       seen.add(id);
-      return _collectPolymerElements(id, transform, seen, elements);
+      return _collectElements(id, transform, seen, elements);
     }).then((_) => true);
   }
 
   /**
    * Loads an asset identified by [id], visits its imports and collects it's
-   * polymer-element definitions.
+   * polymer-element definitions and script tags.
    */
-  Future _collectPolymerElements(AssetId id, Transform transform,
+  Future _collectElements(AssetId id, Transform transform,
       Set<AssetId> seen, List elements) {
     return readAsHtml(id, transform).then((document) {
       return _visitImports(document, id, transform, seen, elements).then((_) {
-        var normalizer = new _UrlNormalizer(transform, id);
-        for (var element in document.queryAll('polymer-element')) {
-          normalizer.visit(document);
-          elements.add(element);
-        }
+        new _UrlNormalizer(transform, id).visit(document);
+        new _InlineQuery(elements).visit(document);
       });
     });
+  }
+}
+
+/** Implements document.queryAll('polymer-element,script'). */
+// TODO(sigmund): delete this (dartbug.com/14135)
+class _InlineQuery extends TreeVisitor {
+  final List<Element> elements;
+  _InlineQuery(this.elements);
+
+  visitElement(Element node) {
+    if (node.tagName == 'polymer-element' || node.tagName == 'script') {
+      elements.add(node);
+    } else {
+      super.visitElement(node);
+    }
   }
 }
 
@@ -111,7 +125,7 @@ class _UrlNormalizer extends TreeVisitor {
     for (var key in node.attributes.keys) {
       if (_urlAttributes.contains(key)) {
         var url = node.attributes[key];
-        if (url != null && url != '') {
+        if (url != null && url != '' && !url.startsWith('{{')) {
           node.attributes[key] = _newUrl(url, node.sourceSpan);
         }
       }

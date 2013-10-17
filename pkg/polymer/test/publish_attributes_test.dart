@@ -41,7 +41,7 @@ class XSquid extends XZot {
   @published int squid = 7;
 }
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   test('published properties', () {

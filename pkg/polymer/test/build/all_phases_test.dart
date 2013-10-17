@@ -51,7 +51,7 @@ void main() {
           void main() {
             initPolymer([
                 'a.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.dart': _sampleObservableOutput('A', 'foo'),
@@ -80,7 +80,7 @@ void main() {
           void main() {
             initPolymer([
                 'test.html.0.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
@@ -123,7 +123,7 @@ void main() {
                 'test.html.0.dart',
                 'test.html.1.dart',
                 'd.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
@@ -168,7 +168,7 @@ void main() {
                 'test2.html.0.dart',
                 'b.dart',
                 'index.html.0.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),

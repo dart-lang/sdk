@@ -7,7 +7,6 @@ https://github.com/dglazkov/Web-Components-Polyfill/blob/master/samples/news
 <head>
     <title>Simple Web Components Example</title>
     <link rel="import" href="news-component.html">
-    <script src='packages/polymer/boot.js'></script>
 </head>
 <body>
 <h1>Simple Web Components Example</h1>
@@ -19,6 +18,7 @@ https://github.com/dglazkov/Web-Components-Polyfill/blob/master/samples/news
     <li><a href="//example.com/stories/4">Awesome story</a></li>
     <li class="breaking"><a href="//example.com/stories/5">Horrible story</a></li>
 </ul>
-  <script type="application/dart">main() {}</script>
+  <script type="application/dart" src="packages/polymer/init.dart"></script>
+  <script src='packages/browser/dart.js'></script>
 </body>
 </html>
