@@ -1017,10 +1017,10 @@ abstract class HInstruction implements Spannable {
   // Compute the set of users of this instruction that is dominated by
   // [other]. If [other] is a user of [this], it is included in the
   // returned set.
-  Set<HInstruction> dominatedUsers(HInstruction other) {
+  Setlet<HInstruction> dominatedUsers(HInstruction other) {
     // Keep track of all instructions that we have to deal with later
     // and count the number of them that are in the current block.
-    Set<HInstruction> users = new Set<HInstruction>();
+    Setlet<HInstruction> users = new Setlet<HInstruction>();
     int usersInCurrentBlock = 0;
 
     // Run through all the users and see if they are dominated or
@@ -1063,7 +1063,7 @@ abstract class HInstruction implements Spannable {
 
   void replaceAllUsersDominatedBy(HInstruction cursor,
                                   HInstruction newInstruction) {
-    Set<HInstruction> users = dominatedUsers(cursor);
+    Setlet<HInstruction> users = dominatedUsers(cursor);
     for (HInstruction user in users) {
       user.changeUse(this, newInstruction);
     }

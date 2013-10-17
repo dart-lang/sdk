@@ -342,7 +342,7 @@ class WorkQueue {
     element.inQueue = true;
   }
 
-  void addAll(all) {
+  void addAll(Iterable<TypeInformation> all) {
     all.forEach(add);
   }
 
@@ -751,9 +751,7 @@ class TypeGraphInferrerEngine
     List<Element> result = <Element>[];
     for (int i = 0; i <= max; i++) {
       Setlet<Element> set = methodSizes[i];
-      if (set != null) {
-        set.forEach((each) => result.add(each));
-      }
+      if (set != null) result.addAll(set);
     }
     return result;
   }

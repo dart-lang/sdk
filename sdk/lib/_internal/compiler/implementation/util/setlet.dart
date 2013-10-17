@@ -4,7 +4,9 @@
 
 library dart2js.util.setlet;
 
-class Setlet<E> {
+import 'dart:collection' show IterableBase;
+
+class Setlet<E> extends IterableBase<E> {
   static const _MARKER = const _SetletMarker();
   static const CAPACITY = 8;
 
@@ -19,6 +21,11 @@ class Setlet<E> {
   // may have empty slots filled with the marker value.
   var _contents = _MARKER;
   var _extra;
+
+  Setlet();
+  Setlet.from(Iterable<E> elements) {
+    addAll(elements);
+  }
 
   Iterator<E> get iterator {
     if (_extra == null) {
@@ -149,6 +156,10 @@ class Setlet<E> {
         _extra = _MARKER;
       }
     }
+  }
+
+  void addAll(Iterable<E> elements) {
+    elements.forEach((each) => add(each));
   }
 
   void forEach(void action(E element)) {

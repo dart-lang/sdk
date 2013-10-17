@@ -155,14 +155,14 @@ class FunctionSetNode {
     assert(selector.name == name);
     FunctionSetQuery result = cache[selector];
     if (result != null) return result;
-    Set<Element> functions;
+    Setlet<Element> functions;
     for (Element element in elements) {
       if (selector.appliesUnnamed(element, compiler)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
           // lists when the filtering produced no results.
-          functions = new Set<Element>();
+          functions = new Setlet<Element>();
         }
         functions.add(element);
       }
@@ -180,7 +180,7 @@ class FunctionSetNode {
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
-          functions = new Set<Element>.from(noSuchMethodQuery.functions);
+          functions = new Setlet<Element>.from(noSuchMethodQuery.functions);
         } else {
           functions.addAll(noSuchMethodQuery.functions);
         }

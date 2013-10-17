@@ -149,7 +149,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
 
   void run() {
     // Add the assignments found at allocation site.
-    container.elementType.assignments.forEach((each) => assignments.add(each));
+    assignments.addAll(container.elementType.assignments);
 
     // Collect the [TypeInformation] where the container can flow in,
     // as well as the operations done on all these [TypeInformation]s.

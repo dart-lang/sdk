@@ -1533,7 +1533,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void changeUsesDominatedBy(HBasicBlock dominator,
                              HInstruction input,
                              HType convertedType) {
-    Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
+    Setlet<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
     HTypeKnown newInput = new HTypeKnown(convertedType, input);

@@ -6,10 +6,10 @@ part of resolution;
 
 abstract class TreeElements {
   Element get currentElement;
-  Set<Node> get superUses;
+  Setlet<Node> get superUses;
 
   /// A set of additional dependencies.  See [registerDependency] below.
-  Set<Element> get otherDependencies;
+  Setlet<Element> get otherDependencies;
 
   Element operator[](Node node);
   Selector getSelector(Send send);
@@ -58,16 +58,17 @@ class TreeElementMapping implements TreeElements {
   final Element currentElement;
   final Map<Spannable, Selector> selectors = new Map<Spannable, Selector>();
   final Map<Node, DartType> types = new Map<Node, DartType>();
-  final Set<Node> superUses = new Set<Node>();
-  final Set<Element> otherDependencies = new Set<Element>();
+  final Setlet<Node> superUses = new Setlet<Node>();
+  final Setlet<Element> otherDependencies = new Setlet<Element>();
   final Map<Node, Constant> constants = new Map<Node, Constant>();
-  final Set<VariableElement> potentiallyMutated = new Set<VariableElement>();
-  final Map<Node, Set<VariableElement>> potentiallyMutatedIn =
-      new Map<Node, Set<VariableElement>>();
-  final Set<VariableElement> potentiallyMutatedInClosure =
-      new Set<VariableElement>();
-  final Map<Node, Set<VariableElement>> accessedByClosureIn =
-      new Map<Node, Set<VariableElement>>();
+  final Setlet<VariableElement> potentiallyMutated =
+      new Setlet<VariableElement>();
+  final Map<Node, Setlet<VariableElement>> potentiallyMutatedIn =
+      new Map<Node, Setlet<VariableElement>>();
+  final Setlet<VariableElement> potentiallyMutatedInClosure =
+      new Setlet<VariableElement>();
+  final Map<Node, Setlet<VariableElement>> accessedByClosureIn =
+      new Map<Node, Setlet<VariableElement>>();
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
 
@@ -187,13 +188,13 @@ class TreeElementMapping implements TreeElements {
   }
 
   bool isPotentiallyMutatedIn(Node node, VariableElement element) {
-    Set<Element> mutatedIn = potentiallyMutatedIn[node];
+    Setlet<Element> mutatedIn = potentiallyMutatedIn[node];
     return mutatedIn != null && mutatedIn.contains(element);
   }
 
   void setPotentiallyMutatedIn(Node node, VariableElement element) {
     potentiallyMutatedIn.putIfAbsent(
-        node, () => new Set<VariableElement>()).add(element);
+        node, () => new Setlet<VariableElement>()).add(element);
   }
 
   bool isPotentiallyMutatedInClosure(VariableElement element) {
@@ -205,13 +206,13 @@ class TreeElementMapping implements TreeElements {
   }
 
   bool isAccessedByClosureIn(Node node, VariableElement element) {
-    Set<Element> accessedIn = accessedByClosureIn[node];
+    Setlet<Element> accessedIn = accessedByClosureIn[node];
     return accessedIn != null && accessedIn.contains(element);
   }
 
   void setAccessedByClosureIn(Node node, VariableElement element) {
     accessedByClosureIn.putIfAbsent(
-        node, () => new Set<VariableElement>()).add(element);
+        node, () => new Setlet<VariableElement>()).add(element);
   }
 
   String toString() => 'TreeElementMapping($currentElement)';
@@ -274,7 +275,7 @@ class ResolverTask extends CompilerTask {
                                      Node node,
                                      FunctionElement constructor,
                                      FunctionElement redirection) {
-    Set<FunctionElement> seen = new Set<FunctionElement>();
+    Setlet<FunctionElement> seen = new Setlet<FunctionElement>();
     seen.add(constructor);
     while (redirection != null) {
       if (seen.contains(redirection)) {
@@ -778,7 +779,7 @@ class ResolverTask extends CompilerTask {
                            MixinApplicationElement mixinApplication,
                            ClassElement mixin) {
     if (resolutionTree == null) return;
-    Set<Node> superUses = resolutionTree.superUses;
+    Setlet<Node> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
     compiler.reportError(mixinApplication,
                          MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
@@ -3513,7 +3514,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
 
-    var nameSet = new Set<SourceString>();
+    var nameSet = new Setlet<SourceString>();
     // Resolve the bounds of type variables.
     Link<DartType> typeLink = element.typeVariables;
     Link<Node> nodeLink = node.nodes;

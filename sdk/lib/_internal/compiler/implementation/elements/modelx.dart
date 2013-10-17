@@ -447,9 +447,9 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
 
   bool isAmbiguous() => true;
 
-  Set flatten() {
+  Setlet flatten() {
     Element element = this;
-    var set = new Set();
+    var set = new Setlet();
     while (element.isAmbiguous()) {
       AmbiguousElement ambiguous = element;
       set.add(ambiguous.newElement);
@@ -460,7 +460,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   }
 
   void diagnose(Element context, DiagnosticListener listener) {
-    Set ambiguousElements = flatten();
+    Setlet ambiguousElements = flatten();
     MessageKind code = (ambiguousElements.length == 1)
         ? MessageKind.AMBIGUOUS_REEXPORT : MessageKind.AMBIGUOUS_LOCATION;
     LibraryElementX importer = context.getLibrary();
@@ -1957,12 +1957,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
                      {includeBackendMembers: false,
                       includeSuperAndInjectedMembers: false}) {
     bool includeInjectedMembers = includeSuperAndInjectedMembers || isPatch;
-    Set<ClassElement> seen = new Set<ClassElement>();
     ClassElement classElement = declaration;
     do {
-      if (seen.contains(classElement)) return;
-      seen.add(classElement);
-
       // Iterate through the members in textual order, which requires
       // to reverse the data structure [localMembers] we created.
       // Textual order may be important for certain operations, for
@@ -1981,7 +1977,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
       classElement = includeSuperAndInjectedMembers
           ? classElement.superclass
           : null;
-    } while(classElement != null);
+    } while (classElement != null);
   }
 
   /**

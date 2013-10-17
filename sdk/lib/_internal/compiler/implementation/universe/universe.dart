@@ -21,63 +21,54 @@ class Universe {
    * Invariant: Elements are declaration elements.
    */
   // TODO(karlklose): these sets should be merged.
-  final Set<ClassElement> instantiatedClasses;
-  final Set<DartType> instantiatedTypes;
+  final Set<ClassElement> instantiatedClasses = new Set<ClassElement>();
+  final Set<DartType> instantiatedTypes = new Set<DartType>();
 
   /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: Elements are declaration elements.
    */
-  final Set<FunctionElement> staticFunctionsNeedingGetter;
-  final Map<SourceString, Set<Selector>> invokedNames;
-  final Map<SourceString, Set<Selector>> invokedGetters;
-  final Map<SourceString, Set<Selector>> invokedSetters;
+  final Set<FunctionElement> staticFunctionsNeedingGetter =
+      new Set<FunctionElement>();
+  final Map<SourceString, Set<Selector>> invokedNames =
+      new Map<SourceString, Set<Selector>>();
+  final Map<SourceString, Set<Selector>> invokedGetters =
+      new Map<SourceString, Set<Selector>>();
+  final Map<SourceString, Set<Selector>> invokedSetters =
+      new Map<SourceString, Set<Selector>>();
 
   /**
    * Fields accessed. Currently only the codegen knows this
    * information. The resolver is too conservative when seeing a
    * getter and only registers an invoked getter.
    */
-  final Set<Element> fieldGetters;
+  final Set<Element> fieldGetters = new Set<Element>();
 
   /**
    * Fields set. See comment in [fieldGetters].
    */
-  final Set<Element> fieldSetters;
-  final Set<DartType> isChecks;
+  final Set<Element> fieldSetters = new Set<Element>();
+  final Set<DartType> isChecks = new Set<DartType>();
 
   /**
    * Set of [:call:] methods in instantiated classes that use type variables
    * in their signature.
    */
-  final Set<Element> genericCallMethods;
+  final Set<Element> genericCallMethods = new Set<Element>();
 
   /**
    * Set of closures that use type variables in their signature.
    */
-  final Set<Element> genericClosures;
+  final Set<Element> genericClosures = new Set<Element>();
 
   /**
    * Set of methods in instantiated classes that are potentially
    * closurized.
    */
-  final Set<Element> closurizedMembers;
+  final Set<Element> closurizedMembers = new Set<Element>();
 
   bool usingFactoryWithTypeArguments = false;
-
-  Universe() : instantiatedClasses = new Set<ClassElement>(),
-               instantiatedTypes = new Set<DartType>(),
-               staticFunctionsNeedingGetter = new Set<FunctionElement>(),
-               invokedNames = new Map<SourceString, Set<Selector>>(),
-               invokedGetters = new Map<SourceString, Set<Selector>>(),
-               invokedSetters = new Map<SourceString, Set<Selector>>(),
-               fieldGetters = new Set<Element>(),
-               fieldSetters = new Set<Element>(),
-               isChecks = new Set<DartType>(),
-               genericCallMethods = new Set<Element>(),
-               genericClosures = new Set<Element>(),
-               closurizedMembers = new Set<Element>();
 
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
