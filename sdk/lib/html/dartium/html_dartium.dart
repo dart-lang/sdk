@@ -7646,7 +7646,7 @@ class DivElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 /**
  * The base class for all documents.
  *
@@ -9553,7 +9553,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
 }
 
-@DocsEditable
+@DocsEditable()
 /**
  * An abstract class, which all HTML elements extend.
  */
@@ -27456,7 +27456,7 @@ class WheelEvent extends MouseEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('Window')
 class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 {
 
