@@ -152,7 +152,7 @@ $!MEMBERS
      }
 
     if (!isNative) {
-      var doc = _getTemplateContentsOwner(templateElement.document);
+      var doc = _getTemplateContentsOwner(templateElement.ownerDocument);
       templateElement._templateContent = doc.createDocumentFragment();
     }
 
@@ -201,7 +201,7 @@ $!MEMBERS
   //       + <td>Bar</td>
   //
   static Element _extractTemplateFromAttributeTemplate(Element el) {
-    var template = el.document.createElement('template');
+    var template = el.ownerDocument.createElement('template');
     el.parentNode.insertBefore(template, el);
 
     for (var name in el.attributes.keys.toList()) {
@@ -254,7 +254,7 @@ $!MEMBERS
     // Need to do this first as the contents may get lifted if |node| is
     // template.
     // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents = 
+    var descendents =
         (content as dynamic).querySelectorAll(_allTemplatesSelectors);
     if (content is Element && (content as Element).isTemplate) {
       _bootstrap(content);

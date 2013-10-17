@@ -336,7 +336,7 @@ class _TemplateIterator {
     var template = _templateElement;
     var delegate = template.bindingDelegate;
 
-    if (template.parentNode == null || template.document.window == null) {
+    if (template.parentNode == null || template.ownerDocument.window == null) {
       close();
       // TODO(jmesserly): MDV calls templateIteratorTable.delete(this) here,
       // but I think that's a no-op because only nodes are used as keys.

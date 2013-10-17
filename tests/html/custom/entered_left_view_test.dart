@@ -111,7 +111,7 @@ main() {
 
     test('Created, owned by a document without a view', () {
       a = docB.createElement('x-a');
-      expect(a.document, docB,
+      expect(a.ownerDocument, docB,
           reason:'new instance should be owned by the document the definition '
           'was registered with');
       expect(invocations, ['created'],

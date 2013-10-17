@@ -133,7 +133,7 @@ abstract class Polymer implements Element {
   // https://groups.google.com/d/msg/polymer-dev/W0ZUpU5caIM/v5itFnvnehEJ
   // Same issue with inserted and removed.
   void polymerCreated() {
-    if (this.document.window != null || alwaysPrepare ||
+    if (this.ownerDocument.window != null || alwaysPrepare ||
         _preparingElements > 0) {
       prepareElement();
     }

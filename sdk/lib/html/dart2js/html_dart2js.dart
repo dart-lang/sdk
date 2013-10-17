@@ -18359,6 +18359,13 @@ class Node extends EventTarget native "Node" {
   TemplateInstance get templateInstance =>
       TemplateElement.mdvPackage(this).templateInstance;
 
+
+  /**
+   * Use ownerDocument instead.
+   */
+  @deprecated
+  Document get document => ownerDocument;
+
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -18461,10 +18468,9 @@ class Node extends EventTarget native "Node" {
   @DocsEditable()
   final String nodeValue;
 
-  @JSName('ownerDocument')
   @DomName('Node.ownerDocument')
   @DocsEditable()
-  final Document document;
+  final Document ownerDocument;
 
   @JSName('parentElement')
   @DomName('Node.parentElement')
@@ -23504,7 +23510,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
      }
 
     if (!isNative) {
-      var doc = _getTemplateContentsOwner(templateElement.document);
+      var doc = _getTemplateContentsOwner(templateElement.ownerDocument);
       templateElement._templateContent = doc.createDocumentFragment();
     }
 
@@ -23553,7 +23559,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
   //       + <td>Bar</td>
   //
   static Element _extractTemplateFromAttributeTemplate(Element el) {
-    var template = el.document.createElement('template');
+    var template = el.ownerDocument.createElement('template');
     el.parentNode.insertBefore(template, el);
 
     for (var name in el.attributes.keys.toList()) {
@@ -23606,7 +23612,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
     // Need to do this first as the contents may get lifted if |node| is
     // template.
     // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents = 
+    var descendents =
         (content as dynamic).querySelectorAll(_allTemplatesSelectors);
     if (content is Element && (content as Element).isTemplate) {
       _bootstrap(content);

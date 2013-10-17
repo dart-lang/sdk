@@ -114,7 +114,7 @@ class _CheckedBinding extends _InputBinding {
             el.name == element.name;
       });
     } else {
-      var radios = element.document.queryAll(
+      var radios = element.ownerDocument.queryAll(
           'input[type="radio"][name="${element.name}"]');
       return radios.where((el) => el != element && el.form == null);
     }
@@ -123,7 +123,7 @@ class _CheckedBinding extends _InputBinding {
   // TODO(jmesserly): polyfill document.contains API instead of doing it here
   static bool _isNodeInDocument(Node node) {
     // On non-IE this works:
-    // return node.document.contains(node);
+    // return node.ownerDocument.contains(node);
     var document = node.document;
     if (node == document || node.parentNode == document) return true;
     return document.documentElement.contains(node);

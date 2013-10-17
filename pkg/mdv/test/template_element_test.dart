@@ -1523,17 +1523,17 @@ templateElementTests() {
     var contentB = templateB.content;
     expect(contentA, isNotNull);
 
-    expect(templateA.document, isNot(equals(contentA.document)));
-    expect(templateB.document, isNot(equals(contentB.document)));
+    expect(templateA.ownerDocument, isNot(equals(contentA.ownerDocument)));
+    expect(templateB.ownerDocument, isNot(equals(contentB.ownerDocument)));
 
-    expect(templateB.document, templateA.document);
-    expect(contentB.document, contentA.document);
+    expect(templateB.ownerDocument, templateA.ownerDocument);
+    expect(contentB.ownerDocument, contentA.ownerDocument);
 
-    expect(templateA.document.window, window);
-    expect(templateB.document.window, window);
+    expect(templateA.ownerDocument.window, window);
+    expect(templateB.ownerDocument.window, window);
 
-    expect(contentA.document.window, null);
-    expect(contentB.document.window, null);
+    expect(contentA.ownerDocument.window, null);
+    expect(contentB.ownerDocument.window, null);
 
     expect(contentA.nodes.last, contentA.nodes.first);
     expect(contentA.nodes.first.tagName, 'A');
@@ -1550,8 +1550,8 @@ templateElementTests() {
     var templateA = div.nodes.first;
     var templateB = templateA.content.nodes.first;
 
-    expect(templateB.document, templateA.content.document);
-    expect(templateB.content.document, templateA.content.document);
+    expect(templateB.ownerDocument, templateA.content.ownerDocument);
+    expect(templateB.content.ownerDocument, templateA.content.ownerDocument);
   });
 
   observeTest('BindShadowDOM', () {

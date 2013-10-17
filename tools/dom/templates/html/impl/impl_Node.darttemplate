@@ -325,5 +325,12 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   TemplateInstance get templateInstance =>
       TemplateElement.mdvPackage(this).templateInstance;
 
+
+  /**
+   * Use ownerDocument instead.
+   */
+  @deprecated
+  Document get document => ownerDocument;
+
 $!MEMBERS
 }
