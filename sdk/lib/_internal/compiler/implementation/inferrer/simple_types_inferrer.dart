@@ -33,7 +33,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
                       DartType annotation,
                       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
-    if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
     if (annotation.kind == TypeKind.TYPEDEF
@@ -42,6 +41,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Narrow to bound.
       return type;
+    } else if (annotation.isVoid) {
+      otherType = nullType;
     } else {
       assert(annotation.kind == TypeKind.INTERFACE);
       otherType = new TypeMask.nonNullSubtype(annotation.element);
