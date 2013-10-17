@@ -7,6 +7,7 @@ library EventCustomEventTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:js' as js;
 
 class DartPayloadData {
   final dartValue;
@@ -54,18 +55,21 @@ main() {
   });
 
   test('custom events to JS', () {
+    expect(js.context['gotDartEvent'], isNull);
     var scriptContents = '''
       window.addEventListener('dart_custom_event', function(e) {
         if (e.detail == 'dart_message') {
           e.preventDefault();
+          window.gotDartEvent = true;
         }
+        window.console.log('here' + e.detail);
       }, false);''';
 
     document.body.append(new ScriptElement()..text = scriptContents);
 
     var event = new CustomEvent('dart_custom_event', detail: 'dart_message');
     window.dispatchEvent(event);
-    expect(event.defaultPrevented, isTrue);
+    expect(js.context['gotDartEvent'], isTrue);
   });
 
   test('custom data to Dart', () {
