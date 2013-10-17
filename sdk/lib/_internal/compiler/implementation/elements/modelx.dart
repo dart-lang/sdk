@@ -995,6 +995,9 @@ class TypedefElementX extends ElementX implements TypedefElement {
    */
   DartType alias;
 
+  /// [:true:] if the typedef has been checked for cyclic reference.
+  bool hasBeenCheckedForCycles = false;
+
   bool get isResolved => mapping != null;
 
   // TODO(johnniwinther): Store the mapping in the resolution enqueuer instead.
@@ -1037,6 +1040,13 @@ class TypedefElementX extends ElementX implements TypedefElement {
 
   Scope buildScope() {
     return new TypeDeclarationScope(enclosingElement.buildScope(), this);
+  }
+
+  void checkCyclicReference(Compiler compiler) {
+    if (hasBeenCheckedForCycles) return;
+    var visitor = new TypedefCyclicVisitor(compiler, this);
+    computeType(compiler).accept(visitor, null);
+    hasBeenCheckedForCycles = true;
   }
 }
 

@@ -29,6 +29,18 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
+# test issue 13807, missing support for type promotion
+type_promotion_closure_test/none: Fail # Issue 13807
+type_promotion_functions_test/none: Fail # Issue 13807
+type_promotion_local_test/none: Fail # Issue 13807
+type_promotion_logical_and_test/none: Fail # Issue 13807
+type_promotion_multiple_test/none: Fail # Issue 13807
+type_promotion_parameter_test/none: Fail # Issue 13807
+
+# Missing checks for cyclic typedefs (through bounds)
+cyclic_typedef_test/10: Fail # Issue 13906
+cyclic_typedef_test/11: Fail # Issue 13906
+
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -180,13 +192,6 @@ malformed_test/06: fail # test issue 14079, it is not error, but warning to use 
 # Please don't add new items here.
 # This is section for invalid tests.
 #
-
-type_promotion_closure_test/none: Fail # Issue 13807
-type_promotion_functions_test/none: Fail # Issue 13807
-type_promotion_local_test/none: Fail # Issue 13807
-type_promotion_logical_and_test/none: Fail # Issue 13807
-type_promotion_multiple_test/none: Fail # Issue 13807
-type_promotion_parameter_test/none: Fail # Issue 13807
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail

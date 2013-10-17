@@ -3590,8 +3590,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.alias = compiler.computeFunctionType(element, signature);
 
     void checkCyclicReference() {
-      var visitor = new TypedefCyclicVisitor(compiler, element);
-      type.accept(visitor, null);
+      element.checkCyclicReference(compiler);
     }
     addPostProcessAction(element, checkCyclicReference);
   }
@@ -3601,12 +3600,8 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
 // annotations in typedef alias are stored in a [TreeElements] mapping.
 class TypedefCyclicVisitor extends DartTypeVisitor {
   final Compiler compiler;
-  final TypedefElement element;
+  final TypedefElementX element;
   bool hasCyclicReference = false;
-
-  /// Counter for how many bounds the visitor currently has on the call-stack.
-  /// Used to detect when to report [Messagekind.CYCLIC_TYPEDEF_TYPEVAR].
-  int seenBoundsCount = 0;
 
   Link<TypedefElement> seenTypedefs = const Link<TypedefElement>();
 
@@ -3628,9 +3623,7 @@ class TypedefCyclicVisitor extends DartTypeVisitor {
         // Only report an error on the checked typedef to avoid generating
         // multiple errors for the same cyclicity.
         hasCyclicReference = true;
-        if (seenBoundsCount > 0) {
-          compiler.reportError(element, MessageKind.CYCLIC_TYPEDEF_TYPEVAR);
-        } else if (seenTypedefsCount == 1) {
+        if (seenTypedefsCount == 1) {
           // Direct cyclicity.
           compiler.reportError(element,
               MessageKind.CYCLIC_TYPEDEF,
@@ -3652,6 +3645,13 @@ class TypedefCyclicVisitor extends DartTypeVisitor {
             }
           }
         }
+        ErroneousElementX erroneousElement = new ErroneousElementX(
+              MessageKind.CYCLIC_TYPEDEF,
+              {'typedefName': element.name},
+              element.name, element);
+        element.alias =
+            new MalformedType(erroneousElement, typedefElement.alias);
+        element.hasBeenCheckedForCycles = true;
       }
     } else {
       seenTypedefs = seenTypedefs.prepend(typedefElement);
@@ -3679,9 +3679,7 @@ class TypedefCyclicVisitor extends DartTypeVisitor {
       return;
     }
     seenTypeVariables = seenTypeVariables.prepend(typeVariableElement);
-    seenBoundsCount++;
     typeVariableElement.bound.accept(this, null);
-    seenBoundsCount--;
     seenTypeVariables = seenTypeVariables.tail;
   }
 }

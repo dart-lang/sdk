@@ -717,6 +717,8 @@ abstract class TypedefElement extends Element
   // TODO(kasperl): Try to get rid of these setters.
   void set alias(DartType value);
   void set functionSignature(FunctionSignature value);
+
+  void checkCyclicReference(Compiler compiler);
 }
 
 abstract class VariableElement extends Element {

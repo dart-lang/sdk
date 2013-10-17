@@ -780,6 +780,7 @@ class TypedefType extends GenericType {
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
     compiler.resolveTypedef(element);
+    element.checkCyclicReference(compiler);
     DartType definition = element.alias.unalias(compiler);
     TypedefType declaration = element.computeType(compiler);
     return definition.subst(typeArguments, declaration.typeArguments);

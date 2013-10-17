@@ -700,10 +700,6 @@ typedef H G(); // The return type 'H' creates a self-reference.
 typedef H(F f); // The argument type 'F' creates a self-reference.
 main() { F f = null; }"""]);
 
-  static const CYCLIC_TYPEDEF_TYPEVAR = const MessageKind(
-      "Internal Error: Recursive type variable bounds are not "
-      "supported on typedefs.");
-
   static const MessageKind CLASS_NAME_EXPECTED = const MessageKind(
       "Error: Class name expected.");
 
