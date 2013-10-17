@@ -467,7 +467,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
     for (Element element in ambiguousElements) {
       var arguments = {'name': element.name};
       listener.reportInfo(element, code, arguments);
-      Link<Import> importers = importer.importers[element];
+      Link<Import> importers = importer.importers.getImports(element);
       listener.withCurrentElement(importer, () {
         for (; !importers.isEmpty; importers = importers.tail) {
           listener.reportInfo(
@@ -632,6 +632,25 @@ class CompilationUnitElementX extends ElementX
   }
 }
 
+class Importers {
+  Map<Element, Link<Import>> importers = new Map<Element, Link<Import>>();
+
+  Link<Import> getImports(Element element) {
+    Link<Import> imports = importers[element];
+    return imports != null ? imports : const Link<Import>();
+  }
+
+  Import getImport(Element element) => getImports(element).head;
+
+  void registerImport(Element element, Import import) {
+    if (import == null) return;
+
+    importers[element] =
+        importers.putIfAbsent(element, () => const Link<Import>())
+          .prepend(import);
+  }
+}
+
 class ImportScope {
   /**
    * Map for elements imported through import declarations.
@@ -654,53 +673,59 @@ class ImportScope {
                  Import import,
                  DiagnosticListener listener) {
     LibraryElementX library = enclosingElement.getLibrary();
-    Map<Element, Link<Import>> importers = library.importers;
-    importers[element] =
-        importers.putIfAbsent(element, () => const Link<Import>())
-            .prepend(import);
+    Importers importers = library.importers;
+
     SourceString name = element.name;
     Element existing = importScope.putIfAbsent(name, () => element);
+    importers.registerImport(element, import);
 
-    Element createWarnOnUseElement(Spannable spannable,
-                                   MessageKind messageKind,
-                                   Element hidingElement,
-                                   Element hiddenElement) {
-        Uri hiddenUri = hiddenElement.getLibrary().canonicalUri;
-        Uri hidingUri = hidingElement.getLibrary().canonicalUri;
-        return new WarnOnUseElementX(
-            new WrappedMessage(
-                null, // Report on reference to [hidingElement].
-                messageKind,
-                {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
-            new WrappedMessage(
-                listener.spanFromSpannable(spannable),
-                MessageKind.IMPORTED_HERE,
-                {'name': name}),
-            enclosingElement, hidingElement);
+    void registerWarnOnUseElement(Import import,
+                                  MessageKind messageKind,
+                                  Element hidingElement,
+                                  Element hiddenElement) {
+      Uri hiddenUri = hiddenElement.getLibrary().canonicalUri;
+      Uri hidingUri = hidingElement.getLibrary().canonicalUri;
+      Element element = new WarnOnUseElementX(
+          new WrappedMessage(
+              null, // Report on reference to [hidingElement].
+              messageKind,
+              {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
+          new WrappedMessage(
+              listener.spanFromSpannable(import),
+              MessageKind.IMPORTED_HERE,
+              {'name': name}),
+          enclosingElement, hidingElement);
+      importScope[name] = element;
+      importers.registerImport(element, import);
     }
 
     if (existing != element) {
+      Import existingImport = importers.getImport(existing);
+      Element newElement;
       if (existing.getLibrary().isPlatformLibrary &&
           !element.getLibrary().isPlatformLibrary) {
         // [existing] is implicitly hidden.
-        importScope[name] = createWarnOnUseElement(
+        registerWarnOnUseElement(
             import, MessageKind.HIDDEN_IMPORT, element, existing);
       } else if (!existing.getLibrary().isPlatformLibrary &&
                  element.getLibrary().isPlatformLibrary) {
         // [element] is implicitly hidden.
         if (import == null) {
           // [element] is imported implicitly (probably through dart:core).
-          importScope[name] = createWarnOnUseElement(
-              importers[existing].head, MessageKind.HIDDEN_IMPLICIT_IMPORT,
+          registerWarnOnUseElement(
+              existingImport, MessageKind.HIDDEN_IMPLICIT_IMPORT,
               existing, element);
         } else {
-          importScope[name] = createWarnOnUseElement(
+          registerWarnOnUseElement(
               import, MessageKind.HIDDEN_IMPORT, existing, element);
         }
       } else {
-        importScope[name] = new AmbiguousElementX(
+        Element ambiguousElement = new AmbiguousElementX(
             MessageKind.DUPLICATE_IMPORT, {'name': name},
             enclosingElement, existing, element);
+        importScope[name] = ambiguousElement;
+        importers.registerImport(ambiguousElement, import);
+        importers.registerImport(ambiguousElement, existingImport);
       }
     }
   }
@@ -735,7 +760,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
   final LibraryElementX origin;
 
   /// A mapping from an imported element to the "import" tag.
-  final Map<Element, Link<Import>> importers;
+  final Importers importers = new Importers();
 
   /**
    * Link for elements exported either through export declarations or through
@@ -752,7 +777,6 @@ class LibraryElementX extends ElementX implements LibraryElement {
 
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
     : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
-      importers = new Map<Element, Link<Import>>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (isPatch) {

@@ -1672,6 +1672,7 @@ class Parser {
     if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
       listener.reportError(token, MessageKind.UNSUPPORTED_PREFIX_PLUS);
+      return parseUnaryExpression(token.next, allowCascades);
     } else if ((identical(value, '!')) ||
                (identical(value, '-')) ||
                (identical(value, '~'))) {

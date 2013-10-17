@@ -289,7 +289,37 @@ void main() => new Type();""",
 """
 library type;
 
-class Type {}"""}]);
+class Type {}"""},
+          const {
+'conflictsWithDart.dart':
+"""
+library conflictsWithDart;
+
+class Duration {
+  static var x = 100;
+}
+""",
+
+'conflictsWithDartAsWell.dart':
+"""
+library conflictsWithDartAsWell;
+
+class Duration {
+  static var x = 100;
+}
+""",
+
+'main.dart':
+r"""
+library testDartConflicts;
+
+import 'conflictsWithDart.dart';
+import 'conflictsWithDartAsWell.dart';
+
+main() {
+  print("Hail Caesar ${Duration.x}");
+}
+"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
       "Error: Duplicate export of '#{name}'.",
