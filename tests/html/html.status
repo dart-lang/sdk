@@ -167,6 +167,7 @@ xsltprocessor_test/supported: Fail
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
 
 [ $runtime == ie9 ]
+event_customevent_test: Fail # Issue 14170
 isolates_test: Timeout # Issue 13027
 blob_constructor_test: Fail
 custom/document_register_type_extensions_test/namespaces: Fail # Issue 13193
