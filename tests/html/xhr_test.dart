@@ -249,9 +249,12 @@ main() {
 
   group('headers', () {
     test('xhr responseHeaders', () {
-      return HttpRequest.request(url, mimeType: 'application/binary').then(
+      return HttpRequest.request(url).then(
         (xhr) {
-          expect(xhr.responseHeaders['content-type'], 'application/binary');
+          var serverHeader = xhr.responseHeaders['server'];
+          expect(serverHeader, isNotNull);
+          // Should be like: 'Dart/0.1 (dart:io)'
+          expect(serverHeader.startsWith('Dart/'), isTrue);
         });
     });
   });
