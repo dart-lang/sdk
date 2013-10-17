@@ -133,7 +133,7 @@ class _Binding extends ChangeNotifier {
     try {
       assign(_expr, v, _scope);
     } on EvalException catch (e) {
-      // silently swallow binding errors
+      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
     }
   }
 }
