@@ -460,11 +460,11 @@ InstanceMirror reflect(Object reflectee) {
   }
 }
 
-ClassMirror reflectType(Type key) {
+TypeMirror reflectType(Type key) {
   return reflectClassByMangledName(getMangledTypeName(key));
 }
 
-ClassMirror reflectClassByMangledName(String mangledName) {
+TypeMirror reflectClassByMangledName(String mangledName) {
   String unmangledName = mangledGlobalNames[mangledName];
   if (unmangledName == null) unmangledName = mangledName;
   return reflectClassByName(s(unmangledName), mangledName);
@@ -472,7 +472,7 @@ ClassMirror reflectClassByMangledName(String mangledName) {
 
 var classMirrors;
 
-ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
+TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   if (classMirrors == null) classMirrors = JsCache.allocate();
   var mirror = JsCache.fetch(classMirrors, mangledName);
   if (mirror != null) return mirror;
@@ -1707,10 +1707,6 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
   JsFunctionTypeMirror get value => referent;
 
   String get _prettyName => 'TypedefMirror';
-
-  // TODO(zarah): This method doesn't belong here, since TypedefMirror shouldn't
-  // be a subtype of ClassMirror.
-  ClassMirror get originalDeclaration => this;
 }
 
 class JsFunctionTypeMirror implements FunctionTypeMirror {

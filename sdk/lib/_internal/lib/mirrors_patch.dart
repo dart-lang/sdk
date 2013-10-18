@@ -24,7 +24,13 @@ patch InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
 
 patch ClassMirror reflectClass(Type key) {
   if (key is! Type || key == dynamic) {
-  	throw new ArgumentError('$key does not denote a class');
+    throw new ArgumentError('$key does not denote a class');
   }
-  return js.reflectType(key).originalDeclaration;
+  TypeMirror tm = reflectType(key);
+  if (tm is! ClassMirror) {
+    throw new ArgumentError("$key does not denote a class");
+  }
+  return (tm as ClassMirror).originalDeclaration;
 }
+
+patch TypeMirror reflectType(Type key) => js.reflectType(key);

@@ -105,7 +105,7 @@ main() {
   Expect.equals(#_T, tvm.simpleName);
   Expect.equals('_T', MirrorSystem.getName(tvm.simpleName));
 
-  TypedefMirror tdm = reflectClass(_F);
+  TypedefMirror tdm = reflectType(_F);
   Expect.equals(#_F, tdm.simpleName);
   Expect.equals('_F', MirrorSystem.getName(tdm.simpleName));
 

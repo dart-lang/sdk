@@ -171,6 +171,19 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
   // Check that the classes map is complete.
   keys = lib_mirror.classes.keys.map(MirrorSystem.getName).toList();
   sort(keys);
+  print(keys);
+  Expect.equals('['
+                'GenericClass, '
+                'MyClass, '
+                'MyException, '
+                'MyInterface, '
+                'MySuperClass]',
+                '$keys');
+
+  // Check that the types map is complete.
+  keys = lib_mirror.types.keys.map(MirrorSystem.getName).toList();
+  sort(keys);
+  print(keys);
   Expect.equals('['
                 'FuncType, '
                 'GenericClass, '

@@ -839,7 +839,10 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   ASSERT(type.IsFinalized());
   ASSERT(type.HasResolvedTypeClass());
   const Class& cls = Class::Handle(type.type_class());
-  if (cls.IsDynamicClass() || cls.IsVoidClass()) {
+  ASSERT(!cls.IsNull());
+  if (cls.IsDynamicClass() ||
+      cls.IsVoidClass() ||
+      (cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass())) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
