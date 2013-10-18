@@ -736,6 +736,21 @@ class ResolverTask extends CompilerTask {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
     }
+
+    // Force resolution of metadata on non-instance members since they may be
+    // inspected by the backend while emitting. Metadata on instance members is
+    // handled as a result of processing instantiated class members in the
+    // enqueuer.
+    // TODO(ahe): Avoid this eager resolution.
+    element.forEachMember((_, Element member) {
+      if (!member.isInstanceMember()) {
+        compiler.withCurrentElement(member, () {
+          for (MetadataAnnotation metadata in member.metadata) {
+            metadata.ensureResolved(compiler);
+          }
+        });
+      }
+    });
   }
 
   void checkClass(ClassElement element) {
