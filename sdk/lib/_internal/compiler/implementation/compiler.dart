@@ -1060,6 +1060,7 @@ abstract class Compiler implements DiagnosticListener {
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+    resolveLibraryMetadata();
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -1124,6 +1125,17 @@ abstract class Compiler implements DiagnosticListener {
       world.registerInstantiatedClass(element, globalDependencies);
     } else {
       world.addToWorkList(element);
+    }
+  }
+
+  // Resolves metadata on library elements.  This is necessary in order to
+  // resolve metadata classes referenced only from metadata on library tags.
+  // TODO(ahe): Figure out how to do this lazily.
+  void resolveLibraryMetadata() {
+    for (LibraryElement library in libraries.values) {
+      for (MetadataAnnotation metadata in library.metadata) {
+        metadata.ensureResolved(this);
+      }
     }
   }
 
