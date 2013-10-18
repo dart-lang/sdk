@@ -87,6 +87,8 @@ def ProcessTools(mode, name, version):
 
   toolsBuildScript = os.path.join('.', 'editor', 'build', 'build.py')
 
+  build_installer = name.startswith('dart-editor-installer')
+
   # TODO(devoncarew): should we move this into GetBuildInfo()?
   # get the latest changed revision from the current repository sub-tree
   version = GetLatestChangedRevision()
@@ -95,6 +97,8 @@ def ProcessTools(mode, name, version):
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
+  if build_installer:
+    cmds.append('--build-installer')
   local_env = EnvironmentWithoutBotoConfig()
   #if 'linux' in name:
   #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
