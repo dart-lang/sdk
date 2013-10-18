@@ -19,8 +19,8 @@ import 'server.dart';
 
 /// A Dart script to run in an isolate.
 ///
-/// This script serializes one or more transformers defined in a Dart library and
-/// marhsals calls to and from them with the host isolate.
+/// This script serializes one or more transformers defined in a Dart library
+/// and marshals calls to and from them with the host isolate.
 const _TRANSFORMER_ISOLATE = """
 import 'dart:async';
 import 'dart:isolate';
@@ -115,6 +115,14 @@ class ForeignTransform implements Transform {
       'id': _serializeId(id)
     })).then(_deserializeAsset);
   }
+
+  Future<String> readInputAsString(AssetId id, {Encoding encoding}) {
+    if (encoding == null) encoding = UTF8;
+    return getInput(id).then((input) => input.readAsString(encoding: encoding));
+  }
+
+  Stream<List<int>> readInput(AssetId id) =>
+      _futureStream(getInput(id).then((input) => input.read()));
 
   void addOutput(Asset output) {
     _port.send({
@@ -334,6 +342,23 @@ String getErrorMessage(error) {
   } on NoSuchMethodError catch (_) {
     return error.toString();
   }
+}
+
+/// Returns a buffered stream that will emit the same values as the stream
+/// returned by [future] once [future] completes. If [future] completes to an
+/// error, the return value will emit that error and then close.
+Stream _futureStream(Future<Stream> future) {
+  var controller = new StreamController(sync: true);
+  future.then((stream) {
+    stream.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: controller.close);
+  }).catchError((e, stackTrace) {
+    controller.addError(e, stackTrace);
+    controller.close();
+  });
+  return controller.stream;
 }
 """;
 
