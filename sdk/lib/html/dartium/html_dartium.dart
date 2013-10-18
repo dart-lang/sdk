@@ -35353,9 +35353,12 @@ class _Utils {
     return false;
   }
 
-  static bool isTypeSubclassOfTag(Type type, String tagName) {
+  static Element getAndValidateNativeType(Type type, String tagName) {
     var element = new Element.tag(tagName);
-    return isTypeSubclassOf(type, element.runtimeType);
+    if (!isTypeSubclassOf(type, element.runtimeType)) {
+      return null;
+    }
+    return element;
   }
 
   static window() native "Utils_window";

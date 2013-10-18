@@ -1200,7 +1200,8 @@ class CPPLibraryEmitter():
     e.Emit('namespace WebCore {\n');
     e.Emit('\n');
     e.Emit('enum {\n');
-    e.Emit('    _HistoryCrossFrameClassId = 0,\n');
+    e.Emit('    _InvalidClassId = 0,\n');
+    e.Emit('    _HistoryCrossFrameClassId,\n');
     e.Emit('    _LocationCrossFrameClassId,\n');
     e.Emit('    _DOMWindowCrossFrameClassId,\n');
     e.Emit('    _DateTimeClassId,\n');
@@ -1243,6 +1244,7 @@ class CPPLibraryEmitter():
     e.Emit('namespace WebCore {\n');
     e.Emit('\n');
     e.Emit("_DartWebkitClassInfo DartWebkitClassInfo = {\n");
+    e.Emit('    { "_InvalidClassId", -1, -1, false, false, false },\n');
     e.Emit('    { "_HistoryCrossFrame", DartHtmlLibraryId, -1, false, false, false },\n');
     e.Emit('    { "_LocationCrossFrame", DartHtmlLibraryId, -1, false, false, false },\n');
     e.Emit('    { "_DOMWindowCrossFrame", DartHtmlLibraryId, -1, false, false, true },\n');
