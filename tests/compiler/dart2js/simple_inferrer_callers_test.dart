@@ -45,7 +45,7 @@ void main() {
     var classA = findElement(compiler, 'A');
     var fieldA = classA.lookupLocalMember('field');
     var classB = findElement(compiler, 'B');
-    var fieldB = classB.lookupLocalMember('field');;
+    var fieldB = classB.lookupLocalMember('field');
 
     Expect.isTrue(inferrer.getCallersOf(fieldA).contains(mainElement));
     Expect.isTrue(inferrer.getCallersOf(fieldB).contains(mainElement));

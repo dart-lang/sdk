@@ -36,12 +36,9 @@ void main() {
         compiler.deferredLoadTask.allDeferredElements.where((e) => e.isClass())
         .toSet();
 
-    var dateTime =
-        deferredClasses
-            .where((e) => e.name == 'DateTime').single;
+    var dateTime = deferredClasses.where((e) => e.name == 'DateTime').single;
 
-    var myClass =
-        deferredClasses.where((e) => e.name == 'MyClass').single;
+    var myClass = deferredClasses.where((e) => e.name == 'MyClass').single;
 
     var deferredLibrary = compiler.libraries['memory:deferred.dart'];
 

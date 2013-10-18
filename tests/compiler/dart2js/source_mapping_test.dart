@@ -41,8 +41,8 @@ void testSourceMapLocations(String codeWithMarkers) {
       int expectedLocation = expectedLocations[i];
       if (!locations.contains(expectedLocation)) {
         int originalLocation = expectedLocation + i;
-        SourceFile sourceFileWithMarkers = new StringSourceFile('<test script>',
-                                                          codeWithMarkers);
+        SourceFile sourceFileWithMarkers =
+            new StringSourceFile('<test script>', codeWithMarkers);
         String message = sourceFileWithMarkers.getLocationMessage(
             'Missing location', originalLocation, originalLocation + 1, true,
             (s) => s);

@@ -79,8 +79,7 @@ void main() {
 
     for (var library in compiler.libraries.values) {
       library.forEachLocalMember((member) {
-        if (library == compiler.mainApp
-            && member.name == 'Foo') {
+        if (library == compiler.mainApp && member.name == 'Foo') {
           Expect.isTrue(
               compiler.backend.isNeededForReflection(member), '$member');
           member.forEachLocalMember((classMember) {
