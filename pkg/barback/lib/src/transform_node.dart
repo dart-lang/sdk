@@ -55,8 +55,12 @@ class TransformNode {
   final _onDirtyController = new StreamController.broadcast(sync: true);
 
   /// A stream that emits an event whenever this transform logs an entry.
+  ///
+  /// This is synchronous because error logs can cause the transform to fail, so
+  /// we need to ensure that their processing isn't delayed until after the
+  /// transform or build has finished.
   Stream<LogEntry> get onLog => _onLogController.stream;
-  final _onLogController = new StreamController<LogEntry>.broadcast();
+  final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
   TransformNode(this.phase, this.transformer, this.primary) {
     _primarySubscription = primary.onStateChange.listen((state) {
