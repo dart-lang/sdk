@@ -28,7 +28,7 @@ final _firefoxFrame = new RegExp(
 // foo/bar.dart 10:11 in Foo._bar
 // http://dartlang.org/foo/bar.dart in Foo._bar
 final _friendlyFrame = new RegExp(
-    r'^([^\s]+)(?: (\d+):(\d+))?\s+([^\d][^\s]*)$');
+    r'^([^\s]+)(?: (\d+)(?::(\d+))?)?\s+([^\d][^\s]*)$');
 
 final _initialDot = new RegExp(r"^\.");
 
@@ -78,7 +78,8 @@ class Frame {
 
   /// A human-friendly description of the code location.
   String get location {
-    if (line == null || column == null) return library;
+    if (line == null) return library;
+    if (column == null) return '$library $line';
     return '$library $line:$column';
   }
 

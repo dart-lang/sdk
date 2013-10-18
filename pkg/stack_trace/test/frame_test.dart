@@ -233,6 +233,15 @@ void main() {
       expect(frame.member, equals('Foo.<fn>.bar'));
     });
 
+    test('parses a stack frame with no line correctly', () {
+      var frame = new Frame.parseFriendly(
+          "http://dartlang.org/foo/bar.dart 10  Foo.<fn>.bar");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('Foo.<fn>.bar'));
+    });
+
     test('parses a stack frame with a relative path correctly', () {
       var frame = new Frame.parseFriendly("foo/bar.dart 10:11    Foo.<fn>.bar");
       expect(frame.uri, equals(
@@ -320,6 +329,11 @@ void main() {
       expect(new Frame.parseVM('#0 Foo.<anonymous closure> '
               '(dart:core/uri.dart:5:10)').toString(),
           equals('dart:core/uri.dart 5:10 in Foo.<fn>'));
+    });
+
+    test('prints a frame without a column correctly', () {
+      expect(new Frame.parseVM('#0 Foo (dart:core/uri.dart:5)').toString(),
+          equals('dart:core/uri.dart 5 in Foo'));
     });
   });
 }
