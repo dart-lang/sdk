@@ -641,6 +641,17 @@ Dart is lexically scoped.    Scopes may nest.  A name or declaration $d$ is {\em
 
 If a  declaration $d$ named $n$ is in the namespace induced by a scope $S$, then $d$ {\em hides} any declaration named $n$ that is available in the lexically enclosing scope of $S$. 
 
+\commentary {
+A consequence of these rules is that it is possible to hide a type with a method or variable.
+Naming conventions usually prevent such abuses. Nevertheless,the following program is legal:
+}
+
+\begin{dartCode}
+\CLASS{} HighlyStrung \{
+  String() $=>$ "?";
+\}
+\end{dartCode}
+
 Names may be introduced into a scope by  declarations within the scope or  by other mechanisms such as imports or inheritance.
 
 \rationale{
@@ -815,7 +826,11 @@ The scope into which the implicit getters and setters are introduced depends on 
 
 A library variable introduces a getter and a setter into the top level scope of the enclosing library. A static class variable introduces a static getter and a static setter into the immediately enclosing class. An instance variable introduces an instance getter and an instance setter into the immediately enclosing class. 
 
-Local variables are added to the innermost enclosing scope.  They do not induce getters and setters.  A local variable may only be referenced at a source code location that is after its initializer, if any, is complete, or a a compile-time error occurs. 
+Local variables are added to the innermost enclosing scope.  They do not induce getters and setters.  A local variable may only be referenced at a source code location that is after its initializer, if any, is complete, or a compile-time error occurs.  The error may be reported either at the point where the premature reference occurs, or at the variable declaration.
+
+\rationale {
+We allow the error to be reported at the declaration to allow implementations to avoid an extra processing phase. 
+}
 
 \commentary{
 The example below illustrates the expected behavior.  A variable $x$ is declared at the library level, and another $x$ is declared inside the function $f$.
@@ -842,9 +857,28 @@ The inner declaration of $x$ is itself erroneous because its right hand side att
 }
 
 \commentary {
-As another example  \code{var x = 3, y = x;} is legal, because \code{x} is referenced after its initializer. 
+As another example  \code{\VAR{} x = 3, y = x;} is legal, because \code{x} is referenced after its initializer. 
 
+A particularly perverse example involves a local variable name shadowing a type. This is possible because Dart has a single namespace for types, functions and variables.
 }
+
+\begin{dartCode}
+\CLASS{} C \{\}
+perverse() \{
+   \VAR{} v = \NEW{} C(); // compile-time error
+   C aC; // compile-time error
+   \VAR{} C = 10;
+\}
+
+\commentary {
+ Inside \cd{perverse()}, \cd{C} denotes a local variable. The type \cd{C} is hidden by the variable of the same name. The attempt to instantiate \cd{C} causes a compile-time error because it references a local variable prior to its declaration. Similarly, for the declaration of \cd{aC} (even though it is only a type annotation).
+}
+
+\rationale{
+As a rule, type annotations are ignored in production mode. However, we do not want to allow programs to compile legally in one mode and not another, and in this extremely odd situation, that consideration takes precedence.
+}
+
+\end{dartCode}
 
 % the grammar does not support local getters and setters. The local var discussion does not seem to mention getters and setters based semantics. It simply discusses the creation of the variable, not its access. Access is either assignment or identifiers. Identifiers ignore the getter story. 
 
@@ -1468,7 +1502,7 @@ An instance getter for it can always be defined manually if desired.
 
 %whose execution sets the value of $v$ to the incoming argument $x$.
 
-% It is a compile-time error/warning if a a class $C$ declares a final instance variable $v$ and $C$ inherits a setter $v=$.
+% It is a compile-time error/warning if a class $C$ declares a final instance variable $v$ and $C$ inherits a setter $v=$.
 
 
 \subsection{Constructors}
