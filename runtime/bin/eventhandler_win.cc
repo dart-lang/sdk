@@ -818,7 +818,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       Handle::ScopedLock lock(listen_socket);
 
-      // If incomming connections are requested make sure to post already
+      // If incoming connections are requested make sure to post already
       // accepted connections.
       if ((msg->data & (1 << kInEvent)) != 0) {
         if (listen_socket->CanAccept()) {

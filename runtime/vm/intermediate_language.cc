@@ -1528,10 +1528,39 @@ Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+static bool MayBeBoxableNumber(intptr_t cid) {
+  return (cid == kDynamicCid) ||
+         (cid == kMintCid) ||
+         (cid == kBigintCid) ||
+         (cid == kDoubleCid);
+}
+
+
+static bool MaybeNumber(CompileType* type) {
+  ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
+         Type::Handle(Type::Number()), NULL));
+  return type->ToAbstractType()->IsDynamicType()
+      || type->IsMoreSpecificThan(Type::Handle(Type::Number()));
+}
+
+
 // Returns a replacement for a strict comparison and signals if the result has
 // to be negated.
 static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
                                              bool* negated) {
+  // Use propagated cid and type information to eliminate number checks.
+  // If one of the inputs is not a boxable number (Mint, Double, Bigint), or
+  // is not a subtype of num, no need for number checks.
+  if (compare->needs_number_check()) {
+    if (!MayBeBoxableNumber(compare->left()->Type()->ToCid()) ||
+        !MayBeBoxableNumber(compare->right()->Type()->ToCid()))  {
+      compare->set_needs_number_check(false);
+    } else if (!MaybeNumber(compare->left()->Type()) ||
+               !MaybeNumber(compare->right()->Type())) {
+      compare->set_needs_number_check(false);
+    }
+  }
+
   *negated = false;
   Object& constant = Object::Handle();
   Value* other = NULL;

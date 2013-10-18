@@ -366,7 +366,7 @@ class ConstrainedCompileType : public ZoneCompileType {
 
 
 // NotNullConstrainedCompileType represents not-null constraint applied to
-// the source compile type. Result is non-nullable version of the incomming
+// the source compile type. Result is non-nullable version of the incoming
 // compile type. It is used to represent compile type propagated downwards
 // from strict comparison with the null constant.
 class NotNullConstrainedCompileType : public ConstrainedCompileType {
@@ -506,6 +506,8 @@ class Value : public ZoneAllocated {
   bool Equals(Value* other) const;
 
  private:
+  friend class FlowGraphPrinter;
+
   Definition* definition_;
   Value* previous_use_;
   Value* next_use_;
@@ -1752,6 +1754,7 @@ class Definition : public Instruction {
 
  protected:
   friend class RangeAnalysis;
+  friend class Value;
 
   Range* range_;
   CompileType* type_;

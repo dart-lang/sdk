@@ -73,7 +73,7 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
 
 void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
                                            bool print_locations) {
-  char str[1000];
+  char str[4000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
   if (FLAG_print_environments && (instr->env() != NULL)) {
@@ -97,8 +97,8 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const String& dst_name,
                                       bool eliminated) {
     const char* compile_type_name = "unknown";
-    if (value != NULL) {
-      compile_type_name = value->Type()->ToCString();
+    if (value != NULL && value->reaching_type_ != NULL) {
+      compile_type_name = value->reaching_type_->ToCString();
     }
     OS::Print("%s type check: compile type %s is %s specific than "
               "type '%s' of '%s'.\n",
@@ -232,7 +232,7 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
 void Value::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *definition());
   if ((reaching_type_ != NULL) &&
-      (reaching_type_ != definition()->Type())) {
+      (reaching_type_ != definition()->type_)) {
     f->Print(" ");
     reaching_type_->PrintTo(f);
   }
