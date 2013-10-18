@@ -35,8 +35,13 @@ abstract class CssClassSet implements Set<String> {
    *
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
+   *
+   * If this corresponds to one element. Returns `true` if [value] was added to
+   * the set, otherwise `false`.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
-  void add(String value);
+  bool add(String value);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -111,7 +116,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  void modify( f(Set<String> s)) {
+  modify( f(Set<String> s)) {
     _elementCssClassSetIterable.forEach((e) => e.modify(f));
   }
 

@@ -92,10 +92,10 @@ abstract class CssClassSetImpl implements CssClassSet {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    */
-  void add(String value) {
+  bool add(String value) {
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough.
-    modify((s) => s.add(value));
+    return modify((s) => s.add(value));
   }
 
   /**
@@ -206,10 +206,11 @@ abstract class CssClassSetImpl implements CssClassSet {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  void modify( f(Set<String> s)) {
+  modify( f(Set<String> s)) {
     Set<String> s = readClasses();
-    f(s);
+    var ret = f(s);
     writeClasses(s);
+    return ret;
   }
 
   /**

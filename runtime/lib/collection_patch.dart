@@ -583,15 +583,16 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   // Set.
 
-  void add(E element) {
+  bool add(E element) {
     int hashCode = _hashCode(element);
     int index = hashCode & (_buckets.length - 1);
     HashSetEntry entry = _buckets[index];
     while (entry != null) {
-      if (_equals(entry.key, element)) return;
+      if (_equals(entry.key, element)) return false;
       entry = entry.next;
     }
     _addEntry(element, hashCode, index);
+    return true;
   }
 
   void addAll(Iterable<E> objects) {

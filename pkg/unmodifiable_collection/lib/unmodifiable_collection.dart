@@ -185,7 +185,7 @@ class UnmodifiableSetView<E> extends _IterableView<E>
    * Throws an [UnsupportedError];
    * operations that change the set are disallowed.
    */
-  void add(E value) => _throw();
+  bool add(E value) => _throw();
 
   /**
    * Throws an [UnsupportedError];
