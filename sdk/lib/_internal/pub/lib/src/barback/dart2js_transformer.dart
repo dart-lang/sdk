@@ -149,7 +149,7 @@ class _BarbackInputProvider {
     var sourcePath = path.fromUri(resourceUri);
     return _readResource(resourceUri).then((source) {
       _sourceFiles[resourceUri.toString()] =
-          new SourceFile(path.relative(sourcePath), source);
+          new StringSourceFile(path.relative(sourcePath), source);
       return source;
     });
   }
