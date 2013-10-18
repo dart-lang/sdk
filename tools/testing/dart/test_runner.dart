@@ -17,11 +17,9 @@ import "dart:convert" show LineSplitter, UTF8;
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;
-import "dart:isolate";
 import "dart:math" as math;
 import 'dependency_graph.dart' as dgraph;
 import "browser_controller.dart";
-import "http_server.dart" as http_server;
 import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
@@ -1994,25 +1992,30 @@ class CommandExecutorImpl implements CommandExecutor {
       BrowserTestCommand browserCommand, int timeout) {
     var completer = new Completer<CommandOutput>();
 
-    var callback = (output, delayUntilTestStarted, duration) {
-      bool timedOut = output == "TIMEOUT";
+    var callback = (BrowserTestOutput output) {
+      bool timedOut = output.didTimeout;
       String stderr = "";
       if (timedOut) {
-        if (delayUntilTestStarted != null) {
-          stderr = "This test timed out. The delay until the test was actually "
-                   "started was: $delayUntilTestStarted.";
+        if (output.delayUntilTestStarted != null) {
+          stderr = "This test timed out. The delay until the test actually "
+                   "started was: ${output.delayUntilTestStarted}.";
         } else {
           stderr = "This test has not notified test.py that it started running."
                    " This could be a bug in test.py! "
                    "Please contact ricow/kustermann";
         }
       }
+      stderr =
+          '$stderr\n\n'
+          'BrowserOutput while running the test (* EXPERIMENTAL *):\n'
+          'BrowserOutput.stdout:\n${output.browserOutput.stdout.toString()}\n'
+          'BrowserOutput.stderr:\n${output.browserOutput.stderr.toString()}\n';
       var commandOutput = createCommandOutput(browserCommand,
                           0,
                           timedOut,
-                          encodeUtf8(output),
+                          encodeUtf8(output.dom),
                           encodeUtf8(stderr),
-                          duration,
+                          output.duration,
                           false);
       completer.complete(commandOutput);
     };

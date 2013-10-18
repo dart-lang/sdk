@@ -11,11 +11,17 @@ import "dart:io";
 import 'android.dart';
 import 'utils.dart';
 
+class BrowserOutput {
+  final StringBuffer stdout = new StringBuffer();
+  final StringBuffer stderr = new StringBuffer();
+  final StringBuffer eventLog = new StringBuffer();
+}
+
 /** Class describing the interface for communicating with browsers. */
 abstract class Browser {
-  StringBuffer _stdout = new StringBuffer();
-  StringBuffer _stderr = new StringBuffer();
-  StringBuffer _usageLog = new StringBuffer();
+  BrowserOutput _allBrowserOutput = new BrowserOutput();
+  BrowserOutput _testBrowserOutput = new BrowserOutput();
+
   // This is called after the process is closed, before the done future
   // is completed.
   // Subclasses can use this to cleanup any browser specific resources
@@ -79,17 +85,23 @@ abstract class Browser {
     String toLog = "$this ($id) - $event \n";
     if (debugPrint) print("usageLog: $toLog");
     if (logger != null) logger(toLog);
-    _usageLog.write(toLog);
+
+    _allBrowserOutput.eventLog.write(toLog);
+    _testBrowserOutput.eventLog.write(toLog);
   }
 
   void _addStdout(String output) {
     if (debugPrint) print("stdout: $output");
-    _stdout.write(output);
+
+    _allBrowserOutput.stdout.write(output);
+    _testBrowserOutput.stdout.write(output);
   }
 
   void _addStderr(String output) {
     if (debugPrint) print("stderr: $output");
-    _stderr.write(output);
+
+    _allBrowserOutput.stderr.write(output);
+    _testBrowserOutput.stderr.write(output);
   }
 
   Future close() {
@@ -164,13 +176,17 @@ abstract class Browser {
   }
 
   /**
-   * Get any stdout that the browser wrote during execution.
+   * Get the output that was written so far to stdout/stderr/eventLog.
    */
-  String get stdout => _stdout.toString();
-  String get stderr => _stderr.toString();
-  String get usageLog => _usageLog.toString();
+  BrowserOutput get allBrowserOutput => _allBrowserOutput;
+  BrowserOutput get testBrowserOutput => _testBrowserOutput;
+
+  void resetTestBrowserOutput() {
+    _testBrowserOutput = new BrowserOutput();
+  }
 
   String toString();
+
   /** Starts the browser loading the given url */
   Future<bool> start(String url);
 }
@@ -523,7 +539,7 @@ class Firefox extends Browser {
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
 
-  static string _binary = _getBinary();
+  static String _binary = _getBinary();
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
@@ -551,7 +567,7 @@ class Firefox extends Browser {
     return Process.run(_binary, ["--version"]).then((var versionResult) {
       if (versionResult.exitCode != 0) {
         _logEvent("Failed to firefox get version");
-        _logEvent("Make sure $binary is a valid program for running firefox");
+        _logEvent("Make sure $_binary is a valid program for running firefox");
         return new Future.value(false);
       }
       version = versionResult.stdout;
@@ -566,7 +582,7 @@ class Firefox extends Browser {
 
       });
     }).catchError((e) {
-      _logEvent("Running $binary --version failed with $e");
+      _logEvent("Running $_binary --version failed with $e");
       return false;
     });
   }
@@ -620,6 +636,18 @@ class BrowserTest {
   }
 }
 
+/* Describes the output of running the test in a browser */
+class BrowserTestOutput {
+  final bool didTimeout;
+  final Duration delayUntilTestStarted;
+  final Duration duration;
+  final BrowserOutput browserOutput;
+  final String dom;
+
+  BrowserTestOutput(
+      this.delayUntilTestStarted, this.duration, this.dom,
+      this.browserOutput, {this.didTimeout: false});
+}
 
 /**
  * Encapsulates all the functionality for running tests in browsers.
@@ -750,9 +778,15 @@ class BrowserTestRunner {
       }
       testCache[testId] = status.currentTest.url;
       Stopwatch watch = new Stopwatch()..start();
-      status.currentTest.doneCallback(output,
-                                      status.currentTest.delayUntilTestStarted,
-                                      status.currentTest.stopwatch.elapsed);
+
+      // Report that the test is finished now
+      var browserTestOutput = new BrowserTestOutput(
+          status.currentTest.delayUntilTestStarted,
+          status.currentTest.stopwatch.elapsed,
+          output,
+          status.browser.testBrowserOutput);
+      status.currentTest.doneCallback(browserTestOutput);
+
       watch.stop();
       status.lastTest = status.currentTest;
       status.currentTest = null;
@@ -784,7 +818,21 @@ class BrowserTestRunner {
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
+
+    status.currentTest.stopwatch.stop();
     status.browser.close().then((_) {
+      // Wait until the browser is closed before reporting the test as timeout.
+      // This will enable us to capture stdout/stderr from the browser
+      // (which might provide us with information about what went wrong).
+      var browserTestOutput = new BrowserTestOutput(
+          status.currentTest.delayUntilTestStarted,
+          status.currentTest.stopwatch.elapsed,
+          'Dom could not be fetched, since the test timed out.',
+          status.browser.testBrowserOutput,
+          didTimeout: true);
+      status.currentTest.doneCallback(browserTestOutput);
+      status.currentTest = null;
+
       // We don't want to start a new browser if we are terminating.
       if (underTermination) return;
       var browser;
@@ -819,11 +867,6 @@ class BrowserTestRunner {
         }
       });
     });
-    status.currentTest.stopwatch.stop();
-    status.currentTest.doneCallback("TIMEOUT",
-                                    status.currentTest.delayUntilTestStarted,
-                                    status.currentTest.stopwatch.elapsed);
-    status.currentTest = null;
   }
 
   BrowserTest getNextTest(String browserId) {
@@ -833,6 +876,7 @@ class BrowserTestRunner {
 
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
+
     BrowserTest test = testQueue.removeLast();
     if (status.currentTest == null) {
       status.currentTest = test;
@@ -850,6 +894,11 @@ class BrowserTestRunner {
 
     status.currentTest.timeoutTimer = createTimeoutTimer(test, status);
     status.currentTest.stopwatch = new Stopwatch()..start();
+
+    // Reset the test specific output information (stdout, stderr) on the
+    // browser since a new test is begin started.
+    status.browser.resetTestBrowserOutput();
+
     return test;
   }
 
