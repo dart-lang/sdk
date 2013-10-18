@@ -385,6 +385,8 @@ class CodeEmitterTask extends CompilerTask {
       js('constructors = null'),
 
       js('var finishedClasses = {}'),
+      js('init.interceptorsByTag = {}'),
+      js('init.leafTags = {}'),
 
       buildFinishClass(),
     ];
@@ -435,7 +437,49 @@ class CodeEmitterTask extends CompilerTask {
              js('superConstructor ='
                     'existingIsolateProperties[superclass]')),
 
-      js('prototype = inheritFrom(constructor, superConstructor)'),
+      js('var prototype = inheritFrom(constructor, superConstructor)'),
+
+      optional(!nativeClasses.isEmpty,
+          // The property looks like this:
+          //
+          // HtmlElement: {
+          //     "%": "HTMLDivElement|HTMLAnchorElement;HTMLElement;FancyButton"
+          //
+          // The first two semicolon-separated parts contain dispatch tags, the
+          // third contains the JavaScript names for classes.
+          //
+          // The tags indicate that JavaScript objects with the dispatch tags
+          // (usually constructor names) HTMLDivElement, HTMLAnchorElement and
+          // HTMLElement all map to the Dart native class named HtmlElement.
+          // The first set is for effective leaf nodes in the hierarchy, the
+          // second set is non-leaf nodes.
+          //
+          // The third part contains the JavaScript names of Dart classes that
+          // extend the native class. Here, FancyButton extends HtmlElement, so
+          // the runtime needs to know that window.HTMLElement.prototype is the
+          // prototype that needs to be extended in creating the custom element.
+          //
+          // The information is used to build tables referenced by
+          // getNativeInterceptor and custom element support.
+          js.if_('hasOwnProperty.call(prototype, "%")', [
+              js('var nativeSpec = prototype["%"].split(";")'),
+              js.if_('nativeSpec[0]', [
+                  js('var tags = nativeSpec[0].split("|")'),
+                  js.for_('var i = 0', 'i < tags.length', 'i++', [
+                      js('init.interceptorsByTag[tags[i]] = constructor'),
+                      js('init.leafTags[tags[i]] = true')])]),
+              js.if_('nativeSpec[1]', [
+                  js('tags = nativeSpec[1].split("|")'),
+                  optional(true, // User subclassing of native classes?
+                      js.if_('nativeSpec[2]', [
+                          js('var subclasses = nativeSpec[2].split("|")'),
+                          js.for_('var i = 0', 'i < subclasses.length', 'i++', [
+                              js('var subclass = allClasses[subclasses[i]]'),
+                              js('subclass.\$nativeSuperclassTag = '
+                                 'tags[0]')])])),
+                  js.for_('i = 0', 'i < tags.length', 'i++', [
+                      js('init.interceptorsByTag[tags[i]] = constructor'),
+                      js('init.leafTags[tags[i]] = false')])])]))
     ]);
 
     return new jsAst.FunctionDeclaration(

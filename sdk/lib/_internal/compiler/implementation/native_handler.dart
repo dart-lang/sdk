@@ -513,15 +513,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     staticUse('toStringForNativeObject');
     staticUse('hashCodeForNativeObject');
     staticUse('convertDartClosureToJS');
-    staticUse('defineNativeMethods');
-    staticUse('defineNativeMethodsNonleaf');
-    staticUse('defineNativeMethodsExtended');
-    // TODO(9577): Registering `defineNativeMethodsFinish` seems redundant with
-    // respect to the registering in the backend. When the backend registering
-    // is removed as part of fixing Issue 9577, this can be the sole place
-    // registering this methods.
-    staticUse('defineNativeMethodsFinish');
-
     addNativeExceptions();
   }
 

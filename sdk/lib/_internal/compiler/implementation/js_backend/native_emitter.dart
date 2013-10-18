@@ -74,26 +74,6 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  String get defineNativeMethodsName {
-    Element element = compiler.findHelper('defineNativeMethods');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsNonleafName {
-    Element element = compiler.findHelper('defineNativeMethodsNonleaf');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsExtendedName {
-    Element element = compiler.findHelper('defineNativeMethodsExtended');
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsFinishName {
-    Element element = compiler.findHelper('defineNativeMethodsFinish');
-    return backend.namer.isolateAccess(element);
-  }
-
   // The tags string contains comma-separated 'words' which are either dispatch
   // tags (having JavaScript identifier syntax) and directives that begin with
   // `!`.
@@ -242,28 +222,59 @@ class NativeEmitter {
       }
     }
 
-    // Emit code to set up dispatch data that maps tags to the interceptors, but
-    // only if native classes are actually instantiated.
+    // Add properties containing the information needed to construct maps used
+    // by getNativeInterceptor and custom elements.
     if (compiler.enqueuer.codegen.nativeEnqueuer
         .hasInstantiatedNativeClasses()) {
-      void generateDefines(ClassElement classElement) {
-        generateDefineNativeMethods(leafTags[classElement],
-            null,
-            classElement, defineNativeMethodsName);
+      void generateClassInfo(ClassElement classElement) {
+        // Property has the form:
+        //
+        //    "%": "leafTag1|leafTag2|...;nonleafTag1|...;Class1|Class2|...",
+        //
+        // If there is no data following a semicolon, the semicolon can be
+        // omitted.
+
+        String formatTags(Iterable<String> tags) {
+          if (tags == null) return '';
+          return (tags.toList()..sort()).join('|');
+        }
+
         List<ClassElement> extensions = extensionPoints[classElement];
-        if (extensions == null) {
-          generateDefineNativeMethods(nonleafTags[classElement],
-              null,
-              classElement, defineNativeMethodsNonleafName);
+
+        String leafStr = formatTags(leafTags[classElement]);
+        String nonleafStr = formatTags(nonleafTags[classElement]);
+
+        StringBuffer sb = new StringBuffer(leafStr);
+        if (nonleafStr != '') {
+          sb..write(';')..write(nonleafStr);
+        }
+        if (extensions != null) {
+          sb..write(';')
+            ..writeAll(extensions.map(backend.namer.getNameOfClass), '|');
+        }
+        String encoding = sb.toString();
+
+        ClassBuilder builder = builders[classElement];
+        if (builder == null) {
+          // No builder because this is an intermediate mixin application or
+          // Interceptor - these are not direct native classes.
+          if (encoding != '') {
+            // TODO(sra): Figure out how to emit this as a property onto
+            // Interceptor's ClassBuilder.
+            jsAst.Expression assignment =
+                js.assign(
+                    js(backend.namer.isolateAccess(classElement))['%'],
+                    js.string(encoding));
+            nativeBuffer.add(jsAst.prettyPrint(assignment, compiler));
+            nativeBuffer.add('$N$n');
+          }
         } else {
-          generateDefineNativeMethods(nonleafTags[classElement],
-              makeSubclassList(extensions),
-              classElement, defineNativeMethodsExtendedName);
+          builder.addProperty('%', js.string(encoding));
         }
       }
-      generateDefines(backend.jsInterceptorClass);
+      generateClassInfo(backend.jsInterceptorClass);
       for (ClassElement classElement in classes) {
-        generateDefines(classElement);
+        generateClassInfo(classElement);
       }
     }
 
@@ -347,38 +358,10 @@ class NativeEmitter {
     return builder;
   }
 
-  void generateDefineNativeMethods(
-      Set<String> tags, jsAst.Expression extraArgument,
-      ClassElement classElement, String definer) {
-    if (tags == null) return;
-    String tagsString = (tags.toList()..sort()).join('|');
-
-    List arguments = [
-        js.string(tagsString),
-        js(backend.namer.isolateAccess(classElement))];
-    if (extraArgument != null) {
-      arguments.add(extraArgument);
-    }
-    jsAst.Expression definition = js(definer)(arguments);
-
-    nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
-    nativeBuffer.add('$N$n');
-  }
-
-  jsAst.Expression makeSubclassList(List<ClassElement> classes) {
-    return new jsAst.ArrayInitializer.from(
-        classes.map((ClassElement classElement) =>
-            js(backend.namer.isolateAccess(classElement))));
-  }
-
   void finishGenerateNativeClasses() {
     // TODO(sra): Put specialized version of getNativeMethods on
     // `Object.prototype` to avoid checking in `getInterceptor` and
     // specializations.
-
-    // jsAst.Expression call = js(defineNativeMethodsFinishName)([]);
-    // nativeBuffer.add(jsAst.prettyPrint(call, compiler));
-    // nativeBuffer.add('$N$n');
   }
 
   void potentiallyConvertDartClosuresToJs(

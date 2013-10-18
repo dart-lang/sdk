@@ -224,7 +224,6 @@ class JavaScriptBackend extends Backend {
   // classes.
   Element dispatchPropertyName;
   Element getNativeInterceptorMethod;
-  Element defineNativeMethodsFinishMethod;
   bool needToInitializeDispatchProperty = false;
 
   bool seenAnyClass = false;
@@ -549,8 +548,6 @@ class JavaScriptBackend extends Backend {
     dispatchPropertyName = compiler.findInterceptor('dispatchPropertyName');
     getNativeInterceptorMethod =
         compiler.findInterceptor('getNativeInterceptor');
-    defineNativeMethodsFinishMethod =
-        compiler.findHelper('defineNativeMethodsFinish');
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
@@ -774,7 +771,6 @@ class JavaScriptBackend extends Backend {
         // TODO(9577): Make it so that these are not needed when there are no
         // native classes.
         enqueue(enqueuer, getNativeInterceptorMethod, elements);
-        enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
         enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
       }
     }
@@ -866,7 +862,6 @@ class JavaScriptBackend extends Backend {
     if (!enqueuer.nativeEnqueuer.hasInstantiatedNativeClasses()) return;
     TreeElements elements = compiler.globalDependencies;
     enqueue(enqueuer, getNativeInterceptorMethod, elements);
-    enqueue(enqueuer, defineNativeMethodsFinishMethod, elements);
     enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
     needToInitializeDispatchProperty = true;
   }

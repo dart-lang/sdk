@@ -82,7 +82,6 @@ const String DEFAULT_HELPERLIB = r'''
                        String contextName, var context,
                        var typeArguments) {}
   computeSignature(var signature, var context, var contextName) {}
-  defineNativeMethodsFinish() {}
   getRuntimeTypeArguments(target, substitutionName) {}
   voidTypeCheck(value) {}''';
 

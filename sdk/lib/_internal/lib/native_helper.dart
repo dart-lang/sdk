@@ -234,96 +234,24 @@ bool isDartObject(obj) {
   return JS('bool', '((#) instanceof (#))', obj, JS_DART_OBJECT_CONSTRUCTOR());
 }
 
-/// A JavaScript object mapping tags to interceptors.
-var interceptorsByTag;
-
-/// A JavaScript object mapping tags to `true` or `false`.
-var leafTags;
-
-/// A JavaScript list mapping subclass interceptor constructors to the native
-/// superclass tag.
-var interceptorToTag;
+/**
+ * A JavaScript object mapping tags to the constructors of interceptors.
+ *
+ * Example: 'HTMLImageElement' maps to the ImageElement native class
+ * constructor.
+ */
+get interceptorsByTag => JS('=Object', 'init.interceptorsByTag');
 
 /**
- * Associates dispatch tags (JavaScript constructor names e.g. DOM interface
- * names like HTMLDivElement) with an interceptor.  Called from generated code
- * during initial isolate definition.
+ * A JavaScript object mapping tags to `true` or `false`.
  *
- * The tags are all 'leaf' tags representing classes that have no subclasses
- * with different behaviour.
- *
- * [tags] is a string of `|`-separated tags.
+ * Example: 'HTMLImageElement' maps to `true` since, as since there are no
+ * subclasses of ImageElement, it is a leaf class in the native class hierarchy.
  */
-void defineNativeMethods(String tags, interceptorClass) {
-  defineNativeMethodsCommon(tags, interceptorClass, true);
-}
-
-/**
- * Associates dispatch tags (JavaScript constructor names e.g. DOM interface
- * names like HTMLElement) with an interceptor.  Called from generated code
- * during initial isolate definition.
- *
- * The tags are all non-'leaf' tags, representing classes that have a subclass
- * with different behaviour.
- */
-void defineNativeMethodsNonleaf(String tags, interceptorClass) {
-  defineNativeMethodsCommon(tags, interceptorClass, false);
-}
-
-/**
- * Associates dispatch tags (JavaScript constructor names e.g. DOM interface
- * names like HTMLElement) with an interceptor.  Called from generated code
- * during initial isolate definition.
- *
- * The tags are all non-'leaf' tags, representing classes that have a user
- * defined subclass that requires additional dispatch.
- * [subclassInterceptorClasses] is a list of interceptor classes
- * (i.e. constructors) for the user defined subclasses.
- */
-void defineNativeMethodsExtended(String tags, interceptorClass,
-                                 subclassInterceptorClasses) {
-  if (interceptorToTag == null) {
-    interceptorToTag = [];
-  }
-  List classes = JS('JSFixedArray', '#', subclassInterceptorClasses);
-  for (int i = 0; i < classes.length; i++) {
-    interceptorToTag.add(classes[i]);
-    // 'tags' is a single tag.
-    interceptorToTag.add(tags);
-  }
-
-  defineNativeMethodsCommon(tags, interceptorClass, false);
-}
-
-// TODO(sra): Try to encode all the calls to defineNativeMethodsXXX as pure
-// data.  The challenge is that the calls remove a lot of redundancy that is
-// expanded by the loops in these methods.
-void defineNativeMethodsCommon(String tags, var interceptorClass, bool isLeaf) {
-  var methods = JS('', '#.prototype', interceptorClass);
-  if (interceptorsByTag == null) interceptorsByTag = JS('=Object', '{}');
-  if (leafTags == null) leafTags = JS('=Object', '{}');
-
-  var tagsList = JS('JSExtendableArray', '#.split("|")', tags);
-  for (int i = 0; i < tagsList.length; i++) {
-    var tag = tagsList[i];
-    JS('void', '#[#] = #', interceptorsByTag, tag, methods);
-    JS('void', '#[#] = #', leafTags, tag, isLeaf);
-  }
-}
-
-void defineNativeMethodsFinish() {
-  // TODO(sra): Investigate placing a dispatch record on Object.prototype that
-  // returns an interceptor for JavaScript objects.  This avoids needing a test
-  // in every interceptor, and prioritizes the performance of known native
-  // classes over unknown.
-}
+get leafTags => JS('=Object', 'init.leafTags');
 
 String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
-  if (interceptorToTag == null) return null;
-  int i =
-      JS('int', '#.indexOf(#)', interceptorToTag, interceptorClassConstructor);
-  if (i < 0) return null;
-  return JS('', '#[#]', interceptorToTag, i + 1);
+  return JS('', r'#.$nativeSuperclassTag', interceptorClassConstructor);
 }
 
 lookupInterceptor(var hasOwnPropertyFunction, String tag) {
@@ -336,18 +264,18 @@ lookupInterceptor(var hasOwnPropertyFunction, String tag) {
 
 lookupDispatchRecord(obj) {
   var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
-  var interceptor = null;
+  var interceptorClass = null;
   assert(!isDartObject(obj));
   String tag = getTypeNameOf(obj);
 
-  interceptor = lookupInterceptor(hasOwnPropertyFunction, tag);
-  if (interceptor == null) {
+  interceptorClass = lookupInterceptor(hasOwnPropertyFunction, tag);
+  if (interceptorClass == null) {
     String secondTag = alternateTag(obj, tag);
     if (secondTag != null) {
-      interceptor = lookupInterceptor(hasOwnPropertyFunction, secondTag);
+      interceptorClass = lookupInterceptor(hasOwnPropertyFunction, secondTag);
     }
   }
-  if (interceptor == null) {
+  if (interceptorClass == null) {
     // This object is not known to Dart.  There could be several
     // reasons for that, including (but not limited to):
     // * A bug in native code (hopefully this is caught during development).
@@ -356,6 +284,7 @@ lookupDispatchRecord(obj) {
     //   example, on node.js.
     return null;
   }
+  var interceptor = JS('', '#.prototype', interceptorClass);
   var isLeaf =
       (leafTags != null) && JS('bool', '(#[#]) === true', leafTags, tag);
   if (isLeaf) {
