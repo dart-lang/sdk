@@ -229,7 +229,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
 @DomName('AudioContext')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section
 @Experimental()
-class AudioContext extends EventTarget native "AudioContext" {
+class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" {
   // To suppress missing implicit constructor warnings.
   factory AudioContext._() { throw new UnsupportedError("Not supported"); }
 

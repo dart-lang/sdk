@@ -29046,7 +29046,10 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    *
-   * Returns `true` if [value] was added to the set, otherwise `false`.
+   * If this corresponds to one element. Returns `true` if [value] was added to
+   * the set, otherwise `false`.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
   bool add(String value);
 

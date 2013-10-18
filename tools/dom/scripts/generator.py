@@ -92,6 +92,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     # T and no other browser has tag T).
 
     'AnalyserNode': 'AnalyserNode,RealtimeAnalyserNode',
+    'AudioContext': 'AudioContext,webkitAudioContext',
 
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
