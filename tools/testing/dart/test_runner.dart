@@ -2255,55 +2255,80 @@ class ProcessQueue {
                 this._listTests = false,
                 String recordingOutputFile,
                 String recordedInputFile]) {
-    bool recording = recordingOutputFile != null;
-    bool replaying = recordedInputFile != null;
+    void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
+      _graph.events.where((event) => event is dgraph.GraphSealedEvent)
+        .listen((dgraph.GraphSealedEvent event) {
+          var testCases = new List.from(testCaseEnqueuer.remainingTestCases);
+          testCases.sort((a, b) => a.displayName.compareTo(b.displayName));
 
-    // When the graph building is finished, notify event listeners.
-    _graph.events
-      .where((event) => event is dgraph.GraphSealedEvent).listen((event) {
-        eventAllTestsKnown();
-    });
+          print("\nGenerating all matching test cases ....\n");
+
+          for (TestCase testCase in testCases) {
+            print("${testCase.displayName}   "
+                  "Expectations: ${testCase.expectedOutcomes.join(', ')}   "
+                  "Configuration: '${testCase.configurationString}'");
+          }
+        });
+    }
+
+    void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
+      bool recording = recordingOutputFile != null;
+      bool replaying = recordedInputFile != null;
+
+      // When the graph building is finished, notify event listeners.
+      _graph.events
+        .where((event) => event is dgraph.GraphSealedEvent).listen((event) {
+          eventAllTestsKnown();
+        });
+
+      // Queue commands as they become "runnable"
+      var commandEnqueuer = new CommandEnqueuer(_graph);
+
+      // CommandExecutor will execute commands
+      var executor;
+      if (recording) {
+        executor = new RecordingCommandExecutor(new Path(recordingOutputFile));
+      } else if (replaying) {
+        executor = new ReplayingCommandExecutor(new Path(recordedInputFile));
+      } else {
+        executor = new CommandExecutorImpl(
+            _globalConfiguration, maxProcesses, maxBrowserProcesses);
+      }
+
+      // Run "runnable commands" using [executor] subject to
+      // maxProcesses/maxBrowserProcesses constraint
+      var commandQueue = new CommandQueue(
+          _graph, testCaseEnqueuer, executor, maxProcesses, maxBrowserProcesses,
+          verbose);
+
+      // Finish test cases when all commands were run (or some failed)
+      var testCaseCompleter =
+          new TestCaseCompleter(_graph, testCaseEnqueuer, commandQueue);
+      testCaseCompleter.finishedTestCases.listen(
+          (TestCase finishedTestCase) {
+            // If we're recording, we don't report any TestCases to listeners.
+            if (!recording) {
+              eventFinishedTestCase(finishedTestCase);
+            }
+          },
+          onDone: () {
+            // Wait until the commandQueue/execturo is done (it may need to stop
+            // batch runners, browser controllers, ....)
+            commandQueue.done.then((_) => eventAllTestsDone());
+          });
+    }
 
     // Build up the dependency graph
     var testCaseEnqueuer = new TestCaseEnqueuer(_graph, (TestCase newTestCase) {
       eventTestAdded(newTestCase);
     });
 
-    // Queue commands as they become "runnable"
-    var commandEnqueuer = new CommandEnqueuer(_graph);
-
-    // CommandExecutor will execute commands
-    var executor;
-    if (recording) {
-      executor = new RecordingCommandExecutor(new Path(recordingOutputFile));
-    } else if (replaying) {
-      executor = new ReplayingCommandExecutor(new Path(recordedInputFile));
+    // Either list or run the tests
+    if (_globalConfiguration['list']) {
+      setupForListing(testCaseEnqueuer);
     } else {
-      executor = new CommandExecutorImpl(
-          _globalConfiguration, maxProcesses, maxBrowserProcesses);
+      setupForRunning(testCaseEnqueuer);
     }
-
-    // Run "runnable commands" using [executor] subject to
-    // maxProcesses/maxBrowserProcesses constraint
-    var commandQueue = new CommandQueue(
-        _graph, testCaseEnqueuer, executor, maxProcesses, maxBrowserProcesses,
-        verbose);
-
-    // Finish test cases when all commands were run (or some failed)
-    var testCaseCompleter =
-        new TestCaseCompleter(_graph, testCaseEnqueuer, commandQueue);
-    testCaseCompleter.finishedTestCases.listen(
-      (TestCase finishedTestCase) {
-        // If we're recording, we don't report any TestCases to listeners.
-        if (!recording) {
-          eventFinishedTestCase(finishedTestCase);
-        }
-      },
-      onDone: () {
-        // Wait until the commandQueue/execturo is done (it may need to stop
-        // batch runners, browser controllers, ....)
-        commandQueue.done.then((_) => eventAllTestsDone());
-      });
 
     // Start enqueing all TestCases
     testCaseEnqueuer.enqueueTestSuites(testSuites);
