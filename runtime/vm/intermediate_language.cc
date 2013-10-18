@@ -1540,6 +1540,7 @@ static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
          Type::Handle(Type::Number()), NULL));
   return type->ToAbstractType()->IsDynamicType()
+      || type->ToAbstractType()->IsTypeParameter()
       || type->IsMoreSpecificThan(Type::Handle(Type::Number()));
 }
 
