@@ -2140,7 +2140,12 @@ Furthermore, we define $overrides(J, K)$  to be the set of members $m^\prime$ su
 \end{itemize}
 
 
-Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m^\prime$ if  $m^\prime \in overrides(I, L)$. It is a static warning if $m$ is a method and $m^\prime$ is a getter, or if $m$ is a getter and $m^\prime$ is a method.
+Let $I$ be the implicit interface of a class $C$ declared in library $L$.  $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m^\prime$ if  $m^\prime \in overrides(I, L)$. 
+
+All the static warnings pertaining to the overriding of instance members given in section \ref{classes} above hold for overriding between interfaces as well.
+
+It is a static warning if $m$ is a method and $m^\prime$ is a getter, or if $m$ is a getter and $m^\prime$ is a method.
+
 
 
 %Let $I = S_0$ be the implicit interface of a class $C$ declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superinterfaces of $I$. 
@@ -5984,6 +5989,7 @@ Let $T$ be the declared type of a declaration $d$, as it appears in the program 
 \subsubsection{Least Upper Bounds}
 \label{leastUpperBounds}
 
+% does this diverge in some cases?
 Given two interfaces $I$ and $J$, let $S_I$ be the set of superinterfaces of $I$,  let $S_J$ be the set of superinterfaces of $J$ and let $S =  (I \cup S_I) \cap (J \cup S_J)$.  Furthermore, we define $S_n = \{T | T \in S  \wedge depth(T) =n\}$ for any finite $n$ %, and $k=max(depth(T_1), \ldots, depth(T_m)), T_i \in S, i \in 1..m$, 
 where $depth(T)$ is the number of steps in the longest inheritance path from $T$ to \code{Object}. Let $q$ be the largest number such that $S_q$ has cardinality one. The least upper bound of $I$ and $J$ is the sole element of  $S_q$.
 
