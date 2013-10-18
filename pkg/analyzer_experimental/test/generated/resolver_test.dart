@@ -15996,6 +15996,7 @@ class AnalysisContextFactory {
         provider.objectType.element,
         provider.stackTraceType.element,
         provider.stringType.element,
+        provider.symbolType.element,
         provider.typeType.element];
     coreUnit.functions = <FunctionElement> [ElementFactory.functionElement3("identical", provider.boolType.element, <ClassElement> [provider.objectType.element, provider.objectType.element], null)];
     LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, ASTFactory.libraryIdentifier2(["dart", "core"]));

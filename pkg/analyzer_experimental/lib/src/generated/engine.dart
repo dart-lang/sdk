@@ -269,8 +269,8 @@ abstract class AnalysisContext {
   AnalysisContext extractContext(SourceContainer container);
 
   /**
-   * Return the set of analysis options controlling the behavior of this context. Changes to the
-   * return options will not affect this context. The options can only be set by invoking the method
+   * Return the set of analysis options controlling the behavior of this context. Clients should not
+   * modify the returned set of options. The options should only be set by invoking the method
    * [setAnalysisOptions].
    *
    * @return the set of analysis options controlling the behavior of this context
@@ -2980,7 +2980,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return null;
   }
   List<AnalysisError> computeErrors(Source source) {
-    bool enableHints = analysisOptions.hint;
+    bool enableHints = _options.hint;
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry is DartEntry) {
       List<AnalysisError> errors = new List<AnalysisError>();
@@ -3090,7 +3090,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return newContext;
   }
-  AnalysisOptions get analysisOptions => new AnalysisOptionsImpl.con1(_options);
+  AnalysisOptions get analysisOptions => _options;
   Element getElement(ElementLocation location) {
     try {
       List<String> components = ((location as ElementLocationImpl)).components;
@@ -3338,7 +3338,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<Source> get sourcesNeedingProcessing {
     Set<Source> sources = new Set<Source>();
     {
-      bool hintsEnabled = analysisOptions.hint;
+      bool hintsEnabled = _options.hint;
       for (Source source in _priorityOrder) {
         getSourcesNeedingProcessing2(source, _cache.get(source), true, hintsEnabled, sources);
       }
@@ -3998,7 +3998,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisTask get nextTaskAnalysisTask {
     {
-      bool hintsEnabled = analysisOptions.hint;
+      bool hintsEnabled = _options.hint;
       for (Source source in _priorityOrder) {
         AnalysisTask task = getNextTaskAnalysisTask2(source, _cache.get(source), true, hintsEnabled);
         if (task != null) {
@@ -6782,7 +6782,6 @@ class ParseDartTask extends AnalysisTask {
     try {
       Parser parser = new Parser(source, errorListener);
       compilationUnit = parser.parseCompilationUnit(token[0]);
-      compilationUnit.lineInfo = lineInfo;
       errors = errorListener.getErrors2(source);
       for (Directive directive in compilationUnit.directives) {
         if (directive is ExportDirective) {
@@ -6806,6 +6805,7 @@ class ParseDartTask extends AnalysisTask {
           _hasPartOfDirective2 = true;
         }
       }
+      compilationUnit.lineInfo = lineInfo;
     } finally {
       timeCounterParse.stop();
     }

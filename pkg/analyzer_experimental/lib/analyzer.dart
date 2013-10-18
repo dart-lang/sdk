@@ -40,6 +40,7 @@ CompilationUnit parseDartFile(String path) {
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
   var unit = parser.parseCompilationUnit(token);
+  unit.lineInfo = new LineInfo(scanner.lineStarts);
 
   if (errorCollector.hasErrors) throw errorCollector.group;
 
@@ -58,6 +59,7 @@ CompilationUnit parseCompilationUnit(String contents, {String name}) {
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
   var unit = parser.parseCompilationUnit(token);
+  unit.lineInfo = new LineInfo(scanner.lineStarts);
 
   if (errorCollector.hasErrors) throw errorCollector.group;
 

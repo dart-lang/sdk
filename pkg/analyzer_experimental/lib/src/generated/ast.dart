@@ -4,7 +4,7 @@ library engine.ast;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
-import 'package:analyzer_experimental/src/generated/source.dart' show LineInfo;
+import 'source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
@@ -2744,10 +2744,6 @@ class CommentReference extends ASTNode {
  * @coverage dart.engine.ast
  */
 class CompilationUnit extends ASTNode {
-  /**
-   * The line information for this compilation unit.
-   */
-  LineInfo lineInfo;
 
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
@@ -2781,6 +2777,11 @@ class CompilationUnit extends ASTNode {
    * been resolved.
    */
   CompilationUnitElement element;
+
+  /**
+   * The line information for this compilation unit.
+   */
+  LineInfo lineInfo;
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
@@ -14509,6 +14510,7 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(node.newKeyword, clone2(node.identifier));
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
     CompilationUnit clone = new CompilationUnit.full(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
+    clone.lineInfo = node.lineInfo;
     return clone;
   }
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
