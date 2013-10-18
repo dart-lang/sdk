@@ -140,7 +140,7 @@ class _UnicodeSubsetEncoderSink extends StringConversionSinkBase {
             "Source contains invalid character with code point: $codeUnit.");
       }
     }
-    _sink.add(source.codeUnits);
+    _sink.add(source.codeUnits.sublist(start, end));
     if (isLast) {
       close();
     }
