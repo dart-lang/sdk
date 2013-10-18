@@ -4,6 +4,7 @@ library engine.ast;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
+import 'package:analyzer_experimental/src/generated/source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
@@ -2743,6 +2744,10 @@ class CommentReference extends ASTNode {
  * @coverage dart.engine.ast
  */
 class CompilationUnit extends ASTNode {
+  /**
+   * The line information for this compilation unit.
+   */
+  LineInfo lineInfo;
 
   /**
    * The first token in the token stream that was parsed to form this compilation unit.

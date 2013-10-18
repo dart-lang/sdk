@@ -459,7 +459,7 @@ abstract class SubMessage extends ComplexMessage {
    * argument names and values.
    */
   Map argumentsOfInterestFor(MethodInvocation node) {
-    var basicArguments = node.argumentList.arguments.elements;
+    var basicArguments = node.argumentList.arguments;
     var others = basicArguments.where((each) => each is NamedExpression);
     return new Map.fromIterable(others,
         key: (node) => node.name.label.token.value(),
@@ -643,7 +643,7 @@ class Select extends SubMessage {
    * arguments used in Plural/Gender.
    */
   Map argumentsOfInterestFor(MethodInvocation node) {
-    var casesArgument = node.argumentList.arguments.elements[1];
+    var casesArgument = node.argumentList.arguments[1];
     return new Map.fromIterable(casesArgument.entries,
       key: (node) => node.key.value,
       value: (node) => node.value);

@@ -6782,6 +6782,7 @@ class ParseDartTask extends AnalysisTask {
     try {
       Parser parser = new Parser(source, errorListener);
       compilationUnit = parser.parseCompilationUnit(token[0]);
+      compilationUnit.lineInfo = lineInfo;
       errors = errorListener.getErrors2(source);
       for (Directive directive in compilationUnit.directives) {
         if (directive is ExportDirective) {
