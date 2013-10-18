@@ -970,7 +970,7 @@ class ValidResult extends EvaluationResultImpl {
    * A result object representing the an arbitrary integer on which no further operations can be
    * performed.
    */
-  static ValidResult RESULT_INT = new ValidResult(null);
+  static ValidResult RESULT_INT = new ValidResult(0);
 
   /**
    * A result object representing the `null` value.
@@ -1096,6 +1096,12 @@ class ValidResult extends EvaluationResultImpl {
       return valueOf4(((value as double)).toString());
     } else if (value is String) {
       return this;
+    } else if (isSomeBool) {
+      return valueOf4("<some bool>");
+    } else if (isSomeInt) {
+      return valueOf4("<some int>");
+    } else if (isSomeNum) {
+      return valueOf4("<some num>");
     }
     return error(node);
   }
@@ -1581,7 +1587,7 @@ class ValidResult extends EvaluationResultImpl {
       return error(node.rightOperand);
     } else if (leftValue is int) {
       if (value is int) {
-        return valueOf(((leftValue as int)) << ((value as int)));
+        return RESULT_INT;
       }
       return error(node.rightOperand);
     }

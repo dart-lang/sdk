@@ -1599,6 +1599,22 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
   }
+  void test_functionWithoutCall() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A implements Function {",
+        "}",
+        "class B implements A {",
+        "  void call() {}",
+        "}",
+        "class C extends A {",
+        "  void call() {}",
+        "}",
+        "class D extends C {",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
   void test_implicitThisReferenceInInitializer_constructorName() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -3745,6 +3761,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_functionTypeAlias_scope_signature', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_functionTypeAlias_scope_signature);
+      });
+      _ut.test('test_functionWithoutCall', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_functionWithoutCall);
       });
       _ut.test('test_implicitThisReferenceInInitializer_constructorName', () {
         final __test = new NonErrorResolverTest();
@@ -13856,6 +13876,32 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(source, [StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
+  void test_functionWithoutCall_direct() {
+    Source source = addSource(EngineTestCase.createSource(["class A implements Function {", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+  void test_functionWithoutCall_indirect_extends() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A implements Function {",
+        "}",
+        "class B extends A {",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
+  void test_functionWithoutCall_indirect_implements() {
+    Source source = addSource(EngineTestCase.createSource([
+        "abstract class A implements Function {",
+        "}",
+        "class B implements A {",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
+    verify([source]);
+  }
   void test_importDuplicatedLibraryName() {
     Source source = addSource(EngineTestCase.createSource([
         "library test;",
@@ -15168,6 +15214,18 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_finalNotInitialized_local_final', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_finalNotInitialized_local_final);
+      });
+      _ut.test('test_functionWithoutCall_direct', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_functionWithoutCall_direct);
+      });
+      _ut.test('test_functionWithoutCall_indirect_extends', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_functionWithoutCall_indirect_extends);
+      });
+      _ut.test('test_functionWithoutCall_indirect_implements', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_functionWithoutCall_indirect_implements);
       });
       _ut.test('test_importDuplicatedLibraryName', () {
         final __test = new StaticWarningCodeTest();

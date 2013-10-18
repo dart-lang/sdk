@@ -188,6 +188,9 @@ malformed_test/none: fail # test issue 14079, legit warnings for malformed type
 malformed_test/05: fail # test issue 14079, it is not error, but warning to instantiate malformed type
 malformed_test/06: fail # test issue 14079, it is not error, but warning to use malformed type in "try-on" clause
 
+# test issue 14228
+black_listed_test/none: fail # test issue 14228, warnings are required but not expected
+
 #
 # Please don't add new items here.
 # This is section for invalid tests.
