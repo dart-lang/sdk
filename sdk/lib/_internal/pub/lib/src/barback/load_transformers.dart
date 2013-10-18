@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
+import 'package:source_maps/source_maps.dart';
 
 import '../barback.dart';
 import '../dart.dart' as dart;
@@ -90,16 +91,23 @@ class ForeignTransform implements Transform {
 
   final Asset primaryInput;
 
-  // TODO(nweiz): implement this
-  TransformLogger get logger {
-    throw new UnimplementedError('ForeignTranform.logger is not yet '
-      'implemented.');
-  }
+  TransformLogger get logger => _logger;
+  TransformLogger _logger;
 
   /// Creates a transform from a serializable map sent from the host isolate.
   ForeignTransform(Map transform)
       : _port = transform['port'],
-        primaryInput = _deserializeAsset(transform['primaryInput']);
+        primaryInput = _deserializeAsset(transform['primaryInput']) {
+    _logger = new TransformLogger((assetId, level, message, span) {
+      _port.send({
+        'type': 'log',
+        'level': level.name,
+        'message': message,
+        'assetId': assetId == null ? null : _serializeId(assetId),
+        'span': span == null ? null : _serializeSpan(span)
+      });
+    });
+  }
 
   Future<Asset> getInput(AssetId id) {
     return _receiveFuture(_port.call({
@@ -222,6 +230,30 @@ Map _serializeAsset(Asset asset) {
 
 /// Converts [id] into a serializable map.
 Map _serializeId(AssetId id) => {'package': id.package, 'path': id.path};
+
+/// Converts [span] into a serializable map.
+Map _serializeSpan(Span span) {
+  // TODO(nweiz): convert FileSpans to FileSpans.
+  return {
+    'type': 'fixed',
+    'sourceUrl': span.sourceUrl,
+    'start': _serializeLocation(span.start),
+    'text': span.text,
+    'isIdentifier': span.isIdentifier
+  };
+}
+
+/// Converts [location] into a serializable map.
+Map _serializeLocation(Location location) {
+  // TODO(nweiz): convert FileLocations to FileLocations.
+  return {
+    'type': 'fixed',
+    'sourceUrl': location.sourceUrl,
+    'offset': location.offset,
+    'line': location.line,
+    'column': location.column
+  };
+}
 
 /// Sends the result of [future] through [port].
 ///
@@ -405,9 +437,26 @@ Map _serializeTransform(Transform transform) {
     if (message['type'] == 'getInput') {
       _sendFuture(replyTo, transform.getInput(_deserializeId(message['id']))
           .then(_serializeAsset));
-    } else {
-      assert(message['type'] == 'addOutput');
+    } else if (message['type'] == 'addOutput') {
       transform.addOutput(_deserializeAsset(message['output']));
+    } else {
+      assert(message['type'] == 'log');
+
+      var method;
+      if (message['level'] == 'Info') {
+        method = transform.logger.info;
+      } else if (message['level'] == 'Warning') {
+        method = transform.logger.warning;
+      } else {
+        assert(message['level'] == 'Error');
+        method = transform.logger.error;
+      }
+
+      var assetId = message['assetId'] == null ? null :
+        _deserializeId(message['assetId']);
+      var span = message['span'] == null ? null :
+        _deserializeSpan(message['span']);
+      method(message['message'], asset: assetId, span: span);
     }
   });
 
@@ -426,6 +475,21 @@ Asset _deserializeAsset(Map asset) {
 
 /// Converts a serializable map into an [AssetId].
 AssetId _deserializeId(Map id) => new AssetId(id['package'], id['path']);
+
+/// Converts a serializable map into a [Span].
+Span _deserializeSpan(Map span) {
+  assert(span['type'] == 'fixed');
+  var location = _deserializeLocation(span['start']);
+  return new FixedSpan(span['sourceUrl'], location.offset, location.line,
+      location.column, text: span['text'], isIdentifier: span['isIdentifier']);
+}
+
+/// Converts a serializable map into a [Location].
+Location _deserializeLocation(Map location) {
+  assert(location['type'] == 'fixed');
+  return new FixedLocation(location['offset'], location['sourceUrl'],
+      location['line'], location['column']);
+}
 
 // TODO(nweiz): add custom serialization code for assets that can be more
 // efficiently serialized.
