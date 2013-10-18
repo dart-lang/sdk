@@ -450,7 +450,9 @@ class VariableNames {
     return copyHandlers[block];
   }
 
-  void addNameUsed(String name) => allUsedNames.add(name);
+  void addNameUsed(String name) {
+    allUsedNames.add(name);
+  }
 
   bool hasName(HInstruction instruction) => ownName.containsKey(instruction);
 
