@@ -332,7 +332,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       keysType = new InterfaceType(compiler.listClass, arguments);
     }
     ListConstant keysList = new ListConstant(keysType, keys);
-    SourceString className = onlyStringKeys
+    String className = onlyStringKeys
         ? (hasProtoKey ? MapConstant.DART_PROTO_CLASS
                        : MapConstant.DART_STRING_CLASS)
         : MapConstant.DART_GENERAL_CLASS;
@@ -453,7 +453,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (receiverConstant == null) return null;
       Operator op = send.selector;
       Constant folded;
-      switch (op.source.stringValue) {
+      switch (op.source) {
         case "!":
           folded = constantSystem.not.fold(receiverConstant);
           break;
@@ -476,7 +476,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (left == null || right == null) return null;
       Operator op = send.selector.asOperator();
       Constant folded = null;
-      switch (op.source.stringValue) {
+      switch (op.source) {
         case "+":
           folded = constantSystem.add.fold(left, right);
           break;

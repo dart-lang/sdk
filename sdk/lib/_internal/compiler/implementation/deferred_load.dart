@@ -9,7 +9,6 @@ import 'dart2jslib.dart'
             CompilerTask,
             ConstructedConstant,
             MessageKind,
-            SourceString,
             StringConstant;
 
 import 'elements/elements.dart'
@@ -199,17 +198,15 @@ class DeferredLoadTask extends CompilerTask {
         if (element == deferredLibraryClass) {
           ConstructedConstant value = metadata.value;
           StringConstant nameField = value.fields[0];
-          SourceString expectedName = nameField.toDartString().source;
+          String expectedName = nameField.toDartString().slowToString();
           LibraryElement deferredLibrary = library.getLibraryFromTag(tag);
           link = link.prepend(deferredLibrary);
-          SourceString actualName =
-              new SourceString(deferredLibrary.getLibraryOrScriptName());
+          String actualName = deferredLibrary.getLibraryOrScriptName();
           if (expectedName != actualName) {
             compiler.reportError(
                 metadata,
                 MessageKind.DEFERRED_LIBRARY_NAME_MISMATCH,
-                { 'expectedName': expectedName.slowToString(),
-                  'actualName': actualName.slowToString()});
+                { 'expectedName': expectedName, 'actualName': actualName });
           }
         }
       }

@@ -38,10 +38,10 @@ void main() {
 
     var dateTime =
         deferredClasses
-            .where((e) => e.name.slowToString() == 'DateTime').single;
+            .where((e) => e.name == 'DateTime').single;
 
     var myClass =
-        deferredClasses.where((e) => e.name.slowToString() == 'MyClass').single;
+        deferredClasses.where((e) => e.name == 'MyClass').single;
 
     var deferredLibrary = compiler.libraries['memory:deferred.dart'];
 

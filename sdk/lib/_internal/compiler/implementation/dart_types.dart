@@ -8,7 +8,6 @@ import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
 import 'elements/modelx.dart'
     show VoidElementX, LibraryElementX, BaseClassElementX;
 import 'elements/elements.dart';
-import 'scanner/scannerlib.dart' show SourceString;
 import 'util/util.dart' show Link, LinkBuilder;
 
 class TypeKind {
@@ -28,7 +27,7 @@ class TypeKind {
 }
 
 abstract class DartType {
-  SourceString get name;
+  String get name;
 
   TypeKind get kind;
 
@@ -155,7 +154,7 @@ class TypeVariableType extends DartType {
 
   TypeKind get kind => TypeKind.TYPE_VARIABLE;
 
-  SourceString get name => element.name;
+  String get name => element.name;
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     if (parameters.isEmpty) {
@@ -199,7 +198,7 @@ class TypeVariableType extends DartType {
     return identical(other.element, element);
   }
 
-  String toString() => name.slowToString();
+  String toString() => name;
 }
 
 /**
@@ -212,7 +211,7 @@ class StatementType extends DartType {
 
   TypeKind get kind => TypeKind.STATEMENT;
 
-  SourceString get name => new SourceString(stringName);
+  String get name => stringName;
 
   const StatementType(this.stringName);
 
@@ -251,7 +250,7 @@ class VoidType extends DartType {
 
   TypeKind get kind => TypeKind.VOID;
 
-  SourceString get name => element.name;
+  String get name => element.name;
 
   final Element element;
 
@@ -272,7 +271,7 @@ class VoidType extends DartType {
 
   bool operator ==(other) => other is VoidType;
 
-  String toString() => name.slowToString();
+  String toString() => name;
 }
 
 class MalformedType extends DartType {
@@ -306,7 +305,7 @@ class MalformedType extends DartType {
 
   TypeKind get kind => TypeKind.MALFORMED_TYPE;
 
-  SourceString get name => element.name;
+  String get name => element.name;
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     // Malformed types are not substitutable.
@@ -326,9 +325,9 @@ class MalformedType extends DartType {
     var sb = new StringBuffer();
     if (typeArguments != null) {
       if (userProvidedBadType != null) {
-        sb.write(userProvidedBadType.name.slowToString());
+        sb.write(userProvidedBadType.name);
       } else {
-        sb.write(element.name.slowToString());
+        sb.write(element.name);
       }
       if (!typeArguments.isEmpty) {
         sb.write('<');
@@ -387,7 +386,7 @@ abstract class GenericType extends DartType {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write(name.slowToString());
+    sb.write(name);
     if (!isRaw) {
       sb.write('<');
       typeArguments.printOn(sb, ', ');
@@ -447,7 +446,7 @@ class InterfaceType extends GenericType {
 
   TypeKind get kind => TypeKind.INTERFACE;
 
-  SourceString get name => element.name;
+  String get name => element.name;
 
   InterfaceType _createType(Link<DartType> newTypeArguments) {
     return new InterfaceType(element, newTypeArguments);
@@ -478,7 +477,7 @@ class InterfaceType extends GenericType {
    * Finds the method, field or property named [name] declared or inherited
    * on this interface type.
    */
-  Member lookupMember(SourceString name, {bool isSetter: false}) {
+  Member lookupMember(String name, {bool isSetter: false}) {
     // Abstract field returned when setter was needed but only a getter was
     // present and vice-versa.
     Member fallbackAbstractField;
@@ -588,7 +587,7 @@ class FunctionType extends DartType {
   /**
    * The names of the named parameters ordered lexicographically.
    */
-  final Link<SourceString> namedParameters;
+  final Link<String> namedParameters;
 
   /**
    * The types of the named parameters in the order corresponding to the
@@ -600,7 +599,7 @@ class FunctionType extends DartType {
                DartType this.returnType,
                Link<DartType> this.parameterTypes,
                Link<DartType> this.optionalParameterTypes,
-               Link<SourceString> this.namedParameters,
+               Link<String> this.namedParameters,
                Link<DartType> this.namedParameterTypes) {
     assert(invariant(element, element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
@@ -610,8 +609,8 @@ class FunctionType extends DartType {
 
   TypeKind get kind => TypeKind.FUNCTION;
 
-  DartType getNamedParameterType(SourceString name) {
-    Link<SourceString> namedParameter = namedParameters;
+  DartType getNamedParameterType(String name) {
+    Link<String> namedParameter = namedParameters;
     Link<DartType> namedParameterType = namedParameterTypes;
     while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
       if (namedParameter.head == name) {
@@ -700,7 +699,7 @@ class FunctionType extends DartType {
         sb.write(', ');
       }
       sb.write('{');
-      Link<SourceString> namedParameter = namedParameters;
+      Link<String> namedParameter = namedParameters;
       Link<DartType> namedParameterType = namedParameterTypes;
       first = true;
       while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
@@ -709,7 +708,7 @@ class FunctionType extends DartType {
         }
         sb.write(namedParameterType.head);
         sb.write(' ');
-          sb.write(namedParameter.head.slowToString());
+          sb.write(namedParameter.head);
         namedParameter = namedParameter.tail;
         namedParameterType = namedParameterType.tail;
         first = false;
@@ -720,7 +719,7 @@ class FunctionType extends DartType {
     return sb.toString();
   }
 
-  SourceString get name => const SourceString('Function');
+  String get name => 'Function';
 
   int computeArity() {
     int arity = 0;
@@ -736,7 +735,7 @@ class FunctionType extends DartType {
     for (DartType parameter  in optionalParameterTypes) {
       hash = 19 * hash + 7 * parameter.hashCode;
     }
-    for (SourceString name  in namedParameters) {
+    for (String name  in namedParameters) {
       hash = 23 * hash + 11 * name.hashCode;
     }
     for (DartType parameter  in namedParameterTypes) {
@@ -775,7 +774,7 @@ class TypedefType extends GenericType {
 
   TypeKind get kind => TypeKind.TYPEDEF;
 
-  SourceString get name => element.name;
+  String get name => element.name;
 
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
@@ -802,7 +801,7 @@ class TypedefType extends GenericType {
 class DynamicType extends InterfaceType {
   DynamicType(ClassElement element) : super(element);
 
-  SourceString get name => const SourceString('dynamic');
+  String get name => 'dynamic';
 
   bool get treatAsDynamic => true;
 
@@ -885,7 +884,7 @@ class Member {
   }
 
   String toString() {
-    return '$receiver.${element.name.slowToString()}';
+    return '$receiver.${element.name}';
   }
 }
 
@@ -1018,9 +1017,9 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
       // Since named parameters are globally ordered we can determine the
       // subset relation with a linear search for [:sf.namedParameters:]
       // within [:tf.namedParameters:].
-      Link<SourceString> tNames = tf.namedParameters;
+      Link<String> tNames = tf.namedParameters;
       Link<DartType> tTypes = tf.namedParameterTypes;
-      Link<SourceString> sNames = sf.namedParameters;
+      Link<String> sNames = sf.namedParameters;
       Link<DartType> sTypes = sf.namedParameterTypes;
       while (!tNames.isEmpty && !sNames.isEmpty) {
         if (sNames.head == tNames.head) {
@@ -1355,11 +1354,10 @@ class Types {
         result = compareList(aFunc.optionalParameterTypes,
                              bFunc.optionalParameterTypes);
         if (result != 0) return result;
-        Link<SourceString> aNames = aFunc.namedParameters;
-        Link<SourceString> bNames = bFunc.namedParameters;
+        Link<String> aNames = aFunc.namedParameters;
+        Link<String> bNames = bFunc.namedParameters;
         while (!aNames.isEmpty && !bNames.isEmpty) {
-          int result = aNames.head.slowToString().compareTo(
-                       bNames.head.slowToString());
+          int result = aNames.head.compareTo(bNames.head);
           if (result != 0) return result;
           aNames = aNames.tail;
           bNames = bNames.tail;

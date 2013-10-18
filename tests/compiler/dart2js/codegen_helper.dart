@@ -6,8 +6,6 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 
 import 'memory_source_file_helper.dart';
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-    show SourceString;
 
 Future<Map<String, String>> generate(String code,
     [List<String> options = const []]) {
@@ -30,7 +28,7 @@ Future<Map<String, String>> generate(String code,
     Map<String, String> result = new Map<String, String>();
     for (var element in compiler.backend.generatedCode.keys) {
       if (element.getCompilationUnit().script.uri != uri) continue;
-      var name = element.name.slowToString();
+      var name = element.name;
       var code = compiler.backend.assembleCode(element);
       result[name] = code;
     }

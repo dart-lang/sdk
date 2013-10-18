@@ -14,7 +14,7 @@ import "type_test_helper.dart";
 DartType getType(compiler, String name) {
   var clazz = findElement(compiler, "Class");
   clazz.ensureResolved(compiler);
-  var element = clazz.buildScope().lookup(buildSourceString(name));
+  var element = clazz.buildScope().lookup(name);
   Expect.isNotNull(element);
   Expect.equals(element.kind, ElementKind.FUNCTION);
   FunctionSignature signature = element.computeSignature(compiler);

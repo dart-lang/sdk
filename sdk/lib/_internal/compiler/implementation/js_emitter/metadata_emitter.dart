@@ -80,8 +80,8 @@ class MetadataEmitter extends CodeEmitterHelper {
         jsAst.prettyPrint(representation, compiler).getText());
   }
 
-  int reifyName(SourceString name) {
-    return addGlobalMetadata('"${name.slowToString()}"');
+  int reifyName(String name) {
+    return addGlobalMetadata('"$name"');
   }
 
   int addGlobalMetadata(String string) {

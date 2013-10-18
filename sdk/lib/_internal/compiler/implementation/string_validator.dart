@@ -19,11 +19,11 @@ class StringValidator {
   StringValidator(this.listener);
 
   DartString validateQuotedString(Token token) {
-    SourceString source = token.value;
+    String source = token.value;
     StringQuoting quoting = quotingFromString(source);
     int leftQuote = quoting.leftQuoteLength;
     int rightQuote = quoting.rightQuoteLength;
-    SourceString content = source.copyWithoutQuotes(leftQuote, rightQuote);
+    String content = copyWithoutQuotes(source, leftQuote, rightQuote);
     return validateString(token,
                           token.charOffset + leftQuote,
                           content,
@@ -33,20 +33,20 @@ class StringValidator {
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
                                        {bool isFirst: false,
                                         bool isLast: false}) {
-    SourceString source = token.value;
+    String source = token.value;
     int leftQuote = 0;
     int rightQuote = 0;
     if (isFirst) leftQuote = quoting.leftQuoteLength;
     if (isLast) rightQuote = quoting.rightQuoteLength;
-    SourceString content = source.copyWithoutQuotes(leftQuote, rightQuote);
+    String content = copyWithoutQuotes(source, leftQuote, rightQuote);
     return validateString(token,
                           token.charOffset + leftQuote,
                           content,
                           quoting);
   }
 
-  static StringQuoting quotingFromString(SourceString sourceString) {
-    Iterator<int> source = sourceString.iterator;
+  static StringQuoting quotingFromString(String sourceString) {
+    Iterator<int> source = sourceString.codeUnits.iterator;
     bool raw = false;
     int quoteLength = 1;
     source.moveNext();
@@ -81,6 +81,18 @@ class StringValidator {
     return StringQuoting.getQuoting(quoteChar, raw, quoteLength);
   }
 
+  /**
+   * Return the string [string] witout its [initial] first and [terminal] last
+   * characters. This is intended to be used to remove quotes from string
+   * literals (including an initial 'r' for raw strings).
+   */
+  String copyWithoutQuotes(String string, int initial, int terminal) {
+    assert(0 <= initial);
+    assert(0 <= terminal);
+    assert(initial + terminal <= string.length);
+    return string.substring(initial, string.length - terminal);
+  }
+
   void stringParseError(String message, Token token, int offset) {
     listener.cancel("$message @ $offset", token : token);
   }
@@ -91,7 +103,7 @@ class StringValidator {
    */
   DartString validateString(Token token,
                             int startOffset,
-                            SourceString string,
+                            String string,
                             StringQuoting quoting) {
     // We need to check for invalid x and u escapes, for line
     // terminators in non-multiline strings, and for invalid Unicode
@@ -102,7 +114,8 @@ class StringValidator {
     bool containsEscape = false;
     bool previousWasLeadSurrogate = false;
     bool invalidUtf16 = false;
-    for(HasNextIterator<int> iter = new HasNextIterator(string.iterator);
+    var stringIter = string.codeUnits.iterator;
+    for(HasNextIterator<int> iter = new HasNextIterator(stringIter);
         iter.hasNext;
         length++) {
       index++;

@@ -9,7 +9,7 @@ import 'dart:async';
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../apiimpl.dart' as apiimpl;
-import '../scanner/scannerlib.dart' hide SourceString;
+import '../scanner/scannerlib.dart';
 import '../resolution/resolution.dart' show Scope;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
@@ -289,7 +289,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    */
   Element get _beginElement => _element;
 
-  String get simpleName => _element.name.slowToString();
+  String get simpleName => _element.name;
 
   /**
    * Computes the first token for this declaration using the begin token of the
@@ -352,7 +352,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   void _appendCommentTokens(Token commentToken) {
     while (commentToken != null && commentToken.kind == COMMENT_TOKEN) {
       _metadata.add(new Dart2JsCommentInstanceMirror(
-          mirrors, commentToken.slowToString()));
+          mirrors, commentToken.value));
       commentToken = commentToken.next;
     }
   }
@@ -381,16 +381,16 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       // Lookup [: prefix.id :].
       String prefix = name.substring(0, index);
       String id = name.substring(index+1);
-      result = scope.lookup(new SourceString(prefix));
+      result = scope.lookup(prefix);
       if (result != null && result.isPrefix()) {
         PrefixElement prefix = result;
-        result = prefix.lookupLocalMember(new SourceString(id));
+        result = prefix.lookupLocalMember(id);
       } else {
         result = null;
       }
     } else {
       // Lookup [: id :].
-      result = scope.lookup(new SourceString(name));
+      result = scope.lookup(name);
     }
     if (result == null || result.isPrefix()) return null;
     return _convertElementToDeclarationMirror(mirrors, result);
@@ -1032,7 +1032,7 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsElementMirror
     : super(system, type.element),
       this._type = type;
 
-  String get simpleName => _type.name.slowToString();
+  String get simpleName => _type.name;
 
   DeclarationMirror get owner => library;
 
@@ -1319,11 +1319,11 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
 
   factory Dart2JsMethodMirror(Dart2JsContainerMirror objectMirror,
                               FunctionElement function) {
-    String realName = function.name.slowToString();
+    String realName = function.name;
     // TODO(ahe): This method should not be calling
     // Elements.operatorNameToIdentifier.
     String simpleName =
-        Elements.operatorNameToIdentifier(function.name).slowToString();
+        Elements.operatorNameToIdentifier(function.name);
     Dart2JsMethodKind kind;
     if (function.kind == ElementKind.GETTER) {
       kind = Dart2JsMethodKind.GETTER;
@@ -1605,7 +1605,7 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
         var index = 0;
         ClassElement element = _constant.type.element;
         element.forEachInstanceField((_, Element field) {
-          String fieldName = field.name.slowToString();
+          String fieldName = field.name;
           _fieldMapCache.putIfAbsent(fieldName, () => _constant.fields[index]);
           index++;
         }, includeSuperAndInjectedMembers: true);

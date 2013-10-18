@@ -82,7 +82,7 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(0, length(element.metadata));
     element.ensureResolved(compiler);
     Expect.equals(0, length(element.metadata));
-    element = element.lookupLocalMember(buildSourceString(name));
+    element = element.lookupLocalMember(name);
     Expect.equals(1, length(element.metadata));
     PartialMetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
@@ -106,7 +106,7 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(0, length(element.metadata));
     element.ensureResolved(compiler);
     Expect.equals(0, length(element.metadata));
-    element = element.lookupLocalMember(buildSourceString(name));
+    element = element.lookupLocalMember(name);
     Expect.equals(2, length(element.metadata));
     PartialMetadataAnnotation annotation1 = element.metadata.head;
     PartialMetadataAnnotation annotation2 = element.metadata.tail.head;

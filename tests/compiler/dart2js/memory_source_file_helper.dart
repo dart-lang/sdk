@@ -15,7 +15,7 @@ export '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
        show currentDirectory, nativeToUriPath;
 
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart'
-       show SourceFile;
+       show StringSourceFile;
 
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart'
        show SourceFileProvider;
@@ -37,7 +37,9 @@ class MemorySourceFileProvider extends SourceFileProvider {
       return new Future.error(new Exception('No such file $resourceUri'));
     }
     String resourceName = '$resourceUri';
-    this.sourceFiles[resourceName] = new SourceFile(resourceName, source);
+    this.sourceFiles[resourceName] = new StringSourceFile(resourceName, source);
     return new Future.value(source);
   }
+
+  Future<String> call(Uri resourceUri) => readStringFromUri(resourceUri);
 }

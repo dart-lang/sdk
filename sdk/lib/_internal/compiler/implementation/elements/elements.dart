@@ -18,7 +18,6 @@ import '../dart2jslib.dart' show InterfaceType,
                                  DiagnosticListener,
                                  Script,
                                  FunctionType,
-                                 SourceString,
                                  Selector,
                                  Constant,
                                  Compiler;
@@ -170,7 +169,7 @@ class ElementKind {
  * It is better to keep such state in a table on the side.
  */
 abstract class Element implements Spannable {
-  SourceString get name;
+  String get name;
   ElementKind get kind;
   Modifiers get modifiers;
   Element get enclosingElement;
@@ -372,21 +371,21 @@ class Elements {
     return isLocal(element);
   }
 
-  static SourceString reconstructConstructorNameSourceString(Element element) {
-    if (element.name == const SourceString('')) {
+  static String reconstructConstructorNameSourceString(Element element) {
+    if (element.name == '') {
       return element.getEnclosingClass().name;
     } else {
-      return new SourceString(reconstructConstructorName(element));
+      return reconstructConstructorName(element);
     }
   }
 
   // TODO(johnniwinther): Remove this method.
   static String reconstructConstructorName(Element element) {
-    String className = element.getEnclosingClass().name.slowToString();
-    if (element.name == const SourceString('')) {
+    String className = element.getEnclosingClass().name;
+    if (element.name == '') {
       return className;
     } else {
-      return '$className\$${element.name.slowToString()}';
+      return '$className\$${element.name}';
     }
   }
 
@@ -399,112 +398,106 @@ class Elements {
    * JavaScript identifers, except it may include reserved words for
    * non-operator names.
    */
-  static SourceString operatorNameToIdentifier(SourceString name) {
-    if (name == null) return null;
-    String value = name.stringValue;
-    if (value == null) {
+  static String operatorNameToIdentifier(String name) {
+    if (name == null) {
       return name;
-    } else if (identical(value, '==')) {
-      return const SourceString(r'operator$eq');
-    } else if (identical(value, '~')) {
-      return const SourceString(r'operator$not');
-    } else if (identical(value, '[]')) {
-      return const SourceString(r'operator$index');
-    } else if (identical(value, '[]=')) {
-      return const SourceString(r'operator$indexSet');
-    } else if (identical(value, '*')) {
-      return const SourceString(r'operator$mul');
-    } else if (identical(value, '/')) {
-      return const SourceString(r'operator$div');
-    } else if (identical(value, '%')) {
-      return const SourceString(r'operator$mod');
-    } else if (identical(value, '~/')) {
-      return const SourceString(r'operator$tdiv');
-    } else if (identical(value, '+')) {
-      return const SourceString(r'operator$add');
-    } else if (identical(value, '<<')) {
-      return const SourceString(r'operator$shl');
-    } else if (identical(value, '>>')) {
-      return const SourceString(r'operator$shr');
-    } else if (identical(value, '>=')) {
-      return const SourceString(r'operator$ge');
-    } else if (identical(value, '>')) {
-      return const SourceString(r'operator$gt');
-    } else if (identical(value, '<=')) {
-      return const SourceString(r'operator$le');
-    } else if (identical(value, '<')) {
-      return const SourceString(r'operator$lt');
-    } else if (identical(value, '&')) {
-      return const SourceString(r'operator$and');
-    } else if (identical(value, '^')) {
-      return const SourceString(r'operator$xor');
-    } else if (identical(value, '|')) {
-      return const SourceString(r'operator$or');
-    } else if (identical(value, '-')) {
-      return const SourceString(r'operator$sub');
-    } else if (identical(value, 'unary-')) {
-      return const SourceString(r'operator$negate');
+    } else if (identical(name, '==')) {
+      return r'operator$eq';
+    } else if (identical(name, '~')) {
+      return r'operator$not';
+    } else if (identical(name, '[]')) {
+      return r'operator$index';
+    } else if (identical(name, '[]=')) {
+      return r'operator$indexSet';
+    } else if (identical(name, '*')) {
+      return r'operator$mul';
+    } else if (identical(name, '/')) {
+      return r'operator$div';
+    } else if (identical(name, '%')) {
+      return r'operator$mod';
+    } else if (identical(name, '~/')) {
+      return r'operator$tdiv';
+    } else if (identical(name, '+')) {
+      return r'operator$add';
+    } else if (identical(name, '<<')) {
+      return r'operator$shl';
+    } else if (identical(name, '>>')) {
+      return r'operator$shr';
+    } else if (identical(name, '>=')) {
+      return r'operator$ge';
+    } else if (identical(name, '>')) {
+      return r'operator$gt';
+    } else if (identical(name, '<=')) {
+      return r'operator$le';
+    } else if (identical(name, '<')) {
+      return r'operator$lt';
+    } else if (identical(name, '&')) {
+      return r'operator$and';
+    } else if (identical(name, '^')) {
+      return r'operator$xor';
+    } else if (identical(name, '|')) {
+      return r'operator$or';
+    } else if (identical(name, '-')) {
+      return r'operator$sub';
+    } else if (identical(name, 'unary-')) {
+      return r'operator$negate';
     } else {
       return name;
     }
   }
 
-  static SourceString constructOperatorNameOrNull(SourceString op,
-                                                  bool isUnary) {
-    String value = op.stringValue;
-    if (isMinusOperator(value)) {
-      return isUnary ? const SourceString('unary-') : op;
-    } else if (isUserDefinableOperator(value)) {
+  static String constructOperatorNameOrNull(String op, bool isUnary) {
+    if (isMinusOperator(op)) {
+      return isUnary ? 'unary-' : op;
+    } else if (isUserDefinableOperator(op)) {
       return op;
     } else {
       return null;
     }
   }
 
-  static SourceString constructOperatorName(SourceString op, bool isUnary) {
-    SourceString operatorName = constructOperatorNameOrNull(op, isUnary);
-    if (operatorName == null) throw 'Unhandled operator: ${op.slowToString()}';
+  static String constructOperatorName(String op, bool isUnary) {
+    String operatorName = constructOperatorNameOrNull(op, isUnary);
+    if (operatorName == null) throw 'Unhandled operator: $op';
     else return operatorName;
   }
 
-  static SourceString mapToUserOperatorOrNull(SourceString op) {
-    String value = op.stringValue;
-
-    if (identical(value, '!=')) return const SourceString('==');
-    if (identical(value, '*=')) return const SourceString('*');
-    if (identical(value, '/=')) return const SourceString('/');
-    if (identical(value, '%=')) return const SourceString('%');
-    if (identical(value, '~/=')) return const SourceString('~/');
-    if (identical(value, '+=')) return const SourceString('+');
-    if (identical(value, '-=')) return const SourceString('-');
-    if (identical(value, '<<=')) return const SourceString('<<');
-    if (identical(value, '>>=')) return const SourceString('>>');
-    if (identical(value, '&=')) return const SourceString('&');
-    if (identical(value, '^=')) return const SourceString('^');
-    if (identical(value, '|=')) return const SourceString('|');
+  static String mapToUserOperatorOrNull(String op) {
+    if (identical(op, '!=')) return '==';
+    if (identical(op, '*=')) return '*';
+    if (identical(op, '/=')) return '/';
+    if (identical(op, '%=')) return '%';
+    if (identical(op, '~/=')) return '~/';
+    if (identical(op, '+=')) return '+';
+    if (identical(op, '-=')) return '-';
+    if (identical(op, '<<=')) return '<<';
+    if (identical(op, '>>=')) return '>>';
+    if (identical(op, '&=')) return '&';
+    if (identical(op, '^=')) return '^';
+    if (identical(op, '|=')) return '|';
 
     return null;
   }
 
-  static SourceString mapToUserOperator(SourceString op) {
-    SourceString userOperator = mapToUserOperatorOrNull(op);
-    if (userOperator == null) throw 'Unhandled operator: ${op.slowToString()}';
+  static String mapToUserOperator(String op) {
+    String userOperator = mapToUserOperatorOrNull(op);
+    if (userOperator == null) throw 'Unhandled operator: $op';
     else return userOperator;
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return (element == coreLibrary.find(const SourceString('Comparable')));
+    return (element == coreLibrary.find('Comparable'));
   }
 
   static bool isStringOnlySupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return element == coreLibrary.find(const SourceString('Pattern'));
+    return element == coreLibrary.find('Pattern');
   }
 
   static bool isListSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return element == coreLibrary.find(const SourceString('Iterable'));
+    return element == coreLibrary.find('Iterable');
   }
 
   /// A `compareTo` function that places [Element]s in a consistent order based
@@ -521,7 +514,7 @@ class Elements {
     int offsetB = positionB == null ? -1 : positionB.charOffset;
     r = offsetA.compareTo(offsetB);
     if (r != 0) return r;
-    r = a.name.slowToString().compareTo(b.name.slowToString());
+    r = a.name.compareTo(b.name);
     if (r != 0) return r;
     // Same file, position and name.  If this happens, we should find out why
     // and make the order total and independent of hashCode.
@@ -619,7 +612,7 @@ abstract class AmbiguousElement extends Element {
 // TODO(kasperl): This probably shouldn't be called an element. It's
 // just an interface shared by classes and libraries.
 abstract class ScopeContainerElement implements Element {
-  Element localLookup(SourceString elementName);
+  Element localLookup(String elementName);
 
   void forEachLocalMember(f(Element element));
 }
@@ -689,8 +682,8 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 
   void setExports(Iterable<Element> exportedElements);
 
-  Element find(SourceString elementName);
-  Element findLocal(SourceString elementName);
+  Element find(String elementName);
+  Element findLocal(String elementName);
   void forEachExport(f(Element element));
 
   bool hasLibraryName();
@@ -701,7 +694,7 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 
 abstract class PrefixElement extends Element {
   void addImport(Element element, Import import, DiagnosticListener listener);
-  Element lookupLocalMember(SourceString memberName);
+  Element lookupLocalMember(String memberName);
 }
 
 abstract class TypedefElement extends Element
@@ -854,7 +847,7 @@ abstract class ClassElement extends TypeDeclarationElement
   int get supertypeLoadState;
   int get resolutionState;
   bool get isResolved;
-  SourceString get nativeTagInfo;
+  String get nativeTagInfo;
 
   bool get isMixinApplication;
   bool get isUnnamedMixinApplication;
@@ -870,7 +863,7 @@ abstract class ClassElement extends TypeDeclarationElement
   void set origin(ClassElement value);
   void set supertypeLoadState(int value);
   void set resolutionState(int value);
-  void set nativeTagInfo(SourceString value);
+  void set nativeTagInfo(String value);
 
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
@@ -887,18 +880,18 @@ abstract class ClassElement extends TypeDeclarationElement
   void addBackendMember(Element element);
   void reverseBackendMembers();
 
-  Element lookupMember(SourceString memberName);
+  Element lookupMember(String memberName);
   Element lookupSelector(Selector selector, Compiler compiler);
   Element lookupSuperSelector(Selector selector, Compiler compiler);
 
-  Element lookupLocalMember(SourceString memberName);
-  Element lookupBackendMember(SourceString memberName);
-  Element lookupSuperMember(SourceString memberName);
+  Element lookupLocalMember(String memberName);
+  Element lookupBackendMember(String memberName);
+  Element lookupSuperMember(String memberName);
 
-  Element lookupSuperMemberInLibrary(SourceString memberName,
+  Element lookupSuperMemberInLibrary(String memberName,
                                      LibraryElement library);
 
-  Element lookupSuperInterfaceMember(SourceString memberName,
+  Element lookupSuperInterfaceMember(String memberName,
                                      LibraryElement fromLibrary);
 
   Element validateConstructorLookupResults(Selector selector,

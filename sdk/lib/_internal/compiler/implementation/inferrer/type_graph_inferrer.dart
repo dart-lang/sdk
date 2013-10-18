@@ -10,7 +10,7 @@ import '../elements/elements.dart';
 import '../tree/tree.dart' show LiteralList, Node;
 import '../types/types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
-import '../dart2jslib.dart' show Compiler, SourceString, TreeElementMapping;
+import '../dart2jslib.dart' show Compiler, TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
@@ -26,14 +26,14 @@ part 'container_tracer.dart';
  */
 Set<Selector> returnsElementTypeSet = new Set<Selector>.from(
   <Selector>[
-    new Selector.getter(const SourceString('first'), null),
-    new Selector.getter(const SourceString('last'), null),
-    new Selector.getter(const SourceString('single'), null),
-    new Selector.call(const SourceString('singleWhere'), null, 1),
-    new Selector.call(const SourceString('elementAt'), null, 1),
+    new Selector.getter('first', null),
+    new Selector.getter('last', null),
+    new Selector.getter('single', null),
+    new Selector.call('singleWhere', null, 1),
+    new Selector.call('elementAt', null, 1),
     new Selector.index(),
-    new Selector.call(const SourceString('removeAt'), null, 1),
-    new Selector.call(const SourceString('removeLast'), null, 0)
+    new Selector.call('removeAt', null, 1),
+    new Selector.call('removeLast', null, 0)
   ]);
 
 bool returnsElementType(Selector selector) {
@@ -643,7 +643,7 @@ class TypeGraphInferrerEngine
 
   void recordReturnType(Element element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOf(element);
-    if (element.name == const SourceString('==')) {
+    if (element.name == '==') {
       info.addAssignment(types.boolType);
     }
     // TODO(ngeoffray): Clean up. We do these checks because

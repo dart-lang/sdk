@@ -14,6 +14,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart';
+import 'dart:convert';
 
 const List<String> TESTS = const [
     'language/type_promotion_assign_test.dart',
@@ -32,8 +33,8 @@ void main() {
   bool warningsMismatch = false;
   Future.forEach(TESTS, (String test) {
     Uri uri = script.resolve('../../$test');
-    String source = readAll(uriPathToNative(uri.path));
-    SourceFile file = new SourceFile(
+    String source = UTF8.decode(readAll(uriPathToNative(uri.path)));
+    SourceFile file = new StringSourceFile(
         relativize(currentDirectory, uri, isWindows), source);
     Map<int,String> expectedWarnings = {};
     int lineNo = 0;

@@ -6,88 +6,185 @@ part of scanner;
 
 abstract class Scanner {
   Token tokenize();
+
+  factory Scanner(SourceFile file, {bool includeComments: false}) {
+    if (file is Utf8BytesSourceFile) {
+      return new Utf8BytesScanner(file, includeComments: includeComments);
+    } else {
+      return new StringScanner(file, includeComments: includeComments);
+    }
+  }
 }
 
-/**
- * Common base class for a Dart scanner.
- */
-abstract class AbstractScanner<T extends SourceString> implements Scanner {
-  int advance();
-  int nextByte();
+abstract class AbstractScanner implements Scanner {
+  final bool includeComments;
 
   /**
-   * Returns the current character or byte depending on the underlying input
-   * kind. For example, [StringScanner] operates on [String] and thus returns
-   * characters (Unicode codepoints represented as int) whereas
-   * [ByteArrayScanner] operates on byte arrays and thus returns bytes.
+   * The string offset for the next token that will be created.
+   *
+   * Note that in the [Utf8BytesScanner], [stringOffset] and [scanOffset] values
+   * are different. One string character can be encoded using multiple UTF-8
+   * bytes.
+   */
+  int tokenStart = -1;
+
+  /**
+   * A pointer to the token stream created by this scanner. The first token
+   * is a special token and not part of the source file. This is an
+   * implementation detail to avoids special cases in the scanner. This token
+   * is not exposed to clients of the scanner, which are expected to invoke
+   * [firstToken] to access the token stream.
+   */
+  final Token tokens = new SymbolToken(EOF_INFO, -1);
+
+  /**
+   * A pointer to the last scanned token.
+   */
+  Token tail;
+
+  /**
+   * The source file that is being scanned. This field can be [:null:].
+   * If the source file is available, the scanner assigns its [:lineStarts:] and
+   * [:length:] fields at the end of [tokenize].
+   */
+  final SourceFile file;
+
+  final List<int> lineStarts = [0];
+
+  AbstractScanner(this.file, this.includeComments) {
+    this.tail = this.tokens;
+  }
+
+
+  /**
+   * Advances and returns the next character.
+   *
+   * If the next character is non-ASCII, then the returned value depends on the
+   * scanner implementation. The [Utf8BytesScanner] returns a UTF-8 byte, while
+   * the [StringScanner] returns a UTF-16 code unit.
+   *
+   * The scanner ensures that [advance] is not invoked after it returned [$EOF].
+   * This allows implementations to omit bound checks if the data structure ends
+   * with '0'.
+   */
+  int advance();
+
+  /**
+   * Returns the current unicode character.
+   *
+   * If the current character is ASCII, then it is returned unchanged.
+   *
+   * The [Utf8BytesScanner] decodes the next unicode code point starting at the
+   * current position. Note that every unicode character is returned as a single
+   * code point, i.e., for '\u{1d11e}' it returns 119070, and the following
+   * [advance] returns the next character.
+   *
+   * The [StringScanner] returns the current character unchanged, which might
+   * be a surrogate character. In the case of '\u{1d11e}', it returns the first
+   * code unit 55348, and the following [advance] returns the second code unit
+   * 56606.
+   *
+   * Invoking [currentAsUnicode] multiple times is safe, i.e.,
+   * [:currentAsUnicode(next) == currentAsUnicode(currentAsUnicode(next)):].
+   */
+  int currentAsUnicode(int next);
+
+  /**
+   * Returns the character at the next poisition. Like in [advance], the
+   * [Utf8BytesScanner] returns a UTF-8 byte, while the [StringScanner] returns
+   * a UTF-16 code unit.
    */
   int peek();
 
   /**
-   * Appends a fixed token based on whether the current char is [choice] or not.
-   * If the current char is [choice] a fixed token whose kind and content
-   * is determined by [yes] is appended, otherwise a fixed token whose kind
-   * and content is determined by [no] is appended.
+   * Notifies the scanner that unicode characters were detected in either a
+   * comment or a string literal between [startScanOffset] and the current
+   * scan offset.
    */
-  int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
+  void handleUnicode(int startScanOffset);
 
   /**
-   * Appends a fixed token whose kind and content is determined by [info].
+   * Returns the current scan offset.
+   *
+   * In the [Utf8BytesScanner] this is the offset into the byte list, in the
+   * [StringScanner] the offset in the source string.
    */
-  void appendPrecedenceToken(PrecedenceInfo info);
+  int get scanOffset;
 
   /**
-   * Appends a token whose kind is determined by [info] and content is [value].
+   * Returns the current string offset.
+   *
+   * In the [StringScanner] this is identical to the [scanOffset]. In the
+   * [Utf8BytesScanner] it is computed based on encountered UTF-8 characters.
    */
+  int get stringOffset;
+
+  /**
+   * Returns the first token scanned by this [Scanner].
+   */
+  Token firstToken();
+
+  /**
+   * Returns the last token scanned by this [Scanner].
+   */
+  Token previousToken();
+
+  /**
+   * Notifies that a new token starts at current offset.
+   */
+  void beginToken() {
+    tokenStart = stringOffset;
+  }
+
+  /**
+   * Appends a substring from the scan offset [:start:] to the current
+   * [:scanOffset:] plus the [:extraOffset:]. For example, if the current
+   * scanOffset is 10, then [:appendSubstringToken(5, -1):] will append the
+   * substring string [5,9).
+   *
+   * Note that [extraOffset] can only be used if the covered character(s) are
+   * known to be ASCII.
+   */
+  void appendSubstringToken(PrecedenceInfo info, int start,
+                            bool asciiOnly, [int extraOffset]);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
   void appendStringToken(PrecedenceInfo info, String value);
 
-  /**
-   * Appends a token whose kind is determined by [info] and content is defined
-   * by the SourceString [value].
-   */
-  void appendByteStringToken(PrecedenceInfo info, T value);
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendPrecedenceToken(PrecedenceInfo info);
 
-  /**
-   * Appends a keyword token whose kind is determined by [keyword].
-   */
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
   void appendKeywordToken(Keyword keyword);
-  void appendWhiteSpace(int next);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
   void appendEofToken();
 
-  /**
-   * Creates an ASCII SourceString whose content begins at the source byte
-   * offset [start] and ends at [offset] bytes from the current byte offset of
-   * the scanner. For example, if the current byte offset is 10,
-   * [:asciiString(0,-1):] creates an ASCII SourceString whose content is found
-   * at the [0,9[ byte interval of the source text.
-   */
-  T asciiString(int start, int offset);
-  T utf8String(int start, int offset);
-  Token firstToken();
-  Token previousToken();
-  void beginToken();
-  void addToCharOffset(int offset);
-  int get charOffset;
-  int get byteOffset;
-  void appendBeginGroup(PrecedenceInfo info, String value);
-  int appendEndGroup(PrecedenceInfo info, String value, int openKind);
-  void appendGt(PrecedenceInfo info, String value);
-  void appendGtGt(PrecedenceInfo info, String value);
-  void appendGtGtGt(PrecedenceInfo info, String value);
-  void appendComment();
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendWhiteSpace(int next);
 
-  /**
-   * We call this method to discard '<' from the "grouping" stack
-   * (maintained by subclasses).
-   *
-   * [PartialParser.skipExpression] relies on the fact that we do not
-   * create groups for stuff like:
-   * [:a = b < c, d = e > f:].
-   *
-   * In other words, this method is called when the scanner recognizes
-   * something which cannot possibly be part of a type
-   * parameter/argument list.
-   */
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void lineFeedInMultiline();
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendBeginGroup(PrecedenceInfo info);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  int appendEndGroup(PrecedenceInfo info, int openKind);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendGt(PrecedenceInfo info);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendGtGt(PrecedenceInfo info);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
+  void appendComment(start, bool asciiOnly);
+
+  /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
 
   // TODO(ahe): Move this class to implementation.
@@ -98,6 +195,14 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       next = bigSwitch(next);
     }
     appendEofToken();
+
+    if (file != null) {
+      file.length = stringOffset;
+      // One additional line start at the end, see [SourceFile.lineStarts].
+      lineStarts.add(stringOffset + 1);
+      file.lineStarts = lineStarts;
+    }
+
     return firstToken();
   }
 
@@ -107,8 +212,10 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         || identical(next, $LF) || identical(next, $CR)) {
       appendWhiteSpace(next);
       next = advance();
+      // Sequences of spaces are common, so advance through them fast.
       while (identical(next, $SPACE)) {
-        appendWhiteSpace(next);
+        // We don't invoke [:appendWhiteSpace(next):] here for efficiency,
+        // assuming that it does not do anything for space characters.
         next = advance();
       }
       return next;
@@ -121,8 +228,10 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       return tokenizeKeywordOrIdentifier(next, true);
     }
 
-    if (($A <= next && next <= $Z) || identical(next, $_) || identical(next, $$)) {
-      return tokenizeIdentifier(next, byteOffset, true);
+    if (($A <= next && next <= $Z) ||
+        identical(next, $_) ||
+        identical(next, $$)) {
+      return tokenizeIdentifier(next, scanOffset, true);
     }
 
     if (identical(next, $LT)) {
@@ -187,12 +296,12 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
 
     if (identical(next, $OPEN_PAREN)) {
-      appendBeginGroup(OPEN_PAREN_INFO, "(");
+      appendBeginGroup(OPEN_PAREN_INFO);
       return advance();
     }
 
     if (identical(next, $CLOSE_PAREN)) {
-      return appendEndGroup(CLOSE_PAREN_INFO, ")", OPEN_PAREN_TOKEN);
+      return appendEndGroup(CLOSE_PAREN_INFO, OPEN_PAREN_TOKEN);
     }
 
     if (identical(next, $COMMA)) {
@@ -218,7 +327,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
 
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
-      return appendEndGroup(CLOSE_SQUARE_BRACKET_INFO, "]",
+      return appendEndGroup(CLOSE_SQUARE_BRACKET_INFO,
                             OPEN_SQUARE_BRACKET_TOKEN);
     }
 
@@ -228,12 +337,12 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
 
     if (identical(next, $OPEN_CURLY_BRACKET)) {
-      appendBeginGroup(OPEN_CURLY_BRACKET_INFO, "{");
+      appendBeginGroup(OPEN_CURLY_BRACKET_INFO);
       return advance();
     }
 
     if (identical(next, $CLOSE_CURLY_BRACKET)) {
-      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO, "}",
+      return appendEndGroup(CLOSE_CURLY_BRACKET_INFO,
                             OPEN_CURLY_BRACKET_TOKEN);
     }
 
@@ -246,7 +355,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
 
     if (identical(next, $DQ) || identical(next, $SQ)) {
-      return tokenizeString(next, byteOffset, false);
+      return tokenizeString(next, scanOffset, false);
     }
 
     if (identical(next, $PERIOD)) {
@@ -268,8 +377,10 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       return $EOF;
     }
     if (next < 0x1f) {
-      return error(new SourceString("unexpected character $next"));
+      return error("unexpected character $next");
     }
+
+    next = currentAsUnicode(next);
 
     // The following are non-ASCII characters.
 
@@ -278,16 +389,22 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       return advance();
     }
 
-    return tokenizeIdentifier(next, byteOffset, true);
+    return error("unexpected unicode character $next");
   }
 
   int tokenizeTag(int next) {
     // # or #!.*[\n\r]
-    if (byteOffset == 0) {
+    if (scanOffset == 0) {
       if (identical(peek(), $BANG)) {
+        int start = scanOffset + 1;
+        bool asciiOnly = true;
         do {
           next = advance();
-        } while (!identical(next, $LF) && !identical(next, $CR) && !identical(next, $EOF));
+          if (next > 127) asciiOnly = false;
+        } while (!identical(next, $LF) &&
+                 !identical(next, $CR) &&
+                 !identical(next, $EOF));
+        if (!asciiOnly) handleUnicode(start);
         return next;
       }
     }
@@ -311,11 +428,12 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     next = advance();
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
       Token token = previousToken();
-      if (token is KeywordToken && identical(token.value.stringValue, 'operator')) {
+      if (token is KeywordToken &&
+          identical((token as KeywordToken).keyword.syntax, 'operator')) {
         return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
       }
     }
-    appendBeginGroup(OPEN_SQUARE_BRACKET_INFO, "[");
+    appendBeginGroup(OPEN_SQUARE_BRACKET_INFO);
     return next;
   }
 
@@ -379,7 +497,6 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
   }
 
-
   int tokenizePlus(int next) {
     // + ++ +=
     next = advance();
@@ -396,7 +513,9 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeExclamation(int next) {
-    // ! != !==
+    // ! !=
+    // !== is kept for user-friendly error reporting.
+
     next = advance();
     if (identical(next, $EQ)) {
       return select($EQ, BANG_EQ_EQ_INFO, BANG_EQ_INFO);
@@ -406,7 +525,8 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeEquals(int next) {
-    // = == ===
+    // = == =>
+    // === is kept for user-friendly error reporting.
 
     // Type parameters and arguments cannot contain any token that
     // starts with '='.
@@ -424,7 +544,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeGreaterThan(int next) {
-    // > >= >> >>= >>> >>>=
+    // > >= >> >>=
     next = advance();
     if (identical($EQ, next)) {
       appendPrecedenceToken(GT_EQ_INFO);
@@ -435,11 +555,11 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         appendPrecedenceToken(GT_GT_EQ_INFO);
         return advance();
       } else {
-        appendGtGt(GT_GT_INFO, ">>");
+        appendGtGt(GT_GT_INFO);
         return next;
       }
     } else {
-      appendGt(GT_INFO, ">");
+      appendGt(GT_INFO);
       return next;
     }
   }
@@ -453,13 +573,13 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     } else if (identical($LT, next)) {
       return select($EQ, LT_LT_EQ_INFO, LT_LT_INFO);
     } else {
-      appendBeginGroup(LT_INFO, "<");
+      appendBeginGroup(LT_INFO);
       return next;
     }
   }
 
   int tokenizeNumber(int next) {
-    int start = byteOffset;
+    int start = scanOffset;
     while (true) {
       next = advance();
       if ($0 <= next && next <= $9) {
@@ -473,7 +593,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
             return tokenizeFractionPart(advance(), start);
           }
         }
-        appendByteStringToken(INT_INFO, asciiString(start, 0));
+        appendSubstringToken(INT_INFO, start, true);
         return next;
       }
     }
@@ -482,14 +602,14 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   int tokenizeHexOrNumber(int next) {
     int x = peek();
     if (identical(x, $x) || identical(x, $X)) {
-      advance();
-      return tokenizeHex(x);
+      return tokenizeHex(next);
     }
     return tokenizeNumber(next);
   }
 
   int tokenizeHex(int next) {
-    int start = byteOffset - 1;
+    int start = scanOffset;
+    next = advance(); // Advance past the $x or $X.
     bool hasDigits = false;
     while (true) {
       next = advance();
@@ -499,16 +619,16 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          return error(const SourceString("hex digit expected"));
+          return error("hex digit expected");
         }
-        appendByteStringToken(HEXADECIMAL_INFO, asciiString(start, 0));
+        appendSubstringToken(HEXADECIMAL_INFO, start, true);
         return next;
       }
     }
   }
 
   int tokenizeDotsOrNumber(int next) {
-    int start = byteOffset;
+    int start = scanOffset;
     next = advance();
     if (($0 <= next && next <= $9)) {
       return tokenizeFractionPart(next, start);
@@ -538,15 +658,18 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       next = advance();
     }
     if (!hasDigit) {
-      appendByteStringToken(INT_INFO, asciiString(start, -1));
+      // Reduce offset, we already advanced to the token past the period.
+      appendSubstringToken(INT_INFO, start, true, -1);
+
+      // TODO(ahe): Wrong offset for the period. Cannot call beginToken because
+      // the scanner already advanced past the period.
       if (identical($PERIOD, next)) {
         return select($PERIOD, PERIOD_PERIOD_PERIOD_INFO, PERIOD_PERIOD_INFO);
       }
-      // TODO(ahe): Wrong offset for the period.
       appendPrecedenceToken(PERIOD_INFO);
-      return bigSwitch(next);
+      return next;
     }
-    appendByteStringToken(DOUBLE_INFO, asciiString(start, 0));
+    appendSubstringToken(DOUBLE_INFO, start, true);
     return next;
   }
 
@@ -560,7 +683,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          return error(const SourceString("digit expected"));
+          return error("digit expected");
         }
         return next;
       }
@@ -569,11 +692,12 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeSlashOrComment(int next) {
+    int start = scanOffset;
     next = advance();
     if (identical($STAR, next)) {
-      return tokenizeMultiLineComment(next);
+      return tokenizeMultiLineComment(next, start);
     } else if (identical($SLASH, next)) {
-      return tokenizeSingleLineComment(next);
+      return tokenizeSingleLineComment(next, start);
     } else if (identical($EQ, next)) {
       appendPrecedenceToken(SLASH_EQ_INFO);
       return advance();
@@ -583,30 +707,41 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
   }
 
-  int tokenizeSingleLineComment(int next) {
+  int tokenizeSingleLineComment(int next, int start) {
+    bool asciiOnly = true;
     while (true) {
       next = advance();
-      if (identical($LF, next) || identical($CR, next) || identical($EOF, next)) {
-        appendComment();
+      if (next > 127) asciiOnly = false;
+      if (identical($LF, next) ||
+          identical($CR, next) ||
+          identical($EOF, next)) {
+        if (!asciiOnly) handleUnicode(start);
+        appendComment(start, asciiOnly);
         return next;
       }
     }
   }
 
-  int tokenizeMultiLineComment(int next) {
+
+  int tokenizeMultiLineComment(int next, int start) {
+    bool asciiOnlyComment = true; // Track if the entire comment is ASCII.
+    bool asciiOnlyLines = true; // Track ASCII since the last handleUnicode.
+    int unicodeStart = start;
     int nesting = 1;
     next = advance();
     while (true) {
       if (identical($EOF, next)) {
-        // TODO(ahe): Report error.
+        if (!asciiOnlyLines) handleUnicode(unicodeStart);
+        appendStringToken(BAD_INPUT_INFO, "unterminated multi-line comment");
         return next;
       } else if (identical($STAR, next)) {
         next = advance();
         if (identical($SLASH, next)) {
           --nesting;
           if (0 == nesting) {
+            if (!asciiOnlyLines) handleUnicode(unicodeStart);
             next = advance();
-            appendComment();
+            appendComment(start, asciiOnlyComment);
             return next;
           } else {
             next = advance();
@@ -618,16 +753,30 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
           next = advance();
           ++nesting;
         }
+      } else if (identical(next, $LF)) {
+        if (!asciiOnlyLines) {
+          // Synchronize the string offset in the utf8 scanner.
+          handleUnicode(unicodeStart);
+          asciiOnlyLines = true;
+          unicodeStart = scanOffset;
+        }
+        lineFeedInMultiline();
+        next = advance();
       } else {
+        if (next > 127) {
+          asciiOnlyLines = false;
+          asciiOnlyComment = false;
+        }
         next = advance();
       }
     }
   }
 
   int tokenizeRawStringKeywordOrIdentifier(int next) {
+    // [next] is $r.
     int nextnext = peek();
     if (identical(nextnext, $DQ) || identical(nextnext, $SQ)) {
-      int start = byteOffset;
+      int start = scanOffset;
       next = advance();
       return tokenizeString(next, start, true);
     }
@@ -636,7 +785,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
 
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
-    int start = byteOffset;
+    int start = scanOffset;
     while (state != null && $a <= next && next <= $z) {
       state = state.next(next);
       next = advance();
@@ -649,17 +798,17 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         identical(next, $_) ||
         identical(next, $$)) {
       return tokenizeIdentifier(next, start, allowDollar);
-    } else if (next < 128) {
+    } else {
       appendKeywordToken(state.keyword);
       return next;
-    } else {
-      return tokenizeIdentifier(next, start, allowDollar);
     }
   }
 
+  /**
+   * [allowDollar] can exclude '$', which is not allowed as part of a string
+   * interpolation identifier.
+   */
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
-    bool isAscii = true;
-
     while (true) {
       if (($a <= next && next <= $z) ||
           ($A <= next && next <= $Z) ||
@@ -667,35 +816,21 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
           identical(next, $_) ||
           (identical(next, $$) && allowDollar)) {
         next = advance();
-      } else if ((next < 128) || (identical(next, $NBSP))) {
+      } else {
         // Identifier ends here.
-        if (start == byteOffset) {
-          return error(const SourceString("expected identifier"));
-        } else if (isAscii) {
-          appendByteStringToken(IDENTIFIER_INFO, asciiString(start, 0));
+        if (start == scanOffset) {
+          return error("expected identifier");
         } else {
-          appendByteStringToken(BAD_INPUT_INFO, utf8String(start, -1));
+          appendSubstringToken(IDENTIFIER_INFO, start, true);
         }
         return next;
-      } else {
-        int nonAsciiStart = byteOffset;
-        do {
-          next = nextByte();
-          if (identical(next, $NBSP)) break;
-        } while (next > 127);
-        String string = utf8String(nonAsciiStart, -1).slowToString();
-        isAscii = false;
-        int byteLength = nonAsciiStart - byteOffset;
-        addToCharOffset(string.length - byteLength);
       }
     }
   }
 
   int tokenizeAt(int next) {
-    int start = byteOffset;
-    next = advance();
     appendPrecedenceToken(AT_INFO);
-    return next;
+    return advance();
   }
 
   int tokenizeString(int next, int start, bool raw) {
@@ -708,7 +843,7 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         return tokenizeMultiLineString(quoteChar, start, raw);
       } else {
         // Empty string.
-        appendByteStringToken(STRING_INFO, utf8String(start, -1));
+        appendSubstringToken(STRING_INFO, start, true);
         return next;
       }
     }
@@ -719,56 +854,72 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
     }
   }
 
-  static bool isHexDigit(int character) {
-    if ($0 <= character && character <= $9) return true;
-    character |= 0x20;
-    return ($a <= character && character <= $f);
-  }
-
+  /**
+   * [next] is the first character after the qoute.
+   * [start] is the scanOffset of the quote.
+   *
+   * The token contains a substring of the source file, including the
+   * string quotes, backslashes for escaping. For interpolated strings,
+   * the parts before and after are separate tokens.
+   *
+   *   "a $b c"
+   *
+   * gives StringToken("a $), StringToken(b) and StringToken( c").
+   */
   int tokenizeSingleLineString(int next, int quoteChar, int start) {
+    bool asciiOnly = true;
     while (!identical(next, quoteChar)) {
       if (identical(next, $BACKSLASH)) {
         next = advance();
       } else if (identical(next, $$)) {
-        next = tokenizeStringInterpolation(start);
-        start = byteOffset;
+        if (!asciiOnly) handleUnicode(start);
+        next = tokenizeStringInterpolation(start, asciiOnly);
+        start = scanOffset;
+        asciiOnly = true;
         continue;
       }
       if (next <= $CR
-          && (identical(next, $LF) || identical(next, $CR) || identical(next, $EOF))) {
-        return error(const SourceString("unterminated string literal"));
+          && (identical(next, $LF) ||
+              identical(next, $CR) ||
+              identical(next, $EOF))) {
+        if (!asciiOnly) handleUnicode(start);
+        return error("unterminated string literal");
       }
+      if (next > 127) asciiOnly = false;
       next = advance();
     }
-    appendByteStringToken(STRING_INFO, utf8String(start, 0));
-    return advance();
+    if (!asciiOnly) handleUnicode(start);
+    // Advance past the quote character.
+    next = advance();
+    appendSubstringToken(STRING_INFO, start, asciiOnly);
+    return next;
   }
 
-  int tokenizeStringInterpolation(int start) {
-    appendByteStringToken(STRING_INFO, utf8String(start, -1));
+  int tokenizeStringInterpolation(int start, bool asciiOnly) {
+    appendSubstringToken(STRING_INFO, start, asciiOnly);
     beginToken(); // $ starts here.
     int next = advance();
     if (identical(next, $OPEN_CURLY_BRACKET)) {
-      return tokenizeInterpolatedExpression(next, start);
+      return tokenizeInterpolatedExpression(next);
     } else {
-      return tokenizeInterpolatedIdentifier(next, start);
+      return tokenizeInterpolatedIdentifier(next);
     }
   }
 
-  int tokenizeInterpolatedExpression(int next, int start) {
-    appendBeginGroup(STRING_INTERPOLATION_INFO, "\${");
+  int tokenizeInterpolatedExpression(int next) {
+    appendBeginGroup(STRING_INTERPOLATION_INFO);
     beginToken(); // The expression starts here.
-    next = advance();
+    next = advance(); // Move past the curly bracket.
     while (!identical(next, $EOF) && !identical(next, $STX)) {
       next = bigSwitch(next);
     }
     if (identical(next, $EOF)) return next;
-    next = advance();
+    next = advance();  // Move past the $STX.
     beginToken(); // The string interpolation suffix starts here.
     return next;
   }
 
-  int tokenizeInterpolatedIdentifier(int next, int start) {
+  int tokenizeInterpolatedIdentifier(int next) {
     appendPrecedenceToken(STRING_INTERPOLATION_IDENTIFIER_INFO);
     beginToken(); // The identifier starts here.
     next = tokenizeKeywordOrIdentifier(next, false);
@@ -777,23 +928,45 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
-    next = advance();
+    bool asciiOnly = true;
+    next = advance(); // Advance past the quote
     while (next != $EOF) {
       if (identical(next, quoteChar)) {
-        appendByteStringToken(STRING_INFO, utf8String(start, 0));
-        return advance();
+        if (!asciiOnly) handleUnicode(start);
+        next = advance();
+        appendSubstringToken(STRING_INFO, start, asciiOnly);
+        return next;
       } else if (identical(next, $LF) || identical(next, $CR)) {
-        return error(const SourceString("unterminated string literal"));
+        if (!asciiOnly) handleUnicode(start);
+        return error("unterminated string literal");
+      } else if (next > 127) {
+        asciiOnly = false;
       }
       next = advance();
     }
-    return error(const SourceString("unterminated string literal"));
+    if (!asciiOnly) handleUnicode(start);
+    return error("unterminated string literal");
   }
 
   int tokenizeMultiLineRawString(int quoteChar, int start) {
-    int next = advance();
+    bool asciiOnlyString = true;
+    bool asciiOnlyLine = true;
+    int unicodeStart = start;
+    int next = advance(); // Advance past the (last) quote (of three)
     outer: while (!identical(next, $EOF)) {
       while (!identical(next, quoteChar)) {
+        if (identical(next, $LF)) {
+          if (!asciiOnlyLine) {
+            // Synchronize the string offset in the utf8 scanner.
+            handleUnicode(unicodeStart);
+            asciiOnlyLine = true;
+            unicodeStart = scanOffset;
+          }
+          lineFeedInMultiline();
+        } else if (next > 127) {
+          asciiOnlyLine = false;
+          asciiOnlyString = false;
+        }
         next = advance();
         if (identical(next, $EOF)) break outer;
       }
@@ -801,21 +974,31 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
       if (identical(next, quoteChar)) {
         next = advance();
         if (identical(next, quoteChar)) {
-          appendByteStringToken(STRING_INFO, utf8String(start, 0));
-          return advance();
+          if (!asciiOnlyLine) handleUnicode(unicodeStart);
+          next = advance();
+          appendSubstringToken(STRING_INFO, start, asciiOnlyString);
+          return next;
         }
       }
     }
-    return error(const SourceString("unterminated string literal"));
+    if (!asciiOnlyLine) handleUnicode(unicodeStart);
+    return error("unterminated string literal");
   }
 
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
     if (raw) return tokenizeMultiLineRawString(quoteChar, start);
-    int next = advance();
+    bool asciiOnlyString = true;
+    bool asciiOnlyLine = true;
+    int unicodeStart = start;
+    int next = advance(); // Advance past the (last) quote (of three).
     while (!identical(next, $EOF)) {
       if (identical(next, $$)) {
-        next = tokenizeStringInterpolation(start);
-        start = byteOffset;
+        if (!asciiOnlyLine) handleUnicode(unicodeStart);
+        next = tokenizeStringInterpolation(start, asciiOnlyString);
+        start = scanOffset;
+        unicodeStart = start;
+        asciiOnlyString = true; // A new string token is created for the rest.
+        asciiOnlyLine = true;
         continue;
       }
       if (identical(next, quoteChar)) {
@@ -823,8 +1006,10 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         if (identical(next, quoteChar)) {
           next = advance();
           if (identical(next, quoteChar)) {
-            appendByteStringToken(STRING_INFO, utf8String(start, 0));
-            return advance();
+            if (!asciiOnlyLine) handleUnicode(unicodeStart);
+            next = advance();
+            appendSubstringToken(STRING_INFO, start, asciiOnlyString);
+            return next;
           }
         }
         continue;
@@ -833,13 +1018,53 @@ abstract class AbstractScanner<T extends SourceString> implements Scanner {
         next = advance();
         if (identical(next, $EOF)) break;
       }
+      if (identical(next, $LF)) {
+        if (!asciiOnlyLine) {
+          // Synchronize the string offset in the utf8 scanner.
+          handleUnicode(unicodeStart);
+          asciiOnlyLine = true;
+          unicodeStart = scanOffset;
+        }
+        lineFeedInMultiline();
+      } else if (next > 127) {
+        asciiOnlyString = false;
+        asciiOnlyLine = false;
+      }
       next = advance();
     }
-    return error(const SourceString("unterminated string literal"));
+    if (!asciiOnlyLine) handleUnicode(unicodeStart);
+    return error("unterminated string literal");
   }
 
-  int error(SourceString message) {
-    appendByteStringToken(BAD_INPUT_INFO, message);
+  int error(String message) {
+    appendStringToken(BAD_INPUT_INFO, message);
     return advance(); // Ensure progress.
+  }
+
+  void unmatchedBeginGroup(BeginGroupToken begin) {
+    String error = 'unmatched "${begin.stringValue}"';
+    Token close =
+        new StringToken.fromString(
+            BAD_INPUT_INFO, error, begin.charOffset, true);
+
+    // We want to ensure that unmatched BeginGroupTokens are reported
+    // as errors. However, the rest of the parser assume the groups
+    // are well-balanced and will never look at the endGroup
+    // token. This is a nice property that allows us to skip quickly
+    // over correct code. By inserting an additional error token in
+    // the stream, we can keep ignoring endGroup tokens.
+    //
+    // [begin] --next--> [tail]
+    // [begin] --endG--> [close] --next--> [next] --next--> [tail]
+    //
+    // This allows the parser to skip from [begin] via endGroup to [close] and
+    // ignore the [close] token (assuming it's correct), then the error will be
+    // reported when parsing the [next] token.
+
+    Token next = new StringToken.fromString(
+        BAD_INPUT_INFO, error, begin.charOffset, true);
+    begin.endGroup = close;
+    close.next = next;
+    next.next = begin.next;
   }
 }

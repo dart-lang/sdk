@@ -11,7 +11,7 @@ part of ssa;
  */
 class InterceptedElement extends ElementX {
   final DartType type;
-  InterceptedElement(this.type, SourceString name, Element enclosing)
+  InterceptedElement(this.type, String name, Element enclosing)
       : super(name, ElementKind.PARAMETER, enclosing);
 
   DartType computeType(Compiler compiler) => type;
@@ -67,14 +67,14 @@ class SsaBuilderTask extends CompilerTask {
         if (compiler.tracer.enabled) {
           String name;
           if (element.isMember()) {
-            String className = element.getEnclosingClass().name.slowToString();
-            String memberName = element.name.slowToString();
+            String className = element.getEnclosingClass().name;
+            String memberName = element.name;
             name = "$className.$memberName";
             if (element.isGenerativeConstructorBody()) {
               name = "$name (body)";
             }
           } else {
-            name = "${element.name.slowToString()}";
+            name = "${element.name}";
           }
           compiler.tracer.traceCompilation(
               name, work.compilationContext, compiler);
@@ -278,9 +278,7 @@ class LocalsHandler {
         && Elements.isNativeOrExtendsNative(cls);
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
-      SourceString name = isInterceptorClass
-          ? const SourceString('receiver')
-          : const SourceString('_');
+      String name = isInterceptorClass ? 'receiver' : '_';
       Element parameter = new InterceptedElement(
           cls.computeType(compiler), name, element);
       HParameterValue value = new HParameterValue(parameter);
@@ -295,7 +293,7 @@ class LocalsHandler {
     } else if (isNativeUpgradeFactory) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       Element parameter = new InterceptedElement(
-          cls.computeType(compiler), const SourceString('receiver'), element);
+          cls.computeType(compiler), 'receiver', element);
       HParameterValue value = new HParameterValue(parameter);
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
@@ -1034,11 +1032,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
     openFunction(functionElement, function);
-    SourceString name = functionElement.name;
+    String name = functionElement.name;
     // If [functionElement] is `operator==` we explicitely add a null check at
     // the beginning of the method. This is to avoid having call sites do the
     // null check.
-    if (name == const SourceString('==')) {
+    if (name == '==') {
       if (!backend.operatorEqHandlesNullArgument(functionElement)) {
         handleIf(
             function,
@@ -1209,7 +1207,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(argumentIndex == compiledArguments.length);
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
-    returnElement = new ElementX(const SourceString("result"),
+    returnElement = new ElementX("result",
                                  ElementKind.VARIABLE,
                                  function);
     newLocalsHandler.updateLocal(returnElement,
@@ -1276,7 +1274,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       // Don't inline operator== methods if the parameter can be null.
-      if (element.name == const SourceString('==')) {
+      if (element.name == '==') {
         if (element.getEnclosingClass() != compiler.objectClass
             && providedArguments[1].canBeNull()) {
           return false;
@@ -2037,7 +2035,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
           {'offset': token.charOffset,
            'fileName': sourceFile.filename,
-           'length': sourceFile.text.length});
+           'length': sourceFile.length});
     }
     return location;
   }
@@ -2615,7 +2613,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     branchBuilder.handleLogicalAndOrWithLeftNode(
         node.receiver,
         () { visit(node.argumentsNode); },
-        isAnd: (const SourceString("&&") == op.source));
+        isAnd: ("&&" == op.source));
   }
 
   void visitLogicalNot(Send node) {
@@ -2650,7 +2648,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                    HInstruction right,
                    Selector selector,
                    Send send) {
-    switch (op.source.stringValue) {
+    switch (op.source) {
       case "===":
         pushWithPosition(new HIdentity(left, right), op);
         return;
@@ -2662,7 +2660,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     pushInvokeDynamic(send, selector, [left, right], location: op);
-    if (op.source.stringValue == '!=') {
+    if (op.source == '!=') {
       pushWithPosition(new HNot(popBoolified()), op);
     }
   }
@@ -2677,7 +2675,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   String getTargetName(ErroneousElement error, [String prefix]) {
-    String result = error.name.slowToString();
+    String result = error.name;
     if (prefix != null) {
       result = '$prefix $result';
     }
@@ -2861,18 +2859,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitOperatorSend(Send node) {
     Operator op = node.selector;
-    if (const SourceString("[]") == op.source) {
+    if ("[]" == op.source) {
       visitDynamicSend(node);
-    } else if (const SourceString("&&") == op.source ||
-               const SourceString("||") == op.source) {
+    } else if ("&&" == op.source ||
+               "||" == op.source) {
       visitLogicalAndOr(node, op);
-    } else if (const SourceString("!") == op.source) {
+    } else if ("!" == op.source) {
       visitLogicalNot(node);
     } else if (node.argumentsNode is Prefix) {
       visitUnary(node, op);
-    } else if (const SourceString("is") == op.source) {
+    } else if ("is" == op.source) {
       visitIsSend(node);
-    } else if (const SourceString("as") == op.source) {
+    } else if ("as" == op.source) {
       visit(node.receiver);
       HInstruction expression = pop();
       Node argument = node.arguments.head;
@@ -3009,9 +3007,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       // Visit named arguments and add them into a temporary map.
-      Map<SourceString, HInstruction> instructions =
-          new Map<SourceString, HInstruction>();
-      List<SourceString> namedArguments = selector.namedArguments;
+      Map<String, HInstruction> instructions =
+          new Map<String, HInstruction>();
+      List<String> namedArguments = selector.namedArguments;
       int nameIndex = 0;
       for (; !arguments.isEmpty; arguments = arguments.tail) {
         visit(arguments.head);
@@ -3021,8 +3019,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Iterate through the named arguments to add them to the list
       // of instructions, in an order that can be shared with
       // selectors with the same named arguments.
-      List<SourceString> orderedNames = selector.getOrderedNamedArguments();
-      for (SourceString name in orderedNames) {
+      List<String> orderedNames = selector.getOrderedNamedArguments();
+      for (String name in orderedNames) {
         list.add(instructions[name]);
       }
     }
@@ -3139,8 +3137,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
       // Leg's isolate.
-      Element element = compiler.isolateHelperLibrary.find(
-          const SourceString('_currentIsolate'));
+      Element element = compiler.isolateHelperLibrary.find('_currentIsolate');
       if (element == null) {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
@@ -3192,8 +3189,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       push(new HInvokeClosure(selector, <HInstruction>[pop()]));
     } else {
       // Call a helper method from the isolate library.
-      Element element = compiler.isolateHelperLibrary.find(
-          const SourceString('_callInIsolate'));
+      Element element = compiler.isolateHelperLibrary.find('_callInIsolate');
       if (element == null) {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
@@ -3288,67 +3284,67 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitForeignSend(Send node) {
     Selector selector = elements.getSelector(node);
-    SourceString name = selector.name;
-    if (name == const SourceString('JS')) {
+    String name = selector.name;
+    if (name == 'JS') {
       handleForeignJs(node);
-    } else if (name == const SourceString('JS_CURRENT_ISOLATE_CONTEXT')) {
+    } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
       handleForeignJsCurrentIsolateContext(node);
-    } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
+    } else if (name == 'JS_CALL_IN_ISOLATE') {
       handleForeignJsCallInIsolate(node);
-    } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
+    } else if (name == 'DART_CLOSURE_TO_JS') {
       handleForeignDartClosureToJs(node, 'DART_CLOSURE_TO_JS');
-    } else if (name == const SourceString('RAW_DART_FUNCTION_REF')) {
+    } else if (name == 'RAW_DART_FUNCTION_REF') {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
-    } else if (name == const SourceString('JS_SET_CURRENT_ISOLATE')) {
+    } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == const SourceString('JS_CREATE_ISOLATE')) {
+    } else if (name == 'JS_CREATE_ISOLATE') {
       handleForeignCreateIsolate(node);
-    } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')) {
+    } else if (name == 'JS_OPERATOR_IS_PREFIX') {
       stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
-    } else if (name == const SourceString('JS_OBJECT_CLASS_NAME')) {
+    } else if (name == 'JS_OBJECT_CLASS_NAME') {
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
       stack.add(addConstantString(node, name));
-    } else if (name == const SourceString('JS_NULL_CLASS_NAME')) {
+    } else if (name == 'JS_NULL_CLASS_NAME') {
       String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
       stack.add(addConstantString(node, name));
-    } else if (name == const SourceString('JS_FUNCTION_CLASS_NAME')) {
+    } else if (name == 'JS_FUNCTION_CLASS_NAME') {
       String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
       stack.add(addConstantString(node, name));
-    } else if (name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
+    } else if (name == 'JS_OPERATOR_AS_PREFIX') {
       stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
-    } else if (name == const SourceString('JS_SIGNATURE_NAME')) {
+    } else if (name == 'JS_SIGNATURE_NAME') {
       stack.add(addConstantString(node, backend.namer.operatorSignature()));
-    } else if (name == const SourceString('JS_FUNCTION_TYPE_TAG')) {
+    } else if (name == 'JS_FUNCTION_TYPE_TAG') {
       stack.add(addConstantString(node, backend.namer.functionTypeTag()));
-    } else if (name == const SourceString('JS_FUNCTION_TYPE_VOID_RETURN_TAG')) {
+    } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
       stack.add(addConstantString(node,
                                   backend.namer.functionTypeVoidReturnTag()));
-    } else if (name == const SourceString('JS_FUNCTION_TYPE_RETURN_TYPE_TAG')) {
+    } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
       stack.add(addConstantString(node,
                                   backend.namer.functionTypeReturnTypeTag()));
     } else if (name ==
-               const SourceString('JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG')) {
+               'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
       stack.add(addConstantString(node,
           backend.namer.functionTypeRequiredParametersTag()));
     } else if (name ==
-               const SourceString('JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG')) {
+               'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
       stack.add(addConstantString(node,
           backend.namer.functionTypeOptionalParametersTag()));
     } else if (name ==
-               const SourceString('JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG')) {
+               'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
       stack.add(addConstantString(node,
           backend.namer.functionTypeNamedParametersTag()));
-    } else if (name == const SourceString('JS_DART_OBJECT_CONSTRUCTOR')) {
+    } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
       handleForeignDartObjectJsConstructorFunction(node);
-    } else if (name == const SourceString('JS_IS_INDEXABLE_FIELD_NAME')) {
+    } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
       Element element = compiler.findHelper(
-          const SourceString('JavaScriptIndexingBehavior'));
+          'JavaScriptIndexingBehavior');
       stack.add(addConstantString(node, backend.namer.operatorIs(element)));
-    } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
+    } else if (name == 'JS_CURRENT_ISOLATE') {
       handleForeignJsCurrentIsolate(node);
-    } else if (name == const SourceString('JS_GET_NAME')) {
+    } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
-    } else if (name == const SourceString('JS_EFFECT')) {
+    } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
     } else {
       throw "Unknown foreign: ${selector}";
@@ -3358,7 +3354,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   generateSuperNoSuchMethodSend(Send node,
                                 Selector selector,
                                 List<HInstruction> arguments) {
-    SourceString name = selector.name;
+    String name = selector.name;
 
     ClassElement cls = currentNonClosureClass;
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
@@ -3369,7 +3365,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // [JSInvocationMirror._invokeOn].
       compiler.enqueuer.codegen.registerSelectorUse(selector);
     }
-    String publicName = name.slowToString();
+    String publicName = name;
     if (selector.isSetter()) publicName += '=';
 
     Constant nameConstant = constantSystem.createString(
@@ -3384,10 +3380,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(argumentsInstruction);
 
     var argumentNames = new List<HInstruction>();
-    for (SourceString argumentName in selector.namedArguments) {
+    for (String argumentName in selector.namedArguments) {
       Constant argumentNameConstant =
-          constantSystem.createString(new DartString.literal(
-              argumentName.slowToString()), node);
+          constantSystem.createString(new DartString.literal(argumentName),
+                                      node);
       argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
@@ -3657,7 +3653,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     ClassElement cls = constructor.getEnclosingClass();
     if (cls.isAbstract(compiler) && constructor.isGenerativeConstructor()) {
-      generateAbstractClassInstantiationError(send, cls.name.slowToString());
+      generateAbstractClassInstantiationError(send, cls.name);
       return;
     }
     if (backend.classNeedsRti(cls)) {
@@ -3866,10 +3862,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<String> existingArguments = <String>[];
     FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachParameter((Element parameter) {
-      existingArguments.add(parameter.name.slowToString());
+      existingArguments.add(parameter.name);
     });
     generateThrowNoSuchMethod(diagnosticNode,
-                              function.name.slowToString(),
+                              function.name,
                               argumentNodes: argumentNodes,
                               existingArguments: existingArguments);
   }
@@ -3916,7 +3912,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // optimizations.
     bool isOptimizableOperationOnIndexable(Selector selector, Element element) {
       bool isLength = selector.isGetter()
-          && selector.name == const SourceString("length");
+          && selector.name == "length";
       if (isLength || selector.isIndex()) {
         HType type = new HType.nonNullExact(
             element.getEnclosingClass(), compiler);
@@ -4056,7 +4052,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType()) {
       Identifier selector = node.selector;
-      generateThrowNoSuchMethod(node, selector.source.slowToString(),
+      generateThrowNoSuchMethod(node, selector.source,
                                 argumentNodes: node.arguments);
       return;
     }
@@ -4064,7 +4060,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.isSuperCall) {
       HInstruction result;
       List<HInstruction> setterInputs = <HInstruction>[];
-      if (identical(node.assignmentOperator.source.stringValue, '=')) {
+      if (identical(node.assignmentOperator.source, '=')) {
         addDynamicSendArgumentsToList(node, setterInputs);
         result = setterInputs.last;
       } else {
@@ -4116,7 +4112,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       stack.add(result);
     } else if (node.isIndex) {
-      if (const SourceString("=") == op.source) {
+      if ("=" == op.source) {
         visitDynamicSend(node);
       } else {
         visit(node.receiver);
@@ -4148,7 +4144,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           stack.add(value);
         }
       }
-    } else if (const SourceString("=") == op.source) {
+    } else if ("=" == op.source) {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       if (Elements.isInstanceSend(node, elements)) {
@@ -4159,12 +4155,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         visit(link.head);
         generateNonInstanceSetter(node, element, pop());
       }
-    } else if (identical(op.source.stringValue, "is")) {
+    } else if (identical(op.source, "is")) {
       compiler.internalError("is-operator as SendSet", node: op);
     } else {
-      assert(const SourceString("++") == op.source ||
-             const SourceString("--") == op.source ||
-             node.assignmentOperator.source.stringValue.endsWith("="));
+      assert("++" == op.source || "--" == op.source ||
+             node.assignmentOperator.source.endsWith("="));
 
       // [receiver] is only used if the node is an instance send.
       HInstruction receiver = null;
@@ -4956,8 +4951,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     jumpHandler.close();
   }
 
-  Element lookupOperator(ClassElement classElement, SourceString operatorName) {
-    SourceString dartMethodName =
+  Element lookupOperator(ClassElement classElement, String operatorName) {
+    String dartMethodName =
         Elements.constructOperatorName(operatorName, false);
     return classElement.lookupMember(dartMethodName);
   }
@@ -5009,7 +5004,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       open(startCatchBlock);
       // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
       // Note that the name of this element is irrelevant.
-      Element element = new ElementX(const SourceString('exception'),
+      Element element = new ElementX('exception',
                                      ElementKind.PARAMETER,
                                      currentElement);
       exception = new HLocalValue(element);

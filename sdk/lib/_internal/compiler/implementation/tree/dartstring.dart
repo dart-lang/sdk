@@ -16,9 +16,9 @@ abstract class DartString extends IterableBase<int> {
   // This is a convenience constructor. If you need a const literal DartString,
   // use [const LiteralDartString(string)] directly.
   factory DartString.literal(String string) => new LiteralDartString(string);
-  factory DartString.rawString(SourceString source, int length) =>
+  factory DartString.rawString(String source, int length) =>
       new RawSourceDartString(source, length);
-  factory DartString.escapedString(SourceString source, int length) =>
+  factory DartString.escapedString(String source, int length) =>
       new EscapedSourceDartString(source, length);
   factory DartString.concat(DartString first, DartString second) {
     if (first.isEmpty) return second;
@@ -26,9 +26,19 @@ abstract class DartString extends IterableBase<int> {
     return new ConsDartString(first, second);
   }
   const DartString();
+
+  /**
+   * The length of this [DartString], which is the string length after
+   * escapes have been resolved.
+   */
   int get length;
   bool get isEmpty => length == 0;
+
   Iterator<int> get iterator;
+
+  /**
+   * The string represented by this [DartString].
+   */
   String slowToString();
 
   bool operator ==(var other) {
@@ -46,8 +56,11 @@ abstract class DartString extends IterableBase<int> {
 
   int get hashCode => throw new UnsupportedError('DartString.hashCode');
 
+  /**
+   * A textual representation of this [DartString] with some debugging
+   * information.
+   */
   String toString() => "DartString#${length}:${slowToString()}";
-  SourceString get source;
 }
 
 
@@ -58,17 +71,20 @@ class LiteralDartString extends DartString {
   final String string;
   const LiteralDartString(this.string);
   int get length => string.length;
-  Iterator<int> get iterator => new StringCodeIterator(string);
+  Iterator<int> get iterator => string.codeUnits.iterator;
   String slowToString() => string;
-  SourceString get source => new StringWrapper(string);
 }
 
 /**
- * A [DartString] where the content comes from a slice of the program source.
+ * A [DartString] whereSource the content comes from a slice of the program
+ * source.
  */
 abstract class SourceBasedDartString extends DartString {
-  String toStringCache = null;
-  final SourceString source;
+  /**
+   * The source string containing explicit escapes from which this [DartString]
+   * is built.
+   */
+  final String source;
   final int length;
   SourceBasedDartString(this.source, this.length);
   Iterator<int> get iterator;
@@ -80,12 +96,8 @@ abstract class SourceBasedDartString extends DartString {
  */
 class RawSourceDartString extends SourceBasedDartString {
   RawSourceDartString(source, length) : super(source, length);
-  Iterator<int> get iterator => source.iterator;
-  String slowToString() {
-    if (toStringCache != null) return toStringCache;
-    toStringCache  = source.slowToString();
-    return toStringCache;
-  }
+  Iterator<int> get iterator => source.codeUnits.iterator;
+  String slowToString() => source;
 }
 
 /**
@@ -93,9 +105,10 @@ class RawSourceDartString extends SourceBasedDartString {
  * escapes.
  */
 class EscapedSourceDartString extends SourceBasedDartString {
+  String toStringCache;
   EscapedSourceDartString(source, length) : super(source, length);
   Iterator<int> get iterator {
-    if (toStringCache != null) return new StringCodeIterator(toStringCache);
+    if (toStringCache != null) return toStringCache.codeUnits.iterator;
     return new StringEscapeIterator(source);
   }
   String slowToString() {
@@ -130,7 +143,7 @@ class ConsDartString extends DartString {
     toStringCache = left.slowToString() + right.slowToString();
     return toStringCache;
   }
-  SourceString get source => new StringWrapper(slowToString());
+  String get source => slowToString();
 }
 
 class ConsDartStringIterator implements Iterator<int> {
@@ -178,7 +191,7 @@ class StringEscapeIterator implements Iterator<int>{
   final Iterator<int> source;
   int _current = null;
 
-  StringEscapeIterator(SourceString source) : this.source = source.iterator;
+  StringEscapeIterator(String source) : this.source = source.codeUnits.iterator;
 
   int get current => _current;
 

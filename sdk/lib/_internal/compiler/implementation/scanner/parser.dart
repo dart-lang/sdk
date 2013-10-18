@@ -398,8 +398,8 @@ class Parser {
     final kind = token.kind;
     if (identical(kind, IDENTIFIER_TOKEN)) return true;
     if (identical(kind, KEYWORD_TOKEN)) {
-      Keyword keyword = token.value;
-      String value = keyword.stringValue;
+      Keyword keyword = (token as KeywordToken).keyword;
+      String value = keyword.syntax;
       return keyword.isPseudo
           || (identical(value, 'dynamic'))
           || (identical(value, 'void'));
@@ -637,12 +637,12 @@ class Parser {
       } while (optional(',', token));
       Token next = token.next;
       if (identical(token.stringValue, '>>')) {
-        token = new Token(GT_INFO, token.charOffset);
-        token.next = new Token(GT_INFO, token.charOffset + 1);
+        token = new SymbolToken(GT_INFO, token.charOffset);
+        token.next = new SymbolToken(GT_INFO, token.charOffset + 1);
         token.next.next = next;
       } else if (identical(token.stringValue, '>>>')) {
-        token = new Token(GT_INFO, token.charOffset);
-        token.next = new Token(GT_GT_INFO, token.charOffset + 1);
+        token = new SymbolToken(GT_INFO, token.charOffset);
+        token.next = new SymbolToken(GT_GT_INFO, token.charOffset + 1);
         token.next.next = next;
       }
       endStuff(count, begin, token);
@@ -1779,7 +1779,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    var begin = token;
+    var begin = (token as BeginGroupToken);
     token = expect('(', token);
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {

@@ -53,7 +53,7 @@ Element ensure(compiler,
                 bool expectIsGetter: false,
                 bool expectIsFound: true,
                 bool expectIsRegular: false}) {
-  var element = lookup(buildSourceString(name));
+  var element = lookup(name);
   if (!expectIsFound) {
     Expect.isNull(element);
     return element;
@@ -737,19 +737,19 @@ testPatchAndSelector() {
     // Check that a method just in the patch class is a target for a
     // typed selector.
     var selector = new Selector.call(
-        buildSourceString('method'), compiler.coreLibrary, 0);
+        'method', compiler.coreLibrary, 0);
     var typedSelector = new TypedSelector.exact(cls, selector);
     Element method =
-        cls.implementation.lookupLocalMember(buildSourceString('method'));
+        cls.implementation.lookupLocalMember('method');
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
     selector = new Selector.call(
-        buildSourceString('clear'), compiler.coreLibrary, 0);
+        'clear', compiler.coreLibrary, 0);
     typedSelector = new TypedSelector.exact(cls, selector);
-    method = cls.lookupLocalMember(buildSourceString('clear'));
+    method = cls.lookupLocalMember('clear');
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
 

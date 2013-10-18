@@ -1473,8 +1473,7 @@ class Message {
     if (message == null) {
       message = kind.template;
       arguments.forEach((key, value) {
-        String string = slowToString(value);
-        message = message.replaceAll('#{${key}}', string);
+        message = message.replaceAll('#{${key}}', value.toString());
       });
       assert(invariant(
           CURRENT_ELEMENT_SPANNABLE,
@@ -1483,8 +1482,7 @@ class Message {
       if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;
         arguments.forEach((key, value) {
-          String string = slowToString(value);
-          howToFix = howToFix.replaceAll('#{${key}}', string);
+          howToFix = howToFix.replaceAll('#{${key}}', value.toString());
         });
         message = '$message\n$howToFix';
       }
@@ -1502,14 +1500,6 @@ class Message {
   }
 
   int get hashCode => throw new UnsupportedError('Message.hashCode');
-
-  String slowToString(object) {
-    if (object is SourceString) {
-      return object.slowToString();
-    } else {
-      return object.toString();
-    }
-  }
 }
 
 class Diagnostic {

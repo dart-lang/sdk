@@ -28,7 +28,7 @@ void testSourceMapLocations(String codeWithMarkers) {
   }
   String code = codeWithMarkers.replaceAll('@', '');
 
-  SourceFile sourceFile = new SourceFile('<test script>', code);
+  SourceFile sourceFile = new StringSourceFile('<test script>', code);
   asyncTest(() => compileAll(sourceFile).then((CodeBuffer buffer) {
     Set<int> locations = new Set<int>();
     buffer.forEachSourceLocation((int offset, var sourcePosition) {
@@ -41,7 +41,7 @@ void testSourceMapLocations(String codeWithMarkers) {
       int expectedLocation = expectedLocations[i];
       if (!locations.contains(expectedLocation)) {
         int originalLocation = expectedLocation + i;
-        SourceFile sourceFileWithMarkers = new SourceFile('<test script>',
+        SourceFile sourceFileWithMarkers = new StringSourceFile('<test script>',
                                                           codeWithMarkers);
         String message = sourceFileWithMarkers.getLocationMessage(
             'Missing location', originalLocation, originalLocation + 1, true,

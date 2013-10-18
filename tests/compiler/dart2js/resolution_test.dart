@@ -102,14 +102,14 @@ void test(String code, void check(Compiler compiler)) {
 
 void testHasRuntimeType(String code) {
   test(code, (compiler) {
-    var element = compiler.findHelper(buildSourceString('createRuntimeType'));
+    var element = compiler.findHelper('createRuntimeType');
     Expect.isTrue(compiler.enqueuer.resolution.isProcessed(element));
   });
 }
 
 main() {
   test(NO_RUNTIME_TYPE, (compiler) {
-    var element = compiler.findHelper(buildSourceString('createRuntimeType'));
+    var element = compiler.findHelper('createRuntimeType');
     Expect.isFalse(compiler.enqueuer.resolution.isProcessed(element));
   });
 

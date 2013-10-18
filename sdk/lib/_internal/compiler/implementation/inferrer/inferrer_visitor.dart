@@ -221,9 +221,9 @@ class FieldInitializationScope<T> {
  */
 class ArgumentsTypes<T> {
   final List<T> positional;
-  final Map<SourceString, T> named;
+  final Map<String, T> named;
   ArgumentsTypes(this.positional, named)
-    : this.named = (named == null) ? new Map<SourceString, T>() : named;
+    : this.named = (named == null) ? new Map<String, T>() : named;
 
   int get length => positional.length + named.length;
 
@@ -757,7 +757,7 @@ abstract class InferrerVisitor
       } else {
         Element receiverElement = elements[node.receiver];
         Element argumentElement = elements[node.arguments.first];
-        String operator = node.selector.asOperator().source.stringValue;
+        String operator = node.selector.asOperator().source;
         if ((operator == '==' && usePositive)
             || (operator == '!=' && !usePositive)) {
           // Type the elements as null.
@@ -783,9 +783,9 @@ abstract class InferrerVisitor
 
   T visitOperatorSend(Send node) {
     Operator op = node.selector;
-    if (const SourceString("[]") == op.source) {
+    if ("[]" == op.source) {
       return visitDynamicSend(node);
-    } else if (const SourceString("&&") == op.source) {
+    } else if ("&&" == op.source) {
       conditionIsSimple = false;
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = true;
@@ -800,7 +800,7 @@ abstract class InferrerVisitor
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
       return types.boolType;
-    } else if (const SourceString("||") == op.source) {
+    } else if ("||" == op.source) {
       conditionIsSimple = false;
       List<Send> tests = <Send>[];
       handleCondition(node.receiver, tests);
@@ -814,25 +814,25 @@ abstract class InferrerVisitor
       saved.mergeDiamondFlow(locals, null);
       locals = saved;
       return types.boolType;
-    } else if (const SourceString("!") == op.source) {
+    } else if ("!" == op.source) {
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = false;
       node.visitChildren(this);
       accumulateIsChecks = oldAccumulateIsChecks;
       return types.boolType;
-    } else if (const SourceString("is") == op.source) {
+    } else if ("is" == op.source) {
       potentiallyAddIsCheck(node);
       node.visitChildren(this);
       return types.boolType;
-    } else if (const SourceString("as") == op.source) {
+    } else if ("as" == op.source) {
       T receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
       return types.narrowType(receiverType, type);
     } else if (node.argumentsNode is Prefix) {
       // Unary operator.
       return visitDynamicSend(node);
-    } else if (const SourceString('===') == op.source
-               || const SourceString('!==') == op.source) {
+    } else if ('===' == op.source
+               || '!==' == op.source) {
       node.visitChildren(this);
       return types.boolType;
     } else {

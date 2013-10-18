@@ -15,7 +15,7 @@ class PartialClassElement extends ClassElementX {
   final Token endToken;
   ClassNode cachedNode;
 
-  PartialClassElement(SourceString name,
+  PartialClassElement(String name,
                       Token this.beginToken,
                       Token this.endToken,
                       Element enclosing,
@@ -76,7 +76,7 @@ class MemberListener extends NodeListener {
         enclosingElement.kind != ElementKind.CLASS) {
       return false;
     }
-    SourceString name;
+    String name;
     if (nameNode.asIdentifier() != null) {
       name = nameNode.asIdentifier().source;
     } else {
@@ -87,17 +87,17 @@ class MemberListener extends NodeListener {
   }
 
   // TODO(johnniwinther): Remove this method.
-  SourceString getMethodNameHack(Node methodName) {
+  String getMethodNameHack(Node methodName) {
     Send send = methodName.asSend();
     if (send == null) {
-      if (isConstructorName(methodName)) return const SourceString('');
+      if (isConstructorName(methodName)) return '';
       return methodName.asIdentifier().source;
     }
     Identifier receiver = send.receiver.asIdentifier();
     Identifier selector = send.selector.asIdentifier();
     Operator operator = selector.asOperator();
     if (operator != null) {
-      assert(identical(receiver.source.stringValue, 'operator'));
+      assert(identical(receiver.source, 'operator'));
       // TODO(ahe): It is a hack to compare to ')', but it beats
       // parsing the node.
       bool isUnary = identical(operator.token.next.next.stringValue, ')');
@@ -117,7 +117,7 @@ class MemberListener extends NodeListener {
     FunctionExpression method = popNode();
     pushNode(null);
     bool isConstructor = isConstructorName(method.name);
-    SourceString name = getMethodNameHack(method.name);
+    String name = getMethodNameHack(method.name);
     ElementKind kind = ElementKind.FUNCTION;
     if (isConstructor) {
       if (getOrSet != null) {
@@ -138,7 +138,7 @@ class MemberListener extends NodeListener {
     super.endFactoryMethod(beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
-    SourceString name = getMethodNameHack(method.name);
+    String name = getMethodNameHack(method.name);
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
       if (name != enclosingElement.name) {
@@ -159,7 +159,7 @@ class MemberListener extends NodeListener {
     VariableDefinitions variableDefinitions = popNode();
     Modifiers modifiers = variableDefinitions.modifiers;
     pushNode(null);
-    void buildFieldElement(SourceString name, Element fields) {
+    void buildFieldElement(String name, Element fields) {
       Element element =
           new VariableElementX(name, fields, ElementKind.FIELD, null);
       addMember(element);

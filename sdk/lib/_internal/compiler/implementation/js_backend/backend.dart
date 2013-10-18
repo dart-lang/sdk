@@ -12,9 +12,9 @@ class JavaScriptItemCompilationContext extends ItemCompilationContext {
 }
 
 class CheckedModeHelper {
-  final SourceString name;
+  final String name;
 
-  const CheckedModeHelper(SourceString this.name);
+  const CheckedModeHelper(String this.name);
 
   Element getElement(Compiler compiler) => compiler.findHelper(name);
 
@@ -38,7 +38,7 @@ class CheckedModeHelper {
 }
 
 class PropertyCheckedModeHelper extends CheckedModeHelper {
-  const PropertyCheckedModeHelper(SourceString name) : super(name);
+  const PropertyCheckedModeHelper(String name) : super(name);
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
@@ -50,7 +50,7 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 }
 
 class TypeVariableCheckedModeHelper extends CheckedModeHelper {
-  const TypeVariableCheckedModeHelper(SourceString name) : super(name);
+  const TypeVariableCheckedModeHelper(String name) : super(name);
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
@@ -62,7 +62,7 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
 }
 
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
-  const SubtypeCheckedModeHelper(SourceString name) : super(name);
+  const SubtypeCheckedModeHelper(String name) : super(name);
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
@@ -79,7 +79,7 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 }
 
 class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
-  const FunctionTypeCheckedModeHelper(SourceString name) : super(name);
+  const FunctionTypeCheckedModeHelper(String name) : super(name);
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
@@ -249,7 +249,7 @@ class JavaScriptBackend extends Backend {
    * list of members that have that name. This map is used by the codegen to
    * know whether a send must be intercepted or not.
    */
-  final Map<SourceString, Set<Element>> interceptedElements;
+  final Map<String, Set<Element>> interceptedElements;
   // TODO(sra): Not all methods in the Set always require an interceptor.  A
   // method may be mixed into a true interceptor *and* a plain class. For the
   // method to work on the interceptor class it needs to use the explicit
@@ -343,69 +343,47 @@ class JavaScriptBackend extends Backend {
 
   /// All the checked mode helpers.
   static const checkedModeHelpers = const [
-      const CheckedModeHelper(const SourceString('voidTypeCheck')),
-      const CheckedModeHelper(const SourceString('stringTypeCast')),
-      const CheckedModeHelper(const SourceString('stringTypeCheck')),
-      const CheckedModeHelper(const SourceString('doubleTypeCast')),
-      const CheckedModeHelper(const SourceString('doubleTypeCheck')),
-      const CheckedModeHelper(const SourceString('numTypeCast')),
-      const CheckedModeHelper(const SourceString('numTypeCheck')),
-      const CheckedModeHelper(const SourceString('boolTypeCast')),
-      const CheckedModeHelper(const SourceString('boolTypeCheck')),
-      const CheckedModeHelper(const SourceString('intTypeCast')),
-      const CheckedModeHelper(const SourceString('intTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('numberOrStringSuperNativeTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('numberOrStringSuperNativeTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('numberOrStringSuperTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('numberOrStringSuperTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('stringSuperNativeTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('stringSuperNativeTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('stringSuperTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('stringSuperTypeCheck')),
-      const CheckedModeHelper(const SourceString('listTypeCast')),
-      const CheckedModeHelper(const SourceString('listTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('listSuperNativeTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('listSuperNativeTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('listSuperTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('listSuperTypeCheck')),
-      const PropertyCheckedModeHelper(
-          const SourceString('interceptedTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('interceptedTypeCheck')),
-      const SubtypeCheckedModeHelper(
-          const SourceString('subtypeCast')),
-      const SubtypeCheckedModeHelper(
-          const SourceString('assertSubtype')),
-      const TypeVariableCheckedModeHelper(
-          const SourceString('subtypeOfRuntimeTypeCast')),
-      const TypeVariableCheckedModeHelper(
-          const SourceString('assertSubtypeOfRuntimeType')),
-      const FunctionTypeCheckedModeHelper(
-          const SourceString('functionSubtypeCast')),
-      const FunctionTypeCheckedModeHelper(
-          const SourceString('assertFunctionSubtype')),
-      const PropertyCheckedModeHelper(
-          const SourceString('propertyTypeCast')),
-      const PropertyCheckedModeHelper(
-          const SourceString('propertyTypeCheck')) ];
+      const CheckedModeHelper('voidTypeCheck'),
+      const CheckedModeHelper('stringTypeCast'),
+      const CheckedModeHelper('stringTypeCheck'),
+      const CheckedModeHelper('doubleTypeCast'),
+      const CheckedModeHelper('doubleTypeCheck'),
+      const CheckedModeHelper('numTypeCast'),
+      const CheckedModeHelper('numTypeCheck'),
+      const CheckedModeHelper('boolTypeCast'),
+      const CheckedModeHelper('boolTypeCheck'),
+      const CheckedModeHelper('intTypeCast'),
+      const CheckedModeHelper('intTypeCheck'),
+      const PropertyCheckedModeHelper('numberOrStringSuperNativeTypeCast'),
+      const PropertyCheckedModeHelper('numberOrStringSuperNativeTypeCheck'),
+      const PropertyCheckedModeHelper('numberOrStringSuperTypeCast'),
+      const PropertyCheckedModeHelper('numberOrStringSuperTypeCheck'),
+      const PropertyCheckedModeHelper('stringSuperNativeTypeCast'),
+      const PropertyCheckedModeHelper('stringSuperNativeTypeCheck'),
+      const PropertyCheckedModeHelper('stringSuperTypeCast'),
+      const PropertyCheckedModeHelper('stringSuperTypeCheck'),
+      const CheckedModeHelper('listTypeCast'),
+      const CheckedModeHelper('listTypeCheck'),
+      const PropertyCheckedModeHelper('listSuperNativeTypeCast'),
+      const PropertyCheckedModeHelper('listSuperNativeTypeCheck'),
+      const PropertyCheckedModeHelper('listSuperTypeCast'),
+      const PropertyCheckedModeHelper('listSuperTypeCheck'),
+      const PropertyCheckedModeHelper('interceptedTypeCast'),
+      const PropertyCheckedModeHelper('interceptedTypeCheck'),
+      const SubtypeCheckedModeHelper('subtypeCast'),
+      const SubtypeCheckedModeHelper('assertSubtype'),
+      const TypeVariableCheckedModeHelper('subtypeOfRuntimeTypeCast'),
+      const TypeVariableCheckedModeHelper('assertSubtypeOfRuntimeType'),
+      const FunctionTypeCheckedModeHelper('functionSubtypeCast'),
+      const FunctionTypeCheckedModeHelper('assertFunctionSubtype'),
+      const PropertyCheckedModeHelper('propertyTypeCast'),
+      const PropertyCheckedModeHelper('propertyTypeCheck') ];
 
   // Checked mode helpers indexed by name.
   Map<String, CheckedModeHelper> checkedModeHelperByName =
       new Map<String, CheckedModeHelper>.fromIterable(
           checkedModeHelpers,
-          key: (helper) => helper.name.slowToString());
+          key: (helper) => helper.name);
 
   TypeVariableHandler typeVariableHandler;
 
@@ -419,7 +397,7 @@ class JavaScriptBackend extends Backend {
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<String, Selector>(),
-        interceptedElements = new Map<SourceString, Set<Element>>(),
+        interceptedElements = new Map<String, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
@@ -503,7 +481,7 @@ class JavaScriptBackend extends Backend {
     return interceptedElements[element.name] != null;
   }
 
-  bool isInterceptedName(SourceString name) {
+  bool isInterceptedName(String name) {
     return interceptedElements[name] != null;
   }
 
@@ -511,14 +489,14 @@ class JavaScriptBackend extends Backend {
     return interceptedElements[selector.name] != null;
   }
 
-  final Map<SourceString, Set<ClassElement>> interceptedClassesCache =
-      new Map<SourceString, Set<ClassElement>>();
+  final Map<String, Set<ClassElement>> interceptedClassesCache =
+      new Map<String, Set<ClassElement>>();
 
   /**
    * Returns a set of interceptor classes that contain a member named
    * [name]. Returns [:null:] if there is no class.
    */
-  Set<ClassElement> getInterceptedClassesOn(SourceString name) {
+  Set<ClassElement> getInterceptedClassesOn(String name) {
     Set<Element> intercepted = interceptedElements[name];
     if (intercepted == null) return null;
     return interceptedClassesCache.putIfAbsent(name, () {
@@ -565,51 +543,41 @@ class JavaScriptBackend extends Backend {
   }
 
   void initializeHelperClasses() {
-    getInterceptorMethod =
-        compiler.findInterceptor(const SourceString('getInterceptor'));
-    interceptedNames =
-        compiler.findInterceptor(const SourceString('interceptedNames'));
-    mapTypeToInterceptor =
-        compiler.findInterceptor(const SourceString('mapTypeToInterceptor'));
-    dispatchPropertyName =
-        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
+    getInterceptorMethod = compiler.findInterceptor('getInterceptor');
+    interceptedNames = compiler.findInterceptor('interceptedNames');
+    mapTypeToInterceptor = compiler.findInterceptor('mapTypeToInterceptor');
+    dispatchPropertyName = compiler.findInterceptor('dispatchPropertyName');
     getNativeInterceptorMethod =
-        compiler.findInterceptor(const SourceString('getNativeInterceptor'));
+        compiler.findInterceptor('getNativeInterceptor');
     defineNativeMethodsFinishMethod =
-        compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
+        compiler.findHelper('defineNativeMethodsFinish');
 
     // These methods are overwritten with generated versions.
     inlineCache.markAsNonInlinable(getInterceptorMethod, insideLoop: true);
 
     List<ClassElement> classes = [
       jsInterceptorClass =
-          compiler.findInterceptor(const SourceString('Interceptor')),
-      jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
-      jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
+          compiler.findInterceptor('Interceptor'),
+      jsStringClass = compiler.findInterceptor('JSString'),
+      jsArrayClass = compiler.findInterceptor('JSArray'),
       // The int class must be before the double class, because the
       // emitter relies on this list for the order of type checks.
-      jsIntClass = compiler.findInterceptor(const SourceString('JSInt')),
-      jsDoubleClass = compiler.findInterceptor(const SourceString('JSDouble')),
-      jsNumberClass = compiler.findInterceptor(const SourceString('JSNumber')),
-      jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
-      jsBoolClass = compiler.findInterceptor(const SourceString('JSBool')),
-      jsMutableArrayClass =
-          compiler.findInterceptor(const SourceString('JSMutableArray')),
-      jsFixedArrayClass =
-          compiler.findInterceptor(const SourceString('JSFixedArray')),
-      jsExtendableArrayClass =
-          compiler.findInterceptor(const SourceString('JSExtendableArray')),
+      jsIntClass = compiler.findInterceptor('JSInt'),
+      jsDoubleClass = compiler.findInterceptor('JSDouble'),
+      jsNumberClass = compiler.findInterceptor('JSNumber'),
+      jsNullClass = compiler.findInterceptor('JSNull'),
+      jsBoolClass = compiler.findInterceptor('JSBool'),
+      jsMutableArrayClass = compiler.findInterceptor('JSMutableArray'),
+      jsFixedArrayClass = compiler.findInterceptor('JSFixedArray'),
+      jsExtendableArrayClass = compiler.findInterceptor('JSExtendableArray'),
       jsPlainJavaScriptObjectClass =
-          compiler.findInterceptor(const SourceString('PlainJavaScriptObject')),
+          compiler.findInterceptor('PlainJavaScriptObject'),
       jsUnknownJavaScriptObjectClass =
-          compiler.findInterceptor(
-              const SourceString('UnknownJavaScriptObject')),
+          compiler.findInterceptor('UnknownJavaScriptObject'),
     ];
 
-    jsIndexableClass =
-        compiler.findInterceptor(const SourceString('JSIndexable'));
-    jsMutableIndexableClass =
-        compiler.findInterceptor(const SourceString('JSMutableIndexable'));
+    jsIndexableClass = compiler.findInterceptor('JSIndexable');
+    jsMutableIndexableClass = compiler.findInterceptor('JSMutableIndexable');
 
     // TODO(kasperl): Some tests do not define the special JSArray
     // subclasses, so we check to see if they are defined before
@@ -623,37 +591,29 @@ class JavaScriptBackend extends Backend {
 
     jsIndexableClass.ensureResolved(compiler);
     jsIndexableLength = compiler.lookupElementIn(
-        jsIndexableClass, const SourceString('length'));
+        jsIndexableClass, 'length');
     if (jsIndexableLength != null && jsIndexableLength.isAbstractField()) {
       AbstractFieldElement element = jsIndexableLength;
       jsIndexableLength = element.getter;
     }
 
     jsArrayClass.ensureResolved(compiler);
-    jsArrayRemoveLast = compiler.lookupElementIn(
-        jsArrayClass, const SourceString('removeLast'));
-    jsArrayAdd = compiler.lookupElementIn(
-        jsArrayClass, const SourceString('add'));
+    jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
+    jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
 
     jsStringClass.ensureResolved(compiler);
-    jsStringSplit = compiler.lookupElementIn(
-        jsStringClass, const SourceString('split'));
-    jsStringOperatorAdd = compiler.lookupElementIn(
-        jsStringClass, const SourceString('+'));
-    jsStringToString = compiler.lookupElementIn(
-        jsStringClass, const SourceString('toString'));
+    jsStringSplit = compiler.lookupElementIn(jsStringClass, 'split');
+    jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
+    jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
 
-    typeLiteralClass = compiler.findHelper(const SourceString('TypeImpl'));
-    mapLiteralClass =
-        compiler.coreLibrary.find(const SourceString('LinkedHashMap'));
-    constMapLiteralClass =
-        compiler.findHelper(const SourceString('ConstantMap'));
+    typeLiteralClass = compiler.findHelper('TypeImpl');
+    mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
+    constMapLiteralClass = compiler.findHelper('ConstantMap');
 
-    objectEquals = compiler.lookupElementIn(
-        compiler.objectClass, const SourceString('=='));
+    objectEquals = compiler.lookupElementIn(compiler.objectClass, '==');
 
     jsIndexingBehaviorInterface =
-        compiler.findHelper(const SourceString('JavaScriptIndexingBehavior'));
+        compiler.findHelper('JavaScriptIndexingBehavior');
 
     specialOperatorEqClasses
         ..add(compiler.objectClass)
@@ -676,7 +636,7 @@ class JavaScriptBackend extends Backend {
         new TypeMask.nonNullExact(jsExtendableArrayClass));
 
     typeVariableClass =
-        compiler.findHelper(const SourceString('TypeVariable'));
+        compiler.findHelper('TypeVariable');
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -827,17 +787,17 @@ class JavaScriptBackend extends Backend {
         // The backend will try to optimize number operations and use the
         // `iae` helper directly.
         enqueue(enqueuer,
-                compiler.findHelper(const SourceString('iae')),
+                compiler.findHelper('iae'),
                 elements);
       } else if (cls == compiler.listClass
                  || cls == compiler.stringClass) {
         // The backend will try to optimize array and string access and use the
         // `ioore` and `iae` helpers directly.
         enqueue(enqueuer,
-                compiler.findHelper(const SourceString('ioore')),
+                compiler.findHelper('ioore'),
                 elements);
         enqueue(enqueuer,
-                compiler.findHelper(const SourceString('iae')),
+                compiler.findHelper('iae'),
                 elements);
       } else if (cls == compiler.functionClass) {
         enqueueClass(enqueuer, compiler.closureClass, elements);
@@ -890,11 +850,11 @@ class JavaScriptBackend extends Backend {
       // we make sure they are always generated.
       enqueue(
           enqueuer,
-          compiler.findHelper(const SourceString('isJsIndexable')),
+          compiler.findHelper('isJsIndexable'),
           elements);
       enqueue(
           enqueuer,
-          compiler.findInterceptor(const SourceString('dispatchPropertyName')),
+          compiler.findInterceptor('dispatchPropertyName'),
           elements);
     }
 
@@ -926,7 +886,7 @@ class JavaScriptBackend extends Backend {
       // expression in an if/while/for is a boolean.
       // TODO(ngeoffray): Should we have the resolver register those instead?
       Element e =
-          compiler.findHelper(const SourceString('boolConversionCheck'));
+          compiler.findHelper('boolConversionCheck');
       if (e != null) enqueue(world, e, elements);
     }
     registerCheckedModeHelpers(elements);
@@ -1077,7 +1037,7 @@ class JavaScriptBackend extends Backend {
       // JavaScript object prototype, so we make sure
       // [:defineProperty:] is compiled.
       enqueue(world,
-              compiler.findHelper(const SourceString('defineProperty')),
+              compiler.findHelper('defineProperty'),
               elements);
     }
   }
@@ -1184,7 +1144,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool isDefaultEqualityImplementation(Element element) {
-    assert(element.name == const SourceString('=='));
+    assert(element.name == '==');
     ClassElement classElement = element.getEnclosingClass();
     return classElement == compiler.objectClass
         || classElement == jsInterceptorClass
@@ -1228,7 +1188,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerConstantMap(TreeElements elements) {
-    void enqueue(SourceString name) {
+    void enqueue(String name) {
       Element e = compiler.findHelper(name);
       if (e != null) {
         enqueueClass(compiler.enqueuer.resolution, e, elements);
@@ -1517,97 +1477,95 @@ class JavaScriptBackend extends Backend {
   }
 
   Element getExceptionUnwrapper() {
-    return compiler.findHelper(const SourceString('unwrapException'));
+    return compiler.findHelper('unwrapException');
   }
 
   Element getThrowRuntimeError() {
-    return compiler.findHelper(const SourceString('throwRuntimeError'));
+    return compiler.findHelper('throwRuntimeError');
   }
 
   Element getThrowAbstractClassInstantiationError() {
-    return compiler.findHelper(
-        const SourceString('throwAbstractClassInstantiationError'));
+    return compiler.findHelper('throwAbstractClassInstantiationError');
   }
 
   Element getStringInterpolationHelper() {
-    return compiler.findHelper(const SourceString('S'));
+    return compiler.findHelper('S');
   }
 
   Element getWrapExceptionHelper() {
-    return compiler.findHelper(const SourceString(r'wrapException'));
+    return compiler.findHelper(r'wrapException');
   }
 
   Element getThrowExpressionHelper() {
-    return compiler.findHelper(const SourceString('throwExpression'));
+    return compiler.findHelper('throwExpression');
   }
 
   Element getClosureConverter() {
-    return compiler.findHelper(const SourceString('convertDartClosureToJS'));
+    return compiler.findHelper('convertDartClosureToJS');
   }
 
   Element getTraceFromException() {
-    return compiler.findHelper(const SourceString('getTraceFromException'));
+    return compiler.findHelper('getTraceFromException');
   }
 
   Element getMapMaker() {
-    return compiler.findHelper(const SourceString('makeLiteralMap'));
+    return compiler.findHelper('makeLiteralMap');
   }
 
   Element getSetRuntimeTypeInfo() {
-    return compiler.findHelper(const SourceString('setRuntimeTypeInfo'));
+    return compiler.findHelper('setRuntimeTypeInfo');
   }
 
   Element getGetRuntimeTypeInfo() {
-    return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
+    return compiler.findHelper('getRuntimeTypeInfo');
   }
 
   Element getComputeSignature() {
-    return compiler.findHelper(const SourceString('computeSignature'));
+    return compiler.findHelper('computeSignature');
   }
 
   Element getGetRuntimeTypeArguments() {
-    return compiler.findHelper(const SourceString('getRuntimeTypeArguments'));
+    return compiler.findHelper('getRuntimeTypeArguments');
   }
 
   Element getGetRuntimeTypeArgument() {
-    return compiler.findHelper(const SourceString('getRuntimeTypeArgument'));
+    return compiler.findHelper('getRuntimeTypeArgument');
   }
 
   Element getRuntimeTypeToString() {
-    return compiler.findHelper(const SourceString('runtimeTypeToString'));
+    return compiler.findHelper('runtimeTypeToString');
   }
 
   Element getCheckSubtype() {
-    return compiler.findHelper(const SourceString('checkSubtype'));
+    return compiler.findHelper('checkSubtype');
   }
 
   Element getAssertSubtype() {
-    return compiler.findHelper(const SourceString('assertSubtype'));
+    return compiler.findHelper('assertSubtype');
   }
 
   Element getCheckSubtypeOfRuntimeType() {
-    return compiler.findHelper(const SourceString('checkSubtypeOfRuntimeType'));
+    return compiler.findHelper('checkSubtypeOfRuntimeType');
   }
 
   Element getAssertSubtypeOfRuntimeType() {
-    return compiler.findHelper(
-        const SourceString('assertSubtypeOfRuntimeType'));
+    return compiler.findHelper('assertSubtypeOfRuntimeType');
   }
 
   Element getCheckFunctionSubtype() {
-    return compiler.findHelper(const SourceString('checkFunctionSubtype'));
+    return compiler.findHelper('checkFunctionSubtype');
   }
 
   Element getThrowNoSuchMethod() {
-    return compiler.findHelper(const SourceString('throwNoSuchMethod'));
+    return compiler.findHelper('throwNoSuchMethod');
   }
 
   Element getCreateRuntimeType() {
-    return compiler.findHelper(const SourceString('createRuntimeType'));
+    return compiler.findHelper('createRuntimeType');
   }
 
   Element getFallThroughError() {
-    return compiler.findHelper(const SourceString("getFallThroughError"));
+    return compiler.findHelper("getFallThroughError");
   }
 
   Element getCreateInvocationMirror() {
@@ -1615,7 +1573,7 @@ class JavaScriptBackend extends Backend {
   }
 
   Element getCyclicThrowHelper() {
-    return compiler.findHelper(const SourceString("throwCyclicInit"));
+    return compiler.findHelper("throwCyclicInit");
   }
 
   bool isNullImplementation(ClassElement cls) {
@@ -1674,10 +1632,10 @@ class JavaScriptBackend extends Backend {
   bool shouldRetainSetter(Element element) => isNeededForReflection(element);
 
   /// Should [name] be retained for reflection?
-  bool shouldRetainName(SourceString name) {
+  bool shouldRetainName(String name) {
     if (hasInsufficientMirrorsUsed) return mustPreserveNames;
-    if (name == const SourceString('')) return false;
-    return symbolsUsed.contains(name.slowToString());
+    if (name == '') return false;
+    return symbolsUsed.contains(name);
   }
 
   bool get rememberLazies => isTreeShakingDisabled;
@@ -1698,12 +1656,12 @@ class JavaScriptBackend extends Backend {
   Future onLibraryLoaded(LibraryElement library, Uri uri) {
     if (uri == Uri.parse('dart:_js_mirrors')) {
       disableTreeShakingMarker =
-          library.find(const SourceString('disableTreeShaking'));
+          library.find('disableTreeShaking');
       preserveMetadataMarker =
-          library.find(const SourceString('preserveMetadata'));
+          library.find('preserveMetadata');
     } else if (uri == Uri.parse('dart:_js_names')) {
       preserveNamesMarker =
-          library.find(const SourceString('preserveNames'));
+          library.find('preserveNames');
     }
     return new Future.value();
   }
@@ -1756,9 +1714,9 @@ class JavaScriptBackend extends Backend {
     /// Record the name of [element] in [symbolsUsed]. Return true for
     /// convenience.
     bool registerNameOf(Element element) {
-      symbolsUsed.add(element.name.slowToString());
+      symbolsUsed.add(element.name);
       if (element.isConstructor()) {
-        symbolsUsed.add(element.getEnclosingClass().name.slowToString());
+        symbolsUsed.add(element.getEnclosingClass().name);
       }
       return true;
     }
@@ -1822,7 +1780,7 @@ class JavaScriptBackend extends Backend {
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
     FunctionElement helper =
-        compiler.findHelper(const SourceString('isJsIndexable'));
+        compiler.findHelper('isJsIndexable');
     String helperName = namer.isolateAccess(helper);
     return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
   }

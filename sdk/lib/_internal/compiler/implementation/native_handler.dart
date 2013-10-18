@@ -5,7 +5,7 @@
 library native;
 
 import 'dart:collection' show Queue;
-import 'dart2jslib.dart' hide SourceString;
+import 'dart2jslib.dart';
 import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'js_backend/js_backend.dart';
@@ -150,15 +150,15 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     //
     //     class B extends foo.A {}
     //
-    // SourceString "A" has a potential subclass B.
+    // String "A" has a potential subclass B.
 
-    var potentialExtends = new Map<SourceString, Set<ClassElement>>();
+    var potentialExtends = new Map<String, Set<ClassElement>>();
 
     libraries.forEach((library) {
       library.implementation.forEachLocalMember((element) {
         if (element.isClass()) {
-          SourceString name = element.name;
-          SourceString extendsName = findExtendsNameOfClass(element);
+          String name = element.name;
+          String extendsName = findExtendsNameOfClass(element);
           if (extendsName != null) {
             Set<ClassElement> potentialSubclasses =
                 potentialExtends.putIfAbsent(
@@ -208,7 +208,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
    * Returns the source string of the class named in the extends clause, or
    * `null` if there is no extends clause.
    */
-  SourceString findExtendsNameOfClass(ClassElement classElement) {
+  String findExtendsNameOfClass(ClassElement classElement) {
     //  "class B extends A ... {}"  --> "A"
     //  "class B extends foo.A ... {}"  --> "A"
     //  "class B<T> extends foo.A<T,T> with M1, M2 ... {}"  --> "A"
@@ -234,7 +234,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       //}
     }
 
-    SourceString scanForExtendsName(Token token) {
+    String scanForExtendsName(Token token) {
       if (token.stringValue == 'abstract') token = token.next;
       if (token.stringValue != 'class') return null;
       token = token.next;
@@ -287,9 +287,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       }
       return e;
     }
-    _annotationCreatesClass = find(const SourceString('Creates'));
-    _annotationReturnsClass = find(const SourceString('Returns'));
-    _annotationJsNameClass = find(const SourceString('JSName'));
+    _annotationCreatesClass = find('Creates');
+    _annotationReturnsClass = find('Returns');
+    _annotationJsNameClass = find('JSName');
   }
 
   /// Returns the JSName annotation string or `null` if no JSName annotation is
@@ -399,7 +399,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   /// defaulting to the Dart name.
   void setNativeName(Element element) {
     String name = findJsNameFromAnnotation(element);
-    if (name == null) name = element.name.slowToString();
+    if (name == null) name = element.name;
     element.setNative(name);
   }
 
@@ -507,20 +507,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           world, compiler.findHelper(name), compiler.globalDependencies);
     }
 
-    staticUse(const SourceString('dynamicFunction'));
-    staticUse(const SourceString('dynamicSetMetadata'));
-    staticUse(const SourceString('defineProperty'));
-    staticUse(const SourceString('toStringForNativeObject'));
-    staticUse(const SourceString('hashCodeForNativeObject'));
-    staticUse(const SourceString('convertDartClosureToJS'));
-    staticUse(const SourceString('defineNativeMethods'));
-    staticUse(const SourceString('defineNativeMethodsNonleaf'));
-    staticUse(const SourceString('defineNativeMethodsExtended'));
+    staticUse('dynamicFunction');
+    staticUse('dynamicSetMetadata');
+    staticUse('defineProperty');
+    staticUse('toStringForNativeObject');
+    staticUse('hashCodeForNativeObject');
+    staticUse('convertDartClosureToJS');
+    staticUse('defineNativeMethods');
+    staticUse('defineNativeMethodsNonleaf');
+    staticUse('defineNativeMethodsExtended');
     // TODO(9577): Registering `defineNativeMethodsFinish` seems redundant with
     // respect to the registering in the backend. When the backend registering
     // is removed as part of fixing Issue 9577, this can be the sole place
     // registering this methods.
-    staticUse(const SourceString('defineNativeMethodsFinish'));
+    staticUse('defineNativeMethodsFinish');
 
     addNativeExceptions();
   }
@@ -528,7 +528,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   addNativeExceptions() {
     enqueueUnusedClassesMatching((classElement) {
         // TODO(sra): Annotate exception classes in dart:html.
-        String name = classElement.name.slowToString();
+        String name = classElement.name;
         if (name.contains('Exception')) return true;
         if (name.contains('Error')) return true;
         return false;
@@ -852,7 +852,7 @@ class NativeBehavior {
     if (element.metadata.isEmpty) return;
 
     DartType lookup(String name) {
-      Element e = element.buildScope().lookup(new SourceString(name));
+      Element e = element.buildScope().lookup(name);
       if (e == null) return null;
       if (e is! ClassElement) return null;
       ClassElement cls = e;
@@ -1037,12 +1037,12 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   return token.next;
 }
 
-SourceString checkForNativeClass(ElementListener listener) {
-  SourceString nativeTagInfo;
+String checkForNativeClass(ElementListener listener) {
+  String nativeTagInfo;
   Node node = listener.nodes.head;
   if (node != null
       && node.asIdentifier() != null
-      && node.asIdentifier().source.stringValue == 'native') {
+      && node.asIdentifier().source == 'native') {
     nativeTagInfo = node.asIdentifier().token.next.value;
     listener.popNode();
   }

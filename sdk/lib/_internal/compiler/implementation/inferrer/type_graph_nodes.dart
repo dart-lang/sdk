@@ -442,11 +442,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    SourceString name = selector.name;
-    if (name == const SourceString('*')
-        || name == const SourceString('+')
-        || name == const SourceString('%')
-        || name == const SourceString('remainder')) {
+    String name = selector.name;
+    if (name == '*' || name == '+' || name == '%' || name == 'remainder') {
       if (hasOnePositionalArgumentWithType(intType)) {
         return inferrer.types.intType;
       } else if (hasOnePositionalArgumentWithType(emptyType)) {
@@ -454,7 +451,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       } else {
         return null;
       }
-    } else if (name == const SourceString('-')) {
+    } else if (name == '-') {
       if (arguments.hasNoArguments()) return inferrer.types.intType;
       if (hasOnePositionalArgumentWithType(intType)) {
         return inferrer.types.intType;
@@ -462,7 +459,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return inferrer.types.nonNullEmptyType;
       }
       return null;
-    } else if (name == const SourceString('abs')) {
+    } else if (name == 'abs') {
       return arguments.hasNoArguments() ? inferrer.types.intType : null;
     }
     return null;

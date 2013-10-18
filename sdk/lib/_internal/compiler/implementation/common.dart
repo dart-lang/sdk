@@ -13,7 +13,6 @@ export 'dart2jslib.dart' show
     MessageKind,
     NullConstant,
     Selector,
-    SourceString,
     TreeElements,
     TypeConstant,
     invariant;

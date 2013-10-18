@@ -162,7 +162,7 @@ class PatchParserTask extends leg.CompilerTask {
     measure(() {
       // TODO(lrn): Possibly recursively handle 'part' directives in patch.
       leg.Script script = compilationUnit.script;
-      Token tokens = new StringScanner(script.text).tokenize();
+      Token tokens = new Scanner(script.file).tokenize();
       Function idGenerator = compiler.getNextFreeClassId;
       PatchListener patchListener =
           new PatchElementListener(compiler,
@@ -221,7 +221,7 @@ class PatchParser extends PartialParser {
 
   PatchListener get patchListener => listener;
 
-  bool isPatch(Token token) => token.value == const SourceString('patch');
+  bool isPatch(Token token) => token.value == 'patch';
 
   /**
    * Parse top-level declarations, and allow "patch" in front of functions

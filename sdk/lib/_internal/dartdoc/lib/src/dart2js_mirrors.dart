@@ -13,7 +13,8 @@ import '../../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js
 import '../../../compiler/implementation/mirrors/mirrors.dart'
     show MirrorSystem;
 import '../../../compiler/implementation/source_file_provider.dart'
-    show FormattingDiagnosticHandler, SourceFileProvider;
+    show FormattingDiagnosticHandler, SourceFileProvider,
+         CompilerSourceFileProvider;
 import '../../../compiler/implementation/filenames.dart'
     show appendSlash, currentDirectory;
 
@@ -29,7 +30,7 @@ Future<String> compile(String script,
                        {String packageRoot,
                         List<String> options: const <String>[],
                         api.DiagnosticHandler diagnosticHandler}) {
-  SourceFileProvider provider = new SourceFileProvider();
+  SourceFileProvider provider = new CompilerSourceFileProvider();
   if (diagnosticHandler == null) {
     diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
@@ -53,7 +54,7 @@ Future<MirrorSystem> analyze(List<String> libraries,
                              {String packageRoot,
                               List<String> options: const <String>[],
                               api.DiagnosticHandler diagnosticHandler}) {
-  SourceFileProvider provider = new SourceFileProvider();
+  SourceFileProvider provider = new CompilerSourceFileProvider();
   if (diagnosticHandler == null) {
     diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;

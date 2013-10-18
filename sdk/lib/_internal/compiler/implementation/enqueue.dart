@@ -20,7 +20,7 @@ class EnqueueTask extends CompilerTask {
 
     void addMemberByName(Element element) {
       element = element.declaration;
-      String name = element.name.slowToString();
+      String name = element.name;
       ScopeContainerElement container = null;
       if (element.isLibrary()) {
         LibraryElement library = element;
@@ -163,7 +163,7 @@ abstract class Enqueuer {
     if (isProcessed(member)) return;
     if (!member.isInstanceMember()) return;
 
-    String memberName = member.name.slowToString();
+    String memberName = member.name;
 
     if (member.kind == ElementKind.FIELD) {
       // The obvious thing to test here would be "member.isNative()",
@@ -283,8 +283,8 @@ abstract class Enqueuer {
   }
 
   void registerNewSelector(Selector selector,
-                           Map<SourceString, Set<Selector>> selectorsMap) {
-    SourceString name = selector.name;
+                           Map<String, Set<Selector>> selectorsMap) {
+    String name = selector.name;
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Set<Selector>());
     if (!selectors.contains(selector)) {
@@ -365,9 +365,8 @@ abstract class Enqueuer {
   }
 
   processLink(Map<String, Link<Element>> map,
-              SourceString n,
+              String memberName,
               bool f(Element e)) {
-    String memberName = n.slowToString();
     Link<Element> members = map[memberName];
     if (members != null) {
       // [f] might add elements to [: map[memberName] :] during the loop below
@@ -382,15 +381,15 @@ abstract class Enqueuer {
     }
   }
 
-  processInstanceMembers(SourceString n, bool f(Element e)) {
+  processInstanceMembers(String n, bool f(Element e)) {
     processLink(instanceMembersByName, n, f);
   }
 
-  processInstanceFunctions(SourceString n, bool f(Element e)) {
+  processInstanceFunctions(String n, bool f(Element e)) {
     processLink(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(SourceString methodName, Selector selector) {
+  void handleUnseenSelector(String methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.appliesUnnamed(member, compiler)) {
         if (member.isFunction() && selector.isGetter()) {
@@ -627,8 +626,8 @@ class ResolutionEnqueuer extends Enqueuer {
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);
       } else if (uri == 'dart:async') {
-        if (element.name == const SourceString('_createTimer') ||
-            element.name == const SourceString('_createPeriodicTimer')) {
+        if (element.name == '_createTimer' ||
+            element.name == '_createPeriodicTimer') {
           // The [:Timer:] class uses the event queue of the isolate
           // library, so we make sure that event queue is generated.
           enableIsolateSupport(library);
@@ -659,10 +658,8 @@ class ResolutionEnqueuer extends Enqueuer {
         compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
     addToWorkList(startRootIsolate);
     compiler.globalDependencies.registerDependency(startRootIsolate);
-    addToWorkList(compiler.isolateHelperLibrary.find(
-        const SourceString('_currentIsolate')));
-    addToWorkList(compiler.isolateHelperLibrary.find(
-        const SourceString('_callInIsolate')));
+    addToWorkList(compiler.isolateHelperLibrary.find('_currentIsolate'));
+    addToWorkList(compiler.isolateHelperLibrary.find('_callInIsolate'));
   }
 
   void enableNoSuchMethod(Element element) {

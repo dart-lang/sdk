@@ -5,7 +5,7 @@
 part of dart2js;
 
 abstract class Operation {
-  SourceString get name;
+  String get name;
   bool isUserDefinable();
 }
 
@@ -72,9 +72,9 @@ abstract class ConstantSystem {
   /** Returns true if the [constant] is null at runtime. */
   bool isNull(Constant constant);
 
-  Operation lookupUnary(SourceString operator) {
-    if (operator == const SourceString('-')) return negate;
-    if (operator == const SourceString('~')) return bitNot;
+  Operation lookupUnary(String operator) {
+    if (operator == '-') return negate;
+    if (operator == '~') return bitNot;
     return null;
   }
 }

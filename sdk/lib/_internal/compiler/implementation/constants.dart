@@ -68,7 +68,7 @@ class FunctionConstant extends Constant {
   String toString() => element.toString();
   List<Constant> getDependencies() => const <Constant>[];
   DartString toDartString() {
-    return new DartString.literal(element.name.slowToString());
+    return new DartString.literal(element.name);
   }
 
   DartType computeType(Compiler compiler) {
@@ -391,18 +391,15 @@ class MapConstant extends ObjectConstant {
       const LiteralDartString("__proto__");
 
   /** The dart class implementing constant map literals. */
-  static const SourceString DART_CLASS = const SourceString("ConstantMap");
-  static const SourceString DART_STRING_CLASS =
-      const SourceString("ConstantStringMap");
-  static const SourceString DART_PROTO_CLASS =
-      const SourceString("ConstantProtoMap");
-  static const SourceString DART_GENERAL_CLASS =
-      const SourceString("GeneralConstantMap");
-  static const SourceString LENGTH_NAME = const SourceString("length");
-  static const SourceString JS_OBJECT_NAME = const SourceString("_jsObject");
-  static const SourceString KEYS_NAME = const SourceString("_keys");
-  static const SourceString PROTO_VALUE = const SourceString("_protoValue");
-  static const SourceString JS_DATA_NAME = const SourceString("_jsData");
+  static const String DART_CLASS = "ConstantMap";
+  static const String DART_STRING_CLASS = "ConstantStringMap";
+  static const String DART_PROTO_CLASS = "ConstantProtoMap";
+  static const String DART_GENERAL_CLASS = "GeneralConstantMap";
+  static const String LENGTH_NAME = "length";
+  static const String JS_OBJECT_NAME = "_jsObject";
+  static const String KEYS_NAME = "_keys";
+  static const String PROTO_VALUE = "_protoValue";
+  static const String JS_DATA_NAME = "_jsData";
 
   final ListConstant keys;
   final List<Constant> values;
@@ -554,7 +551,7 @@ class ConstructedConstant extends ObjectConstant {
     int i = 0;
     fieldElements.forEach((Element field, Constant value) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(field.name.slowToString()));
+      sb.write(Error.safeToString(field.name));
       sb.write('=');
       sb.write(Error.safeToString(value));
       i++;

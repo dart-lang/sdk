@@ -256,8 +256,8 @@ class MockCompiler extends Compiler {
     libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
     libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
 
-    assertMethod = jsHelperLibrary.find(buildSourceString('assertHelper'));
-    identicalFunction = coreLibrary.find(buildSourceString('identical'));
+    assertMethod = jsHelperLibrary.find('assertHelper');
+    identicalFunction = coreLibrary.find('identical');
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
@@ -386,7 +386,7 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new ElementX(buildSourceString(''), ElementKind.FUNCTION,
+        new ElementX('', ElementKind.FUNCTION,
             mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
@@ -497,7 +497,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
   return (uri, int begin, int end, String message, kind) {
     SourceFile sourceFile;
     if (uri == null) {
-      sourceFile = new SourceFile('analysis', text);
+      sourceFile = new StringSourceFile('analysis', text);
     } else {
       sourceFile = compiler.sourceFiles[uri.toString()];
     }

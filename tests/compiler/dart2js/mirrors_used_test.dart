@@ -17,7 +17,6 @@ import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' show
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart' show
     Constant,
-    SourceString,
     TypeConstant;
 
 import
@@ -81,7 +80,7 @@ void main() {
     for (var library in compiler.libraries.values) {
       library.forEachLocalMember((member) {
         if (library == compiler.mainApp
-            && member.name == const SourceString('Foo')) {
+            && member.name == 'Foo') {
           Expect.isTrue(
               compiler.backend.isNeededForReflection(member), '$member');
           member.forEachLocalMember((classMember) {

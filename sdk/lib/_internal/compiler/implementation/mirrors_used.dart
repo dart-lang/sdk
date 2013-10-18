@@ -11,7 +11,6 @@ import 'dart2jslib.dart' show
     ConstructedConstant,
     ListConstant,
     MessageKind,
-    SourceString,
     StringConstant,
     TreeElements,
     TypeConstant,
@@ -146,17 +145,17 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
               analyzer, mapping.currentElement.getLibrary(), named.expression,
               value, mapper.constantToNodeMap);
 
-      if (named.name.source == const SourceString('symbols')) {
+      if (named.name.source == 'symbols') {
         analyzer.cachedValues[value] =
             builder.convertToListOfStrings(
                 builder.convertConstantToUsageList(value, onlyStrings: true));
-      } else if (named.name.source == const SourceString('targets')) {
+      } else if (named.name.source == 'targets') {
         analyzer.cachedValues[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
-      } else if (named.name.source == const SourceString('metaTargets')) {
+      } else if (named.name.source == 'metaTargets') {
         analyzer.cachedValues[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
-      } else if (named.name.source == const SourceString('override')) {
+      } else if (named.name.source == 'override') {
         analyzer.cachedValues[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
       }
@@ -331,14 +330,14 @@ class MirrorUsageAnalyzer {
   MirrorUsage buildUsage(ConstructedConstant constant) {
     Map<Element, Constant> fields = constant.fieldElements;
     VariableElement symbolsField = compiler.mirrorsUsedClass.lookupLocalMember(
-        const SourceString('symbols'));
+        'symbols');
     VariableElement targetsField = compiler.mirrorsUsedClass.lookupLocalMember(
-        const SourceString('targets'));
+        'targets');
     VariableElement metaTargetsField =
         compiler.mirrorsUsedClass.lookupLocalMember(
-            const SourceString('metaTargets'));
+            'metaTargets');
     VariableElement overrideField = compiler.mirrorsUsedClass.lookupLocalMember(
-        const SourceString('override'));
+        'override');
 
     return new MirrorUsage(
         cachedValues[fields[symbolsField]],
@@ -521,7 +520,7 @@ class MirrorUsageBuilder {
   /// Resolve [expression] in [enclosingLibrary]'s import scope.
   Element resolveExpression(String expression) {
     List<String> identifiers = expression.split('.');
-    Element element = enclosingLibrary.find(new SourceString(identifiers[0]));
+    Element element = enclosingLibrary.find(identifiers[0]);
     if (element == null) {
       compiler.reportHint(
           spannable, MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
@@ -537,7 +536,7 @@ class MirrorUsageBuilder {
   Element resolveLocalExpression(Element element, List<String> identifiers) {
     Element current = element;
     for (String identifier in identifiers) {
-      Element e = findLocalMemberIn(current, new SourceString(identifier));
+      Element e = findLocalMemberIn(current, identifier);
       if (e == null) {
         if (current.isLibrary()) {
           LibraryElement library = current;
@@ -559,7 +558,7 @@ class MirrorUsageBuilder {
 
   /// Helper method to lookup members in a [ScopeContainerElement]. If
   /// [element] is not a ScopeContainerElement, return null.
-  Element findLocalMemberIn(Element element, SourceString name) {
+  Element findLocalMemberIn(Element element, String name) {
     if (element is ScopeContainerElement) {
       ScopeContainerElement scope = element;
       if (element.isClass()) {

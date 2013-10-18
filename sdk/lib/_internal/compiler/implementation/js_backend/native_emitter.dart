@@ -40,68 +40,57 @@ class NativeEmitter {
   String get N => emitter.N;
 
   String get dynamicName {
-    Element element = compiler.findHelper(
-        const SourceString('dynamicFunction'));
+    Element element = compiler.findHelper('dynamicFunction');
     return backend.namer.isolateAccess(element);
   }
 
   String get dynamicFunctionTableName {
-    Element element = compiler.findHelper(
-        const SourceString('dynamicFunctionTable'));
+    Element element = compiler.findHelper('dynamicFunctionTable');
     return backend.namer.isolateAccess(element);
   }
 
   String get typeNameOfName {
-    Element element = compiler.findHelper(
-        const SourceString('getTypeNameOf'));
+    Element element = compiler.findHelper('getTypeNameOf');
     return backend.namer.isolateAccess(element);
   }
 
   String get defPropName {
-    Element element = compiler.findHelper(
-        const SourceString('defineProperty'));
+    Element element = compiler.findHelper('defineProperty');
     return backend.namer.isolateAccess(element);
   }
 
   String get toStringHelperName {
-    Element element = compiler.findHelper(
-        const SourceString('toStringForNativeObject'));
+    Element element = compiler.findHelper('toStringForNativeObject');
     return backend.namer.isolateAccess(element);
   }
 
   String get hashCodeHelperName {
-    Element element = compiler.findHelper(
-        const SourceString('hashCodeForNativeObject'));
+    Element element = compiler.findHelper('hashCodeForNativeObject');
     return backend.namer.isolateAccess(element);
   }
 
   String get dispatchPropertyNameVariable {
-    Element element = compiler.findInterceptor(
-        const SourceString('dispatchPropertyName'));
+    Element element = compiler.findInterceptor('dispatchPropertyName');
     return backend.namer.isolateAccess(element);
   }
 
   String get defineNativeMethodsName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethods'));
+    Element element = compiler.findHelper('defineNativeMethods');
     return backend.namer.isolateAccess(element);
   }
 
   String get defineNativeMethodsNonleafName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethodsNonleaf'));
+    Element element = compiler.findHelper('defineNativeMethodsNonleaf');
     return backend.namer.isolateAccess(element);
   }
 
   String get defineNativeMethodsExtendedName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethodsExtended'));
+    Element element = compiler.findHelper('defineNativeMethodsExtended');
     return backend.namer.isolateAccess(element);
   }
 
   String get defineNativeMethodsFinishName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethodsFinish'));
+    Element element = compiler.findHelper('defineNativeMethodsFinish');
     return backend.namer.isolateAccess(element);
   }
 
@@ -109,7 +98,7 @@ class NativeEmitter {
   // tags (having JavaScript identifier syntax) and directives that begin with
   // `!`.
   List<String> nativeTagsOfClassRaw(ClassElement cls) {
-    String quotedName = cls.nativeTagInfo.slowToString();
+    String quotedName = cls.nativeTagInfo;
     return quotedName.substring(1, quotedName.length - 1).split(',');
   }
 
@@ -398,12 +387,12 @@ class NativeEmitter {
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
-        compiler.findHelper(const SourceString('convertDartClosureToJS'));
+        compiler.findHelper('convertDartClosureToJS');
     String closureConverter = backend.namer.isolateAccess(converter);
     Set<String> stubParameterNames = new Set<String>.from(
         stubParameters.map((param) => param.name));
     parameters.forEachParameter((Element parameter) {
-      String name = parameter.name.slowToString();
+      String name = parameter.name;
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {

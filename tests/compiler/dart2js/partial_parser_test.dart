@@ -13,13 +13,13 @@ void testSkipExpression() {
   PartialParser parser = new PartialParser(new Listener());
   Token token = scan('a < b;');
   token = parser.skipExpression(token);
-  Expect.equals(';', token.stringValue);
+  Expect.equals(';', token.value);
 
   token = scan('[a < b]').next;
   token = parser.skipExpression(token);
-  Expect.equals(']', token.stringValue);
+  Expect.equals(']', token.value);
 
   token = scan('a < b,');
   token = parser.skipExpression(token);
-  Expect.equals(',', token.stringValue);
+  Expect.equals(',', token.value);
 }

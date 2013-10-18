@@ -39,7 +39,7 @@ class Classification {
 String classifySource(String text) {
   try {
     var html = new StringBuffer();
-    var tokenizer = new StringScanner(text, includeComments: true);
+    var tokenizer = new StringScanner.fromString(text, includeComments: true);
 
     var whitespaceOffset = 0;
     var token = tokenizer.tokenize();
@@ -57,7 +57,7 @@ String classifySource(String text) {
       }
 
       final kind = classify(token);
-      final escapedText = md.escapeHtml(token.slowToString());
+      final escapedText = md.escapeHtml(token.value);
       if (kind != null) {
         // Add a secondary class to tokens appearing within a string so that
         // we can highlight tokens in an interpolation specially.
@@ -101,12 +101,9 @@ bool isLower(String s) => s.toUpperCase() != s;
 
 String classify(Token token) {
   switch (token.kind) {
-    case UNKNOWN_TOKEN:
-      return Classification.ERROR;
-
     case IDENTIFIER_TOKEN:
       // Special case for names that look like types.
-      final text = token.slowToString();
+      final text = token.value;
       if (_looksLikeType(text)
           || text == 'num'
           || text == 'bool'

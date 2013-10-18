@@ -579,9 +579,9 @@ class CodeEmitterTask extends CompilerTask {
   /// An anonymous mixin application has no reflection name.
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, String mangledName) {
-    SourceString name = elementOrSelector.name;
+    String name = elementOrSelector.name;
     if (!backend.shouldRetainName(name)) {
-      if (name == const SourceString('') && elementOrSelector is Element) {
+      if (name == '' && elementOrSelector is Element) {
         // Make sure to retain names of unnamed constructors.
         if (!backend.isNeededForReflection(elementOrSelector)) return null;
       } else {
@@ -596,7 +596,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   String getReflectionNameInternal(elementOrSelector, String mangledName) {
-    String name = elementOrSelector.name.slowToString();
+    String name = elementOrSelector.name;
     if (elementOrSelector.isGetter()) return name;
     if (elementOrSelector.isSetter()) {
       if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
@@ -664,7 +664,7 @@ class CodeEmitterTask extends CompilerTask {
     } else if (element.isClass()) {
       ClassElement cls = element;
       if (cls.isUnnamedMixinApplication) return null;
-      return cls.name.slowToString();
+      return cls.name;
     }
     throw compiler.internalErrorOnElement(
         element, 'Do not know how to reflect on this $element');
@@ -672,8 +672,7 @@ class CodeEmitterTask extends CompilerTask {
 
   String namedParametersAsReflectionNames(Selector selector) {
     if (selector.getOrderedNamedArguments().isEmpty) return '';
-    String names = selector.getOrderedNamedArguments().map(
-        (x) => x.slowToString()).join(':');
+    String names = selector.getOrderedNamedArguments().join(':');
     return ':$names';
   }
 
@@ -827,7 +826,7 @@ class CodeEmitterTask extends CompilerTask {
         // closure that constructs the initial value.
         List<jsAst.Expression> arguments = <jsAst.Expression>[];
         arguments.add(js(isolateProperties));
-        arguments.add(js.string(element.name.slowToString()));
+        arguments.add(js.string(element.name));
         arguments.add(js.string(namer.getNameX(element)));
         arguments.add(js.string(namer.getLazyInitializerName(element)));
         arguments.add(code);
@@ -1019,7 +1018,7 @@ class CodeEmitterTask extends CompilerTask {
     // classes to figure out if we need the support on any native
     // class. If so, we let the native emitter deal with it.
     if (compiler.enabledNoSuchMethod) {
-      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
+      String noSuchMethodName = Compiler.NO_SUCH_METHOD;
       Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
       for (ClassElement element in neededClasses) {
         if (!element.isNative()) continue;
@@ -1089,10 +1088,10 @@ class CodeEmitterTask extends CompilerTask {
 ''');
     if (DEBUG_FAST_OBJECTS) {
       ClassElement primitives =
-          compiler.findHelper(const SourceString('Primitives'));
+          compiler.findHelper('Primitives');
       FunctionElement printHelper =
           compiler.lookupElementIn(
-              primitives, const SourceString('printString'));
+              primitives, 'printString');
       String printHelperName = namer.isolateAccess(printHelper);
       mainBuffer.add('''
 // The following only works on V8 when run with option "--allow-natives-syntax".
@@ -1367,10 +1366,10 @@ mainBuffer.add(r'''
       }
       if (DEBUG_FAST_OBJECTS) {
         ClassElement primitives =
-            compiler.findHelper(const SourceString('Primitives'));
+            compiler.findHelper('Primitives');
         FunctionElement printHelper =
             compiler.lookupElementIn(
-                primitives, const SourceString('printString'));
+                primitives, 'printString');
         String printHelperName = namer.isolateAccess(printHelper);
 
         mainBuffer.add('''
@@ -1549,7 +1548,10 @@ if (typeof $printHelperName === "function") {
 
   void outputSourceMap(String code, String name) {
     if (!generateSourceMap) return;
-    SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
+    // Create a source file for the compilation output. This allows using
+    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
+    SourceFile compiledFile =
+        new StringSourceFile(null, compiler.assembledCode);
     String sourceMap = buildSourceMap(mainBuffer, compiledFile);
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)

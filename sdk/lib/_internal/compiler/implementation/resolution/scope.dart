@@ -14,7 +14,7 @@ abstract class Scope {
   /**
    * Looks up the [Element] for [name] in this scope.
    */
-  Element lookup(SourceString name);
+  Element lookup(String name);
 
   static Scope buildEnclosingScope(Element element) {
     return element.enclosingElement != null
@@ -27,13 +27,13 @@ abstract class NestedScope extends Scope {
 
   NestedScope(this.parent);
 
-  Element lookup(SourceString name) {
+  Element lookup(String name) {
     Element result = localLookup(name);
     if (result != null) return result;
     return parent.lookup(name);
   }
 
-  Element localLookup(SourceString name);
+  Element localLookup(String name);
 
   static Scope buildEnclosingScope(Element element) {
     return element.enclosingElement != null
@@ -42,12 +42,12 @@ abstract class NestedScope extends Scope {
 }
 
 class VariableDefinitionScope extends NestedScope {
-  final SourceString variableName;
+  final String variableName;
   bool variableReferencedInInitializer = false;
 
   VariableDefinitionScope(Scope parent, this.variableName) : super(parent);
 
-  Element localLookup(SourceString name) {
+  Element localLookup(String name) {
     if (name == variableName) {
       variableReferencedInInitializer = true;
     }
@@ -78,7 +78,7 @@ class TypeDeclarationScope extends NestedScope {
     throw "Cannot add element to TypeDeclarationScope";
   }
 
-  Element lookupTypeVariable(SourceString name) {
+  Element lookupTypeVariable(String name) {
     Link<DartType> typeVariableLink = element.typeVariables;
     while (!typeVariableLink.isEmpty) {
       TypeVariableType typeVariable = typeVariableLink.head;
@@ -90,18 +90,18 @@ class TypeDeclarationScope extends NestedScope {
     return null;
   }
 
-  Element localLookup(SourceString name) => lookupTypeVariable(name);
+  Element localLookup(String name) => lookupTypeVariable(name);
 
   String toString() =>
       'TypeDeclarationScope($element)';
 }
 
 abstract class MutableScope extends NestedScope {
-  final Map<SourceString, Element> elements;
+  final Map<String, Element> elements;
 
   MutableScope(Scope parent)
       : super(parent),
-        this.elements = new Map<SourceString, Element>() {
+        this.elements = new Map<String, Element>() {
     assert(parent != null);
   }
 
@@ -113,7 +113,7 @@ abstract class MutableScope extends NestedScope {
     return newElement;
   }
 
-  Element localLookup(SourceString name) => elements[name];
+  Element localLookup(String name) => elements[name];
 }
 
 class MethodScope extends MutableScope {
@@ -144,13 +144,13 @@ class ClassScope extends TypeDeclarationScope {
     assert(parent != null);
   }
 
-  Element localLookup(SourceString name) {
+  Element localLookup(String name) {
     Element result = element.lookupLocalMember(name);
     if (result != null) return result;
     return super.localLookup(name);
   }
 
-  Element lookup(SourceString name) {
+  Element lookup(String name) {
     Element result = localLookup(name);
     if (result != null) return result;
     result = parent.lookup(name);
@@ -170,8 +170,8 @@ class LibraryScope implements Scope {
 
   LibraryScope(LibraryElement this.library);
 
-  Element localLookup(SourceString name) => library.find(name);
-  Element lookup(SourceString name) => localLookup(name);
+  Element localLookup(String name) => library.find(name);
+  Element lookup(String name) => localLookup(name);
 
   Element add(Element newElement) {
     throw "Cannot add an element to a library scope";

@@ -13,8 +13,7 @@ import 'parser_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
     show ElementX, CompilationUnitElementX;
 
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
-    hide SourceString;
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
@@ -472,13 +471,13 @@ testMethodInvocationsInClass() {
   LibraryElement library = mockLibrary(compiler, CLASS_WITH_METHODS);
   compiler.parseScript(CLASS_WITH_METHODS, library);
   ClassElement ClassWithMethods =
-      library.find(const SourceString("ClassWithMethods"));
+      library.find("ClassWithMethods");
   ClassWithMethods.ensureResolved(compiler);
-  Element c = ClassWithMethods.lookupLocalMember(const SourceString('method'));
+  Element c = ClassWithMethods.lookupLocalMember('method');
   assert(c != null);
-  ClassElement SubClass = library.find(const SourceString("SubClass"));
+  ClassElement SubClass = library.find("SubClass");
   SubClass.ensureResolved(compiler);
-  Element d = SubClass.lookupLocalMember(const SourceString('method'));
+  Element d = SubClass.lookupLocalMember('method');
   assert(d != null);
 
   check(Element element, String text, [expectedWarnings]){
@@ -740,9 +739,9 @@ testThis() {
                      }""";
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
-  ClassElement foo = library.find(const SourceString("Foo"));
+  ClassElement foo = library.find("Foo");
   foo.ensureResolved(compiler);
-  Element method = foo.lookupLocalMember(const SourceString('method'));
+  Element method = foo.lookupLocalMember('method');
   analyzeIn(method, "{ int i = this; }", NOT_ASSIGNABLE);
   analyzeIn(method, "{ Object o = this; }");
   analyzeIn(method, "{ Foo f = this; }");
@@ -761,9 +760,9 @@ testSuper() {
     ''';
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
-  ClassElement B = library.find(const SourceString("B"));
+  ClassElement B = library.find("B");
   B.ensureResolved(compiler);
-  Element method = B.lookupLocalMember(const SourceString('method'));
+  Element method = B.lookupLocalMember('method');
   analyzeIn(method, "{ int i = super.field; }", NOT_ASSIGNABLE);
   analyzeIn(method, "{ Object o = super.field; }");
   analyzeIn(method, "{ String s = super.field; }");
@@ -1062,9 +1061,9 @@ void testTypeVariableExpressions() {
                      }""";
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
-  ClassElement foo = library.find(const SourceString("Foo"));
+  ClassElement foo = library.find("Foo");
   foo.ensureResolved(compiler);
-  Element method = foo.lookupLocalMember(const SourceString('method'));
+  Element method = foo.lookupLocalMember('method');
 
   analyzeIn(method, "{ Type type = T; }");
   analyzeIn(method, "{ T type = T; }", NOT_ASSIGNABLE);
@@ -1095,10 +1094,10 @@ class Test<S extends Foo, T> {
 
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
-  ClassElement classTest = library.find(const SourceString("Test"));
+  ClassElement classTest = library.find("Test");
   classTest.ensureResolved(compiler);
   FunctionElement methodTest =
-    classTest.lookupLocalMember(const SourceString("test"));
+    classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
     analyzeIn(methodTest, "{ $expression; }", message);
@@ -1137,10 +1136,10 @@ class Test<S extends T, T extends Foo> {
 
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
-  ClassElement classTest = library.find(const SourceString("Test"));
+  ClassElement classTest = library.find("Test");
   classTest.ensureResolved(compiler);
   FunctionElement methodTest =
-    classTest.lookupLocalMember(const SourceString("test"));
+    classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
     analyzeIn(methodTest, "{ $expression; }", message);
@@ -1161,10 +1160,10 @@ class Test<S extends T, T extends S> {
 
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
-  ClassElement classTest = library.find(const SourceString("Test"));
+  ClassElement classTest = library.find("Test");
   classTest.ensureResolved(compiler);
   FunctionElement methodTest =
-    classTest.lookupLocalMember(const SourceString("test"));
+    classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
     analyzeIn(methodTest, "{ $expression; }", message);
@@ -1809,7 +1808,7 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   Element compilationUnit =
     new CompilationUnitElementX(new Script(null, null), compiler.mainApp);
   Element function = new ElementX(
-      buildSourceString(''), ElementKind.FUNCTION, compilationUnit);
+      '', ElementKind.FUNCTION, compilationUnit);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
@@ -1827,8 +1826,8 @@ void generateOutput(String text) {
     var beginToken = message.node.getBeginToken();
     var endToken = message.node.getEndToken();
     int begin = beginToken.charOffset;
-    int end = endToken.charOffset + endToken.slowCharCount;
-    SourceFile sourceFile = new SourceFile('analysis', text);
+    int end = endToken.charOffset + endToken.charCount;
+    SourceFile sourceFile = new StringSourceFile('analysis', text);
     print(sourceFile.getLocationMessage(message.message.toString(),
                                         begin, end, true, (str) => str));
   }

@@ -41,7 +41,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       return;
     }
     ConstantHandler handler = compiler.constantHandler;
-    List<SourceString> names = selector.getOrderedNamedArguments();
+    List<String> names = selector.getOrderedNamedArguments();
 
     String invocationName = namer.invocationName(selector);
     if (alreadyGenerated.contains(invocationName)) return;
@@ -84,7 +84,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       // Use generic names for closures to facilitate code sharing.
       String jsName = member is ClosureInvocationElement
           ? 'p${parameterIndex++}'
-          : backend.namer.safeName(element.name.slowToString());
+          : backend.namer.safeName(element.name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
@@ -213,7 +213,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     // See Primities.applyFunction in js_helper.dart for details.
     List<jsAst.Property> properties = <jsAst.Property>[];
     for (Element element in signature.orderedOptionalParameters) {
-      String jsName = backend.namer.safeName(element.name.slowToString());
+      String jsName = backend.namer.safeName(element.name);
       Constant value = compiler.constantHandler.initialVariableValues[element];
       jsAst.Expression reference = null;
       if (value == null) {
@@ -240,7 +240,7 @@ class ContainerBuilder extends CodeEmitterHelper {
                                element.name,
                                element.getLibrary(),
                                signature.requiredParameterCount,
-                               <SourceString>[]));
+                               <String>[]));
 
     // For each optional parameter, we increment the number of passed
     // argument.
@@ -249,7 +249,7 @@ class ContainerBuilder extends CodeEmitterHelper {
                                  element.name,
                                  element.getLibrary(),
                                  signature.requiredParameterCount + i,
-                                 <SourceString>[]));
+                                 <String>[]));
     }
     return selectors;
   }
@@ -286,7 +286,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       assert(task.instantiatedClasses.contains(compiler.closureClass));
 
       ClassElement closureClassElement = new ClosureClassElement(
-          null, new SourceString(name), compiler, element,
+          null, name, compiler, element,
           element.getCompilationUnit());
       // Now add the methods on the closure class. The instance method does not
       // have the correct name. Since [addParameterStubs] use the name to create
@@ -411,7 +411,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         : 'BoundClosure\$${parameterCount}';
 
     ClassElement closureClassElement = new ClosureClassElement(
-        null, new SourceString(name), compiler, member,
+        null, name, compiler, member,
         member.getCompilationUnit());
     String superName = namer.getNameOfClass(closureClassElement.superclass);
 
@@ -621,7 +621,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       jsAst.Node defaultValues =
           task.metadataEmitter.reifyDefaultArguments(member);
       if (defaultValues != null) {
-        String unmangledName = member.name.slowToString();
+        String unmangledName = member.name;
         builder.addProperty('*$unmangledName', defaultValues);
       }
     }

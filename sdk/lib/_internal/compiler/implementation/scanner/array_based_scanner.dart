@@ -2,35 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner_implementation;
+part of scanner;
 
-abstract
-class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
-  int get charOffset => byteOffset + extraCharOffset;
-  final Token tokens;
-  Token tail;
-  int tokenStart;
-  int byteOffset;
-  final bool includeComments;
+abstract class ArrayBasedScanner extends AbstractScanner {
+  ArrayBasedScanner(SourceFile file, bool includeComments)
+      : super(file, includeComments);
 
-  /** Since the input is UTF8, some characters are represented by more
-   * than one byte. [extraCharOffset] tracks the difference. */
-  int extraCharOffset;
+  /**
+   * The stack of open groups, e.g [: { ... ( .. :]
+   * Each BeginGroupToken has a pointer to the token where the group
+   * ends. This field is set when scanning the end group token.
+   */
   Link<BeginGroupToken> groupingStack = const Link<BeginGroupToken>();
 
-  ArrayBasedScanner(this.includeComments)
-    : this.extraCharOffset = 0,
-      this.tokenStart = -1,
-      this.byteOffset = -1,
-      this.tokens = new Token(EOF_INFO, -1) {
-    this.tail = this.tokens;
+  /**
+   * Appends a token whose kind is determined by [info] and content is defined
+   * by the String [value].
+   *
+   * This method is invoked for class names, field names, method names, types,
+   * etc.
+   */
+  void appendStringToken(PrecedenceInfo info, String value) {
+    tail.next = new StringToken.fromString(info, value, tokenStart, true);
+    tail = tail.next;
   }
 
-  int advance() {
-    int next = nextByte();
-    return next;
+  /**
+   * Appends a fixed token whose kind and content is determined by [info].
+   * Appends an *operator* token from [info].
+   *
+   * An operator token represent operators like ':', '.', ';', '&&', '==', '--',
+   * '=>', etc.
+   */
+  void appendPrecedenceToken(PrecedenceInfo info) {
+    tail.next = new SymbolToken(info, tokenStart);
+    tail = tail.next;
   }
 
+  /**
+   * Appends a fixed token based on whether the current char is [choice] or not.
+   * If the current char is [choice] a fixed token whose kind and content
+   * is determined by [yes] is appended, otherwise a fixed token whose kind
+   * and content is determined by [no] is appended.
+   */
   int select(int choice, PrecedenceInfo yes, PrecedenceInfo no) {
     int next = advance();
     if (identical(next, choice)) {
@@ -42,27 +56,22 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     }
   }
 
-  void appendPrecedenceToken(PrecedenceInfo info) {
-    tail.next = new Token(info, tokenStart);
-    tail = tail.next;
-  }
-
-  void appendStringToken(PrecedenceInfo info, String value) {
-    tail.next = new StringToken(info, value, tokenStart);
-    tail = tail.next;
-  }
-
+  /**
+   * Appends a keyword token whose kind is determined by [keyword].
+   */
   void appendKeywordToken(Keyword keyword) {
     String syntax = keyword.syntax;
-
     // Type parameters and arguments cannot contain 'this' or 'super'.
-    if (identical(syntax, 'this') || identical(syntax, 'super')) discardOpenLt();
+    if (identical(syntax, 'this') || identical(syntax, 'super')) {
+      discardOpenLt();
+    }
     tail.next = new KeywordToken(keyword, tokenStart);
     tail = tail.next;
   }
 
   void appendEofToken() {
-    tail.next = new Token(EOF_INFO, charOffset);
+    beginToken();
+    tail.next = new SymbolToken(EOF_INFO, tokenStart);
     tail = tail.next;
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
@@ -73,37 +82,54 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     }
   }
 
-  void beginToken() {
-    tokenStart = charOffset;
-  }
-
-  Token firstToken() {
-    return tokens.next;
-  }
-
-  Token previousToken() {
-    return tail;
-  }
-
-  void addToCharOffset(int offset) {
-    extraCharOffset += offset;
-  }
-
+  /**
+   * Notifies scanning a whitespace character. Note that [appendWhiteSpace] is
+   * not always invoked for [$SPACE] characters.
+   *
+   * This method is used by the scanners to track line breaks and create the
+   * [lineStarts] map.
+   */
   void appendWhiteSpace(int next) {
-    // Do nothing, we don't collect white space.
+    if (next == $LF && file != null) {
+      lineStarts.add(stringOffset + 1); // +1, the line starts after the $LF.
+    }
   }
 
-  void appendBeginGroup(PrecedenceInfo info, String value) {
-    Token token = new BeginGroupToken(info, value, tokenStart);
+  /**
+   * Notifies on [$LF] characters in multi-line commends or strings.
+   *
+   * This method is used by the scanners to track line breaks and create the
+   * [lineStarts] map.
+   */
+  void lineFeedInMultiline() {
+    if (file != null) {
+      lineStarts.add(stringOffset + 1);
+    }
+  }
+
+  /**
+   * Appends a token that begins a new group, represented by [value].
+   * Group begin tokens are '{', '(', '[' and '${'.
+   */
+  void appendBeginGroup(PrecedenceInfo info) {
+    Token token = new BeginGroupToken(info, tokenStart);
     tail.next = token;
     tail = tail.next;
+
+    // { (  [ ${ cannot appear inside a type parameters / arguments.
     if (!identical(info.kind, LT_TOKEN)) discardOpenLt();
     groupingStack = groupingStack.prepend(token);
   }
 
-  int appendEndGroup(PrecedenceInfo info, String value, int openKind) {
-    assert(!identical(openKind, LT_TOKEN));
-    appendStringToken(info, value);
+  /**
+   * Appends a token that begins a ends group, represented by [value].
+   * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
+   * '>>' are handled separately bo [appendGt] and [appendGtGt].
+   */
+  int appendEndGroup(PrecedenceInfo info, int openKind) {
+    assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
+    appendPrecedenceToken(info);
+    // Don't report unmatched errors for <; it is also the less-than operator.
     discardOpenLt();
     if (groupingStack.isEmpty) {
       return advance();
@@ -113,7 +139,8 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
       if (!identical(openKind, OPEN_CURLY_BRACKET_TOKEN) ||
           !identical(begin.kind, STRING_INTERPOLATION_TOKEN)) {
         // Not ending string interpolation.
-        return error(new SourceString('Unmatched ${begin.stringValue}'));
+        unmatchedBeginGroup(begin);
+        return advance();
       }
       // We're ending an interpolated expression.
       begin.endGroup = tail;
@@ -127,8 +154,13 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     return advance();
   }
 
-  void appendGt(PrecedenceInfo info, String value) {
-    appendStringToken(info, value);
+  /**
+   * Appends a token for '>'.
+   * This method does not issue unmatched errors, because > is also the
+   * greater-than operator. It does not necessarily have to close a group.
+   */
+  void appendGt(PrecedenceInfo info) {
+    appendPrecedenceToken(info);
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
@@ -136,10 +168,17 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     }
   }
 
-  void appendGtGt(PrecedenceInfo info, String value) {
-    appendStringToken(info, value);
+  /**
+   * Appends a token for '>>'.
+   * This method does not issue unmatched errors, because >> is also the
+   * shift operator. It does not necessarily have to close a group.
+   */
+  void appendGtGt(PrecedenceInfo info) {
+    appendPrecedenceToken(info);
     if (groupingStack.isEmpty) return;
     if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
+      // '<', the inner '<' is left without endGroup.
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty) return;
@@ -149,35 +188,27 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
     }
   }
 
-  void appendGtGtGt(PrecedenceInfo info, String value) {
-    appendStringToken(info, value);
-    if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
-      groupingStack = groupingStack.tail;
-    }
-    if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
-      groupingStack = groupingStack.tail;
-    }
-    if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
-      groupingStack.head.endGroup = tail;
-      groupingStack = groupingStack.tail;
-    }
-  }
-
-  void appendComment() {
+  void appendComment(start, bool asciiOnly) {
     if (!includeComments) return;
-    SourceString value = utf8String(tokenStart, -1);
-    appendByteStringToken(COMMENT_INFO, value);
+    appendSubstringToken(COMMENT_INFO, start, asciiOnly);
   }
 
+  /**
+   * We call this method to discard '<' from the "grouping" stack
+   * (maintained by subclasses).
+   *
+   * [PartialParser.skipExpression] relies on the fact that we do not
+   * create groups for stuff like:
+   * [:a = b < c, d = e > f:].
+   *
+   * In other words, this method is called when the scanner recognizes
+   * something which cannot possibly be part of a type
+   * parameter/argument list.
+   */
   void discardOpenLt() {
     while (!groupingStack.isEmpty
         && identical(groupingStack.head.kind, LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
   }
-
-  void unmatchedBeginGroup(BeginGroupToken begin);
 }

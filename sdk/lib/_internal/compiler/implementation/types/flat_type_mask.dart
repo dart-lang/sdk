@@ -563,7 +563,7 @@ class FlatTypeMask implements TypeMask {
     if (isExact) buffer.write('exact=');
     if (isSubclass) buffer.write('subclass=');
     if (isSubtype) buffer.write('subtype=');
-    buffer.write(base.name.slowToString());
+    buffer.write(base.name);
     return "[$buffer]";
   }
 

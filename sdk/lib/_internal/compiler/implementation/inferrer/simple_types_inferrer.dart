@@ -619,7 +619,7 @@ class SimpleTypeInferrerVisitor<T>
         elements.getOperatorSelectorInComplexSendSet(node);
     Selector setterSelector = elements.getSelector(node);
 
-    String op = node.assignmentOperator.source.stringValue;
+    String op = node.assignmentOperator.source;
     bool isIncrementOrDecrement = op == '++' || op == '--';
 
     T receiverType;
@@ -859,17 +859,17 @@ class SimpleTypeInferrerVisitor<T>
   T handleForeignSend(Send node) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    SourceString name = selector.name;
+    String name = selector.name;
     handleStaticSend(node, selector, elements[node], arguments);
-    if (name == const SourceString('JS')) {
+    if (name == 'JS') {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
-               || name == const SourceString('JS_OPERATOR_AS_PREFIX')
-               || name == const SourceString('JS_OBJECT_CLASS_NAME')
-               || name == const SourceString('JS_NULL_CLASS_NAME')) {
+    } else if (name == 'JS_OPERATOR_IS_PREFIX'
+               || name == 'JS_OPERATOR_AS_PREFIX'
+               || name == 'JS_OBJECT_CLASS_NAME'
+               || name == 'JS_NULL_CLASS_NAME') {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();
@@ -879,7 +879,7 @@ class SimpleTypeInferrerVisitor<T>
 
   ArgumentsTypes analyzeArguments(Link<Node> arguments) {
     List<T> positional = [];
-    Map<SourceString, T> named = new Map<SourceString, T>();
+    Map<String, T> named = new Map<String, T>();
     for (var argument in arguments) {
       NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
@@ -1000,8 +1000,8 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = node.isPropertyAccess
         ? null
         : analyzeArguments(node.arguments);
-    if (selector.name == const SourceString('==')
-        || selector.name == const SourceString('!=')) {
+    if (selector.name == '=='
+        || selector.name == '!=') {
       if (types.isNull(receiverType)) {
         potentiallyAddNullCheck(node, node.arguments.head);
         return types.boolType;
@@ -1027,7 +1027,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     List<T> unnamed = <T>[];
-    Map<SourceString, T> named = new Map<SourceString, T>();
+    Map<String, T> named = new Map<String, T>();
     signature.forEachRequiredParameter((Element element) {
       assert(locals.use(element) != null);
       unnamed.add(locals.use(element));

@@ -162,7 +162,7 @@ class DartBackend extends Backend {
         classMembers.keys.map((classElement) => classElement.thisType));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
-        compiler.coreLibrary.find(new SourceString('TypeError'));
+        compiler.coreLibrary.find('TypeError');
     DartType typeErrorType = typeErrorElement.computeType(compiler);
     if (workQueue.indexOf(typeErrorType) != -1) {
       return false;
@@ -208,19 +208,19 @@ class DartBackend extends Backend {
     ];
     final coreLibrary = compiler.coreLibrary;
     for (final name in LITERAL_TYPE_NAMES) {
-      ClassElement classElement = coreLibrary.findLocal(new SourceString(name));
+      ClassElement classElement = coreLibrary.findLocal(name);
       classElement.ensureResolved(compiler);
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
     world.registerInvocation(
-        new Selector.call(const SourceString("toString"), null, 0));
+        new Selector.call("toString", null, 0));
     world.registerInvokedGetter(
-        new Selector.getter(const SourceString("hashCode"), null));
+        new Selector.getter("hashCode", null));
     world.registerInvocation(
-        new Selector.binaryOperator(const SourceString("==")));
+        new Selector.binaryOperator("=="));
     world.registerInvocation(
-        new Selector.call(const SourceString("compareTo"), null, 1));
+        new Selector.call("compareTo", null, 1));
   }
 
   void codegen(CodegenWorkItem work) { }
@@ -251,7 +251,7 @@ class DartBackend extends Backend {
           // members.
           element.parseNode(compiler);
           classElement.forEachLocalMember((member) {
-            final name = member.name.slowToString();
+            final name = member.name;
             // Skip operator names.
             if (!name.startsWith(r'operator$')) {
               // Fetch name of named constructors and factories if any,
@@ -265,7 +265,7 @@ class DartBackend extends Backend {
         // if one imports dart:core with a prefix, we cannot tell prefix.name
         // from dynamic invocation (alas!).  So we'd better err on preserving
         // those names.
-        fixedMemberNames.add(element.name.slowToString());
+        fixedMemberNames.add(element.name);
       });
     }
     // As of now names of named optionals are not renamed. Therefore add all
@@ -276,7 +276,7 @@ class DartBackend extends Backend {
           element.computeSignature(compiler).optionalParameters;
       for (final optional in optionalParameters) {
         if (optional.kind != ElementKind.FIELD_PARAMETER) continue;
-        fixedMemberNames.add(optional.name.slowToString());
+        fixedMemberNames.add(optional.name);
       }
     }
     // The VM will automatically invoke the call method of objects
@@ -381,8 +381,8 @@ class DartBackend extends Backend {
     // Add synthesized constructors to classes with no resolved constructors,
     // but which originally had any constructor.  That should prevent
     // those classes from being instantiable with default constructor.
-    Identifier synthesizedIdentifier =
-        new Identifier(new StringToken(IDENTIFIER_INFO, '', -1));
+    Identifier synthesizedIdentifier = new Identifier(
+        new StringToken.fromString(IDENTIFIER_INFO, '', -1));
 
     NextClassElement:
     for (ClassElement classElement in classMembers.keys) {
@@ -403,15 +403,16 @@ class DartBackend extends Backend {
           compiler.types.voidType,
           const Link<DartType>(),
           const Link<DartType>(),
-          const Link<SourceString>(),
+          const Link<String>(),
           const Link<DartType>()
           );
       constructor.cachedNode = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
-          new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),
+          new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),
                        const Link<Node>(),
-                       new StringToken(CLOSE_PAREN_INFO, ')', -1)),
-          new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
+                       new StringToken.fromString(CLOSE_PAREN_INFO, ')', -1)),
+          new EmptyStatement(
+              new StringToken.fromString(SEMICOLON_INFO, ';', -1)),
           null, Modifiers.EMPTY, null, null);
 
       if (!constructor.isSynthesized) {
@@ -506,7 +507,7 @@ class DartBackend extends Backend {
     int nonPlatformSize = 0;
     for (LibraryElement lib in referencedLibraries) {
       for (CompilationUnitElement compilationUnit in lib.compilationUnits) {
-        nonPlatformSize += compilationUnit.script.text.length;
+        nonPlatformSize += compilationUnit.script.file.length;
       }
     }
     int percentage = compiler.assembledCode.length * 100 ~/ nonPlatformSize;
@@ -523,9 +524,9 @@ class DartBackend extends Backend {
           then((LibraryElement element) {
         mirrorHelperLibrary = element;
         mirrorHelperGetNameFunction = mirrorHelperLibrary.find(
-            const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION));
+            MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION);
         mirrorHelperSymbolsMap = mirrorHelperLibrary.find(
-            const SourceString(MirrorRenamer.MIRROR_HELPER_SYMBOLS_MAP_NAME));
+            MirrorRenamer.MIRROR_HELPER_SYMBOLS_MAP_NAME);
       });
     }
     return new Future.value();

@@ -35,7 +35,7 @@ testClass(String code, MockCompiler compiler) {
   ClassElement cls = parseUnit(code, compiler, compiler.mainApp).head;
   cls.parseNode(compiler);
   for (Element e in cls.localMembers) {
-    String name = e.name.slowToString();
+    String name = e.name;
     if (e.isConstructor()) {
       name = Elements.reconstructConstructorName(e).replaceFirst(r'$', '.');
     }

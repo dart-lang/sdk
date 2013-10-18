@@ -32,7 +32,7 @@ main() {
     checkNumberOfMatches(matches, 1);
     var cls = findElement(compiler, 'A');
     Expect.isNotNull(cls);
-    SourceString name = buildSourceString('foo');
+    String name = 'foo';
     var element = cls.lookupLocalMember(name);
     Expect.isNotNull(element);
     Selector selector = new Selector.getter(name, null);

@@ -51,7 +51,7 @@ class ClassBaseType implements BaseType {
   }
   int get hashCode => element.hashCode;
   String toString() {
-    return element == null ? 'toplevel' : element.name.slowToString();
+    return element == null ? 'toplevel' : element.name;
   }
   bool isClass() => true;
   bool isUnknown() => false;
@@ -450,7 +450,7 @@ class InferenceWorkItem {
 
   toString() {
     final elementType = methodOrField.isField() ? "field" : "method";
-    final elementRepresentation = methodOrField.name.slowToString();
+    final elementRepresentation = methodOrField.name;
     return "{ $elementType = $elementRepresentation"
            ", environment = $environment }";
   }
@@ -695,7 +695,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * A map from method names to callers of methods with this name on objects
    * of unknown inferred type.
    */
-  final Map<SourceString, Set<FunctionElement>> dynamicCallers;
+  final Map<String, Set<FunctionElement>> dynamicCallers;
 
   /** The inferred type of elements stored in Lists. */
   ConcreteType listElementType;
@@ -723,7 +723,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
         callers = new Map<FunctionElement, Set<Element>>(),
         readers = new Map<Element, Set<Element>>(),
         seenClasses = new Set<ClassElement>(),
-        dynamicCallers = new Map<SourceString, Set<FunctionElement>>(),
+        dynamicCallers = new Map<String, Set<FunctionElement>>(),
         inferredSelectorTypes = new Map<Selector, Map<TypeMask, TypeMask>>() {
     unknownConcreteType = new ConcreteType.unknown();
   }
@@ -760,7 +760,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
   /**
    * Returns all the members with name [methodName].
    */
-  List<Element> getMembersByName(SourceString methodName) {
+  List<Element> getMembersByName(String methodName) {
     // TODO(polux): memoize?
     var result = new List<Element>();
     for (ClassElement cls in seenClasses) {
@@ -892,7 +892,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
   /**
    * Add [caller] to the set of [callee]'s dynamic callers.
    */
-  void addDynamicCaller(SourceString callee, FunctionElement caller) {
+  void addDynamicCaller(String callee, FunctionElement caller) {
     Set<FunctionElement> current = dynamicCallers[callee];
     if (current != null) {
       current.add(caller);
@@ -1159,8 +1159,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     if (signature.optionalParametersAreNamed) {
       // we build a map out of the remaining named parameters
       Link<Element> remainingOptionalParameters = signature.optionalParameters;
-      final Map<SourceString, Element> leftOverNamedParameters =
-          new Map<SourceString, Element>();
+      final Map<String, Element> leftOverNamedParameters =
+          new Map<String, Element>();
       for (;
            !remainingOptionalParameters.isEmpty;
            remainingOptionalParameters = remainingOptionalParameters.tail) {
@@ -1171,7 +1171,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       // parameters
       for (Identifier identifier in argumentsTypes.named.keys) {
         final ConcreteType concreteType = argumentsTypes.named[identifier];
-        SourceString source = identifier.source;
+        String source = identifier.source;
         final Element namedParameter = leftOverNamedParameters[source];
         // unexisting or already used named parameter
         if (namedParameter == null) return null;
@@ -1303,12 +1303,10 @@ class ConcreteTypesInferrer extends TypesInferrer {
     if (baseType != null && baseType.isClass()) {
       ClassBaseType classBaseType = baseType;
       ClassElement cls = classBaseType.element;
-      SourceString name = function.name;
+      String name = function.name;
       if ((cls == baseTypes.intBaseType.element
           || cls == baseTypes.doubleBaseType.element)
-          && (name == const SourceString('+')
-              || name == const SourceString('-')
-              || name == const SourceString('*'))) {
+          && (name == '+' || name == '-' || name == '*')) {
         Link<Element> parameters =
             function.functionSignature.requiredParameters;
         ConcreteType argumentType = environment.lookupType(parameters.head);
@@ -1495,20 +1493,18 @@ class ConcreteTypesInferrer extends TypesInferrer {
   void initialize() {
     baseTypes = new BaseTypes(compiler);
     ClassElement jsArrayClass = baseTypes.listBaseType.element;
-    listIndex = jsArrayClass.lookupMember(const SourceString('[]'));
-    listIndexSet = jsArrayClass.lookupMember(const SourceString('[]='));
-    listAdd = jsArrayClass.lookupMember(const SourceString('add'));
-    listRemoveAt = jsArrayClass.lookupMember(const SourceString('removeAt'));
-    listInsert = jsArrayClass.lookupMember(const SourceString('insert'));
+    listIndex = jsArrayClass.lookupMember('[]');
+    listIndexSet = jsArrayClass.lookupMember('[]=');
+    listAdd = jsArrayClass.lookupMember('add');
+    listRemoveAt = jsArrayClass.lookupMember('removeAt');
+    listInsert = jsArrayClass.lookupMember('insert');
     listRemoveLast =
-        jsArrayClass.lookupMember(const SourceString('removeLast'));
-    List<SourceString> typePreservingOps = const [const SourceString('+'),
-                                                  const SourceString('-'),
-                                                  const SourceString('*')];
+        jsArrayClass.lookupMember('removeLast');
+    List<String> typePreservingOps = const ['+', '-', '*'];
     listConstructor =
         compiler.listClass.lookupConstructor(
             new Selector.callConstructor(
-                const SourceString(''),
+                '',
                 compiler.listClass.getLibrary())).implementation;
     emptyConcreteType = new ConcreteType.empty(compiler.maxConcreteTypeSize,
                                                baseTypes);
@@ -1581,7 +1577,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
   void debug() {
     print("seen classes:");
     for (ClassElement cls in seenClasses) {
-      print("  ${cls.name.slowToString()}");
+      print("  ${cls.name}");
     }
     print("callers:");
     callers.forEach((k,v) {
@@ -1856,7 +1852,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType analyzeSetNode(Selector selector,
                               Node receiver, ConcreteType argumentType,
-                              SourceString name) {
+                              String name) {
     ConcreteType receiverType = analyze(receiver);
 
     void augmentField(ClassElement receiverType, Element member) {
@@ -1897,35 +1893,34 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return argumentType;
   }
 
-  SourceString canonicalizeCompoundOperator(SourceString op) {
+  String canonicalizeCompoundOperator(String op) {
     // TODO(ahe): This class should work on elements or selectors, not
     // names.  Otherwise, it is repeating work the resolver has
     // already done (or should have done).  In this case, the problem
     // is that the resolver is not recording the selectors it is
     // registering in registerBinaryOperator in
     // ResolverVisitor.visitSendSet.
-    String stringValue = op.stringValue;
-    if (stringValue == '++') return const SourceString(r'+');
-    else if (stringValue == '--') return const SourceString(r'-');
+    if (op == '++') return '+';
+    else if (op == '--') return '-';
     else return Elements.mapToUserOperatorOrNull(op);
   }
 
   ConcreteType visitSendSet(SendSet node) {
     // Operator []= has a different behaviour than other send sets: it is
     // actually a send whose return type is that of its second argument.
-    if (node.selector.asIdentifier().source.stringValue == '[]') {
+    if (node.selector.asIdentifier().source == '[]') {
       ConcreteType receiverType = analyze(node.receiver);
       ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
       analyzeDynamicSend(elements.getSelector(node), receiverType,
-                         const SourceString('[]='), argumentsTypes);
+                         '[]=', argumentsTypes);
       return argumentsTypes.positional[1];
     }
 
     // All other operators have a single argument (++ and -- have an implicit
     // argument: 1). We will store its type in argumentType.
     ConcreteType argumentType;
-    SourceString operatorName = node.assignmentOperator.source;
-    SourceString compoundOperatorName =
+    String operatorName = node.assignmentOperator.source;
+    String compoundOperatorName =
         canonicalizeCompoundOperator(node.assignmentOperator.source);
     // ++, --, +=, -=, ...
     if (compoundOperatorName != null) {
@@ -1934,8 +1929,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       // argumentsTypes is either computed from the actual arguments or [{int}]
       // in case of ++ or --.
       ArgumentsTypes argumentsTypes;
-      if (operatorName.stringValue == '++'
-          || operatorName.stringValue == '--') {
+      if (operatorName == '++' || operatorName == '--') {
         List<ConcreteType> positionalArguments = <ConcreteType>[
             inferrer.singletonConcreteType(inferrer.baseTypes.intBaseType)];
         argumentsTypes = new ArgumentsTypes(positionalArguments, new Map());
@@ -2134,7 +2128,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       analyzeDynamicSend(
           elements.getMoveNextSelector(node),
           iteratorType,
-          const SourceString("moveNext"),
+          "moveNext",
           new ArgumentsTypes(const [], const {}));
       // id = n0.current
       ConcreteType currentType = analyzeDynamicGetterSend(
@@ -2199,9 +2193,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitOperatorSend(Send node) {
-    SourceString name =
+    String name =
         canonicalizeMethodName(node.selector.asIdentifier().source);
-    if (name == const SourceString('is')) {
+    if (name == 'is') {
       return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     }
     return visitDynamicSend(node);
@@ -2297,7 +2291,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType analyzeDynamicSend(Selector selector,
                                   ConcreteType receiverType,
-                                  SourceString canonicalizedMethodName,
+                                  String canonicalizedMethodName,
                                   ArgumentsTypes argumentsTypes) {
     ConcreteType result = inferrer.emptyConcreteType;
 
@@ -2335,10 +2329,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return result;
   }
 
-  SourceString canonicalizeMethodName(SourceString name) {
+  String canonicalizeMethodName(String name) {
     // TODO(polux): handle unary-
-    SourceString operatorName =
-        Elements.constructOperatorNameOrNull(name, false);
+    String operatorName = Elements.constructOperatorNameOrNull(name, false);
     if (operatorName != null) return operatorName;
     return name;
   }
@@ -2347,18 +2340,17 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     ConcreteType receiverType = (node.receiver != null)
         ? analyze(node.receiver)
         : environment.lookupTypeOfThis();
-    SourceString name =
-        canonicalizeMethodName(node.selector.asIdentifier().source);
-    if (name.stringValue == '!=') {
+    String name = canonicalizeMethodName(node.selector.asIdentifier().source);
+    if (name == '!=') {
       ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
       ConcreteType returnType = analyzeDynamicSend(elements.getSelector(node),
                                                    receiverType,
-                                                   const SourceString('=='),
+                                                   '==',
                                                    argumentsTypes);
       return returnType.isEmpty()
           ? returnType
           : inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
-    } else if (name.stringValue == '&&' || name.stringValue == '||'){
+    } else if (name == '&&' || name == '||') {
       ConcreteTypesEnvironment oldEnvironment = environment;
       analyze(node.arguments.head);
       environment = oldEnvironment.join(environment);
@@ -2383,7 +2375,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitStaticSend(Send node) {
-    if (elements.getSelector(node).name == const SourceString('JS')) {
+    if (elements.getSelector(node).name == 'JS') {
       return inferrer.getNativeCallReturnType(node);
     }
     Element element = elements[node].implementation;

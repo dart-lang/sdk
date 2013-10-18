@@ -537,35 +537,35 @@ abstract class Compiler implements DiagnosticListener {
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   String buildId;
 
-  static const SourceString MAIN = const SourceString('main');
-  static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
-  static const SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static const String MAIN = 'main';
+  static const String CALL_OPERATOR_NAME = 'call';
+  static const String NO_SUCH_METHOD = 'noSuchMethod';
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
-  static const SourceString CREATE_INVOCATION_MIRROR =
-      const SourceString('createInvocationMirror');
+  static const String CREATE_INVOCATION_MIRROR =
+      'createInvocationMirror';
 
   // TODO(ahe): Rename this field and move this logic to backend, similar to how
   // we disable tree-shaking when seeing disableTreeShaking in js_mirrors.dart.
-  static const SourceString INVOKE_ON =
-      const SourceString('_getCachedInvocation');
+  static const String INVOKE_ON =
+      '_getCachedInvocation';
 
-  static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
-  static const SourceString START_ROOT_ISOLATE =
-      const SourceString('startRootIsolate');
+  static const String RUNTIME_TYPE = 'runtimeType';
+  static const String START_ROOT_ISOLATE =
+      'startRootIsolate';
 
   static const String UNDETERMINED_BUILD_ID =
       "build number could not be determined";
 
   final Selector iteratorSelector =
-      new Selector.getter(const SourceString('iterator'), null);
+      new Selector.getter('iterator', null);
   final Selector currentSelector =
-      new Selector.getter(const SourceString('current'), null);
+      new Selector.getter('current', null);
   final Selector moveNextSelector =
-      new Selector.call(const SourceString('moveNext'), null, 0);
+      new Selector.call('moveNext', null, 0);
   final Selector noSuchMethodSelector = new Selector.call(
       Compiler.NO_SUCH_METHOD, null, Compiler.NO_SUCH_METHOD_ARG_COUNT);
   final Selector symbolValidatedConstructorSelector = new Selector.call(
-      const SourceString('validated'), null, 1);
+      'validated', null, 1);
 
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
@@ -802,19 +802,19 @@ abstract class Compiler implements DiagnosticListener {
     if (uri == new Uri(scheme: 'dart', path: 'mirrors')) {
       mirrorsLibrary = library;
       mirrorSystemClass =
-          findRequiredElement(library, const SourceString('MirrorSystem'));
+          findRequiredElement(library, 'MirrorSystem');
       mirrorsUsedClass =
-          findRequiredElement(library, const SourceString('MirrorsUsed'));
+          findRequiredElement(library, 'MirrorsUsed');
     } else if (uri == new Uri(scheme: 'dart', path: 'typed_data')) {
       typedDataLibrary = library;
       typedDataClass =
-          findRequiredElement(library, const SourceString('TypedData'));
+          findRequiredElement(library, 'TypedData');
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
-          findRequiredElement(library, const SourceString('Symbol'));
+          findRequiredElement(library, 'Symbol');
     } else if (uri == new Uri(scheme: 'dart', path: 'async')) {
       deferredLibraryClass =
-          findRequiredElement(library, const SourceString('DeferredLibrary'));
+          findRequiredElement(library, 'DeferredLibrary');
     } else if (isolateHelperLibrary == null
 	       && (uri == new Uri(scheme: 'dart', path: '_isolate_helper'))) {
       isolateHelperLibrary = library;
@@ -825,13 +825,13 @@ abstract class Compiler implements DiagnosticListener {
     return backend.onLibraryLoaded(library, uri);
   }
 
-  Element findRequiredElement(LibraryElement library, SourceString name) {
+  Element findRequiredElement(LibraryElement library, String name) {
     var element = library.find(name);
     if (element == null) {
       internalErrorOnElement(
           library,
           'The library "${library.canonicalUri}" does not contain required '
-          'element: ${name.slowToString()}');
+          'element: $name');
       }
     return element;
   }
@@ -839,7 +839,7 @@ abstract class Compiler implements DiagnosticListener {
   void onClassResolved(ClassElement cls) {
     if (mirrorSystemClass == cls) {
       mirrorSystemGetNameFunction =
-        cls.lookupLocalMember(const SourceString('getName'));
+        cls.lookupLocalMember('getName');
     } else if (symbolClass == cls) {
       symbolConstructor = cls.constructors.head;
     } else if (symbolImplementationClass == cls) {
@@ -855,7 +855,7 @@ abstract class Compiler implements DiagnosticListener {
   void initializeSpecialClasses() {
     final List missingCoreClasses = [];
     ClassElement lookupCoreClass(String name) {
-      ClassElement result = coreLibrary.find(new SourceString(name));
+      ClassElement result = coreLibrary.find(name);
       if (result == null) {
         missingCoreClasses.add(name);
       }
@@ -886,7 +886,7 @@ abstract class Compiler implements DiagnosticListener {
 
     final List missingHelperClasses = [];
     ClassElement lookupHelperClass(String name) {
-      ClassElement result = jsHelperLibrary.find(new SourceString(name));
+      ClassElement result = jsHelperLibrary.find(name);
       if (result == null) {
         missingHelperClasses.add(name);
       }
@@ -914,7 +914,7 @@ abstract class Compiler implements DiagnosticListener {
   Element get unnamedListConstructor {
     if (_unnamedListConstructor != null) return _unnamedListConstructor;
     Selector callConstructor = new Selector.callConstructor(
-        const SourceString(""), listClass.getLibrary());
+        "", listClass.getLibrary());
     return _unnamedListConstructor =
         listClass.lookupConstructor(callConstructor);
   }
@@ -923,7 +923,7 @@ abstract class Compiler implements DiagnosticListener {
   Element get filledListConstructor {
     if (_filledListConstructor != null) return _filledListConstructor;
     Selector callConstructor = new Selector.callConstructor(
-        const SourceString("filled"), listClass.getLibrary());
+        "filled", listClass.getLibrary());
     return _filledListConstructor =
         listClass.lookupConstructor(callConstructor);
   }
@@ -935,14 +935,14 @@ abstract class Compiler implements DiagnosticListener {
     }).then((LibraryElement library) {
       interceptorsLibrary = library;
 
-      assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
-      identicalFunction = coreLibrary.find(const SourceString('identical'));
+      assertMethod = jsHelperLibrary.find('assertHelper');
+      identicalFunction = coreLibrary.find('identical');
 
       initializeSpecialClasses();
 
       functionClass.ensureResolved(this);
       functionApplyMethod =
-          functionClass.lookupLocalMember(const SourceString('apply'));
+          functionClass.lookupLocalMember('apply');
       jsInvocationMirrorClass.ensureResolved(this);
       invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
 
@@ -950,7 +950,7 @@ abstract class Compiler implements DiagnosticListener {
         var uri = new Uri(scheme: 'dart', path: 'mirrors');
         return libraryLoader.loadLibrary(uri, null, uri).then(
             (LibraryElement libraryElement) {
-          documentClass = libraryElement.find(const SourceString('Comment'));
+          documentClass = libraryElement.find('Comment');
         });
       }
     });
@@ -973,7 +973,7 @@ abstract class Compiler implements DiagnosticListener {
     // multiple times. Implement a better mechanism where we can store
     // such caches in the compiler and get access to them through a
     // suitably maintained static reference to the current compiler.
-    SourceString.canonicalizedValues.clear();
+    StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
     TypedSelector.canonicalizedValues.clear();
 
@@ -1013,12 +1013,12 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': "Error: Could not find '${MAIN.slowToString()}'."});
+              {'text': "Error: Could not find '$MAIN'."});
         } else if (!analyzeAll) {
           reportFatalError(
               mainApp,
               MessageKind.GENERIC,
-              {'text': "Error: Could not find '${MAIN.slowToString()}'. "
+              {'text': "Error: Could not find '$MAIN'. "
               "No source will be analyzed. "
               "Use '--analyze-all' to analyze all code in the library."});
         }
@@ -1027,7 +1027,7 @@ abstract class Compiler implements DiagnosticListener {
           reportFatalError(
               main,
               MessageKind.GENERIC,
-              {'text': "Error: '${MAIN.slowToString()}' is not a function."});
+              {'text': "Error: '$MAIN' is not a function."});
         }
         FunctionElement mainMethod = main;
         FunctionSignature parameters = mainMethod.computeSignature(this);
@@ -1036,7 +1036,7 @@ abstract class Compiler implements DiagnosticListener {
               parameter,
               MessageKind.GENERIC,
               {'text':
-                'Error: "${MAIN.slowToString()}" cannot have parameters.'});
+                "Error: '$MAIN' cannot have parameters."});
         });
       }
 
@@ -1435,15 +1435,15 @@ abstract class Compiler implements DiagnosticListener {
 
   // TODO(karlklose): split into findHelperFunction and findHelperClass and
   // add a check that the element has the expected kind.
-  Element findHelper(SourceString name)
+  Element findHelper(String name)
       => jsHelperLibrary.findLocal(name);
-  Element findInterceptor(SourceString name)
+  Element findInterceptor(String name)
       => interceptorsLibrary.findLocal(name);
 
-  Element lookupElementIn(ScopeContainerElement container, SourceString name) {
+  Element lookupElementIn(ScopeContainerElement container, String name) {
     Element element = container.localLookup(name);
     if (element == null) {
-      throw 'Could not find ${name.slowToString()} in $container';
+      throw 'Could not find $name in $container';
     }
     return element;
   }
@@ -1542,7 +1542,7 @@ class SourceSpan implements Spannable {
   static withCharacterOffsets(Token begin, Token end,
                      f(int beginOffset, int endOffset)) {
     final beginOffset = begin.charOffset;
-    final endOffset = end.charOffset + end.slowCharCount;
+    final endOffset = end.charOffset + end.charCount;
 
     // [begin] and [end] might be the same for the same empty token. This
     // happens for instance when scanning '$$'.
@@ -1584,6 +1584,11 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
   }
   return true;
 }
+
+/**
+ * Global
+ */
+bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
 /// A sink that drains into /dev/null.
 class NullSink implements EventSink<String> {

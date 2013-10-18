@@ -16,7 +16,7 @@ void testNode(Node node, String expected, String text, [bool hard = true]) {
   Expect.isNotNull(endToken, debug);
 
   int begin = beginToken.charOffset;
-  int end = endToken.charOffset + endToken.slowCharCount;
+  int end = endToken.charOffset + endToken.charCount;
   Expect.isTrue(begin <= end, debug);
 
   if (hard) {

@@ -28,7 +28,7 @@ class ScannerTask extends CompilerTask {
 
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
-    Token tokens = new StringScanner(script.text,
+    Token tokens = new Scanner(script.file,
         includeComments: compiler.preserveComments).tokenize();
     if (compiler.preserveComments) {
       tokens = compiler.processAndStripComments(tokens);
@@ -36,9 +36,17 @@ class ScannerTask extends CompilerTask {
     compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 
+  /**
+   * Returns the tokens for the [source].
+   *
+   * The [StringScanner] implementation works on strings that end with a '0'
+   * value ('\x00'). If [source] does not with '0', the string is copied before
+   * scanning.
+   */
   Token tokenize(String source) {
     return measure(() {
-      return new StringScanner(source, includeComments: false).tokenize();
+      return new StringScanner.fromString(source, includeComments: false)
+          .tokenize();
     });
   }
 }

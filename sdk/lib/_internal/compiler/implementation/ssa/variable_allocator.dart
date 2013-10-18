@@ -547,14 +547,14 @@ class VariableNamer {
     }
 
     if (instruction.sourceElement != null) {
-      name = allocateWithHint(instruction.sourceElement.name.slowToString());
+      name = allocateWithHint(instruction.sourceElement.name);
     } else {
       // We could not find an element for the instruction. If the
       // instruction is used by a phi, try to use the name of the phi.
       // Otherwise, just allocate a temporary name.
       HPhi phi = firstPhiUserWithElement(instruction);
       if (phi != null) {
-        name = allocateWithHint(phi.sourceElement.name.slowToString());
+        name = allocateWithHint(phi.sourceElement.name);
       } else {
         name = allocateTemporary();
       }

@@ -125,7 +125,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
 
 Future analyze(List<Uri> uriList, Map<String, List<String>> whiteList) {
   var libraryRoot = currentDirectory.resolve('sdk/');
-  var provider = new SourceFileProvider();
+  var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
   var compiler = new Compiler(
       provider.readStringFromUri,

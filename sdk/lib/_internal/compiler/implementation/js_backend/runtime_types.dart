@@ -495,7 +495,7 @@ class RuntimeTypes {
                                    {bool alwaysGenerateFunction: false}) {
     ClassElement contextClass = Types.getClassContext(type);
     jsAst.Expression onVariable(TypeVariableType v) {
-      return new jsAst.VariableUse(v.name.slowToString());
+      return new jsAst.VariableUse(v.name);
     };
     jsAst.Expression encoding = getTypeRepresentation(type, onVariable);
     if (contextClass == null && !alwaysGenerateFunction) {
@@ -654,11 +654,11 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     }
     if (!type.namedParameterTypes.isEmpty) {
       List<jsAst.Property> namedArguments = <jsAst.Property>[];
-      Link<SourceString> names = type.namedParameters;
+      Link<String> names = type.namedParameters;
       Link<DartType> types = type.namedParameterTypes;
       while (!types.isEmpty) {
         assert(!names.isEmpty);
-        jsAst.Expression name = js.string(names.head.slowToString());
+        jsAst.Expression name = js.string(names.head);
         namedArguments.add(new jsAst.Property(name, visit(types.head)));
         names = names.tail;
         types = types.tail;
@@ -705,8 +705,7 @@ class TypeCheckMapping implements TypeChecks {
     StringBuffer sb = new StringBuffer();
     for (ClassElement holder in this) {
       for (ClassElement check in [holder]) {
-        sb.write('${holder.name.slowToString()}.'
-                 '${check.name.slowToString()}, ');
+        sb.write('${holder.name}.' '${check.name}, ');
       }
     }
     return '[$sb]';
@@ -821,12 +820,12 @@ class Substitution {
   jsAst.Expression getCode(RuntimeTypes rti, bool ensureIsFunction) {
     jsAst.Expression declaration(TypeVariableType variable) {
       return new jsAst.Parameter(
-          rti.backend.namer.safeVariableName(variable.name.slowToString()));
+          rti.backend.namer.safeVariableName(variable.name));
     }
 
     jsAst.Expression use(TypeVariableType variable) {
       return new jsAst.VariableUse(
-          rti.backend.namer.safeVariableName(variable.name.slowToString()));
+          rti.backend.namer.safeVariableName(variable.name));
     }
 
     jsAst.Expression value =

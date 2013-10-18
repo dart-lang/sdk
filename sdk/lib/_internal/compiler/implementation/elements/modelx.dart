@@ -20,10 +20,10 @@ import '../dart2jslib.dart' show invariant,
                                  DiagnosticListener,
                                  Script,
                                  FunctionType,
-                                 SourceString,
                                  Selector,
                                  Constant,
-                                 Compiler;
+                                 Compiler,
+                                 isPrivateName;
 
 import '../dart_types.dart';
 
@@ -33,7 +33,7 @@ import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 class ElementX implements Element {
   static int elementHashCode = 0;
 
-  final SourceString name;
+  final String name;
   final ElementKind kind;
   final Element enclosingElement;
   final int hashCode = ++elementHashCode;
@@ -182,7 +182,7 @@ class ElementX implements Element {
     // For constructors, that doesn't work because they may have
     // named formed out of multiple tokens (named constructors) so
     // for those we search for the class name instead.
-    SourceString needle = isConstructor() ? enclosingElement.name : name;
+    String needle = isConstructor() ? enclosingElement.name : name;
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
       if (needle == t.value) return t;
     }
@@ -250,10 +250,10 @@ class ElementX implements Element {
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
     // invariant for all element types?
-    var nameText = name != null ? name.slowToString() : '?';
+    var nameText = name != null ? name : '?';
     if (enclosingElement != null && !isTopLevel()) {
       String holderName = enclosingElement.name != null
-          ? enclosingElement.name.slowToString()
+          ? enclosingElement.name
           : '${enclosingElement.kind}?';
       return '$kind($holderName#${nameText})';
     } else {
@@ -309,7 +309,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   final Map messageArguments;
 
   ErroneousElementX(this.messageKind, this.messageArguments,
-                    SourceString name, Element enclosing)
+                    String name, Element enclosing)
       : super(name, ElementKind.ERROR, enclosing);
 
   isErroneous() => true;
@@ -346,8 +346,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   computeTargetType(Compiler compiler, InterfaceType newType) => unsupported();
 
   String toString() {
-    String n = name.slowToString();
-    return '<$n: ${messageKind.message(messageArguments)}>';
+    return '<$name: ${messageKind.message(messageArguments)}>';
   }
 }
 
@@ -479,17 +478,17 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
 }
 
 class ScopeX {
-  final Map<SourceString, Element> contents = new Map<SourceString, Element>();
+  final Map<String, Element> contents = new Map<String, Element>();
 
   bool get isEmpty => contents.isEmpty;
   Iterable<Element> get values => contents.values;
 
-  Element lookup(SourceString name) {
+  Element lookup(String name) {
     return contents[name];
   }
 
   void add(Element element, DiagnosticListener listener) {
-    SourceString name = element.name;
+    String name = element.name;
     if (element.isAccessor()) {
       addAccessor(element, contents[name], listener);
     } else {
@@ -523,7 +522,7 @@ class ScopeX {
                    DiagnosticListener listener) {
     void reportError(Element other) {
       // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-      listener.cancel('duplicate definition of ${accessor.name.slowToString()}',
+      listener.cancel('duplicate definition of ${accessor.name}',
                       element: accessor);
       listener.cancel('existing definition', element: other);
     }
@@ -568,7 +567,7 @@ class CompilationUnitElementX extends ElementX
 
   CompilationUnitElementX(Script script, LibraryElement library)
     : this.script = script,
-      super(new SourceString(script.name),
+      super(script.name,
             ElementKind.COMPILATION_UNIT,
             library) {
     library.addCompilationUnit(this);
@@ -658,8 +657,8 @@ class ImportScope {
    * Addition to the map is performed by [addImport]. Lookup is done trough
    * [find].
    */
-  final Map<SourceString, Element> importScope =
-      new Map<SourceString, Element>();
+  final Map<String, Element> importScope =
+      new Map<String, Element>();
 
   /**
    * Adds [element] to the import scope of this library.
@@ -675,7 +674,7 @@ class ImportScope {
     LibraryElementX library = enclosingElement.getLibrary();
     Importers importers = library.importers;
 
-    SourceString name = element.name;
+    String name = element.name;
     Element existing = importScope.putIfAbsent(name, () => element);
     importers.registerImport(element, import);
 
@@ -730,7 +729,7 @@ class ImportScope {
     }
   }
 
-  Element operator [](SourceString name) => importScope[name];
+  Element operator [](String name) => importScope[name];
 }
 
 class LibraryElementX extends ElementX implements LibraryElement {
@@ -777,7 +776,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
 
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
     : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
-      super(new SourceString(script.name), ElementKind.LIBRARY, null) {
+      super(script.name, ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (isPatch) {
       origin.patch = this;
@@ -835,7 +834,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
     localScope.add(element, listener);
   }
 
-  Element localLookup(SourceString elementName) {
+  Element localLookup(String elementName) {
     Element result = localScope.lookup(elementName);
     if (result == null && isPatch) {
       result = origin.localLookup(elementName);
@@ -877,7 +876,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
    * null if no such element exist and an [ErroneousElement] if multiple
    * elements have been imported.
    */
-  Element find(SourceString elementName) {
+  Element find(String elementName) {
     Element result = localScope.lookup(elementName);
     if (result != null) return result;
     if (origin != null) {
@@ -895,7 +894,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
 
   /** Look up a top-level element in this library, but only look for
     * non-imported elements. Returns null if no such element exist. */
-  Element findLocal(SourceString elementName) {
+  Element findLocal(String elementName) {
     // TODO(johnniwinther): How to handle injected elements in the patch
     // library?
     Element result = localScope.lookup(elementName);
@@ -928,7 +927,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
     return localScope.values.where((Element element) {
       // At this point [localScope] only contains members so we don't need
       // to check for foreign or prefix elements.
-      return !element.name.isPrivate();
+      return !isPrivateName(element.name);
     });
   }
 
@@ -977,10 +976,10 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
-  PrefixElementX(SourceString prefix, Element enclosing, this.firstPosition)
+  PrefixElementX(String prefix, Element enclosing, this.firstPosition)
       : super(prefix, ElementKind.PREFIX, enclosing);
 
-  Element lookupLocalMember(SourceString memberName) => importScope[memberName];
+  Element lookupLocalMember(String memberName) => importScope[memberName];
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
@@ -1027,7 +1026,7 @@ class TypedefElementX extends ElementX implements TypedefElement {
   // TODO(johnniwinther): Store the mapping in the resolution enqueuer instead.
   TreeElements mapping;
 
-  TypedefElementX(SourceString name, Element enclosing)
+  TypedefElementX(String name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
 
   /**
@@ -1080,7 +1079,7 @@ class VariableElementX extends ElementX implements VariableElement {
 
   Modifiers get modifiers => variables.modifiers;
 
-  VariableElementX(SourceString name,
+  VariableElementX(String name,
                    VariableListElement variables,
                    ElementKind kind,
                    this.cachedNode)
@@ -1126,7 +1125,7 @@ class FieldParameterElementX extends VariableElementX
     implements FieldParameterElement {
   VariableElement fieldElement;
 
-  FieldParameterElementX(SourceString name,
+  FieldParameterElementX(String name,
                          this.fieldElement,
                          VariableListElement variables,
                          Node node)
@@ -1213,7 +1212,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   FunctionElement getter;
   FunctionElement setter;
 
-  AbstractFieldElementX(SourceString name, Element enclosing)
+  AbstractFieldElementX(String name, Element enclosing)
       : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
 
   DartType computeType(Compiler compiler) {
@@ -1300,7 +1299,7 @@ class FunctionSignatureX implements FunctionSignature {
     List<Element> list = optionalParameters.toList();
     if (optionalParametersAreNamed) {
       list.sort((Element a, Element b) {
-        return a.name.slowToString().compareTo(b.name.slowToString());
+        return a.name.compareTo(b.name);
       });
     }
     _orderedOptionalParameters = list;
@@ -1338,9 +1337,9 @@ class FunctionSignatureX implements FunctionSignature {
         return false;
       }
       Set<String> names = optionalParameters.toList().map(
-          (Element element) => element.name.slowToString()).toSet();
+          (Element element) => element.name).toSet();
       for (Element namedParameter in signature.optionalParameters) {
-        if (!names.contains(namedParameter.name.slowToString())) {
+        if (!names.contains(namedParameter.name)) {
           return false;
         }
       }
@@ -1381,27 +1380,27 @@ class FunctionElementX extends ElementX implements FunctionElement {
   // TODO(ahe): Rename this field to redirectionTarget.
   FunctionElement defaultImplementation;
 
-  FunctionElementX(SourceString name,
+  FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
                    Element enclosing)
       : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null);
 
-  FunctionElementX.node(SourceString name,
+  FunctionElementX.node(String name,
                         FunctionExpression node,
                         ElementKind kind,
                         Modifiers modifiers,
                         Element enclosing)
       : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null);
 
-  FunctionElementX.from(SourceString name,
+  FunctionElementX.from(String name,
                         FunctionElement other,
                         Element enclosing)
       : this.tooMuchOverloading(name, other.cachedNode, other.kind,
                                 other.modifiers, enclosing,
                                 other.functionSignature);
 
-  FunctionElementX.tooMuchOverloading(SourceString name,
+  FunctionElementX.tooMuchOverloading(String name,
                                       FunctionExpression this.cachedNode,
                                       ElementKind kind,
                                       Modifiers this.modifiers,
@@ -1566,7 +1565,7 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   final FunctionElement superMember;
   final bool isDefaultConstructor;
 
-  SynthesizedConstructorElementX(SourceString name,
+  SynthesizedConstructorElementX(String name,
                                  this.superMember,
                                  Element enclosing,
                                  this.isDefaultConstructor)
@@ -1576,7 +1575,7 @@ class SynthesizedConstructorElementX extends FunctionElementX {
               enclosing);
 
   SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
-      : this(const SourceString(''), superMember, enclosing, true);
+      : this('', superMember, enclosing, true);
 
   Token position() => enclosingElement.position();
 
@@ -1592,8 +1591,8 @@ class SynthesizedConstructorElementX extends FunctionElementX {
           getEnclosingClass().thisType);
     }
     if (superMember.isErroneous()) {
-      return functionSignature = compiler.objectClass.localLookup(
-          const SourceString('')).computeSignature(compiler);
+      return functionSignature = compiler.objectClass.localLookup('')
+          .computeSignature(compiler);
     }
     return functionSignature = superMember.computeSignature(compiler);
   }
@@ -1604,8 +1603,7 @@ class SynthesizedConstructorElementX extends FunctionElementX {
 }
 
 class VoidElementX extends ElementX {
-  VoidElementX(Element enclosing)
-      : super(const SourceString('void'), ElementKind.VOID, enclosing);
+  VoidElementX(Element enclosing) : super('void', ElementKind.VOID, enclosing);
   DartType computeType(compiler) => compiler.types.voidType;
   Node parseNode(_) {
     throw 'internal error: parseNode on void';
@@ -1627,7 +1625,7 @@ class TypeDeclarationElementX {
     var arguments = new LinkBuilder<DartType>();
     for (Link link = parameters.nodes; !link.isEmpty; link = link.tail) {
       TypeVariable node = link.head;
-      SourceString variableName = node.name.source;
+      String variableName = node.name.source;
       TypeVariableElement variableElement =
           new TypeVariableElementX(variableName, element, node);
       TypeVariableType variableType = new TypeVariableType(variableElement);
@@ -1673,7 +1671,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   InterfaceType rawTypeCache;
   DartType supertype;
   Link<DartType> interfaces;
-  SourceString nativeTagInfo;
+  String nativeTagInfo;
   int supertypeLoadState;
   int resolutionState;
   bool get isResolved => resolutionState == STATE_DONE;
@@ -1684,7 +1682,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   Link<DartType> allSupertypes;
 
-  BaseClassElementX(SourceString name,
+  BaseClassElementX(String name,
                     Element enclosing,
                     this.id,
                     int initialState)
@@ -1764,14 +1762,14 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   /**
    * Lookup local members in the class. This will ignore constructors.
    */
-  Element lookupLocalMember(SourceString memberName) {
+  Element lookupLocalMember(String memberName) {
     var result = localLookup(memberName);
     if (result != null && result.isConstructor()) return null;
     return result;
   }
 
   /// Lookup a synthetic element created by the backend.
-  Element lookupBackendMember(SourceString memberName) {
+  Element lookupBackendMember(String memberName) {
     for (Element element in backendMembers) {
       if (element.name == memberName) {
         return element;
@@ -1781,7 +1779,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   /**
    * Lookup super members for the class. This will ignore constructors.
    */
-  Element lookupSuperMember(SourceString memberName) {
+  Element lookupSuperMember(String memberName) {
     return lookupSuperMemberInLibrary(memberName, getLibrary());
   }
 
@@ -1789,9 +1787,9 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * Lookup super members for the class that is accessible in [library].
    * This will ignore constructors.
    */
-  Element lookupSuperMemberInLibrary(SourceString memberName,
+  Element lookupSuperMemberInLibrary(String memberName,
                                      LibraryElement library) {
-    bool isPrivate = memberName.isPrivate();
+    bool isPrivate = isPrivateName(memberName);
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
       if (isPrivate && !identical(library, s.getLibrary())) continue;
@@ -1804,9 +1802,9 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
     return null;
   }
 
-  Element lookupSuperInterfaceMember(SourceString memberName,
+  Element lookupSuperInterfaceMember(String memberName,
                                      LibraryElement fromLibrary) {
-    bool isPrivate = memberName.isPrivate();
+    bool isPrivate = isPrivateName(memberName);
     for (InterfaceType t in interfaces) {
       ClassElement cls = t.element;
       Element e = cls.lookupLocalMember(memberName);
@@ -1841,8 +1839,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   Element internalLookupSelector(Selector selector,
                                  Compiler compiler,
                                  bool isSuperLookup) {
-    SourceString name = selector.name;
-    bool isPrivate = name.isPrivate();
+    String name = selector.name;
+    bool isPrivate = isPrivateName(name);
     LibraryElement library = selector.library;
     for (ClassElement current = isSuperLookup ? superclass : this;
          current != null;
@@ -1886,7 +1884,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * unqualified sends because it does not implement the scoping
    * rules, where library scope comes before superclass scope.
    */
-  Element lookupMember(SourceString memberName) {
+  Element lookupMember(String memberName) {
     Element localMember = lookupLocalMember(memberName);
     return localMember == null ? lookupSuperMember(memberName) : localMember;
   }
@@ -1899,8 +1897,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    */
   bool isShadowedByField(Element fieldMember) {
     assert(fieldMember.isField());
-    SourceString fieldName = fieldMember.name;
-    bool isPrivate = fieldName.isPrivate();
+    String fieldName = fieldMember.name;
+    bool isPrivate = isPrivateName(fieldName);
     LibraryElement memberLibrary = fieldMember.getLibrary();
     ClassElement lookupClass = this;
     while (lookupClass != null) {
@@ -1925,7 +1923,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
                                            Element noMatch(Element)) {
     if (result == null
         || !result.isConstructor()
-        || (selector.name.isPrivate()
+        || (isPrivateName(selector.name)
             && result.getLibrary() != selector.library)) {
       result = noMatch != null ? noMatch(result) : null;
     }
@@ -1942,7 +1940,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   Element lookupFactoryConstructor(Selector selector,
                                    [Element noMatch(Element)]) {
-    SourceString constructorName = selector.name;
+    String constructorName = selector.name;
     Element result = localLookup(constructorName);
     return validateConstructorLookupResults(selector, result, noMatch);
   }
@@ -2071,7 +2069,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
-    nativeTagInfo = new SourceString(name);
+    nativeTagInfo = name;
   }
 }
 
@@ -2083,7 +2081,7 @@ abstract class ClassElementX extends BaseClassElementX {
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
 
-  ClassElementX(SourceString name, Element enclosing, int id, int initialState)
+  ClassElementX(String name, Element enclosing, int id, int initialState)
       : super(name, enclosing, id, initialState);
 
   ClassNode parseNode(Compiler compiler);
@@ -2105,7 +2103,7 @@ abstract class ClassElementX extends BaseClassElementX {
     localScope.add(element, listener);
   }
 
-  Element localLookup(SourceString elementName) {
+  Element localLookup(String elementName) {
     Element result = localScope.lookup(elementName);
     if (result == null && isPatch) {
       result = origin.localLookup(elementName);
@@ -2159,7 +2157,7 @@ class MixinApplicationElementX extends BaseClassElementX
 
   ClassElement mixin;
 
-  MixinApplicationElementX(SourceString name, Element enclosing, int id,
+  MixinApplicationElementX(String name, Element enclosing, int id,
                            this.node, this.modifiers)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
@@ -2182,7 +2180,7 @@ class MixinApplicationElementX extends BaseClassElementX
 
   Node parseNode(DiagnosticListener listener) => node;
 
-  FunctionElement lookupLocalConstructor(SourceString name) {
+  FunctionElement lookupLocalConstructor(String name) {
     for (Link<Element> link = constructors;
          !link.isEmpty;
          link = link.tail) {
@@ -2191,7 +2189,7 @@ class MixinApplicationElementX extends BaseClassElementX
     return null;
   }
 
-  Element localLookup(SourceString name) {
+  Element localLookup(String name) {
     Element constructor = lookupLocalConstructor(name);
     if (constructor != null) return constructor;
     if (mixin == null) return null;
@@ -2247,7 +2245,7 @@ class LabelElementX extends ElementX implements LabelElement {
         // In case of a synthetic label, just use [labelName] for
         // identifying the element.
         super(label == null
-                  ? new SourceString(labelName)
+                  ? labelName
                   : label.identifier.source,
               ElementKind.LABEL,
               enclosingElement);
@@ -2278,8 +2276,7 @@ class TargetElementX extends ElementX implements TargetElement {
   bool isContinueTarget = false;
 
   TargetElementX(this.statement, this.nestingLevel, Element enclosingElement)
-      : super(const SourceString("target"),
-              ElementKind.STATEMENT, enclosingElement);
+      : super("target", ElementKind.STATEMENT, enclosingElement);
   bool get isTarget => isBreakTarget || isContinueTarget;
 
   LabelElement addLabel(Label label, String labelName) {
@@ -2310,7 +2307,7 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
 
   Node parseNode(compiler) => cachedNode;
 
-  String toString() => "${enclosingElement.toString()}.${name.slowToString()}";
+  String toString() => "${enclosingElement.toString()}.${name}";
 
   Token position() => cachedNode.getBeginToken();
 }

@@ -13,8 +13,8 @@ import "util/util.dart";
 import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
 
 class ClosureNamer {
-  SourceString getClosureVariableName(SourceString name, int id) {
-    return new SourceString("${name.slowToString()}_$id");
+  String getClosureVariableName(String name, int id) {
+    return "${name}_$id";
   }
 }
 
@@ -71,7 +71,7 @@ class ClosureFieldElement extends ElementX implements VariableElement {
   /// The source variable this element refers to.
   final Element variableElement;
 
-  ClosureFieldElement(SourceString name,
+  ClosureFieldElement(String name,
                       this.variableElement,
                       ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
@@ -92,7 +92,7 @@ class ClosureFieldElement extends ElementX implements VariableElement {
   // The names of closure variables don't need renaming, since their use is very
   // simple and they have 1-character names in the minified mode.
   bool hasFixedBackendName() => true;
-  String fixedBackendName() => name.slowToString();
+  String fixedBackendName() => name;
 
   DartType computeType(Compiler compiler) {
     return variableElement.computeType(compiler);
@@ -111,7 +111,7 @@ class ClosureClassElement extends ClassElementX {
   final FunctionExpression node;
 
   ClosureClassElement(this.node,
-                      SourceString name,
+                      String name,
                       Compiler compiler,
                       this.methodElement,
                       Element enclosingElement)
@@ -148,7 +148,7 @@ class ClosureClassElement extends ClassElementX {
 // move these classes to elements/modelx.dart or see if we can find a
 // more general solution.
 class BoxElement extends ElementX {
-  BoxElement(SourceString name, Element enclosingElement)
+  BoxElement(String name, Element enclosingElement)
       : super(name, ElementKind.VARIABLE, enclosingElement);
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
@@ -158,7 +158,7 @@ class BoxElement extends ElementX {
 // move these classes to elements/modelx.dart or see if we can find a
 // more general solution.
 class BoxFieldElement extends ElementX {
-  BoxFieldElement(SourceString name,
+  BoxFieldElement(String name,
                   this.variableElement,
                   BoxElement enclosingBox)
       : super(name, ElementKind.FIELD, enclosingBox);
@@ -175,7 +175,7 @@ class BoxFieldElement extends ElementX {
 // more general solution.
 class ThisElement extends ElementX {
   ThisElement(Element enclosing)
-      : super(const SourceString('this'), ElementKind.PARAMETER, enclosing);
+      : super('this', ElementKind.PARAMETER, enclosing);
 
   bool isAssignable() => false;
 
@@ -191,7 +191,7 @@ class ThisElement extends ElementX {
 // more general solution.
 class CheckVariableElement extends ElementX {
   Element parameter;
-  CheckVariableElement(SourceString name, this.parameter, Element enclosing)
+  CheckVariableElement(String name, this.parameter, Element enclosing)
       : super(name, ElementKind.VARIABLE, enclosing);
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
@@ -355,7 +355,7 @@ class ClosureTranslator extends Visitor {
   }
 
   void translateLazyInitializer(Element element, SendSet node) {
-    assert(node.assignmentOperator.source == const SourceString("="));
+    assert(node.assignmentOperator.source == "=");
     Expression initialValue = node.argumentsNode.nodes.head;
     visitInvokable(element, node, () { visit(initialValue); });
     updateClosures();
@@ -396,7 +396,7 @@ class ClosureTranslator extends Visitor {
       ClassElement closureElement = data.closureClassElement;
       assert(closureElement != null ||
              (fieldCaptures.isEmpty && boxes.isEmpty));
-      void addElement(Element element, SourceString name) {
+      void addElement(Element element, String name) {
         Element fieldElement = new ClosureFieldElement(
             name, element, closureElement);
         closureElement.addMember(fieldElement, compiler);
@@ -411,8 +411,7 @@ class ClosureTranslator extends Visitor {
       for (Element capturedElement in
                Elements.sortedByPosition(fieldCaptures)) {
         int id = closureFieldCounter++;
-        SourceString name =
-            namer.getClosureVariableName(capturedElement.name, id);
+        String name = namer.getClosureVariableName(capturedElement.name, id);
         addElement(capturedElement, name);
       }
       closureElement.reverseBackendMembers();
@@ -613,20 +612,18 @@ class ClosureTranslator extends Visitor {
       if (capturedVariableMapping.containsKey(element)) {
         if (box == null) {
           // TODO(floitsch): construct better box names.
-          SourceString boxName =
-              namer.getClosureVariableName(const SourceString('box'),
-                                           closureFieldCounter++);
+          String boxName =
+              namer.getClosureVariableName('box', closureFieldCounter++);
           box = new BoxElement(boxName, currentElement);
         }
-        String elementName = element.name.slowToString();
-        SourceString boxedName =
-            namer.getClosureVariableName(new SourceString(elementName),
-                                         boxedFieldCounter++);
+        String elementName = element.name;
+        String boxedName =
+            namer.getClosureVariableName(elementName, boxedFieldCounter++);
         // TODO(kasperl): Should this be a FieldElement instead?
         Element boxed = new BoxFieldElement(boxedName, element, box);
         // No need to rename the fields of a box, so we give them a native name
         // right now.
-        boxed.setFixedBackendName(boxedName.slowToString());
+        boxed.setFixedBackendName(boxedName);
         scopeMapping[element] = boxed;
         capturedVariableMapping[element] = boxed;
       }
@@ -678,11 +675,11 @@ class ClosureTranslator extends Visitor {
   /** Returns a non-unique name for the given closure element. */
   String computeClosureName(Element element) {
     Link<String> parts = const Link<String>();
-    SourceString ownName = element.name;
-    if (ownName == null || ownName.stringValue == "") {
+    String ownName = element.name;
+    if (ownName == null || ownName == "") {
       parts = parts.prepend("closure");
     } else {
-      parts = parts.prepend(ownName.slowToString());
+      parts = parts.prepend(ownName);
     }
     for (Element enclosingElement = element.enclosingElement;
          enclosingElement != null &&
@@ -700,9 +697,9 @@ class ClosureTranslator extends Visitor {
         parts = parts.prepend(
             Elements.reconstructConstructorName(enclosingElement));
       } else {
-        SourceString surroundingName =
+        String surroundingName =
             Elements.operatorNameToIdentifier(enclosingElement.name);
-        parts = parts.prepend(surroundingName.slowToString());
+        parts = parts.prepend(surroundingName);
       }
       // A generative constructors's parent is the class; the class name is
       // already part of the generative constructor's name.
@@ -714,7 +711,7 @@ class ClosureTranslator extends Visitor {
   }
 
   ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
-    SourceString closureName = new SourceString(computeClosureName(element));
+    String closureName = computeClosureName(element);
     ClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element, element.getCompilationUnit());
     FunctionElement callElement =

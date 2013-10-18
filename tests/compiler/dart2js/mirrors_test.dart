@@ -46,7 +46,7 @@ main() {
       currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libUri = scriptUri.resolve('../../../sdk/');
   Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
-  var provider = new SourceFileProvider();
+  var provider = new CompilerSourceFileProvider();
   var diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   asyncStart();

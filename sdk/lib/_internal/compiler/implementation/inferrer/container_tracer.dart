@@ -220,14 +220,14 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     analyzedElements.add(info.caller);
     Element called = info.calledElement;
-    if (called.isForeign(compiler) && called.name == const SourceString('JS')) {
+    if (called.isForeign(compiler) && called.name == 'JS') {
       bailout('Used in JS ${info.call}');
     }
   }
 
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     Selector selector = info.selector;
-    String selectorName = selector.name.slowToString();
+    String selectorName = selector.name;
     if (allUsers.contains(info.receiver)) {
       if (!okSelectorsSet.contains(selectorName)) {
         if (selector.isCall()) {

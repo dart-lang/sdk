@@ -793,7 +793,7 @@ void main() {
 
     checkReturnInClass(String className, String methodName, type) {
       var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(buildSourceString(methodName));
+      var element = cls.lookupLocalMember(methodName);
       Expect.equals(type,
           typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
     }
@@ -818,7 +818,7 @@ void main() {
 
     checkFactoryConstructor(String className, String factoryName) {
       var cls = findElement(compiler, className);
-      var element = cls.localLookup(buildSourceString(factoryName));
+      var element = cls.localLookup(factoryName);
       Expect.equals(new TypeMask.nonNullExact(cls),
                     typesInferrer.getReturnTypeOfElement(element));
     }

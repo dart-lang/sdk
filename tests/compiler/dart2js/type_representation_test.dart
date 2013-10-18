@@ -37,7 +37,7 @@ void testTypeRepresentations() {
         new TypeRepresentationGenerator(env.compiler);
 
     Expression onVariable(TypeVariableType variable) {
-      return new VariableUse(variable.name.slowToString());
+      return new VariableUse(variable.name);
     }
 
     String stringify(Expression expression) {

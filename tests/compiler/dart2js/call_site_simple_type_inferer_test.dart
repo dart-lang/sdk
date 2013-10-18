@@ -20,7 +20,7 @@ void compileAndFind(String code,
   compiler.disableInlining = disableInlining;
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var cls = findElement(compiler, className);
-    var member = cls.lookupLocalMember(buildSourceString(memberName));
+    var member = cls.lookupLocalMember(memberName);
     return check(compiler, member);
   }));
 }

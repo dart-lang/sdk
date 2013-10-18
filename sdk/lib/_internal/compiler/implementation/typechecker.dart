@@ -364,7 +364,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   void checkTypePromotion(Node node, TypePromotion typePromotion,
                           {bool checkAccesses: false}) {
     VariableElement variable = typePromotion.variable;
-    SourceString variableName = variable.name;
+    String variableName = variable.name;
     List<Node> potentialMutationsIn =
         elements.getPotentialMutationsIn(node, variable);
     if (!potentialMutationsIn.isEmpty) {
@@ -597,9 +597,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return thenType.join(elseType);
   }
 
-  void checkPrivateAccess(Node node, Element element, SourceString name) {
+  void checkPrivateAccess(Node node, Element element, String name) {
     if (name != null &&
-        name.isPrivate() &&
+        isPrivateName(name) &&
         element.getLibrary() != currentLibrary) {
       reportTypeWarning(
           node,
@@ -610,8 +610,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   }
 
-  ElementAccess lookupMember(Node node, DartType receiverType,
-                             SourceString name,
+  ElementAccess lookupMember(Node node, DartType receiverType, String name,
                              MemberKind memberKind, Element receiverElement) {
     if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
@@ -677,7 +676,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return const DynamicAccess();
   }
 
-  DartType lookupMemberType(Node node, DartType type, SourceString name,
+  DartType lookupMemberType(Node node, DartType type, String name,
                             MemberKind memberKind) {
     return lookupMember(node, type, name, memberKind, null).computeType(compiler);
   }
@@ -697,7 +696,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         NamedArgument namedArgument = argument.asNamedArgument();
         if (namedArgument != null) {
           argument = namedArgument.expression;
-          SourceString argumentName = namedArgument.name.source;
+          String argumentName = namedArgument.name.source;
           DartType namedParameterType =
               funType.getNamedParameterType(argumentName);
           if (namedParameterType == null) {
@@ -789,7 +788,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * Computes the [ElementAccess] for [name] on the [node] possibly using the
    * [element] provided for [node] by the resolver.
    */
-  ElementAccess computeAccess(Send node, SourceString name, Element element,
+  ElementAccess computeAccess(Send node, String name, Element element,
                               MemberKind memberKind) {
     if (element != null && element.isErroneous()) {
       // An error has already been reported for this node.
@@ -821,7 +820,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * Computes the [ElementAccess] for [name] on the [node] using the [element]
    * provided for [node] by the resolver.
    */
-  ElementAccess computeResolvedAccess(Send node, SourceString name,
+  ElementAccess computeResolvedAccess(Send node, String name,
                                       Element element, MemberKind memberKind) {
     if (element == null) {
       // foo() where foo is unresolved.
@@ -858,7 +857,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
   }
 
-  ElementAccess createResolvedAccess(Send node, SourceString name,
+  ElementAccess createResolvedAccess(Send node, String name,
                                      Element element) {
     checkPrivateAccess(node, element, name);
     return createPromotedAccess(element);
@@ -878,7 +877,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * Computes the type of the access of [name] on the [node] possibly using the
    * [element] provided for [node] by the resolver.
    */
-  DartType computeAccessType(Send node, SourceString name, Element element,
+  DartType computeAccessType(Send node, String name, Element element,
                              MemberKind memberKind) {
     DartType type =
         computeAccess(node, name, element, memberKind).computeType(compiler);
@@ -919,7 +918,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
 
     Identifier selector = node.selector.asIdentifier();
-    String name = selector.source.stringValue;
+    String name = selector.source;
 
     if (node.isOperator && identical(name, 'is')) {
       analyze(node.receiver);
@@ -933,7 +932,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             TypePromotion typePromotion =
                 new TypePromotion(node, variable, shownType);
             if (!types.isMoreSpecific(shownType, knownType)) {
-              SourceString variableName = variable.name;
+              String variableName = variable.name;
               if (types.isMoreSpecific(shownType.asRaw(), knownType)) {
                 //trace('$node');
                 typePromotion.addHint(node,
@@ -990,9 +989,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       } else if (identical(name, '?')) {
         return boolType;
       }
-      SourceString operatorName = selector.source;
+      String operatorName = selector.source;
       if (identical(name, '-') && node.arguments.isEmpty) {
-        operatorName = const SourceString('unary-');
+        operatorName = 'unary-';
       }
       assert(invariant(node,
                        identical(name, '+') || identical(name, '=') ||
@@ -1017,7 +1016,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           analyzeInvocation(node, access, argumentTypesBuilder);
       if (identical(receiverType.element, compiler.intClass)) {
         if (identical(name, '+') ||
-            identical(operatorName, const SourceString('-')) ||
+            identical(operatorName, '-') ||
             identical(name, '*') ||
             identical(name, '%')) {
           DartType argumentType = argumentTypesBuilder.toLink().head;
@@ -1062,7 +1061,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * like [: target++ :].
    */
   DartType checkAssignmentOperator(SendSet node,
-                                   SourceString operatorName,
+                                   String operatorName,
                                    Node valueNode,
                                    DartType value) {
     assert(invariant(node, !node.isIndex));
@@ -1098,7 +1097,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * like [: base[key]++ :].
    */
   DartType checkIndexAssignmentOperator(SendSet node,
-                                        SourceString operatorName,
+                                        String operatorName,
                                         Node valueNode,
                                         DartType value) {
     assert(invariant(node, node.isIndex));
@@ -1108,7 +1107,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
     // [indexGet] is the type of operator[] on [base].
     DartType indexGet = lookupMemberType(
-        node, base, const SourceString('[]'), MemberKind.OPERATOR);
+        node, base, '[]', MemberKind.OPERATOR);
     if (indexGet is FunctionType) {
       FunctionType indexGetType = indexGet;
       DartType indexGetKey = firstType(indexGetType.parameterTypes);
@@ -1132,7 +1131,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
         // [indexSet] is the type of operator[]= on [base].
         DartType indexSet = lookupMemberType(
-            node, base, const SourceString('[]='), MemberKind.OPERATOR);
+            node, base, '[]=', MemberKind.OPERATOR);
         if (indexSet is FunctionType) {
           FunctionType indexSetType = indexSet;
           DartType indexSetKey = firstType(indexSetType.parameterTypes);
@@ -1157,7 +1156,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitSendSet(SendSet node) {
     Element element = elements[node];
     Identifier selector = node.selector;
-    final name = node.assignmentOperator.source.stringValue;
+    final name = node.assignmentOperator.source;
     if (identical(name, '=')) {
       // e1 = value
       if (node.isIndex) {
@@ -1168,7 +1167,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         final Node valueNode = node.arguments.tail.head;
         final DartType value = analyze(valueNode);
         DartType indexSet = lookupMemberType(
-            node, base, const SourceString('[]='), MemberKind.OPERATOR);
+            node, base, '[]=', MemberKind.OPERATOR);
         if (indexSet is FunctionType) {
           FunctionType indexSetType = indexSet;
           DartType indexSetKey = firstType(indexSetType.parameterTypes);
@@ -1188,8 +1187,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
     } else if (identical(name, '++') || identical(name, '--')) {
       // e++ or e--
-      SourceString operatorName = identical(name, '++')
-          ? const SourceString('+') : const SourceString('-');
+      String operatorName = identical(name, '++') ? '+' : '-';
       if (node.isIndex) {
         // base[key]++, base[key]--, ++base[key], or --base[key]
         return checkIndexAssignmentOperator(
@@ -1201,19 +1199,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
     } else {
       // e1 o= e2 for some operator o.
-      SourceString operatorName;
+      String operatorName;
       switch (name) {
-        case '+=': operatorName = const SourceString('+'); break;
-        case '-=': operatorName = const SourceString('-'); break;
-        case '*=': operatorName = const SourceString('*'); break;
-        case '/=': operatorName = const SourceString('/'); break;
-        case '%=': operatorName = const SourceString('%'); break;
-        case '~/=': operatorName = const SourceString('~/'); break;
-        case '&=': operatorName = const SourceString('&'); break;
-        case '|=': operatorName = const SourceString('|'); break;
-        case '^=': operatorName = const SourceString('^'); break;
-        case '<<=': operatorName = const SourceString('<<'); break;
-        case '>>=': operatorName = const SourceString('>>'); break;
+        case '+=': operatorName = '+'; break;
+        case '-=': operatorName = '-'; break;
+        case '*=': operatorName = '*'; break;
+        case '/=': operatorName = '/'; break;
+        case '%=': operatorName = '%'; break;
+        case '~/=': operatorName = '~/'; break;
+        case '&=': operatorName = '&'; break;
+        case '|=': operatorName = '|'; break;
+        case '^=': operatorName = '^'; break;
+        case '<<=': operatorName = '<<'; break;
+        case '>>=': operatorName = '>>'; break;
         default:
           compiler.internalError(
               'Unexpected assignment operator $name', node: node);
@@ -1497,7 +1495,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     ClassElement cls = type.element;
     if (cls == compiler.doubleClass) return true;
     if (cls == compiler.intClass || cls == compiler.stringClass) return false;
-    Element equals = cls.lookupMember(const SourceString('=='));
+    Element equals = cls.lookupMember('==');
     return equals.getEnclosingClass() != compiler.objectClass;
   }
 

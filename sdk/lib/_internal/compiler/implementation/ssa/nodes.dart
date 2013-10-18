@@ -1370,7 +1370,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   bool isIndexOperatorOnIndexablePrimitive(Compiler compiler) {
     return isInterceptedCall
         && selector.kind == SelectorKind.INDEX
-        && selector.name == const SourceString('[]')
+        && selector.name == '[]'
         && inputs[1].isIndexablePrimitive(compiler);
   }
 }
@@ -1955,7 +1955,7 @@ class HLocalValue extends HInstruction {
 class HParameterValue extends HLocalValue {
   HParameterValue(Element element) : super(element);
 
-  toString() => 'parameter ${sourceElement.name.slowToString()}';
+  toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 

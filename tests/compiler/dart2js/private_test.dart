@@ -7,8 +7,7 @@ import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
-    hide SourceString;
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 
 const String PRIVATE_SOURCE_URI = 'src:private';
 const String PRIVATE_SOURCE = '''

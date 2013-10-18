@@ -144,7 +144,7 @@ class ClassEmitter extends CodeEmitterHelper {
             metadata = new jsAst.LiteralNull();
           }
           fieldMetadata.add(metadata);
-          recordMangledField(field, accessorName, field.name.slowToString());
+          recordMangledField(field, accessorName, field.name);
           if (!needsAccessor) {
             // Emit field for constructor generation.
             assert(!classIsNative);
@@ -397,7 +397,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     void visitField(Element holder, VariableElement field) {
       assert(invariant(element, field.isDeclaration));
-      SourceString name = field.name;
+      String name = field.name;
 
       // Keep track of whether or not we're dealing with a field mixin
       // into a native class.
@@ -429,7 +429,7 @@ class ClassEmitter extends CodeEmitterHelper {
             : namer.getNameOfField(field);
         String fieldName = field.hasFixedBackendName()
             ? field.fixedBackendName()
-            : (isMixinNativeField ? name.slowToString() : accessorName);
+            : (isMixinNativeField ? name : accessorName);
         bool needsCheckedSetter = false;
         if (compiler.enableTypeAssertions
             && needsSetter

@@ -24,10 +24,6 @@ import
     '../../../sdk/lib/_internal/compiler/implementation/mirror_renamer/mirror_renamer.dart'
 show
     MirrorRenamer;
-import
-    '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
-show
-    SourceString;
 
 
 main() {
