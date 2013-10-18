@@ -48,7 +48,7 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     startPubServe();
-    requestShouldSucceed("foo.out", "[[102 111 111]].out");
+    requestShouldSucceed("foo.out", "[[102, 111, 111]].out");
     endPubServe();
   });
 }
