@@ -36,7 +36,7 @@ final _v8TraceLine = new RegExp(r"    ?at ");
 final _firefoxTrace = new RegExp(r"^([.0-9A-Za-z_$/<]|\(.*\))*@");
 
 /// A RegExp to match this package's stack traces.
-final _friendlyTrace = new RegExp(r"^[^\s]+( \d+:\d+)?\s+[^\s]+($|\n)");
+final _friendlyTrace = new RegExp(r"^[^\s]+( \d+(:\d+)?)?\s+[^\s]+($|\n)");
 
 /// A stack trace, comprised of a list of stack frames.
 class Trace implements StackTrace {

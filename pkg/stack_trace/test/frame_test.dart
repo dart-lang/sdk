@@ -202,6 +202,18 @@ void main() {
       expect(frame.member, equals("foo.<fn>"));
     });
 
+    test('parses a deeply-nested anonymous stack frame with parameters '
+        'correctly', () {
+      var frame = new Frame.parseFirefox(
+          '.convertDartClosureToJS/\$function</<@'
+          'http://pub.dartlang.org/stuff.dart.js:560');
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals("convertDartClosureToJS.<fn>.<fn>"));
+    });
+
     test('throws a FormatException for malformed frames', () {
       expect(() => new Frame.parseFirefox(''), throwsFormatException);
       expect(() => new Frame.parseFirefox('.foo'), throwsFormatException);
