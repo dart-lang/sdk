@@ -223,7 +223,7 @@ class ArgumentsTypes<T> {
   final List<T> positional;
   final Map<String, T> named;
   ArgumentsTypes(this.positional, named)
-    : this.named = (named == null) ? new Map<String, T>() : named;
+    : this.named = (named == null || named.isEmpty) ? const {} : named;
 
   int get length => positional.length + named.length;
 

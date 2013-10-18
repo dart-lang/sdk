@@ -879,11 +879,12 @@ class SimpleTypeInferrerVisitor<T>
 
   ArgumentsTypes analyzeArguments(Link<Node> arguments) {
     List<T> positional = [];
-    Map<String, T> named = new Map<String, T>();
+    Map<String, T> named;
     for (var argument in arguments) {
       NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
         argument = namedArgument.expression;
+        if (named == null) named = new Map<String, T>();
         named[namedArgument.name.source] = argument.accept(this);
       } else {
         positional.add(argument.accept(this));
@@ -1027,18 +1028,23 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     List<T> unnamed = <T>[];
-    Map<String, T> named = new Map<String, T>();
     signature.forEachRequiredParameter((Element element) {
       assert(locals.use(element) != null);
       unnamed.add(locals.use(element));
     });
-    signature.forEachOptionalParameter((Element element) {
-      if (signature.optionalParametersAreNamed) {
+
+    Map<String, T> named;
+    if (signature.optionalParametersAreNamed) {
+      named = new Map<String, T>();
+      signature.forEachOptionalParameter((Element element) {
         named[element.name] = locals.use(element);
-      } else {
+      });
+    } else {
+      signature.forEachOptionalParameter((Element element) {
         unnamed.add(locals.use(element));
-      }
-    });
+      });
+    }
+
     ArgumentsTypes arguments = new ArgumentsTypes<T>(unnamed, named);
     return inferrer.registerCalledElement(node,
                                           null,
