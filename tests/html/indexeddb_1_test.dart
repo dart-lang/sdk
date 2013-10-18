@@ -3,6 +3,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math' as math;
 import 'dart:indexed_db' as idb;
 
 const String STORE_NAME = 'TEST';
@@ -37,7 +38,8 @@ Future testUpgrade() {
 }
 
 testReadWrite(key, value, matcher,
-    [dbName, storeName = STORE_NAME, version = VERSION]) => () {
+    [dbName, storeName = STORE_NAME, version = VERSION, 
+    stringifyResult = false]) => () {
   if (dbName == null) {
     dbName = nextDatabaseName();
   }
@@ -60,7 +62,13 @@ testReadWrite(key, value, matcher,
       return transaction.objectStore(storeName).getObject(key);
     }).then((object) {
       db.close();
-      expect(object, matcher);
+      if (stringifyResult) {
+        // Stringify the numbers to verify that we're correctly returning ints
+        // as ints vs doubles.
+        expect(object.toString(), matcher);
+      } else {
+        expect(object, matcher);
+      }
     }).whenComplete(() {
       if (db != null) {
         db.close();
@@ -70,7 +78,8 @@ testReadWrite(key, value, matcher,
 };
 
 testReadWriteTyped(key, value, matcher,
-    [dbName, storeName = STORE_NAME, version = VERSION]) => () {
+    [dbName, storeName = STORE_NAME, version = VERSION, 
+    stringifyResult = false]) => () {
   if (dbName == null) {
     dbName = nextDatabaseName();
   }
@@ -95,7 +104,13 @@ testReadWriteTyped(key, value, matcher,
       return transaction.objectStore(storeName).getObject(key);
     }).then((object) {
       db.close();
-      expect(object, matcher);
+      if (stringifyResult) {
+        // Stringify the numbers to verify that we're correctly returning ints
+        // as ints vs doubles.
+        expect(object.toString(), matcher);
+      } else {
+        expect(object, matcher);
+      }
     }).whenComplete(() {
       if (db != null) {
         db.close();
@@ -110,6 +125,14 @@ void testTypes(testFunction) {
   test('List', testFunction(123, [1, 2, 3], equals([1, 2, 3])));
   test('List 2', testFunction(123, [2, 3, 4], equals([2, 3, 4])));
   test('bool', testFunction(123, [true, false], equals([true, false])));
+  test('largeInt', testFunction(123, 1371854424211,
+      equals("1371854424211"), null, STORE_NAME, VERSION, true));
+  test('largeDoubleConvertedToInt', testFunction(123, 1371854424211.0,
+      equals("1371854424211"), null, STORE_NAME, VERSION, true));
+  test('double', testFunction(123, math.pow(2, 53),
+      equals("9007199254740992.0"), null, STORE_NAME, VERSION, true));
+  test('largeIntInMap', testFunction(123, {'time': 4503599627370492},
+      equals("{time: 4503599627370492}"), null, STORE_NAME, VERSION, true));
   var now = new DateTime.now();
   test('DateTime', testFunction(123, now,
     predicate((date) =>
