@@ -49,7 +49,7 @@ class XObj extends PolymerElement {
   @observable var values = {};
 }
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

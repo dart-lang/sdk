@@ -1516,33 +1516,95 @@ Definition* UnboxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* defn = value()->definition();
+  if (defn->IsComparison() &&
+      (value()->Type()->ToCid() == kBoolCid) &&
+      defn->HasOnlyUse(value())) {
+    defn->AsComparison()->NegateComparison();
+    return defn;
+  }
+  return this;
+}
+
+
+static bool MayBeBoxableNumber(intptr_t cid) {
+  return (cid == kDynamicCid) ||
+         (cid == kMintCid) ||
+         (cid == kBigintCid) ||
+         (cid == kDoubleCid);
+}
+
+
+static bool MaybeNumber(CompileType* type) {
+  ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
+         Type::Handle(Type::Number()), NULL));
+  return type->ToAbstractType()->IsDynamicType()
+      || type->ToAbstractType()->IsTypeParameter()
+      || type->IsMoreSpecificThan(Type::Handle(Type::Number()));
+}
+
+
+// Returns a replacement for a strict comparison and signals if the result has
+// to be negated.
 static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
                                              bool* negated) {
+  // Use propagated cid and type information to eliminate number checks.
+  // If one of the inputs is not a boxable number (Mint, Double, Bigint), or
+  // is not a subtype of num, no need for number checks.
+  if (compare->needs_number_check()) {
+    if (!MayBeBoxableNumber(compare->left()->Type()->ToCid()) ||
+        !MayBeBoxableNumber(compare->right()->Type()->ToCid()))  {
+      compare->set_needs_number_check(false);
+    } else if (!MaybeNumber(compare->left()->Type()) ||
+               !MaybeNumber(compare->right()->Type())) {
+      compare->set_needs_number_check(false);
+    }
+  }
+
   *negated = false;
-  if (!compare->right()->BindsToConstant()) {
+  Object& constant = Object::Handle();
+  Value* other = NULL;
+  if (compare->right()->BindsToConstant()) {
+    constant = compare->right()->BoundConstant().raw();
+    other = compare->left();
+  } else if (compare->left()->BindsToConstant()) {
+    constant = compare->left()->BoundConstant().raw();
+    other = compare->right();
+  } else {
     return compare;
   }
-  const Object& right_constant = compare->right()->BoundConstant();
-  Definition* left_defn = compare->left()->definition();
 
-  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
-  // Handles e === true.
-  if ((compare->kind() == Token::kEQ_STRICT) &&
-      (right_constant.raw() == Bool::True().raw()) &&
-      (compare->left()->Type()->ToCid() == kBoolCid)) {
-    // Return left subexpression as the replacement for this instruction.
-    return left_defn;
+  Definition* other_defn = other->definition();
+  Token::Kind kind = compare->kind();
+  // Handle e === true.
+  if ((kind == Token::kEQ_STRICT) &&
+      (constant.raw() == Bool::True().raw()) &&
+      (other->Type()->ToCid() == kBoolCid)) {
+    return other_defn;
   }
-  // x = (a === b);  y = x !== true; -> y = a !== b.
-  // In order to merge two strict compares, 'left_strict' must have only one
-  // use. Do not check left's cid as it is required to be a strict compare.
-  StrictCompareInstr* left_strict = left_defn->AsStrictCompare();
-  if ((compare->kind() == Token::kNE_STRICT) &&
-      (right_constant.raw() == Bool::True().raw()) &&
-      (left_strict != NULL) &&
-      (left_strict->HasOnlyUse(compare->left()))) {
+  // Handle e !== false.
+  if ((kind == Token::kNE_STRICT) &&
+      (constant.raw() == Bool::False().raw()) &&
+      (other->Type()->ToCid() == kBoolCid)) {
+    return other_defn;
+  }
+  // Handle e !== true
+  if ((kind == Token::kNE_STRICT) &&
+      (constant.raw() == Bool::True().raw()) &&
+      other_defn->IsComparison() &&
+      (other->Type()->ToCid() == kBoolCid) &&
+      other_defn->HasOnlyUse(other)) {
     *negated = true;
-    return left_strict;
+    return other_defn;
+  }
+  if ((kind == Token::kEQ_STRICT) &&
+      (constant.raw() == Bool::False().raw()) &&
+      other_defn->IsComparison() &&
+      (other->Type()->ToCid() == kBoolCid) &&
+      other_defn->HasOnlyUse(other)) {
+    *negated = true;
+    return other_defn;
   }
   return compare;
 }

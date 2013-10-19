@@ -23,7 +23,7 @@ main() {
       list = toObservable([1, 2, 3]);
       changes = null;
       sub = list.changes.listen((records) {
-        changes = records.where((r) => r.changes(#length)).toList();
+        changes = getPropertyChangeRecords(records, #length);
       });
     });
 
@@ -33,7 +33,7 @@ main() {
       list.add(4);
       expect(list, [1, 2, 3, 4]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(list, 3, 4)]);
     });
 
     observeTest('removeObject', () {
@@ -41,7 +41,7 @@ main() {
       expect(list, orderedEquals([1, 3]));
 
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(list, 3, 2)]);
     });
 
     observeTest('removeRange changes length', () {
@@ -49,14 +49,14 @@ main() {
       list.removeRange(1, 3);
       expect(list, [1, 4]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(list, 3, 2)]);
     });
 
     observeTest('length= changes length', () {
       list.length = 5;
       expect(list, [1, 2, 3, null, null]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(list, 3, 5)]);
     });
 
     observeTest('[]= does not change length', () {
@@ -70,7 +70,7 @@ main() {
       list.clear();
       expect(list, []);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange]);
+      expectChanges(changes, [_lengthChange(list, 3, 0)]);
     });
   });
 
@@ -82,7 +82,7 @@ main() {
       list = toObservable([1, 2, 3]);
       changes = null;
       sub = list.changes.listen((records) {
-        changes = records.where((r) => r.changes(1)).toList();
+        changes = getListChangeRecords(records, 1);
       });
     });
 
@@ -196,7 +196,7 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _lengthChange,
+        _lengthChange(list, 6, 8),
         _change(6, addedCount: 2)
       ]);
     });
@@ -215,7 +215,7 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _lengthChange,
+        _lengthChange(list, 6, 5),
         _change(5, removedCount: 1)
       ]);
     });
@@ -226,7 +226,7 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _lengthChange,
+        _lengthChange(list, 6, 3),
         _change(1, removedCount: 3),
       ]);
     });
@@ -247,14 +247,15 @@ main() {
 
       performMicrotaskCheckpoint();
       expectChanges(records, [
-        _lengthChange,
+        _lengthChange(list, 6, 0),
         _change(0, removedCount: 6)
       ]);
     });
   });
 }
 
-final _lengthChange = new PropertyChangeRecord(#length);
+_lengthChange(list, int oldValue, int newValue) =>
+    new PropertyChangeRecord(list, #length, oldValue, newValue);
 
 _change(index, {removedCount: 0, addedCount: 0}) => new ListChangeRecord(
     index, removedCount: removedCount, addedCount: addedCount);

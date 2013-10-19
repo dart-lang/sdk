@@ -3223,27 +3223,6 @@ void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
 }
 
 
-static bool MayBeBoxableNumber(intptr_t cid) {
-  return (cid == kDynamicCid) ||
-         (cid == kMintCid) ||
-         (cid == kBigintCid) ||
-         (cid == kDoubleCid);
-}
-
-
-// Check if number check is not needed.
-void FlowGraphOptimizer::VisitStrictCompare(StrictCompareInstr* instr) {
-  if (!instr->needs_number_check()) return;
-
-  // If one of the input is not a boxable number (Mint, Double, Bigint), no
-  // need for number checks.
-  if (!MayBeBoxableNumber(instr->left()->Type()->ToCid()) ||
-      !MayBeBoxableNumber(instr->right()->Type()->ToCid()))  {
-    instr->set_needs_number_check(false);
-  }
-}
-
-
 // Range analysis for smi values.
 class RangeAnalysis : public ValueObject {
  public:

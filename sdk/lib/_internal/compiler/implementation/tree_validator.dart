@@ -38,7 +38,7 @@ class ValidatorVisitor extends Visitor {
 
   visitSendSet(SendSet node) {
     final selector = node.selector;
-    final name = node.assignmentOperator.source.stringValue;
+    final name = node.assignmentOperator.source;
     final arguments = node.arguments;
 
     expect(node, arguments != null);

@@ -198,7 +198,7 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
  */
 Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       String libraryRoot, {String packageRoot}) {
-  SourceFileProvider provider = new SourceFileProvider();
+  SourceFileProvider provider = new CompilerSourceFileProvider();
   api.DiagnosticHandler diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   Uri libraryUri = new Uri(scheme: 'file', path: appendSlash(libraryRoot));

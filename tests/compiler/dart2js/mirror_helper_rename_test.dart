@@ -16,10 +16,6 @@ import
     '../../../sdk/lib/_internal/compiler/implementation/dart_backend/dart_backend.dart';
 import
     '../../../sdk/lib/_internal/compiler/implementation/mirror_renamer/mirror_renamer.dart';
-import
-    '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
-show
-    SourceString;
 
 main() {
   testWithMirrorHelperLibrary(minify: true);
@@ -46,7 +42,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
     DartBackend backend = compiler.backend;
     MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.renames;
-    Map<String, SourceString> symbols = mirrorRenamer.symbols;
+    Map<String, String> symbols = mirrorRenamer.symbols;
 
     Expect.isFalse(null == backend.mirrorHelperLibrary);
     Expect.isFalse(null == backend.mirrorHelperGetNameFunction);
@@ -55,10 +51,10 @@ void testWithMirrorHelperLibrary({bool minify}) {
       if (symbols.containsKey(renames[n])) {
         if(n.toString() == 'getName') {
           Expect.equals(
-              const SourceString(MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION),
+              MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION,
               symbols[renames[n]]);
         } else {
-          Expect.equals(n.toString(), symbols[renames[n]].stringValue);
+          Expect.equals(n.toString(), symbols[renames[n]]);
         }
       }
     }
@@ -74,7 +70,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
       Expect.equals(2, i.length);
     }
 
-    String mapMatch = 'const<String,SourceString>';
+    String mapMatch = 'const<String,String>';
     i = mapMatch.allMatches(output);
     Expect.equals(1, i.length);
   }));

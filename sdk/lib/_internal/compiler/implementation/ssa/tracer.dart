@@ -273,24 +273,24 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
-    String fieldName = node.element.name.slowToString();
+    String fieldName = node.element.name;
     return 'field get ${temporaryId(node.receiver)}.$fieldName';
   }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
-    String fieldName = node.element.name.slowToString();
+    String fieldName = node.element.name;
     return 'field set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
   String visitLocalGet(HLocalGet node) {
-    String localName = node.element.name.slowToString();
+    String localName = node.element.name;
     return 'local get ${temporaryId(node.local)}.$localName';
   }
 
   String visitLocalSet(HLocalSet node) {
     String valueId = temporaryId(node.value);
-    String localName = node.element.name.slowToString();
+    String localName = node.element.name;
     return 'local set ${temporaryId(node.local)}.$localName to $valueId';
   }
 
@@ -345,7 +345,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
-    String name = invoke.selector.name.slowToString();
+    String name = invoke.selector.name;
     String target = "($kind) $receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
@@ -360,17 +360,17 @@ class HInstructionStringifier implements HVisitor<String> {
       => visitInvokeDynamic(node, "set");
 
   String visitInvokeStatic(HInvokeStatic invoke) {
-    String target = invoke.element.name.slowToString();
+    String target = invoke.element.name;
     return visitGenericInvoke("Invoke", target, invoke.inputs);
   }
 
   String visitInvokeSuper(HInvokeSuper invoke) {
-    String target = invoke.element.name.slowToString();
+    String target = invoke.element.name;
     return visitGenericInvoke("Invoke super", target, invoke.inputs);
   }
 
   String visitInvokeConstructorBody(HInvokeConstructorBody invoke) {
-    String target = invoke.element.name.slowToString();
+    String target = invoke.element.name;
     return visitGenericInvoke("Invoke constructor body", target, invoke.inputs);
   }
 
@@ -380,7 +380,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitForeignNew(HForeignNew node) {
     return visitGenericInvoke("New",
-                              "${node.element.name.slowToString()}",
+                              "${node.element.name}",
                               node.inputs);
   }
 
@@ -413,11 +413,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitNot(HNot node) => "Not: ${temporaryId(node.inputs[0])}";
 
   String visitParameterValue(HParameterValue node) {
-    return "p${node.sourceElement.name.slowToString()}";
+    return "p${node.sourceElement.name}";
   }
 
   String visitLocalValue(HLocalValue node) {
-    return "l${node.sourceElement.name.slowToString()}";
+    return "l${node.sourceElement.name}";
   }
 
   String visitPhi(HPhi phi) {
@@ -436,16 +436,16 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitShiftLeft(HShiftLeft node) => handleInvokeBinary(node, '<<');
 
   String visitStatic(HStatic node)
-      => "Static ${node.element.name.slowToString()}";
+      => "Static ${node.element.name}";
 
   String visitLazyStatic(HLazyStatic node)
-      => "LazyStatic ${node.element.name.slowToString()}";
+      => "LazyStatic ${node.element.name}";
 
   String visitOneShotInterceptor(HOneShotInterceptor node)
       => visitInvokeDynamic(node, "one shot interceptor");
 
   String visitStaticStore(HStaticStore node) {
-    String lhs = node.element.name.slowToString();
+    String lhs = node.element.name;
     return "Static $lhs = ${temporaryId(node.inputs[0])}";
   }
 

@@ -534,56 +534,56 @@ class Listener {
   }
 
   Token expected(String string, Token token) {
-    error("expected '$string', but got '${token.slowToString()}'", token);
+    error("expected '$string', but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    error("expected identifier, but got '${token.slowToString()}'", token);
+    error("expected identifier, but got '${token.value}'", token);
   }
 
   Token expectedType(Token token) {
-    error("expected a type, but got '${token.slowToString()}'", token);
+    error("expected a type, but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   Token expectedExpression(Token token) {
-    error("expected an expression, but got '${token.slowToString()}'", token);
+    error("expected an expression, but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    error("unexpected token '${token.slowToString()}'", token);
+    error("unexpected token '${token.value}'", token);
     return skipToEof(token);
   }
 
   Token expectedBlockToSkip(Token token) {
-    error("expected a block, but got '${token.slowToString()}'", token);
+    error("expected a block, but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   Token expectedFunctionBody(Token token) {
-    error("expected a function body, but got '${token.slowToString()}'", token);
+    error("expected a function body, but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    error("expected a class body, but got '${token.slowToString()}'", token);
+    error("expected a class body, but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   Token expectedClassBodyToSkip(Token token) {
-    error("expected a class body, but got '${token.slowToString()}'", token);
+    error("expected a class body, but got '${token.value}'", token);
     return skipToEof(token);
   }
 
   Link<Token> expectedDeclaration(Token token) {
-    error("expected a declaration, but got '${token.slowToString()}'", token);
+    error("expected a declaration, but got '${token.value}'", token);
     return const Link<Token>();
   }
 
   Token unmatched(Token token) {
-    error("unmatched '${token.slowToString()}'", token);
+    error("unmatched '${token.value}'", token);
     return skipToEof(token);
   }
 
@@ -767,7 +767,7 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
-    SourceString nativeTagInfo = native.checkForNativeClass(this);
+    String nativeTagInfo = native.checkForNativeClass(this);
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     Node supertype = popNode();
@@ -782,8 +782,8 @@ class ElementListener extends Listener {
   }
 
   void rejectBuiltInIdentifier(Identifier name) {
-    if (name.source is Keyword) {
-      Keyword keyword = name.source;
+    if (name.token is KeywordToken) {
+      Keyword keyword = (name.token as KeywordToken).keyword;
       if (!keyword.isPseudo) {
         recoverableError('illegal name ${keyword.syntax}', node: name);
       }
@@ -847,7 +847,7 @@ class ElementListener extends Listener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    void buildFieldElement(SourceString name, Element fields) {
+    void buildFieldElement(String name, Element fields) {
       pushElement(new VariableElementX(name, fields, ElementKind.FIELD, null));
     }
     NodeList variables = makeNodeList(count, null, null, ",");
@@ -861,7 +861,7 @@ class ElementListener extends Listener {
   void buildFieldElements(Modifiers modifiers,
                           NodeList variables,
                           Element enclosingElement,
-                          void buildFieldElement(SourceString name,
+                          void buildFieldElement(String name,
                                                  Element fields),
                           Token beginToken, Token endToken) {
     Element fields = new PartialFieldListElement(beginToken,
@@ -876,7 +876,7 @@ class ElementListener extends Listener {
       if (identifier == null) {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
       }
-      SourceString name = identifier.source;
+      String name = identifier.source;
       buildFieldElement(name, fields);
     }
   }
@@ -943,33 +943,33 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    listener.cancel("expected '$string', but got '${token.slowToString()}'",
+    listener.cancel("expected '$string', but got '${token.value}'",
                     token: token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    listener.cancel("expected identifier, but got '${token.slowToString()}'",
+    listener.cancel("expected identifier, but got '${token.value}'",
                     token: token);
     pushNode(null);
   }
 
   Token expectedType(Token token) {
-    listener.cancel("expected a type, but got '${token.slowToString()}'",
+    listener.cancel("expected a type, but got '${token.value}'",
                     token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token expectedExpression(Token token) {
-    listener.cancel("expected an expression, but got '${token.slowToString()}'",
+    listener.cancel("expected an expression, but got '${token.value}'",
                     token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    String message = "unexpected token '${token.slowToString()}'";
+    String message = "unexpected token '${token.value}'";
     if (token.info == BAD_INPUT_INFO) {
       message = token.stringValue;
     }
@@ -986,14 +986,14 @@ class ElementListener extends Listener {
   }
 
   Token expectedFunctionBody(Token token) {
-    String printString = token.slowToString();
+    String printString = token.value;
     listener.cancel("expected a function body, but got '$printString'",
                     token: token);
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    listener.cancel("expected a class body, but got '${token.slowToString()}'",
+    listener.cancel("expected a class body, but got '${token.value}'",
                     token: token);
     return skipToEof(token);
   }
@@ -1007,13 +1007,13 @@ class ElementListener extends Listener {
   }
 
   Link<Token> expectedDeclaration(Token token) {
-    listener.cancel("expected a declaration, but got '${token.slowToString()}'",
+    listener.cancel("expected a declaration, but got '${token.value}'",
                     token: token);
     return const Link<Token>();
   }
 
   Token unmatched(Token token) {
-    listener.cancel("unmatched '${token.slowToString()}'", token: token);
+    listener.cancel("unmatched '${token.value}'", token: token);
     return skipToEof(token);
   }
 
@@ -1080,13 +1080,11 @@ class ElementListener extends Listener {
       // in correct (source) order.
       poppedNodes = poppedNodes.prepend(popNode());
     }
-    SourceString sourceDelimiter =
-        (delimiter == null) ? null : new SourceString(delimiter);
-    return new NodeList(beginToken, poppedNodes, endToken, sourceDelimiter);
+    return new NodeList(beginToken, poppedNodes, endToken, delimiter);
   }
 
   void beginLiteralString(Token token) {
-    SourceString source = token.value;
+    String source = token.value;
     StringQuoting quoting = StringValidator.quotingFromString(source);
     pushQuoting(quoting);
     // Just wrap the token for now. At the end of the interpolation,
@@ -1131,8 +1129,7 @@ class ElementListener extends Listener {
     if (isLast) {
       pushNode(string);
     } else {
-      NodeList partNodes =
-          new NodeList(null, parts, null, const SourceString(""));
+      NodeList partNodes = new NodeList(null, parts, null, "");
       pushNode(new StringInterpolation(string, partNodes));
     }
   }
@@ -1328,7 +1325,7 @@ class NodeListener extends ElementListener {
       return native.handleNativeFunctionBody(this, token);
     } else {
       listener.cancel(
-          "expected a function body, but got '${token.slowToString()}'",
+          "expected a function body, but got '${token.value}'",
           token: token);
       return skipToEof(token);
     }
@@ -1339,7 +1336,7 @@ class NodeListener extends ElementListener {
       return native.handleNativeClassBody(this, token);
     } else {
       listener.cancel(
-          "expected a class body, but got '${token.slowToString()}'",
+          "expected a class body, but got '${token.value}'",
           token: token);
       return skipToEof(token);
     }
@@ -1637,8 +1634,8 @@ class NodeListener extends ElementListener {
     NodeList arguments =
         makeNodeList(1, openSquareBracket, closeSquareBracket, null);
     Node receiver = popNode();
-    Token token =
-      new StringToken(INDEX_INFO, '[]', openSquareBracket.charOffset);
+    Token token = new StringToken.fromString(INDEX_INFO, '[]',
+                                  openSquareBracket.charOffset);
     Node selector = new Operator(token);
     pushNode(new Send(receiver, selector, arguments));
   }
@@ -1888,7 +1885,7 @@ class PartialFunctionElement extends FunctionElementX {
   final Token getOrSet;
   final Token endToken;
 
-  PartialFunctionElement(SourceString name,
+  PartialFunctionElement(String name,
                          Token this.beginToken,
                          Token this.getOrSet,
                          Token this.endToken,
@@ -1964,7 +1961,7 @@ class PartialFieldListElement extends VariableListElementX {
 class PartialTypedefElement extends TypedefElementX {
   final Token token;
 
-  PartialTypedefElement(SourceString name, Element enclosing, this.token)
+  PartialTypedefElement(String name, Element enclosing, this.token)
       : super(name, enclosing);
 
   Node parseNode(DiagnosticListener listener) {

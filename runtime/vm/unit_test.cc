@@ -53,15 +53,15 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
-    return Dart_Error("not a library");
+    return Dart_NewApiError("not a library");
   }
   if (!Dart_IsString(url)) {
-    return Dart_Error("url is not a string");
+    return Dart_NewApiError("url is not a string");
   }
   const char* url_chars = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_chars);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return Dart_NewApiError("accessing url characters failed");
   }
   Dart_Handle library_url = Dart_LibraryUrl(library);
   const char* library_url_string = NULL;
@@ -91,7 +91,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     } else if (DartUtils::IsDartBuiltinLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     } else {
-      return Dart_Error("Do not know how to load '%s'", url_chars);
+      return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
   }
   if (is_io_library) {

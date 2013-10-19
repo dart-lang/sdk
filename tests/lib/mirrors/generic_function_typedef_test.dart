@@ -20,6 +20,8 @@ class C<R> {
   GenericTransform<R> transformOfR;
 }
 
+reflectClass(t) => reflectType(t).originalDeclaration;
+
 main() {
   TypeMirror dynamicMirror = currentMirrorSystem().dynamicType;
 

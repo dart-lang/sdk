@@ -59,11 +59,11 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   bool contains(Object value);
 
   /**
-   * Adds [value] into the set.
+   * Adds [value] into the set. Returns `true` if [value] was added to the set.
    *
-   * The method has no effect if [value] is already in the set.
+   * If [value] already exists, the set is not changed and `false` is returned.
    */
-  void add(E value);
+  bool add(E value);
 
   /**
    * Adds all of [elements] to this Set.

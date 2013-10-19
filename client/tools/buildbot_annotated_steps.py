@@ -15,7 +15,6 @@ chromium and headless dartium.
 
 import imp
 import os
-import platform
 import re
 import socket
 import subprocess
@@ -88,6 +87,8 @@ def ProcessTools(mode, name, version):
 
   toolsBuildScript = os.path.join('.', 'editor', 'build', 'build.py')
 
+  build_installer = name.startswith('dart-editor-installer')
+
   # TODO(devoncarew): should we move this into GetBuildInfo()?
   # get the latest changed revision from the current repository sub-tree
   version = GetLatestChangedRevision()
@@ -96,6 +97,8 @@ def ProcessTools(mode, name, version):
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
+  if build_installer:
+    cmds.append('--build-installer')
   local_env = EnvironmentWithoutBotoConfig()
   #if 'linux' in name:
   #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
@@ -135,10 +138,7 @@ def FixJavaHome():
   buildbot_javahome = os.getenv('BUILDBOT_JAVA_HOME')
   if buildbot_javahome:
     current_pwd = os.getenv('PWD')
-    if platform.system() != 'Windows':
-      java_home = '/usr/lib/jvm/java-6-sun' # Hackety-hack. Please remove!
-    else:
-      java_home = os.path.join(current_pwd, buildbot_javahome)
+    java_home = os.path.join(current_pwd, buildbot_javahome)
     java_bin = os.path.join(java_home, 'bin')
     os.environ['JAVA_HOME'] = java_home
     os.environ['PATH'] = '%s;%s' % (java_bin, os.environ['PATH'])

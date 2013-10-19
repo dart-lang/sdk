@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable
+@DocsEditable()
 $if DART2JS
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS native "Window,DOMWindow" {
 $else

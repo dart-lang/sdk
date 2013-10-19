@@ -36,8 +36,8 @@ class PrettyPrinter implements Visitor {
   /**
    * Adds given string to result string.
    */
-  void add(SourceString string) {
-    string.printOn(sb);
+  void add(String string) {
+    sb.write(string);
   }
 
   void addBeginAndEndTokensToParams(Node node, Map params) {
@@ -90,7 +90,9 @@ class PrettyPrinter implements Visitor {
     params.forEach((k, v) {
       String value;
       if (v != null) {
-        value = v
+        var str = v;
+        if (v is Token) str = v.value;
+        value = str
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")
             .replaceAll('"', "'");
@@ -201,7 +203,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    openAndCloseNode(node, "Identifier", {"token" : node.token.slowToString()});
+    openAndCloseNode(node, "Identifier", {"token" : node.token});
   }
 
   visitIf(If node) {
@@ -259,7 +261,7 @@ class PrettyPrinter implements Visitor {
 
   visitLiteralString(LiteralString node) {
     openAndCloseNode(node, "LiteralString",
-        {"value" : node.token.slowToString()});
+        {"value" : node.token});
   }
 
   visitMixinApplication(MixinApplication node) {
@@ -283,10 +285,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitNodeList(NodeList node) {
-    var params = {
-        "delimiter" :
-            node.delimiter != null ? node.delimiter.stringValue : null
-    };
+    var params = { "delimiter" : node.delimiter };
     if (node.nodes.toList().length == 0) {
       openAndCloseNode(node, "NodeList", params);
     } else {
@@ -297,7 +296,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitOperator(Operator node) {
-    openAndCloseNode(node, "Operator", {"value" : node.token.slowToString()});
+    openAndCloseNode(node, "Operator", {"value" : node.token});
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {

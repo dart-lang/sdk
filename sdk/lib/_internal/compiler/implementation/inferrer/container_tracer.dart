@@ -133,7 +133,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
 
   // The set of [TypeInformation] where the traced container could
   // flow in, and operations done on them.
-  final Set<TypeInformation> allUsers = new Set<TypeInformation>();
+  final Setlet<TypeInformation> allUsers = new Setlet<TypeInformation>();
 
   // The list of found assignments to the container.
   final List<TypeInformation> assignments = <TypeInformation>[];
@@ -142,7 +142,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   bool continueAnalyzing = true;
 
   static const int MAX_ANALYSIS_COUNT = 11;
-  final Set<Element> analyzedElements = new Set<Element>();
+  final Setlet<Element> analyzedElements = new Setlet<Element>();
 
   ContainerTracerVisitor(this.container, inferrer)
       : this.inferrer = inferrer, this.compiler = inferrer.compiler;
@@ -220,14 +220,14 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     analyzedElements.add(info.caller);
     Element called = info.calledElement;
-    if (called.isForeign(compiler) && called.name == const SourceString('JS')) {
+    if (called.isForeign(compiler) && called.name == 'JS') {
       bailout('Used in JS ${info.call}');
     }
   }
 
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     Selector selector = info.selector;
-    String selectorName = selector.name.slowToString();
+    String selectorName = selector.name;
     if (allUsers.contains(info.receiver)) {
       if (!okSelectorsSet.contains(selectorName)) {
         if (selector.isCall()) {

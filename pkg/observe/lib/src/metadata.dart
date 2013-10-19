@@ -39,7 +39,7 @@ const Reflectable reflectable = const Reflectable();
  * it available to [PathObserver] at runtime. For example:
  *
  *     @reflectable
- *     class Monster extends ChangeNotifierBase {
+ *     class Monster extends ChangeNotifier {
  *       int _health;
  *       int get health => _health;
  *       ...

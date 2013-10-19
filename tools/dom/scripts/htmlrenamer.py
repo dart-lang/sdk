@@ -356,7 +356,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Node.appendChild': 'append',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
-    'Node.ownerDocument': 'document',
     'Node.parentElement': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',

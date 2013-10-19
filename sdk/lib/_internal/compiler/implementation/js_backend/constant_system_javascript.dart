@@ -31,7 +31,7 @@ class JavaScriptBinaryBitOperation implements BinaryOperation {
   const JavaScriptBinaryBitOperation(this.dartBitOperation);
 
   bool isUserDefinable() => dartBitOperation.isUserDefinable();
-  SourceString get name => dartBitOperation.name;
+  String get name => dartBitOperation.name;
 
   Constant fold(Constant left, Constant right) {
     // In JavaScript we don't check for -0 and treat it as if it was zero.
@@ -80,7 +80,7 @@ class JavaScriptNegateOperation implements UnaryOperation {
   const JavaScriptNegateOperation();
 
   bool isUserDefinable() => dartNegateOperation.isUserDefinable();
-  SourceString get name => dartNegateOperation.name;
+  String get name => dartNegateOperation.name;
 
   Constant fold(Constant constant) {
     if (constant.isInt()) {
@@ -100,7 +100,7 @@ class JavaScriptBinaryArithmeticOperation implements BinaryOperation {
   const JavaScriptBinaryArithmeticOperation(this.dartArithmeticOperation);
 
   bool isUserDefinable() => dartArithmeticOperation.isUserDefinable();
-  SourceString get name => dartArithmeticOperation.name;
+  String get name => dartArithmeticOperation.name;
 
   Constant fold(Constant left, Constant right) {
     Constant result = dartArithmeticOperation.fold(left, right);
@@ -117,7 +117,7 @@ class JavaScriptIdentityOperation implements BinaryOperation {
   const JavaScriptIdentityOperation();
 
   bool isUserDefinable() => dartIdentityOperation.isUserDefinable();
-  SourceString get name => dartIdentityOperation.name;
+  String get name => dartIdentityOperation.name;
 
   BoolConstant fold(Constant left, Constant right) {
     BoolConstant result = dartIdentityOperation.fold(left, right);

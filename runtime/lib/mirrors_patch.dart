@@ -41,6 +41,10 @@ patch ClassMirror reflectClass(Type key) {
   return _Mirrors.reflectClass(key);
 }
 
+patch TypeMirror reflectType(Type key) {
+  return _Mirrors.reflectType(key);
+}
+
 patch class MirrorSystem {
   /* patch */ static String getName(Symbol symbol) {
     String string = _symbol_dev.Symbol.getName(symbol);

@@ -289,7 +289,37 @@ void main() => new Type();""",
 """
 library type;
 
-class Type {}"""}]);
+class Type {}"""},
+          const {
+'conflictsWithDart.dart':
+"""
+library conflictsWithDart;
+
+class Duration {
+  static var x = 100;
+}
+""",
+
+'conflictsWithDartAsWell.dart':
+"""
+library conflictsWithDartAsWell;
+
+class Duration {
+  static var x = 100;
+}
+""",
+
+'main.dart':
+r"""
+library testDartConflicts;
+
+import 'conflictsWithDart.dart';
+import 'conflictsWithDartAsWell.dart';
+
+main() {
+  print("Hail Caesar ${Duration.x}");
+}
+"""}]);
 
   static const MessageKind DUPLICATE_EXPORT = const MessageKind(
       "Error: Duplicate export of '#{name}'.",
@@ -699,10 +729,6 @@ typedef G F(); // The return type 'G' creates a self-reference.
 typedef H G(); // The return type 'H' creates a self-reference.
 typedef H(F f); // The argument type 'F' creates a self-reference.
 main() { F f = null; }"""]);
-
-  static const CYCLIC_TYPEDEF_TYPEVAR = const MessageKind(
-      "Internal Error: Recursive type variable bounds are not "
-      "supported on typedefs.");
 
   static const MessageKind CLASS_NAME_EXPECTED = const MessageKind(
       "Error: Class name expected.");
@@ -1284,6 +1310,41 @@ Please include the following information:
   below as well as the source location above).
 ''');
 
+  static const MessageKind POTENTIAL_MUTATION = const MessageKind(
+      "Hint: Variable '#{variableName}' is not known to be of type "
+      "'#{shownType}' because it is potentially mutated in the scope for "
+      "promotion.");
+
+  static const MessageKind POTENTIAL_MUTATION_HERE = const MessageKind(
+      "Info: Variable '#{variableName}' is potentially mutated here.");
+
+  static const MessageKind POTENTIAL_MUTATION_IN_CLOSURE = const MessageKind(
+      "Hint: Variable '#{variableName}' is not known to be of type "
+      "'#{shownType}' because it is potentially mutated within a closure.");
+
+  static const MessageKind POTENTIAL_MUTATION_IN_CLOSURE_HERE =
+      const MessageKind(
+          "Info: Variable '#{variableName}' is potentially mutated in a "
+          "closure here.");
+
+  static const MessageKind ACCESSED_IN_CLOSURE = const MessageKind(
+      "Hint: Variable '#{variableName}' is not known to be of type "
+      "'#{shownType}' because it is accessed by a closure in the scope for "
+      "promotion and potentially mutated in the scope of '#{variableName}'.");
+
+  static const MessageKind ACCESSED_IN_CLOSURE_HERE = const MessageKind(
+      "Info: Variable '#{variableName}' is accessed in a closure here.");
+
+  static const MessageKind NOT_MORE_SPECIFIC = const MessageKind(
+      "Hint: Variable '#{variableName}' is not shown to have type "
+      "'#{shownType}' because '#{shownType}' is not more specific than the "
+      "known type '#{knownType}' of '#{variableName}'.");
+
+  static const MessageKind NOT_MORE_SPECIFIC_RAW = const MessageKind(
+      "Hint: Variable '#{variableName}' is not shown to have type "
+      "'#{shownType}' because '#{shownType}' is not more specific than the "
+      "known type '#{knownType}' of '#{variableName}'.",
+      howToFix: "Try replacing '#{shownType}' with '#{shownTypeRaw}'.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
@@ -1412,8 +1473,7 @@ class Message {
     if (message == null) {
       message = kind.template;
       arguments.forEach((key, value) {
-        String string = slowToString(value);
-        message = message.replaceAll('#{${key}}', string);
+        message = message.replaceAll('#{${key}}', value.toString());
       });
       assert(invariant(
           CURRENT_ELEMENT_SPANNABLE,
@@ -1422,8 +1482,7 @@ class Message {
       if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;
         arguments.forEach((key, value) {
-          String string = slowToString(value);
-          howToFix = howToFix.replaceAll('#{${key}}', string);
+          howToFix = howToFix.replaceAll('#{${key}}', value.toString());
         });
         message = '$message\n$howToFix';
       }
@@ -1441,14 +1500,6 @@ class Message {
   }
 
   int get hashCode => throw new UnsupportedError('Message.hashCode');
-
-  String slowToString(object) {
-    if (object is SourceString) {
-      return object.slowToString();
-    } else {
-      return object.toString();
-    }
-  }
 }
 
 class Diagnostic {

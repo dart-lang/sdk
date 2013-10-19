@@ -61,7 +61,7 @@ class World {
       assert(cls.isDeclaration);
       if (cls.resolutionState != STATE_DONE) {
         compiler.internalErrorOnElement(
-            cls, 'Class "${cls.name.slowToString()}" is not resolved.');
+            cls, 'Class "${cls.name}" is not resolved.');
       }
 
       for (DartType type in cls.allSupertypes) {

@@ -62,7 +62,7 @@ String compile(String code, {String entry: 'main',
                        interceptorsSource: interceptorsSource,
                        enableMinification: minify);
   compiler.parseScript(code);
-  lego.Element element = compiler.mainApp.find(buildSourceString(entry));
+  lego.Element element = compiler.mainApp.find(entry);
   if (element == null) return null;
   compiler.phase = Compiler.PHASE_RESOLVING;
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution,
@@ -89,7 +89,8 @@ MockCompiler compilerFor(String code, Uri uri,
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,
       coreSource: coreSource);
-  compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
+  compiler.sourceFiles[uri.toString()] =
+      new StringSourceFile(uri.toString(), code);
   return compiler;
 }
 
@@ -132,14 +133,14 @@ Future compileSources(Map<String, String> sources,
 }
 
 lego.Element findElement(compiler, String name) {
-  var element = compiler.mainApp.find(buildSourceString(name));
+  var element = compiler.mainApp.find(name);
   Expect.isNotNull(element, 'Could not locate $name.');
   return element;
 }
 
 types.TypeMask findTypeMask(compiler, String name,
                             [String how = 'nonNullExact']) {
-  var sourceName = buildSourceString(name);
+  var sourceName = name;
   var element = compiler.mainApp.find(sourceName);
   if (element == null) {
     element = compiler.interceptorsLibrary.find(sourceName);

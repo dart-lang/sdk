@@ -10,7 +10,7 @@ class MirrorRenamer {
   static const String MIRROR_HELPER_SYMBOLS_MAP_NAME = '_SYMBOLS';
 
   /// Maps mangled name to original name.
-  Map<String, SourceString> symbols = new Map<String, SourceString>();
+  Map<String, String> symbols = new Map<String, String>();
   /// Contains all occurrencs of MirrorSystem.getName() calls in the user code.
   List<Node> mirrorSystemGetNameNodes = <Node>[];
   /**
@@ -61,7 +61,7 @@ class MirrorRenamer {
     }
 
     // Add toplevel map containing all renames of members.
-    symbols = new Map<String, SourceString>();
+    symbols = new Map<String, String>();
     for (Set<Identifier> s in placeholderCollector.memberPlaceholders.values) {
       // All members in a set have the same name so we only need to look at one.
       Identifier sampleNode = s.first;
@@ -74,7 +74,7 @@ class MirrorRenamer {
     topLevelNodes.remove(mirrorHelperSymbolsMapNode);
 
     StringBuffer sb = new StringBuffer(
-        'const ${renames[symbolsMapIdentifier]} = const<String,SourceString>{');
+        'const ${renames[symbolsMapIdentifier]} = const<String,String>{');
     bool first = true;
     for (String mangledName in symbols.keys) {
       if (!first) {
@@ -83,10 +83,11 @@ class MirrorRenamer {
         first = false;
       }
       sb.write("'$mangledName' : '");
-      symbols[mangledName].printOn(sb);
+      sb.write(symbols[mangledName]);
       sb.write("'");
     }
     sb.write('};');
+    sb.writeCharCode(0); // Terminate the string with '0', see [StringScanner].
     topLevelNodes.add(parse(sb.toString()));
 
     // Replace calls to Mirrorsystem.getName with calls to helper function.

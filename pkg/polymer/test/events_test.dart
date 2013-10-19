@@ -9,7 +9,7 @@ import 'package:polymer/polymer.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

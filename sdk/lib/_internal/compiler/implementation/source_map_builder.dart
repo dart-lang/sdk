@@ -192,9 +192,9 @@ class SourceFileLocation {
   int getColumn() => sourceFile.getColumn(getLine(), token.charOffset);
 
   String getSourceName() {
-    if (token.isIdentifier()) return token.slowToString();
+    if (token.isIdentifier()) return token.value;
     return null;
   }
 
-  bool isValid() => token.charOffset < sourceFile.text.length;
+  bool isValid() => token.charOffset < sourceFile.length;
 }

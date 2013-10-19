@@ -642,6 +642,28 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.rightBracket);
     JUnitTestCase.assertNull(declaration.typeParameters);
   }
+  void test_parseClassDeclaration_typeAlias_implementsC() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A = Object with B implements C;");
+    JUnitTestCase.assertNotNull(typeAlias.keyword);
+    JUnitTestCase.assertNotNull(typeAlias.name);
+    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    JUnitTestCase.assertNotNull(typeAlias.withClause);
+    JUnitTestCase.assertNotNull(typeAlias.implementsClause);
+    JUnitTestCase.assertNotNull(typeAlias.implementsClause.keyword);
+    JUnitTestCase.assertEquals(1, typeAlias.implementsClause.interfaces.length);
+    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+  }
+  void test_parseClassDeclaration_typeAlias_withB() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A = Object with B;");
+    JUnitTestCase.assertNotNull(typeAlias.keyword);
+    JUnitTestCase.assertNotNull(typeAlias.name);
+    JUnitTestCase.assertNull(typeAlias.typeParameters);
+    JUnitTestCase.assertNotNull(typeAlias.withClause);
+    JUnitTestCase.assertNotNull(typeAlias.withClause.withKeyword);
+    JUnitTestCase.assertEquals(1, typeAlias.withClause.mixinTypes.length);
+    JUnitTestCase.assertNull(typeAlias.implementsClause);
+    JUnitTestCase.assertNotNull(typeAlias.semicolon);
+  }
   void test_parseClassDeclaration_typeParameters() {
     ClassDeclaration declaration = ParserTestCase.parse("parseClassDeclaration", <Object> [emptyCommentAndMetadata(), null], "class A<B> {}");
     JUnitTestCase.assertNull(declaration.documentationComment);
@@ -925,7 +947,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(constructor.body);
   }
   void test_parseClassTypeAlias() {
-    Token token = TokenFactory.token(Keyword.TYPEDEF);
+    Token token = TokenFactory.token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = B;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -937,7 +959,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
   }
   void test_parseClassTypeAlias_abstract() {
-    Token token = TokenFactory.token(Keyword.TYPEDEF);
+    Token token = TokenFactory.token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = abstract B;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -949,7 +971,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
   }
   void test_parseClassTypeAlias_implements() {
-    Token token = TokenFactory.token(Keyword.TYPEDEF);
+    Token token = TokenFactory.token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = B implements C;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -961,7 +983,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
   }
   void test_parseClassTypeAlias_with() {
-    Token token = TokenFactory.token(Keyword.TYPEDEF);
+    Token token = TokenFactory.token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = B with C;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -973,7 +995,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(classTypeAlias.semicolon);
   }
   void test_parseClassTypeAlias_with_implements() {
-    Token token = TokenFactory.token(Keyword.TYPEDEF);
+    Token token = TokenFactory.token(Keyword.CLASS);
     ClassTypeAlias classTypeAlias = ParserTestCase.parse("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = B with C implements D;");
     JUnitTestCase.assertNotNull(classTypeAlias.keyword);
     JUnitTestCase.assertEquals("A", classTypeAlias.name.name);
@@ -1333,8 +1355,8 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(declaration.functionExpression);
     JUnitTestCase.assertNotNull(declaration.propertyKeyword);
   }
-  void test_parseCompilationUnitMember_typedef_class_abstract() {
-    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef C = abstract S with M;");
+  void test_parseCompilationUnitMember_typeAlias_abstract() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C = abstract S with M;");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertEquals("C", typeAlias.name.name);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
@@ -1345,8 +1367,8 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(typeAlias.implementsClause);
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
   }
-  void test_parseCompilationUnitMember_typedef_class_generic() {
-    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef C<E> = S<E> with M<E> implements I<E>;");
+  void test_parseCompilationUnitMember_typeAlias_generic() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C<E> = S<E> with M<E> implements I<E>;");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertEquals("C", typeAlias.name.name);
     EngineTestCase.assertSize(1, typeAlias.typeParameters.typeParameters);
@@ -1357,8 +1379,8 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.implementsClause);
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
   }
-  void test_parseCompilationUnitMember_typedef_class_implements() {
-    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef C = S with M implements I;");
+  void test_parseCompilationUnitMember_typeAlias_implements() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C = S with M implements I;");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertEquals("C", typeAlias.name.name);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
@@ -1369,8 +1391,8 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(typeAlias.implementsClause);
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
   }
-  void test_parseCompilationUnitMember_typedef_class_noImplements() {
-    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef C = S with M;");
+  void test_parseCompilationUnitMember_typeAlias_noImplements() {
+    ClassTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "class C = S with M;");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
     JUnitTestCase.assertEquals("C", typeAlias.name.name);
     JUnitTestCase.assertNull(typeAlias.typeParameters);
@@ -1381,7 +1403,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(typeAlias.implementsClause);
     JUnitTestCase.assertNotNull(typeAlias.semicolon);
   }
-  void test_parseCompilationUnitMember_typedef_function() {
+  void test_parseCompilationUnitMember_typedef() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "typedef F();");
     JUnitTestCase.assertEquals("F", typeAlias.name.name);
     EngineTestCase.assertSize(0, typeAlias.parameters.parameters);
@@ -3350,28 +3372,6 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.finallyKeyword);
     JUnitTestCase.assertNotNull(statement.finallyBlock);
   }
-  void test_parseTypeAlias_class_implementsC() {
-    ClassTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A = Object with B implements C;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNotNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.implementsClause.keyword);
-    JUnitTestCase.assertEquals(1, typeAlias.implementsClause.interfaces.length);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-  }
-  void test_parseTypeAlias_class_withB() {
-    ClassTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef A = Object with B;");
-    JUnitTestCase.assertNotNull(typeAlias.keyword);
-    JUnitTestCase.assertNotNull(typeAlias.name);
-    JUnitTestCase.assertNull(typeAlias.typeParameters);
-    JUnitTestCase.assertNotNull(typeAlias.withClause);
-    JUnitTestCase.assertNotNull(typeAlias.withClause.withKeyword);
-    JUnitTestCase.assertEquals(1, typeAlias.withClause.mixinTypes.length);
-    JUnitTestCase.assertNull(typeAlias.implementsClause);
-    JUnitTestCase.assertNotNull(typeAlias.semicolon);
-  }
   void test_parseTypeAlias_function_noParameters() {
     FunctionTypeAlias typeAlias = ParserTestCase.parse("parseTypeAlias", <Object> [emptyCommentAndMetadata()], "typedef bool F();");
     JUnitTestCase.assertNotNull(typeAlias.keyword);
@@ -4365,6 +4365,14 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseClassDeclaration_nonEmpty);
       });
+      _ut.test('test_parseClassDeclaration_typeAlias_implementsC', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseClassDeclaration_typeAlias_implementsC);
+      });
+      _ut.test('test_parseClassDeclaration_typeAlias_withB', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseClassDeclaration_typeAlias_withB);
+      });
       _ut.test('test_parseClassDeclaration_typeParameters', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseClassDeclaration_typeParameters);
@@ -4645,25 +4653,25 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCompilationUnitMember_setter_type);
       });
-      _ut.test('test_parseCompilationUnitMember_typedef_class_abstract', () {
+      _ut.test('test_parseCompilationUnitMember_typeAlias_abstract', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typedef_class_abstract);
+        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typeAlias_abstract);
       });
-      _ut.test('test_parseCompilationUnitMember_typedef_class_generic', () {
+      _ut.test('test_parseCompilationUnitMember_typeAlias_generic', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typedef_class_generic);
+        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typeAlias_generic);
       });
-      _ut.test('test_parseCompilationUnitMember_typedef_class_implements', () {
+      _ut.test('test_parseCompilationUnitMember_typeAlias_implements', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typedef_class_implements);
+        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typeAlias_implements);
       });
-      _ut.test('test_parseCompilationUnitMember_typedef_class_noImplements', () {
+      _ut.test('test_parseCompilationUnitMember_typeAlias_noImplements', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typedef_class_noImplements);
+        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typeAlias_noImplements);
       });
-      _ut.test('test_parseCompilationUnitMember_typedef_function', () {
+      _ut.test('test_parseCompilationUnitMember_typedef', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typedef_function);
+        runJUnitTest(__test, __test.test_parseCompilationUnitMember_typedef);
       });
       _ut.test('test_parseCompilationUnitMember_variable', () {
         final __test = new SimpleParserTest();
@@ -5749,14 +5757,6 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseTryStatement_on_catch_finally);
       });
-      _ut.test('test_parseTypeAlias_class_implementsC', () {
-        final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_class_implementsC);
-      });
-      _ut.test('test_parseTypeAlias_class_withB', () {
-        final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseTypeAlias_class_withB);
-      });
       _ut.test('test_parseTypeAlias_function_noParameters', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseTypeAlias_function_noParameters);
@@ -6451,7 +6451,7 @@ class ComplexParserTest extends ParserTestCase {
  * Instances of the class `ASTValidator` are used to validate the correct construction of an
  * AST structure.
  */
-class ASTValidator extends GeneralizingASTVisitor<Object> {
+class ASTValidator extends UnifyingASTVisitor<Object> {
 
   /**
    * A list containing the errors found while traversing the AST structure.
@@ -6980,7 +6980,7 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(BinaryExpression, expression.leftOperand);
   }
   void test_classTypeAlias_withBody() {
-    ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "typedef B = Object with A {}"]), [ParserErrorCode.EXPECTED_TOKEN]);
+    ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B = Object with A {}"]), [ParserErrorCode.EXPECTED_TOKEN]);
   }
   void test_conditionalExpression_missingElse() {
     ConditionalExpression expression = ParserTestCase.parse5("parseConditionalExpression", "x ? y :", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -7599,6 +7599,12 @@ class RecoveryParserTest extends ParserTestCase {
  * that errors are correctly reported, and in some cases, not reported.
  */
 class ErrorParserTest extends ParserTestCase {
+  void fail_deprecatedClassTypeAlias() {
+    ParserTestCase.parseCompilationUnit("typedef C = abstract S with M;", [ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS]);
+  }
+  void fail_deprecatedClassTypeAlias_withGeneric() {
+    ParserTestCase.parseCompilationUnit("typedef C<T> = abstract S<T> with M;", [ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS]);
+  }
   void fail_expectedListOrMapLiteral() {
     TypedLiteral literal = ParserTestCase.parse4("parseListOrMapLiteral", <Object> [null], "1", [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
     JUnitTestCase.assertTrue(literal.isSynthetic);
@@ -7822,10 +7828,6 @@ class ErrorParserTest extends ParserTestCase {
   void test_expectedInterpolationIdentifier() {
     ParserTestCase.parse5("parseStringLiteral", "'\$x\$'", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
-  void test_expectedOneListTypeArguments_two() {
-    Expression expression = ParserTestCase.parse5("parsePrimaryExpression", "<int, int>[]", [ParserErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
-    EngineTestCase.assertInstanceOf(ListLiteral, expression);
-  }
   void test_expectedStringLiteral() {
     StringLiteral expression = ParserTestCase.parse5("parseStringLiteral", "1", [ParserErrorCode.EXPECTED_STRING_LITERAL]);
     JUnitTestCase.assertTrue(expression.isSynthetic);
@@ -7838,8 +7840,8 @@ class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_TOKEN,
         ParserErrorCode.MISSING_IDENTIFIER]);
   }
-  void test_expectedToken_semicolonAfterTypedef() {
-    Token token = TokenFactory.token(Keyword.TYPEDEF);
+  void test_expectedToken_semicolonAfterClass() {
+    Token token = TokenFactory.token(Keyword.CLASS);
     ParserTestCase.parse4("parseClassTypeAlias", <Object> [emptyCommentAndMetadata(), token], "A = B", [ParserErrorCode.EXPECTED_TOKEN]);
   }
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -7847,14 +7849,6 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_expectedToken_whileMissingInDoStatement() {
     ParserTestCase.parseStatement("do {} (x);", [ParserErrorCode.EXPECTED_TOKEN]);
-  }
-  void test_expectedTwoMapTypeArguments_one() {
-    Expression expression = ParserTestCase.parse5("parsePrimaryExpression", "<int>{}", [ParserErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
-    EngineTestCase.assertInstanceOf(MapLiteral, expression);
-  }
-  void test_expectedTwoMapTypeArguments_three() {
-    Expression expression = ParserTestCase.parse5("parsePrimaryExpression", "<int, int, int>{}", [ParserErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
-    EngineTestCase.assertInstanceOf(MapLiteral, expression);
   }
   void test_expectedTypeName_is() {
     ParserTestCase.parseExpression("x is", [ParserErrorCode.EXPECTED_TYPE_NAME]);
@@ -8635,10 +8629,6 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedInterpolationIdentifier);
       });
-      _ut.test('test_expectedOneListTypeArguments_two', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_expectedOneListTypeArguments_two);
-      });
       _ut.test('test_expectedStringLiteral', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedStringLiteral);
@@ -8651,9 +8641,9 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedToken_parseStatement_afterVoid);
       });
-      _ut.test('test_expectedToken_semicolonAfterTypedef', () {
+      _ut.test('test_expectedToken_semicolonAfterClass', () {
         final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_expectedToken_semicolonAfterTypedef);
+        runJUnitTest(__test, __test.test_expectedToken_semicolonAfterClass);
       });
       _ut.test('test_expectedToken_semicolonMissingAfterExpression', () {
         final __test = new ErrorParserTest();
@@ -8662,14 +8652,6 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_expectedToken_whileMissingInDoStatement', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedToken_whileMissingInDoStatement);
-      });
-      _ut.test('test_expectedTwoMapTypeArguments_one', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_expectedTwoMapTypeArguments_one);
-      });
-      _ut.test('test_expectedTwoMapTypeArguments_three', () {
-        final __test = new ErrorParserTest();
-        runJUnitTest(__test, __test.test_expectedTwoMapTypeArguments_three);
       });
       _ut.test('test_expectedTypeName_is', () {
         final __test = new ErrorParserTest();

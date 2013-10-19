@@ -9,17 +9,17 @@ part of universe;
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
   final Compiler compiler;
-  final Map<SourceString, FunctionSetNode> nodes =
-      new Map<SourceString, FunctionSetNode>();
+  final Map<String, FunctionSetNode> nodes =
+      new Map<String, FunctionSetNode>();
   FunctionSet(this.compiler);
 
-  FunctionSetNode newNode(SourceString name)
+  FunctionSetNode newNode(String name)
       => new FunctionSetNode(name);
 
   void add(Element element) {
     assert(element.isInstanceMember());
     assert(!element.isAbstract(compiler));
-    SourceString name = element.name;
+    String name = element.name;
     FunctionSetNode node = nodes.putIfAbsent(name, () => newNode(name));
     node.add(element);
   }
@@ -27,7 +27,7 @@ class FunctionSet {
   void remove(Element element) {
     assert(element.isInstanceMember());
     assert(!element.isAbstract(compiler));
-    SourceString name = element.name;
+    String name = element.name;
     FunctionSetNode node = nodes[name];
     if (node != null) {
       node.remove(element);
@@ -37,7 +37,7 @@ class FunctionSet {
   bool contains(Element element) {
     assert(element.isInstanceMember());
     assert(!element.isAbstract(compiler));
-    SourceString name = element.name;
+    String name = element.name;
     FunctionSetNode node = nodes[name];
     return (node != null)
         ? node.contains(element)
@@ -57,7 +57,7 @@ class FunctionSet {
   }
 
   FunctionSetQuery query(Selector selector) {
-    SourceString name = selector.name;
+    String name = selector.name;
     FunctionSetNode node = nodes[name];
     FunctionSetNode noSuchMethods = nodes[Compiler.NO_SUCH_METHOD];
     if (node != null) {
@@ -74,7 +74,7 @@ class FunctionSet {
   }
 
   void forEach(Function action) {
-    nodes.forEach((SourceString name, FunctionSetNode node) {
+    nodes.forEach((String name, FunctionSetNode node) {
       node.forEach(action);
     });
   }
@@ -82,7 +82,7 @@ class FunctionSet {
 
 
 class FunctionSetNode {
-  final SourceString name;
+  final String name;
   final Map<Selector, FunctionSetQuery> cache =
       new Map<Selector, FunctionSetQuery>();
 
@@ -155,14 +155,14 @@ class FunctionSetNode {
     assert(selector.name == name);
     FunctionSetQuery result = cache[selector];
     if (result != null) return result;
-    Set<Element> functions;
+    Setlet<Element> functions;
     for (Element element in elements) {
       if (selector.appliesUnnamed(element, compiler)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
           // lists when the filtering produced no results.
-          functions = new Set<Element>();
+          functions = new Setlet<Element>();
         }
         functions.add(element);
       }
@@ -180,7 +180,7 @@ class FunctionSetNode {
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
-          functions = new Set<Element>.from(noSuchMethodQuery.functions);
+          functions = new Setlet<Element>.from(noSuchMethodQuery.functions);
         } else {
           functions.addAll(noSuchMethodQuery.functions);
         }

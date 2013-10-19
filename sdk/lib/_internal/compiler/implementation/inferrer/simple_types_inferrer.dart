@@ -10,7 +10,7 @@ import '../dart_types.dart'
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
-import '../util/util.dart' show Link, Spannable;
+import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
          ElementTypeMask, TypeSystem, MinimalInferrerEngine;
@@ -33,7 +33,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
                       DartType annotation,
                       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
-    if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
     if (annotation.kind == TypeKind.TYPEDEF
@@ -42,6 +41,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Narrow to bound.
       return type;
+    } else if (annotation.isVoid) {
+      otherType = nullType;
     } else {
       assert(annotation.kind == TypeKind.INTERFACE);
       otherType = new TypeMask.nonNullSubtype(annotation.element);
@@ -379,7 +380,7 @@ class SimpleTypeInferrerVisitor<T>
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
   final InferrerEngine<T, TypeSystem<T>> inferrer;
-  final Set<Element> capturedVariables = new Set<Element>();
+  final Setlet<Element> capturedVariables = new Setlet<Element>();
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
                                      this.outermostElement,
@@ -618,7 +619,7 @@ class SimpleTypeInferrerVisitor<T>
         elements.getOperatorSelectorInComplexSendSet(node);
     Selector setterSelector = elements.getSelector(node);
 
-    String op = node.assignmentOperator.source.stringValue;
+    String op = node.assignmentOperator.source;
     bool isIncrementOrDecrement = op == '++' || op == '--';
 
     T receiverType;
@@ -858,17 +859,17 @@ class SimpleTypeInferrerVisitor<T>
   T handleForeignSend(Send node) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    SourceString name = selector.name;
+    String name = selector.name;
     handleStaticSend(node, selector, elements[node], arguments);
-    if (name == const SourceString('JS')) {
+    if (name == 'JS') {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
-               || name == const SourceString('JS_OPERATOR_AS_PREFIX')
-               || name == const SourceString('JS_OBJECT_CLASS_NAME')
-               || name == const SourceString('JS_NULL_CLASS_NAME')) {
+    } else if (name == 'JS_OPERATOR_IS_PREFIX'
+               || name == 'JS_OPERATOR_AS_PREFIX'
+               || name == 'JS_OBJECT_CLASS_NAME'
+               || name == 'JS_NULL_CLASS_NAME') {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();
@@ -878,11 +879,12 @@ class SimpleTypeInferrerVisitor<T>
 
   ArgumentsTypes analyzeArguments(Link<Node> arguments) {
     List<T> positional = [];
-    Map<SourceString, T> named = new Map<SourceString, T>();
+    Map<String, T> named;
     for (var argument in arguments) {
       NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
         argument = namedArgument.expression;
+        if (named == null) named = new Map<String, T>();
         named[namedArgument.name.source] = argument.accept(this);
       } else {
         positional.add(argument.accept(this));
@@ -999,8 +1001,8 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments = node.isPropertyAccess
         ? null
         : analyzeArguments(node.arguments);
-    if (selector.name == const SourceString('==')
-        || selector.name == const SourceString('!=')) {
+    if (selector.name == '=='
+        || selector.name == '!=') {
       if (types.isNull(receiverType)) {
         potentiallyAddNullCheck(node, node.arguments.head);
         return types.boolType;
@@ -1026,18 +1028,23 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     List<T> unnamed = <T>[];
-    Map<SourceString, T> named = new Map<SourceString, T>();
     signature.forEachRequiredParameter((Element element) {
       assert(locals.use(element) != null);
       unnamed.add(locals.use(element));
     });
-    signature.forEachOptionalParameter((Element element) {
-      if (signature.optionalParametersAreNamed) {
+
+    Map<String, T> named;
+    if (signature.optionalParametersAreNamed) {
+      named = new Map<String, T>();
+      signature.forEachOptionalParameter((Element element) {
         named[element.name] = locals.use(element);
-      } else {
+      });
+    } else {
+      signature.forEachOptionalParameter((Element element) {
         unnamed.add(locals.use(element));
-      }
-    });
+      });
+    }
+
     ArgumentsTypes arguments = new ArgumentsTypes<T>(unnamed, named);
     return inferrer.registerCalledElement(node,
                                           null,

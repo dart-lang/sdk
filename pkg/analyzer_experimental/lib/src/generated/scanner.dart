@@ -427,6 +427,11 @@ abstract class AbstractScanner {
   List<BeginToken> _groupingStack = new List<BeginToken>();
 
   /**
+   * The index of the last item in the [groupingStack], or `-1` if the stack is empty.
+   */
+  int _stackEnd = -1;
+
+  /**
    * A flag indicating whether any unmatched groups were found during the parse.
    */
   bool _hasUnmatchedGroups2 = false;
@@ -535,6 +540,7 @@ abstract class AbstractScanner {
     }
     _tail = _tail.setNext(token);
     _groupingStack.add(token);
+    _stackEnd++;
   }
   void appendCommentToken(TokenType type, String value) {
     if (_firstComment == null) {
@@ -554,12 +560,11 @@ abstract class AbstractScanner {
       _lastComment = null;
     }
     _tail = _tail.setNext(token);
-    int last = _groupingStack.length - 1;
-    if (last >= 0) {
-      BeginToken begin = _groupingStack[last];
+    if (_stackEnd >= 0) {
+      BeginToken begin = _groupingStack[_stackEnd];
       if (identical(begin.type, beginType)) {
         begin.endToken = token;
-        _groupingStack.removeAt(last);
+        _groupingStack.removeAt(_stackEnd--);
       }
     }
   }
@@ -574,7 +579,7 @@ abstract class AbstractScanner {
     }
     eofToken.setNext(eofToken);
     _tail = _tail.setNext(eofToken);
-    if (!_groupingStack.isEmpty) {
+    if (_stackEnd >= 0) {
       _hasUnmatchedGroups2 = true;
     }
   }
@@ -775,15 +780,13 @@ abstract class AbstractScanner {
    * @return the token to be paired with the closing brace
    */
   BeginToken findTokenMatchingClosingBraceInInterpolationExpression() {
-    int last = _groupingStack.length - 1;
-    while (last >= 0) {
-      BeginToken begin = _groupingStack[last];
+    while (_stackEnd >= 0) {
+      BeginToken begin = _groupingStack[_stackEnd];
       if (identical(begin.type, TokenType.OPEN_CURLY_BRACKET) || identical(begin.type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         return begin;
       }
       _hasUnmatchedGroups2 = true;
-      _groupingStack.removeAt(last);
-      last--;
+      _groupingStack.removeAt(_stackEnd--);
     }
     return null;
   }

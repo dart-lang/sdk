@@ -4,18 +4,17 @@
 
 import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/scanner/scanner_implementation.dart';
 
 Token scan(String text) =>
-    new StringScanner(text, includeComments: true).tokenize();
+    new StringScanner.fromString(text, includeComments: true).tokenize();
 
 check(String text) {
   Token token = scan(text);
   while (token.kind != EOF_TOKEN) {
-    Expect.equals(token.slowToString().length, token.slowCharCount);
+    Expect.equals(token.value.length, token.charCount);
 
     var start = token.charOffset;
-    var end = token.charOffset + token.slowCharCount;
+    var end = token.charOffset + token.charCount;
 
     Expect.isTrue(start < text.length,
         'start=$start < text.length=${text.length}: $text');
@@ -27,8 +26,8 @@ check(String text) {
 
     var substring = text.substring(start, end);
 
-    Expect.stringEquals(token.slowToString(), substring,
-        'token.slowToString()=${token.slowToString()} == '
+    Expect.stringEquals(token.value, substring,
+        'token.value=${token.value} == '
         'text.substring(start,end)=${substring}: $text');
 
     print('$text: [$start,$end]:$token');

@@ -90,7 +90,7 @@ class PolymerExpressions extends BindingDelegate {
   }
 }
 
-class _Binding extends ChangeNotifierBase {
+class _Binding extends ChangeNotifier {
   final Scope _scope;
   final ExpressionObserver _expr;
   final _converter;
@@ -133,7 +133,7 @@ class _Binding extends ChangeNotifierBase {
     try {
       assign(_expr, v, _scope);
     } on EvalException catch (e) {
-      // silently swallow binding errors
+      _logger.warning("Error evaluating expression '$_expr': ${e.message}");
     }
   }
 }

@@ -7,7 +7,7 @@ part of scanner;
 /**
  * A keyword in the Dart programming language.
  */
-class Keyword extends IterableBase<int> implements SourceString {
+class Keyword {
   static const List<Keyword> values = const <Keyword> [
       const Keyword("assert"),
       const Keyword("break"),
@@ -81,10 +81,10 @@ class Keyword extends IterableBase<int> implements SourceString {
     return _keywords;
   }
 
-  const Keyword(String this.syntax,
-                {bool this.isPseudo: false,
-                 bool this.isBuiltIn: false,
-                 PrecedenceInfo this.info: KEYWORD_INFO});
+  const Keyword(this.syntax,
+                {this.isPseudo: false,
+                 this.isBuiltIn: false,
+                 this.info: KEYWORD_INFO});
 
   static Map<String, Keyword> computeKeywordMap() {
     Map<String, Keyword> result = new Map<String, Keyword>();
@@ -94,29 +94,7 @@ class Keyword extends IterableBase<int> implements SourceString {
     return result;
   }
 
-  int get hashCode => syntax.hashCode;
-
-  bool operator ==(other) {
-    return other is SourceString && toString() == other.slowToString();
-  }
-
-  Iterator<int> get iterator => new StringCodeIterator(syntax);
-
-  void printOn(StringBuffer sb) {
-    sb.write(syntax);
-  }
-
   String toString() => syntax;
-  String slowToString() => syntax;
-  String get stringValue => syntax;
-
-  SourceString copyWithoutQuotes(int initial, int terminal) {
-    // TODO(lrn): consider remodelling to avoid having this method in keywords.
-    return this;
-  }
-
-  bool get isEmpty => false;
-  bool isPrivate() => false;
 }
 
 /**

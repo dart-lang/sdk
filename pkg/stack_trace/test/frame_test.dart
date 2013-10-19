@@ -202,6 +202,18 @@ void main() {
       expect(frame.member, equals("foo.<fn>"));
     });
 
+    test('parses a deeply-nested anonymous stack frame with parameters '
+        'correctly', () {
+      var frame = new Frame.parseFirefox(
+          '.convertDartClosureToJS/\$function</<@'
+          'http://pub.dartlang.org/stuff.dart.js:560');
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals("convertDartClosureToJS.<fn>.<fn>"));
+    });
+
     test('throws a FormatException for malformed frames', () {
       expect(() => new Frame.parseFirefox(''), throwsFormatException);
       expect(() => new Frame.parseFirefox('.foo'), throwsFormatException);
@@ -229,6 +241,15 @@ void main() {
           "http://dartlang.org/foo/bar.dart  Foo.<fn>.bar");
       expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
       expect(frame.line, isNull);
+      expect(frame.column, isNull);
+      expect(frame.member, equals('Foo.<fn>.bar'));
+    });
+
+    test('parses a stack frame with no line correctly', () {
+      var frame = new Frame.parseFriendly(
+          "http://dartlang.org/foo/bar.dart 10  Foo.<fn>.bar");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
       expect(frame.column, isNull);
       expect(frame.member, equals('Foo.<fn>.bar'));
     });
@@ -320,6 +341,11 @@ void main() {
       expect(new Frame.parseVM('#0 Foo.<anonymous closure> '
               '(dart:core/uri.dart:5:10)').toString(),
           equals('dart:core/uri.dart 5:10 in Foo.<fn>'));
+    });
+
+    test('prints a frame without a column correctly', () {
+      expect(new Frame.parseVM('#0 Foo (dart:core/uri.dart:5)').toString(),
+          equals('dart:core/uri.dart 5 in Foo'));
     });
   });
 }

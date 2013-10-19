@@ -27,7 +27,8 @@ import 'dart:_js_helper' show
     getMangledTypeName,
     throwInvalidReflectionError,
     hasReflectableProperty,
-    runtimeTypeToString;
+    runtimeTypeToString,
+    TypeVariable;
 import 'dart:_interceptors' show
     Interceptor,
     JSExtendableArray;
@@ -181,11 +182,13 @@ abstract class JsDeclarationMirror extends JsMirror
 }
 
 class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
-  final TypeMirror upperBound;
   final DeclarationMirror owner;
+  final TypeVariable _typeVariable;
+  TypeMirror _cachedUpperBound;
 
-  JsTypeVariableMirror(Symbol simpleName, this.upperBound, this.owner)
-      : super(simpleName);
+  JsTypeVariableMirror(TypeVariable typeVariable, this.owner)
+      : this._typeVariable = typeVariable,
+        super(s(typeVariable.name));
 
   bool operator ==(other) {
     return (other is JsTypeVariableMirror &&
@@ -201,6 +204,12 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   }
 
   String get _prettyName => 'TypeVariableMirror';
+
+  TypeMirror get upperBound {
+    if (_cachedUpperBound != null) return _cachedUpperBound;
+    return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
+        JS('', 'init.metadata[#]', _typeVariable.bound));
+  }
 }
 
 class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
@@ -451,11 +460,11 @@ InstanceMirror reflect(Object reflectee) {
   }
 }
 
-ClassMirror reflectType(Type key) {
+TypeMirror reflectType(Type key) {
   return reflectClassByMangledName(getMangledTypeName(key));
 }
 
-ClassMirror reflectClassByMangledName(String mangledName) {
+TypeMirror reflectClassByMangledName(String mangledName) {
   String unmangledName = mangledGlobalNames[mangledName];
   if (unmangledName == null) unmangledName = mangledName;
   return reflectClassByName(s(unmangledName), mangledName);
@@ -463,7 +472,7 @@ ClassMirror reflectClassByMangledName(String mangledName) {
 
 var classMirrors;
 
-ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
+TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   if (classMirrors == null) classMirrors = JsCache.allocate();
   var mirror = JsCache.fetch(classMirrors, mangledName);
   if (mirror != null) return mirror;
@@ -827,6 +836,7 @@ class JsTypeBoundClassMirror implements ClassMirror {
   List<TypeMirror> get typeArguments {
     if (_typeArgs is! String) return _typeArgs;
     List result = new List();
+
     if (_typeArgs.indexOf('<') == -1) {
       for (String s in _typeArgs.split(',')) {
         result.add(reflectClassByMangledName(s.trim()));
@@ -1320,13 +1330,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
    List typeVars =
         JS('JSExtendableArray|Null', '#.prototype["<>"]', _jsConstructor);
     if (typeVars == null) return result;
-    for (int i = 0; i < typeVars.length; i += 2) {
-      TypeMirror upperBound =
-         typeMirrorFromRuntimeTypeRepresentation(JS('', 'init.metadata[#]',
-                                                    typeVars[i+1]));
-      var typeMirror =
-          new JsTypeVariableMirror(s(typeVars[i]), upperBound, this);
-      result.add(typeMirror);
+    for (int i = 0; i < typeVars.length; i++) {
+      TypeVariable typeVariable = JS('', 'init.metadata[#]', typeVars[i]);
+      result.add(new JsTypeVariableMirror(typeVariable, this));
     }
     return _cachedTypeVariables = new UnmodifiableListView(result);
   }
@@ -1701,10 +1707,6 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
   JsFunctionTypeMirror get value => referent;
 
   String get _prettyName => 'TypedefMirror';
-
-  // TODO(zarah): This method doesn't belong here, since TypedefMirror shouldn't
-  // be a subtype of ClassMirror.
-  ClassMirror get originalDeclaration => this;
 }
 
 class JsFunctionTypeMirror implements FunctionTypeMirror {

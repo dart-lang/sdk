@@ -48,7 +48,7 @@ void main() {
 
 Element findInExports(LibraryElement library, String name) {
   for (var export in library.exports) {
-    if (export.name.slowToString() == name) {
+    if (export.name == name) {
       return export;
     }
   }

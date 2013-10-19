@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import '../../../compiler/compiler.dart' as compiler;
 import '../../../compiler/implementation/source_file_provider.dart'
-    show FormattingDiagnosticHandler, SourceFileProvider;
+    show FormattingDiagnosticHandler, CompilerSourceFileProvider;
 import '../../../compiler/implementation/filenames.dart'
     show appendSlash;
 
@@ -47,7 +47,7 @@ Future<String> compile(String entrypoint, {String packageRoot,
     }
 
     if (inputProvider == null) {
-      var provider = new SourceFileProvider();
+      var provider = new CompilerSourceFileProvider();
       inputProvider = provider.readStringFromUri;
       diagnosticHandler = new FormattingDiagnosticHandler(provider)
           .diagnosticHandler;

@@ -1,7 +1,6 @@
 library java.core;
 
 import "dart:math" as math;
-import "dart:collection" show ListBase;
 
 class JavaSystem {
   static int currentTimeMillis() {
@@ -164,6 +163,7 @@ class JavaString {
     return fmt.replaceAllMapped(new RegExp(r'%(.)'), (match) {
       switch (match.group(1)) {
         case '%': return '%';
+        case 'd':
         case 's':
           if (index >= args.length) {
             throw new MissingFormatArgumentException(match.group(0));
@@ -329,110 +329,6 @@ class MissingFormatArgumentException implements Exception {
   MissingFormatArgumentException(this.s);
 }
 
-class ListWrapper<E> extends ListBase<E> implements List<E> {
-  List<E> elements = new List<E>();
-
-  Iterator<E> get iterator {
-    return elements.iterator;
-  }
-
-  E operator [](int index) {
-    return elements[index];
-  }
-
-  void operator []=(int index, E value) {
-    elements[index] = value;
-  }
-
-  void set length(int newLength) {
-    elements.length = newLength;
-  }
-
-  int get length => elements.length;
-
-  void add(E value) {
-    elements.add(value);
-  }
-
-  void addLast(E value) {
-    elements.add(value);
-  }
-
-  void addAll(Iterable<E> iterable) {
-    elements.addAll(iterable);
-  }
-
-  void setAll(int index, Iterable<E> iterable) {
-    elements.setAll(index, iterable);
-  }
-
-  void sort([int compare(E a, E b)]) {
-    elements.sort(compare);
-  }
-
-  void shuffle([math.Random random]) {
-    elements.shuffle(random);
-  }
-
-  int indexOf(E element, [int start = 0]) {
-    return elements.indexOf(element, start);
-  }
-
-  void insert(int index, E element) {
-    elements.insert(index, element);
-  }
-
-  void insertAll(int index, Iterable<E> iterable) {
-    elements.insertAll(index, iterable);
-  }
-
-  int lastIndexOf(E element, [int start]) {
-    return elements.lastIndexOf(element, start);
-  }
-
-  void clear() {
-    elements.clear();
-  }
-
-  bool remove(Object element) {
-    return elements.remove(element);
-  }
-
-  E removeAt(int index) {
-    return elements.removeAt(index);
-  }
-
-  E removeLast() {
-    return elements.removeLast();
-  }
-
-  Iterable<E> get reversed => elements.reversed;
-
-  List<E> sublist(int start, [int end]) => elements.sublist(start, end);
-
-  List<E> getRange(int start, int length) => sublist(start, start + length);
-
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    elements.setRange(start, end, iterable, skipCount);
-  }
-
-  void removeRange(int start, int end) {
-    elements.removeRange(start, end);
-  }
-
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    elements.replaceRange(start, end, iterable);
-  }
-
-  void fillRange(int start, int end, [E fillValue]) {
-    elements.fillRange(start, end, fillValue);
-  }
-
-  Map<int, E> asMap() {
-    return elements.asMap();
-  }
-}
-
 class JavaIterator<E> {
   Iterable<E> _iterable;
   List<E> _elements = new List<E>();
@@ -490,6 +386,12 @@ Iterable<MapEntry> getMapEntrySet(Map m) {
     result.add(new MapEntry(m, k, v));
   });
   return result;
+}
+
+javaListSet(List list, int index, newValue) {
+  var oldValue = list[index];
+  list[index] = newValue;
+  return oldValue;
 }
 
 bool javaSetAdd(Set s, o) {

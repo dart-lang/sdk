@@ -254,7 +254,7 @@ class ASTFactory {
   static CatchClause catchClause4(TypeName exceptionType, String exceptionParameter, List<Statement> statements) => catchClause5(exceptionType, exceptionParameter, null, statements);
   static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause.full(exceptionType == null ? null : TokenFactory.token4(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.token(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.token3(TokenType.OPEN_PAREN), identifier3(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.token3(TokenType.COMMA), stackTraceParameter == null ? null : identifier3(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.token3(TokenType.CLOSE_PAREN), block(statements));
   static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, List<ClassMember> members) => new ClassDeclaration.full(null, null, abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), TokenFactory.token(Keyword.CLASS), identifier3(name), typeParameters, extendsClause, withClause, implementsClause, TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
-  static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters, Keyword abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause) => new ClassTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), identifier3(name), typeParameters, TokenFactory.token3(TokenType.EQ), abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), superclass, withClause, implementsClause, TokenFactory.token3(TokenType.SEMICOLON));
+  static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters, Keyword abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause) => new ClassTypeAlias.full(null, null, TokenFactory.token(Keyword.CLASS), identifier3(name), typeParameters, TokenFactory.token3(TokenType.EQ), abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), superclass, withClause, implementsClause, TokenFactory.token3(TokenType.SEMICOLON));
   static CompilationUnit compilationUnit() => compilationUnit8(null, null, null);
   static CompilationUnit compilationUnit2(List<CompilationUnitMember> declarations) => compilationUnit8(null, null, list(declarations));
   static CompilationUnit compilationUnit3(List<Directive> directives) => compilationUnit8(null, list(directives), null);
@@ -799,6 +799,270 @@ class BreadthFirstVisitor_17 extends BreadthFirstVisitor<Object> {
   Object visitNode(ASTNode node) {
     nodes.add(node);
     return super.visitNode(node);
+  }
+}
+class NodeListTest extends EngineTestCase {
+  void test_add() {
+    ASTNode parent = ASTFactory.argumentList([]);
+    ASTNode firstNode = ASTFactory.booleanLiteral(true);
+    ASTNode secondNode = ASTFactory.booleanLiteral(false);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(parent);
+    list.insert(0, secondNode);
+    list.insert(0, firstNode);
+    EngineTestCase.assertSize(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    ASTNode thirdNode = ASTFactory.booleanLiteral(false);
+    list.insert(1, thirdNode);
+    EngineTestCase.assertSize(3, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(thirdNode, list[1]);
+    JUnitTestCase.assertSame(secondNode, list[2]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    JUnitTestCase.assertSame(parent, thirdNode.parent);
+  }
+  void test_add_negative() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      list.insert(-1, ASTFactory.booleanLiteral(true));
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_add_tooBig() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      list.insert(1, ASTFactory.booleanLiteral(true));
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_addAll() {
+    ASTNode parent = ASTFactory.argumentList([]);
+    List<ASTNode> firstNodes = new List<ASTNode>();
+    ASTNode firstNode = ASTFactory.booleanLiteral(true);
+    ASTNode secondNode = ASTFactory.booleanLiteral(false);
+    firstNodes.add(firstNode);
+    firstNodes.add(secondNode);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(parent);
+    list.addAll(firstNodes);
+    EngineTestCase.assertSize(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    List<ASTNode> secondNodes = new List<ASTNode>();
+    ASTNode thirdNode = ASTFactory.booleanLiteral(true);
+    ASTNode fourthNode = ASTFactory.booleanLiteral(false);
+    secondNodes.add(thirdNode);
+    secondNodes.add(fourthNode);
+    list.addAll(secondNodes);
+    EngineTestCase.assertSize(4, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(secondNode, list[1]);
+    JUnitTestCase.assertSame(thirdNode, list[2]);
+    JUnitTestCase.assertSame(fourthNode, list[3]);
+    JUnitTestCase.assertSame(parent, firstNode.parent);
+    JUnitTestCase.assertSame(parent, secondNode.parent);
+    JUnitTestCase.assertSame(parent, thirdNode.parent);
+    JUnitTestCase.assertSame(parent, fourthNode.parent);
+  }
+  void test_create() {
+    ASTNode owner = ASTFactory.argumentList([]);
+    NodeList<ASTNode> list = NodeList.create(owner);
+    JUnitTestCase.assertNotNull(list);
+    EngineTestCase.assertSize(0, list);
+    JUnitTestCase.assertSame(owner, list.owner);
+  }
+  void test_creation() {
+    ASTNode owner = ASTFactory.argumentList([]);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(owner);
+    JUnitTestCase.assertNotNull(list);
+    EngineTestCase.assertSize(0, list);
+    JUnitTestCase.assertSame(owner, list.owner);
+  }
+  void test_get_negative() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      list[-1];
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_get_tooBig() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      list[1];
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_getBeginToken_empty() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    JUnitTestCase.assertNull(list.beginToken);
+  }
+  void test_getBeginToken_nonEmpty() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    ASTNode node = ASTFactory.parenthesizedExpression(ASTFactory.booleanLiteral(true));
+    list.add(node);
+    JUnitTestCase.assertSame(node.beginToken, list.beginToken);
+  }
+  void test_getEndToken_empty() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    JUnitTestCase.assertNull(list.endToken);
+  }
+  void test_getEndToken_nonEmpty() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    ASTNode node = ASTFactory.parenthesizedExpression(ASTFactory.booleanLiteral(true));
+    list.add(node);
+    JUnitTestCase.assertSame(node.endToken, list.endToken);
+  }
+  void test_remove() {
+    List<ASTNode> nodes = new List<ASTNode>();
+    ASTNode firstNode = ASTFactory.booleanLiteral(true);
+    ASTNode secondNode = ASTFactory.booleanLiteral(false);
+    ASTNode thirdNode = ASTFactory.booleanLiteral(true);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSize(3, list);
+    JUnitTestCase.assertSame(secondNode, list.removeAt(1));
+    EngineTestCase.assertSize(2, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(thirdNode, list[1]);
+  }
+  void test_remove_negative() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      list.removeAt(-1);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_remove_tooBig() {
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      list.removeAt(1);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_set() {
+    List<ASTNode> nodes = new List<ASTNode>();
+    ASTNode firstNode = ASTFactory.booleanLiteral(true);
+    ASTNode secondNode = ASTFactory.booleanLiteral(false);
+    ASTNode thirdNode = ASTFactory.booleanLiteral(true);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSize(3, list);
+    ASTNode fourthNode = ASTFactory.integer(0);
+    JUnitTestCase.assertSame(secondNode, javaListSet(list, 1, fourthNode));
+    EngineTestCase.assertSize(3, list);
+    JUnitTestCase.assertSame(firstNode, list[0]);
+    JUnitTestCase.assertSame(fourthNode, list[1]);
+    JUnitTestCase.assertSame(thirdNode, list[2]);
+  }
+  void test_set_negative() {
+    ASTNode node = ASTFactory.booleanLiteral(true);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      javaListSet(list, -1, node);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  void test_set_tooBig() {
+    ASTNode node = ASTFactory.booleanLiteral(true);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    try {
+      javaListSet(list, 1, node);
+      JUnitTestCase.fail("Expected IndexOutOfBoundsException");
+    } on RangeError catch (exception) {
+    }
+  }
+  static dartSuite() {
+    _ut.group('NodeListTest', () {
+      _ut.test('test_add', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add);
+      });
+      _ut.test('test_addAll', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_addAll);
+      });
+      _ut.test('test_add_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add_negative);
+      });
+      _ut.test('test_add_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_add_tooBig);
+      });
+      _ut.test('test_create', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_create);
+      });
+      _ut.test('test_creation', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getBeginToken_empty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getBeginToken_empty);
+      });
+      _ut.test('test_getBeginToken_nonEmpty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getBeginToken_nonEmpty);
+      });
+      _ut.test('test_getEndToken_empty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getEndToken_empty);
+      });
+      _ut.test('test_getEndToken_nonEmpty', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_getEndToken_nonEmpty);
+      });
+      _ut.test('test_get_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_get_negative);
+      });
+      _ut.test('test_get_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_get_tooBig);
+      });
+      _ut.test('test_remove', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove);
+      });
+      _ut.test('test_remove_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove_negative);
+      });
+      _ut.test('test_remove_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_remove_tooBig);
+      });
+      _ut.test('test_set', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set);
+      });
+      _ut.test('test_set_negative', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set_negative);
+      });
+      _ut.test('test_set_tooBig', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_set_tooBig);
+      });
+    });
   }
 }
 class ConstantEvaluatorTest extends ParserTestCase {
@@ -1384,28 +1648,28 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("class C {var a;}", ASTFactory.classDeclaration(null, "C", null, null, null, null, [ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("a")])]));
   }
   void test_visitClassTypeAlias_abstract() {
-    assertSource("typedef C = abstract S with M1;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
+    assertSource("class C = abstract S with M1;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
   void test_visitClassTypeAlias_abstract_implements() {
-    assertSource("typedef C = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
+    assertSource("class C = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitClassTypeAlias_generic() {
-    assertSource("typedef C<E> = S<E> with M1<E>;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName4("S", [ASTFactory.typeName4("E", [])]), ASTFactory.withClause([ASTFactory.typeName4("M1", [ASTFactory.typeName4("E", [])])]), null));
+    assertSource("class C<E> = S<E> with M1<E>;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName4("S", [ASTFactory.typeName4("E", [])]), ASTFactory.withClause([ASTFactory.typeName4("M1", [ASTFactory.typeName4("E", [])])]), null));
   }
   void test_visitClassTypeAlias_implements() {
-    assertSource("typedef C = S with M1 implements I;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
+    assertSource("class C = S with M1 implements I;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitClassTypeAlias_minimal() {
-    assertSource("typedef C = S with M1;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
+    assertSource("class C = S with M1;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
   void test_visitClassTypeAlias_parameters_abstract() {
-    assertSource("typedef C<E> = abstract S with M1;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
+    assertSource("class C<E> = abstract S with M1;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
   void test_visitClassTypeAlias_parameters_abstract_implements() {
-    assertSource("typedef C<E> = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
+    assertSource("class C<E> = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitClassTypeAlias_parameters_implements() {
-    assertSource("typedef C<E> = S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
+    assertSource("class C<E> = S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitComment() {
     assertSource("", Comment.createBlockComment(<Token> [TokenFactory.token2("/* comment */")]));
@@ -3101,6 +3365,7 @@ main() {
   ToSourceVisitorTest.dartSuite();
   BreadthFirstVisitorTest.dartSuite();
   IndexExpressionTest.dartSuite();
+  NodeListTest.dartSuite();
   SimpleIdentifierTest.dartSuite();
   VariableDeclarationTest.dartSuite();
 }

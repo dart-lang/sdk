@@ -7,7 +7,6 @@ library type_test_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import "parser_helper.dart" show SourceString;
 import "compiler_helper.dart";
 
 GenericType instantiate(TypeDeclarationElement element,
@@ -60,7 +59,7 @@ class TypeEnvironment {
   }
 
   DartType getMemberType(ClassElement element, String name) {
-    Element member = element.localLookup(sourceString(name));
+    Element member = element.localLookup(name);
     return member.computeType(compiler);
   }
 
@@ -72,8 +71,6 @@ class TypeEnvironment {
     return compiler.types.isMoreSpecific(T, S);
   }
 
-  SourceString sourceString(String name) => new SourceString(name);
-
   FunctionType functionType(DartType returnType,
                             List<DartType> parameters,
                             {List<DartType> optionalParameter,
@@ -83,11 +80,11 @@ class TypeEnvironment {
     Link<DartType> optionalParameterTypes = optionalParameter != null
         ? new Link<DartType>.fromList(optionalParameter)
         : const Link<DartType>();
-    var namedParameterNames = new LinkBuilder<SourceString>();
+    var namedParameterNames = new LinkBuilder<String>();
     var namedParameterTypes = new LinkBuilder<DartType>();
     if (namedParameters != null) {
       namedParameters.forEach((String name, DartType type) {
-        namedParameterNames.addLast(sourceString(name));
+        namedParameterNames.addLast(name);
         namedParameterTypes.addLast(type);
       });
     }

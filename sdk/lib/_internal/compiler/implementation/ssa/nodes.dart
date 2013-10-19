@@ -1017,10 +1017,10 @@ abstract class HInstruction implements Spannable {
   // Compute the set of users of this instruction that is dominated by
   // [other]. If [other] is a user of [this], it is included in the
   // returned set.
-  Set<HInstruction> dominatedUsers(HInstruction other) {
+  Setlet<HInstruction> dominatedUsers(HInstruction other) {
     // Keep track of all instructions that we have to deal with later
     // and count the number of them that are in the current block.
-    Set<HInstruction> users = new Set<HInstruction>();
+    Setlet<HInstruction> users = new Setlet<HInstruction>();
     int usersInCurrentBlock = 0;
 
     // Run through all the users and see if they are dominated or
@@ -1063,7 +1063,7 @@ abstract class HInstruction implements Spannable {
 
   void replaceAllUsersDominatedBy(HInstruction cursor,
                                   HInstruction newInstruction) {
-    Set<HInstruction> users = dominatedUsers(cursor);
+    Setlet<HInstruction> users = dominatedUsers(cursor);
     for (HInstruction user in users) {
       user.changeUse(this, newInstruction);
     }
@@ -1370,7 +1370,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   bool isIndexOperatorOnIndexablePrimitive(Compiler compiler) {
     return isInterceptedCall
         && selector.kind == SelectorKind.INDEX
-        && selector.name == const SourceString('[]')
+        && selector.name == '[]'
         && inputs[1].isIndexablePrimitive(compiler);
   }
 }
@@ -1955,7 +1955,7 @@ class HLocalValue extends HInstruction {
 class HParameterValue extends HLocalValue {
   HParameterValue(Element element) : super(element);
 
-  toString() => 'parameter ${sourceElement.name.slowToString()}';
+  toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 

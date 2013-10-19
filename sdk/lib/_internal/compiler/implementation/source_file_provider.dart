@@ -14,27 +14,33 @@ import 'colors.dart' as colors;
 import 'source_file.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
+import 'dart:typed_data';
 
-String readAll(String filename) {
+List<int> readAll(String filename) {
   var file = (new File(filename)).openSync();
   var length = file.lengthSync();
-  var buffer = new List<int>(length);
+  // +1 to have a 0 terminated list, see [Scanner].
+  var buffer = new Uint8List(length + 1);
   var bytes = file.readIntoSync(buffer, 0, length);
   file.closeSync();
-  return UTF8.decode(buffer);
+  return buffer;
 }
 
-class SourceFileProvider {
+abstract class SourceFileProvider {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = currentDirectory;
   Map<String, SourceFile> sourceFiles = <String, SourceFile>{};
   int dartCharactersRead = 0;
 
   Future<String> readStringFromUri(Uri resourceUri) {
+    return readUtf8BytesFromUri(resourceUri).then(UTF8.decode);
+  }
+
+  Future<List<int>> readUtf8BytesFromUri(Uri resourceUri) {
     if (resourceUri.scheme != 'file') {
       throw new ArgumentError("Unknown scheme in uri '$resourceUri'");
     }
-    String source;
+    List<int> source;
     try {
       source = readAll(uriPathToNative(resourceUri.path));
     } on FileException catch (ex) {
@@ -43,12 +49,16 @@ class SourceFileProvider {
           "(${ex.osError})");
     }
     dartCharactersRead += source.length;
-    sourceFiles[resourceUri.toString()] = new SourceFile(
+    sourceFiles[resourceUri.toString()] = new Utf8BytesSourceFile(
         relativize(cwd, resourceUri, isWindows), source);
     return new Future.value(source);
   }
 
-  Future<String> call(Uri resourceUri) => readStringFromUri(resourceUri);
+  Future/*<List<int> | String>*/ call(Uri resourceUri);
+}
+
+class CompilerSourceFileProvider extends SourceFileProvider {
+  Future<List<int>> call(Uri resourceUri) => readUtf8BytesFromUri(resourceUri);
 }
 
 class FormattingDiagnosticHandler {
@@ -67,7 +77,7 @@ class FormattingDiagnosticHandler {
 
   FormattingDiagnosticHandler([SourceFileProvider provider])
       : this.provider =
-          (provider == null) ? new SourceFileProvider() : provider;
+          (provider == null) ? new CompilerSourceFileProvider() : provider;
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;

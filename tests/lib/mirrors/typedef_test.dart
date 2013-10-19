@@ -64,7 +64,7 @@ FunctionTypeMirror on '${ft('()', 'dynamic')}'
 TypeMirror on 'dynamic'
 []
 """,
-      check(reflectClass(Func)));
+      check(reflectType(Func)));
   Expect.stringEquals(
       """
 TypedefMirror on 'Void'
@@ -72,7 +72,7 @@ FunctionTypeMirror on '${ft('()', 'void')}'
 TypeMirror on 'void'
 []
 """,
-      check(reflectClass(Void)));
+      check(reflectType(Void)));
   Expect.stringEquals(
       """
 TypedefMirror on 'Foo'
@@ -82,7 +82,7 @@ ClassMirror on 'String'
 Symbol(\"$x\")
 ClassMirror on 'int'
 """,
-      check(reflectClass(Foo)));
+      check(reflectType(Foo)));
   String type = ft('(dart.core.int, dart.core.num)', 'dart.core.String');
   Expect.stringEquals(
       """
@@ -95,7 +95,7 @@ ClassMirror on 'int'
 Symbol(\"$y\")
 ClassMirror on 'num'
 """,
-      check(reflectClass(Foo2)));
+      check(reflectType(Foo2)));
   type = ft('(dart.core.int, [dart.core.num])', 'dart.core.String');
   Expect.stringEquals(
       """
@@ -108,7 +108,7 @@ ClassMirror on 'int'
 Symbol(\"$y\")
 ClassMirror on 'num'
 """,
-      check(reflectClass(Bar)));
+      check(reflectType(Bar)));
   type = ft('(dart.core.int, [dart.core.num, dart.core.num])',
             'dart.core.String');
   Expect.stringEquals(
@@ -124,7 +124,7 @@ ClassMirror on 'num'
 Symbol(\"$z\")
 ClassMirror on 'num'
 """,
-      check(reflectClass(Bar2)));
+      check(reflectType(Bar2)));
   type = ft('(dart.core.int, {y: dart.core.num})', 'dart.core.String');
   Expect.stringEquals(
       """
@@ -137,7 +137,7 @@ ClassMirror on 'int'
 Symbol(\"y\")
 ClassMirror on 'num'
 """,
-      check(reflectClass(Baz)));
+      check(reflectType(Baz)));
   type = ft('(dart.core.int, {y: dart.core.num, z: dart.core.num})',
             'dart.core.String');
   Expect.stringEquals(
@@ -153,5 +153,5 @@ ClassMirror on 'num'
 Symbol(\"z\")
 ClassMirror on 'num'
 """,
-      check(reflectClass(Baz2)));
+      check(reflectType(Baz2)));
 }

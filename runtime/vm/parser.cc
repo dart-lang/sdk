@@ -531,9 +531,10 @@ struct MemberDesc {
     name_pos = 0;
     name = NULL;
     redirect_name = NULL;
-    constructor_name = NULL;
+    dict_name = NULL;
     params.Clear();
     kind = RawFunction::kRegularFunction;
+    field_ = NULL;
   }
   bool IsConstructor() const {
     return (kind == RawFunction::kConstructor) && !has_static;
@@ -549,6 +550,23 @@ struct MemberDesc {
   }
   bool IsSetter() const {
     return kind == RawFunction::kSetterFunction;
+  }
+  const char* ToCString() const {
+    if (field_ != NULL) {
+      return "field";
+    } else if (IsConstructor()) {
+      return "constructor";
+    } else if (IsFactory()) {
+      return "factory";
+    } else if (IsGetter()) {
+      return "getter";
+    } else if (IsSetter()) {
+      return "setter";
+    }
+    return "method";
+  }
+  String* DictName() const {
+    return (dict_name  != NULL) ? dict_name : name;
   }
   bool has_abstract;
   bool has_external;
@@ -566,11 +584,16 @@ struct MemberDesc {
   String* name;
   // For constructors: NULL or name of redirected to constructor.
   String* redirect_name;
+  // dict_name is the name used for the class namespace, if it
+  // differs from 'name'.
   // For constructors: NULL for unnamed constructor,
   // identifier after classname for named constructors.
-  String* constructor_name;
+  // For getters and setters: unmangled name.
+  String* dict_name;
   ParamList params;
   RawFunction::Kind kind;
+  // NULL for functions, field object for static or instance fields.
+  Field* field_;
 };
 
 
@@ -587,67 +610,7 @@ class ClassDesc : public ValueObject {
         fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
   }
 
-  // Parameter 'name' is the unmangled name, i.e. without the setter
-  // name mangling.
-  bool FunctionNameExists(const String& name, RawFunction::Kind kind) const {
-    // First check if a function or field of same name exists.
-    if ((kind != RawFunction::kSetterFunction) && FunctionExists(name)) {
-      return true;
-    }
-    // Now check whether there is a field and whether its implicit getter
-    // or setter collides with the name.
-    Field* field = LookupField(name);
-    if (field != NULL) {
-      if (kind == RawFunction::kSetterFunction) {
-        // It's ok to have an implicit getter, it does not collide with
-        // this setter function.
-        if (!field->is_final()) {
-          return true;
-        }
-      } else {
-        // The implicit getter of the field collides with the name.
-        return true;
-      }
-    }
-
-    String& accessor_name = String::Handle();
-    if (kind == RawFunction::kSetterFunction) {
-      // Check if a setter function of same name exists.
-      accessor_name = Field::SetterName(name);
-      if (FunctionExists(accessor_name)) {
-        return true;
-      }
-    } else {
-      // Check if a getter function of same name exists.
-      accessor_name = Field::GetterName(name);
-      if (FunctionExists(accessor_name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool FieldNameExists(const String& name, bool check_setter) const {
-    // First check if a function or field of same name exists.
-    if (FunctionExists(name) || FieldExists(name)) {
-      return true;
-    }
-    // Now check if a getter/setter function of same name exists.
-    String& getter_name = String::Handle(Field::GetterName(name));
-    if (FunctionExists(getter_name)) {
-      return true;
-    }
-    if (check_setter) {
-      String& setter_name = String::Handle(Field::SetterName(name));
-      if (FunctionExists(setter_name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void AddFunction(const Function& function) {
-    ASSERT(!FunctionExists(String::Handle(function.name())));
     functions_.Add(function);
   }
 
@@ -656,7 +619,6 @@ class ClassDesc : public ValueObject {
   }
 
   void AddField(const Field& field) {
-    ASSERT(!FieldExists(String::Handle(field.name())));
     fields_.Add(field);
   }
 
@@ -705,40 +667,6 @@ class ClassDesc : public ValueObject {
   }
 
  private:
-  Field* LookupField(const String& name) const {
-    String& test_name = String::Handle();
-    Field& field = Field::Handle();
-    for (int i = 0; i < fields_.Length(); i++) {
-      field ^= fields_.At(i);
-      test_name = field.name();
-      if (name.Equals(test_name)) {
-        return &field;
-      }
-    }
-    return NULL;
-  }
-
-  bool FieldExists(const String& name) const {
-    return LookupField(name) != NULL;
-  }
-
-  Function* LookupFunction(const String& name) const {
-    String& test_name = String::Handle();
-    Function& func = Function::Handle();
-    for (int i = 0; i < functions_.Length(); i++) {
-      func ^= functions_.At(i);
-      test_name = func.name();
-      if (name.Equals(test_name)) {
-        return &func;
-      }
-    }
-    return NULL;
-  }
-
-  bool FunctionExists(const String& name) const {
-    return LookupFunction(name) != NULL;
-  }
-
   const Class& clazz_;
   const String& class_name_;
   intptr_t token_pos_;   // Token index of "class" keyword.
@@ -3074,21 +3002,19 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     CheckOperatorArity(*method);
   }
 
-  if (members->FunctionNameExists(*method->name, method->kind)) {
-    ErrorMsg(method->name_pos,
-             "field or method '%s' already defined", method->name->ToCString());
-  }
-
   // Mangle the name for getter and setter functions and check function
   // arity.
   if (method->IsGetter() || method->IsSetter()) {
     int expected_num_parameters = 0;
     if (method->IsGetter()) {
       expected_num_parameters = (method->has_static) ? 0 : 1;
+      method->dict_name = method->name;
       method->name = &String::ZoneHandle(Field::GetterSymbol(*method->name));
     } else {
       ASSERT(method->IsSetter());
       expected_num_parameters = (method->has_static) ? 1 : 2;
+      method->dict_name =
+          &String::ZoneHandle(String::Concat(*method->name, Symbols::Equals()));
       method->name = &String::ZoneHandle(Field::SetterSymbol(*method->name));
     }
     if ((method->params.num_fixed_parameters != expected_num_parameters) ||
@@ -3316,13 +3242,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   if (!field->has_static && field->has_const) {
     ErrorMsg(field->name_pos, "instance field may not be 'const'");
   }
-  if (members->FieldNameExists(*field->name, !field->has_final)) {
-    ErrorMsg(field->name_pos,
-             "field or method '%s' already defined", field->name->ToCString());
-  }
   Function& getter = Function::Handle();
   Function& setter = Function::Handle();
-  Field& class_field = Field::Handle();
+  Field& class_field = Field::ZoneHandle();
   Instance& init_value = Instance::Handle();
   while (true) {
     bool has_initializer = CurrentToken() == Token::kASSIGN;
@@ -3370,6 +3292,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
+    field->field_ = &class_field;
     if (field->metadata_pos >= 0) {
       library_.AddFieldMetadata(class_field, field->metadata_pos);
     }
@@ -3459,6 +3382,34 @@ void Parser::CheckOperatorArity(const MemberDesc& member) {
     // Subtract receiver when reporting number of expected arguments.
     ErrorMsg(member.name_pos, "operator %s expects %" Pd " argument(s)",
         member.name->ToCString(), (expected_num_parameters - 1));
+  }
+}
+
+
+void Parser::CheckMemberNameConflict(ClassDesc* members,
+                                     MemberDesc* member) {
+  const String& name = *member->DictName();
+  if (name.Equals(members->class_name())) {
+    ErrorMsg(member->name_pos,
+             "%s '%s' conflicts with class name",
+             member->ToCString(),
+             name.ToCString());
+  }
+  if (members->clazz().LookupTypeParameter(name) != TypeParameter::null()) {
+    ErrorMsg(member->name_pos,
+             "%s '%s' conflicts with type parameter",
+             member->ToCString(),
+             name.ToCString());
+  }
+  for (int i = 0; i < members->members().length(); i++) {
+    MemberDesc* existing_member = &members->members()[i];
+    if (name.Equals(*existing_member->DictName())) {
+      ErrorMsg(member->name_pos,
+               "%s '%s' conflicts with previously declared %s",
+               member->ToCString(),
+               name.ToCString(),
+               existing_member->ToCString());
+    }
   }
 }
 
@@ -3579,8 +3530,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     if (CurrentToken() == Token::kPERIOD) {
       // Named constructor.
       ConsumeToken();
-      member.constructor_name = ExpectIdentifier("identifier expected");
-      *member.name = String::Concat(*member.name, *member.constructor_name);
+      member.dict_name = ExpectIdentifier("identifier expected");
+      *member.name = String::Concat(*member.name, *member.dict_name);
     }
     // Ensure that names are symbols.
     *member.name = Symbols::New(*member.name);
@@ -3643,13 +3594,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   }
 
   ASSERT(member.name != NULL);
-  if (member.kind != RawFunction::kConstructor) {
-    if (member.name->Equals(members->class_name())) {
-      ErrorMsg(member.name_pos,
-               "class member must not have the same name as its class");
-    }
-  }
-
   if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
     // Constructor or method.
     if (member.type == NULL) {
@@ -3678,6 +3622,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     UnexpectedToken();
   }
   current_member_ = NULL;
+  CheckMemberNameConflict(members, &member);
   members->AddMember(member);
 }
 
@@ -3945,25 +3890,15 @@ void Parser::AddImplicitConstructor(const Class& cls) {
 }
 
 
-// Check for cycles in constructor redirection. Also check whether a
-// named constructor collides with the name of another class member.
+// Check for cycles in constructor redirection.
 void Parser::CheckConstructors(ClassDesc* class_desc) {
   // Check for cycles in constructor redirection.
   const GrowableArray<MemberDesc>& members = class_desc->members();
   for (int i = 0; i < members.length(); i++) {
     MemberDesc* member = &members[i];
-
-    if (member->constructor_name != NULL) {
-      // Check whether constructor name conflicts with a member name.
-      if (class_desc->FunctionNameExists(
-          *member->constructor_name, member->kind)) {
-        ErrorMsg(member->name_pos,
-                 "Named constructor '%s' conflicts with method or field '%s'",
-                 member->name->ToCString(),
-                 member->constructor_name->ToCString());
-      }
+    if (member->redirect_name == NULL) {
+      continue;
     }
-
     GrowableArray<MemberDesc*> ctors;
     while ((member != NULL) && (member->redirect_name != NULL)) {
       ASSERT(member->IsConstructor());

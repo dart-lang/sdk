@@ -87,6 +87,8 @@ class _Utils {
 
   static bool isMap(obj) => obj is Map;
 
+  static List toListIfIterable(obj) => obj is Iterable ? obj.toList() : null;
+
   static Map createMap() => {};
 
   static makeUnimplementedError(String fileName, int lineNo) {
@@ -104,9 +106,12 @@ class _Utils {
     return false;
   }
 
-  static bool isTypeSubclassOfTag(Type type, String tagName) {
+  static Element getAndValidateNativeType(Type type, String tagName) {
     var element = new Element.tag(tagName);
-    return isTypeSubclassOf(type, element.runtimeType);
+    if (!isTypeSubclassOf(type, element.runtimeType)) {
+      return null;
+    }
+    return element;
   }
 
   static window() native "Utils_window";
@@ -390,10 +395,6 @@ class _Utils {
 
   static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 
-  // TODO(jacobr): we need a failsafe way to determine that a Node is really a
-  // DOM node rather than just a class that extends Node.
-  static bool isNode(obj) => obj is Node;
-
   static bool _isBuiltinType(ClassMirror cls) {
     // TODO(vsm): Find a less hackish way to do this.
     LibraryMirror lib = cls.owner;
@@ -423,7 +424,7 @@ class _Utils {
   static void initializeCustomElement(HtmlElement element) native "Utils_initializeCustomElement";
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
+class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     WindowBase {
   _DOMWindowCrossFrame.internal();
 
@@ -444,7 +445,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass1 implements
   String get typeName => "Window";
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase {
+class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -456,7 +457,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass1 implements HistoryBase
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBase {
+class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
@@ -466,7 +467,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass1 implements LocationBa
   String get typeName => "Location";
 }
 
-class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, String> {
+class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, String> {
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
@@ -537,10 +538,14 @@ class _ScheduleImmediateHelper {
   Function _callback;
 
   _ScheduleImmediateHelper() {
-    // Mutation events get fired as soon as the current event stack is unwound
-    // so we just make a dummy event and listen for that.
-    _observer = new MutationObserver(_handleMutation);
-    _observer.observe(_div, attributes: true);
+    // Run in the root-zone as the DOM callback would otherwise execute in the
+    // current zone.
+    Zone.ROOT.run(() {
+      // Mutation events get fired as soon as the current event stack is unwound
+      // so we just make a dummy event and listen for that.
+      _observer = new MutationObserver(_handleMutation);
+      _observer.observe(_div, attributes: true);
+    });
   }
 
   void _schedule(callback) {

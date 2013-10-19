@@ -36,10 +36,12 @@ import '../js_backend/js_backend.dart' show
     RuntimeTypes,
     Substitution,
     TypeCheck,
-    TypeChecks;
+    TypeChecks,
+    TypeVariableHandler;
 
 import '../source_file.dart' show
-    SourceFile;
+    SourceFile,
+    StringSourceFile;
 
 import '../source_map_builder.dart' show
     SourceMapBuilder;

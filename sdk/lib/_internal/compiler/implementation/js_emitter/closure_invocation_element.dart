@@ -9,7 +9,7 @@ part of dart2js.js_emitter;
  * from the given element.
  */
 class ClosureInvocationElement extends FunctionElementX {
-  ClosureInvocationElement(SourceString name,
+  ClosureInvocationElement(String name,
                            FunctionElement other)
       : super.from(name, other, other.enclosingElement),
         methodElement = other;

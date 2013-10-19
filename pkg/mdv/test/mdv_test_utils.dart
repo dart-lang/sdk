@@ -17,15 +17,6 @@ final bool parserHasNativeTemplate = () {
       div.firstChild.firstChild.tagName == 'TEMPLATE';
 }();
 
-toSymbolMap(Map map) {
-  var result = new ObservableMap.linked();
-  map.forEach((key, value) {
-    if (value is Map) value = toSymbolMap(value);
-    result[new Symbol(key)] = value;
-  });
-  return result;
-}
-
 recursivelySetTemplateModel(element, model, [delegate]) {
   for (var node in element.queryAll('*')) {
     if (node.isTemplate) {
@@ -39,7 +30,7 @@ dispatchEvent(type, target) {
   target.dispatchEvent(new Event(type, cancelable: false));
 }
 
-class FooBarModel extends ObservableBase {
+class FooBarModel extends Observable {
   @observable var foo;
   @observable var bar;
 
@@ -47,7 +38,7 @@ class FooBarModel extends ObservableBase {
 }
 
 @reflectable
-class FooBarNotifyModel extends ChangeNotifierBase implements FooBarModel {
+class FooBarNotifyModel extends ChangeNotifier implements FooBarModel {
   var _foo;
   var _bar;
 

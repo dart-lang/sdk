@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.generic_mixin_applications;
+library test.generic_mixin;
 
 import 'dart:mirrors';
 
@@ -63,8 +63,7 @@ main() {
   typeArguments(reflectClass(GenericMultipleMixins).mixin, []);
   typeArguments(reflectClass(GenericMultipleMixins).superclass.mixin, [reflectClass(GenericMultipleMixins).typeVariables[2]]);
   typeArguments(reflectClass(GenericMultipleMixins).superclass.superclass.mixin, [reflectClass(GenericMultipleMixins).typeVariables[1]]);
-  // 1 - VM fails here because of equality between type parameters
-  typeArguments(reflectClass(GenericMultipleMixins).superclass.superclass.superclass.mixin, [reflectClass(GenericMultipleMixins).typeVariables[0]]);  /// 01: ok
+  typeArguments(reflectClass(GenericMultipleMixins).superclass.superclass.superclass.mixin, [reflectClass(GenericMultipleMixins).typeVariables[0]]);
 
 
   typeParameters(reflect(new NonGenericMixinApplication1()).type.mixin, [#M]);
@@ -84,10 +83,9 @@ main() {
   typeParameters(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.superclass.mixin, [#M]);
   typeParameters(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.superclass.superclass.mixin, [#S]);
 
-  // 2 - VM fails here because of failure to substitute
   typeArguments(reflect(new NonGenericMixinApplication1()).type.mixin, [dynamicMirror]);
   typeArguments(reflect(new NonGenericMixinApplication2()).type.mixin, [reflectClass(String)]);
-  typeArguments(reflect(new GenericMixinApplication1<bool>()).type.mixin, [reflectClass(bool)]);  /// 02: ok
+  typeArguments(reflect(new GenericMixinApplication1<bool>()).type.mixin, [reflectClass(bool)]);
   typeArguments(reflect(new GenericMixinApplication2<bool>()).type.mixin, [reflectClass(String)]);
   typeArguments(reflect(new NonGenericClass1()).type.mixin, []);
   typeArguments(reflect(new NonGenericClass2()).type.mixin, []);
@@ -95,10 +93,10 @@ main() {
   typeArguments(reflect(new GenericClass2<bool>()).type.mixin, [reflectClass(bool)]);
   typeArguments(reflect(new NonGenericClass1()).type.superclass.mixin, [dynamicMirror]);
   typeArguments(reflect(new NonGenericClass2()).type.superclass.mixin, [reflectClass(String)]);
-  typeArguments(reflect(new GenericClass1<bool>()).type.superclass.mixin, [reflectClass(bool)]);  /// 02: ok
+  typeArguments(reflect(new GenericClass1<bool>()).type.superclass.mixin, [reflectClass(bool)]);
   typeArguments(reflect(new GenericClass2<bool>()).type.superclass.mixin, [reflectClass(String)]);
   typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.mixin, [reflectClass(bool), reflectClass(String), reflectClass(int)]);
-  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.mixin, [reflectClass(int)]);  /// 02: ok
-  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.superclass.mixin, [reflectClass(String)]);  /// 02: ok
-  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.superclass.superclass.mixin, [reflectClass(bool)]);  /// 02: ok
+  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.mixin, [reflectClass(int)]);
+  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.superclass.mixin, [reflectClass(String)]);
+  typeArguments(reflect(new GenericMultipleMixins<bool, String, int>()).type.superclass.superclass.superclass.mixin, [reflectClass(bool)]);
 }

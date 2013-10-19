@@ -21,7 +21,7 @@ part of observe;
  *
  * This class is used to implement [Node.bind] and similar functionality.
  */
-class PathObserver extends ChangeNotifierBase {
+class PathObserver extends ChangeNotifier {
   /** The path string. */
   final String path;
 
@@ -119,21 +119,19 @@ class PathObserver extends ChangeNotifierBase {
   }
 
   void _updateObservedValues([int start = 0]) {
-    bool changed = false;
+    var oldValue, newValue;
     for (int i = start; i < _segments.length; i++) {
-      final newValue = _getObjectProperty(_values[i], _segments[i]);
-      if (identical(_values[i + 1], newValue)) {
+      oldValue = _values[i + 1];
+      newValue = _getObjectProperty(_values[i], _segments[i]);
+      if (identical(oldValue, newValue)) {
         _observePath(start, i);
         return;
       }
       _values[i + 1] = newValue;
-      changed = true;
     }
 
     _observePath(start);
-    if (changed) {
-      notifyChange(new PropertyChangeRecord(#value));
-    }
+    notifyPropertyChange(#value, oldValue, newValue);
   }
 
   void _observePath([int start = 0, int end]) {
@@ -160,7 +158,7 @@ class PathObserver extends ChangeNotifierBase {
         }
 
         for (var record in records) {
-          if (record.changes(_segments[i])) {
+          if (_changeRecordMatches(record, _segments[i])) {
             _updateObservedValues(i);
             return;
           }
@@ -168,6 +166,20 @@ class PathObserver extends ChangeNotifierBase {
       });
     }
   }
+}
+
+bool _changeRecordMatches(record, key) {
+  if (record is ListChangeRecord) {
+    return key is int && (record as ListChangeRecord).indexChanged(key);
+  }
+  if (record is PropertyChangeRecord) {
+    return (record as PropertyChangeRecord).name == key;
+  }
+  if (record is MapChangeRecord) {
+    if (key is Symbol) key = MirrorSystem.getName(key);
+    return (record as MapChangeRecord).key == key;
+  }
+  return false;
 }
 
 _getObjectProperty(object, property) {
@@ -185,12 +197,12 @@ _getObjectProperty(object, property) {
 
   if (property is Symbol) {
     var mirror = reflect(object);
-    try {
-      return mirror.getField(property).reflectee;
-    } catch (e) {}
+    var result = _tryGetField(mirror, property);
+    if (result != null) return result.reflectee;
   }
 
   if (object is Map) {
+    if (property is Symbol) property = MirrorSystem.getName(property);
     return object[property];
   }
 
@@ -209,13 +221,11 @@ bool _setObjectProperty(object, property, value) {
 
   if (property is Symbol) {
     var mirror = reflect(object);
-    try {
-      mirror.setField(property, value);
-      return true;
-    } catch (e) {}
+    if (_trySetField(mirror, property, value)) return true;
   }
 
   if (object is Map) {
+    if (property is Symbol) property = MirrorSystem.getName(property);
     object[property] = value;
     return true;
   }
@@ -223,6 +233,58 @@ bool _setObjectProperty(object, property, value) {
   return false;
 }
 
+InstanceMirror _tryGetField(InstanceMirror mirror, Symbol name) {
+  try {
+    return mirror.getField(name);
+  } on NoSuchMethodError catch (e) {
+    if (_hasMember(mirror, name, (m) =>
+        m is VariableMirror || m is MethodMirror && m.isGetter)) {
+      // The field/getter is there but threw a NoSuchMethod exception.
+      // This is a legitimate error in the code so rethrow.
+      rethrow;
+    }
+    // The field isn't there. PathObserver does not treat this as an error.
+    return null;
+  }
+}
+
+bool _trySetField(InstanceMirror mirror, Symbol name, Object value) {
+  try {
+    mirror.setField(name, value);
+    return true;
+  } on NoSuchMethodError catch (e) {
+    if (_hasMember(mirror, name, (m) => m is VariableMirror) ||
+        _hasMember(mirror, _setterName(name))) {
+      // The field/setter is there but threw a NoSuchMethod exception.
+      // This is a legitimate error in the code so rethrow.
+      rethrow;
+    }
+    // The field isn't there. PathObserver does not treat this as an error.
+    return false;
+  }
+}
+
+// TODO(jmesserly): workaround for:
+// https://code.google.com/p/dart/issues/detail?id=10029
+Symbol _setterName(Symbol getter) =>
+    new Symbol('${MirrorSystem.getName(getter)}=');
+
+bool _hasMember(InstanceMirror mirror, Symbol name, [bool test(member)]) {
+  var type = mirror.type;
+  while (type != null) {
+    final member = type.members[name];
+    if (member != null && (test == null || test(member))) return true;
+
+    try {
+      type = type.superclass;
+    } on UnsupportedError catch (e) {
+      // TODO(jmesserly): dart2js throws this error when the type is not
+      // reflectable.
+      return false;
+    }
+  }
+  return false;
+}
 
 // From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
 

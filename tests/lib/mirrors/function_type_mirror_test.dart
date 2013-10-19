@@ -11,7 +11,7 @@ typedef void FooFunction(int a, double b);
 bar(int a) {}
 
 main() {
-  TypedefMirror tm = reflectClass(FooFunction);
+  TypedefMirror tm = reflectType(FooFunction);
   FunctionTypeMirror ftm = tm.referent;
   Expect.equals(const Symbol('void'), ftm.returnType.simpleName);
   Expect.equals(#int, ftm.parameters[0].type.simpleName);

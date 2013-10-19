@@ -176,15 +176,15 @@ Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
   // Get the url of the including library.
   Dart_Handle library_url = Dart_LibraryUrl(library);
   if (Dart_IsError(library_url)) {
-    return Dart_Error("accessing library url failed");
+    return Dart_NewApiError("accessing library url failed");
   }
   if (!Dart_IsString(library_url)) {
-    return Dart_Error("library url is not a string");
+    return Dart_NewApiError("library url is not a string");
   }
   const char* library_url_str = NULL;
   Dart_Handle result = Dart_StringToCString(library_url, &library_url_str);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing library url characters failed");
+    return Dart_NewApiError("accessing library url characters failed");
   }
   if (url_mapping != NULL) {
     const char* mapped_library_url_str = MapLibraryUrl(url_mapping,
@@ -292,9 +292,9 @@ Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
       return responseStatus;
     }
     if (Dart_IsNull(responseStatus)) {
-      return Dart_Error("HTTP error.");
+      return Dart_NewApiError("HTTP error.");
     }
-    return Dart_Error(DartUtils::GetStringValue(responseStatus));
+    return Dart_NewApiError(DartUtils::GetStringValue(responseStatus));
   }
   Dart_Handle response =
       Dart_Invoke(builtin_lib, DartUtils::NewString("_getHttpRequestResponse"),
@@ -386,7 +386,7 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   intptr_t len;
   const uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
   if (text_buffer == NULL) {
-    return Dart_Error(error_msg);
+    return Dart_NewApiError(error_msg);
   }
   Dart_Handle str = Dart_NewStringFromUTF8(text_buffer, len);
   free(const_cast<uint8_t *>(text_buffer));
@@ -440,10 +440,10 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
                                          Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
-    return Dart_Error("not a library");
+    return Dart_NewApiError("not a library");
   }
   if (!Dart_IsString(url)) {
-    return Dart_Error("url is not a string");
+    return Dart_NewApiError("url is not a string");
   }
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
@@ -485,11 +485,11 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       if (DartUtils::IsDartIOLibURL(url_string)) {
         return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
       }
-      return Dart_Error("The built-in library '%s' is not available"
-                        " on the stand-alone VM.\n", url_string);
+      return NewError("The built-in library '%s' is not available"
+                      " on the stand-alone VM.\n", url_string);
     } else {
       ASSERT(tag == Dart_kSourceTag);
-      return Dart_Error("Unable to load source '%s' ", url_string);
+      return NewError("Unable to load source '%s' ", url_string);
     }
   }
 
@@ -500,7 +500,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
           library, url, Builtin::PartSource(Builtin::kIOLibrary, url_string));
     } else {
       ASSERT(tag == Dart_kImportTag);
-      return Dart_Error("Unable to import '%s' ", url_string);
+      return NewError("Unable to import '%s' ", url_string);
     }
   }
 
@@ -515,7 +515,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   Dart_StringToCString(file_path, &url_string);
   if (is_dart_extension_url) {
     if (tag != Dart_kImportTag) {
-      return Dart_Error("Dart extensions must use import: '%s'", url_string);
+      return NewError("Dart extensions must use import: '%s'", url_string);
     }
     return Extensions::LoadExtension(url_string, library);
   }
@@ -600,7 +600,7 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                         &len,
                                         &error_msg);
   if (buffer == NULL) {
-    return Dart_Error(error_msg);
+    return Dart_NewApiError(error_msg);
   }
   bool is_snapshot = false;
   const uint8_t *payload = SniffForMagicNumber(buffer, &len, &is_snapshot);
@@ -629,7 +629,7 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
   if (url_mapping != NULL && IsDartSchemeURL(url_string)) {
     const char* mapped_url_string = MapLibraryUrl(url_mapping, url_string);
     if (mapped_url_string == NULL) {
-      return Dart_Error("Do not know how to load %s", url_string);
+      return NewError("Do not know how to load %s", url_string);
     }
     // We have a URL mapping specified, just read the file that the
     // URL mapping specifies and load it.
@@ -654,7 +654,7 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
   } else if (tag == Dart_kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }
-  return Dart_Error("wrong tag");
+  return Dart_NewApiError("wrong tag");
 }
 
 
@@ -850,6 +850,22 @@ Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
                                      exception_name,
                                      message,
                                      os_error);
+}
+
+
+Dart_Handle DartUtils::NewError(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  va_list args2;
+  va_start(args2, format);
+  vsnprintf(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  return Dart_NewApiError(buffer);
 }
 
 

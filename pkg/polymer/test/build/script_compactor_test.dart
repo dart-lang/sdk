@@ -49,7 +49,7 @@ void main() {
           void main() {
             initPolymer([
                 'a.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
     });
@@ -84,7 +84,7 @@ void main() {
                 'b.dart',
                 'c.dart',
                 'd.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
     });

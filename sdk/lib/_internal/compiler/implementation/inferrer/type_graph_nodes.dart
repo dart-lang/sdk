@@ -46,7 +46,7 @@ abstract class TypeInformation {
   bool get isConcrete => false;
 
   TypeInformation([users, assignments])
-      : users = (users == null) ? new Set<TypeInformation>() : users,
+      : users = (users == null) ? new Setlet<TypeInformation>() : users,
         assignments = (assignments == null) ? <TypeInformation>[] : assignments;
 
 
@@ -176,8 +176,8 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  */
 class ElementTypeInformation extends TypeInformation {
   final Element element;
-  final Map<Element, Set<Spannable>> callers =
-      new Map<Element, Set<Spannable>>();
+  final Map<Element, Setlet<Spannable>> callers =
+      new Map<Element, Setlet<Spannable>>();
 
   ElementTypeInformation.internal(this.element, assignments)
       : super(null, assignments);
@@ -192,11 +192,11 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   void addCall(Element caller, Spannable node) {
-    callers.putIfAbsent(caller, () => new Set<Spannable>()).add(node);
+    callers.putIfAbsent(caller, () => new Setlet<Spannable>()).add(node);
   }
 
   void removeCall(Element caller, Spannable node) {
-    Set<Spannable> calls = callers[caller];
+    Setlet<Spannable> calls = callers[caller];
     if (calls == null) return;
     calls.remove(node);
     if (calls.isEmpty) {
@@ -442,11 +442,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    SourceString name = selector.name;
-    if (name == const SourceString('*')
-        || name == const SourceString('+')
-        || name == const SourceString('%')
-        || name == const SourceString('remainder')) {
+    String name = selector.name;
+    if (name == '*' || name == '+' || name == '%' || name == 'remainder') {
       if (hasOnePositionalArgumentWithType(intType)) {
         return inferrer.types.intType;
       } else if (hasOnePositionalArgumentWithType(emptyType)) {
@@ -454,7 +451,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       } else {
         return null;
       }
-    } else if (name == const SourceString('-')) {
+    } else if (name == '-') {
       if (arguments.hasNoArguments()) return inferrer.types.intType;
       if (hasOnePositionalArgumentWithType(intType)) {
         return inferrer.types.intType;
@@ -462,7 +459,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return inferrer.types.nonNullEmptyType;
       }
       return null;
-    } else if (name == const SourceString('abs')) {
+    } else if (name == 'abs') {
       return arguments.hasNoArguments() ? inferrer.types.intType : null;
     }
     return null;

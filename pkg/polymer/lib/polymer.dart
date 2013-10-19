@@ -68,6 +68,7 @@ export 'package:observe/observe.dart';
 export 'package:observe/html.dart';
 export 'package:observe/src/microtask.dart';
 
+part 'src/boot.dart';
 part 'src/declaration.dart';
 part 'src/instance.dart';
 part 'src/loader.dart';

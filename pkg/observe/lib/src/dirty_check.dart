@@ -35,7 +35,7 @@ void registerObservable(Observable obj) {
  * Synchronously deliver all change records for known observables.
  *
  * This will execute [Observable.deliverChanges] on objects that inherit from
- * [ObservableMixin].
+ * [Observable].
  */
 // Note: this is called performMicrotaskCheckpoint in change_summary.js.
 void dirtyCheckObservables() {

@@ -27,7 +27,7 @@ typedef Object CompoundBindingCombinator(Map objects);
  *     binding.bind('nameN', objN, pathN);
  */
 // TODO(jmesserly): rename to something that indicates it's a computed value?
-class CompoundBinding extends ChangeNotifierBase {
+class CompoundBinding extends ChangeNotifier {
   CompoundBindingCombinator _combinator;
 
   // TODO(jmesserly): ideally these would be String keys, but sometimes we

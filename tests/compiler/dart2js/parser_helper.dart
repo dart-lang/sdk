@@ -16,8 +16,7 @@ import "../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart"
     show CompilationUnitElementX,
          LibraryElementX;
 
-import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
-    hide SourceString;
+import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 
 export "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
     show DiagnosticListener;
@@ -60,7 +59,7 @@ class LoggerCanceler implements DiagnosticListener {
   withCurrentElement(Element element, f()) => f();
 }
 
-Token scan(String text) => new StringScanner(text).tokenize();
+Token scan(String text) => new StringScanner.fromString(text).tokenize();
 
 Node parseBodyCode(String text, Function parseMethod,
                    {DiagnosticListener diagnosticHandler}) {
@@ -98,7 +97,7 @@ Node parseMember(String text, {DiagnosticListener diagnosticHandler}) {
                        diagnosticHandler: diagnosticHandler);
 }
 
-class MockFile extends SourceFile {
+class MockFile extends StringSourceFile {
   MockFile(text)
       : super('<string>', text);
 }
@@ -125,11 +124,4 @@ Link<Element> parseUnit(String text, Compiler compiler,
 NodeList fullParseUnit(String source, {DiagnosticListener diagnosticHandler}) {
   return parseBodyCode(source, (parser, tokens) => parser.parseUnit(tokens),
                        diagnosticHandler: diagnosticHandler);
-}
-
-// TODO(ahe): We define this method to avoid having to import
-// the scanner in the tests. We should move SourceString to another
-// location instead.
-SourceString buildSourceString(String name) {
-  return new SourceString(name);
 }

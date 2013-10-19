@@ -61,6 +61,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
         }
       }
       Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
+      Expect.isFalse(compiler.hasCrashed);
       cachedCompiler = compiler;
     });
   }).then((_) => cachedCompiler);

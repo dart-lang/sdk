@@ -14,12 +14,6 @@ mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
 library_juxtaposition_test: Fail # Issue 6877
 throwing_lazy_variable_test: Fail # Issue 5802
-type_variable_conflict_test/01: Fail # Issue 13701
-type_variable_conflict_test/02: Fail # Issue 13701
-type_variable_conflict_test/03: Fail # Issue 13701
-type_variable_conflict_test/04: Fail # Issue 13701
-type_variable_conflict_test/05: Fail # Issue 13701
-type_variable_conflict_test/06: Fail # Issue 13701
 f_bounded_equality_test: RuntimeError # Issue 14000
 
 # These bugs refer currently ongoing language discussions.
@@ -36,9 +30,11 @@ on_catch_malformed_type_test: Fail # Issue 8601
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 implicit_setter_test: Fail # Issue 13917
 
+cyclic_typedef_test/10: Fail # Issue 13675
+cyclic_typedef_test/11: Fail # Issue 13675
+
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
-
 
 [ $compiler == none && $runtime == vm && $checked ]
 compile_time_constant_checked3_test/01: MissingCompileTimeError # Issue 13685

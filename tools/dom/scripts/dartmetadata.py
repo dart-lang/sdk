@@ -56,7 +56,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('String|CanvasGradient|CanvasPattern')",
     ],
 
-    'CustomEvent.detail': [
+    'CustomEvent._detail': [
       "@Creates('Null')",
     ],
 

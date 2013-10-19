@@ -58,10 +58,11 @@ class JSNumber extends Interceptor implements num {
   num abs() => JS('num', r'Math.abs(#)', this);
 
   int toInt() {
-    if (isNaN) throw new UnsupportedError('NaN');
-    if (isInfinite) throw new UnsupportedError('Infinity');
-    num truncated = truncateToDouble();
-    return JS('bool', r'# == -0.0', truncated) ? 0 : truncated;
+    if (JS('bool', r'isFinite(#)', this)) {
+      return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
+    }
+    // This is either NaN, Infinity or -Infinity.
+    throw new UnsupportedError(JS("String", "''+#", this));
   }
 
   int truncate() => toInt();

@@ -217,9 +217,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
       Function setAttribute) {
     var message = new MainMessage();
     message.name = name;
-    message.arguments = parameters.parameters.elements.map(
+    message.arguments = parameters.parameters.map(
         (x) => x.identifier.name).toList();
-    var arguments = node.argumentList.arguments.elements;
+    var arguments = node.argumentList.arguments;
     extract(message, arguments);
 
     for (var namedArgument in arguments.where((x) => x is NamedExpression)) {
@@ -446,7 +446,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
         warnings.add(err);
       }
     });
-    var mainArg = node.argumentList.arguments.elements.firstWhere(
+    var mainArg = node.argumentList.arguments.firstWhere(
         (each) => each is! NamedExpression);
     if (mainArg is SimpleStringLiteral) {
       message.mainArgument = mainArg.toString();

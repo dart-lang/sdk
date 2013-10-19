@@ -76,6 +76,7 @@ class GCSNamer(object):
          -{linux,macos,windows}-{ia32,x64}-release.zip
     - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
     - /editor/darteditor-{linux,macos,windows}-{ia32,x64}.zip
+    - /editor/darteditor-installer-macos-{ia32,x64}.dmg
     - /editor-eclipse-update
          /{index.html,features/,plugins/,artifacts.jar,content.jar}
   """
@@ -97,6 +98,10 @@ class GCSNamer(object):
   def editor_zipfilepath(self, revision, system, arch):
     return '/'.join([self.editor_directory(revision),
       self.editor_zipfilename(system, arch)])
+
+  def editor_installer_zipfilepath(self, revision, system, arch, extension):
+    return '/'.join([self.editor_directory(revision),
+      self.editor_installer_zipfilename(system, arch, extension)])
 
   def sdk_zipfilepath(self, revision, system, arch, mode):
     return '/'.join([self.sdk_directory(revision),
@@ -138,6 +143,11 @@ class GCSNamer(object):
   def editor_zipfilename(self, system, arch):
     return 'darteditor-%s-%s.zip' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch])
+
+  def editor_installer_zipfilename(self, system, arch, extension):
+    assert extension in ['dmg']
+    return 'darteditor-installer-%s-%s.%s' % (
+        SYSTEM_RENAMES[system], ARCH_RENAMES[arch], extension)
 
   def sdk_zipfilename(self, system, arch, mode):
     assert mode in Mode.ALL_MODES

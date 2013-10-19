@@ -469,7 +469,9 @@ class MockProvider implements PackageProvider {
     _assets[id.package][id].contents = contents;
   }
 
-  void _setAssetError(String name) => _errors.add(new AssetId.parse(name));
+  void _setAssetError(String name) {
+    _errors.add(new AssetId.parse(name));
+  }
 
   List<AssetId> listAssets(String package, {String within}) {
     if (within != null) {

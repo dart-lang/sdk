@@ -301,7 +301,7 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
       pendingOptimizations.putIfAbsent(instruction, () => () {
         Selector selector = instruction.selector;
         if (selector.isOperator()
-            && selector.name != const SourceString('==')) {
+            && selector.name != '==') {
           if (checkReceiver(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[1]);
           }

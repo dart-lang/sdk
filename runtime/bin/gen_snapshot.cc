@@ -282,11 +282,11 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                    Dart_Handle library,
                                                    Dart_Handle url) {
   if (!Dart_IsLibrary(library)) {
-    return Dart_Error("not a library");
+    return Dart_NewApiError("not a library");
   }
   Dart_Handle library_url = Dart_LibraryUrl(library);
   if (Dart_IsError(library_url)) {
-    return Dart_Error("accessing library url failed");
+    return Dart_NewApiError("accessing library url failed");
   }
   const char* library_url_string = DartUtils::GetStringValue(library_url);
   const char* mapped_library_url_string = DartUtils::MapLibraryUrl(
@@ -297,7 +297,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   }
 
   if (!Dart_IsString(url)) {
-    return Dart_Error("url is not a string");
+    return Dart_NewApiError("url is not a string");
   }
   const char* url_string = DartUtils::GetStringValue(url);
   const char* mapped_url_string = DartUtils::MapLibraryUrl(url_mapping,
@@ -322,7 +322,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
       return Builtin::LoadAndCheckLibrary(builtinId);
     }
     ASSERT(tag == Dart_kSourceTag);
-    return Dart_Error("Unable to part '%s' ", url_string);
+    return DartUtils::NewError("Unable to part '%s' ", url_string);
   }
 
   if (libraryBuiltinId != Builtin::kInvalidLibrary) {
@@ -332,7 +332,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
           library, url, Builtin::PartSource(libraryBuiltinId, url_string));
     }
     ASSERT(tag == Dart_kImportTag);
-    return Dart_Error("Unable to import '%s' ", url_string);
+    return DartUtils::NewError("Unable to import '%s' ", url_string);
   }
 
   Dart_Handle resolved_url = url;

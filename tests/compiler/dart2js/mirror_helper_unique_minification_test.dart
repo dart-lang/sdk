@@ -40,7 +40,7 @@ void testUniqueMinification() {
     DartBackend backend = compiler.backend;
     MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
     Map<Node, String> renames = backend.renames;
-    Map<String, SourceString> symbols = mirrorRenamer.symbols;
+    Map<String, String> symbols = mirrorRenamer.symbols;
 
     // Check that no two different source code names get the same mangled name,
     // with the exception of MirrorSystem.getName that gets renamed to the same
@@ -48,7 +48,7 @@ void testUniqueMinification() {
     for (Node node in renames.keys) {
       Identifier identifier = node.asIdentifier();
       if (identifier != null) {
-        SourceString source = identifier.source;
+        String source = identifier.source;
         if (mirrorRenamer.mirrorSystemGetNameNodes.first.selector == node)
           continue;
         if (symbols.containsKey(renames[node])) {

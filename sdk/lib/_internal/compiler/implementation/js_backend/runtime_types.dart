@@ -485,7 +485,7 @@ class RuntimeTypes {
     int index = 0;
     for (; !types.isEmpty; types = types.tail, index++) {
       jsAst.Expression representation =
-          _getTypeRepresentation(types.head, onVariable);
+          getTypeRepresentation(types.head, onVariable);
       elements.add(new jsAst.ArrayElement(index, representation));
     }
     return new jsAst.ArrayInitializer(index, elements);
@@ -495,9 +495,9 @@ class RuntimeTypes {
                                    {bool alwaysGenerateFunction: false}) {
     ClassElement contextClass = Types.getClassContext(type);
     jsAst.Expression onVariable(TypeVariableType v) {
-      return new jsAst.VariableUse(v.name.slowToString());
+      return new jsAst.VariableUse(v.name);
     };
-    jsAst.Expression encoding = _getTypeRepresentation(type, onVariable);
+    jsAst.Expression encoding = getTypeRepresentation(type, onVariable);
     if (contextClass == null && !alwaysGenerateFunction) {
       return encoding;
     } else {
@@ -529,18 +529,19 @@ class RuntimeTypes {
     }
   }
 
-  String getTypeRepresentation(DartType type, OnVariableCallback onVariable) {
+  String getTypeRepresentationWithHashes(DartType type,
+                                         OnVariableCallback onVariable) {
     // Create a type representation.  For type variables call the original
     // callback for side effects and return a template placeholder.
-    jsAst.Expression representation = _getTypeRepresentation(type, (variable) {
+    jsAst.Expression representation = getTypeRepresentation(type, (variable) {
       onVariable(variable);
       return new jsAst.LiteralString('#');
     });
     return jsAst.prettyPrint(representation, compiler).buffer.toString();
   }
 
-  jsAst.Expression _getTypeRepresentation(DartType type,
-                                          OnVariableCallback onVariable) {
+  jsAst.Expression getTypeRepresentation(DartType type,
+                                         OnVariableCallback onVariable) {
     return representationGenerator.getTypeRepresentation(type, onVariable);
   }
 
@@ -653,11 +654,11 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     }
     if (!type.namedParameterTypes.isEmpty) {
       List<jsAst.Property> namedArguments = <jsAst.Property>[];
-      Link<SourceString> names = type.namedParameters;
+      Link<String> names = type.namedParameters;
       Link<DartType> types = type.namedParameterTypes;
       while (!types.isEmpty) {
         assert(!names.isEmpty);
-        jsAst.Expression name = js.string(names.head.slowToString());
+        jsAst.Expression name = js.string(names.head);
         namedArguments.add(new jsAst.Property(name, visit(types.head)));
         names = names.tail;
         types = types.tail;
@@ -704,8 +705,7 @@ class TypeCheckMapping implements TypeChecks {
     StringBuffer sb = new StringBuffer();
     for (ClassElement holder in this) {
       for (ClassElement check in [holder]) {
-        sb.write('${holder.name.slowToString()}.'
-                 '${check.name.slowToString()}, ');
+        sb.write('${holder.name}.' '${check.name}, ');
       }
     }
     return '[$sb]';
@@ -820,12 +820,12 @@ class Substitution {
   jsAst.Expression getCode(RuntimeTypes rti, bool ensureIsFunction) {
     jsAst.Expression declaration(TypeVariableType variable) {
       return new jsAst.Parameter(
-          rti.backend.namer.safeVariableName(variable.name.slowToString()));
+          rti.backend.namer.safeVariableName(variable.name));
     }
 
     jsAst.Expression use(TypeVariableType variable) {
       return new jsAst.VariableUse(
-          rti.backend.namer.safeVariableName(variable.name.slowToString()));
+          rti.backend.namer.safeVariableName(variable.name));
     }
 
     jsAst.Expression value =

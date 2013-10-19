@@ -17,8 +17,8 @@ class Unparser implements Visitor {
 
   Unparser() : sb = new StringBuffer();
 
-  void add(SourceString string) {
-    string.printOn(sb);
+  void add(String string) {
+    sb.write(string);
   }
 
   void addToken(Token token) {
@@ -147,7 +147,7 @@ class Unparser implements Visitor {
         Identifier identifier = send.selector.asIdentifier();
         if (identical(identifier.token.kind, KEYWORD_TOKEN)) {
           sb.write(' ');
-        } else if (identifier.source == const SourceString('negate')) {
+        } else if (identifier.source == 'negate') {
           // TODO(ahe): Remove special case for negate.
           sb.write(' ');
         }
@@ -298,7 +298,7 @@ class Unparser implements Visitor {
 
   visitSend(Send node) {
     Operator op = node.selector.asOperator();
-    String opString = op != null ? op.source.stringValue : null;
+    String opString = op != null ? op.source : null;
     bool spacesNeeded = identical(opString, 'is') || identical(opString, 'as');
 
     if (node.isPrefix) visit(node.selector);
@@ -333,7 +333,7 @@ class Unparser implements Visitor {
       visit(node.selector);
       if (!node.isPrefix) {
         visit(node.assignmentOperator);
-        if (node.assignmentOperator.source.slowToString() != '=') sb.write(' ');
+        if (node.assignmentOperator.source != '=') sb.write(' ');
       }
       visit(node.argumentsNode);
     }

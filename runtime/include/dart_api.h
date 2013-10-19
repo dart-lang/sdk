@@ -284,10 +284,9 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle);
  *
  * Requires there to be a current isolate.
  *
- * \param format A printf style format specifier used to construct the
- *   error message.
+ * \param error the error message.
  */
-DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...);
+DART_EXPORT Dart_Handle Dart_NewApiError(const char* error);
 
 /**
  * Produces a new unhandled exception error handle.
@@ -300,7 +299,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
 
 /* Deprecated. */
 /* TODO(turnidge): Remove all uses and delete. */
-DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
+DART_EXPORT Dart_Handle Dart_Error(const char* error);
 
 /**
  * Propagates an error.

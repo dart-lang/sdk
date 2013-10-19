@@ -242,7 +242,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
     }
 
     ClassElement classElement = constant.type.element;
-    SourceString className = classElement.name;
+    String className = classElement.name;
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
 
@@ -311,7 +311,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitConstructed(ConstructedConstant constant) {
     Element element = constant.type.element;
     if (element.isForeign(compiler)
-        && element.name == const SourceString('JS_CONST')) {
+        && element.name == 'JS_CONST') {
       StringConstant str = constant.fields[0];
       return new jsAst.LiteralExpression(str.value.slowToString());
     }
@@ -338,7 +338,8 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
       RuntimeTypes rti = backend.rti;
       Iterable<String> arguments = interface.typeArguments
           .toList(growable: false)
-          .map((DartType type) => rti.getTypeRepresentation(type, (_){}));
+          .map((DartType type) =>
+              rti.getTypeRepresentationWithHashes(type, (_){}));
       jsAst.Expression argumentList =
           new jsAst.LiteralString('[${arguments.join(', ')}]');
       return new jsAst.Call(getHelperProperty(backend.getSetRuntimeTypeInfo()),

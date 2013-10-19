@@ -156,11 +156,11 @@ class CombinatorFilter {
     // a positive list of elements to include, otherwise we create a negative
     // list of elements to exclude.
     bool show = false;
-    Set<SourceString> nameSet;
+    Set<String> nameSet;
     for (Combinator combinator in tag.combinators) {
       if (combinator.isShow) {
         show = true;
-        var set = new Set<SourceString>();
+        var set = new Set<String>();
         for (Identifier identifier in combinator.identifiers) {
           set.add(identifier.source);
         }
@@ -172,7 +172,7 @@ class CombinatorFilter {
       }
     }
     if (nameSet == null) {
-      nameSet = new Set<SourceString>();
+      nameSet = new Set<String>();
     }
     for (Combinator combinator in tag.combinators) {
       if (combinator.isHide) {
@@ -195,7 +195,7 @@ class CombinatorFilter {
  * A list of combinators represented as a list of element names to include.
  */
 class ShowFilter extends CombinatorFilter {
-  final Set<SourceString> includedNames;
+  final Set<String> includedNames;
 
   ShowFilter(this.includedNames);
 
@@ -206,7 +206,7 @@ class ShowFilter extends CombinatorFilter {
  * A list of combinators represented as a list of element names to exclude.
  */
 class HideFilter extends CombinatorFilter {
-  final Set<SourceString> excludedNames;
+  final Set<String> excludedNames;
 
   HideFilter(this.excludedNames);
 
@@ -520,7 +520,7 @@ class ImportLink {
                      message: 'Exports not handled on $importedLibrary'));
     var combinatorFilter = new CombinatorFilter.fromTag(import);
     if (import != null && import.prefix != null) {
-      SourceString prefix = import.prefix.source;
+      String prefix = import.prefix.source;
       Element existingElement = importingLibrary.find(prefix);
       PrefixElement prefixElement;
       if (existingElement == null || !existingElement.isPrefix()) {
@@ -603,8 +603,8 @@ class LibraryDependencyNode {
    * The export scope for [library] which is gradually computed by the work-list
    * computation in [LibraryDependencyHandler.computeExports].
    */
-  Map<SourceString, Element> exportScope =
-      new Map<SourceString, Element>();
+  Map<String, Element> exportScope =
+      new Map<String, Element>();
 
   /// Map from exported elements to the export directives that exported them.
   Map<Element, Link<Export>> exporters = new Map<Element, Link<Export>>();
@@ -696,7 +696,7 @@ class LibraryDependencyNode {
    */
   Element addElementToExportScope(Compiler compiler, Element element,
                                   Link<Export> exports) {
-    SourceString name = element.name;
+    String name = element.name;
 
     void reportDuplicateExport(Element duplicate,
                                Link<Export> duplicateExports,

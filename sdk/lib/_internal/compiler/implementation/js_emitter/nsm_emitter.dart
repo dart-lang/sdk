@@ -29,7 +29,7 @@ class NsmEmitter extends CodeEmitterHelper {
     // do not introduce duplicates (bad for code size).
     Map<String, Selector> addedJsNames = new Map<String, Selector>();
 
-    void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
+    void addNoSuchMethodHandlers(String ignore, Set<Selector> selectors) {
       // Cache the object class and type.
       ClassElement objectClass = compiler.objectClass;
       DartType objectType = objectClass.computeType(compiler);
@@ -70,8 +70,8 @@ class NsmEmitter extends CodeEmitterHelper {
       }
 
       List<jsAst.Expression> argNames =
-          selector.getOrderedNamedArguments().map((SourceString name) =>
-              js.string(name.slowToString())).toList();
+          selector.getOrderedNamedArguments().map((String name) =>
+              js.string(name)).toList();
 
       String methodName = selector.invocationMirrorMemberName;
       String internalName = namer.invocationMirrorInternalName(selector);

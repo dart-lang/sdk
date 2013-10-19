@@ -7,7 +7,7 @@ part of dart2js;
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 
 class BitNotOperation implements UnaryOperation {
-  final SourceString name = const SourceString('~');
+  final String name = '~';
   bool isUserDefinable() => true;
   const BitNotOperation();
   Constant fold(Constant constant) {
@@ -21,7 +21,7 @@ class BitNotOperation implements UnaryOperation {
 }
 
 class NegateOperation implements UnaryOperation {
-  final SourceString name = const SourceString('negate');
+  final String name = 'negate';
   bool isUserDefinable() => true;
   const NegateOperation();
   Constant fold(Constant constant) {
@@ -39,7 +39,7 @@ class NegateOperation implements UnaryOperation {
 }
 
 class NotOperation implements UnaryOperation {
-  final SourceString name = const SourceString('!');
+  final String name = '!';
   bool isUserDefinable() => true;
   const NotOperation();
   Constant fold(Constant constant) {
@@ -73,28 +73,28 @@ abstract class BinaryBitOperation implements BinaryOperation {
 }
 
 class BitOrOperation extends BinaryBitOperation {
-  final SourceString name = const SourceString('|');
+  final String name = '|';
   const BitOrOperation();
   int foldInts(int left, int right)  => left | right;
   apply(left, right) => left | right;
 }
 
 class BitAndOperation extends BinaryBitOperation {
-  final SourceString name = const SourceString('&');
+  final String name = '&';
   const BitAndOperation();
   int foldInts(int left, int right) => left & right;
   apply(left, right) => left & right;
 }
 
 class BitXorOperation extends BinaryBitOperation {
-  final SourceString name = const SourceString('^');
+  final String name = '^';
   const BitXorOperation();
   int foldInts(int left, int right) => left ^ right;
   apply(left, right) => left ^ right;
 }
 
 class ShiftLeftOperation extends BinaryBitOperation {
-  final SourceString name = const SourceString('<<');
+  final String name = '<<';
   const ShiftLeftOperation();
   int foldInts(int left, int right) {
     // TODO(floitsch): find a better way to guard against excessive shifts to
@@ -106,7 +106,7 @@ class ShiftLeftOperation extends BinaryBitOperation {
 }
 
 class ShiftRightOperation extends BinaryBitOperation {
-  final SourceString name = const SourceString('>>');
+  final String name = '>>';
   const ShiftRightOperation();
   int foldInts(int left, int right) {
     if (right < 0) return null;
@@ -132,14 +132,14 @@ abstract class BinaryBoolOperation implements BinaryOperation {
 }
 
 class BooleanAndOperation extends BinaryBoolOperation {
-  final SourceString name = const SourceString('&&');
+  final String name = '&&';
   const BooleanAndOperation();
   bool foldBools(bool left, bool right) => left && right;
   apply(left, right) => left && right;
 }
 
 class BooleanOrOperation extends BinaryBoolOperation {
-  final SourceString name = const SourceString('||');
+  final String name = '||';
   const BooleanOrOperation();
   bool foldBools(bool left, bool right) => left || right;
   apply(left, right) => left || right;
@@ -178,21 +178,21 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
 }
 
 class SubtractOperation extends ArithmeticNumOperation {
-  final SourceString name = const SourceString('-');
+  final String name = '-';
   const SubtractOperation();
   num foldNums(num left, num right) => left - right;
   apply(left, right) => left - right;
 }
 
 class MultiplyOperation extends ArithmeticNumOperation {
-  final SourceString name = const SourceString('*');
+  final String name = '*';
   const MultiplyOperation();
   num foldNums(num left, num right) => left * right;
   apply(left, right) => left * right;
 }
 
 class ModuloOperation extends ArithmeticNumOperation {
-  final SourceString name = const SourceString('%');
+  final String name = '%';
   const ModuloOperation();
   int foldInts(int left, int right) {
     if (right == 0) return null;
@@ -203,7 +203,7 @@ class ModuloOperation extends ArithmeticNumOperation {
 }
 
 class TruncatingDivideOperation extends ArithmeticNumOperation {
-  final SourceString name = const SourceString('~/');
+  final String name = '~/';
   const TruncatingDivideOperation();
   int foldInts(int left, int right) {
     if (right == 0) return null;
@@ -219,7 +219,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
 }
 
 class DivideOperation extends ArithmeticNumOperation {
-  final SourceString name = const SourceString('/');
+  final String name = '/';
   const DivideOperation();
   num foldNums(num left, num right) => left / right;
   bool isDivide() => true;
@@ -227,7 +227,7 @@ class DivideOperation extends ArithmeticNumOperation {
 }
 
 class AddOperation implements BinaryOperation {
-  final SourceString name = const SourceString('+');
+  final String name = '+';
   bool isUserDefinable() => true;
   const AddOperation();
   Constant fold(Constant left, Constant right) {
@@ -265,35 +265,35 @@ abstract class RelationalNumOperation implements BinaryOperation {
 }
 
 class LessOperation extends RelationalNumOperation {
-  final SourceString name = const SourceString('<');
+  final String name = '<';
   const LessOperation();
   bool foldNums(num left, num right) => left < right;
   apply(left, right) => left < right;
 }
 
 class LessEqualOperation extends RelationalNumOperation {
-  final SourceString name = const SourceString('<=');
+  final String name = '<=';
   const LessEqualOperation();
   bool foldNums(num left, num right) => left <= right;
   apply(left, right) => left <= right;
 }
 
 class GreaterOperation extends RelationalNumOperation {
-  final SourceString name = const SourceString('>');
+  final String name = '>';
   const GreaterOperation();
   bool foldNums(num left, num right) => left > right;
   apply(left, right) => left > right;
 }
 
 class GreaterEqualOperation extends RelationalNumOperation {
-  final SourceString name = const SourceString('>=');
+  final String name = '>=';
   const GreaterEqualOperation();
   bool foldNums(num left, num right) => left >= right;
   apply(left, right) => left >= right;
 }
 
 class EqualsOperation implements BinaryOperation {
-  final SourceString name = const SourceString('==');
+  final String name = '==';
   bool isUserDefinable() => true;
   const EqualsOperation();
   Constant fold(Constant left, Constant right) {
@@ -316,7 +316,7 @@ class EqualsOperation implements BinaryOperation {
 }
 
 class IdentityOperation implements BinaryOperation {
-  final SourceString name = const SourceString('===');
+  final String name = '===';
   bool isUserDefinable() => false;
   const IdentityOperation();
   BoolConstant fold(Constant left, Constant right) {

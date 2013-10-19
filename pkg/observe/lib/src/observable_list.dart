@@ -9,7 +9,7 @@ part of observe;
  * removed, or replaced, then observers that are listening to [changes]
  * will be notified.
  */
-class ObservableList<E> extends ListBase<E> with ChangeNotifierMixin {
+class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   List<ListChangeRecord> _listRecords;
 
   /** The inner [List<E>] with the actual storage. */

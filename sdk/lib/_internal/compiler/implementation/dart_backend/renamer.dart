@@ -109,8 +109,8 @@ void renamePlaceholders(
       Function renameString, Function renameElement) {
     assert(element.isConstructor());
     StringBuffer result = new StringBuffer();
-    String name = element.name.slowToString();
-    if (element.name != const SourceString('')) {
+    String name = element.name;
+    if (element.name != '') {
       // Named constructor or factory. Is there a more reliable way to check
       // this case?
       if (!placeholder.isRedirectingCall) {
@@ -133,7 +133,7 @@ void renamePlaceholders(
            Elements.isStaticOrTopLevel(element) ||
            element is TypeVariableElement);
     // TODO(smok): We may want to reuse class static field and method names.
-    String originalName = element.name.slowToString();
+    String originalName = element.name;
     LibraryElement library = element.getLibrary();
     if (identical(element.getLibrary(), compiler.coreLibrary)) {
       return originalName;
@@ -257,7 +257,7 @@ void renamePlaceholders(
       if (functionElement.getEnclosingClass() != null) {
         functionElement.getEnclosingClass().forEachMember(
             (enclosingClass, member) {
-              memberIdentifiers.add(member.name.slowToString());
+              memberIdentifiers.add(member.name);
             });
       }
       Set<String> usedLocalIdentifiers = new Set<String>();
@@ -293,7 +293,7 @@ void renamePlaceholders(
         }
   });
   sortedForEach(placeholderCollector.privateNodes, (library, nodes) {
-    renameNodes(nodes, (node) => rename(library, node.source.slowToString()));
+    renameNodes(nodes, (node) => rename(library, node.source));
   });
   renameNodes(placeholderCollector.unresolvedNodes,
       (_) => generateUniqueName('Unresolved'));

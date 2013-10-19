@@ -821,7 +821,7 @@ class PropertyAccess extends Expression {
 
   PropertyAccess(this.receiver, this.selector);
   PropertyAccess.field(this.receiver, String fieldName)
-      : selector = new LiteralString("'$fieldName'");
+      : selector = new LiteralString('"$fieldName"');
   PropertyAccess.indexed(this.receiver, int index)
       : selector = new LiteralNumber('$index');
 

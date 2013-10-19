@@ -6,7 +6,7 @@ library person;
 
 import 'package:observe/observe.dart';
 
-class Person extends ChangeNotifierBase {
+class Person extends ChangeNotifier {
   String _firstName;
   String _lastName;
   List<String> _items;

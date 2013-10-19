@@ -16,12 +16,6 @@ Language/12_Expressions/01_Constants_A17_t03: fail
 Language/15_Types/4_Interface_Types_A11_t01: Skip
 Language/15_Types/4_Interface_Types_A11_t02: Skip
 
-# TBF: "class B1 = A with M1;", typedef cannot be used for mixins
-Language/09_Mixins/1_Mixin_Application_A01_t01: Fail
-
-# TBF: It is a compile-time error if the key of an entry in a constant map literal is an instance of a class that implements the operator == unless the key is a string or integer.
-Language/12_Expressions/07_Maps_A13_t01: Fail
-
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
 
@@ -163,21 +157,12 @@ LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
-Language/07_Classes/07_Classes_A13_t01: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t02: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t03: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t04: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t05: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t06: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t07: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t08: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/07_Classes_A13_t09: Fail # co19-roll r623: Please triage this failure
+Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
+
 Language/07_Classes/6_Constructors/2_Factories_A14_t01: Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A14_t02: Fail # co19-roll r623: Please triage this failure
-Language/12_Expressions/01_Constants_A16_t02: Crash # co19-roll r623: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/Queue/Queue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/core/Iterable/Iterable.generate_A01_t01: Fail # co19-roll r623: Please triage this failure
-

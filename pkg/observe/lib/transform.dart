@@ -138,10 +138,10 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   var declaresObservable = false;
   if (cls.extendsClause != null) {
     var id = _getSimpleIdentifier(cls.extendsClause.superclass.name);
-    if (id.name == 'ObservableBase') {
-      code.edit(id.offset, id.end, 'ChangeNotifierBase');
+    if (id.name == 'Observable') {
+      code.edit(id.offset, id.end, 'ChangeNotifier');
       declaresObservable = true;
-    } else if (id.name == 'ChangeNotifierBase') {
+    } else if (id.name == 'ChangeNotifier') {
       declaresObservable = true;
     } else if (id.name != 'HtmlElement' && id.name != 'CustomElement'
         && id.name != 'Object') {
@@ -154,11 +154,11 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   if (cls.withClause != null) {
     for (var type in cls.withClause.mixinTypes) {
       var id = _getSimpleIdentifier(type.name);
-      if (id.name == 'ObservableMixin') {
-        code.edit(id.offset, id.end, 'ChangeNotifierMixin');
+      if (id.name == 'Observable') {
+        code.edit(id.offset, id.end, 'ChangeNotifier');
         declaresObservable = true;
         break;
-      } else if (id.name == 'ChangeNotifierMixin') {
+      } else if (id.name == 'ChangeNotifier') {
         declaresObservable = true;
         break;
       } else {
@@ -194,7 +194,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
         if (!declaresObservable) {
           logger.warning('Observable fields should be put in an observable '
               'objects. Please declare that this class extends from '
-              'ObservableBase, includes ObservableMixin, or implements '
+              'Observable, includes Observable, or implements '
               'Observable.',
               span: _getSpan(file, member));
         }

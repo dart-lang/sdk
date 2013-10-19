@@ -13,7 +13,7 @@
  * You can provide an observable object in two ways. The simplest way is to
  * use dirty checking to discover changes automatically:
  *
- *     class Monster extends Unit with ObservableMixin {
+ *     class Monster extends Unit with Observable {
  *       @observable int health = 100;
  *
  *       void damage(int amount) {
@@ -41,7 +41,7 @@
  * manually. This avoids the potentially expensive [Observable.dirtyCheck]
  * operation, but requires more work in the object:
  *
- *     class Monster extends Unit with ChangeNotifierMixin {
+ *     class Monster extends Unit with ChangeNotifier {
  *       int _health = 100;
  *       @reflectable get health => _health;
  *       @reflectable set health(val) {
@@ -87,6 +87,8 @@ import 'dart:collection';
 @MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
     override: 'observe')
 import 'dart:mirrors';
+
+import 'package:meta/meta.dart';
 
 // Note: this is an internal library so we can import it from tests.
 // TODO(jmesserly): ideally we could import this with a prefix, but it caused

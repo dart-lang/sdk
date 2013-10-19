@@ -60,7 +60,7 @@ String doUnparse(String source) {
   Script script = new Script(null, null);
   LibraryElement lib = new LibraryElementX(script);
   CompilationUnitElement element = new CompilationUnitElementX(script, lib);
-  StringScanner scanner = new StringScanner(source);
+  StringScanner scanner = new StringScanner.fromString(source);
   Token beginToken = scanner.tokenize();
   NodeListener listener = new NodeListener(diagnosticListener, element);
   Parser parser = new Parser(listener);

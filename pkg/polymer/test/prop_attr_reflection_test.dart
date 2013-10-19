@@ -30,7 +30,7 @@ class XCompose extends PolymerElement {
   @observable bool zim = false;
 }
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   // Most tests use @CustomTag, here we test out the impertive register:

@@ -21,63 +21,54 @@ class Universe {
    * Invariant: Elements are declaration elements.
    */
   // TODO(karlklose): these sets should be merged.
-  final Set<ClassElement> instantiatedClasses;
-  final Set<DartType> instantiatedTypes;
+  final Set<ClassElement> instantiatedClasses = new Set<ClassElement>();
+  final Set<DartType> instantiatedTypes = new Set<DartType>();
 
   /**
    * Documentation wanted -- johnniwinther
    *
    * Invariant: Elements are declaration elements.
    */
-  final Set<FunctionElement> staticFunctionsNeedingGetter;
-  final Map<SourceString, Set<Selector>> invokedNames;
-  final Map<SourceString, Set<Selector>> invokedGetters;
-  final Map<SourceString, Set<Selector>> invokedSetters;
+  final Set<FunctionElement> staticFunctionsNeedingGetter =
+      new Set<FunctionElement>();
+  final Map<String, Set<Selector>> invokedNames =
+      new Map<String, Set<Selector>>();
+  final Map<String, Set<Selector>> invokedGetters =
+      new Map<String, Set<Selector>>();
+  final Map<String, Set<Selector>> invokedSetters =
+      new Map<String, Set<Selector>>();
 
   /**
    * Fields accessed. Currently only the codegen knows this
    * information. The resolver is too conservative when seeing a
    * getter and only registers an invoked getter.
    */
-  final Set<Element> fieldGetters;
+  final Set<Element> fieldGetters = new Set<Element>();
 
   /**
    * Fields set. See comment in [fieldGetters].
    */
-  final Set<Element> fieldSetters;
-  final Set<DartType> isChecks;
+  final Set<Element> fieldSetters = new Set<Element>();
+  final Set<DartType> isChecks = new Set<DartType>();
 
   /**
    * Set of [:call:] methods in instantiated classes that use type variables
    * in their signature.
    */
-  final Set<Element> genericCallMethods;
+  final Set<Element> genericCallMethods = new Set<Element>();
 
   /**
    * Set of closures that use type variables in their signature.
    */
-  final Set<Element> genericClosures;
+  final Set<Element> genericClosures = new Set<Element>();
 
   /**
    * Set of methods in instantiated classes that are potentially
    * closurized.
    */
-  final Set<Element> closurizedMembers;
+  final Set<Element> closurizedMembers = new Set<Element>();
 
   bool usingFactoryWithTypeArguments = false;
-
-  Universe() : instantiatedClasses = new Set<ClassElement>(),
-               instantiatedTypes = new Set<DartType>(),
-               staticFunctionsNeedingGetter = new Set<FunctionElement>(),
-               invokedNames = new Map<SourceString, Set<Selector>>(),
-               invokedGetters = new Map<SourceString, Set<Selector>>(),
-               invokedSetters = new Map<SourceString, Set<Selector>>(),
-               fieldGetters = new Set<Element>(),
-               fieldSetters = new Set<Element>(),
-               isChecks = new Set<DartType>(),
-               genericCallMethods = new Set<Element>(),
-               genericClosures = new Set<Element>(),
-               closurizedMembers = new Set<Element>();
 
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
@@ -135,18 +126,18 @@ class SelectorKind {
 
 class Selector {
   final SelectorKind kind;
-  final SourceString name;
+  final String name;
   final LibraryElement library; // Library is null for non-private selectors.
 
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
-  final List<SourceString> namedArguments;
-  final List<SourceString> orderedNamedArguments;
+  final List<String> namedArguments;
+  final List<String> orderedNamedArguments;
   final int hashCode;
 
-  static const SourceString INDEX_NAME = const SourceString("[]");
-  static const SourceString INDEX_SET_NAME = const SourceString("[]=");
-  static const SourceString CALL_NAME = Compiler.CALL_OPERATOR_NAME;
+  static const String INDEX_NAME ="[]";
+  static const String INDEX_SET_NAME = "[]=";
+  static const String CALL_NAME = Compiler.CALL_OPERATOR_NAME;
 
   Selector.internal(this.kind,
                     this.name,
@@ -164,19 +155,19 @@ class Selector {
            || kind == SelectorKind.GETTER
            || kind == SelectorKind.SETTER
            || Elements.operatorNameToIdentifier(name) != name);
-    assert(!name.isPrivate() || library != null);
+    assert(!isPrivateName(name) || library != null);
   }
 
   static Map<int, List<Selector>> canonicalizedValues =
       new Map<int, List<Selector>>();
 
   factory Selector(SelectorKind kind,
-                   SourceString name,
+                   String name,
                    LibraryElement library,
                    int argumentCount,
-                   [List<SourceString> namedArguments]) {
-    if (!name.isPrivate()) library = null;
-    if (namedArguments == null) namedArguments = const <SourceString>[];
+                   [List<String> namedArguments]) {
+    if (!isPrivateName(name)) library = null;
+    if (namedArguments == null) namedArguments = const <String>[];
     int hashCode = computeHashCode(
         kind, name, library, argumentCount, namedArguments);
     List<Selector> list = canonicalizedValues.putIfAbsent(hashCode,
@@ -189,9 +180,9 @@ class Selector {
         return existing;
       }
     }
-    List<SourceString> orderedNamedArguments = namedArguments.isEmpty
-        ? const <SourceString>[]
-        : <SourceString>[];
+    List<String> orderedNamedArguments = namedArguments.isEmpty
+        ? const <String>[]
+        : <String>[];
     Selector result = new Selector.internal(
         kind, name, library, argumentCount,
         namedArguments, orderedNamedArguments,
@@ -201,12 +192,12 @@ class Selector {
   }
 
   factory Selector.fromElement(Element element, Compiler compiler) {
-    SourceString name = element.name;
+    String name = element.name;
     if (element.isFunction()) {
       int arity = element.asFunctionElement().requiredParameterCount(compiler);
-      if (name == const SourceString('[]')) {
+      if (name == '[]') {
         return new Selector.index();
-      } else if (name == const SourceString('[]=')) {
+      } else if (name == '[]=') {
         return new Selector.indexSet();
       } else if (Elements.operatorNameToIdentifier(name) != name) {
         return new Selector(SelectorKind.OPERATOR, name, null, arity);
@@ -222,21 +213,21 @@ class Selector {
     }
   }
 
-  factory Selector.getter(SourceString name, LibraryElement library)
+  factory Selector.getter(String name, LibraryElement library)
       => new Selector(SelectorKind.GETTER, name, library, 0);
 
   factory Selector.getterFrom(Selector selector)
       => new Selector(SelectorKind.GETTER, selector.name, selector.library, 0);
 
-  factory Selector.setter(SourceString name, LibraryElement library)
+  factory Selector.setter(String name, LibraryElement library)
       => new Selector(SelectorKind.SETTER, name, library, 1);
 
-  factory Selector.unaryOperator(SourceString name)
+  factory Selector.unaryOperator(String name)
       => new Selector(SelectorKind.OPERATOR,
                       Elements.constructOperatorName(name, true),
                       null, 0);
 
-  factory Selector.binaryOperator(SourceString name)
+  factory Selector.binaryOperator(String name)
       => new Selector(SelectorKind.OPERATOR,
                       Elements.constructOperatorName(name, false),
                       null, 1);
@@ -251,13 +242,13 @@ class Selector {
                       Elements.constructOperatorName(INDEX_SET_NAME, false),
                       null, 2);
 
-  factory Selector.call(SourceString name,
+  factory Selector.call(String name,
                         LibraryElement library,
                         int arity,
-                        [List<SourceString> namedArguments])
+                        [List<String> namedArguments])
       => new Selector(SelectorKind.CALL, name, library, arity, namedArguments);
 
-  factory Selector.callClosure(int arity, [List<SourceString> namedArguments])
+  factory Selector.callClosure(int arity, [List<String> namedArguments])
       => new Selector(SelectorKind.CALL, CALL_NAME, null,
                       arity, namedArguments);
 
@@ -265,20 +256,20 @@ class Selector {
       => new Selector(SelectorKind.CALL, CALL_NAME, null,
                       selector.argumentCount, selector.namedArguments);
 
-  factory Selector.callConstructor(SourceString name, LibraryElement library,
+  factory Selector.callConstructor(String name, LibraryElement library,
                                    [int arity = 0,
-                                    List<SourceString> namedArguments])
+                                    List<String> namedArguments])
       => new Selector(SelectorKind.CALL, name, library,
                       arity, namedArguments);
 
   factory Selector.callDefaultConstructor(LibraryElement library)
-      => new Selector(SelectorKind.CALL, const SourceString(""), library, 0);
+      => new Selector(SelectorKind.CALL, "", library, 0);
 
   bool isGetter() => identical(kind, SelectorKind.GETTER);
   bool isSetter() => identical(kind, SelectorKind.SETTER);
   bool isCall() => identical(kind, SelectorKind.CALL);
   bool isClosureCall() {
-    SourceString callName = Compiler.CALL_OPERATOR_NAME;
+    String callName = Compiler.CALL_OPERATOR_NAME;
     return isCall() && name == callName;
   }
 
@@ -290,7 +281,7 @@ class Selector {
   bool isBinaryOperator() => isOperator() && argumentCount == 1;
 
   /** Check whether this is a call to 'assert'. */
-  bool isAssert() => isCall() && identical(name.stringValue, "assert");
+  bool isAssert() => isCall() && identical(name, "assert");
 
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
@@ -303,7 +294,7 @@ class Selector {
    * The member name for invocation mirrors created from this selector.
    */
   String get invocationMirrorMemberName =>
-      isSetter() ? '${name.slowToString()}=' : name.slowToString();
+      isSetter() ? '$name=' : name;
 
   int get invocationMirrorKind {
     const int METHOD = 0;
@@ -326,7 +317,7 @@ class Selector {
   bool appliesUntyped(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
     if (Elements.isUnresolved(element)) return false;
-    if (name.isPrivate() && library != element.getLibrary()) return false;
+    if (isPrivateName(name) && library != element.getLibrary()) return false;
     if (element.isForeign(compiler)) return true;
     if (element.isSetter()) return isSetter();
     if (element.isGetter()) return isGetter() || isCall();
@@ -356,11 +347,11 @@ class Selector {
       if (positionalArgumentCount > requiredParameterCount) return false;
       assert(positionalArgumentCount == requiredParameterCount);
       if (namedArgumentCount > optionalParameterCount) return false;
-      Set<SourceString> nameSet = new Set<SourceString>();
+      Set<String> nameSet = new Set<String>();
       parameters.optionalParameters.forEach((Element element) {
         nameSet.add(element.name);
       });
-      for (SourceString name in namedArguments) {
+      for (String name in namedArguments) {
         if (!nameSet.contains(name)) return false;
         // TODO(5213): By removing from the set we are checking
         // that we are not passing the name twice. We should have this
@@ -498,7 +489,7 @@ class Selector {
 
     // Synthesize a selector for the call.
     // TODO(ngeoffray): Should the resolver do it instead?
-    List<SourceString> namedParameters;
+    List<String> namedParameters;
     if (signature.optionalParametersAreNamed) {
       namedParameters =
           signature.optionalParameters.toList().map((e) => e.name).toList();
@@ -516,7 +507,7 @@ class Selector {
                                        compiler);
   }
 
-  static bool sameNames(List<SourceString> first, List<SourceString> second) {
+  static bool sameNames(List<String> first, List<String> second) {
     for (int i = 0; i < first.length; i++) {
       if (first[i] != second[i]) return false;
     }
@@ -524,10 +515,10 @@ class Selector {
   }
 
   bool match(SelectorKind kind,
-             SourceString name,
+             String name,
              LibraryElement library,
              int argumentCount,
-             List<SourceString> namedArguments) {
+             List<String> namedArguments) {
     return this.kind == kind
         && this.name == name
         && identical(this.library, library)
@@ -537,10 +528,10 @@ class Selector {
   }
 
   static int computeHashCode(SelectorKind kind,
-                             SourceString name,
+                             String name,
                              LibraryElement library,
                              int argumentCount,
-                             List<SourceString> namedArguments) {
+                             List<String> namedArguments) {
     // Add bits from name and kind.
     int hash = mixHashCodeBits(name.hashCode, kind.hashCode);
     // Add bits from the library.
@@ -573,13 +564,13 @@ class Selector {
     return (high * 13) ^ (low * 997) ^ h;
   }
 
-  List<SourceString> getOrderedNamedArguments() {
+  List<String> getOrderedNamedArguments() {
     if (namedArguments.isEmpty) return namedArguments;
     if (!orderedNamedArguments.isEmpty) return orderedNamedArguments;
 
     orderedNamedArguments.addAll(namedArguments);
-    orderedNamedArguments.sort((SourceString first, SourceString second) {
-      return first.slowToString().compareTo(second.slowToString());
+    orderedNamedArguments.sort((String first, String second) {
+      return first.compareTo(second);
     });
     return orderedNamedArguments;
   }
@@ -589,7 +580,7 @@ class Selector {
       StringBuffer result = new StringBuffer();
       for (int i = 0; i < namedArgumentCount; i++) {
         if (i != 0) result.write(', ');
-        result.write(namedArguments[i].slowToString());
+        result.write(namedArguments[i]);
       }
       return "[$result]";
     }
@@ -601,7 +592,7 @@ class Selector {
     String type = '';
     if (namedArgumentCount > 0) named = ', named=${namedArgumentsToString()}';
     if (mask != null) type = ', mask=$mask';
-    return 'Selector($kind, ${name.slowToString()}, '
+    return 'Selector($kind, $name, '
            'arity=$argumentCount$named$type)';
   }
 }

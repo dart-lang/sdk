@@ -361,20 +361,20 @@ class Send extends Expression {
   bool get isPostfix => argumentsNode is Postfix;
   bool get isCall => !isOperator && !isPropertyAccess;
   bool get isIndex =>
-      isOperator && identical(selector.asOperator().source.stringValue, '[]');
+      isOperator && identical(selector.asOperator().source, '[]');
   bool get isLogicalAnd =>
-      isOperator && identical(selector.asOperator().source.stringValue, '&&');
+      isOperator && identical(selector.asOperator().source, '&&');
   bool get isLogicalOr =>
-      isOperator && identical(selector.asOperator().source.stringValue, '||');
+      isOperator && identical(selector.asOperator().source, '||');
 
   bool get isTypeCast {
     return isOperator
-        && identical(selector.asOperator().source.stringValue, 'as');
+        && identical(selector.asOperator().source, 'as');
   }
 
   bool get isTypeTest {
     return isOperator
-        && identical(selector.asOperator().source.stringValue, 'is');
+        && identical(selector.asOperator().source, 'is');
   }
 
   bool get isIsNotCheck {
@@ -383,8 +383,8 @@ class Send extends Expression {
 
   TypeAnnotation get typeAnnotationFromIsCheckOrCast {
     assert(isOperator);
-    assert(identical(selector.asOperator().source.stringValue, 'is') ||
-        identical(selector.asOperator().source.stringValue, 'as'));
+    assert(identical(selector.asOperator().source, 'is') ||
+        identical(selector.asOperator().source, 'as'));
     return isIsNotCheck
         ? arguments.head.asSend().receiver
         : arguments.head;
@@ -496,7 +496,7 @@ class NodeList extends Node {
   final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
-  final SourceString delimiter;
+  final String delimiter;
   bool get isEmpty => nodes.isEmpty;
 
   NodeList([this.beginToken, this.nodes, this.endToken, this.delimiter]);
@@ -773,7 +773,7 @@ class LiteralInt extends Literal<int> {
     try {
       Token valueToken = token;
       if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
-      return int.parse(valueToken.value.slowToString());
+      return int.parse(valueToken.value);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -792,7 +792,7 @@ class LiteralDouble extends Literal<double> {
     try {
       Token valueToken = token;
       if (identical(valueToken.kind, PLUS_TOKEN)) valueToken = valueToken.next;
-      return double.parse(valueToken.value.slowToString());
+      return double.parse(valueToken.value);
     } on FormatException catch (ex) {
       (this.handler)(token, ex);
     }
@@ -915,12 +915,12 @@ class LiteralString extends StringNode {
   accept(Visitor visitor) => visitor.visitLiteralString(this);
 }
 
-class LiteralNull extends Literal<SourceString> {
+class LiteralNull extends Literal<String> {
   LiteralNull(Token token) : super(token, null);
 
   LiteralNull asLiteralNull() => this;
 
-  SourceString get value => null;
+  String get value => null;
 
   accept(Visitor visitor) => visitor.visitLiteralNull(this);
 }
@@ -975,13 +975,13 @@ class LiteralSymbol extends Expression {
 class Identifier extends Expression {
   final Token token;
 
-  SourceString get source => token.value;
+  String get source => token.value;
 
   Identifier(Token this.token);
 
-  bool isThis() => identical(source.stringValue, 'this');
+  bool isThis() => identical(source, 'this');
 
-  bool isSuper() => identical(source.stringValue, 'super');
+  bool isSuper() => identical(source, 'super');
 
   Identifier asIdentifier() => this;
 
@@ -1263,7 +1263,7 @@ class Modifiers extends Node {
   static int computeFlags(Link<Node> nodes) {
     int flags = 0;
     for (; !nodes.isEmpty; nodes = nodes.tail) {
-      String value = nodes.head.asIdentifier().source.stringValue;
+      String value = nodes.head.asIdentifier().source;
       if (identical(value, 'static')) flags |= FLAG_STATIC;
       else if (identical(value, 'abstract')) flags |= FLAG_ABSTRACT;
       else if (identical(value, 'final')) flags |= FLAG_FINAL;
@@ -1279,7 +1279,7 @@ class Modifiers extends Node {
   Node findModifier(String modifier) {
     Link<Node> nodeList = nodes.nodes;
     for (; !nodeList.isEmpty; nodeList = nodeList.tail) {
-      String value = nodeList.head.asIdentifier().source.stringValue;
+      String value = nodeList.head.asIdentifier().source;
       if(identical(value, modifier)) {
         return nodeList.head;
       }
@@ -1680,7 +1680,7 @@ class Label extends Node {
 
   Label(this.identifier, this.colonToken);
 
-  String slowToString() => identifier.source.slowToString();
+  String get labelName => identifier.source;
 
   Label asLabel() => this;
 

@@ -6423,6 +6423,7 @@ class CustomEvent extends Event native "CustomEvent" {
   @DomName('CustomEvent._detail')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   final dynamic _get__detail;
 
   @JSName('initCustomEvent')
@@ -7118,7 +7119,7 @@ class DivElement extends HtmlElement native "HTMLDivElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 /**
  * The base class for all documents.
  *
@@ -9000,7 +9001,7 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
 
 }
 
-@DocsEditable
+@DocsEditable()
 /**
  * An abstract class, which all HTML elements extend.
  */
@@ -9279,7 +9280,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
-  /** 
+  /**
    * Alias for [querySelector]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -9288,7 +9289,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @Experimental()
   Element query(String relativeSelectors) => querySelector(relativeSelectors);
 
-  /** 
+  /**
    * Alias for [querySelectorAll]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -10011,6 +10012,9 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     }
 
     treeSanitizer.sanitizeTree(fragment);
+    // Copy the fragment over to the main document (fix for 14184)
+    document.adoptNode(fragment);
+
     return fragment;
   }
 
@@ -10061,6 +10065,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   void set unsafeInnerHtml(String html) {
     _innerHtml = html;
   }
+
+  /**
+   * This is an ease-of-use accessor for event streams which should only be
+   * used when an explicit accessor is not available.
+   */
+  ElementEvents get on => new ElementEvents(this);
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
@@ -11557,6 +11567,17 @@ class Events {
 
   Stream operator [](String type) {
     return new _EventStream(_ptr, type, false);
+  }
+}
+
+class ElementEvents extends Events {
+  /* Raw event target. */
+  final Element _ptr;
+
+  ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
+
+  Stream operator [](String type) {
+    return new _ElementEventStreamImpl(_ptr, type, false);
   }
 }
 
@@ -13351,8 +13372,8 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
   /**
    * Makes a server POST request with the specified data encoded as form data.
    *
-   * This is roughly the POST equivalent of getString. This method is similar 
-   * to sending a FormData object with broader browser support but limited to 
+   * This is roughly the POST equivalent of getString. This method is similar
+   * to sending a FormData object with broader browser support but limited to
    * String values.
    *
    * See also:
@@ -13387,7 +13408,7 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
    * Creates and sends a URL request for the specified [url].
    *
    * By default `request` will perform an HTTP GET request, but a different
-   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the 
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
    * [method] parameter.
    *
    * The Future is completed when the response is available.
@@ -13547,6 +13568,42 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
     }
 
     return completer.future;
+  }
+
+  /**
+   * Returns all response headers as a key-value map.
+   *
+   * Multiple values for the same header key can be combined into one,
+   * separated by a comma and a space.
+   *
+   * See: http://www.w3.org/TR/XMLHttpRequest/#the-getresponseheader()-method
+   */
+  Map<String, String> get responseHeaders {
+    // from Closure's goog.net.Xhrio.getResponseHeaders.
+    var headers = <String, String>{};
+    var headersString = this.getAllResponseHeaders();
+    if (headersString == null) {
+      return headers;
+    }
+    var headersList = headersString.split('\r\n');
+    for (var header in headersList) {
+      if (header.isEmpty) {
+        continue;
+      }
+
+      var splitIdx = header.indexOf(': ');
+      if (splitIdx == -1) {
+        continue;
+      }
+      var key = header.substring(0, splitIdx).toLowerCase();
+      var value = header.substring(splitIdx + 2);
+      if (headers.containsKey(key)) {
+        headers[key] = '${headers[key]}, $value';
+      } else {
+        headers[key] = value;
+      }
+    }
+    return headers;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -18358,6 +18415,13 @@ class Node extends EventTarget native "Node" {
   TemplateInstance get templateInstance =>
       TemplateElement.mdvPackage(this).templateInstance;
 
+
+  /**
+   * Use ownerDocument instead.
+   */
+  @deprecated
+  Document get document => ownerDocument;
+
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -18460,10 +18524,9 @@ class Node extends EventTarget native "Node" {
   @DocsEditable()
   final String nodeValue;
 
-  @JSName('ownerDocument')
   @DomName('Node.ownerDocument')
   @DocsEditable()
-  final Document document;
+  final Document ownerDocument;
 
   @JSName('parentElement')
   @DomName('Node.parentElement')
@@ -19074,9 +19137,8 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
 
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement native "HTMLOptionElement" {
-  factory OptionElement({String data, String value, bool defaultSelected, 
-      bool selected}) {
-    return new OptionElement._(data, value, defaultSelected, selected);
+  factory OptionElement({String data, String value, bool selected: false}) {
+    return new OptionElement._(data, value, false, selected);
   }
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
@@ -23605,7 +23667,7 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
     // Need to do this first as the contents may get lifted if |node| is
     // template.
     // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents = 
+    var descendents =
         (content as dynamic).querySelectorAll(_allTemplatesSelectors);
     if (content is Element && (content as Element).isTemplate) {
       _bootstrap(content);
@@ -25494,7 +25556,7 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
+@DocsEditable()
 @DomName('Window')
 class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 native "Window,DOMWindow" {
 
@@ -28983,8 +29045,13 @@ abstract class CssClassSet implements Set<String> {
    *
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
+   *
+   * If this corresponds to one element. Returns `true` if [value] was added to
+   * the set, otherwise `false`.
+   *
+   * If this corresponds to many elements, `null` is always returned.
    */
-  void add(String value);
+  bool add(String value);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -29059,7 +29126,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  void modify( f(Set<String> s)) {
+  modify( f(Set<String> s)) {
     _elementCssClassSetIterable.forEach((e) => e.modify(f));
   }
 
@@ -29497,6 +29564,8 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    * [delegate](http://api.jquery.com/delegate/).
    */
   Stream<T> matches(String selector);
+
+  StreamSubscription<T> capture(void onData(T event));
 }
 
 /**
@@ -29513,6 +29582,10 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
         e._selector = selector;
         return e;
       });
+
+  StreamSubscription<T> capture(void onData(T event)) =>
+    new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, true);
 }
 
 /**
@@ -29521,17 +29594,12 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
  */
 class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     implements ElementStream<T> {
-  final _StreamPool _pool;
-  Stream<T> _stream;
+  final Iterable<Element> _targetList;
+  final bool _useCapture;
+  final String _eventType;
 
-  _ElementListEventStreamImpl(targetList, eventType, useCapture) :
-      _pool = new _StreamPool.broadcast() {
-    for (Element target in targetList) {
-      var stream = new _EventStream(target, eventType, useCapture);
-      _pool.add(stream);
-    }
-    _stream = _pool.stream;
-  }
+  _ElementListEventStreamImpl(
+      this._targetList, this._eventType, this._useCapture);
 
   Stream<T> matches(String selector) => this.where(
       (event) => event.target.matchesWithAncestors(selector)).map((e) {
@@ -29539,16 +29607,30 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
         return e;
       });
 
-  // Delegate all regular Stream behavor to our wrapped Stream.
+  // Delegate all regular Stream behavior to a wrapped Stream.
   StreamSubscription<T> listen(void onData(T event),
       { Function onError,
         void onDone(),
-        bool cancelOnError}) =>
-      _stream.listen(onData, onError: onError, onDone: onDone,
+        bool cancelOnError}) {
+    var pool = new _StreamPool.broadcast();
+    for (var target in _targetList) {
+      pool.add(new _EventStream(target, _eventType, _useCapture));
+    }
+    return pool.stream.listen(onData, onError: onError, onDone: onDone,
           cancelOnError: cancelOnError);
+  }
+
+  StreamSubscription<T> capture(void onData(T event)) {
+    var pool = new _StreamPool.broadcast();
+    for (var target in _targetList) {
+      pool.add(new _EventStream(target, _eventType, true));
+    }
+    return pool.stream.listen(onData);
+  }
+
   Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
                                void onCancel(StreamSubscription subscription)})
-      => _stream;
+      => this;
   bool get isBroadcast => true;
 }
 
@@ -32772,30 +32854,6 @@ _makeCallbackMethod3(callback) {
       convertDartClosureToJS(callback, 4));
 }
 
-const _typeNameToTag = const {
-  'HTMLAnchorElement': 'a',
-  'HTMLAudioElement': 'audio',
-  'HTMLButtonElement': 'button',
-  'HTMLCanvasElement': 'canvas',
-  'HTMLDivElement': 'div',
-  'HTMLImageElement': 'img',
-  'HTMLInputElement': 'input',
-  'HTMLLIElement': 'li',
-  'HTMLLabelElement': 'label',
-  'HTMLMenuElement': 'menu',
-  'HTMLMeterElement': 'meter',
-  'HTMLOListElement': 'ol',
-  'HTMLOptionElement': 'option',
-  'HTMLOutputElement': 'output',
-  'HTMLParagraphElement': 'p',
-  'HTMLPreElement': 'pre',
-  'HTMLProgressElement': 'progress',
-  'HTMLSelectElement': 'select',
-  'HTMLSpanElement': 'span',
-  'HTMLUListElement': 'ul',
-  'HTMLVideoElement': 'video',
-};
-
 void _registerCustomElement(context, document, String tag, Type type,
     String extendsTagName) {
   // Function follows the same pattern as the following JavaScript code for
@@ -32864,8 +32922,6 @@ void _registerCustomElement(context, document, String tag, Type type,
   if (baseClassName != 'HTMLElement') {
     if (extendsTagName != null) {
       JS('=Object', '#.extends = #', options, extendsTagName);
-    } else if (_typeNameToTag.containsKey(baseClassName)) {
-      JS('=Object', '#.extends = #', options, _typeNameToTag[baseClassName]);
     }
   }
 

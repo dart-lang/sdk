@@ -462,6 +462,19 @@ class TempDir(object):
   def __exit__(self, *_):
     shutil.rmtree(self._temp_dir, ignore_errors=True)
 
+class ChangedWorkingDirectory(object):
+  def __init__(self, working_directory):
+    self._working_directory = working_directory
+
+  def __enter__(self):
+    self._old_cwd = os.getcwd()
+    print "Enter directory = ", self._working_directory
+    os.chdir(self._working_directory)
+
+  def __exit__(self, *_):
+    print "Enter directory = ", self._old_cwd
+    os.chdir(self._old_cwd)
+
 
 if __name__ == "__main__":
   import sys

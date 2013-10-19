@@ -16,6 +16,6 @@ class Script {
 
   Script(this.uri, this.file);
 
-  String get text => (file == null) ? null : file.text;
+  String get text => (file == null) ? null : file.slowText();
   String get name => (file == null) ? null : file.filename;
 }

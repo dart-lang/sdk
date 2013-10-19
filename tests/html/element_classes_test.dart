@@ -107,10 +107,12 @@ main() {
 
   test('add', () {
     final classes = makeClassSet();
-    classes.add('qux');
+    var added = classes.add('qux');
+    expect(added, isTrue);
     expect(classes, orderedEquals(['foo', 'bar', 'baz', 'qux']));
 
-    classes.add('qux');
+    added = classes.add('qux');
+    expect(added, isFalse);
     final list = new List.from(classes);
     list.sort((a, b) => a.compareTo(b));
     expect(list, orderedEquals(['bar', 'baz', 'foo', 'qux']),
@@ -235,7 +237,9 @@ main() {
 
   test('listAdd', () {
     var elements =  listElementSetup();
-    elements.classes.add('lassie');
+    var added = elements.classes.add('lassie');
+    expect(added, isNull);
+
     expect(elements.classes,
         unorderedEquals(['lassie', 'qux', 'quux', 'meta', 'classy', 'lassy']));
     for (Element e in elements) {

@@ -13,6 +13,12 @@ A /// 01: compile-time error
 
 A // The name of the typedef
 
+// Cyclic through type variable bound.
+<T extends A> /// 10: compile-time error
+
+// Cyclic through generic type variable bound.
+<T extends List<A>> /// 11: compile-time error
+
 ( // The left parenthesis of the typedef arguments.
 
 // Cyclic through parameter type.
@@ -39,10 +45,22 @@ B b /// 08: compile-time error
 // Cyclic through another more typedefs.
 C c /// 09: compile-time error
 
+// Reference through a class is not a cyclic self-reference.
+Class c /// 12: ok
+
+// Reference through a class type bound is not a cyclic self-reference.
+Class c /// 13: ok
+
 ); // The right parenthesis of the typedef arguments.
 
 typedef B(A a);
 typedef C(B b);
+
+class Class
+<T extends A> /// 13: continued
+{
+  A a; /// 12: continued
+}
 
 void testA(A a) {}
 

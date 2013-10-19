@@ -1002,15 +1002,15 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   }
 
   // Collection.
-  void add(E element) {
+  bool add(E element) {
     if (_isStringElement(element)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
-      _addHashTableEntry(strings, element);
+      return _addHashTableEntry(strings, element);
     } else if (_isNumericElement(element)) {
       var nums = _nums;
       if (nums == null) _nums = nums = _newHashTable();
-      _addHashTableEntry(nums, element);
+      return _addHashTableEntry(nums, element);
     } else {
       var rest = _rest;
       if (rest == null) _rest = rest = _newHashTable();
@@ -1020,11 +1020,12 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
         _setTableEntry(rest, hash, JS('var', '[#]', element));
       } else {
         int index = _findBucketIndex(bucket, element);
-        if (index >= 0) return;
+        if (index >= 0) return false;
         JS('void', '#.push(#)', bucket, element);
       }
       _length++;
       _elements = null;
+      return true;
     }
   }
 
@@ -1131,11 +1132,12 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     return _elements = result;
   }
 
-  void _addHashTableEntry(var table, E element) {
-    if (_hasTableEntry(table, element)) return;
+  bool _addHashTableEntry(var table, E element) {
+    if (_hasTableEntry(table, element)) return false;
     _setTableEntry(table, element, 0);
     _length++;
     _elements = null;
+    return true;
   }
 
   bool _removeHashTableEntry(var table, Object element) {
@@ -1456,15 +1458,15 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
   }
 
   // Collection.
-  void add(E element) {
+  bool add(E element) {
     if (_isStringElement(element)) {
       var strings = _strings;
       if (strings == null) _strings = strings = _newHashTable();
-      _addHashTableEntry(strings, element);
+      return _addHashTableEntry(strings, element);
     } else if (_isNumericElement(element)) {
       var nums = _nums;
       if (nums == null) _nums = nums = _newHashTable();
-      _addHashTableEntry(nums, element);
+      return _addHashTableEntry(nums, element);
     } else {
       var rest = _rest;
       if (rest == null) _rest = rest = _newHashTable();
@@ -1475,10 +1477,11 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
         _setTableEntry(rest, hash, JS('var', '[#]', cell));
       } else {
         int index = _findBucketIndex(bucket, element);
-        if (index >= 0) return;
+        if (index >= 0) return false;
         LinkedHashSetCell cell = _newLinkedCell(element);
         JS('void', '#.push(#)', bucket, cell);
       }
+      return true;
     }
   }
 
@@ -1548,10 +1551,11 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     }
   }
 
-  void _addHashTableEntry(var table, E element) {
+  bool _addHashTableEntry(var table, E element) {
     LinkedHashSetCell cell = _getTableEntry(table, element);
-    if (cell != null) return;
+    if (cell != null) return false;
     _setTableEntry(table, element, _newLinkedCell(element));
+    return true;
   }
 
   bool _removeHashTableEntry(var table, Object element) {

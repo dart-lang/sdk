@@ -23,12 +23,12 @@ final _v8Frame = new RegExp(
 // .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0/name<@http://pub.dartlang.org/stuff.dart.js:560
 final _firefoxFrame = new RegExp(
-    r'^([^@(/]*)(?:\(.*\))?(/[^<]*<?)?(?:\(.*\))?@(.*):(\d+)$');
+    r'^([^@(/]*)(?:\(.*\))?((?:/[^/]*)*)(?:\(.*\))?@(.*):(\d+)$');
 
 // foo/bar.dart 10:11 in Foo._bar
 // http://dartlang.org/foo/bar.dart in Foo._bar
 final _friendlyFrame = new RegExp(
-    r'^([^\s]+)(?: (\d+):(\d+))?\s+([^\d][^\s]*)$');
+    r'^([^\s]+)(?: (\d+)(?::(\d+))?)?\s+([^\d][^\s]*)$');
 
 final _initialDot = new RegExp(r"^\.");
 
@@ -78,7 +78,8 @@ class Frame {
 
   /// A human-friendly description of the code location.
   String get location {
-    if (line == null || column == null) return library;
+    if (line == null) return library;
+    if (column == null) return '$library $line';
     return '$library $line:$column';
   }
 
@@ -159,11 +160,9 @@ class Frame {
 
     var uri = Uri.parse(match[3]);
     var member = match[1];
-    if (member == "") {
-      member = "<fn>";
-    } else if (match[2] != null) {
-      member = "$member.<fn>";
-    }
+    member += new List.filled('/'.allMatches(match[2]).length, ".<fn>").join();
+    if (member == '') member = '<fn>';
+
     // Some Firefox members have initial dots. We remove them for consistency
     // with other platforms.
     member = member.replaceFirst(_initialDot, '');

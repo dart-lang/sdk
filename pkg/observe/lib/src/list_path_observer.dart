@@ -11,7 +11,7 @@ part of observe;
 /**
  * Observes a path starting from each item in the list.
  */
-class ListPathObserver<E, P> extends ChangeNotifierBase {
+class ListPathObserver<E, P> extends ChangeNotifier {
   final ObservableList<E> list;
   final String _itemPath;
   final List<PathObserver> _observers = <PathObserver>[];
@@ -46,8 +46,8 @@ class ListPathObserver<E, P> extends ChangeNotifierBase {
 
   void _reduce() {
     _scheduled = false;
-    _value = _observers.map((o) => o.value);
-    notifyChange(new PropertyChangeRecord(#value));
+    var newValue = _observers.map((o) => o.value);
+    _value = notifyPropertyChange(#value, _value, newValue);
   }
 
   void _scheduleReduce(_) {

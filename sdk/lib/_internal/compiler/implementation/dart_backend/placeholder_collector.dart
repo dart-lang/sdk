@@ -20,7 +20,7 @@ class FunctionScope {
       : parameterIdentifiers = new Set<String>(),
       localPlaceholders = new Set<LocalPlaceholder>();
   void registerParameter(Identifier node) {
-    parameterIdentifiers.add(node.source.slowToString());
+    parameterIdentifiers.add(node.source);
   }
 }
 
@@ -264,7 +264,7 @@ class PlaceholderCollector extends Visitor {
 
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
-    if (node.source.isPrivate()) return;
+    if (isPrivateName(node.source)) return;
     if (element.isParameter() && !isTypedefParameter(element) &&
         isNamedOptionalParameter()) {
       currentFunctionScope.registerParameter(node);
@@ -275,9 +275,9 @@ class PlaceholderCollector extends Visitor {
 
   void tryMakeMemberPlaceholder(Identifier node) {
     assert(node != null);
-    if (node.source.isPrivate()) return;
+    if (isPrivateName(node.source)) return;
     if (node is Operator) return;
-    final identifier = node.source.slowToString();
+    final identifier = node.source;
     if (fixedMemberNames.contains(identifier)) return;
     memberPlaceholders.putIfAbsent(
         identifier, () => new Set<Identifier>()).add(node);
@@ -343,7 +343,7 @@ class PlaceholderCollector extends Visitor {
 
   void makeLocalPlaceholder(Identifier identifier) {
     LocalPlaceholder getLocalPlaceholder() {
-      String name = identifier.source.slowToString();
+      String name = identifier.source;
       return currentLocalPlaceholders.putIfAbsent(name, () {
         LocalPlaceholder localPlaceholder = new LocalPlaceholder(name);
         currentFunctionScope.localPlaceholders.add(localPlaceholder);
@@ -399,10 +399,10 @@ class PlaceholderCollector extends Visitor {
         NamedArgument named = argument.asNamedArgument();
         if (named == null) continue;
         Identifier name = named.name;
-        String nameAsString = name.source.slowToString();
+        String nameAsString = name.source;
         for (final parameter in optionalParameters) {
           if (identical(parameter.kind, ElementKind.FIELD_PARAMETER)) {
-            if (parameter.name.slowToString() == nameAsString) {
+            if (parameter.name == nameAsString) {
               tryMakeMemberPlaceholder(name);
               break;
             }
@@ -457,7 +457,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   visitIdentifier(Identifier identifier) {
-    if (identifier.source.isPrivate()) makePrivateIdentifier(identifier);
+    if (isPrivateName(identifier.source)) makePrivateIdentifier(identifier);
   }
 
   static bool isPlainTypeName(TypeAnnotation typeAnnotation) {
@@ -469,7 +469,7 @@ class PlaceholderCollector extends Visitor {
 
   static bool isDynamicType(TypeAnnotation typeAnnotation) {
     if (!isPlainTypeName(typeAnnotation)) return false;
-    String name = typeAnnotation.typeName.asIdentifier().source.slowToString();
+    String name = typeAnnotation.typeName.asIdentifier().source;
     return name == 'dynamic';
   }
 
@@ -548,7 +548,7 @@ class PlaceholderCollector extends Visitor {
 
   visitFunctionExpression(FunctionExpression node) {
     bool isKeyword(Identifier id) =>
-        id != null && Keyword.keywords[id.source.slowToString()] != null;
+        id != null && Keyword.keywords[id.source] != null;
 
     Element element = treeElements[node];
     // May get null here in case of A(int this.f());
@@ -610,7 +610,7 @@ class PlaceholderCollector extends Visitor {
     // Another poor man type resolution.
     // Find this variable in enclosing type declaration parameters.
     for (DartType type in typeDeclaration.typeVariables) {
-      if (type.name.slowToString() == name.source.slowToString()) {
+      if (type.name == name.source) {
         makeTypePlaceholder(name, type);
         return true;
       }

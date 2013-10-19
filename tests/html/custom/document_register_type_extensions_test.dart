@@ -45,6 +45,26 @@ class FooBad extends DivElement {
   FooBad.created() : super.created();
 }
 
+class MyCanvas extends CanvasElement {
+  static const tag = 'my-canvas';
+  factory MyCanvas() => new Element.tag('canvas', tag);
+
+  MyCanvas.created() : super.created();
+
+  void fillAsRed() {
+    width = 100;
+    height = 100;
+
+    var context = this.getContext('2d');
+    context.fillStyle = 'red';
+    context.fillRect(0, 0, width, height);
+    context.fill();
+
+    var data = context.getImageData(0, 0, 1, 1).data;
+    expect(data, [255, 0, 0, 255]);
+  }
+}
+
 main() {
   useHtmlIndividualConfiguration();
 
@@ -68,6 +88,7 @@ main() {
     document.register(Bar.tag, Bar, extendsTag: 'input');
     document.register(Baz.tag, Baz);
     document.register(Qux.tag, Qux, extendsTag: 'input');
+    document.register(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
   }
 
   setUp(loadPolyfills);
@@ -265,6 +286,15 @@ main() {
       var divBarParsed = createElementFromHtml('<div is=x-bar>');
       expect(divBarParsed is Bar, isFalse);
       expect(divBarParsed is DivElement, isTrue);
+    });
+  });
+
+  group('functional', () {
+    setUp(registerTypes);
+
+    test('canvas', () {
+      var canvas = new MyCanvas();
+      canvas.fillAsRed();
     });
   });
 }

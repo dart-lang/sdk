@@ -92,6 +92,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     # T and no other browser has tag T).
 
     'AnalyserNode': 'AnalyserNode,RealtimeAnalyserNode',
+    'AudioContext': 'AudioContext,webkitAudioContext',
 
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
@@ -794,6 +795,9 @@ class CallbackIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(CallbackIDLTypeInfo, self).__init__(idl_type, data)
 
+  def implementation_name(self):
+    return ""
+
 
 def array_type(data_type):
   matched = re.match(r'([\w\d_\s]+)\[\]', data_type)
@@ -857,6 +861,9 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
     return '%s', 'RefPtr<DOMStringList>', 'DartDOMStringList', 'toNative'
 
   def pass_native_by_ref(self): return False
+
+  def implementation_name(self):
+    return ""
 
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):

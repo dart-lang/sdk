@@ -15,7 +15,7 @@ import '../../libraries.dart';
 import 'source_file.dart';
 
 class Compiler extends leg.Compiler {
-  api.ReadStringFromUri provider;
+  api.CompilerInputProvider provider;
   api.DiagnosticHandler handler;
   final Uri libraryRoot;
   final Uri packageRoot;
@@ -176,8 +176,18 @@ class Compiler extends leg.Compiler {
     // [Future] to ensure that we never execute an asynchronous action without setting
     // up the current element of the compiler.
     return new Future.sync(() => callUserProvider(resourceUri))
-        .then((String text) {
-      SourceFile sourceFile = new SourceFile(resourceUri.toString(), text);
+        .then((data) {
+      SourceFile sourceFile;
+      String resourceUriString = resourceUri.toString();
+      if (data is List<int>) {
+        sourceFile = new Utf8BytesSourceFile(resourceUriString, data);
+      } else if (data is String) {
+        sourceFile = new StringSourceFile(resourceUriString, data);
+      } else {
+        String message = "Expected a 'String' or a 'List<int>' from the input "
+                         "provider, but got: ${Error.safeToString(data)}.";
+        reportReadError(message);
+      }
       // We use [readableUri] as the URI for the script since need to preserve
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on

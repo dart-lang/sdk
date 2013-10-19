@@ -384,6 +384,7 @@ class Parser : public ValueObject {
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
+  void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
   void ParseClassMemberDefinition(ClassDesc* members,
                                   intptr_t metadata_pos);
   void ParseFormalParameter(bool allow_explicit_default_value,

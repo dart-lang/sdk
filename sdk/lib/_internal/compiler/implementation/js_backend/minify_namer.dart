@@ -39,11 +39,11 @@ class MinifyNamer extends Namer {
     return freshName;
   }
 
-  SourceString getClosureVariableName(SourceString name, int id) {
+  String getClosureVariableName(String name, int id) {
     if (id < ALPHABET_CHARACTERS) {
-      return new SourceString(new String.fromCharCodes([_letterNumber(id)]));
+      return new String.fromCharCodes([_letterNumber(id)]);
     }
-    return new SourceString("${getMappedInstanceName('closure')}_$id");
+    return "${getMappedInstanceName('closure')}_$id";
   }
 
   void reserveBackendNames() {

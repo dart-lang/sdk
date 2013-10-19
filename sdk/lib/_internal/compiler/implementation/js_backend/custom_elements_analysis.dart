@@ -101,7 +101,7 @@ class CustomElementsAnalysis {
     if (!fetchedTableAccessorMethod) {
       fetchedTableAccessorMethod = true;
       tableAccessorMethod = compiler.findInterceptor(
-          const SourceString('findIndexForWebComponentType'));
+          'findIndexForWebComponentType');
     }
     if (element == tableAccessorMethod) {
       joinFor(enqueuer).demanded = true;

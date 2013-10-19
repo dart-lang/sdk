@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
+Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
+
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 
@@ -35,7 +42,6 @@ Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: Fail # Issue 13652
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
 Language/12_Expressions/01_Constants_A03_t01: Fail # Issue 13652
-Language/13_Statements/09_Switch_A02_t04: Fail # co19 issue 605
 
 LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
 LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
@@ -79,7 +85,6 @@ LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 [ $compiler == dart2dart ]
-Language/13_Statements/09_Switch_A02_t04: CompileTimeError, OK # co19 issue 628
 Language/03_Overview/2_Privacy_A01_t06: Fail # co19 issue 463
 LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
@@ -88,7 +93,6 @@ LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
-Language/14_Libraries_and_Scripts/1_Imports_A01_t17: Fail # co19 Issue 603
 Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
 
 

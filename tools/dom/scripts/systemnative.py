@@ -224,7 +224,7 @@ class DartiumBackend(HtmlDartGenerator):
     return template
 
   def RootClassName(self):
-    return 'NativeFieldWrapperClass1'
+    return 'NativeFieldWrapperClass2'
 
   def NativeSpec(self):
     return ''
@@ -554,7 +554,7 @@ class DartiumBackend(HtmlDartGenerator):
         'void',
         False,
         'SetterRaisesException' in attr.ext_attrs,
-        requires_custom_element_callback=True)
+        generate_custom_element_scope_if_needed=True)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -723,7 +723,8 @@ class DartiumBackend(HtmlDartGenerator):
         arguments,
         operation.type.id,
         operation.type.nullable,
-        'RaisesException' in operation.ext_attrs)
+        'RaisesException' in operation.ext_attrs,
+        generate_custom_element_scope_if_needed=True)
 
   def _GenerateNativeCallback(self,
       callback_name,
@@ -734,7 +735,7 @@ class DartiumBackend(HtmlDartGenerator):
       return_type,
       return_type_is_nullable,
       raises_dom_exception,
-      requires_custom_element_callback=False):
+      generate_custom_element_scope_if_needed=False):
 
     ext_attrs = node.ext_attrs
 
@@ -793,7 +794,7 @@ class DartiumBackend(HtmlDartGenerator):
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
 
-    if ext_attrs.get('CustomElementCallbacks') == 'Enable' or requires_custom_element_callback:
+    if generate_custom_element_scope_if_needed and (ext_attrs.get('CustomElementCallbacks', 'None') != 'None' or 'Reflect' in ext_attrs):
       self._cpp_impl_includes.add('"core/dom/CustomElementCallbackDispatcher.h"')
       needs_custom_element_callbacks = True
 
@@ -1183,6 +1184,101 @@ class CPPLibraryEmitter():
             '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
             '        return func;\n',
             CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
+
+  def EmitClassIdTable(self, database, output_dir, type_registry, renamer):
+    path = os.path.join(output_dir, 'DartWebkitClassIds.h')
+    e = self._emitters.FileEmitter(path)
+    e.Emit('// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file\n');
+    e.Emit('// for details. All rights reserved. Use of this source code is governed by a\n');
+    e.Emit('// BSD-style license that can be found in the LICENSE file.\n');
+    e.Emit('// WARNING: Do not edit - generated code.\n');
+    e.Emit('// See dart/tools/dom/scripts/systemnative.py\n');
+    e.Emit('\n');
+    e.Emit('#ifndef DartWebkitClassIds_h\n');
+    e.Emit('#define DartWebkitClassIds_h\n');
+    e.Emit('\n');
+    e.Emit('namespace WebCore {\n');
+    e.Emit('\n');
+    e.Emit('enum {\n');
+    e.Emit('    _InvalidClassId = 0,\n');
+    e.Emit('    _HistoryCrossFrameClassId,\n');
+    e.Emit('    _LocationCrossFrameClassId,\n');
+    e.Emit('    _DOMWindowCrossFrameClassId,\n');
+    e.Emit('    _DateTimeClassId,\n');
+    e.Emit('    _JsObjectClassId,\n');
+    e.Emit('    _JsFunctionClassId,\n');
+    e.Emit('    // New types that are not auto-generated should be added here.\n');
+    e.Emit('\n');
+    for interface in database.GetInterfaces():
+      interface_name = interface.id
+      e.Emit('    %sClassId,\n' % interface_name)
+    e.Emit('    NumWebkitClassIds\n');
+    e.Emit('};\n');
+
+    e.Emit('typedef struct {\n');
+    e.Emit('    const char* class_name;\n');
+    e.Emit('    int library_id;\n');
+    e.Emit('    int base_class_id;\n');
+    e.Emit('    bool is_node;\n');
+    e.Emit('    bool is_active;\n');
+    e.Emit('    bool is_event;\n');
+    e.Emit('} _Classinfo;\n');
+    e.Emit('typedef _Classinfo _DartWebkitClassInfo[NumWebkitClassIds];\n');
+    e.Emit('\n');
+    e.Emit('extern _DartWebkitClassInfo DartWebkitClassInfo;\n');
+    e.Emit('\n');
+    e.Emit('} // namespace WebCore\n');
+    e.Emit('#endif // DartWebkitClassIds_h\n');
+    self._emitters.Flush()
+
+    path = os.path.join(output_dir, 'DartWebkitClassIds.cpp')
+    e = self._emitters.FileEmitter(path)
+    e.Emit('// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file\n');
+    e.Emit('// for details. All rights reserved. Use of this source code is governed by a\n');
+    e.Emit('// BSD-style license that can be found in the LICENSE file.\n');
+    e.Emit('// WARNING: Do not edit - generated code.\n');
+    e.Emit('// See dart/tools/dom/scripts/systemnative.py\n');
+    e.Emit('\n');
+    e.Emit('#include "DartWebkitClassIds.h"\n');
+    e.Emit('\n');
+    e.Emit('#include "bindings/dart/DartLibraryIds.h"\n');
+    e.Emit('\n');
+    e.Emit('namespace WebCore {\n');
+    e.Emit('\n');
+    e.Emit("_DartWebkitClassInfo DartWebkitClassInfo = {\n");
+    e.Emit('    { "_InvalidClassId", -1, -1, false, false, false },\n');
+    e.Emit('    { "_HistoryCrossFrame", DartHtmlLibraryId, -1, false, false, false },\n');
+    e.Emit('    { "_LocationCrossFrame", DartHtmlLibraryId, -1, false, false, false },\n');
+    e.Emit('    { "_DOMWindowCrossFrame", DartHtmlLibraryId, -1, false, false, true },\n');
+    e.Emit('    { "DateTime", DartCoreLibraryId, -1, false, false, false },\n');
+    e.Emit('    { "JsObject", DartJsLibraryId, -1, false, false, false },\n');
+    e.Emit('    { "JsFunction", DartJsLibraryId, _JsObjectClassId, false, false, false },\n');
+    e.Emit('    // New types that are not auto-generated should be added here.\n');
+    e.Emit('\n');
+    is_node_test = lambda interface: interface.id == 'Node'
+    is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
+    is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
+    def TypeCheckHelper(test):
+      return 'true' if any(map(test, database.Hierarchy(interface))) else 'false'
+    for interface in database.GetInterfaces():
+      e.Emit("    {")
+      type_info = type_registry.TypeInfo(interface.id)
+      type_info.native_type().replace('<', '_').replace('>', '_'),
+      e.Emit(' "%s",' % type_info.implementation_name())
+      e.Emit(' Dart%sLibraryId,' % renamer.GetLibraryId(interface))
+      if interface.parents:
+        supertype = interface.parents[0].type.id
+        e.Emit(' %sClassId,\n' % supertype)
+      else:
+        e.Emit(' -1,')
+      e.Emit(" %s," % TypeCheckHelper(is_node_test))
+      e.Emit(" %s," % TypeCheckHelper(is_active_test))
+      e.Emit(" %s," % TypeCheckHelper(is_event_target_test))
+      e.Emit(" },\n")
+    e.Emit("};\n");
+    e.Emit('\n');
+    e.Emit('} // namespace WebCore\n');
+    self._emitters.Flush()
 
 def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
   return (

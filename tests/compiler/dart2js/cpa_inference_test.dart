@@ -24,7 +24,7 @@ class VariableFinderVisitor extends Visitor {
 
   visitSend(Send node) {
     if (node.isPropertyAccess
-        && node.selector.asIdentifier().source.slowToString() == identifier) {
+        && node.selector.asIdentifier().source == identifier) {
       result = node;
     } else {
       node.visitChildren(this);
@@ -64,12 +64,12 @@ class AnalysisResult {
     map = inferrer.baseTypes.mapBaseType;
     nullType = const NullBaseType();
     functionType = inferrer.baseTypes.functionBaseType;
-    Element mainElement = compiler.mainApp.find(buildSourceString('main'));
+    Element mainElement = compiler.mainApp.find('main');
     ast = mainElement.parseNode(compiler);
   }
 
   BaseType base(String className) {
-    final source = buildSourceString(className);
+    final source = className;
     return new ClassBaseType(compiler.mainApp.find(source));
   }
 
@@ -89,8 +89,8 @@ class AnalysisResult {
    * Finds the [Element] corresponding to [: className#fieldName :].
    */
   Element findField(String className, String fieldName) {
-    ClassElement element = compiler.mainApp.find(buildSourceString(className));
-    return element.lookupLocalMember(buildSourceString(fieldName));
+    ClassElement element = compiler.mainApp.find(className);
+    return element.lookupLocalMember(fieldName);
   }
 
   ConcreteType concreteFrom(List<BaseType> baseTypes) {
@@ -182,7 +182,8 @@ Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
       coreSource: CORELIB,
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);
-  compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
+  compiler.sourceFiles[uri.toString()] =
+      new StringSourceFile(uri.toString(), code);
   compiler.typesTask.concreteTypesInferrer.testMode = true;
   return compiler.runCompiler(uri).then((_) {
     return new AnalysisResult(compiler);
@@ -1541,7 +1542,7 @@ testSelectors() {
     ClassElement y = findElement(result.compiler, 'Y');
     ClassElement z = findElement(result.compiler, 'Z');
 
-    Selector foo = new Selector.call(buildSourceString("foo"), null, 0);
+    Selector foo = new Selector.call("foo", null, 0);
 
     Expect.equals(
         inferredType(foo).simplify(result.compiler),
@@ -1560,7 +1561,7 @@ testSelectors() {
             xy, foo)).simplify(result.compiler),
         new TypeMask.nonNullSubclass(bc));
 
-    Selector bar = new Selector.call(buildSourceString("bar"), null, 0);
+    Selector bar = new Selector.call("bar", null, 0);
 
     Expect.isNull(inferredType(bar));
   });

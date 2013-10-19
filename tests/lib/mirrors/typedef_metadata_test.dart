@@ -18,6 +18,6 @@ class MA = S with M;
 typedef bool Predicate(Object o);
 
 main() {
-  checkMetadata(reflectClass(MA), [symbol]);
-  checkMetadata(reflectClass(Predicate), [string]);
+  checkMetadata(reflectType(MA), [symbol]);
+  checkMetadata(reflectType(Predicate), [string]);
 }

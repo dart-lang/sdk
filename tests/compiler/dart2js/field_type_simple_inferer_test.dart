@@ -21,7 +21,7 @@ void compileAndFind(String code,
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     compiler.disableInlining = disableInlining;
     var cls = findElement(compiler, className);
-    var member = cls.lookupMember(buildSourceString(memberName));
+    var member = cls.lookupMember(memberName);
     check(compiler, member);
   }));
 }

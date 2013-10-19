@@ -43,7 +43,7 @@ class XTest extends PolymerElement {
   @observable var src = 'testSource';
 }
 
-main() {
+@initMethod _main() {
   useHtmlConfiguration();
 
   test('mustache attributes', () {

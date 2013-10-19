@@ -31,10 +31,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
     // TODO(podivilov): find the right sourceFile here and remove offset checks
     // below.
-    if (beginToken.charOffset < sourceFile.text.length) {
+    if (beginToken.charOffset < sourceFile.length) {
       node.sourcePosition = new SourceFileLocation(sourceFile, beginToken);
     }
-    if (endToken.charOffset < sourceFile.text.length) {
+    if (endToken.charOffset < sourceFile.length) {
       node.endSourcePosition = new SourceFileLocation(sourceFile, endToken);
     }
     return node;
@@ -1503,7 +1503,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
-    SourceString name = node.selector.name;
+    String name = node.selector.name;
     String methodName;
     List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
@@ -1714,7 +1714,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // directly. Because `fetchLength` is a constant we use its
         // constant value instead.
         Element element = compiler.findRequiredElement(
-            compiler.typedDataLibrary, const SourceString('fetchLength'));
+            compiler.typedDataLibrary, 'fetchLength');
         Constant constant =
             compiler.constantHandler.getConstantForVariable(element);
         assert(invariant(element, constant != null,
@@ -1896,7 +1896,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         HRelational relational = input;
         BinaryOperation operation =
             relational.operation(backend.constantSystem);
-        String op = mapRelationalOperator(operation.name.stringValue, true);
+        String op = mapRelationalOperator(operation.name, true);
         visitRelational(input, op);
       } else {
         handledBySpecialCase = false;
@@ -2034,7 +2034,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateThrowWithHelper(String helperName, argument) {
-    Element helper = compiler.findHelper(new SourceString(helperName));
+    Element helper = compiler.findHelper(helperName);
     world.registerStaticUse(helper);
     js.VariableUse jsHelper =
         new js.VariableUse(backend.namer.isolateAccess(helper));
@@ -2063,7 +2063,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction argument = node.inputs[0];
     use(argument);
 
-    Element helper = compiler.findHelper(new SourceString("throwExpression"));
+    Element helper = compiler.findHelper("throwExpression");
     world.registerStaticUse(helper);
 
     js.VariableUse jsHelper =
@@ -2600,7 +2600,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     FunctionElement helperElement;
     if (node.isBooleanConversionCheck) {
       helper =
-          const CheckedModeHelper(const SourceString('boolConversionCheck'));
+          const CheckedModeHelper('boolConversionCheck');
     } else {
       helper =
           backend.getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);

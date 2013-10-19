@@ -51,7 +51,7 @@ void main() {
           void main() {
             initPolymer([
                 'a.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.dart': _sampleObservableOutput('A', 'foo'),
@@ -80,7 +80,7 @@ void main() {
           void main() {
             initPolymer([
                 'test.html.0.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
@@ -123,7 +123,7 @@ void main() {
                 'test.html.0.dart',
                 'test.html.1.dart',
                 'd.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
@@ -168,7 +168,7 @@ void main() {
                 'test2.html.0.dart',
                 'b.dart',
                 'index.html.0.dart',
-              ], currentMirrorSystem().isolate.rootLibrary.uri.toString());
+              ]);
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),
@@ -181,7 +181,7 @@ String _sampleObservable(String className, String fieldName) => '''
 library ${className}_$fieldName;
 import 'package:observe/observe.dart';
 
-class $className extends ObservableBase {
+class $className extends Observable {
   @observable int $fieldName;
   $className(this.$fieldName);
 }
@@ -190,7 +190,7 @@ class $className extends ObservableBase {
 String _sampleObservableOutput(String className, String field) =>
     "library ${className}_$field;\n"
     "import 'package:observe/observe.dart';\n\n"
-    "class $className extends ChangeNotifierBase {\n"
+    "class $className extends ChangeNotifier {\n"
     "  @reflectable @observable int get $field => __\$$field; "
       "int __\$$field; "
       "@reflectable set $field(int value) { "

@@ -1,11 +1,3 @@
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
-[ $compiler == dart2analyzer ]
-lib/async/async: fail
-lib/core/core: fail
-lib/typed_data/typed_data: fail
-lib/io/io: fail
-lib/json/json: fail
-lib/utf/utf: fail

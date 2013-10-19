@@ -4,9 +4,8 @@
 
 library scanner;
 
-import 'dart:collection' show IterableBase;
+import 'dart:collection' show IterableBase, HashSet;
 
-import 'scanner_implementation.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show FunctionElementX,
@@ -22,6 +21,9 @@ import '../string_validator.dart';
 import '../tree/tree.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
+import '../source_file.dart' show SourceFile, Utf8BytesSourceFile;
+import 'dart:convert' show UTF8;
+import 'dart:typed_data' show Uint8List;
 
 part 'class_element_parser.dart';
 part 'keyword.dart';
@@ -31,5 +33,7 @@ part 'parser_task.dart';
 part 'partial_parser.dart';
 part 'scanner.dart';
 part 'scanner_task.dart';
+part 'array_based_scanner.dart';
+part 'utf8_bytes_scanner.dart';
 part 'string_scanner.dart';
 part 'token.dart';

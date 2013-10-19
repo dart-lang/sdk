@@ -90,7 +90,7 @@ class HtmlDiff {
    */
   Future run(Uri libraryRoot) {
     var result = new Completer();
-    var provider = new SourceFileProvider();
+    var provider = new CompilerSourceFileProvider();
     var handler = new FormattingDiagnosticHandler(provider);
     Future<MirrorSystem> analysis = analyze(
         HTML_LIBRARY_URIS, libraryRoot, null,

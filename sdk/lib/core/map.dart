@@ -159,26 +159,32 @@ abstract class Map<K, V> {
 
   /**
    * The keys of [this].
+   *
+   * The returned iterable has efficient `length` and `contains` operations,
+   * based on [length] and [containsKey] of the map.
    */
   Iterable<K> get keys;
 
   /**
    * The values of [this].
+   *
+   * The returned iterable has an efficient `length` method based on the
+   * [length] of the map.
    */
   Iterable<V> get values;
 
   /**
-   * The number of {key, value} pairs in the map.
+   * The number of key-value pairs in the map.
    */
   int get length;
 
   /**
-   * Returns true if there is no {key, value} pair in the map.
+   * Returns true if there is no key-value pair in the map.
    */
   bool get isEmpty;
 
   /**
-   * Returns true if there is at least one {key, value} pair in the map.
+   * Returns true if there is at least one key-value pair in the map.
    */
   bool get isNotEmpty;
 }

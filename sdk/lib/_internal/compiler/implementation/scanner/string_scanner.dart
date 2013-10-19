@@ -8,48 +8,48 @@ part of scanner;
  * Scanner that reads from a String and creates tokens that points to
  * substrings.
  */
-class StringScanner extends ArrayBasedScanner<SourceString> {
-  final String string;
+class StringScanner extends ArrayBasedScanner {
+  /** The file content. */
+  String string;
 
-  StringScanner(String this.string, {bool includeComments: false})
-    : super(includeComments);
+  /** The current offset in [string]. */
+  int scanOffset = -1;
 
-  int nextByte() => charAt(++byteOffset);
-
-  int peek() => charAt(byteOffset + 1);
-
-  int charAt(index)
-      => (string.length > index) ? string.codeUnitAt(index) : $EOF;
-
-  SourceString asciiString(int start, int offset) {
-    return new SourceString.fromSubstring(string, start, byteOffset + offset);
+  StringScanner(SourceFile file, {bool includeComments: false})
+      : string = file.slowText(),
+        super(file, includeComments) {
+    ensureZeroTermination();
   }
 
-  SourceString utf8String(int start, int offset) {
-    return new SourceString.fromSubstring(
-        string, start, byteOffset + offset + 1);
+  StringScanner.fromString(this.string, {bool includeComments: false})
+      : super(null, includeComments) {
+    ensureZeroTermination();
   }
 
-  void appendByteStringToken(PrecedenceInfo info, SourceString value) {
-    // assert(kind != $a || keywords.get(value) == null);
-    tail.next = new StringToken.fromSource(info, value, tokenStart);
+  void ensureZeroTermination() {
+    if (string.isEmpty || string.codeUnitAt(string.length - 1) != 0) {
+      // TODO(lry): abort instead of copying the array, or warn?
+      string = string + '\x00';
+    }
+  }
+
+  int advance() => string.codeUnitAt(++scanOffset);
+  int peek() => string.codeUnitAt(scanOffset + 1);
+
+  int get stringOffset => scanOffset;
+
+  int currentAsUnicode(int next) => next;
+
+  void handleUnicode(int startScanOffset) { }
+
+
+  Token firstToken() => tokens.next;
+  Token previousToken() => tail;
+
+  void appendSubstringToken(PrecedenceInfo info, int start,
+                            bool asciiOnly, [int extraOffset = 0]) {
+    tail.next = new StringToken.fromSubstring(info, string, start,
+        scanOffset + extraOffset, tokenStart, true);
     tail = tail.next;
-  }
-
-  void unmatchedBeginGroup(BeginGroupToken begin) {
-    SourceString error = new SourceString('unmatched "${begin.stringValue}"');
-    Token close =
-        new StringToken.fromSource(BAD_INPUT_INFO, error, begin.charOffset);
-    // We want to ensure that unmatched BeginGroupTokens are reported
-    // as errors. However, the rest of the parser assume the groups
-    // are well-balanced and will never look at the endGroup
-    // token. This is a nice property that allows us to skip quickly
-    // over correct code. By inserting an additional error token in
-    // the stream, we can keep ignoring endGroup tokens.
-    Token next =
-        new StringToken.fromSource(BAD_INPUT_INFO, error, begin.charOffset);
-    begin.endGroup = close;
-    close.next = next;
-    next.next = begin.next;
   }
 }

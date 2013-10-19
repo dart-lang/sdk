@@ -123,7 +123,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 @DocsEditable()
 @DomName('SVGAngle')
 @Unstable()
-class Angle extends NativeFieldWrapperClass1 {
+class Angle extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Angle._() { throw new UnsupportedError("Not supported"); }
 
@@ -287,7 +287,7 @@ class AnimateTransformElement extends AnimationElement {
 @DocsEditable()
 @DomName('SVGAnimatedAngle')
 @Unstable()
-class AnimatedAngle extends NativeFieldWrapperClass1 {
+class AnimatedAngle extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedAngle._() { throw new UnsupportedError("Not supported"); }
 
@@ -310,7 +310,7 @@ class AnimatedAngle extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedBoolean')
 @Unstable()
-class AnimatedBoolean extends NativeFieldWrapperClass1 {
+class AnimatedBoolean extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedBoolean._() { throw new UnsupportedError("Not supported"); }
 
@@ -337,7 +337,7 @@ class AnimatedBoolean extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedEnumeration')
 @Unstable()
-class AnimatedEnumeration extends NativeFieldWrapperClass1 {
+class AnimatedEnumeration extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedEnumeration._() { throw new UnsupportedError("Not supported"); }
 
@@ -364,7 +364,7 @@ class AnimatedEnumeration extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedInteger')
 @Unstable()
-class AnimatedInteger extends NativeFieldWrapperClass1 {
+class AnimatedInteger extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedInteger._() { throw new UnsupportedError("Not supported"); }
 
@@ -391,7 +391,7 @@ class AnimatedInteger extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedLength')
 @Unstable()
-class AnimatedLength extends NativeFieldWrapperClass1 {
+class AnimatedLength extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLength._() { throw new UnsupportedError("Not supported"); }
 
@@ -414,7 +414,7 @@ class AnimatedLength extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedLengthList')
 @Unstable()
-class AnimatedLengthList extends NativeFieldWrapperClass1 {
+class AnimatedLengthList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLengthList._() { throw new UnsupportedError("Not supported"); }
 
@@ -437,7 +437,7 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedNumber')
 @Unstable()
-class AnimatedNumber extends NativeFieldWrapperClass1 {
+class AnimatedNumber extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumber._() { throw new UnsupportedError("Not supported"); }
 
@@ -464,7 +464,7 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedNumberList')
 @Unstable()
-class AnimatedNumberList extends NativeFieldWrapperClass1 {
+class AnimatedNumberList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumberList._() { throw new UnsupportedError("Not supported"); }
 
@@ -487,7 +487,7 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedPreserveAspectRatio')
 @Unstable()
-class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
+class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedPreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
@@ -510,7 +510,7 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedRect')
 @Unstable()
-class AnimatedRect extends NativeFieldWrapperClass1 {
+class AnimatedRect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedRect._() { throw new UnsupportedError("Not supported"); }
 
@@ -533,7 +533,7 @@ class AnimatedRect extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedString')
 @Unstable()
-class AnimatedString extends NativeFieldWrapperClass1 {
+class AnimatedString extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedString._() { throw new UnsupportedError("Not supported"); }
 
@@ -560,7 +560,7 @@ class AnimatedString extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGAnimatedTransformList')
 @Unstable()
-class AnimatedTransformList extends NativeFieldWrapperClass1 {
+class AnimatedTransformList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory AnimatedTransformList._() { throw new UnsupportedError("Not supported"); }
 
@@ -1239,7 +1239,7 @@ class EllipseElement extends GraphicsElement implements ExternalResourcesRequire
 @DocsEditable()
 @DomName('SVGExternalResourcesRequired')
 @Unstable()
-abstract class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
+abstract class ExternalResourcesRequired extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ExternalResourcesRequired._() { throw new UnsupportedError("Not supported"); }
 
@@ -2855,7 +2855,7 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 @DocsEditable()
 @DomName('SVGFilterPrimitiveStandardAttributes')
 @Unstable()
-abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
+abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FilterPrimitiveStandardAttributes._() { throw new UnsupportedError("Not supported"); }
 
@@ -2890,7 +2890,7 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 @DocsEditable()
 @DomName('SVGFitToViewBox')
 @Unstable()
-abstract class FitToViewBox extends NativeFieldWrapperClass1 {
+abstract class FitToViewBox extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FitToViewBox._() { throw new UnsupportedError("Not supported"); }
 
@@ -3122,7 +3122,7 @@ class ImageElement extends GraphicsElement implements UriReference, ExternalReso
 @DocsEditable()
 @DomName('SVGLength')
 @Unstable()
-class Length extends NativeFieldWrapperClass1 {
+class Length extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Length._() { throw new UnsupportedError("Not supported"); }
 
@@ -3217,7 +3217,7 @@ class Length extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, ImmutableListMixin<Length> implements List {
+class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, ImmutableListMixin<Length> implements List {
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
@@ -3562,7 +3562,7 @@ class MaskElement extends SvgElement implements ExternalResourcesRequired, Tests
 @DocsEditable()
 @DomName('SVGMatrix')
 @Unstable()
-class Matrix extends NativeFieldWrapperClass1 {
+class Matrix extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Matrix._() { throw new UnsupportedError("Not supported"); }
 
@@ -3690,7 +3690,7 @@ class MetadataElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGNumber')
 @Unstable()
-class Number extends NativeFieldWrapperClass1 {
+class Number extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Number._() { throw new UnsupportedError("Not supported"); }
 
@@ -3713,7 +3713,7 @@ class Number extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, ImmutableListMixin<Number> implements List {
+class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, ImmutableListMixin<Number> implements List {
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
@@ -3943,7 +3943,7 @@ class PathElement extends GraphicsElement implements ExternalResourcesRequired {
 @DocsEditable()
 @DomName('SVGPathSeg')
 @Unstable()
-class PathSeg extends NativeFieldWrapperClass1 {
+class PathSeg extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PathSeg._() { throw new UnsupportedError("Not supported"); }
 
@@ -4733,7 +4733,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List {
+class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List {
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
@@ -4973,7 +4973,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, E
 @DocsEditable()
 @DomName('SVGPoint')
 @Unstable()
-class Point extends NativeFieldWrapperClass1 {
+class Point extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Point._() { throw new UnsupportedError("Not supported"); }
 
@@ -5008,7 +5008,7 @@ class Point extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGPointList')
 @Unstable()
-class PointList extends NativeFieldWrapperClass1 {
+class PointList extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PointList._() { throw new UnsupportedError("Not supported"); }
 
@@ -5129,7 +5129,7 @@ class PolylineElement extends GraphicsElement implements ExternalResourcesRequir
 @DocsEditable()
 @DomName('SVGPreserveAspectRatio')
 @Unstable()
-class PreserveAspectRatio extends NativeFieldWrapperClass1 {
+class PreserveAspectRatio extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory PreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
@@ -5265,7 +5265,7 @@ class RadialGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGRect')
 @Unstable()
-class Rect extends NativeFieldWrapperClass1 {
+class Rect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Rect._() { throw new UnsupportedError("Not supported"); }
 
@@ -5365,7 +5365,7 @@ class RectElement extends GraphicsElement implements ExternalResourcesRequired {
 @DocsEditable()
 @DomName('SVGRenderingIntent')
 @Unstable()
-class RenderingIntent extends NativeFieldWrapperClass1 {
+class RenderingIntent extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
 
@@ -5505,7 +5505,7 @@ class StopElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List {
+class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, ImmutableListMixin<String> implements List {
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -6186,7 +6186,7 @@ class TSpanElement extends TextPositioningElement {
 @DocsEditable()
 @DomName('SVGTests')
 @Unstable()
-abstract class Tests extends NativeFieldWrapperClass1 {
+abstract class Tests extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Tests._() { throw new UnsupportedError("Not supported"); }
 
@@ -6450,7 +6450,7 @@ class TitleElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGTransform')
 @Unstable()
-class Transform extends NativeFieldWrapperClass1 {
+class Transform extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Transform._() { throw new UnsupportedError("Not supported"); }
 
@@ -6529,7 +6529,7 @@ class Transform extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List {
+class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List {
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
@@ -6630,7 +6630,7 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
 @DocsEditable()
 @DomName('SVGUnitTypes')
 @Unstable()
-class UnitTypes extends NativeFieldWrapperClass1 {
+class UnitTypes extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UnitTypes._() { throw new UnsupportedError("Not supported"); }
 
@@ -6657,7 +6657,7 @@ class UnitTypes extends NativeFieldWrapperClass1 {
 @DocsEditable()
 @DomName('SVGURIReference')
 @Unstable()
-abstract class UriReference extends NativeFieldWrapperClass1 {
+abstract class UriReference extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UriReference._() { throw new UnsupportedError("Not supported"); }
 
@@ -6798,7 +6798,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 @DocsEditable()
 @DomName('SVGViewSpec')
 @Unstable()
-class ViewSpec extends NativeFieldWrapperClass1 implements FitToViewBox {
+class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox {
   // To suppress missing implicit constructor warnings.
   factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
@@ -6857,7 +6857,7 @@ class ViewSpec extends NativeFieldWrapperClass1 implements FitToViewBox {
 @DocsEditable()
 @DomName('SVGZoomAndPan')
 @Unstable()
-abstract class ZoomAndPan extends NativeFieldWrapperClass1 {
+abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ZoomAndPan._() { throw new UnsupportedError("Not supported"); }
 
@@ -6927,7 +6927,7 @@ class ZoomEvent extends UIEvent {
 @DocsEditable()
 @DomName('SVGElementInstanceList')
 @Unstable()
-class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List {
+class _ElementInstanceList extends NativeFieldWrapperClass2 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List {
   // To suppress missing implicit constructor warnings.
   factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
 

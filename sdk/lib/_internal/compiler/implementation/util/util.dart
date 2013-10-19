@@ -8,6 +8,8 @@ import "dart:collection";
 import 'util_implementation.dart';
 import 'characters.dart';
 
+export 'setlet.dart';
+
 part 'link.dart';
 part 'expensive_map.dart';
 part 'expensive_set.dart';

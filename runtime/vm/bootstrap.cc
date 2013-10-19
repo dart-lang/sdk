@@ -166,8 +166,8 @@ static Dart_Handle LoadPartSource(Isolate* isolate,
       isolate, GetLibrarySource(lib, uri, false));
   const String& lib_uri = String::Handle(isolate, lib.url());
   if (part_source.IsNull()) {
-    return Dart_NewApiError("Unable to read part file '%s' of library '%s'",
-                            uri.ToCString(), lib_uri.ToCString());
+    return Api::NewError("Unable to read part file '%s' of library '%s'",
+                         uri.ToCString(), lib_uri.ToCString());
   }
 
   // Prepend the library URI to form a unique script URI for the part.
@@ -190,10 +190,10 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle uri) {
   Isolate* isolate = Isolate::Current();
   if (!Dart_IsLibrary(library)) {
-    return Dart_NewApiError("not a library");
+    return Api::NewError("not a library");
   }
   if (!Dart_IsString(uri)) {
-    return Dart_NewApiError("uri is not a string");
+    return Api::NewError("uri is not a string");
   }
   if (tag == Dart_kCanonicalizeUrl) {
     // In the boot strap loader we do not try and do any canonicalization.
@@ -207,8 +207,8 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
     // We have precreated all the bootstrap library objects hence
     // we do not expect to be called back with the tag set to kImportTag.
     // The bootstrap process explicitly loads all the libraries one by one.
-    return Dart_NewApiError("Invalid import of '%s' in a bootstrap library",
-                            uri_str.ToCString());
+    return Api::NewError("Invalid import of '%s' in a bootstrap library",
+                         uri_str.ToCString());
   }
   ASSERT(tag == Dart_kSourceTag);
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);

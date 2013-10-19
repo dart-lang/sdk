@@ -39,7 +39,7 @@ testErrorHandling() {
   CallbackMockCompiler compiler = new CallbackMockCompiler();
   ResolverVisitor visitor = compiler.resolverVisitor();
   compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
-  FunctionElement foo = compiler.mainApp.find(buildSourceString('foo'));
+  FunctionElement foo = compiler.mainApp.find('foo');
   compiler.setOnWarning(
       (c, n, m) => Expect.equals(foo, compiler.currentElement));
   foo.computeType(compiler);

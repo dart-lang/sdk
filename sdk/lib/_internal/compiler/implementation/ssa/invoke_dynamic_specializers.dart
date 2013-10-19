@@ -44,45 +44,45 @@ class InvokeDynamicSpecializer {
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
     if (selector.kind == SelectorKind.INDEX) {
-      return selector.name == const SourceString('[]')
+      return selector.name == '[]'
           ? const IndexSpecializer()
           : const IndexAssignSpecializer();
     } else if (selector.kind == SelectorKind.OPERATOR) {
-      if (selector.name == const SourceString('unary-')) {
+      if (selector.name == 'unary-') {
         return const UnaryNegateSpecializer();
-      } else if (selector.name == const SourceString('~')) {
+      } else if (selector.name == '~') {
         return const BitNotSpecializer();
-      } else if (selector.name == const SourceString('+')) {
+      } else if (selector.name == '+') {
         return const AddSpecializer();
-      } else if (selector.name == const SourceString('-')) {
+      } else if (selector.name == '-') {
         return const SubtractSpecializer();
-      } else if (selector.name == const SourceString('*')) {
+      } else if (selector.name == '*') {
         return const MultiplySpecializer();
-      } else if (selector.name == const SourceString('/')) {
+      } else if (selector.name == '/') {
         return const DivideSpecializer();
-      } else if (selector.name == const SourceString('~/')) {
+      } else if (selector.name == '~/') {
         return const TruncatingDivideSpecializer();
-      } else if (selector.name == const SourceString('%')) {
+      } else if (selector.name == '%') {
         return const ModuloSpecializer();
-      } else if (selector.name == const SourceString('>>')) {
+      } else if (selector.name == '>>') {
         return const ShiftRightSpecializer();
-      } else if (selector.name == const SourceString('<<')) {
+      } else if (selector.name == '<<') {
         return const ShiftLeftSpecializer();
-      } else if (selector.name == const SourceString('&')) {
+      } else if (selector.name == '&') {
         return const BitAndSpecializer();
-      } else if (selector.name == const SourceString('|')) {
+      } else if (selector.name == '|') {
         return const BitOrSpecializer();
-      } else if (selector.name == const SourceString('^')) {
+      } else if (selector.name == '^') {
         return const BitXorSpecializer();
-      } else if (selector.name == const SourceString('==')) {
+      } else if (selector.name == '==') {
         return const EqualsSpecializer();
-      } else if (selector.name == const SourceString('<')) {
+      } else if (selector.name == '<') {
         return const LessSpecializer();
-      } else if (selector.name == const SourceString('<=')) {
+      } else if (selector.name == '<=') {
         return const LessEqualSpecializer();
-      } else if (selector.name == const SourceString('>')) {
+      } else if (selector.name == '>') {
         return const GreaterSpecializer();
-      } else if (selector.name == const SourceString('>=')) {
+      } else if (selector.name == '>=') {
         return const GreaterEqualSpecializer();
       }
     }

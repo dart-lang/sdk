@@ -150,14 +150,27 @@ external InstanceMirror reflect(Object reflectee);
  * This function returns a [ClassMirror] reflecting *C*.
  *
  * If [key] is not an instance of [Type] then this function
- * throws an [ArgumentError]. If [key] is the Type [:dynamic:],
- * throws an [ArgumentError] because dynamic is not a class.
+ * throws an [ArgumentError]. If [key] is the Type for dynamic
+ * or a function typedef, throws an [ArgumentError].
  *
  * Note that since one cannot obtain a [Type] object from
  * another isolate, this function can only be used to
  * obtain class mirrors on classes of the current isolate.
  */
 external ClassMirror reflectClass(Type key);
+
+/**
+ * This function returns a [TypeMirror] reflecting the type
+ * represented by [key].
+ *
+ * If [key] is not an instance of [Type] then this function
+ * throws an [ArgumentError].
+ *
+ * Note that since one cannot obtain a [Type] object from
+ * another isolate, this function can only be used to
+ * obtain type mirrors on types of the current isolate.
+ */
+external TypeMirror reflectType(Type key);
 
 /**
  * A [Mirror] reflects some Dart language entity.
@@ -678,6 +691,12 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   Map<Symbol, ClassMirror> get classes;
 
   /**
+   * An immutable map from names to mirrors for all type
+   * declarations in this library.
+   */
+  Map<Symbol, TypeMirror> get types;
+
+  /**
    * An immutable map from names to mirrors for all function, getter,
    * and setter declarations in this library.
    */
@@ -753,8 +772,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   /**
    * A mirror on the superclass on the reflectee.
    *
-   * If this type is [:Object:] or a typedef, the superClass will be
-   * null.
+   * If this type is [:Object:], the superclass will be null.
    */
   ClassMirror get superclass;
 
@@ -985,13 +1003,13 @@ abstract class TypeVariableMirror extends TypeMirror {
 /**
  * A [TypedefMirror] represents a typedef in a Dart language program.
  */
-abstract class TypedefMirror implements ClassMirror {
+abstract class TypedefMirror implements TypeMirror {
   /**
    * The defining type for this typedef.
    *
-   * For instance [:void f(int):] is the value for [:typedef void f(int):].
+   * For instance [:void f(int):] is the referent for [:typedef void f(int):].
    */
-  TypeMirror get value;
+  TypeMirror get referent;
 }
 
 /**

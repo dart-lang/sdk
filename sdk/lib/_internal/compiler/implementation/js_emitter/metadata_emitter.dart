@@ -70,13 +70,18 @@ class MetadataEmitter extends CodeEmitterHelper {
   }
 
   int reifyType(DartType type) {
-    // TODO(ahe): Handle type variables correctly instead of using "#".
-    String representation = backend.rti.getTypeRepresentation(type, (_) {});
-    return addGlobalMetadata(representation.replaceAll('#', 'null'));
+    jsAst.Expression representation =
+        backend.rti.getTypeRepresentation(type, (variable) {
+          return js.toExpression(
+              task.typeVariableHandler.reifyTypeVariable(variable.element));
+        });
+
+    return addGlobalMetadata(
+        jsAst.prettyPrint(representation, compiler).getText());
   }
 
-  int reifyName(SourceString name) {
-    return addGlobalMetadata('"${name.slowToString()}"');
+  int reifyName(String name) {
+    return addGlobalMetadata('"$name"');
   }
 
   int addGlobalMetadata(String string) {

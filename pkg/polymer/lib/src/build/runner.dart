@@ -150,8 +150,8 @@ void _initBarback(Barback barback, BarbackOptions options) {
 
   for (var package in options.packageDirs.keys) {
     // There is nothing to do in the polymer package dependencies.
-    // However: in Polymer package *itself*, we need to replace ObservableMixin
-    // with ChangeNotifierMixin.
+    // However: in Polymer package *itself*, we need to replace Observable
+    // with ChangeNotifier.
     if (!options.transformPolymerDependencies &&
         _polymerPackageDependencies.contains(package)) continue;
     barback.updateTransformers(package, options.phases);

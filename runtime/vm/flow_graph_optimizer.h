@@ -58,7 +58,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitEqualityCompare(EqualityCompareInstr* instr);
   virtual void VisitBranch(BranchInstr* instr);
-  virtual void VisitStrictCompare(StrictCompareInstr* instr);
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,

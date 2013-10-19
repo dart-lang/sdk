@@ -32,7 +32,7 @@ void test() {
       """).then((env) {
     void expect(DartType receiverType, String memberName,
                 DartType expectedType) {
-      Member member = receiverType.lookupMember(env.sourceString(memberName));
+      Member member = receiverType.lookupMember(memberName);
       Expect.isNotNull(member);
       DartType memberType = member.computeType(env.compiler);
       Expect.equals(expectedType, memberType,

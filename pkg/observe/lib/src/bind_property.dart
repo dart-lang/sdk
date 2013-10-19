@@ -7,7 +7,7 @@ part of observe;
 /**
  * Forwards an observable property from one object to another. For example:
  *
- *     class MyModel extends ObservableBase {
+ *     class MyModel extends Observable {
  *       StreamSubscription _sub;
  *       MyOtherModel _otherModel;
  *
@@ -28,8 +28,10 @@ StreamSubscription onPropertyChange(Observable source, Symbol sourceName,
     void callback()) {
   return source.changes.listen((records) {
     for (var record in records) {
-      if (record.changes(sourceName)) {
+      if (record is PropertyChangeRecord &&
+          (record as PropertyChangeRecord).name == sourceName) {
         callback();
+        break;
       }
     }
   });

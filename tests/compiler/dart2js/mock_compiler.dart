@@ -82,7 +82,6 @@ const String DEFAULT_HELPERLIB = r'''
                        String contextName, var context,
                        var typeArguments) {}
   computeSignature(var signature, var context, var contextName) {}
-  defineNativeMethodsFinish() {}
   getRuntimeTypeArguments(target, substitutionName) {}
   voidTypeCheck(value) {}''';
 
@@ -211,6 +210,8 @@ class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
+  List<WarningMessage> hints;
+  List<WarningMessage> infos;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
@@ -227,7 +228,7 @@ class MockCompiler extends Compiler {
                 bool analyzeOnly: false,
                 bool emitJavaScript: true,
                 bool preserveComments: false})
-      : warnings = [], errors = [],
+      : warnings = [], errors = [], hints = [], infos = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
@@ -254,8 +255,8 @@ class MockCompiler extends Compiler {
     libraryLoader.importLibrary(interceptorsLibrary, coreLibrary, null);
     libraryLoader.importLibrary(isolateHelperLibrary, coreLibrary, null);
 
-    assertMethod = jsHelperLibrary.find(buildSourceString('assertHelper'));
-    identicalFunction = coreLibrary.find(buildSourceString('identical'));
+    assertMethod = jsHelperLibrary.find('assertHelper');
+    identicalFunction = coreLibrary.find('identical');
 
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
@@ -311,6 +312,22 @@ class MockCompiler extends Compiler {
     reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.ERROR);
   }
 
+  void reportInfo(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    Message message = errorCode.message(arguments);
+    infos.add(new WarningMessage(node, message));
+    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.INFO);
+  }
+
+  void reportHint(Spannable node,
+                   MessageKind errorCode,
+                   [Map arguments = const {}]) {
+    Message message = errorCode.message(arguments);
+    hints.add(new WarningMessage(node, message));
+    reportDiagnostic(spanFromSpannable(node), '$message', api.Diagnostic.HINT);
+  }
+
   void reportFatalError(Spannable node,
                         MessageKind errorCode,
                         [Map arguments = const {}]) {
@@ -321,8 +338,12 @@ class MockCompiler extends Compiler {
     var diagnostic = new WarningMessage(null, message.message);
     if (kind == api.Diagnostic.ERROR) {
       errors.add(diagnostic);
-    } else {
+    } else if (kind == api.Diagnostic.WARNING) {
       warnings.add(diagnostic);
+    } else if (kind == api.Diagnostic.INFO) {
+      infos.add(diagnostic);
+    } else if (kind == api.Diagnostic.HINT) {
+      hints.add(diagnostic);
     }
     reportDiagnostic(span, "$message", kind);
   }
@@ -339,12 +360,11 @@ class MockCompiler extends Compiler {
 
   bool get compilationFailed => !errors.isEmpty;
 
-  void clearWarnings() {
+  void clearMessages() {
     warnings = [];
-  }
-
-  void clearErrors() {
     errors = [];
+    hints = [];
+    infos = [];
   }
 
   CollectingTreeElements resolveStatement(String text) {
@@ -365,7 +385,7 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new ElementX(buildSourceString(''), ElementKind.FUNCTION,
+        new ElementX('', ElementKind.FUNCTION,
             mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
@@ -476,7 +496,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text) {
   return (uri, int begin, int end, String message, kind) {
     SourceFile sourceFile;
     if (uri == null) {
-      sourceFile = new SourceFile('analysis', text);
+      sourceFile = new StringSourceFile('analysis', text);
     } else {
       sourceFile = compiler.sourceFiles[uri.toString()];
     }

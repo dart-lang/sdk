@@ -687,7 +687,7 @@ void main() {
 
   // Grab hold of a supertype for String so we can produce potential
   // string types.
-  patternClass = compiler.coreLibrary.find(buildSourceString('Pattern'));
+  patternClass = compiler.coreLibrary.find('Pattern');
 
   nonPrimitive1 = new HType.nonNullSubtype(
       compiler.mapClass, compiler);

@@ -93,7 +93,6 @@ mixin_mixin6_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
 malformed_test/none: RuntimeError # Issue 12695
-function_type_alias9_test/00: Crash # Issue 9792
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 integer_division_by_zero_test: RuntimeError # Issue 8301
@@ -194,7 +193,6 @@ label_test: Skip
 
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
-function_type_alias9_test/00: Crash # Issue 11986
 malformed_test/none: CompileTimeError # Issue 12695
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631

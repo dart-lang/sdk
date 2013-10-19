@@ -161,6 +161,7 @@ class DartUtils {
   }
 
   // Create a new Dart InternalError object with the provided message.
+  static Dart_Handle NewError(const char* format, ...);
   static Dart_Handle NewInternalError(const char* message);
 
   static bool SetOriginalWorkingDirectory();

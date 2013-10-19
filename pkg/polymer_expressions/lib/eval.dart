@@ -420,20 +420,20 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
 
   IdentifierObserver(Identifier value) : super(value);
 
-  dynamic get value => _expr.value;
+  String get value => (_expr as Identifier).value;
 
   _updateSelf(Scope scope) {
-    _value = scope[_expr.value];
+    _value = scope[value];
 
-    var owner = scope.ownerOf(_expr.value);
+    var owner = scope.ownerOf(value);
     if (owner is Observable) {
-      _subscription = (owner as Observable).changes.listen(
-          (List<ChangeRecord> changes) {
-            var symbol = new Symbol(_expr.value);
-            if (changes.any((c) => c.changes(symbol))) {
-              _invalidate(scope);
-            }
-          });
+      var symbol = new Symbol(value);
+      _subscription = (owner as Observable).changes.listen((changes) {
+        if (changes.any(
+            (c) => c is PropertyChangeRecord && c.name == symbol)) {
+          _invalidate(scope);
+        }
+      });
     }
   }
 
@@ -545,7 +545,7 @@ class InvokeObserver extends ExpressionObserver<Invoke> implements Invoke {
           _subscription = (receiverValue as Observable).changes.listen(
               (List<ChangeRecord> changes) {
                 if (changes.any((c) =>
-                    c is MapChangeRecord && c.changes(key))) {
+                    c is MapChangeRecord && c.key == key)) {
                   _invalidate(scope);
                 }
               });
@@ -560,7 +560,8 @@ class InvokeObserver extends ExpressionObserver<Invoke> implements Invoke {
         if (receiverValue is Observable) {
           _subscription = (receiverValue as Observable).changes.listen(
               (List<ChangeRecord> changes) {
-                if (changes.any((c) => c.changes(symbol))) {
+                if (changes.any(
+                    (c) => c is PropertyChangeRecord && c.name == symbol)) {
                   _invalidate(scope);
                 }
               });

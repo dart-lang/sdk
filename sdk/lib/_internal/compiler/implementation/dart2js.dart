@@ -110,7 +110,7 @@ Future compile(List<String> argv) {
   bool analyzeOnly = false;
   bool hasDisallowUnsafeEval = false;
   // TODO(johnniwinther): Measure time for reading files.
-  SourceFileProvider inputProvider = new SourceFileProvider();
+  SourceFileProvider inputProvider = new CompilerSourceFileProvider();
   diagnosticHandler = new FormattingDiagnosticHandler(inputProvider);
 
   passThrough(String argument) => options.add(argument);

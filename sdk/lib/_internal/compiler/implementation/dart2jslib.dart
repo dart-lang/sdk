@@ -25,6 +25,7 @@ import 'ssa/ssa.dart';
 import 'tree/tree.dart';
 import 'universe/universe.dart';
 import 'util/util.dart';
+import 'util/characters.dart' show $_;
 import '../compiler.dart' as api;
 import 'patch_parser.dart';
 import 'types/types.dart' as ti;
@@ -35,8 +36,7 @@ import 'deferred_load.dart' show DeferredLoadTask;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
-export 'scanner/scannerlib.dart' show SourceString,
-                                      isUserDefinableOperator,
+export 'scanner/scannerlib.dart' show isUserDefinableOperator,
                                       isUnaryOperator,
                                       isBinaryOperator,
                                       isTernaryOperator,

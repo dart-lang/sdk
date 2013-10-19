@@ -17,15 +17,19 @@ void testInts(Set create()) {
   Set set = create();
 
   testLength(0, set);
-  set.add(1);
+  Expect.isTrue(set.add(1));
   testLength(1, set);
   Expect.isTrue(set.contains(1));
 
-  set.add(1);
+  Expect.isFalse(set.add(1));
   testLength(1, set);
   Expect.isTrue(set.contains(1));
 
-  set.remove(1);
+  Expect.isTrue(set.remove(1));
+  testLength(0, set);
+  Expect.isFalse(set.contains(1));
+
+  Expect.isFalse(set.remove(1));
   testLength(0, set);
   Expect.isFalse(set.contains(1));
 
@@ -184,7 +188,7 @@ void testInts(Set create()) {
   // Test Set.clear.
   set.clear();
   testLength(0, set);
-  set.add(11);
+  Expect.isTrue(set.add(11));
   testLength(1, set);
 }
 
@@ -205,8 +209,8 @@ void testStrings(Set create()) {
   testLength(8, set);
   set.removeAll(strings.where((x) => x.length == 3));
   testLength(4, set);
-  set.add("bar");
-  set.add("qux");
+  Expect.isTrue(set.add("bar"));
+  Expect.isTrue(set.add("qux"));
   testLength(6, set);
   set.addAll(strings);
   testLength(8, set);

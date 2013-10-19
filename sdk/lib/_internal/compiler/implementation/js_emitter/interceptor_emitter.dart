@@ -220,7 +220,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     }
 
     if (selector.isOperator()) {
-      String name = selector.name.stringValue;
+      String name = selector.name;
       if (name == '==') {
         // Unfolds to:
         //    if (receiver == null) return a0 == null;
@@ -469,7 +469,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
           for (Element member in analysis.constructors(classElement)) {
             properties.add(
                 new jsAst.Property(
-                    js.string(member.name.slowToString()),
+                    js.string(member.name),
                     new jsAst.VariableUse(
                         backend.namer.isolateAccess(member))));
           }

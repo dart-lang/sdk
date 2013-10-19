@@ -11,11 +11,20 @@ import 'implementation/apiimpl.dart';
 // methods of library will result in an Error being thrown.
 
 /**
- * Returns a future that completes to the source corresponding to
- * [uri]. If an exception occurs, the future completes with this
- * exception.
+ * Returns a future that completes to the source corresponding to [uri].
+ * If an exception occurs, the future completes with this exception.
+ *
+ * The source can be represented either as a [:List<int>:] of UTF-8 bytes or as
+ * a [String].
+ *
+ * The following text is non-normative:
+ *
+ * It is recommended to return a UTF-8 encoded list of bytes because the scanner
+ * is more efficient in this case. In either case, the data structure is
+ * expected to hold a zero element at the last position. If this is not the
+ * case, the entire data structure is copied before scanning.
  */
-typedef Future<String> CompilerInputProvider(Uri uri);
+typedef Future/*<String | List<int>>*/ CompilerInputProvider(Uri uri);
 
 /// Deprecated, please use [CompilerInputProvider] instead.
 typedef Future<String> ReadStringFromUri(Uri uri);

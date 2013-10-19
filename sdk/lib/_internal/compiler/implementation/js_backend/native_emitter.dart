@@ -40,68 +40,37 @@ class NativeEmitter {
   String get N => emitter.N;
 
   String get dynamicName {
-    Element element = compiler.findHelper(
-        const SourceString('dynamicFunction'));
+    Element element = compiler.findHelper('dynamicFunction');
     return backend.namer.isolateAccess(element);
   }
 
   String get dynamicFunctionTableName {
-    Element element = compiler.findHelper(
-        const SourceString('dynamicFunctionTable'));
+    Element element = compiler.findHelper('dynamicFunctionTable');
     return backend.namer.isolateAccess(element);
   }
 
   String get typeNameOfName {
-    Element element = compiler.findHelper(
-        const SourceString('getTypeNameOf'));
+    Element element = compiler.findHelper('getTypeNameOf');
     return backend.namer.isolateAccess(element);
   }
 
   String get defPropName {
-    Element element = compiler.findHelper(
-        const SourceString('defineProperty'));
+    Element element = compiler.findHelper('defineProperty');
     return backend.namer.isolateAccess(element);
   }
 
   String get toStringHelperName {
-    Element element = compiler.findHelper(
-        const SourceString('toStringForNativeObject'));
+    Element element = compiler.findHelper('toStringForNativeObject');
     return backend.namer.isolateAccess(element);
   }
 
   String get hashCodeHelperName {
-    Element element = compiler.findHelper(
-        const SourceString('hashCodeForNativeObject'));
+    Element element = compiler.findHelper('hashCodeForNativeObject');
     return backend.namer.isolateAccess(element);
   }
 
   String get dispatchPropertyNameVariable {
-    Element element = compiler.findInterceptor(
-        const SourceString('dispatchPropertyName'));
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethods'));
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsNonleafName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethodsNonleaf'));
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsExtendedName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethodsExtended'));
-    return backend.namer.isolateAccess(element);
-  }
-
-  String get defineNativeMethodsFinishName {
-    Element element = compiler.findHelper(
-        const SourceString('defineNativeMethodsFinish'));
+    Element element = compiler.findInterceptor('dispatchPropertyName');
     return backend.namer.isolateAccess(element);
   }
 
@@ -109,7 +78,7 @@ class NativeEmitter {
   // tags (having JavaScript identifier syntax) and directives that begin with
   // `!`.
   List<String> nativeTagsOfClassRaw(ClassElement cls) {
-    String quotedName = cls.nativeTagInfo.slowToString();
+    String quotedName = cls.nativeTagInfo;
     return quotedName.substring(1, quotedName.length - 1).split(',');
   }
 
@@ -253,28 +222,59 @@ class NativeEmitter {
       }
     }
 
-    // Emit code to set up dispatch data that maps tags to the interceptors, but
-    // only if native classes are actually instantiated.
+    // Add properties containing the information needed to construct maps used
+    // by getNativeInterceptor and custom elements.
     if (compiler.enqueuer.codegen.nativeEnqueuer
         .hasInstantiatedNativeClasses()) {
-      void generateDefines(ClassElement classElement) {
-        generateDefineNativeMethods(leafTags[classElement],
-            null,
-            classElement, defineNativeMethodsName);
+      void generateClassInfo(ClassElement classElement) {
+        // Property has the form:
+        //
+        //    "%": "leafTag1|leafTag2|...;nonleafTag1|...;Class1|Class2|...",
+        //
+        // If there is no data following a semicolon, the semicolon can be
+        // omitted.
+
+        String formatTags(Iterable<String> tags) {
+          if (tags == null) return '';
+          return (tags.toList()..sort()).join('|');
+        }
+
         List<ClassElement> extensions = extensionPoints[classElement];
-        if (extensions == null) {
-          generateDefineNativeMethods(nonleafTags[classElement],
-              null,
-              classElement, defineNativeMethodsNonleafName);
+
+        String leafStr = formatTags(leafTags[classElement]);
+        String nonleafStr = formatTags(nonleafTags[classElement]);
+
+        StringBuffer sb = new StringBuffer(leafStr);
+        if (nonleafStr != '') {
+          sb..write(';')..write(nonleafStr);
+        }
+        if (extensions != null) {
+          sb..write(';')
+            ..writeAll(extensions.map(backend.namer.getNameOfClass), '|');
+        }
+        String encoding = sb.toString();
+
+        ClassBuilder builder = builders[classElement];
+        if (builder == null) {
+          // No builder because this is an intermediate mixin application or
+          // Interceptor - these are not direct native classes.
+          if (encoding != '') {
+            // TODO(sra): Figure out how to emit this as a property onto
+            // Interceptor's ClassBuilder.
+            jsAst.Expression assignment =
+                js.assign(
+                    js(backend.namer.isolateAccess(classElement))['%'],
+                    js.string(encoding));
+            nativeBuffer.add(jsAst.prettyPrint(assignment, compiler));
+            nativeBuffer.add('$N$n');
+          }
         } else {
-          generateDefineNativeMethods(nonleafTags[classElement],
-              makeSubclassList(extensions),
-              classElement, defineNativeMethodsExtendedName);
+          builder.addProperty('%', js.string(encoding));
         }
       }
-      generateDefines(backend.jsInterceptorClass);
+      generateClassInfo(backend.jsInterceptorClass);
       for (ClassElement classElement in classes) {
-        generateDefines(classElement);
+        generateClassInfo(classElement);
       }
     }
 
@@ -358,38 +358,10 @@ class NativeEmitter {
     return builder;
   }
 
-  void generateDefineNativeMethods(
-      Set<String> tags, jsAst.Expression extraArgument,
-      ClassElement classElement, String definer) {
-    if (tags == null) return;
-    String tagsString = (tags.toList()..sort()).join('|');
-
-    List arguments = [
-        js.string(tagsString),
-        js(backend.namer.isolateAccess(classElement))];
-    if (extraArgument != null) {
-      arguments.add(extraArgument);
-    }
-    jsAst.Expression definition = js(definer)(arguments);
-
-    nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
-    nativeBuffer.add('$N$n');
-  }
-
-  jsAst.Expression makeSubclassList(List<ClassElement> classes) {
-    return new jsAst.ArrayInitializer.from(
-        classes.map((ClassElement classElement) =>
-            js(backend.namer.isolateAccess(classElement))));
-  }
-
   void finishGenerateNativeClasses() {
     // TODO(sra): Put specialized version of getNativeMethods on
     // `Object.prototype` to avoid checking in `getInterceptor` and
     // specializations.
-
-    // jsAst.Expression call = js(defineNativeMethodsFinishName)([]);
-    // nativeBuffer.add(jsAst.prettyPrint(call, compiler));
-    // nativeBuffer.add('$N$n');
   }
 
   void potentiallyConvertDartClosuresToJs(
@@ -398,12 +370,12 @@ class NativeEmitter {
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.computeSignature(compiler);
     Element converter =
-        compiler.findHelper(const SourceString('convertDartClosureToJS'));
+        compiler.findHelper('convertDartClosureToJS');
     String closureConverter = backend.namer.isolateAccess(converter);
     Set<String> stubParameterNames = new Set<String>.from(
         stubParameters.map((param) => param.name));
     parameters.forEachParameter((Element parameter) {
-      String name = parameter.name.slowToString();
+      String name = parameter.name;
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
