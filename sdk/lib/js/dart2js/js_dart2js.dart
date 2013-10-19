@@ -4,49 +4,16 @@
 
 library dart.js;
 
+import 'dart:html' show Blob, ImageData, Node;
+import 'dart:collection' show HashMap;
+import 'dart:indexed_db' show KeyRange;
+import 'dart:typed_data' show TypedData;
+
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
+import 'dart:_interceptors' show JavaScriptObject, UnknownJavaScriptObject;
 import 'dart:_js_helper' show Primitives, convertDartClosureToJS;
 
 final JsObject context = new JsObject._fromJs(Primitives.computeGlobalThis());
-
-JsObject jsify(dynamic data) => data == null ? null : new JsObject._json(data);
-
-class Callback implements Serializable<JsFunction> {
-  final Function _f; // here to allow capture in closure
-  final bool _withThis; // here to allow capture in closure
-  dynamic _jsFunction;
-
-  Callback._(this._f, this._withThis) {
-    _jsFunction = JS('', r'''
-(function(){
-  var f = #;
-  return function(){
-    return f(this, Array.prototype.slice.apply(arguments));
-  };
-}).apply(this)''', convertDartClosureToJS(_call, 2));
-  }
-
-  factory Callback(Function f) => new Callback._(f, false);
-  factory Callback.withThis(Function f) => new Callback._(f, true);
-
-  _call(thisArg, List args) {
-    final arguments = new List.from(args);
-    if (_withThis) arguments.insert(0, thisArg);
-    final dartArgs = arguments.map(_convertToDart).toList();
-    return _convertToJS(Function.apply(_f, dartArgs));
-  }
-
-  JsFunction toJs() => new JsFunction._fromJs(_jsFunction);
-}
-
-/*
- * TODO(justinfagnani): add tests and make public when we remove Callback.
- *
- * Returns a [JsFunction] that captures its 'this' binding and calls [f]
- * with the value of this passed as the first argument.
- */
-JsFunction _captureThis(Function f) => 
-  new JsFunction._fromJs(_convertDartFunction(f, captureThis: true));
 
 _convertDartFunction(Function f, {bool captureThis: false}) {
   return JS('',
@@ -67,18 +34,46 @@ _callDartFunction(callback, bool captureThis, self, List arguments) {
 }
 
 
-class JsObject implements Serializable<JsObject> {
+class JsObject {
   // The wrapped JS object.
   final dynamic _jsObject;
 
   JsObject._fromJs(this._jsObject) {
+    assert(_jsObject != null);
     // Remember this proxy for the JS object
     _getDartProxy(_jsObject, _DART_OBJECT_PROPERTY_NAME, (o) => this);
   }
 
-  // TODO(vsm): Type constructor as Serializable<JsFunction> when
-  // dartbug.com/11854 is fixed.
-  factory JsObject(constructor, [List arguments]) {
+  /**
+   * Expert use only:
+   *
+   * Use this constructor only if you wish to get access to JS properties
+   * attached to a browser host object such as a Node or Blob. This constructor
+   * will return a JsObject proxy on [object], even though the object would
+   * normally be returned as a native Dart object.
+   * 
+   * An exception will be thrown if [object] is a primitive type or null.
+   */
+  factory JsObject.fromBrowserObject(Object object) {
+    if (object is num || object is String || object is bool || object == null) {
+      throw new ArgumentError(
+        "object cannot be a num, string, bool, or null");
+    }
+    return new JsObject._fromJs(_convertToJS(object));
+  }
+
+  /**
+   * Converts a json-like [data] to a JavaScript map or array and return a
+   * [JsObject] to it.
+   */
+  factory JsObject.jsify(Object object) {
+    if ((object is! Map) && (object is! Iterable)) {
+      throw new ArgumentError("object must be a Map or Iterable");
+    }
+    return new JsObject._fromJs(_convertDataTree(object));
+  }
+
+  factory JsObject(JsFunction constructor, [List arguments]) {
     var constr = _convertToJS(constructor);
     if (arguments == null) {
       return new JsObject._fromJs(JS('', 'new #()', constr));
@@ -94,38 +89,50 @@ class JsObject implements Serializable<JsObject> {
     var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
     // Without this line, calling factoryFunction as a constructor throws
     JS('String', 'String(#)', factoryFunction);
-    return new JsObject._fromJs(JS('', 'new #()', factoryFunction));
+    // This could return an UnknownJavaScriptObject, or a native
+    // object for which there is an interceptor
+    var jsObj = JS('JavaScriptObject', 'new #()', factoryFunction);
+    return new JsObject._fromJs(jsObj);
   }
 
-  factory JsObject._json(data) => new JsObject._fromJs(_convertDataTree(data));
-
+  // TODO: handle cycles
   static _convertDataTree(data) {
-    if (data is Map) {
-      final convertedData = JS('=Object', '{}');
-      for (var key in data.keys) {
-        JS('=Object', '#[#]=#', convertedData, key,
-            _convertDataTree(data[key]));
-      }
-      return convertedData;
-    } else if (data is Iterable) {
-      return data.map(_convertDataTree).toList();
-    } else {
-      return _convertToJS(data);
-    }
-  }
+    var _convertedObjects = new HashMap.identity();
 
-  JsObject toJs() => this;
+    _convert(o) {
+      if (_convertedObjects.containsKey(o)) {
+        return _convertedObjects[o];
+      }
+      if (o is Map) {
+        final convertedMap = JS('=Object', '{}');
+        _convertedObjects[o] = convertedMap;
+        for (var key in o.keys) {
+          JS('=Object', '#[#]=#', convertedMap, key, _convert(o[key]));
+        }
+        return convertedMap;
+      } else if (o is Iterable) {
+        var convertedList = [];
+        _convertedObjects[o] = convertedList;
+        convertedList.addAll(o.map(_convert));
+        return convertedList;
+      } else {
+        return _convertToJS(o);
+      }
+    }
+
+    return _convert(data);
+  }
 
   /**
    * Returns the value associated with [key] from the proxied JavaScript
    * object.
    *
-   * [key] must either be a [String] or [int].
+   * [key] must either be a [String] or [num].
    */
   // TODO(justinfagnani): rename key/name to property
   dynamic operator[](key) {
-    if (key is! String && key is! int) {
-      throw new ArgumentError("key is not a String or int");
+    if (key is! String && key is! num) {
+      throw new ArgumentError("key is not a String or num");
     }
     return _convertToDart(JS('', '#[#]', _jsObject, key));
   }
@@ -134,11 +141,11 @@ class JsObject implements Serializable<JsObject> {
    * Sets the value associated with [key] from the proxied JavaScript
    * object.
    *
-   * [key] must either be a [String] or [int].
+   * [key] must either be a [String] or [num].
    */
   operator[]=(key, value) {
-    if (key is! String && key is! int) {
-      throw new ArgumentError("key is not a String or int");
+    if (key is! String && key is! num) {
+      throw new ArgumentError("key is not a String or num");
     }
     JS('', '#[#]=#', _jsObject, key, _convertToJS(value));
   }
@@ -149,21 +156,19 @@ class JsObject implements Serializable<JsObject> {
       JS('bool', '# === #', _jsObject, other._jsObject);
 
   bool hasProperty(name) {
-    if (name is! String && name is! int) {
-      throw new ArgumentError("name is not a String or int");
+    if (name is! String && name is! num) {
+      throw new ArgumentError("name is not a String or num");
     }
     return JS('bool', '# in #', name, _jsObject);
   }
 
   void deleteProperty(name) {
-    if (name is! String && name is! int) {
-      throw new ArgumentError("name is not a String or int");
+    if (name is! String && name is! num) {
+      throw new ArgumentError("name is not a String or num");
     }
     JS('bool', 'delete #[#]', _jsObject, name);
   }
 
-  // TODO(vsm): Type type as Serializable<JsFunction> when
-  // dartbug.com/11854 is fixed.
   bool instanceof(type) {
     return JS('bool', '# instanceof #', _jsObject, _convertToJS(type));
   }
@@ -177,8 +182,8 @@ class JsObject implements Serializable<JsObject> {
   }
 
   dynamic callMethod(name, [List args]) {
-    if (name is! String && name is! int) {
-      throw new ArgumentError("name is not a String or int");
+    if (name is! String && name is! num) {
+      throw new ArgumentError("name is not a String or num");
     }
     return _convertToDart(JS('', '#[#].apply(#, #)', _jsObject, name,
         _jsObject,
@@ -186,18 +191,23 @@ class JsObject implements Serializable<JsObject> {
   }
 }
 
-class JsFunction extends JsObject implements Serializable<JsFunction> {
+class JsFunction extends JsObject {
+
+  /**
+   * Returns a [JsFunction] that captures its 'this' binding and calls [f]
+   * with the value of this passed as the first argument.
+   */
+  factory JsFunction.withThis(Function f) {
+    var jsFunc = _convertDartFunction(f, captureThis: true);
+    return new JsFunction._fromJs(jsFunc);
+  }
 
   JsFunction._fromJs(jsObject) : super._fromJs(jsObject);
 
-  dynamic apply(thisArg, [List args]) =>
+  dynamic apply(List args, { thisArg }) =>
       _convertToDart(JS('', '#.apply(#, #)', _jsObject,
           _convertToJS(thisArg),
           args == null ? null : args.map(_convertToJS).toList()));
-}
-
-abstract class Serializable<T> {
-  T toJs();
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
@@ -224,12 +234,14 @@ bool _defineProperty(o, String name, value) {
 dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
-  } else if (o is String || o is num || o is bool) {
+  } else if (o is String || o is num || o is bool
+    || o is Blob || o is KeyRange || o is ImageData || o is Node 
+    || o is TypedData) {
     return o;
+  } else if (o is DateTime) {
+    return Primitives.lazyAsJsDate(o);
   } else if (o is JsObject) {
     return o._jsObject;
-  } else if (o is Serializable) {
-    return _convertToJS(o.toJs());
   } else if (o is Function) {
     return _getJsProxy(o, _JS_FUNCTION_PROPERTY_NAME, (o) {
       var jsFunction = _convertDartFunction(o);
@@ -260,6 +272,9 @@ Object _convertToDart(o) {
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o)) {
     return o;
+  } else if (o is Blob || o is DateTime || o is KeyRange 
+      || o is ImageData || o is Node || o is TypedData) {
+    return JS('Blob|DateTime|KeyRange|ImageData|Node|TypedData', '#', o);
   } else if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
         (o) => new JsFunction._fromJs(o));
