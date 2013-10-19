@@ -13,9 +13,11 @@
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 polymer/example/scoped_style/*: Skip
+polymer/test/instance_attrs_test: Pass, Slow, Fail # Issue 14248
 
 scheduled_test/test/scheduled_server_test: Pass, Slow, Fail # Issue 9231, 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
+
 
 # Skip test not runnable via test.dart
 third_party/html5lib/test/dom_compat_test: Skip
