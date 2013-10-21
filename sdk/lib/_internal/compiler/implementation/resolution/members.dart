@@ -2710,7 +2710,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
     }
 
-    visit(node.argumentsNode);
+    resolveArguments(node.argumentsNode);
 
     // TODO(ngeoffray): Check if the target can be assigned.
     // TODO(ngeoffray): Warn if target is null and the send is
