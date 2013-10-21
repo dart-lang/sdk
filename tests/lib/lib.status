@@ -242,3 +242,11 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 
 [ ($compiler != none && $runtime != none) || ($compiler == none && ($runtime != dartium && $runtime != drt)) ]
 async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
+
+[ $compiler == none && $runtime == vm && $arch == arm ]
+mirrors/find_in_context_fake_function_test: Crash # Issue 14290
+async/stream_controller_async_test: RuntimeError # Issue 14290
+async/stream_state_nonzero_timer_test: RuntimeError # Issue 14290
+async/stream_state_test: RuntimeError # Issue 14290
+async/stream_subscription_cancel_test: RuntimeError # Issue 14290
+
