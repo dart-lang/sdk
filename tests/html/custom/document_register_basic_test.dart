@@ -6,6 +6,7 @@ library document_register_basic_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'dart:html';
+import 'dart:js' as js;
 import '../utils.dart';
 
 class Foo extends HtmlElement {
@@ -91,7 +92,7 @@ main() {
     document.body.append(container);
     container.setInnerHtml("<x-foo></x-foo>",
         treeSanitizer: new NullTreeSanitizer());
-    Platform.upgradeCustomElements(container);
+    customElementsTakeRecords();
     var parsedFoo = container.firstChild;
 
     expect(parsedFoo is Foo, isTrue);
@@ -127,7 +128,7 @@ main() {
 
     container.setInnerHtml("<X-BAR></X-BAR><X-Bar></X-Bar>",
         treeSanitizer: new NullTreeSanitizer());
-    Platform.upgradeCustomElements(container);
+    customElementsTakeRecords();
     expect(container.firstChild is Bar, isTrue);
     expect(container.firstChild.tagName, "X-BAR");
     expect(container.lastChild is Bar, isTrue);

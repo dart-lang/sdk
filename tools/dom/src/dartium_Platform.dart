@@ -18,14 +18,4 @@ class Platform {
    * error.
    */
   static final supportsSimd = true;
-
-  /**
-   * Upgrade all custom elements in the subtree which have not been upgraded.
-   *
-   * This is needed to cover timing scenarios which the custom element polyfill
-   * does not cover.
-   */
-  static void upgradeCustomElements(Node node) {
-    // no-op, provided for dart2js polyfill.
-  }
 }

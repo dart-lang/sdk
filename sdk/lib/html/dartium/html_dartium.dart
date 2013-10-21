@@ -35204,16 +35204,6 @@ class Platform {
    * error.
    */
   static final supportsSimd = true;
-
-  /**
-   * Upgrade all custom elements in the subtree which have not been upgraded.
-   *
-   * This is needed to cover timing scenarios which the custom element polyfill
-   * does not cover.
-   */
-  static void upgradeCustomElements(Node node) {
-    // no-op, provided for dart2js polyfill.
-  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35335,6 +35325,8 @@ class _Utils {
   }
 
   static bool isMap(obj) => obj is Map;
+
+  static List toListIfIterable(obj) => obj is Iterable ? obj.toList() : null;
 
   static Map createMap() => {};
 
@@ -35641,10 +35633,6 @@ class _Utils {
   static String addTrailingDot(String str) => '${str}.';
 
   static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
-
-  // TODO(jacobr): we need a failsafe way to determine that a Node is really a
-  // DOM node rather than just a class that extends Node.
-  static bool isNode(obj) => obj is Node;
 
   static bool _isBuiltinType(ClassMirror cls) {
     // TODO(vsm): Find a less hackish way to do this.

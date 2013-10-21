@@ -6,6 +6,7 @@ library document_register_type_extensions_test;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
+import 'dart:js' as js;
 import '../utils.dart';
 
 class Foo extends HtmlElement {
@@ -261,7 +262,7 @@ main() {
       createElementFromHtml(html) {
         var container = new DivElement()..setInnerHtml(html,
           treeSanitizer: new NullTreeSanitizer());
-        Platform.upgradeCustomElements(container);
+        customElementsTakeRecords();
         return container.firstChild;
       }
 
