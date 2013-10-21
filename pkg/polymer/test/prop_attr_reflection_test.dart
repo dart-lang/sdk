@@ -40,7 +40,8 @@ Future onAttributeChange(Element node) {
   return completer.future;
 }
 
-@initMethod _main() {
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

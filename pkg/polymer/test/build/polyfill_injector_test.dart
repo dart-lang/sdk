@@ -26,6 +26,7 @@ void runTests({bool js: true, bool csp: false}) {
 
   var ext = js ? (csp ? '.precompiled.js' : '.js') : '';
   var type = js ? '' : 'type="application/dart" ';
+  var dartJsTag = js ? '' : DART_JS_TAG;
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
@@ -49,26 +50,32 @@ void runTests({bool js: true, bool csp: false}) {
           '<script type="application/dart" src="a.dart"></script>',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG$CUSTOM_ELEMENT_TAG$INTEROP_TAG'
+          '</head><body>'
           '<script ${type}src="a.dart$ext"></script>'
+          '$dartJsTag'
           '</body></html>',
     });
 
   testPhases('interop/shadow dom already present', phases, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<script type="application/dart" src="a.dart"></script>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
+          '</head><body>'
+          '<script type="application/dart" src="a.dart"></script>'
+          '$dartJsTag'
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<script ${type}src="a.dart$ext"></script>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
+          '</head><body>'
+          '<script ${type}src="a.dart$ext"></script>'
+          '$dartJsTag'
           '</body></html>',
     });
 }

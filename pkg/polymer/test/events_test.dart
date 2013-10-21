@@ -9,7 +9,28 @@ import 'package:polymer/polymer.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
-@initMethod _main() {
+@CustomTag("test-b")
+class TestB extends PolymerElement {
+  TestB.created() : super.created();
+
+  List clicks = [];
+  void clickHandler(event, detail, target) {
+    clicks.add('local click under $localName (id $id) on ${target.id}');
+  }
+}
+
+@CustomTag("test-a")
+class TestA extends PolymerElement {
+  TestA.created() : super.created();
+
+  List clicks = [];
+  void clickHandler() {
+    clicks.add('host click on: $localName (id $id)');
+  }
+}
+
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

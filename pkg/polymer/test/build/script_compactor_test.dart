@@ -16,6 +16,7 @@ void main() {
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
+      'a|web/test.html.scriptUrls': '[]',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     });
@@ -34,22 +35,23 @@ void main() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>',
+      'a|web/test.html.scriptUrls': '[]',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
           '<script type="application/dart" '
           'src="test.html_bootstrap.dart"></script>'
-          '<script src="packages/browser/dart.js"></script>'
-          '</body></html>',
+          '</head><body></body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
 
           void main() {
-            initPolymer([
+            configureForDeployment([
                 'a.dart',
               ]);
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
@@ -57,18 +59,17 @@ void main() {
   testPhases('several scripts', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '<script type="application/dart" src="a.dart"></script>'
-          '<script type="application/dart" src="b.dart"></script>'
           '</head><body><div>'
-          '<script type="application/dart" src="c.dart"></script>'
-          '</div>'
-          '<script type="application/dart" src="d.dart"></script>',
+          '<script type="application/dart" src="d.dart"></script>'
+          '</div>',
+      'a|web/test.html.scriptUrls':
+          '[["a", "web/a.dart"],["a", "web/b.dart"],["a", "web/c.dart"]]',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body><div></div>'
-          '<script type="application/dart" '
-          'src="test.html_bootstrap.dart"></script>'
-          '<script src="packages/browser/dart.js"></script>'
+          '<!DOCTYPE html><html><head></head><body><div>'
+          '<script type="application/dart" src="test.html_bootstrap.dart">'
+          '</script>'
+          '</div>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -79,12 +80,13 @@ void main() {
           import 'd.dart' as i3;
 
           void main() {
-            initPolymer([
+            configureForDeployment([
                 'a.dart',
                 'b.dart',
                 'c.dart',
                 'd.dart',
               ]);
+            i3.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });

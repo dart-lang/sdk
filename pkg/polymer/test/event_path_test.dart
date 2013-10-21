@@ -9,7 +9,28 @@ import 'package:polymer/polymer.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
-@initMethod _main() {
+@CustomTag("x-selector")
+class XSelector extends PolymerElement {
+  XSelector.created() : super.created();
+}
+
+@CustomTag("x-overlay")
+class XOverlay extends PolymerElement {
+  XOverlay.created() : super.created();
+}
+
+@CustomTag("x-menu")
+class XMenu extends PolymerElement {
+  XMenu.created() : super.created();
+}
+
+@CustomTag("x-menu-button")
+class XMenuButton extends PolymerElement {
+  XMenuButton.created() : super.created();
+}
+
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

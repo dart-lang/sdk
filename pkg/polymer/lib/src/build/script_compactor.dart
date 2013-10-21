@@ -6,6 +6,7 @@
 library polymer.src.build.script_compactor;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:barback/barback.dart';
 import 'package:html5lib/parser.dart' show parseFragment;
@@ -24,8 +25,7 @@ import 'common.dart';
  *
  * Internally, this transformer will convert each script tag into an import
  * statement to a library, and then uses `initPolymer` (see polymer.dart)  to
- * invoke the main method on each of these libraries and register any polymer
- * elements annotated with `@CustomTag`.
+ * process `@initMethod` and `@CustomTag` annotations in those libraries.
  */
 class ScriptCompactor extends Transformer with PolymerTransformer {
   final TransformOptions options;
@@ -38,70 +38,70 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
 
   Future apply(Transform transform) {
     var id = transform.primaryInput.id;
+    var secondaryId = id.addExtension('.scriptUrls');
     var logger = transform.logger;
     return readPrimaryAsHtml(transform).then((document) {
-      var libraries = [];
-      bool changed = false;
-      var dartLoaderTag = null;
-      for (var tag in document.queryAll('script')) {
-        var src = tag.attributes['src'];
-        if (src != null) {
-          if (src == 'packages/polymer/boot.js' ||
-              src == 'packages/polymer/init.dart') {
+      return transform.readInputAsString(secondaryId).then((libraryIds) {
+        var libraries = JSON.decode(libraryIds).map(
+          (data) => new AssetId.deserialize(data)).toList();
+        var mainLibraryId;
+        var mainScriptTag;
+        bool changed = false;
+
+        for (var tag in document.queryAll('script')) {
+          var src = tag.attributes['src'];
+          if (src == 'packages/polymer/boot.js') {
             tag.remove();
             continue;
           }
-          var last = src.split('/').last;
-          if (last == 'dart.js') {
-            dartLoaderTag = tag;
+          if (tag.attributes['type'] != 'application/dart') continue;
+          if (src == null) {
+            logger.warning('unexpected script without a src url. The '
+              'ScriptCompactor transformer should run after running the '
+              'InlineCodeExtractor', span: tag.sourceSpan);
+            continue;
           }
+          if (mainLibraryId != null) {
+            logger.warning('unexpected script. Only one Dart script tag '
+              'per document is allowed.', span: tag.sourceSpan);
+            tag.remove();
+            continue;
+          }
+          mainLibraryId = resolve(id, src, logger, tag.sourceSpan);
+          mainScriptTag = tag;
         }
-        if (tag.attributes['type'] != 'application/dart') continue;
-        tag.remove();
-        changed = true;
-        if (src == null) {
-          logger.warning('unexpected script without a src url. The '
-            'ScriptCompactor transformer should run after running the '
-            'InlineCodeExtractor', tag.sourceSpan);
-          continue;
+
+        if (mainScriptTag == null) {
+          // We didn't find any main library, nothing to do.
+          transform.addOutput(transform.primaryInput);
+          return;
         }
-        var libraryId = resolve(id, src, logger, tag.sourceSpan);
 
-        // TODO(sigmund): should we detect/remove duplicates?
-        if (libraryId == null) continue;
-        libraries.add(libraryId);
-      }
+        var bootstrapId = id.addExtension('_bootstrap.dart');
+        mainScriptTag.attributes['src'] = 
+            path.url.basename(bootstrapId.path);
 
-      if (!changed) {
-        transform.addOutput(transform.primaryInput);
-        return;
-      }
+        libraries.add(mainLibraryId);
+        var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
+            .where((url) => url != null).toList();
+        var buffer = new StringBuffer()..writeln(MAIN_HEADER);
+        int i = 0;
+        for (; i < urls.length; i++) {
+          buffer.writeln("import '${urls[i]}' as i$i;");
+        }
 
-      var bootstrapId = id.addExtension('_bootstrap.dart');
-      var filename = path.url.basename(bootstrapId.path);
+        buffer..write('\n')
+            ..writeln('void main() {')
+            ..writeln('  configureForDeployment([')
+            ..writeAll(urls.map((url) => "      '$url',\n"))
+            ..writeln('    ]);')
+            ..writeln('  i${i - 1}.main();')
+            ..writeln('}');
 
-      var bootstrapScript = parseFragment(
-            '<script type="application/dart" src="$filename"></script>');
-      if (dartLoaderTag == null) {
-        document.body.nodes.add(bootstrapScript);
-        document.body.nodes.add(parseFragment(
-            '<script src="packages/browser/dart.js"></script>'));
-      } else {
-        dartLoaderTag.parent.insertBefore(bootstrapScript, dartLoaderTag);
-      }
-
-      var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
-          .where((url) => url != null).toList();
-      var buffer = new StringBuffer()..writeln(MAIN_HEADER);
-      for (int i = 0; i < urls.length; i++) {
-        buffer.writeln("import '${urls[i]}' as i$i;");
-      }
-      buffer..write(_mainPrefix)
-          ..writeAll(urls.map((url) => "      '$url',\n"))
-          ..write(_mainSuffix);
-
-      transform.addOutput(new Asset.fromString(bootstrapId, buffer.toString()));
-      transform.addOutput(new Asset.fromString(id, document.outerHtml));
+        transform.addOutput(new Asset.fromString(
+              bootstrapId, buffer.toString()));
+        transform.addOutput(new Asset.fromString(id, document.outerHtml));
+      });
     });
   }
 }
@@ -110,15 +110,4 @@ const MAIN_HEADER = """
 library app_bootstrap;
 
 import 'package:polymer/polymer.dart';
-""";
-
-const _mainPrefix = """
-
-void main() {
-  initPolymer([
-""";
-
-const _mainSuffix = """
-    ]);
-}
 """;

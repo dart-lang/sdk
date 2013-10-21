@@ -27,7 +27,8 @@ class MyElement extends PolymerElement {
   MyElement.created() : super.created();
 }
 
-@initMethod _main() {
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);

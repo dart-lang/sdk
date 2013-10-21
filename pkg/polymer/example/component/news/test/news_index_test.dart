@@ -10,7 +10,8 @@ import 'package:unittest/html_config.dart';
 /**
  * This test runs the news example and checks the state of the initial page.
  */
-@initMethod _main() {
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   extractLinks(nodes) => nodes.where((n) => n is Element)

@@ -36,21 +36,22 @@ void main() {
       'a|web/test.dart': _sampleObservable('A', 'foo'),
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
           '<script src="test.html_bootstrap.dart.js"></script>'
-          '</body></html>',
+          '</head><body></body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
 
           void main() {
-            initPolymer([
+            configureForDeployment([
                 'a.dart',
               ]);
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.dart': _sampleObservableOutput('A', 'foo'),
@@ -63,21 +64,22 @@ void main() {
           '${_sampleObservable("B", "bar")}</script>',
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
           '<script src="test.html_bootstrap.dart.js"></script>'
-          '</body></html>',
+          '</head><body></body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'test.html.0.dart' as i0;
 
           void main() {
-            initPolymer([
+            configureForDeployment([
                 'test.html.0.dart',
               ]);
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
@@ -87,6 +89,10 @@ void main() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>'
+          // TODO(sigmund): provide a way to see logging warnings and errors.
+          // For example, these extra tags produce warnings and are then removed
+          // by the transformers. The test below checks that the output looks
+          // correct, but we should also validate the messages logged.
           '<script type="application/dart">'
           '${_sampleObservable("B", "bar")}</script>'
           '</head><body><div>'
@@ -97,28 +103,24 @@ void main() {
       'a|web/a.dart': _sampleObservable('A', 'foo'),
     }, {
       'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
-          '<div></div>'
           '<script src="test.html_bootstrap.dart.js"></script>'
+          '</head><body>'
+          '<div></div>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'a.dart' as i0;
-          import 'test.html.0.dart' as i1;
-          import 'test.html.1.dart' as i2;
-          import 'd.dart' as i3;
 
           void main() {
-            initPolymer([
+            configureForDeployment([
                 'a.dart',
-                'test.html.0.dart',
-                'test.html.1.dart',
-                'd.dart',
               ]);
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
@@ -131,9 +133,7 @@ void main() {
           '<!DOCTYPE html><html><head>'
           '<link rel="import" href="test2.html">'
           '</head><body>'
-          '<script type="application/dart" src="b.dart"></script>'
-          '<script type="application/dart">'
-          '${_sampleObservable("C", "car")}</script>',
+          '<script type="application/dart" src="b.dart"></script>',
       'a|web/b.dart': _sampleObservable('B', 'bar'),
       'a|web/test2.html':
           '<!DOCTYPE html><html><head></head><body>'
@@ -143,30 +143,28 @@ void main() {
           '</polymer-element></html>',
     }, {
       'a|web/index.html':
-          '<!DOCTYPE html><html><head></head><body>'
+          '<!DOCTYPE html><html><head>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
-          '<polymer-element>1</polymer-element>'
+          '</head><body><polymer-element>1</polymer-element>'
           '<script src="index.html_bootstrap.dart.js"></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'test2.html.0.dart' as i0;
           import 'b.dart' as i1;
-          import 'index.html.0.dart' as i2;
 
           void main() {
-            initPolymer([
+            configureForDeployment([
                 'test2.html.0.dart',
                 'b.dart',
-                'index.html.0.dart',
               ]);
+            i1.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),
       'a|web/b.dart': _sampleObservableOutput('B', 'bar'),
-      'a|web/index.html.0.dart': _sampleObservableOutput("C", "car"),
     });
 }
 

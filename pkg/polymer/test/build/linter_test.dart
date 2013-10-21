@@ -50,6 +50,48 @@ void main() {
                                     '(web/test.html 1 0)',
       });
   });
+  group('single script tag per document', () {
+    _testLinter('two top-level tags', {
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '<script type="application/dart" src="a.dart">'
+            '</script>\n'
+            '<script type="application/dart" src="b.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+      }, {
+        'a|web/test.html.messages': 
+            'warning: Only one "application/dart" script tag per document is'
+            ' allowed. (web/test.html 1 0)',
+      });
+
+    _testLinter('two top-level tags, non entrypoint', {
+        'a|lib/test.html': '<!DOCTYPE html><html>'
+            '<script type="application/dart" src="a.dart">'
+            '</script>\n'
+            '<script type="application/dart" src="b.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+      }, {
+        'a|lib/test.html.messages': 
+            'warning: Only one "application/dart" script tag per document is'
+            ' allowed. (lib/test.html 1 0)',
+      });
+
+    _testLinter('tags inside elements', {
+        'a|web/test.html': '<!DOCTYPE html><html>'
+            '<polymer-element name="x-a">'
+            '<script type="application/dart" src="a.dart">'
+            '</script>'
+            '</polymer-element>\n'
+            '<script type="application/dart" src="b.dart">'
+            '</script>'
+            '<script src="packages/browser/dart.js"></script>'
+      }, {
+        'a|web/test.html.messages': 
+            'warning: Only one "application/dart" script tag per document is'
+            ' allowed. (web/test.html 1 0)',
+      });
+  });
 
   group('doctype warning', () {
     _testLinter('in web', {
@@ -213,8 +255,7 @@ void main() {
             </html>'''.replaceAll('            ', ''),
       }, {
         'a|lib/test.html.messages':
-            'warning: script tag with .dart source file but no type will be '
-            'treated as JavaScript. Did you forget type="application/dart"?'
+            'warning: Wrong script type, expected type="application/dart".'
             ' (lib/test.html 1 0)'
       });
 
@@ -226,8 +267,7 @@ void main() {
             </html>'''.replaceAll('            ', ''),
       }, {
         'a|lib/test.html.messages':
-            'warning: script tag with .dart source file but no type will be '
-            'treated as JavaScript. Did you forget type="application/dart"?'
+            'warning: Wrong script type, expected type="application/dart".'
             ' (lib/test.html 2 0)'
       });
 
@@ -256,7 +296,7 @@ void main() {
 
     _testLinter('top-level, dart type & .dart url', {
         'a|lib/test.html': '''<html>
-            <script type="applicatino/dart" src="foo.dart"></script>
+            <script type="application/dart" src="foo.dart"></script>
             </html>'''.replaceAll('            ', ''),
       }, {
         'a|lib/test.html.messages': ''

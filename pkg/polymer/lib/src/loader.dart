@@ -32,13 +32,12 @@ const initMethod = const _InitMethodAnnotation();
  * The urls in [libraries] can be absolute or relative to
  * `currentMirrorSystem().isolate.rootLibrary.uri`.
  */
-void initPolymer([List<String> libraries]) {
-  // Note: we synchronously load all libraries because the script invoking
-  // this is run after all HTML imports are resolved.
-  if (libraries == null) {
-    libraries = _discoverScripts(document, window.location.href);
+void initPolymer() {
+  if (_useDirtyChecking) {
+    dirtyCheckZone().run(_initPolymerOptimized);
+  } else {
+    _initPolymerOptimized();
   }
-  dirtyCheckZone().run(() => initPolymerOptimized(libraries));
 }
 
 /**
@@ -48,18 +47,42 @@ void initPolymer([List<String> libraries]) {
  * be supplied instead of being dynamically searched for at runtime.
  */
 // TODO(jmesserly): change the Polymer build step to call this directly.
-void initPolymerOptimized(List<String> libraries) {
+void _initPolymerOptimized() {
   preventFlashOfUnstyledContent();
 
   // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
   mdv.initialize();
   document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
-  _loadLibraries(libraries);
+  _loadLibraries();
 }
 
-void _loadLibraries(libraries) {
-  for (var lib in libraries) {
+/**
+ * Configures [initPolymer] making it optimized for deployment to the internet.
+ * With this setup the list of libraries to initialize is supplied instead of
+ * being dynamically searched for at runtime. Additionally, after this method is
+ * called, [initPolymer] omits the [Zone] that automatically invokes
+ * [Observable.dirtyCheck].
+ */
+void configureForDeployment(List<String> libraries) {
+  _librariesToLoad = libraries;
+  _useDirtyChecking = false;
+}
+
+/**
+ * Libraries that will be initialized. For each library, the intialization
+ * registers any type tagged with a [CustomTag] annotation and calls any
+ * top-level method annotated with [initMethod]. The value of this field is
+ * assigned programatically by the code generated from the polymer deploy
+ * scripts. During development, the libraries are inferred by crawling HTML
+ * imports and searching for script tags.
+ */
+List<String> _librariesToLoad =
+    _discoverScripts(document, window.location.href);
+bool _useDirtyChecking = true;
+
+void _loadLibraries() {
+  for (var lib in _librariesToLoad) {
     try {
       _loadLibrary(lib);
     } catch (e, s) {
@@ -74,7 +97,10 @@ void _loadLibraries(libraries) {
 
 /**
  * Walks the HTML import structure to discover all script tags that are
- * implicitly loaded.
+ * implicitly loaded. This code is only used in Dartium and should only be
+ * called after all HTML imports are resolved. Polymer ensures this by asking
+ * users to put their Dart script tags after all HTML imports (this is checked
+ * by the linter, and Dartium will otherwise show an error message).
  */
 List<String> _discoverScripts(Document doc, String baseUri,
     [Set<Document> seen, List<String> scripts]) {

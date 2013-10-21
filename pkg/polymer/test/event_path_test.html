@@ -5,6 +5,7 @@
    BSD-style license that can be found in the LICENSE file.
 -->
 <html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
   <head>
     <title>event path</title>
     <script src="packages/unittest/test_controller.js"></script>
@@ -24,26 +25,12 @@
         <content id="selectorContent"></content>
       </div>
     </template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-      @CustomTag("x-selector")
-      class XSelector extends PolymerElement {
-        XSelector.created() : super.created();
-      }
-    </script>
   </polymer-element>
 
   <polymer-element name="x-overlay">
     <template>
       <content id="overlayContent"></content>
     </template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-      @CustomTag("x-overlay")
-      class XOverlay extends PolymerElement {
-        XOverlay.created() : super.created();
-      }
-    </script>
   </polymer-element>
 
   <polymer-element name="x-menu" extends="x-selector">
@@ -52,13 +39,6 @@
         <shadow id="menuShadow"></shadow>
       </div>
     </template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-      @CustomTag("x-menu")
-      class XMenu extends PolymerElement {
-        XMenu.created() : super.created();
-      }
-    </script>
   </polymer-element>
 
   <polymer-element name="x-menu-button">
@@ -73,13 +53,6 @@
         </x-overlay>
       </div>
     </template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-      @CustomTag("x-menu-button")
-      class XMenuButton extends PolymerElement {
-        XMenuButton.created() : super.created();
-      }
-    </script>
   </polymer-element>
 
   <x-menu-button id="menuButton">
@@ -89,6 +62,5 @@
 
 
   <script type="application/dart" src="event_path_test.dart"></script>
-  <script type="application/dart" src="packages/polymer/init.dart"></script>
   </body>
 </html>

@@ -86,10 +86,13 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         }
         // Remove "packages/browser/dart.js"
         if (dartJs != null) dartJs.remove();
+      } else if (dartJs == null) {
+        document.body.nodes.add(parseFragment(
+              '<script src="packages/browser/dart.js"></script>'));
       }
 
       _addScript(urlSegment) {
-        document.body.nodes.insert(0, parseFragment(
+        document.head.nodes.insert(0, parseFragment(
               '<script src="packages/$urlSegment"></script>\n'));
       }
 
@@ -99,7 +102,7 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
         _addScript('custom_element/custom-elements.debug.js');
       }
 
-      // This polyfill needs to be the first one on the body
+      // This polyfill needs to be the first one on the head
       // TODO(jmesserly): this is .debug to workaround issue 13046.
       if (!shadowDomFound) _addScript('shadow_dom/shadow_dom.debug.js');
 

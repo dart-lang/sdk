@@ -301,19 +301,31 @@ CommandLineOptions parseOptions([List<String> args]) {
         defaultsTo: 'out')
     ..addFlag('js', help:
         'deploy replaces *.dart scripts with *.dart.js. This flag \n'
-        'leaves "packages/browser/dart.js" to do the replacement at runtime.'
+        'leaves "packages/browser/dart.js" to do the replacement at runtime.',
         defaultsTo: true)
     ..addFlag('csp', help:
         'replaces *.dart with *.dart.precompiled.js to comply with \n'
-        'Content Security Policy restrictions.');
+        'Content Security Policy restrictions.')
     ..addFlag('help', abbr: 'h',
         negatable: false, help: 'Displays this help and exit.');
-  var res = parser.parse(args == null ? new Options().arguments : args);
-  if (res['help']) {
-    print('A build script that invokes the polymer linter and deploy tools.');
+
+  showUsage() {
     print('Usage: dart build.dart [options]');
     print('\nThese are valid options expected by build.dart:');
     print(parser.getUsage());
+  }
+
+  var res;
+  try {
+    res = parser.parse(args == null ? new Options().arguments : args);
+  } on FormatException catch (e) {
+    print(e.message);
+    showUsage();
+    exit(1);
+  }
+  if (res['help']) {
+    print('A build script that invokes the polymer linter and deploy tools.');
+    showUsage();
     exit(0);
   }
   return new CommandLineOptions(res['changed'], res['removed'], res['clean'],
