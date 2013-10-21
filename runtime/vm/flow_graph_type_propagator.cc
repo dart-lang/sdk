@@ -18,6 +18,12 @@ DECLARE_FLAG(bool, propagate_types);
 DECLARE_FLAG(bool, use_cha);
 
 
+void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
+  FlowGraphTypePropagator propagator(flow_graph);
+  propagator.Propagate();
+}
+
+
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),

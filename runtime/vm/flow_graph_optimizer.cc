@@ -4127,6 +4127,7 @@ class Place : public ValueObject {
   Place(const Place& other)
       : ValueObject(),
         kind_(other.kind_),
+        representation_(other.representation_),
         instance_(other.instance_),
         raw_selector_(other.raw_selector_),
         id_(other.id_) {
@@ -4135,10 +4136,15 @@ class Place : public ValueObject {
   // Construct a place from instruction if instruction accesses any place.
   // Otherwise constructs kNone place.
   Place(Instruction* instr, bool* is_load)
-      : kind_(kNone), instance_(NULL), raw_selector_(0), id_(0) {
+      : kind_(kNone),
+        representation_(kNoRepresentation),
+        instance_(NULL),
+        raw_selector_(0),
+        id_(0) {
     switch (instr->tag()) {
       case Instruction::kLoadField: {
         LoadFieldInstr* load_field = instr->AsLoadField();
+        representation_ = load_field->representation();
         instance_ = OriginalDefinition(load_field->instance()->definition());
         if (load_field->field() != NULL) {
           kind_ = kField;
@@ -4155,6 +4161,8 @@ class Place : public ValueObject {
         StoreInstanceFieldInstr* store_instance_field =
             instr->AsStoreInstanceField();
         kind_ = kField;
+        // Value is at input index 1.
+        representation_ = store_instance_field->RequiredInputRepresentation(1);
         instance_ =
             OriginalDefinition(store_instance_field->instance()->definition());
         field_ = &store_instance_field->field();
@@ -4164,6 +4172,8 @@ class Place : public ValueObject {
       case Instruction::kStoreVMField: {
         StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
         kind_ = kVMField;
+        // Value is at input index 0.
+        representation_ = store_vm_field->RequiredInputRepresentation(0);
         instance_ = OriginalDefinition(store_vm_field->dest()->definition());
         offset_in_bytes_ = store_vm_field->offset_in_bytes();
         break;
@@ -4171,18 +4181,23 @@ class Place : public ValueObject {
 
       case Instruction::kLoadStaticField:
         kind_ = kField;
+        representation_ = instr->AsLoadStaticField()->representation();
         field_ = &instr->AsLoadStaticField()->StaticField();
         *is_load = true;
         break;
 
       case Instruction::kStoreStaticField:
         kind_ = kField;
+        // Value is at input index 0.
+        representation_ =
+            instr->AsStoreStaticField()->RequiredInputRepresentation(0);
         field_ = &instr->AsStoreStaticField()->field();
         break;
 
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
         kind_ = kIndexed;
+        representation_ = load_indexed->representation();
         instance_ = OriginalDefinition(load_indexed->array()->definition());
         index_ = load_indexed->index()->definition();
         *is_load = true;
@@ -4192,6 +4207,8 @@ class Place : public ValueObject {
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
         kind_ = kIndexed;
+        // Value is at input index 2.
+        representation_ = store_indexed->RequiredInputRepresentation(2);
         instance_ = OriginalDefinition(store_indexed->array()->definition());
         index_ = store_indexed->index()->definition();
         break;
@@ -4199,11 +4216,16 @@ class Place : public ValueObject {
 
       case Instruction::kCurrentContext:
         kind_ = kContext;
+        ASSERT(instr->AsCurrentContext()->representation() == kTagged);
+        representation_ = kTagged;
         *is_load = true;
         break;
 
       case Instruction::kStoreContext:
         kind_ = kContext;
+        ASSERT(instr->AsStoreContext()->RequiredInputRepresentation(0) ==
+               kTagged);
+        representation_ = kTagged;
         break;
 
       default:
@@ -4215,6 +4237,8 @@ class Place : public ValueObject {
   void set_id(intptr_t id) { id_ = id; }
 
   Kind kind() const { return kind_; }
+
+  Representation representation() const { return representation_; }
 
   Definition* instance() const {
     ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
@@ -4281,11 +4305,12 @@ class Place : public ValueObject {
 
   intptr_t Hashcode() const {
     return (kind_ * 63 + reinterpret_cast<intptr_t>(instance_)) * 31 +
-        FieldHashcode();
+        representation_ * 15 + FieldHashcode();
   }
 
   bool Equals(Place* other) const {
     return (kind_ == other->kind_) &&
+        (representation_ == other->representation_) &&
         (instance_ == other->instance_) &&
         SameField(other);
   }
@@ -4312,6 +4337,7 @@ class Place : public ValueObject {
   }
 
   Kind kind_;
+  Representation representation_;
   Definition* instance_;
   union {
     intptr_t raw_selector_;
