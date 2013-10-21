@@ -9920,6 +9920,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
+  @Experimental()
   Point get documentOffset => offsetTo(document.documentElement);
 
   /**
@@ -9933,6 +9934,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * element is _not_ an offset parent or transitive offset parent to this
    * element, an [ArgumentError] is thrown.
    */
+  @Experimental()
   Point offsetTo(Element parent) {
     return Element._offsetToHelper(this, parent);
   }
