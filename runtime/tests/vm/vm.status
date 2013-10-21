@@ -24,10 +24,8 @@ cc/IsolateInterrupt: Skip
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
 
-[ $runtime == drt ]
-dart/isolate_mirror_local_test: Skip
-
 [ $compiler == dart2js ]
+dart/mirrored_compilation_error_test: Skip # VM-specific flag
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
@@ -59,9 +57,13 @@ cc/Sdc1Ldc1: Crash # Illegal instructions
 cc/Cop1CvtDL: Crash
 cc/Cop1CvtDL_neg: Crash
 
+[ $compiler == none && $runtime == drt ]
+dart/isolate_mirror_local_test: Skip
+
 [ $compiler == none && $runtime == dartium ]
 dart/isolate_mirror_local_test: Fail # Issue 13719: Please triage this failure.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 dart/isolate_mirror_remote_test: Fail # Issue 13921
 dart/isolate_unhandled_exception_test: Fail # Issue 13921
+dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag
