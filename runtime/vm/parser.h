@@ -556,7 +556,7 @@ class Parser : public ValueObject {
   AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
   AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
-  AstNode* ParseStringLiteral();
+  AstNode* ParseStringLiteral(bool allow_interpolation);
   String* ParseImportStringLiteral();
   AstNode* ParseCompoundLiteral();
   AstNode* ParseSymbolLiteral();

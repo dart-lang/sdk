@@ -12,7 +12,6 @@ source_self_negative_test: Crash # Issue 14003
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
-library_juxtaposition_test: Fail # Issue 6877
 throwing_lazy_variable_test: Fail # Issue 5802
 f_bounded_equality_test: RuntimeError # Issue 14000
 

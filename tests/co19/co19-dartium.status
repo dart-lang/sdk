@@ -46,12 +46,6 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t02: Fail # Issue 13719: Please 
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: Fail # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # Issue 13719: Please triage this failure.
-Language/14_Libraries_and_Scripts/5_URIs_A01_t04: Fail # Issue 13719: Please triage this failure.
-Language/14_Libraries_and_Scripts/5_URIs_A01_t05: Fail # Issue 13719: Please triage this failure.
-Language/14_Libraries_and_Scripts/5_URIs_A01_t14: Fail # Issue 13719: Please triage this failure.
-Language/14_Libraries_and_Scripts/5_URIs_A01_t15: Fail # Issue 13719: Please triage this failure.
-Language/14_Libraries_and_Scripts/5_URIs_A01_t24: Fail # Issue 13719: Please triage this failure.
-Language/14_Libraries_and_Scripts/5_URIs_A01_t25: Fail # Issue 13719: Please triage this failure.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail # co19-roll r607: Please triage this failure
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail # co19-roll r607: Please triage this failure
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 13719: Please triage this failure.

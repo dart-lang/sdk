@@ -4792,11 +4792,13 @@ void Parser::ParseLibraryImportExport() {
   if (CurrentToken() != Token::kSTRING) {
     ErrorMsg("library url expected");
   }
-  const String& url = *CurrentLiteral();
+  AstNode* url_literal = ParseStringLiteral(false);
+  ASSERT(url_literal->IsLiteralNode());
+  ASSERT(url_literal->AsLiteralNode()->literal().IsString());
+  const String& url = String::Cast(url_literal->AsLiteralNode()->literal());
   if (url.Length() == 0) {
     ErrorMsg("library url expected");
   }
-  ConsumeToken();
   String& prefix = String::Handle();
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
@@ -4881,8 +4883,10 @@ void Parser::ParseLibraryPart() {
   if (CurrentToken() != Token::kSTRING) {
     ErrorMsg("url expected");
   }
-  const String& url = *CurrentLiteral();
-  ConsumeToken();
+  AstNode* url_literal = ParseStringLiteral(false);
+  ASSERT(url_literal->IsLiteralNode());
+  ASSERT(url_literal->AsLiteralNode()->literal().IsString());
+  const String& url = String::Cast(url_literal->AsLiteralNode()->literal());
   ExpectSemicolon();
   const String& canon_url = String::CheckedHandle(
       CallLibraryTagHandler(Dart_kCanonicalizeUrl, source_pos, url));
@@ -9966,7 +9970,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 // interpol = kINTERPOL_VAR | (kINTERPOL_START expression kINTERPOL_END)
 // In other words, the scanner breaks down interpolated strings so that
 // a string literal always begins and ends with a kSTRING token.
-AstNode* Parser::ParseStringLiteral() {
+AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
   TRACE_PARSER("ParseStringLiteral");
   AstNode* primary = NULL;
   const intptr_t literal_start = TokenPos();
@@ -9982,6 +9986,7 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
+  bool has_interpolation = false;
   GrowableArray<AstNode*> values_list;
   while (CurrentToken() == Token::kSTRING) {
     if (CurrentLiteral()->Length() > 0) {
@@ -9992,6 +9997,10 @@ AstNode* Parser::ParseStringLiteral() {
     ConsumeToken();
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
+      if (!allow_interpolation) {
+        ErrorMsg("string interpolation not allowed in this context");
+      }
+      has_interpolation = true;
       AstNode* expr = NULL;
       const intptr_t expr_pos = TokenPos();
       if (CurrentToken() == Token::kINTERPOL_VAR) {
@@ -10024,7 +10033,19 @@ AstNode* Parser::ParseStringLiteral() {
     }
   }
   if (is_compiletime_const) {
-    primary = new LiteralNode(literal_start, Interpolate(values_list));
+    if (has_interpolation) {
+      primary = new LiteralNode(literal_start, Interpolate(values_list));
+    } else {
+      const Array& strings = Array::Handle(Array::New(values_list.length()));
+      for (int i = 0; i < values_list.length(); i++) {
+        const Instance& part = values_list[i]->AsLiteralNode()->literal();
+        ASSERT(part.IsString());
+        strings.SetAt(i, String::Cast(part));
+      }
+      String& lit = String::ZoneHandle(String::ConcatAll(strings, Heap::kOld));
+      lit = Symbols::New(lit);
+      primary = new LiteralNode(literal_start, lit);
+    }
   } else {
     ArrayNode* values = new ArrayNode(
         TokenPos(),
@@ -10139,7 +10160,7 @@ AstNode* Parser::ParsePrimary() {
     primary = new LiteralNode(TokenPos(), double_value);
     ConsumeToken();
   } else if (CurrentToken() == Token::kSTRING) {
-    primary = ParseStringLiteral();
+    primary = ParseStringLiteral(true);
   } else if (CurrentToken() == Token::kNEW) {
     ConsumeToken();
     primary = ParseNewOperator(Token::kNEW);

@@ -44,10 +44,6 @@ Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
 Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # co19 issue
-Language/14_Libraries_and_Scripts/5_URIs_A01_t04: fail # Issue 12521
-Language/14_Libraries_and_Scripts/5_URIs_A01_t05: fail # Issue 12521
-Language/14_Libraries_and_Scripts/5_URIs_A01_t14: fail # Issue 12521
-Language/14_Libraries_and_Scripts/5_URIs_A01_t15: fail # Issue 12521
 
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
@@ -60,9 +56,6 @@ LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # VM triage, check spec.
 LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # VM triage, check spec.
-
-Language/14_Libraries_and_Scripts/5_URIs_A01_t24: fail # co19-roll r587: Please triage this failure
-Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail # co19-roll r587: Please triage this failure
 
 LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # Issue 13543
 LibTest/typed_data/Float32x4/clamp_A02_t01: Pass, Fail # Issue 13543
