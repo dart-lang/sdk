@@ -74,9 +74,6 @@ mirrors/unnamed_library_test: RuntimeError # Issue 10580
 mirrors/generic_bounded_test/02: RuntimeError # Issue 12087
 mirrors/generic_bounded_by_type_parameter_test/02: RuntimeError # Issue 12087
 
-[ $compiler == dart2js && $checked ]
-mirrors/redirection_type_shuffling_test: RuntimeError # Issue 13706
-
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
 

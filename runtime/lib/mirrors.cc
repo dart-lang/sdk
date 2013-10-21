@@ -16,6 +16,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, use_mirrored_compilation_error, false,
+    "Wrap compilation errors that occur during reflective access in a "
+    "MirroredCompilationError, rather than suspending the isolate.");
+
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -41,7 +45,7 @@ static void ThrowMirroredCompilationError(const String& message) {
 
 
 static void ThrowInvokeError(const Error& error) {
-  if (error.IsLanguageError()) {
+  if (FLAG_use_mirrored_compilation_error && error.IsLanguageError()) {
     // A compilation error that was delayed by lazy compilation.
     const LanguageError& compilation_error = LanguageError::Cast(error);
     String& message = String::Handle(compilation_error.message());

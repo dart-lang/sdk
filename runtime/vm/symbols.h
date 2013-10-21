@@ -237,7 +237,6 @@ class ObjectPointerVisitor;
   V(IsolateUnhandledException, "IsolateUnhandledException")                    \
   V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(MirroredCompilationError, "MirroredCompilationError")                      \
-  V(MirroredUncaughtExceptionError, "MirroredUncaughtExceptionError")          \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \

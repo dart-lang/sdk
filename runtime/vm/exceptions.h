@@ -58,7 +58,6 @@ class Exceptions : AllStatic {
     kType,
     kFallThrough,
     kAbstractClassInstantiation,
-    kMirroredUncaughtExceptionError,
     kMirroredCompilationError,
   };
 

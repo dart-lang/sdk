@@ -694,10 +694,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       class_name = &Symbols::AbstractClassInstantiationError();
       constructor_name = &Symbols::DotCreate();
       break;
-    case kMirroredUncaughtExceptionError:
-      library = Library::MirrorsLibrary();
-      class_name = &Symbols::MirroredUncaughtExceptionError();
-      break;
     case kMirroredCompilationError:
       library = Library::MirrorsLibrary();
       class_name = &Symbols::MirroredCompilationError();
