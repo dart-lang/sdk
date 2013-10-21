@@ -183,9 +183,8 @@ abstract class Polymer implements Element {
   void parseDeclaration(Element elementElement) {
     var root = shadowFromTemplate(fetchTemplate(elementElement));
 
-    // Dart note: this is extra code compared to Polymer to support
-    // the getShadowRoot method.
-    if (root == null) return;
+    // Dart note: the following code is to support the getShadowRoot method.
+    if (root is! ShadowRoot) return;
 
     var name = elementElement.attributes['name'];
     if (name == null) return;
@@ -198,7 +197,19 @@ abstract class Polymer implements Element {
   Element fetchTemplate(Element elementElement) =>
       elementElement.query('template');
 
-  /** Utility function that creates a shadow root from a `<template>`. */
+  /**
+   * Utility function that creates a shadow root from a `<template>`.
+   *
+   * The base implementation will return a [ShadowRoot], but you can replace it
+   * with your own code and skip ShadowRoot creation. In that case, you should
+   * return `null`.
+   *
+   * In your overridden method, you can use [instanceTemplate] to stamp the
+   * template and initialize data binding, and [shadowRootReady] to intialize
+   * other Polymer features like event handlers. It is fine to call
+   * shadowRootReady with a node something other than a ShadowRoot; for example,
+   * with this Node.
+   */
   ShadowRoot shadowFromTemplate(Element template) {
     if (template == null) return null;
     // cache elder shadow root (if any)
@@ -226,7 +237,7 @@ abstract class Polymer implements Element {
     return root;
   }
 
-  void shadowRootReady(ShadowRoot root, Element template) {
+  void shadowRootReady(Node root, Element template) {
     // locate nodes with id and store references to them in this.$ hash
     marshalNodeReferences(root);
     // add local events of interest...
@@ -237,7 +248,7 @@ abstract class Polymer implements Element {
   }
 
   /** Locate nodes with id and store references to them in [$] hash. */
-  void marshalNodeReferences(ShadowRoot root) {
+  void marshalNodeReferences(Node root) {
     if (root == null) return;
     for (var n in root.queryAll('[id]')) {
       $[n.id] = n;
@@ -588,7 +599,7 @@ abstract class Polymer implements Element {
   }
 
   /** Attach event listeners inside a shadow [root]. */
-  void addInstanceListeners(ShadowRoot root, Element template) {
+  void addInstanceListeners(Node root, Element template) {
     var templateDelegates = _declaration._templateDelegates;
     if (templateDelegates == null) return;
     var events = templateDelegates[template];
