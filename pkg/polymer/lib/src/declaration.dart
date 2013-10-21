@@ -603,8 +603,8 @@ void _shimShadowDomStyling(DocumentFragment template, String localName) {
   var shimShadowDOMStyling2 = shadowCss['shimShadowDOMStyling2'];
   if (shimShadowDOMStyling2 == null) return;
 
-  var scopedCSS = shimShadowDOMStyling2.apply(shadowCss,
-      [style.text, localName]);
+  var scopedCSS = shimShadowDOMStyling2.apply([style.text, localName],
+      thisArg: shadowCss);
 
   // TODO(terry): Remove when shimShadowDOMStyling is called we don't need to
   //              replace original CSS with scoped CSS shimShadowDOMStyling
@@ -638,21 +638,7 @@ void _applyStyleToScope(StyleElement style, Node scope) {
 
 String _cssTextFromSheet(Element sheet) {
   if (sheet == null || js.context == null) return '';
-
-  // TODO(jmesserly): this is a hacky way to communcate with HTMLImports...
-
-  // Remove rel=stylesheet, href to keep this inert.
-  var href = sheet.attributes.remove('href');
-  var rel = sheet.attributes.remove('rel');
-  document.body.append(sheet);
-  String resource;
-  try {
-    resource = js.context['document']['body']['lastChild']['__resource'];
-  } finally {
-    sheet.remove();
-    if (href != null) sheet.attributes['href'] = href;
-    if (rel != null) sheet.attributes['rel'] = rel;
-  }
+  var resource = new JsObject.fromBrowserObject(sheet)['__resource'];
   return resource != null ? resource : '';
 }
 
