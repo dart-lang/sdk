@@ -180,6 +180,7 @@ mirrors/generic_f_bounded_test: RuntimeError # Issue 14000
 mirrors/immutable_collections_test: RuntimeError # Issue 14027
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/typevariable_mirror_metadata_test/none: RuntimeError # Issue 12282
+mirrors/type_variable_owner_test: RuntimeError # Issue 14240
 
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
