@@ -157,6 +157,12 @@ LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
+#co19 issue 631
+Language/05_Variables/05_Variables_A11_t01: Fail
+Language/12_Expressions/30_Identifier_Reference_A02_t01: Fail
+Language/13_Statements/03_Variable_Declaration_A01_t09: Fail
+Language/13_Statements/03_Variable_Declaration_A01_t16: Fail
+
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
 
 Language/12_Expressions/05_Strings_A20_t01: Fail # co19-roll r623: Please triage this failure
