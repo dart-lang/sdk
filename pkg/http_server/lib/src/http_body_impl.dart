@@ -64,9 +64,7 @@ class _HttpBodyHandler {
     Future<HttpBody> asBinary() {
       return stream
           .fold(new BytesBuilder(), (builder, data) => builder..add(data))
-          .then((builder) => new _HttpBody(contentType,
-                                           "binary",
-                                           builder.takeBytes()));
+          .then((builder) => new _HttpBody("binary", builder.takeBytes()));
     }
 
     Future<HttpBody> asText(Encoding defaultEncoding) {
@@ -77,9 +75,7 @@ class _HttpBodyHandler {
       return stream
           .transform(encoding.decoder)
           .fold(new StringBuffer(), (buffer, data) => buffer..write(data))
-          .then((buffer) => new _HttpBody(contentType,
-                                          "text",
-                                          buffer.toString()));
+          .then((buffer) => new _HttpBody("text", buffer.toString()));
     }
 
     Future<HttpBody> asFormData() {
@@ -117,7 +113,7 @@ class _HttpBodyHandler {
             for (var part in parts) {
               map[part[0]] = part[1];  // Override existing entries.
             }
-            return new _HttpBody(contentType, 'form', map);
+            return new _HttpBody('form', map);
           });
     }
 
@@ -133,9 +129,7 @@ class _HttpBodyHandler {
         switch (contentType.subType) {
           case "json":
             return asText(UTF8)
-                .then((body) => new _HttpBody(contentType,
-                                              "json",
-                                              JSON.decode(body.body)));
+                .then((body) => new _HttpBody("json", JSON.decode(body.body)));
 
           case "x-www-form-urlencoded":
             return asText(ASCII)
@@ -146,7 +140,7 @@ class _HttpBodyHandler {
                   for (var key in map.keys) {
                     result[key] = map[key];
                   }
-                  return new _HttpBody(contentType, "form", result);
+                  return new _HttpBody("form", result);
                 });
 
           default:
@@ -180,40 +174,23 @@ class _HttpBodyFileUpload implements HttpBodyFileUpload {
 }
 
 class _HttpBody implements HttpBody {
-  final ContentType contentType;
   final String type;
   final dynamic body;
 
-  _HttpBody(ContentType this.contentType,
-            String this.type,
-            dynamic this.body);
+  _HttpBody(this.type, this.body);
 }
 
 class _HttpRequestBody extends _HttpBody implements HttpRequestBody {
-  final String method;
-  final Uri uri;
-  final HttpHeaders headers;
-  final HttpResponse response;
+  final HttpRequest request;
 
-  _HttpRequestBody(HttpRequest request, HttpBody body)
-      : super(body.contentType, body.type, body.body),
-        method = request.method,
-        uri = request.uri,
-        headers = request.headers,
-        response = request.response;
+  _HttpRequestBody(this.request, HttpBody body)
+      : super(body.type, body.body);
 }
 
 class _HttpClientResponseBody
     extends _HttpBody implements HttpClientResponseBody {
   final HttpClientResponse response;
 
-  _HttpClientResponseBody(HttpClientResponse response, HttpBody body)
-      : super(body.contentType, body.type, body.body),
-        this.response = response;
-
-  int get statusCode => response.statusCode;
-
-  String get reasonPhrase => response.reasonPhrase;
-
-  HttpHeaders get headers => response.headers;
+  _HttpClientResponseBody(this.response, HttpBody body)
+      : super(body.type, body.body);
 }

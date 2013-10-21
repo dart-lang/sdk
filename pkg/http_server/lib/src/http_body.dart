@@ -15,7 +15,7 @@ part of http_server;
  *
  * The following content types are recognized:
  *
- *     text/\*
+ *     text/*
  *     application/json
  *     application/x-www-form-urlencoded
  *     multipart/form-data
@@ -141,12 +141,6 @@ class HttpBodyHandler
  */
 abstract class HttpBody {
   /**
-   * The content type e.g. application/json, application/octet-stream,
-   * application/x-www-form-urlencoded, text/plain.
-   */
-  ContentType get contentType;
-
-  /**
    * A high-level type value, that reflects how the body was parsed, e.g.
    * "text", "binary" and "json".
    */
@@ -166,22 +160,8 @@ abstract class HttpBody {
  */
 abstract class HttpClientResponseBody extends HttpBody {
   /**
-   * Returns the status code.
-   */
-  int get statusCode;
-
-  /**
-   * Returns the reason phrase associated with the status code.
-   */
-  String get reasonPhrase;
-
-  /**
-   * Returns the response headers.
-   */
-  HttpHeaders get headers;
-
-  /**
-   * The [HttpClientResponse] of the HTTP body.
+   * The [HttpClientResponse] from which the [HttpClientResponseBody] was
+   * created.
    */
   HttpClientResponse get response;
 }
@@ -189,29 +169,17 @@ abstract class HttpClientResponseBody extends HttpBody {
 
 /**
  * The [HttpBody] of a [HttpRequest] will be of type [HttpRequestBody]. It
- * contains the fields used to read all request header information and
- * responding to the client.
+ * provides access to the request, for reading all request header information
+ * and responding to the client.
  */
 abstract class HttpRequestBody extends HttpBody {
   /**
-   * Returns the method for the request.
+   * The [HttpRequest] from which the [HttpRequestBody] was created.
+   *
+   * Note that the [HttpRequest] is already drained at this point, so the
+   * `Stream` methods cannot be used.
    */
-  String get method;
-
-  /**
-   * Returns the URI for the request.
-   */
-  Uri get uri;
-
-  /**
-   * Returns the request headers.
-   */
-  HttpHeaders get headers;
-
-  /**
-   * The [HttpResponse] used for responding to the client.
-   */
-  HttpResponse get response;
+  HttpRequest get request;
 }
 
 

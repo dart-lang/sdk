@@ -94,22 +94,24 @@ void testHttpServerRequestBody() {
             expect(body.type, equals(type));
             switch (type) {
               case "text":
-                expect(body.contentType.mimeType, equals("text/plain"));
+                expect(body.request.headers.contentType.mimeType,
+                       equals("text/plain"));
                 expect(body.body, equals(expectedBody));
                 break;
 
               case "json":
-                expect(body.contentType.mimeType, equals("application/json"));
+                expect(body.request.headers.contentType.mimeType,
+                       equals("application/json"));
                 expect(body.body, equals(expectedBody));
                 break;
 
               case "binary":
-                expect(body.contentType, isNull);
+                expect(body.request.headers.contentType, isNull);
                 expect(body.body, equals(expectedBody));
                 break;
 
               case "form":
-                var mimeType = body.contentType.mimeType;
+                var mimeType = body.request.headers.contentType.mimeType;
                 expect(mimeType,
                        anyOf(equals('multipart/form-data'),
                              equals('application/x-www-form-urlencoded')));
@@ -134,7 +136,7 @@ void testHttpServerRequestBody() {
               default:
                 throw "bad body type";
             }
-            body.response.close();
+            body.request.response.close();
           }, onError: (error) {
             if (!shouldFail) throw error;
           });
