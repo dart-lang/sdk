@@ -3521,7 +3521,7 @@ If there exists a lexically visible declaration named $id$, let $f_{id}$ be the 
  If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
  \item
 Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equivalent to $C.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
-\item Otherwise, if $i$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $i$ causes a \cd{NoSuchMethodError} to be thrown.
+\item Otherwise, $f_{id}$ is necessarily an instance method or getter of the enclosing class C, and i is equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \end{itemize}
 
 %Otherwise, if there is an accessible (\ref{privacy}) static method named $id$ declared in a superclass $S$ of the immediately enclosing class $C$ then i is equivalent to the static method invocation $S.id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$.  
@@ -3530,7 +3530,9 @@ Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equ
 %Unqualified access to static methods of superclasses is inconsistent with the idea that static methods are not inherited. It is not particularly necessary and  may be restricted in future versions.
 %}
 
-Otherwise, $i$ is equivalent to $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+Otherwise, if $i$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $i$ causes a \cd{NoSuchMethodError} to be thrown.
+
+If $i$ does not occur inside a top level or static function, $i$ is equivalent to $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 
 
