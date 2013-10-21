@@ -385,13 +385,6 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
 }
 
 
-// Deprecated.
-// TODO(turnidge): Remove all uses and delete.
-DART_EXPORT Dart_Handle Dart_Error(const char* error) {
-  return Dart_NewApiError(error);
-}
-
-
 // TODO(turnidge): This clones Api::NewError.  I need to use va_copy to
 // fix this but not sure if it available on all of our builds.
 DART_EXPORT Dart_Handle Dart_NewApiError(const char* error) {

@@ -297,10 +297,6 @@ DART_EXPORT Dart_Handle Dart_NewApiError(const char* error);
  */
 DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
 
-/* Deprecated. */
-/* TODO(turnidge): Remove all uses and delete. */
-DART_EXPORT Dart_Handle Dart_Error(const char* error);
-
 /**
  * Propagates an error.
  *
