@@ -4,15 +4,16 @@
 
 library polymer.test.build.all_phases_test;
 
-import 'package:polymer/transformer.dart';
+import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/script_compactor.dart' show MAIN_HEADER;
+import 'package:polymer/transformer.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
-  var phases = createDeployPhases(new TransformOptions());
+  var phases = new PolymerTransformerGroup(new TransformOptions()).phases;
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',

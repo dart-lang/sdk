@@ -86,6 +86,8 @@ import 'package:args/args.dart';
 
 import 'src/build/linter.dart';
 import 'src/build/runner.dart';
+import 'src/build/common.dart';
+
 import 'transformer.dart';
 
 
@@ -142,7 +144,7 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
   if (options == null) options = _options;
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
-  var linterOptions = new TransformOptions(currentPackage, entryPoints);
+  var linterOptions = new TransformOptions(entryPoints);
   var formatter = options.machineFormat ? jsonFormatter : consoleFormatter;
   var linter = new Linter(linterOptions, formatter);
   return runBarback(new BarbackOptions([[linter]], null,
@@ -199,7 +201,7 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
   if (options == null) options = _options;
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
   var barbackOptions = new BarbackOptions(
-      createDeployPhases(new TransformOptions(currentPackage, entryPoints)),
+      (new PolymerTransformerGroup(new TransformOptions(entryPoints))).phases,
       options.outDir, currentPackage: currentPackage,
       packageDirs: packageDirs);
   return runBarback(barbackOptions)

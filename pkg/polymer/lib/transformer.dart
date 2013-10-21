@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Transfomers used for pub-serve and pub-deploy. */
-// TODO(sigmund): move into a plugin directory when pub supports it.
-library polymer.src.transform;
+/** Transfomer used for pub-serve and pub-deploy. */
+library polymer.transformer;
 
 import 'package:barback/barback.dart';
 import 'package:observe/transform.dart';
@@ -14,14 +13,51 @@ import 'src/build/script_compactor.dart';
 import 'src/build/polyfill_injector.dart';
 import 'src/build/common.dart';
 
-export 'src/build/code_extractor.dart';
-export 'src/build/import_inliner.dart';
-export 'src/build/script_compactor.dart';
-export 'src/build/polyfill_injector.dart';
-export 'src/build/common.dart' show TransformOptions;
+/**
+ * The Polymer transformer, which internally runs several phases that will:
+ *   * Extract inlined script tags into their separate files
+ *   * Apply the observable transformer on every Dart script.
+ *   * Inline imported html files
+ *   * Combine scripts from multiple files into a single script tag
+ *   * Inject extra polyfills needed to run on all browsers.
+ *
+ * At the end of these phases, this tranformer produces a single entrypoint HTML
+ * file with a single Dart script that can later be compiled with dart2js.
+ */
+class PolymerTransformerGroup implements TransformerGroup {
+  final Iterable<Iterable> phases;
 
-/** Creates phases to deploy a polymer application. */
-List<List<Transformer>> createDeployPhases(TransformOptions options) {
+  PolymerTransformerGroup(TransformOptions options)
+      : phases = _createDeployPhases(options);
+
+  PolymerTransformerGroup.asPlugin(Map args) : this(_parseArgs(args));
+}
+
+
+TransformOptions _parseArgs(Map args) {
+  var entryPoints;
+  if (args.containsKey('entry_points')) {
+    entryPoints = [];
+    var value = args['entry_points'];
+    bool error;
+    if (value is List) {
+      entryPoints = value;
+      error = value.any((e) => e is! String);
+    } else if (value is String) {
+      entryPoints = [value];
+      error = false;
+    } else {
+      error = true;
+    }
+
+    if (error) {
+      print('Invalid value for "entry_points" in the polymer transformer.');
+    }
+  }
+  return new TransformOptions(entryPoints);
+}
+
+List<List<Transformer>> _createDeployPhases(TransformOptions options) {
   return [
     [new InlineCodeExtractor(options)],
     [new ObservableTransformer()],

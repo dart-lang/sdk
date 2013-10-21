@@ -27,6 +27,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
+import 'src/build/common.dart' show TransformOptions;
 import 'src/build/runner.dart';
 import 'transformer.dart';
 
@@ -49,6 +50,8 @@ main() {
       .catchError(_reportErrorAndExit);
 }
 
+createDeployPhases(options) => new PolymerTransformerGroup(options).phases;
+
 BarbackOptions _createTestOptions(String testFile, String outDir) {
   var testDir = path.normalize(path.dirname(testFile));
 
@@ -63,7 +66,7 @@ BarbackOptions _createTestOptions(String testFile, String outDir) {
   }
 
   var phases = createDeployPhases(new TransformOptions(
-        '_test', [path.relative(testFile, from: pubspecDir)]));
+        [path.relative(testFile, from: pubspecDir)]));
   return new BarbackOptions(phases, outDir,
       currentPackage: '_test',
       packageDirs: {'_test' : pubspecDir},
