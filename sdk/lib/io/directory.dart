@@ -85,11 +85,6 @@ abstract class Directory implements FileSystemEntity {
    *
    * Returns a [:Future<Directory>:] that completes with the newly
    * created temporary directory.
-   *
-   * Deprecated behavior, to be removed Oct 18, 2013: If the path is the
-   * empty string, the directory is created in the default system temp
-   * directory. This capability has been moved to the static getter
-   * [systemTemp].
    */
   Future<Directory> createTemp([String template]);
 
@@ -100,11 +95,6 @@ abstract class Directory implements FileSystemEntity {
    * string is used for [prefix].
    *
    * Returns the newly created temporary directory.
-   *
-   * Deprecated behavior, to be removed Oct 18, 2013: If the path is the
-   * empty string, the directory is created in the default system temp
-   * directory. This capability has been moved to the static function
-   * [createSystemTemp].
    */
   Directory createTempSync([String template]);
 
