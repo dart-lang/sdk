@@ -71,7 +71,7 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   bool hasProperty(String property) native "JsObject_hasProperty";
 
-  void deleteProperty(JsFunction name) native "JsObject_deleteProperty";
+  void deleteProperty(String name) native "JsObject_deleteProperty";
 
   bool instanceof(JsFunction type) native "JsObject_instanceof";
 
