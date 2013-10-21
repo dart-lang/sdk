@@ -59,14 +59,6 @@ cc/Sdc1Ldc1: Crash # Illegal instructions
 cc/Cop1CvtDL: Crash
 cc/Cop1CvtDL_neg: Crash
 
-[ $compiler == dartanalyzer ]
-# has compilation error, as designed
-dart/isolate_mirror_local_test: fail
-
-[ $compiler == dart2analyzer ]
-# has compilation error, as designed
-dart/isolate_mirror_local_test: fail
-
 [ $compiler == none && $runtime == dartium ]
 dart/isolate_mirror_local_test: Fail # Issue 13719: Please triage this failure.
 
