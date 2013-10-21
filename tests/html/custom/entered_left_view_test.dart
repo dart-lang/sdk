@@ -150,7 +150,7 @@ main() {
 
     test('Created in a document without a view', () {
       docB.body.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
-      Platform.upgradeCustomElements(docB.body);
+      upgradeCustomElements(docB.body);
 
       expect(invocations, ['created'],
           reason: 'only created callback should be invoked when parsing a '
@@ -173,7 +173,7 @@ main() {
 
     test('Created in Shadow DOM that is not in a document', () {
       s.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
-      Platform.upgradeCustomElements(s);
+      upgradeCustomElements(s);
 
       expect(invocations, ['created'],
           reason: 'the entered callback should not be invoked when entering a '
@@ -189,7 +189,7 @@ main() {
 
     test('Enters a document with a view as a constituent of Shadow DOM', () {
       s.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
-      Platform.upgradeCustomElements(s);
+      upgradeCustomElements(s);
 
       document.body.append(div);
       customElementsTakeRecords();
@@ -216,7 +216,7 @@ main() {
 
     test('Enters a disconnected subtree of DOM', () {
       div.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
-      Platform.upgradeCustomElements(div);
+      upgradeCustomElements(div);
 
       expect(invocations, ['created'],
           reason: 'the entered callback should not be invoked when inserted '
@@ -232,7 +232,7 @@ main() {
 
     test('Enters a document with a view as a constituent of a subtree', () {
       div.setInnerHtml('<x-a></x-a>', treeSanitizer: nullSanitizer);
-      Platform.upgradeCustomElements(div);
+      upgradeCustomElements(div);
       invocations = [];
       document.body.append(div);
       customElementsTakeRecords();

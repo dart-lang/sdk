@@ -261,7 +261,7 @@ main() {
       createElementFromHtml(html) {
         var container = new DivElement()..setInnerHtml(html,
           treeSanitizer: new NullTreeSanitizer());
-        Platform.upgradeCustomElements(container);
+        upgradeCustomElements(container);
         return container.firstChild;
       }
 

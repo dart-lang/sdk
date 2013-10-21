@@ -88,7 +88,7 @@ main() {
 <x-b id="w"></x-b>
 """, treeSanitizer: new NullTreeSanitizer());
 
-    Platform.upgradeCustomElements(div);
+    upgradeCustomElements(div);
 
     expect(C.createdInvocations, 2);
     expect(div.query('#w') is B, isTrue);
