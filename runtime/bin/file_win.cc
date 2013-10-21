@@ -291,7 +291,7 @@ bool File::Rename(const char* old_path, const char* new_path) {
   if (type == kIsFile) {
     const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
     const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
-    DWORD flags = MOVEFILE_WRITE_THROUGH;
+    DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
     int move_status =
         MoveFileExW(system_old_path, system_new_path, flags);
     free(const_cast<wchar_t*>(system_old_path));
@@ -309,7 +309,7 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
   if (type == kIsLink) {
     const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
     const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
-    DWORD flags = MOVEFILE_WRITE_THROUGH;
+    DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
     int move_status =
         MoveFileExW(system_old_path, system_new_path, flags);
     free(const_cast<wchar_t*>(system_old_path));

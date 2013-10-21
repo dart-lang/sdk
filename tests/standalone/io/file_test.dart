@@ -1210,56 +1210,57 @@ class FileTest {
     Expect.isFalse(file.existsSync());
   }
 
-  // Test that opens the same file for writing then for appending to test
-  // that the file is not truncated when opened for appending.
-  static void testRename() {
+  static void testRename({bool targetExists}) {
+    lift(Function f) =>
+      (futureValue) => futureValue.then((value) => f(value));
     asyncTestStarted();
-    var file = new File('${tempDirectory.path}/rename_name');
-    file.create().then((file) {
-      file.rename("${tempDirectory.path}/rename_newname").then((newfile) {
-        file.exists().then((e) {
-          Expect.isFalse(e);
-          newfile.exists().then((e) {
-            Expect.isTrue(e);
-            newfile.delete().then((_) {
-              file.exists().then((e) {
-                Expect.isFalse(e);
-                if (Platform.operatingSystem != "windows") {
-                  var brokenLink =
-                      new Link('${tempDirectory.path}/rename_name');
-                  brokenLink.create(
-                      '${tempDirectory.path}/rename_newname').then((_) {
-                      file.rename("xxx").then((_) {
-                        throw "Rename of broken link succeeded";
-                      }).catchError((e) {
-                        Expect.isTrue(e is FileException);
-                        asyncTestDone("testRename");
-                      });
-                  });
 
-                } else {
-                  asyncTestDone("testRename");
-                }
-              });
+    String source = join(tempDirectory.path, 'rename_${targetExists}_source');
+    String dest = join(tempDirectory.path, 'rename_${targetExists}_dest');
+    var file = new File(source);
+    var newfile = new File(dest);
+    file.create()
+      .then((_) => targetExists ? newfile.create() : null)
+      .then((_) => file.rename(dest))
+      .then((_) => lift(Expect.isFalse)(file.exists()))
+      .then((_) => lift(Expect.isTrue)(newfile.exists()))
+      .then((_) => newfile.delete())
+      .then((_) => lift(Expect.isFalse)(newfile.exists()))
+      .then((_) {
+        if (Platform.operatingSystem != "windows") {
+          new Link(source).create(dest)
+            .then((_) => file.rename("xxx"))
+            .then((_) { throw "Rename of broken link succeeded"; })
+            .catchError((e) {
+              Expect.isTrue(e is FileException);
+              asyncTestDone("testRename$targetExists");
             });
-          });
-        });
+        } else {
+          asyncTestDone("testRename$targetExists");
+        }
       });
-    });
   }
 
-  static void testRenameSync() {
-    var file = new File('${tempDirectory.path}/rename_name_sync');
+  static void testRenameSync({bool targetExists}) {
+    String source = join(tempDirectory.path, 'rename_source');
+    String dest = join(tempDirectory.path, 'rename_dest');
+    var file = new File(source);
+    var newfile = new File(dest);
     file.createSync();
-    var newfile = file.renameSync('${tempDirectory.path}/rename_newname_sync');
+    if (targetExists) {
+      newfile.createSync();
+    }
+    var result = file.renameSync(dest);
     Expect.isFalse(file.existsSync());
     Expect.isTrue(newfile.existsSync());
+    Expect.equals(result.path, newfile.path);
     newfile.deleteSync();
     Expect.isFalse(newfile.existsSync());
     if (Platform.operatingSystem != "windows") {
-      var brokenLink = new Link('${tempDirectory.path}/rename_name_sync');
-      brokenLink.createSync('${tempDirectory.path}/rename_newname_sync');
+      var brokenLink = new Link(source);
+      brokenLink.createSync(dest);
       Expect.throws(() => file.renameSync('xxx'));
+      brokenLink.deleteSync();
     }
   }
 
@@ -1320,8 +1321,10 @@ class FileTest {
       testDirectorySync();
       testWriteStringUtf8();
       testWriteStringUtf8Sync();
-      testRename();
-      testRenameSync();
+      testRename(targetExists: false);
+      testRenameSync(targetExists: false);
+      testRename(targetExists: true);
+      testRenameSync(targetExists: true);
       testLastModified();
       testDoubleAsyncOperation();
       asyncEnd();
