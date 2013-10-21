@@ -2,7 +2,6 @@ library TestUtils;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:js' as js;
 import 'dart:typed_data';
 import 'package:unittest/unittest.dart';
 
@@ -173,11 +172,4 @@ Future loadCustomElementPolyfill() {
 
 Future loadPolyfills() {
   return loadCustomElementPolyfill();
-}
-
-// Pump custom events polyfill events.
-void customElementsTakeRecords() {
-  if (js.context.hasProperty('CustomElements')) {
-    js.context['CustomElements'].callMethod('takeRecords');
-  }
 }
