@@ -36,6 +36,26 @@ main() {
         'extends Base with Mixin, ChangeNotifier implements I1, I2');
   });
 
+  group('adds "with ChangeNotifier" given', () {
+    _testClause('', 'extends ChangeNotifier');
+    _testClause('extends Base', 'extends Base with ChangeNotifier');
+    _testClause('extends Base<T>', 'extends Base<T> with ChangeNotifier');
+    _testClause('extends Base with Mixin',
+        'extends Base with Mixin, ChangeNotifier');
+    _testClause('extends Base with Mixin<T>',
+        'extends Base with Mixin<T>, ChangeNotifier');
+    _testClause('extends Base with Mixin, Mixin2',
+        'extends Base with Mixin, Mixin2, ChangeNotifier');
+    _testClause('implements Interface',
+        'extends ChangeNotifier implements Interface');
+    _testClause('implements Interface<T>',
+        'extends ChangeNotifier implements Interface<T>');
+    _testClause('extends Base implements Interface',
+        'extends Base with ChangeNotifier implements Interface');
+    _testClause('extends Base with Mixin implements I1, I2',
+        'extends Base with Mixin, ChangeNotifier implements I1, I2');
+  });
+
   group('fixes contructor calls ', () {
     _testInitializers('this.a', '(a) : __\$a = a');
     _testInitializers('{this.a}', '({a}) : __\$a = a');

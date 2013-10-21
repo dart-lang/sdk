@@ -37,9 +37,14 @@ main() {
 
   var test = args['test'];
   var outDir = args['out'];
+
+  var transformOps = new TransformOptions(
+      directlyIncludeJS: args['js'],
+      contentSecurityPolicy: args['csp']);
+
   var options = (test == null)
-    ? new BarbackOptions(createDeployPhases(new TransformOptions()), outDir)
-    : _createTestOptions(test, outDir);
+    ? new BarbackOptions(createDeployPhases(transformOps), outDir)
+    : _createTestOptions(transformOps, test, outDir);
   if (options == null) exit(1);
 
   print('polymer/deploy.dart: creating a deploy target for '
@@ -52,7 +57,8 @@ main() {
 
 createDeployPhases(options) => new PolymerTransformerGroup(options).phases;
 
-BarbackOptions _createTestOptions(String testFile, String outDir) {
+BarbackOptions _createTestOptions(TransformOptions transformOps,
+    String testFile, String outDir) {
   var testDir = path.normalize(path.dirname(testFile));
 
   // A test must be allowed to import things in the package.
@@ -65,8 +71,8 @@ BarbackOptions _createTestOptions(String testFile, String outDir) {
     return null;
   }
 
-  var phases = createDeployPhases(new TransformOptions(
-        [path.relative(testFile, from: pubspecDir)]));
+  transformOps.entryPoints = [path.relative(testFile, from: pubspecDir)];
+  var phases = createDeployPhases(transformOps);
   return new BarbackOptions(phases, outDir,
       currentPackage: '_test',
       packageDirs: {'_test' : pubspecDir},
@@ -98,7 +104,14 @@ ArgResults _parseArgs(arguments) {
           defaultsTo: 'out')
       ..addOption('test', help: 'Deploy the test at the given path.\n'
           'Note: currently this will deploy all tests in its directory,\n'
-          'but it will eventually deploy only the specified test.');
+          'but it will eventually deploy only the specified test.')
+      ..addFlag('js', help:
+          'deploy replaces *.dart scripts with *.dart.js. This flag \n'
+          'leaves "packages/browser/dart.js" to do the replacement at runtime.',
+          defaultsTo: true)
+      ..addFlag('csp', help:
+          'replaces *.dart with *.dart.precompiled.js to comply with \n'
+          'Content Security Policy restrictions.');
   try {
     var results = parser.parse(arguments);
     if (results['help']) {

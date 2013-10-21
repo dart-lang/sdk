@@ -20,6 +20,8 @@ class MyElement extends PolymerElement {
 @initMethod _main() {
   useHtmlConfiguration();
 
+  setUp(() => Polymer.onReady);
+
   test('attributes were deserialized', () {
     var elem = query('my-element');
 

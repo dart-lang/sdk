@@ -128,10 +128,6 @@ abstract class Polymer implements Element {
   Job job(Job job, void callback(), Duration wait) =>
       runJob(job, callback, wait);
 
-  // TODO(jmesserly): I am not sure if we should have the
-  // created/createdCallback distinction. See post here:
-  // https://groups.google.com/d/msg/polymer-dev/W0ZUpU5caIM/v5itFnvnehEJ
-  // Same issue with inserted and removed.
   void polymerCreated() {
     if (this.document.window != null || alwaysPrepare ||
         _preparingElements > 0) {
@@ -329,15 +325,12 @@ abstract class Polymer implements Element {
   Object deserializeValue(String value, Object defaultValue, TypeMirror type) =>
       deserialize.deserializeValue(value, defaultValue, type);
 
-  String serializeValue(Object value, TypeMirror inferredType) {
+  String serializeValue(Object value) {
     if (value == null) return null;
 
-    final type = inferredType.qualifiedName;
-    if (type == #dart.core.bool) {
+    if (value is bool) {
       return _toBoolean(value) ? '' : null;
-    } else if (type == #dart.core.String
-        || type == #dart.core.int
-        || type == #dart.core.double) {
+    } else if (value is String || value is int || value is double) {
       return '$value';
     }
     return null;
@@ -349,9 +342,7 @@ abstract class Polymer implements Element {
     // try to intelligently serialize property value
     // TODO(jmesserly): cache symbol?
     final propValue = self.getField(new Symbol(name)).reflectee;
-    final property = _declaration._publish[name];
-    var inferredType = _inferPropertyType(propValue, property);
-    final serializedValue = serializeValue(propValue, inferredType);
+    final serializedValue = serializeValue(propValue);
     // boolean properties must reflect as boolean attributes
     if (serializedValue != null) {
       attributes[name] = serializedValue;
@@ -360,7 +351,7 @@ abstract class Polymer implements Element {
       // refine the attr reflection system to achieve this; pica, for example,
       // relies on having inferredType object properties not removed as
       // attrs.
-    } else if (inferredType.qualifiedName == #dart.core.bool) {
+    } else if (propValue is bool) {
       attributes.remove(name);
     }
   }
@@ -670,9 +661,6 @@ abstract class Polymer implements Element {
     self.invoke(methodName, args);
 
     if (log) _eventsLog.fine('<<< [$localName]: dispatch $methodName');
-
-    // TODO(jmesserly): workaround for HTML events not supporting zones.
-    performMicrotaskCheckpoint();
   }
 
   void instanceEventListener(Event event) {
@@ -922,10 +910,23 @@ TypeMirror _inferPropertyType(Object value, DeclarationMirror property) {
       type.qualifiedName == #dynamic) {
     // Attempt to infer field type from the default value.
     if (value != null) {
-      type = reflect(value).type;
+      Type t = _getCoreType(value);
+      if (t != null) return reflectClass(t);
+      return reflect(value).type;
     }
   }
   return type;
+}
+
+Type _getCoreType(Object value) {
+  if (value == null) return Null;
+  if (value is int) return int;
+  // Avoid "is double" to prevent warning that it won't work in dart2js.
+  if (value is num) return double;
+  if (value is bool) return bool;
+  if (value is String) return String;
+  if (value is DateTime) return DateTime;
+  return null;
 }
 
 final Logger _observeLog = new Logger('polymer.observe');

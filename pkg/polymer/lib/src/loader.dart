@@ -33,31 +33,43 @@ const initMethod = const _InitMethodAnnotation();
  * `currentMirrorSystem().isolate.rootLibrary.uri`.
  */
 void initPolymer([List<String> libraries]) {
-  runMicrotask(() {
-    // DOM events don't yet go through microtasks, so we catch those here.
-    new Timer.periodic(new Duration(milliseconds: 125),
-        (_) => performMicrotaskCheckpoint());
+  // Note: we synchronously load all libraries because the script invoking
+  // this is run after all HTML imports are resolved.
+  if (libraries == null) {
+    libraries = _discoverScripts(document, window.location.href);
+  }
+  dirtyCheckZone().run(() => initPolymerOptimized(libraries));
+}
 
-    preventFlashOfUnstyledContent();
+/**
+ * Same as [initPolymer], but runs the version that is optimized for deployment
+ * to the internet. The biggest difference is it omits the [Zone] that
+ * automatically invokes [Observable.dirtyCheck], and the list of libraries must
+ * be supplied instead of being dynamically searched for at runtime.
+ */
+// TODO(jmesserly): change the Polymer build step to call this directly.
+void initPolymerOptimized(List<String> libraries) {
+  preventFlashOfUnstyledContent();
 
-    // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
-    mdv.initialize();
-    document.register(PolymerDeclaration._TAG, PolymerDeclaration);
+  // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
+  mdv.initialize();
+  document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
-    // Note: we synchronously load all libraries because the script invoking
-    // this is run after all HTML imports are resolved.
-    if (libraries == null) {
-      libraries = _discoverScripts(document, window.location.href);
-    }
-    _loadLibraries(libraries);
-  });
+  _loadLibraries(libraries);
 }
 
 void _loadLibraries(libraries) {
   for (var lib in libraries) {
-    _loadLibrary(lib);
+    try {
+      _loadLibrary(lib);
+    } catch (e, s) {
+      // Deliver errors async, so if a single library fails it doesn't prevent
+      // other things from loading.
+      new Completer().completeError(e, s);
+    }
   }
-  Polymer._ready.complete();
+
+  customElementsReady.then((_) => Polymer._ready.complete());
 }
 
 /**

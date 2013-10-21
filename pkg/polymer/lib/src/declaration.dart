@@ -479,7 +479,7 @@ class PolymerDeclaration extends HtmlElement {
       if (method.isStatic || !method.isRegularMethod) continue;
 
       String name = MirrorSystem.getName(method.simpleName);
-      if (name.endsWith('Changed')) {
+      if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
         if (_observe == null) _observe = {};
         name = name.substring(0, name.length - 7);
         _observe[name] = method.simpleName;
@@ -638,7 +638,7 @@ void _applyStyleToScope(StyleElement style, Node scope) {
 
 String _cssTextFromSheet(Element sheet) {
   if (sheet == null || js.context == null) return '';
-  var resource = new JsObject.fromBrowserObject(sheet)['__resource'];
+  var resource = new js.JsObject.fromBrowserObject(sheet)['__resource'];
   return resource != null ? resource : '';
 }
 

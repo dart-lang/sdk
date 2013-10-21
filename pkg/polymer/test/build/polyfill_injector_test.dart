@@ -7,12 +7,25 @@ library polymer.test.build.polyfill_injector_test;
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/polyfill_injector.dart';
 import 'package:unittest/compact_vm_config.dart';
+import 'package:unittest/unittest.dart';
 
 import 'common.dart';
 
 void main() {
   useCompactVMConfiguration();
-  var phases = [[new PolyfillInjector(new TransformOptions())]];
+
+  group('js', () => runTests());
+  group('csp', () => runTests(csp: true));
+  group('dart', () => runTests(js: false));
+}
+
+void runTests({bool js: true, bool csp: false}) {
+  var phases = [[new PolyfillInjector(new TransformOptions(
+      directlyIncludeJS: js,
+      contentSecurityPolicy: csp))]];
+
+  var ext = js ? (csp ? '.precompiled.js' : '.js') : '';
+  var type = js ? '' : 'type="application/dart" ';
 
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
@@ -38,7 +51,7 @@ void main() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '$SHADOW_DOM_TAG$CUSTOM_ELEMENT_TAG$INTEROP_TAG'
-          '<script type="application/dart" src="a.dart"></script>'
+          '<script ${type}src="a.dart$ext"></script>'
           '</body></html>',
     });
 
@@ -52,7 +65,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
-          '<script type="application/dart" src="a.dart"></script>'
+          '<script ${type}src="a.dart$ext"></script>'
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'

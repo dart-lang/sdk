@@ -135,19 +135,20 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   // report a warning later below. Because we don't have type analysis (only
   // syntactic understanding of the code), we only report warnings that are
   // known to be true.
-  var declaresObservable = false;
+  var explicitObservable = false;
+  var implicitObservable = false;
   if (cls.extendsClause != null) {
     var id = _getSimpleIdentifier(cls.extendsClause.superclass.name);
     if (id.name == 'Observable') {
       code.edit(id.offset, id.end, 'ChangeNotifier');
-      declaresObservable = true;
+      explicitObservable = true;
     } else if (id.name == 'ChangeNotifier') {
-      declaresObservable = true;
+      explicitObservable = true;
     } else if (id.name != 'HtmlElement' && id.name != 'CustomElement'
         && id.name != 'Object') {
       // TODO(sigmund): this is conservative, consider using type-resolution to
       // improve this check.
-      declaresObservable = true;
+      implicitObservable = true;
     }
   }
 
@@ -156,24 +157,26 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
       var id = _getSimpleIdentifier(type.name);
       if (id.name == 'Observable') {
         code.edit(id.offset, id.end, 'ChangeNotifier');
-        declaresObservable = true;
+        explicitObservable = true;
         break;
       } else if (id.name == 'ChangeNotifier') {
-        declaresObservable = true;
+        explicitObservable = true;
         break;
       } else {
         // TODO(sigmund): this is conservative, consider using type-resolution
         // to improve this check.
-        declaresObservable = true;
+        implicitObservable = true;
       }
     }
   }
 
-  if (!declaresObservable && cls.implementsClause != null) {
+  if (cls.implementsClause != null) {
     // TODO(sigmund): consider adding type-resolution to give a more precise
     // answer.
-    declaresObservable = true;
+    implicitObservable = true;
   }
+
+  var declaresObservable = explicitObservable || implicitObservable;
 
   // Track fields that were transformed.
   var instanceFields = new Set<String>();
@@ -223,11 +226,30 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
   // If nothing was @observable, bail.
   if (instanceFields.length == 0) return;
 
+  if (!explicitObservable) _mixinObservable(cls, code);
+
   // Fix initializers, because they aren't allowed to call the setter.
   for (var member in cls.members) {
     if (member is ConstructorDeclaration) {
       _fixConstructor(member, code, instanceFields);
     }
+  }
+}
+
+/** Adds "with ChangeNotifier" and associated implementation. */
+void _mixinObservable(ClassDeclaration cls, TextEditTransaction code) {
+  // Note: we need to be careful to put the with clause after extends, but
+  // before implements clause.
+  if (cls.withClause != null) {
+    var pos = cls.withClause.end;
+    code.edit(pos, pos, ', ChangeNotifier');
+  } else if (cls.extendsClause != null) {
+    var pos = cls.extendsClause.end;
+    code.edit(pos, pos, ' with ChangeNotifier ');
+  } else {
+    var params = cls.typeParameters;
+    var pos =  params != null ? params.end : cls.name.end;
+    code.edit(pos, pos, ' extends ChangeNotifier ');
   }
 }
 

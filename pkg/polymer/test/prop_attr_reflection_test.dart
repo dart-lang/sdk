@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -30,8 +31,19 @@ class XCompose extends PolymerElement {
   @observable bool zim = false;
 }
 
+Future onAttributeChange(Element node) {
+  var completer = new Completer();
+  new MutationObserver((records, observer) {
+    observer.disconnect();
+    completer.complete();
+  })..observe(node, attributes: true);
+  return completer.future;
+}
+
 @initMethod _main() {
   useHtmlConfiguration();
+
+  setUp(() => Polymer.onReady);
 
   // Most tests use @CustomTag, here we test out the impertive register:
   Polymer.register('x-foo', XFoo);
@@ -41,9 +53,9 @@ class XCompose extends PolymerElement {
   test('property attribute reflection', () {
     var xcompose = query('x-compose').xtag;
     var xfoo = query('x-foo').xtag;
+    var xbar = query('x-bar').xtag;
     xfoo.foo = 5;
-    Platform.flush();
-    Platform.endOfMicrotask(expectAsync0(() {
+    return onAttributeChange(xfoo).then((_) {
       expect(xcompose.$['bar'].attributes.containsKey('zim'), false,
           reason: 'attribute bound to property updates when binding is made');
 
@@ -56,61 +68,51 @@ class XCompose extends PolymerElement {
           reason: 'property reflects attribute');
       //
       xfoo.baz = 'Hello';
-      Platform.flush();
-      Platform.endOfMicrotask(expectAsync0(() {
-        expect(xfoo.baz, xfoo.attributes['baz'],
-            reason: 'attribute reflects property');
-        //
-        var xbar = query('x-bar').xtag;
-        //
-        xbar.foo = 'foo!';
-        xbar.zot = 27;
-        xbar.zim = true;
-        xbar.str = 'str!';
-        xbar.obj = {'hello': 'world'};
-        Platform.flush();
-        Platform.endOfMicrotask(expectAsync0(() {
-          expect(xbar.foo, xbar.attributes['foo'],
-              reason: 'inherited published property is reflected');
-          expect('${xbar.zot}', xbar.attributes['zot'],
-              reason: 'attribute reflects property as number');
-          expect(xbar.attributes['zim'], '', reason:
-              'attribute reflects true valued boolean property as '
-              'having attribute');
-          expect(xbar.str, xbar.attributes['str'],
-              reason: 'attribute reflects property as published string');
-          expect(xbar.attributes.containsKey('obj'), false,
-              reason: 'attribute does not reflect object property');
-          xbar.attributes['zim'] = 'false';
-          xbar.attributes['foo'] = 'foo!!';
-          xbar.attributes['zot'] = '54';
-          xbar.attributes['str'] = 'str!!';
-          xbar.attributes['obj'] = "{'hello': 'world'}";
-          expect(xbar.foo, xbar.attributes['foo'],
-              reason: 'property reflects attribute as string');
-          expect(xbar.zot, 54,
-              reason: 'property reflects attribute as number');
-          expect(xbar.zim, false,
-              reason: 'property reflects attribute as boolean');
-          expect(xbar.str, 'str!!',
-              reason: 'property reflects attribute as published string');
-          expect(xbar.obj, {'hello': 'world'},
-              reason: 'property reflects attribute as object');
-          xbar.zim = false;
-          Platform.flush();
-          Platform.endOfMicrotask(expectAsync0(() {
-            expect(xbar.attributes.containsKey('zim'), false, reason:
-                'attribute reflects false valued boolean property as NOT '
-                'having attribute');
-            var objAttr = xbar.attributes['obj'];
-            xbar.obj = 'hi';
-            Platform.endOfMicrotask(expectAsync0(() {
-              expect(xbar.attributes['obj'], objAttr, reason:
-                  'do not reflect property with default type of object');
-            }));
-          }));
-        }));
-      }));
-    }));
+    }).then((_) => onAttributeChange(xfoo)).then((_) {
+      expect(xfoo.baz, xfoo.attributes['baz'],
+          reason: 'attribute reflects property');
+      //
+      xbar.foo = 'foo!';
+      xbar.zot = 27;
+      xbar.zim = true;
+      xbar.str = 'str!';
+      xbar.obj = {'hello': 'world'};
+    }).then((_) => onAttributeChange(xbar)).then((_) {
+      expect(xbar.foo, xbar.attributes['foo'],
+          reason: 'inherited published property is reflected');
+      expect('${xbar.zot}', xbar.attributes['zot'],
+          reason: 'attribute reflects property as number');
+      expect(xbar.attributes['zim'], '', reason:
+          'attribute reflects true valued boolean property as '
+          'having attribute');
+      expect(xbar.str, xbar.attributes['str'],
+          reason: 'attribute reflects property as published string');
+      expect(xbar.attributes.containsKey('obj'), false,
+          reason: 'attribute does not reflect object property');
+      xbar.attributes['zim'] = 'false';
+      xbar.attributes['foo'] = 'foo!!';
+      xbar.attributes['zot'] = '54';
+      xbar.attributes['str'] = 'str!!';
+      xbar.attributes['obj'] = "{'hello': 'world'}";
+      expect(xbar.foo, xbar.attributes['foo'],
+          reason: 'property reflects attribute as string');
+      expect(xbar.zot, 54,
+          reason: 'property reflects attribute as number');
+      expect(xbar.zim, false,
+          reason: 'property reflects attribute as boolean');
+      expect(xbar.str, 'str!!',
+          reason: 'property reflects attribute as published string');
+      expect(xbar.obj, {'hello': 'world'},
+          reason: 'property reflects attribute as object');
+      xbar.zim = false;
+    }).then((_) => onAttributeChange(xbar)).then((_) {
+      expect(xbar.attributes.containsKey('zim'), false, reason:
+          'attribute reflects false valued boolean property as NOT '
+          'having attribute');
+      xbar.obj = 'hi';
+    }).then((_) => onAttributeChange(xbar)).then((_) {
+      expect(xbar.attributes['obj'], 'hi', reason:
+          'reflect property based on current type');
+    });
   });
 }

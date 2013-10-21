@@ -20,6 +20,9 @@ import 'common.dart';
  * are included. For example, this transformer will ensure that there is a
  * script tag that loads the shadow_dom polyfill and interop.js (used for the
  * css shimming).
+ *
+ * This step also replaces "packages/browser/dart.js" and the Dart script tag
+ * with a script tag that loads the dart2js compiled code directly.
  */
 class PolyfillInjector extends Transformer with PolymerTransformer {
   final TransformOptions options;
@@ -35,7 +38,8 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
       bool shadowDomFound = false;
       bool jsInteropFound = false;
       bool customElementFound = false;
-      bool dartScriptTags = false;
+      Element dartJs;
+      final dartScripts = <Element>[];
 
       for (var tag in document.queryAll('script')) {
         var src = tag.attributes['src'];
@@ -47,18 +51,41 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
             shadowDomFound = true;
           } else if (_customElementJS.hasMatch(last)) {
             customElementFound = true;
+          } else if (last == 'dart.js') {
+            dartJs = tag;
           }
         }
 
         if (tag.attributes['type'] == 'application/dart') {
-          dartScriptTags = true;
+          dartScripts.add(tag);
         }
       }
 
-      if (!dartScriptTags) {
+      if (dartScripts.isEmpty) {
         // This HTML has no Dart code, there is nothing to do here.
         transform.addOutput(transform.primaryInput);
         return;
+      }
+
+      // TODO(jmesserly): ideally we would generate an HTML that loads
+      // dart2dart too. But for now dart2dart is not a supported deployment
+      // target, so just inline the JS script. This has the nice side effect of
+      // fixing our tests: even if content_shell supports Dart VM, we'll still
+      // test the compiled JS code.
+      if (options.directlyIncludeJS) {
+        // If using CSP add the "precompiled" extension
+        final csp = options.contentSecurityPolicy ? '.precompiled' : '';
+
+        // Replace all other Dart script tags with JavaScript versions.
+        for (var script in dartScripts) {
+          final src = script.attributes['src'];
+          if (src.endsWith('.dart')) {
+            script.attributes.remove('type');
+            script.attributes['src'] = '$src$csp.js';
+          }
+        }
+        // Remove "packages/browser/dart.js"
+        if (dartJs != null) dartJs.remove();
       }
 
       _addScript(urlSegment) {

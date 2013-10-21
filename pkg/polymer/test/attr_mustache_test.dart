@@ -46,6 +46,8 @@ class XTest extends PolymerElement {
 @initMethod _main() {
   useHtmlConfiguration();
 
+  setUp(() => Polymer.onReady);
+
   test('mustache attributes', () {
     final xtest = document.query('#test').xtag;
     final xtarget = xtest.shadowRoot.query('#target').xtag;

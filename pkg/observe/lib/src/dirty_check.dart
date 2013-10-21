@@ -13,6 +13,7 @@
  */
 library observe.src.dirty_check;
 
+import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:observe/observe.dart' show Observable;
 
@@ -84,9 +85,58 @@ void dirtyCheckObservables() {
 
 const MAX_DIRTY_CHECK_CYCLES = 1000;
 
-
 /**
  * Log for messages produced at runtime by this library. Logging can be
  * configured by accessing Logger.root from the logging library.
  */
 final Logger _logger = new Logger('Observable.dirtyCheck');
+
+/**
+ * Creates a [ZoneSpecification] to set up automatic dirty checking after each
+ * batch of async operations. This ensures that change notifications are always
+ * delivered. Typically used via [dirtyCheckZone].
+ */
+ZoneSpecification dirtyCheckZoneSpec() {
+  bool pending = false;
+
+  enqueueDirtyCheck(ZoneDelegate parent, Zone zone) {
+    // Only schedule one dirty check per microtask.
+    if (pending) return;
+
+    pending = true;
+    parent.scheduleMicrotask(zone, () {
+      pending = false;
+      Observable.dirtyCheck();
+    });
+  }
+
+  wrapCallback(Zone self, ZoneDelegate parent, Zone zone, f()) {
+    // TODO(jmesserly): why does this happen?
+    if (f == null) return f;
+    return () {
+      enqueueDirtyCheck(parent, zone);
+      return f();
+    };
+  }
+
+  wrapUnaryCallback(Zone self, ZoneDelegate parent, Zone zone, f(x)) {
+    // TODO(jmesserly): why does this happen?
+    if (f == null) return f;
+    return (x) {
+      enqueueDirtyCheck(parent, zone);
+      return f(x);
+    };
+  }
+
+  return new ZoneSpecification(
+      registerCallback: wrapCallback,
+      registerUnaryCallback: wrapUnaryCallback);
+}
+
+/**
+ * Forks a [Zone] off the current one that does dirty-checking automatically
+ * after each batch of async operations. Equivalent to:
+ *
+ *     Zone.current.fork(specification: dirtyCheckZoneSpec());
+ */
+Zone dirtyCheckZone() => Zone.current.fork(specification: dirtyCheckZoneSpec());

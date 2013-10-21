@@ -22,6 +22,8 @@ class MyElement extends PolymerElement {
 @initMethod _main() {
   useHtmlConfiguration();
 
+  setUp(() => Polymer.onReady);
+
   test('attributes were deserialized', () {
     MyElement elem = query('my-element').xtag;
     final msg = 'property should match attribute.';

@@ -40,9 +40,7 @@ void main() {
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
-          '<script type="application/dart" '
-          'src="test.html_bootstrap.dart"></script>'
-          '<script src="packages/browser/dart.js"></script>'
+          '<script src="test.html_bootstrap.dart.js"></script>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -69,9 +67,7 @@ void main() {
           '$SHADOW_DOM_TAG'
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
-          '<script type="application/dart" '
-          'src="test.html_bootstrap.dart"></script>'
-          '<script src="packages/browser/dart.js"></script>'
+          '<script src="test.html_bootstrap.dart.js"></script>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -106,9 +102,7 @@ void main() {
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
           '<div></div>'
-          '<script type="application/dart" '
-          'src="test.html_bootstrap.dart"></script>'
-          '<script src="packages/browser/dart.js"></script>'
+          '<script src="test.html_bootstrap.dart.js"></script>'
           '</body></html>',
 
       'a|web/test.html_bootstrap.dart':
@@ -154,9 +148,7 @@ void main() {
           '$CUSTOM_ELEMENT_TAG'
           '$INTEROP_TAG'
           '<polymer-element>1</polymer-element>'
-          '<script type="application/dart" '
-          'src="index.html_bootstrap.dart"></script>'
-          '<script src="packages/browser/dart.js"></script>'
+          '<script src="index.html_bootstrap.dart.js"></script>'
           '</body></html>',
       'a|web/index.html_bootstrap.dart':
           '''$MAIN_HEADER

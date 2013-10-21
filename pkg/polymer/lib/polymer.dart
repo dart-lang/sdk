@@ -49,12 +49,13 @@ import 'dart:js' as js;
     override: const ['polymer', 'polymer.deserialize'])
 import 'dart:mirrors';
 
+import 'package:custom_element/polyfill.dart' show customElementsReady;
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:mdv/mdv.dart' as mdv;
 import 'package:mdv/mdv.dart' show NodeBinding;
 import 'package:meta/meta.dart' show deprecated;
 import 'package:observe/observe.dart';
-import 'package:observe/src/microtask.dart';
+import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:path/path.dart' as path;
 import 'package:polymer_expressions/polymer_expressions.dart'
     show PolymerExpressions;
@@ -66,7 +67,6 @@ import 'src/reflected_type.dart';
 
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';
-export 'package:observe/src/microtask.dart';
 
 part 'src/boot.dart';
 part 'src/declaration.dart';

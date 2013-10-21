@@ -25,9 +25,6 @@ third_party/html5lib/test/browser/browser_test: Skip
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: RuntimeError #Issue 12341
 
-[ $compiler == dart2js && $runtime == drt ]
-polymer/test/prop_attr_reflection_test: Fail # Issue 14048
-
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
@@ -299,6 +296,3 @@ observe/test/observe_test: fail
 
 # pkg issue 13945; Missing inherited member 'Trace.frames'
 observe/test/observe_test: fail
-
-[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
-polymer/test/prop_attr_reflection_test: fail # Issue 14036

@@ -38,7 +38,26 @@ Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
 class TransformOptions {
   List<String> entryPoints;
 
-  TransformOptions([entryPoints])
+  /**
+   * True to enable Content Security Policy.
+   * This means the HTML page will include *.dart.precompiled.js
+   *
+   * This flag has no effect unless [directlyIncludeJS] is enabled.
+   */
+  bool contentSecurityPolicy;
+
+  /**
+   * True to include the compiled JavaScript directly from the HTML page.
+   * If enabled this will remove "packages/browser/dart.js" and replace
+   * `type="application/dart"` scripts with equivalent *.dart.js files.
+   *
+   * If [contentSecurityPolicy] enabled, this will reference files
+   * named *.dart.precompiled.js.
+   */
+  bool directlyIncludeJS;
+
+  TransformOptions({entryPoints, this.contentSecurityPolicy: false,
+      this.directlyIncludeJS: true})
       : entryPoints = entryPoints == null ? null
           : entryPoints.map(_systemToAssetPath).toList();
 

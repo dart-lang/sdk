@@ -44,6 +44,8 @@ class XSquid extends XZot {
 @initMethod _main() {
   useHtmlConfiguration();
 
+  setUp(() => Polymer.onReady);
+
   test('published properties', () {
     published(tag) =>
         query('polymer-element[name=$tag]').xtag.publishedProperties;
