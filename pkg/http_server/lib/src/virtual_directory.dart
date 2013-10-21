@@ -11,7 +11,7 @@ part of http_server;
  * The [VirtualDirectory] providing secure handling of request uris and
  * file-system links, correct mime-types and custom error pages.
  */
-abstract class VirtualDirectory {
+class VirtualDirectory {
   final String root;
 
   /**
@@ -26,6 +26,17 @@ abstract class VirtualDirectory {
    */
   bool followLinks = true;
 
+  /**
+   * Set or get if the [VirtualDirectory] should jail the root. When the root is
+   * not jailed, links can be followed to outside the [root] directory.
+   */
+  bool jailRoot = true;
+
+  final RegExp _invalidPathRegExp = new RegExp("[\\\/\x00]");
+
+  Function _errorCallback;
+  Function _dirCallback;
+
   /*
    * Create a new [VirtualDirectory] for serving static file content of
    * the path [root].
@@ -33,49 +44,18 @@ abstract class VirtualDirectory {
    * The [root] is not required to exist. If the [root] doesn't exist at time of
    * a request, a 404 is generated.
    */
-  factory VirtualDirectory(String root) => new _VirtualDirectory(root);
+  VirtualDirectory(this.root);
 
   /**
    * Serve a [Stream] of [HttpRequest]s, in this [VirtualDirectory].
    */
-  void serve(Stream<HttpRequest> requests);
-
-  /**
-   * Serve a single [HttpRequest], in this [VirtualDirectory].
-   */
-  void serveRequest(HttpRequest request);
-
-  /**
-   * Set the [callback] to override the default directory listing. The
-   * [callback] will be called with the [Directory] to be listed and the
-   * [HttpRequest].
-   */
-  void setDirectoryHandler(void callback(Directory dir, HttpRequest request));
-
-  /**
-   * Set the [callback] to override the error page handler. When [callback] is
-   * invoked, the `statusCode` property of the response is set.
-   */
-  void setErrorPageHandler(void callback(HttpRequest request));
-}
-
-class _VirtualDirectory implements VirtualDirectory {
-  final String root;
-
-  bool allowDirectoryListing = false;
-  bool followLinks = true;
-
-  final RegExp _invalidPathRegExp = new RegExp("[\\\/\x00]");
-
-  Function _errorCallback;
-  Function _dirCallback;
-
-  _VirtualDirectory(this.root);
-
   void serve(Stream<HttpRequest> requests) {
     requests.listen(serveRequest);
   }
 
+  /**
+   * Serve a single [HttpRequest], in this [VirtualDirectory].
+   */
   void serveRequest(HttpRequest request) {
     _locateResource('.', request.uri.pathSegments.iterator..moveNext())
         .then((entity) {
@@ -93,18 +73,30 @@ class _VirtualDirectory implements VirtualDirectory {
         });
   }
 
-  void setDirectoryHandler(void callback(Directory dir, HttpRequest request)) {
+  /**
+   * Set the [callback] to override the default directory listing. The
+   * [callback] will be called with the [Directory] to be listed and the
+   * [HttpRequest].
+   */
+  void set directoryHandler(void callback(Directory dir, HttpRequest request)) {
     _dirCallback = callback;
   }
 
-  void setErrorPageHandler(void callback(HttpRequest request)) {
+  /**
+   * Set the [callback] to override the error page handler. When [callback] is
+   * invoked, the `statusCode` property of the response is set.
+   */
+  void set errorPageHandler(void callback(HttpRequest request)) {
     _errorCallback = callback;
   }
 
   Future<FileSystemEntity> _locateResource(String path,
                                            Iterator<String> segments) {
+    // Don't allow navigating up paths.
+    if (segments.current == "..") return new Future.value(null);
     path = normalize(path);
-    if (split(path).first == "..") return new Future.value(null);
+    // If we jail to root, the relative path can never go up.
+    if (jailRoot && split(path).first == "..") return new Future.value(null);
     String fullPath() => join(root, path);
     return FileSystemEntity.type(fullPath(), followLinks: false)
         .then((type) {
@@ -132,9 +124,14 @@ class _VirtualDirectory implements VirtualDirectory {
                 return new Link(fullPath()).target()
                     .then((target) {
                       String targetPath = normalize(target);
-                      if (isAbsolute(targetPath)) return null;
-                      targetPath = join(dirname(path), targetPath);
-                      return _locateResource(targetPath, segments);
+                      if (isAbsolute(targetPath)) {
+                        // If we jail to root, the path can never be absolute.
+                        if (jailRoot) return null;
+                        return _locateResource(targetPath, segments);
+                      } else {
+                        targetPath = join(dirname(path), targetPath);
+                        return _locateResource(targetPath, segments);
+                      }
                     });
               }
               break;
