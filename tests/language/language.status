@@ -44,11 +44,6 @@ compile_time_constant_checked3_test/04: MissingCompileTimeError # Issue 13685
 compile_time_constant_checked3_test/05: MissingCompileTimeError # Issue 13685
 compile_time_constant_checked3_test/06: MissingCompileTimeError # Issue 13685
 
-[ $compiler == none && $checked ]
-malbounded_type_cast_test: Fail # Issue 14123
-malbounded_type_test_test/01: Fail # Issue 14131
-malbounded_instantiation_test/01: Fail # Issue 14132
-
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.

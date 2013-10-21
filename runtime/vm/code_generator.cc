@@ -184,20 +184,19 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
     const AbstractTypeArguments& instantiator =
         AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
     ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
-    Error& malformed_error = Error::Handle();
+    Error& bound_error = Error::Handle();
     // Code inlined in the caller should have optimized the case where the
     // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-    type_arguments = type_arguments.InstantiateFrom(instantiator,
-                                                    &malformed_error);
-    if (!malformed_error.IsNull()) {
+    type_arguments = type_arguments.InstantiateFrom(instantiator, &bound_error);
+    if (!bound_error.IsNull()) {
       // Throw a dynamic type error.
       const intptr_t location = GetCallerLocation();
-      String& malformed_error_message =  String::Handle(
-          String::New(malformed_error.ToErrorCString()));
+      String& bound_error_message =  String::Handle(
+          String::New(bound_error.ToErrorCString()));
       Exceptions::CreateAndThrowTypeError(
           location, Symbols::Empty(), Symbols::Empty(),
-          Symbols::Empty(), malformed_error_message);
+          Symbols::Empty(), bound_error_message);
       UNREACHABLE();
     }
   }
@@ -216,16 +215,16 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(!type.IsNull() && !type.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
-  Error& malformed_error = Error::Handle();
-  type = type.InstantiateFrom(instantiator, &malformed_error);
-  if (!malformed_error.IsNull()) {
+  Error& bound_error = Error::Handle();
+  type = type.InstantiateFrom(instantiator, &bound_error);
+  if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const intptr_t location = GetCallerLocation();
-    String& malformed_error_message =  String::Handle(
-        String::New(malformed_error.ToErrorCString()));
+    String& bound_error_message =  String::Handle(
+        String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
         location, Symbols::Empty(), Symbols::Empty(),
-        Symbols::Empty(), malformed_error_message);
+        Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
   ASSERT(!type.IsNull() && type.IsInstantiated());
@@ -346,9 +345,9 @@ static void PrintTypeCheck(
                  caller_frame->pc());
   } else {
     // Instantiate type before printing.
-    Error& malformed_error = Error::Handle();
+    Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type = AbstractType::Handle(
-        type.InstantiateFrom(instantiator_type_arguments, &malformed_error));
+        type.InstantiateFrom(instantiator_type_arguments, &bound_error));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
@@ -356,8 +355,8 @@ static void PrintTypeCheck(
                  String::Handle(instantiated_type.Name()).ToCString(),
                  String::Handle(type.Name()).ToCString(),
                  caller_frame->pc());
-    if (!malformed_error.IsNull()) {
-      OS::Print("  malformed error: %s\n", malformed_error.ToErrorCString());
+    if (!bound_error.IsNull()) {
+      OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
     }
   }
   const Function& function = Function::Handle(
@@ -390,10 +389,10 @@ static bool OptimizeTypeArguments(const Instance& instance) {
       uninstantiated =
           instantiated_type_arguments.uninstantiated_type_arguments();
       instantiator = instantiated_type_arguments.instantiator_type_arguments();
-      Error& malformed_error = Error::Handle();
+      Error& bound_error = Error::Handle();
       type_arguments = uninstantiated.InstantiateFrom(instantiator,
-                                                      &malformed_error);
-      ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
+                                                      &bound_error);
+      ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     } while (type_arguments.IsInstantiatedTypeArguments());
     AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
     new_type_arguments = type_arguments.Canonicalize();
@@ -496,10 +495,10 @@ static void UpdateTypeTestCache(
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(type.raw());
     if (!test_type.IsInstantiated()) {
-      Error& malformed_error = Error::Handle();
+      Error& bound_error = Error::Handle();
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       &malformed_error);
-      ASSERT(malformed_error.IsNull());  // Malformed types are not optimized.
+                                       &bound_error);
+      ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr("  Updated test cache %p ix: %" Pd " with "
         "(cid: %" Pd ", type-args: %p, instantiator: %p, result: %s)\n"
@@ -546,23 +545,23 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(type.IsFinalized());
-  Error& malformed_error = Error::Handle();
+  Error& bound_error = Error::Handle();
   const Bool& result =
       Bool::Get(instance.IsInstanceOf(type,
                                       instantiator_type_arguments,
-                                      &malformed_error));
+                                      &bound_error));
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("InstanceOf",
         instance, type, instantiator_type_arguments, result);
   }
-  if (!result.value() && !malformed_error.IsNull()) {
+  if (!result.value() && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
     const intptr_t location = GetCallerLocation();
-    String& malformed_error_message =  String::Handle(
-        String::New(malformed_error.ToErrorCString()));
+    String& bound_error_message =  String::Handle(
+        String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
         location, Symbols::Empty(), Symbols::Empty(),
-        Symbols::Empty(), malformed_error_message);
+        Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
   UpdateTypeTestCache(instance, type, instantiator,
@@ -596,9 +595,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
-  Error& malformed_error = Error::Handle();
+  Error& bound_error = Error::Handle();
   const bool is_instance_of = src_instance.IsInstanceOf(
-      dst_type, instantiator_type_arguments, &malformed_error);
+      dst_type, instantiator_type_arguments, &bound_error);
 
   if (FLAG_trace_type_checks) {
     PrintTypeCheck("TypeCheck",
@@ -615,18 +614,18 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
           dst_type.InstantiateFrom(instantiator_type_arguments, NULL));
-      // Note that instantiated_dst_type may be malformed.
+      // Note that instantiated_dst_type may be malbounded.
       dst_type_name = instantiated_dst_type.UserVisibleName();
     } else {
       dst_type_name = dst_type.UserVisibleName();
     }
-    String& malformed_error_message =  String::Handle();
-    if (!malformed_error.IsNull()) {
+    String& bound_error_message =  String::Handle();
+    if (!bound_error.IsNull()) {
       ASSERT(FLAG_enable_type_checks);
-      malformed_error_message = String::New(malformed_error.ToErrorCString());
+      bound_error_message = String::New(bound_error.ToErrorCString());
     }
     Exceptions::CreateAndThrowTypeError(location, src_type_name, dst_type_name,
-                                        dst_name, malformed_error_message);
+                                        dst_name, bound_error_message);
     UNREACHABLE();
   }
   UpdateTypeTestCache(src_instance, dst_type,
@@ -648,14 +647,16 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   const String& bool_type_name =
       String::Handle(bool_interface.UserVisibleName());
-  const String& no_malformed_type_error = String::Handle();
+  const String& no_bound_error = String::Handle();
   Exceptions::CreateAndThrowTypeError(location, src_type_name, bool_type_name,
                                       Symbols::BooleanExpression(),
-                                      no_malformed_type_error);
+                                      no_bound_error);
   UNREACHABLE();
 }
 
 
+// TODO(regis): Is this entry still used for malformed types or just malbounded
+// types? Revisit.
 // Report that the type of the type check is malformed.
 // Arg0: src value.
 // Arg1: name of instance being assigned to.
@@ -665,12 +666,12 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
   const intptr_t location = GetCallerLocation();
   const Instance& src_value = Instance::CheckedHandle(arguments.ArgAt(0));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(1));
-  const String& malformed_error = String::CheckedHandle(arguments.ArgAt(2));
+  const String& bound_error = String::CheckedHandle(arguments.ArgAt(2));
   const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       Symbols::Malformed(),
-                                      dst_name, malformed_error);
+                                      dst_name, bound_error);
   UNREACHABLE();
 }
 

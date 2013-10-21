@@ -9,7 +9,7 @@ class Malbounded1 implements Super<String> {}  /// 01: static type warning
 class Malbounded2 extends Super<String> {}  /// 02: static type warning
 
 main() {
-  new Malbounded1();  /// 01: static type warning, dynamic type error
+  new Malbounded1();  /// 01: static type warning
   new Malbounded2();  /// 02: static type warning, dynamic type error
   new Super<String>();  /// 03: static type warning, dynamic type error
 }

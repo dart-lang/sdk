@@ -113,10 +113,12 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
       AbstractType::CheckedHandle(arguments->NativeArgAt(3));
   const Bool& negate = Bool::CheckedHandle(arguments->NativeArgAt(4));
   ASSERT(type.IsFinalized());
-  Error& malformed_error = Error::Handle();
+  ASSERT(!type.IsMalformed());
+  ASSERT(!type.IsMalbounded());
+  Error& bound_error = Error::Handle();
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
-                                                    &malformed_error);
+                                                    &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.instanceOf: result %s\n", result_str);
@@ -124,21 +126,21 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     OS::Print("  instance type: %s\n",
               String::Handle(instance_type.Name()).ToCString());
     OS::Print("  test type: %s\n", String::Handle(type.Name()).ToCString());
-    if (!malformed_error.IsNull()) {
-      OS::Print("  malformed error: %s\n", malformed_error.ToErrorCString());
+    if (!bound_error.IsNull()) {
+      OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
     }
   }
-  if (!is_instance_of && !malformed_error.IsNull()) {
+  if (!is_instance_of && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const intptr_t location = caller_frame->GetTokenPos();
-    String& malformed_error_message = String::Handle(
-        String::New(malformed_error.ToErrorCString()));
+    String& bound_error_message = String::Handle(
+        String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
         location, Symbols::Empty(), Symbols::Empty(),
-        Symbols::Empty(), malformed_error_message);
+        Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
   return Bool::Get(negate.value() ? !is_instance_of : is_instance_of).raw();
@@ -156,13 +158,25 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
       AbstractType::CheckedHandle(arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
-  Error& malformed_error = Error::Handle();
+  ASSERT(!type.IsMalbounded());
+  Error& bound_error = Error::Handle();
   if (instance.IsNull()) {
     return instance.raw();
   }
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
-                                                    &malformed_error);
+                                                    &bound_error);
+  if (FLAG_trace_type_checks) {
+    const char* result_str = is_instance_of ? "true" : "false";
+    OS::Print("Object.as: result %s\n", result_str);
+    const Type& instance_type = Type::Handle(instance.GetType());
+    OS::Print("  instance type: %s\n",
+              String::Handle(instance_type.Name()).ToCString());
+    OS::Print("  cast type: %s\n", String::Handle(type.Name()).ToCString());
+    if (!bound_error.IsNull()) {
+      OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
+    }
+  }
   if (!is_instance_of) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
@@ -182,8 +196,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
     } else {
       type_name = type.UserVisibleName();
     }
-    String& malformed_error_message =  String::Handle();
-    if (malformed_error.IsNull()) {
+    String& bound_error_message =  String::Handle();
+    if (bound_error.IsNull()) {
       const String& dst_name = String::ZoneHandle(
           Symbols::New(Exceptions::kCastErrorDstName));
 
@@ -192,10 +206,10 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
           dst_name, Object::null_string());
     } else {
       ASSERT(FLAG_enable_type_checks);
-      malformed_error_message = String::New(malformed_error.ToErrorCString());
+      bound_error_message = String::New(bound_error.ToErrorCString());
       Exceptions::CreateAndThrowTypeError(
           location, instance_type_name, Symbols::Empty(),
-          Symbols::Empty(), malformed_error_message);
+          Symbols::Empty(), bound_error_message);
     }
     UNREACHABLE();
   }

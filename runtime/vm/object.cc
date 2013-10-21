@@ -2788,13 +2788,22 @@ bool Class::TypeTest(
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
   AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
-  Error& args_bound_error = Error::Handle();
+  Error& error = Error::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
     if (!interface.IsFinalized()) {
       // We may be checking bounds at finalization time. Skipping this
       // unfinalized interface will postpone bound checking to run time.
       continue;
+    }
+    error = Error::null();
+    if (interface.IsMalboundedWithError(&error)) {
+      // Return the first bound error to the caller if it requests it.
+      if ((bound_error != NULL) && bound_error->IsNull()) {
+        ASSERT(!error.IsNull());
+        *bound_error = error.raw();
+      }
+      continue;  // Another interface may work better.
     }
     interface_class = interface.type_class();
     interface_args = interface.arguments();
@@ -2807,13 +2816,12 @@ bool Class::TypeTest(
       // parameters of the interface are at the end of the type vector,
       // after the type arguments of the super type of this type.
       // The index of the type parameters is adjusted upon finalization.
-      args_bound_error = Error::null();
-      interface_args = interface_args.InstantiateFrom(type_arguments,
-                                                      &args_bound_error);
-      if (!args_bound_error.IsNull()) {
+      error = Error::null();
+      interface_args = interface_args.InstantiateFrom(type_arguments, &error);
+      if (!error.IsNull()) {
         // Return the first bound error to the caller if it requests it.
         if ((bound_error != NULL) && bound_error->IsNull()) {
-          *bound_error = args_bound_error.raw();
+          *bound_error = error.raw();
         }
         continue;  // Another interface may work better.
       }

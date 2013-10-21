@@ -23,8 +23,10 @@ main() {
   	expectedError = (e) => e is CastError;
   }
 
+  var m = new Malbounded1();
+  Expect.throws(() => m as Super<int>, expectedError);
   var s = new Super<int>();
-  Expect.throws(() => s as Malbounded1, expectedError);
+  Expect.throws(() => s as Malbounded1, (e) => e is CastError);
   Expect.throws(() => s as Malbounded2, expectedError);
   Expect.throws(() => s as Super<String>, expectedError); /// static type warning
 }

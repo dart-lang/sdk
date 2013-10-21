@@ -32,23 +32,23 @@ patch class AssertionError extends Error {
 patch class TypeError extends AssertionError {
   TypeError._create(String url, int line, int column,
                     this._srcType, this._dstType, this._dstName,
-                    this._malformedError)
+                    this._boundError)
       : super._create("is assignable", url, line, column);
 
   static _throwNew(int location,
                    Object src_value,
                    String dst_type_name,
                    String dst_name,
-                   String malformed_error)
+                   String bound_error)
       native "TypeError_throwNew";
 
   String toString() {
-    String str = (_malformedError != null) ? _malformedError : "";
+    String str = (_boundError != null) ? _boundError : "";
     if ((_dstName != null) && (_dstName.length > 0)) {
       str = "${str}type '$_srcType' is not a subtype of "
             "type '$_dstType' of '$_dstName'.";
     } else {
-      str = "${str}malformed type used.";
+      str = "${str}malbounded type used.";
     }
     return str;
   }
@@ -56,19 +56,19 @@ patch class TypeError extends AssertionError {
   final String _srcType;
   final String _dstType;
   final String _dstName;
-  final String _malformedError;
+  final String _boundError;
 }
 
 patch class CastError extends Error {
   CastError._create(this._url, this._line, this._column,
                     this._srcType, this._dstType, this._dstName,
-                    this._malformedError);
+                    this._boundError);
 
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
   // Exceptions::kCastErrorDstName.
 
   String toString() {
-    String str = (_malformedError != null) ? _malformedError : "";
+    String str = (_boundError != null) ? _boundError : "";
     str = "${str}type '$_srcType' is not a subtype of "
           "type '$_dstType' in type cast.";
     return str;
@@ -81,7 +81,7 @@ patch class CastError extends Error {
   final String _srcType;
   final String _dstType;
   final String _dstName;
-  final String _malformedError;
+  final String _boundError;
 }
 
 patch class FallThroughError {
