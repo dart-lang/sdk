@@ -18,7 +18,7 @@ void main() {
     expect(controller.stream.listen(null).cancel().then((_) => done),
            completion(equals(true)));
 
-    new Timer(const Duration(milliseconds: 10), () {
+    Timer.run(() {
       done = true;
       completer.complete();
     });
