@@ -15,7 +15,7 @@ part of http_server;
  *
  * The following content types are recognized:
  *
- *     text/*
+ *     text/ *
  *     application/json
  *     application/x-www-form-urlencoded
  *     multipart/form-data
