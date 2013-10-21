@@ -674,4 +674,69 @@ main() {
       //var pattern2 = context.createPatternFromImage(new ImageElement(), '');
     });
   });
+
+  group('fillText', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
+
+    test('without maxWidth', () {
+      context.font = '40pt Garamond';
+      context.fillStyle = 'blue';
+
+      // Draw a blue box.
+      context.fillText('█', 50, 50);
+
+      var width = context.measureText('█').width;
+
+      checkPixel(readPixel(50, 50), [0, 0, 255, 255]);
+      checkPixel(readPixel(60, 50), [0, 0, 255, 255]);
+
+      expectPixelUnfilled(40, 50);
+      expectPixelFilled(50, 50);
+      expectPixelFilled(60, 50);
+
+      // The box does not draw after `width` pixels.
+      expectPixelFilled(50 + width, 50);
+      expectPixelUnfilled(50 + width + 1, 50);
+    });
+
+    test('with maxWidth null', () {
+      context.font = '40pt Garamond';
+      context.fillStyle = 'blue';
+
+      // Draw a blue box with null maxWidth.
+      context.fillText('█', 50, 50, null);
+
+      var width = context.measureText('█').width;
+
+      checkPixel(readPixel(50, 50), [0, 0, 255, 255]);
+      checkPixel(readPixel(60, 50), [0, 0, 255, 255]);
+
+      expectPixelUnfilled(40, 50);
+      expectPixelFilled(50, 50);
+      expectPixelFilled(60, 50);
+
+      // The box does not draw after `width` pixels.
+      expectPixelFilled(50 + width, 50);
+      expectPixelUnfilled(50 + width + 1, 50);
+    });
+
+    test('with maxWidth defined', () {
+      context.font = '40pt Garamond';
+      context.fillStyle = 'blue';
+
+      // Draw a blue box that's at most 20 pixels wide.
+      context.fillText('█', 50, 50, 20);
+
+      checkPixel(readPixel(50, 50), [0, 0, 255, 255]);
+      checkPixel(readPixel(60, 50), [0, 0, 255, 255]);
+
+      // The box does not draw after 20 pixels.
+      expectPixelUnfilled(40, 50);
+      expectPixelUnfilled(71, 50);
+      expectPixelUnfilled(90, 50);
+      expectPixelFilled(50, 50);
+      expectPixelFilled(60, 50);
+    });
+  });
 }

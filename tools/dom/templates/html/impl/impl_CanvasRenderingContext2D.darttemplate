@@ -265,5 +265,30 @@ $else
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.
 $endif
+$if DART2JS
+
+  /**
+   * Draws text to the canvas.
+   *
+   * The text is drawn starting at coordinates ([x], [y]).
+   * If [maxWidth] is provided and the [text] is computed to be wider than
+   * [maxWidth], then the drawn text is scaled down horizontally to fit.
+   *
+   * The text uses the current [CanvasRenderingContext2D.font] property for font
+   * options, such as typeface and size, and the current
+   * [CanvasRenderingContext2D.fillStyle] for style options such as color.
+   * The current [CanvasRenderingContext2D.textAlign] and
+   * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
+   * drawn text.
+   */
+  @DomName('CanvasRenderingContext2D.fillText')
+  void fillText(String text, num x, num y, [num maxWidth]) {
+    if (maxWidth != null) {
+      JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
+    } else {
+      JS('void', '#.fillText(#, #, #)', this, text, x, y);
+    }
+  }
+$endif
 }
 

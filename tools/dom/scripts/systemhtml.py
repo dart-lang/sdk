@@ -25,6 +25,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
     'CanvasRenderingContext2D.drawImage',
+    'CanvasRenderingContext2D.fillText',
     'CanvasRenderingContext2D.lineDashOffset',
     'Console.memory',
     'ConsoleBase.assertCondition',

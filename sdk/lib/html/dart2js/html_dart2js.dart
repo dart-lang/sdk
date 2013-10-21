@@ -1365,10 +1365,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable()
   void fillRect(num x, num y, num width, num height) native;
 
-  @DomName('CanvasRenderingContext2D.fillText')
-  @DocsEditable()
-  void fillText(String text, num x, num y, [num maxWidth]) native;
-
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable()
   // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
@@ -1750,6 +1746,29 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
+
+  /**
+   * Draws text to the canvas.
+   *
+   * The text is drawn starting at coordinates ([x], [y]).
+   * If [maxWidth] is provided and the [text] is computed to be wider than
+   * [maxWidth], then the drawn text is scaled down horizontally to fit.
+   *
+   * The text uses the current [CanvasRenderingContext2D.font] property for font
+   * options, such as typeface and size, and the current
+   * [CanvasRenderingContext2D.fillStyle] for style options such as color.
+   * The current [CanvasRenderingContext2D.textAlign] and
+   * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
+   * drawn text.
+   */
+  @DomName('CanvasRenderingContext2D.fillText')
+  void fillText(String text, num x, num y, [num maxWidth]) {
+    if (maxWidth != null) {
+      JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
+    } else {
+      JS('void', '#.fillText(#, #, #)', this, text, x, y);
+    }
+  }
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
