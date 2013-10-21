@@ -30,8 +30,8 @@ main() {
      ..expectResume(() { t.pause(); })
      ..expectPause(() { t.resume(); })
      ..expectResume(() { t.close(); })
-     ..expectDone()
-     ..expectCancel(t.terminate);
+     ..expectCancel()
+     ..expectDone(t.terminate);
     t..listen()..add(42);
   });
 
@@ -42,8 +42,8 @@ main() {
          t.pause(new Future.delayed(ms5, () => null));
        })
      ..expectPause()
-     ..expectDone()
-     ..expectCancel(t.terminate);
+     ..expectCancel()
+     ..expectDone(t.terminate);
      // We are calling "close" while the controller is actually paused,
      // and it will stay paused until the pending events are sent.
     t..listen()..add(42)..close();
@@ -57,8 +57,8 @@ main() {
        })
      ..expectPause()
      ..expectResume(t.close)
-     ..expectDone()
-     ..expectCancel(t.terminate);
+     ..expectCancel()
+     ..expectDone(t.terminate);
     t..listen()..add(42);
   });
 
@@ -75,8 +75,8 @@ main() {
      ..expectPause()
      ..expectData(43)
      ..expectResume(t.close)
-     ..expectDone()
-     ..expectCancel(t.terminate);
+     ..expectCancel()
+     ..expectDone(t.terminate);
     t..listen()..add(42);
   });
 
@@ -94,8 +94,8 @@ main() {
        t.resume();
        t.close();
      })
-     ..expectDone()
-     ..expectCancel(t.terminate);
+     ..expectCancel()
+     ..expectDone(t.terminate);
     t..listen()
      ..add(42);
   });
