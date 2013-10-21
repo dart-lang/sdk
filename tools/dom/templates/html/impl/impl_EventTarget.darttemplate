@@ -54,10 +54,32 @@ class Events {
 class ElementEvents extends Events {
   /* Raw event target. */
   final Element _ptr;
+  static final webkitEvents = {
+    'animationend' : 'webkitAnimationEnd', 
+    'animationiteration' : 'webkitAnimationIteration', 
+    'animationstart' : 'webkitAnimationStart', 
+    'fullscreenchange' : 'webkitfullscreenchange', 
+    'fullscreenerror' : 'webkitfullscreenerror',
+    'keyadded' : 'webkitkeyadded', 
+    'keyerror' : 'webkitkeyerror', 
+    'keymessage' : 'webkitkeymessage', 
+    'needkey' : 'webkitneedkey', 
+    'pointerlockchange' : 'webkitpointerlockchange', 
+    'pointerlockerror' : 'webkitpointerlockerror', 
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
+    'transitionend': 'webkitTransitionEnd',
+    'speechchange' : 'webkitSpeechChange'
+  };
 
   ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
 
   Stream operator [](String type) {
+    if (webkitEvents.keys.contains(type.toLowerCase())) {
+      if (Device.isWebKit) {
+        return new _ElementEventStreamImpl(
+            _ptr, webkitEvents[type.toLowerCase()], false);
+      }
+    }
     return new _ElementEventStreamImpl(_ptr, type, false);
   }
 }
