@@ -1450,6 +1450,12 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, lookup_parts, arguments->NativeArgAt(1));
   ASSERT(lookup_parts.Length() >= 1 && lookup_parts.Length() <= 3);
 
+  if (!closure.IsClosure()) {
+    const Array& result_tuple = Array::Handle(Array::New(2));
+    result_tuple.SetAt(0, Bool::False());
+    return result_tuple.raw();
+  }
+
   Function& function = Function::Handle();
   const bool callable = closure.IsCallable(&function, NULL);
   ASSERT(callable);
