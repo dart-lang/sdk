@@ -129,7 +129,7 @@ abstract class Polymer implements Element {
       runJob(job, callback, wait);
 
   void polymerCreated() {
-    if (this.document.window != null || alwaysPrepare ||
+    if (this.ownerDocument.window != null || alwaysPrepare ||
         _preparingElements > 0) {
       prepareElement();
     }
