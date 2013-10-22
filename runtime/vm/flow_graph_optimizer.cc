@@ -4320,8 +4320,12 @@ class Place : public ValueObject {
 
  private:
   static Definition* OriginalDefinition(Definition* defn) {
-    while (defn->IsRedefinition()) {
-      defn = defn->AsRedefinition()->value()->definition();
+    while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+      if (defn->IsRedefinition()) {
+        defn = defn->AsRedefinition()->value()->definition();
+      } else {
+        defn = defn->AsAssertAssignable()->value()->definition();
+      }
     }
     return defn;
   }
@@ -4539,8 +4543,10 @@ class AliasedSet : public ZoneAllocated {
         if (instr->IsPushArgument() ||
             (instr->IsStoreVMField() && (use->use_index() != 1)) ||
             (instr->IsStoreInstanceField() && (use->use_index() != 0)) ||
-            (instr->IsStoreStaticField()) ||
-            (instr->IsPhi())) {
+            instr->IsStoreStaticField() ||
+            instr->IsPhi() ||
+            instr->IsAssertAssignable() ||
+            instr->IsRedefinition()) {
           escapes = true;
           break;
         }
