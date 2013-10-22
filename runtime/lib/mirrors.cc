@@ -111,7 +111,9 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
 }
 
 static void EnsureConstructorsAreCompiled(const Function& func) {
-  if (func.kind() != RawFunction::kConstructor) return;
+  // Only generative constructors can have initializing formals.
+  if (!func.IsConstructor()) return;
+
   const Class& cls = Class::Handle(func.Owner());
   const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
   if (!error.IsNull()) {

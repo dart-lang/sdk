@@ -60,18 +60,21 @@ checkClass(ClassMirror cm) {
   cm.typeVariables.forEach(checkTypeVariable);
 }
 
+checkType(TypeMirror tm) {
+  checkList(tm.metadata, 'TypeMirror.metadata');
+}
+
 checkLibrary(LibraryMirror lm) {
   checkMap(lm.members, 'LibraryMirror.members');
   checkMap(lm.variables, 'LibraryMirror.variables');
   checkMap(lm.classes, 'LibraryMirror.classes');
-  // TODO(rmacnak): Revisit after members hoisted to TypeMirror.
-  // checkMap(lm.types, 'LibraryMirror.types');
+  checkMap(lm.types, 'LibraryMirror.types');
   checkMap(lm.functions, 'LibraryMirror.functions');
   checkMap(lm.getters, 'LibraryMirror.getters');
   checkMap(lm.setters, 'LibraryMirror.setters');
   checkList(lm.metadata, 'LibraryMirror.metadata');
 
-  // lm.types.forEach(checkType);
+  lm.types.values.forEach(checkType);
   lm.classes.values.forEach(checkClass);
   lm.functions.values.forEach(checkMethod);
   lm.getters.values.forEach(checkMethod);
@@ -81,6 +84,6 @@ checkLibrary(LibraryMirror lm) {
 
 main() {
   currentMirrorSystem().libraries.values.forEach(checkLibrary);
-  // checkType(currentMirrorSystem().voidType);
-  // checkType(currentMirrorSystem().dynamicType);
+  checkType(currentMirrorSystem().voidType);
+  checkType(currentMirrorSystem().dynamicType);
 }

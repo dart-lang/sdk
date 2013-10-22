@@ -330,7 +330,8 @@ RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
       }
       start = i + 1;
     } else if (name.CharAt(i) == '@') {
-      ASSERT(at_pos == -1);  // Only one @ is supported.
+      // Setters should have only one @ so we know where to put the =.
+      ASSERT(!is_setter || (at_pos == -1));
       at_pos = i;
     }
   }

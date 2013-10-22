@@ -174,7 +174,6 @@ mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ens
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_f_bounded_test/01: RuntimeError # Issue 14000
-mirrors/immutable_collections_test: RuntimeError # Issue 14027
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/typevariable_mirror_metadata_test/none: RuntimeError # Issue 12282
 mirrors/type_variable_owner_test: RuntimeError # Issue 14240

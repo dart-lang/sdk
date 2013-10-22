@@ -1917,7 +1917,7 @@ bool isReflectiveDataInPrototype(String key) {
 }
 
 // Copied from package "unmodifiable_collection".
-// TODO(ahe): Lobby to get it added to dart:collection.
+// TODO(14314): Move to dart:collection.
 class UnmodifiableMapView<K, V> implements Map<K, V> {
   Map<K, V> _source;
   UnmodifiableMapView(Map<K, V> source) : _source = source;
