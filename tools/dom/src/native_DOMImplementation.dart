@@ -411,8 +411,31 @@ class _Utils {
     }
     var className = MirrorSystem.getName(cls.simpleName);
     if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
-      throw new UnsupportedError('Class is missing constructor $className.created');
+      throw new UnsupportedError(
+          'Class is missing constructor $className.created');
     }
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+        cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+        cls != null && cls.qualifiedName == elementName;
+    ClassMirror superClass = cls.superclass;
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
+    if (extendsTagName == null) {
+      if (nativeClass.reflectedType != HtmlElement) {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HTMLElement');
+      }
+    }
+
     _register(document, tag, type, extendsTagName);
   }
 

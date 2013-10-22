@@ -65,6 +65,15 @@ class MyCanvas extends CanvasElement {
   }
 }
 
+class CustomDiv extends DivElement {
+  CustomDiv.created() : super.created();
+}
+
+class CustomCustomDiv extends CustomDiv {
+  static const tag = 'custom-custom';
+  CustomCustomDiv.created() : super.created();
+}
+
 main() {
   useHtmlIndividualConfiguration();
 
@@ -89,6 +98,7 @@ main() {
     document.register(Baz.tag, Baz);
     document.register(Qux.tag, Qux, extendsTag: 'input');
     document.register(MyCanvas.tag, MyCanvas, extendsTag: 'canvas');
+    document.register(CustomCustomDiv.tag, CustomCustomDiv, extendsTag: 'div');
   }
 
   setUp(loadPolyfills);
@@ -97,12 +107,19 @@ main() {
     setUp(registerTypes);
 
     test('cannot register twice', () {
-      expect(() => document.register(FooBad.tag, Foo), throws);
+      expect(() => document.register(FooBad.tag, Foo, extendsTag: 'div'),
+          throws);
     });
 
     test('cannot register for non-matching tag', () {
       expect(() {
         document.register('x-input-div', Bar, extendsTag: 'div');
+      }, throws);
+    });
+
+    test('cannot register type extension for custom tag', () {
+      expect(() {
+        document.register('x-custom-tag', CustomCustomDiv);
       }, throws);
     });
   });
