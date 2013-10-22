@@ -137,8 +137,6 @@ prefix11_negative_test: fail
 # test issue 12156, fails only at runtime
 static_call_wrong_argument_count_negative_test: fail
 
-throw7_test/01: Fail # Issue 12159
-
 # test issue 12160, not annotated warnings for type variables from static member
 type_parameter_test/none: fail
 # test issue 12161, type variable in static, malformed type, static warning

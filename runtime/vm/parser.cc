@@ -6713,13 +6713,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       ExpectToken(Token::kRPAREN);
     }
 
-    // If a generic "catch all" statement has already been seen then all
-    // subsequent catch statements are dead. We issue an error for now,
-    // it might make sense to turn this into a warning.
-    if (generic_catch_seen) {
-      ErrorMsg("a generic 'catch all' statement already exists for this "
-               "try block. All subsequent catch statements are dead code");
-    }
     OpenBlock();
     AddCatchParamsToScope(exception_param,
                           stack_trace_param,
