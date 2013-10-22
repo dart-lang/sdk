@@ -669,6 +669,19 @@ class FunctionType extends DartType {
     return _findTypeVariableOccurrence(namedParameterTypes);
   }
 
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    returnType.forEachTypeVariable(f);
+    parameterTypes.forEach((DartType type) {
+      type.forEachTypeVariable(f);
+    });
+    optionalParameterTypes.forEach((DartType type) {
+      type.forEachTypeVariable(f);
+    });
+    namedParameterTypes.forEach((DartType type) {
+      type.forEachTypeVariable(f);
+    });
+  }
+
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitFunctionType(this, argument);
   }
