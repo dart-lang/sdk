@@ -234,27 +234,9 @@ class AnchorElement extends HtmlElement native "HTMLAnchorElement" {
   @DocsEditable()
   String hreflang;
 
-  @DomName('HTMLAnchorElement.name')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAnchorElement-partial
-  @deprecated // deprecated
-  String name;
-
-  @DomName('HTMLAnchorElement.origin')
-  @DocsEditable()
-  // WebKit only
-  @deprecated // nonstandard
-  final String origin;
-
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
   String pathname;
-
-  @DomName('HTMLAnchorElement.ping')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/text-level-semantics.html#the-a-element
-  @deprecated // deprecated
-  String ping;
 
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
@@ -488,12 +470,6 @@ class AreaElement extends HtmlElement native "HTMLAreaElement" {
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
   final String pathname;
-
-  @DomName('HTMLAreaElement.ping')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAreaElement-partial
-  @deprecated // deprecated
-  String ping;
 
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
@@ -2781,12 +2757,6 @@ class CssRule extends Interceptor native "CSSRule" {
   @DomName('CSSRule.SUPPORTS_RULE')
   @DocsEditable()
   static const int SUPPORTS_RULE = 12;
-
-  @DomName('CSSRule.UNKNOWN_RULE')
-  @DocsEditable()
-  // http://dev.w3.org/csswg/cssom/#changes-from-dom2
-  @deprecated // deprecated
-  static const int UNKNOWN_RULE = 0;
 
   @DomName('CSSRule.VIEWPORT_RULE')
   @DocsEditable()
@@ -7190,11 +7160,6 @@ class Document extends Node  native "Document"
   @DocsEditable()
   HtmlElement _body;
 
-  @DomName('Document.charset')
-  @DocsEditable()
-  @deprecated // nonstandard
-  String charset;
-
   @DomName('Document.cookie')
   @DocsEditable()
   String cookie;
@@ -7310,16 +7275,6 @@ class Document extends Node  native "Document"
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
   final bool _webkitHidden;
 
-  @JSName('webkitIsFullScreen')
-  @DomName('Document.webkitIsFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  final bool _webkitIsFullScreen;
-
   @JSName('webkitPointerLockElement')
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable()
@@ -7348,13 +7303,6 @@ class Document extends Node  native "Document"
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
   @Experimental()
   Range _caretRangeFromPoint(int x, int y) native;
-
-  @JSName('createCDATASection')
-  @DomName('Document.createCDATASection')
-  @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-document-createcdatasection
-  @deprecated // deprecated
-  CDataSection createCDataSection(String data) native;
 
   @DomName('Document.createDocumentFragment')
   @DocsEditable()
@@ -7504,16 +7452,6 @@ class Document extends Node  native "Document"
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> _querySelectorAll(String selectors) native;
-
-  @JSName('webkitCancelFullScreen')
-  @DomName('Document.webkitCancelFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  void _webkitCancelFullScreen() native;
 
   @JSName('webkitExitFullscreen')
   @DomName('Document.webkitExitFullscreen')
@@ -10385,12 +10323,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   void click() native;
 
-  @DomName('Element.ALLOW_KEYBOARD_INPUT')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
-  @deprecated // deprecated
-  static const int ALLOW_KEYBOARD_INPUT = 1;
-
   @JSName('attributes')
   @DomName('Element.attributes')
   @DocsEditable()
@@ -10494,12 +10426,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   @DomName('Element.getAttribute')
   @DocsEditable()
-  @deprecated
+  @Experimental() // untriaged
   String getAttribute(String name) native;
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  @deprecated
+  @Experimental() // untriaged
   String getAttributeNS(String namespaceURI, String localName) native;
 
   @DomName('Element.getBoundingClientRect')
@@ -10602,12 +10534,10 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  @deprecated
   void setAttribute(String name, String value) native;
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  @deprecated
   void setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
   @JSName('webkitGetRegionFlowRanges')
@@ -10620,16 +10550,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @Creates('JSExtendableArray')
   @Returns('JSExtendableArray')
   List<Range> getRegionFlowRanges() native;
-
-  @JSName('webkitRequestFullScreen')
-  @DomName('Element.webkitRequestFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
-  @deprecated // deprecated
-  void requestFullScreen(int flags) native;
 
   @JSName('webkitRequestFullscreen')
   @DomName('Element.webkitRequestFullscreen')
@@ -10975,12 +10895,6 @@ class EmbedElement extends HtmlElement native "HTMLEmbedElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
 
-  @DomName('HTMLEmbedElement.align')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial
-  @deprecated // deprecated
-  String align;
-
   @DomName('HTMLEmbedElement.height')
   @DocsEditable()
   String height;
@@ -11262,12 +11176,6 @@ class Event extends Interceptor native "Event" {
   @DocsEditable()
   static const int AT_TARGET = 2;
 
-  @DomName('Event.BLUR')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int BLUR = 8192;
-
   @DomName('Event.BUBBLING_PHASE')
   @DocsEditable()
   static const int BUBBLING_PHASE = 3;
@@ -11276,111 +11184,9 @@ class Event extends Interceptor native "Event" {
   @DocsEditable()
   static const int CAPTURING_PHASE = 1;
 
-  @DomName('Event.CHANGE')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int CHANGE = 32768;
-
-  @DomName('Event.CLICK')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int CLICK = 64;
-
-  @DomName('Event.DBLCLICK')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int DBLCLICK = 128;
-
-  @DomName('Event.DRAGDROP')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int DRAGDROP = 2048;
-
-  @DomName('Event.FOCUS')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int FOCUS = 4096;
-
-  @DomName('Event.KEYDOWN')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int KEYDOWN = 256;
-
-  @DomName('Event.KEYPRESS')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int KEYPRESS = 1024;
-
-  @DomName('Event.KEYUP')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int KEYUP = 512;
-
-  @DomName('Event.MOUSEDOWN')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEDOWN = 1;
-
-  @DomName('Event.MOUSEDRAG')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEDRAG = 32;
-
-  @DomName('Event.MOUSEMOVE')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEMOVE = 16;
-
-  @DomName('Event.MOUSEOUT')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEOUT = 8;
-
-  @DomName('Event.MOUSEOVER')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEOVER = 4;
-
-  @DomName('Event.MOUSEUP')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEUP = 2;
-
-  @DomName('Event.NONE')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int NONE = 0;
-
-  @DomName('Event.SELECT')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int SELECT = 16384;
-
   @DomName('Event.bubbles')
   @DocsEditable()
   final bool bubbles;
-
-  @DomName('Event.cancelBubble')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-3-Events/#events-event-type-stopPropagation
-  @deprecated // deprecated
-  bool cancelBubble;
 
   @DomName('Event.cancelable')
   @DocsEditable()
@@ -11627,8 +11433,7 @@ class ElementEvents extends Events {
 /**
  * Base class for all browser objects that support events.
  *
- * Use the [on] property to add, and remove events (rather than
- * [$dom_addEventListener] and [$dom_removeEventListener]
+ * Use the [on] property to add, and remove events
  * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
@@ -11648,8 +11453,7 @@ class EventTarget extends Interceptor native "EventTarget" {
   @JSName('addEventListener')
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
-  @deprecated
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+  void _addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable()
@@ -11658,8 +11462,7 @@ class EventTarget extends Interceptor native "EventTarget" {
   @JSName('removeEventListener')
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
-  @deprecated
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12015,12 +11818,6 @@ class FileReader extends EventTarget native "FileReader" {
   @DomName('FileReader.readAsArrayBuffer')
   @DocsEditable()
   void readAsArrayBuffer(Blob blob) native;
-
-  @DomName('FileReader.readAsBinaryString')
-  @DocsEditable()
-  // http://blog.whatwg.org/weekly-stream-autocomplete
-  @deprecated // deprecated
-  void readAsBinaryString(Blob blob) native;
 
   @JSName('readAsDataURL')
   @DomName('FileReader.readAsDataURL')
@@ -13045,18 +12842,6 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @DomName('HTMLDocument.activeElement')
   @DocsEditable()
   final Element activeElement;
-
-  @DomName('HTMLDocument.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native;
-
-  @DomName('HTMLDocument.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native;
 
 
   @DomName('Document.body')
@@ -14086,11 +13871,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
   @DocsEditable()
   String alt;
 
-  @DomName('HTMLImageElement.border')
-  @DocsEditable()
-  @deprecated // deprecated
-  String border;
-
   @DomName('HTMLImageElement.complete')
   @DocsEditable()
   final bool complete;
@@ -14106,11 +13886,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
   bool isMap;
-
-  @DomName('HTMLImageElement.lowsrc')
-  @DocsEditable()
-  @deprecated // deprecated
-  String lowsrc;
 
   @DomName('HTMLImageElement.naturalHeight')
   @DocsEditable()
@@ -14131,16 +13906,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
   @DomName('HTMLImageElement.width')
   @DocsEditable()
   int width;
-
-  @DomName('HTMLImageElement.x')
-  @DocsEditable()
-  @deprecated // deprecated
-  final int x;
-
-  @DomName('HTMLImageElement.y')
-  @DocsEditable()
-  @deprecated // deprecated
-  final int y;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14359,12 +14124,6 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.type')
   @DocsEditable()
   String type;
-
-  @DomName('HTMLInputElement.useMap')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLInputElement-partial
-  @deprecated // deprecated
-  String useMap;
 
   @DomName('HTMLInputElement.validationMessage')
   @DocsEditable()
@@ -15308,12 +15067,6 @@ class LIElement extends HtmlElement native "HTMLLIElement" {
    * This can only be called by subclasses from their created constructor.
    */
   LIElement.created() : super.created();
-
-  @DomName('HTMLLIElement.type')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLLIElement-partial
-  @deprecated // deprecated
-  String type;
 
   @DomName('HTMLLIElement.value')
   @DocsEditable()
@@ -17952,11 +17705,6 @@ class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID nati
   @Experimental() // nonstandard
   final MimeTypeArray mimeTypes;
 
-  @DomName('Navigator.plugins')
-  @DocsEditable()
-  @deprecated // nonstandard
-  final PluginArray plugins;
-
   @DomName('Navigator.product')
   @DocsEditable()
   @Unstable()
@@ -18000,11 +17748,6 @@ class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID nati
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils
   @Experimental()
   void getStorageUpdates() native;
-
-  @DomName('Navigator.javaEnabled')
-  @DocsEditable()
-  @deprecated // nonstandard
-  bool javaEnabled() native;
 
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
@@ -18523,7 +18266,6 @@ class Node extends EventTarget native "Node" {
 
   @DomName('Node.childNodes')
   @DocsEditable()
-  @deprecated
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> childNodes;
@@ -18539,15 +18281,11 @@ class Node extends EventTarget native "Node" {
   @JSName('localName')
   @DomName('Node.localName')
   @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-node-localname
-  @deprecated // deprecated
   final String _localName;
 
   @JSName('namespaceURI')
   @DomName('Node.namespaceURI')
   @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-node-namespaceuri
-  @deprecated // deprecated
   final String _namespaceUri;
 
   @JSName('nextSibling')
@@ -18660,16 +18398,6 @@ class NodeFilter extends Interceptor native "NodeFilter" {
   @DocsEditable()
   static const int SHOW_ALL = 0xFFFFFFFF;
 
-  @DomName('NodeFilter.SHOW_ATTRIBUTE')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_ATTRIBUTE = 0x00000002;
-
-  @DomName('NodeFilter.SHOW_CDATA_SECTION')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_CDATA_SECTION = 0x00000008;
-
   @DomName('NodeFilter.SHOW_COMMENT')
   @DocsEditable()
   static const int SHOW_COMMENT = 0x00000080;
@@ -18689,21 +18417,6 @@ class NodeFilter extends Interceptor native "NodeFilter" {
   @DomName('NodeFilter.SHOW_ELEMENT')
   @DocsEditable()
   static const int SHOW_ELEMENT = 0x00000001;
-
-  @DomName('NodeFilter.SHOW_ENTITY')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_ENTITY = 0x00000020;
-
-  @DomName('NodeFilter.SHOW_ENTITY_REFERENCE')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_ENTITY_REFERENCE = 0x00000010;
-
-  @DomName('NodeFilter.SHOW_NOTATION')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_NOTATION = 0x00000800;
 
   @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
   @DocsEditable()
@@ -19081,12 +18794,6 @@ class ObjectElement extends HtmlElement native "HTMLObjectElement" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
-
-  @DomName('HTMLObjectElement.code')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial
-  @deprecated // deprecated
-  String code;
 
   @DomName('HTMLObjectElement.data')
   @DocsEditable()
@@ -20079,11 +19786,6 @@ class PreElement extends HtmlElement native "HTMLPreElement" {
    * This can only be called by subclasses from their created constructor.
    */
   PreElement.created() : super.created();
-
-  @DomName('HTMLPreElement.wrap')
-  @DocsEditable()
-  @deprecated // deprecated
-  bool wrap;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20392,11 +20094,6 @@ class Range extends Interceptor native "Range" {
   @DocsEditable()
   void collapse(bool toStart) native;
 
-  @DomName('Range.compareNode')
-  @DocsEditable()
-  @deprecated // deprecated
-  int compareNode(Node refNode) native;
-
   @DomName('Range.comparePoint')
   @DocsEditable()
   int comparePoint(Node refNode, int offset) native;
@@ -20435,11 +20132,6 @@ class Range extends Interceptor native "Range" {
   @DomName('Range.insertNode')
   @DocsEditable()
   void insertNode(Node newNode) native;
-
-  @DomName('Range.intersectsNode')
-  @DocsEditable()
-  @deprecated // deprecated
-  bool intersectsNode(Node refNode) native;
 
   @DomName('Range.isPointInRange')
   @DocsEditable()
@@ -21331,18 +21023,6 @@ class ScriptElement extends HtmlElement native "HTMLScriptElement" {
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
   bool defer;
-
-  @DomName('HTMLScriptElement.event')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
-  @deprecated // deprecated
-  String event;
-
-  @DomName('HTMLScriptElement.htmlFor')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
-  @deprecated // deprecated
-  String htmlFor;
 
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable()
@@ -23242,12 +22922,6 @@ class TableElement extends HtmlElement native "HTMLTableElement" {
    */
   TableElement.created() : super.created();
 
-  @DomName('HTMLTableElement.border')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLTableElement-partial
-  @deprecated // deprecated
-  String border;
-
   @DomName('HTMLTableElement.caption')
   @DocsEditable()
   TableCaptionElement caption;
@@ -23786,12 +23460,6 @@ class Text extends CharacterData native "Text" {
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getDestinationInsertionPoints() native;
-
-  @DomName('Text.replaceWholeText')
-  @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-text-replacewholetext
-  @deprecated // deprecated
-  Text replaceWholeText(String content) native;
 
   @DomName('Text.splitText')
   @DocsEditable()
@@ -24718,12 +24386,6 @@ class TreeWalker extends Interceptor native "TreeWalker" {
   @DocsEditable()
   Node currentNode;
 
-  @DomName('TreeWalker.expandEntityReferences')
-  @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-traversal
-  @deprecated // deprecated
-  final bool expandEntityReferences;
-
   @DomName('TreeWalker.filter')
   @DocsEditable()
   final NodeFilter filter;
@@ -25043,16 +24705,6 @@ class VideoElement extends MediaElement implements CanvasImageSource native "HTM
   @Experimental()
   final int decodedFrameCount;
 
-  @JSName('webkitDisplayingFullscreen')
-  @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  final bool displayingFullscreen;
-
   @JSName('webkitDroppedFrameCount')
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   @DocsEditable()
@@ -25061,29 +24713,9 @@ class VideoElement extends MediaElement implements CanvasImageSource native "HTM
   @Experimental()
   final int droppedFrameCount;
 
-  @JSName('webkitSupportsFullscreen')
-  @DomName('HTMLVideoElement.webkitSupportsFullscreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  final bool supportsFullscreen;
-
   @DomName('HTMLVideoElement.width')
   @DocsEditable()
   int width;
-
-  @JSName('webkitEnterFullScreen')
-  @DomName('HTMLVideoElement.webkitEnterFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  void enterFullScreen() native;
 
   @JSName('webkitEnterFullscreen')
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
@@ -25093,16 +24725,6 @@ class VideoElement extends MediaElement implements CanvasImageSource native "HTM
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   void enterFullscreen() native;
-
-  @JSName('webkitExitFullScreen')
-  @DomName('HTMLVideoElement.webkitExitFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
-  @deprecated // deprecated
-  void exitFullScreen() native;
 
   @JSName('webkitExitFullscreen')
   @DomName('HTMLVideoElement.webkitExitFullscreen')
@@ -25227,12 +24849,6 @@ class WebSocket extends EventTarget native "WebSocket" {
   @DomName('WebSocket.OPEN')
   @DocsEditable()
   static const int OPEN = 1;
-
-  @JSName('URL')
-  @DomName('WebSocket.URL')
-  @DocsEditable()
-  @deprecated // deprecated
-  final String Url;
 
   @DomName('WebSocket.binaryType')
   @DocsEditable()
@@ -25964,11 +25580,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental() // non-standard
   final double devicePixelRatio;
 
-  @DomName('Window.event')
-  @DocsEditable()
-  @deprecated // deprecated
-  final Event event;
-
   @DomName('Window.history')
   @DocsEditable()
   final History history;
@@ -26049,12 +25660,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
-  @DomName('Window.personalbar')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.personalbar
-  @deprecated // deprecated
-  final BarProp personalbar;
-
   @DomName('Window.screen')
   @DocsEditable()
   final Screen screen;
@@ -26127,26 +25732,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Returns('Window|=Object')
   final dynamic _get_top;
 
-  @JSName('webkitNotifications')
-  @DomName('Window.webkitNotifications')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://plus.sandbox.google.com/u/0/+GoogleChromeDevelopers/posts/8vWo8hq4pDm?e=Showroom
-  @deprecated // deprecated
-  final NotificationCenter notifications;
-
-  @JSName('webkitStorageInfo')
-  @DomName('Window.webkitStorageInfo')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://www.w3.org/TR/file-system-api/
-  @deprecated // deprecated
-  final StorageInfo storageInfo;
-
   @DomName('Window.window')
   @DocsEditable()
   WindowBase get window => _convertNativeToDart_Window(this._get_window);
@@ -26186,12 +25771,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DomName('Window.alert')
   @DocsEditable()
   void alert(String message) native;
-
-  @DomName('Window.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native;
 
   @DomName('Window.close')
   @DocsEditable()
@@ -26276,12 +25855,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DomName('Window.print')
   @DocsEditable()
   void print() native;
-
-  @DomName('Window.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native;
 
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -27370,16 +26943,6 @@ class _Attr extends Node native "Attr" {
 
   // Use implementation from Node.
   // final String _namespaceUri;
-
-  @DomName('Attr.ownerElement')
-  @DocsEditable()
-  @deprecated // deprecated
-  final Element ownerElement;
-
-  @DomName('Attr.specified')
-  @DocsEditable()
-  @deprecated // deprecated
-  final bool specified;
 
   @DomName('Attr.value')
   @DocsEditable()
@@ -29850,13 +29413,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !isPaused) {
-      _target.$dom_addEventListener(_eventType, _onData, _useCapture);
+      _target._addEventListener(_eventType, _onData, _useCapture);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
+      _target._removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 

@@ -889,12 +889,6 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" 
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('OscillatorNode.CUSTOM')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int CUSTOM = 4;
-
   @DomName('OscillatorNode.FINISHED_STATE')
   @DocsEditable()
   static const int FINISHED_STATE = 3;
@@ -903,33 +897,9 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" 
   @DocsEditable()
   static const int PLAYING_STATE = 2;
 
-  @DomName('OscillatorNode.SAWTOOTH')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SAWTOOTH = 2;
-
   @DomName('OscillatorNode.SCHEDULED_STATE')
   @DocsEditable()
   static const int SCHEDULED_STATE = 1;
-
-  @DomName('OscillatorNode.SINE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SINE = 0;
-
-  @DomName('OscillatorNode.SQUARE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SQUARE = 1;
-
-  @DomName('OscillatorNode.TRIANGLE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int TRIANGLE = 3;
 
   @DomName('OscillatorNode.UNSCHEDULED_STATE')
   @DocsEditable()
@@ -989,42 +959,6 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode,Oscillator" 
 class PannerNode extends AudioNode native "PannerNode,AudioPannerNode" {
   // To suppress missing implicit constructor warnings.
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('PannerNode.EQUALPOWER')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int EQUALPOWER = 0;
-
-  @DomName('PannerNode.EXPONENTIAL_DISTANCE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int EXPONENTIAL_DISTANCE = 2;
-
-  @DomName('PannerNode.HRTF')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int HRTF = 1;
-
-  @DomName('PannerNode.INVERSE_DISTANCE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int INVERSE_DISTANCE = 1;
-
-  @DomName('PannerNode.LINEAR_DISTANCE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int LINEAR_DISTANCE = 0;
-
-  @DomName('PannerNode.SOUNDFIELD')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SOUNDFIELD = 2;
 
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()

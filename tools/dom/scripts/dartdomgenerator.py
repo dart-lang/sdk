@@ -69,11 +69,11 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   generator.AddMissingArguments(webkit_database)
 
   emitters = multiemitter.MultiEmitter()
-  renamer = HtmlRenamer(webkit_database)
-  type_registry = TypeRegistry(webkit_database, renamer)
   metadata = DartMetadata(
       os.path.join(current_dir, '..', 'dom.json'),
       os.path.join(current_dir, '..', 'docs', 'docs.json'))
+  renamer = HtmlRenamer(webkit_database, metadata)
+  type_registry = TypeRegistry(webkit_database, renamer)
 
   def RunGenerator(dart_libraries, dart_output_dir,
                    template_loader, backend_factory):

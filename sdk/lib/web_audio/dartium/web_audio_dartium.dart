@@ -462,7 +462,7 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_addEventListener_Callback";
+  void _addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_addEventListener_Callback";
 
   @DomName('AudioContext.dispatchEvent')
   @DocsEditable()
@@ -472,7 +472,7 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_removeEventListener_Callback";
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_removeEventListener_Callback";
 
   @DomName('AudioContext.oncomplete')
   @DocsEditable()
@@ -613,7 +613,7 @@ class AudioNode extends EventTarget {
 
   @DomName('AudioNode.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
+  void _addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
 
   @DomName('AudioNode.dispatchEvent')
   @DocsEditable()
@@ -621,7 +621,7 @@ class AudioNode extends EventTarget {
 
   @DomName('AudioNode.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
@@ -1089,12 +1089,6 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('OscillatorNode.CUSTOM')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int CUSTOM = 4;
-
   @DomName('OscillatorNode.FINISHED_STATE')
   @DocsEditable()
   static const int FINISHED_STATE = 3;
@@ -1103,33 +1097,9 @@ class OscillatorNode extends AudioSourceNode {
   @DocsEditable()
   static const int PLAYING_STATE = 2;
 
-  @DomName('OscillatorNode.SAWTOOTH')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SAWTOOTH = 2;
-
   @DomName('OscillatorNode.SCHEDULED_STATE')
   @DocsEditable()
   static const int SCHEDULED_STATE = 1;
-
-  @DomName('OscillatorNode.SINE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SINE = 0;
-
-  @DomName('OscillatorNode.SQUARE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SQUARE = 1;
-
-  @DomName('OscillatorNode.TRIANGLE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int TRIANGLE = 3;
 
   @DomName('OscillatorNode.UNSCHEDULED_STATE')
   @DocsEditable()
@@ -1196,42 +1166,6 @@ class OscillatorNode extends AudioSourceNode {
 class PannerNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('PannerNode.EQUALPOWER')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int EQUALPOWER = 0;
-
-  @DomName('PannerNode.EXPONENTIAL_DISTANCE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int EXPONENTIAL_DISTANCE = 2;
-
-  @DomName('PannerNode.HRTF')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int HRTF = 1;
-
-  @DomName('PannerNode.INVERSE_DISTANCE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int INVERSE_DISTANCE = 1;
-
-  @DomName('PannerNode.LINEAR_DISTANCE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int LINEAR_DISTANCE = 0;
-
-  @DomName('PannerNode.SOUNDFIELD')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
-  @deprecated // deprecated
-  static const int SOUNDFIELD = 2;
 
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
