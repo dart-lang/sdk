@@ -12,10 +12,6 @@ Language/12_Expressions/01_Constants_A16_t03: fail
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
-# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
-Language/15_Types/4_Interface_Types_A11_t01: Skip
-Language/15_Types/4_Interface_Types_A11_t02: Skip
-
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
 
