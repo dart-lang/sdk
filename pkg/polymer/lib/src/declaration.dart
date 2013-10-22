@@ -169,7 +169,7 @@ class PolymerDeclaration extends HtmlElement {
     // TODO(jmesserly): resolvePath not ported, see first comment in this class.
 
     // under ShadowDOMPolyfill, transforms to approximate missing CSS features
-    _shimShadowDomStyling(templateContent, name);
+    _shimShadowDomStyling(templateContent, name, extendee);
 
     // register our custom element
     registerType(name);
@@ -588,31 +588,16 @@ String _removeEventPrefix(String name) => name.substring(_EVENT_PREFIX.length);
 /**
  * Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
  */
-void _shimShadowDomStyling(DocumentFragment template, String localName) {
+void _shimShadowDomStyling(DocumentFragment template, String name,
+    String extendee) {
   if (js.context == null || template == null) return;
+  if (js.context.hasProperty('ShadowDOMPolyfill')) return;
 
   var platform = js.context['Platform'];
   if (platform == null) return;
-
-  var style = template.query('style');
-  if (style == null) return;
-
   var shadowCss = platform['ShadowCSS'];
   if (shadowCss == null) return;
-
-  // TODO(terry): Remove calls to shimShadowDOMStyling2 and replace with
-  //              shimShadowDOMStyling when we support unwrapping dart:html
-  //              Element to a JS DOM node.
-  var shimShadowDOMStyling2 = shadowCss['shimShadowDOMStyling2'];
-  if (shimShadowDOMStyling2 == null) return;
-
-  var scopedCSS = shimShadowDOMStyling2.apply([style.text, localName],
-      thisArg: shadowCss);
-
-  // TODO(terry): Remove when shimShadowDOMStyling is called we don't need to
-  //              replace original CSS with scoped CSS shimShadowDOMStyling
-  //              does that.
-  style.text = scopedCSS;
+  shadowCss.callMethod('shimStyling', [template, name, extendee]);
 }
 
 const _STYLE_SELECTOR = 'style';
