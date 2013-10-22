@@ -785,8 +785,8 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
-      _returnType =
-          reflectType(_FunctionTypeMirror_return_type(_reflectee));
+      _returnType = reflectType(_FunctionTypeMirror_return_type(_reflectee));
+      _returnType = _returnType._instantiateInContextOf(reflectType(_instantiator));
     }
     return _returnType;
   }
@@ -795,9 +795,18 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
       _parameters = _FunctionTypeMirror_parameters(_reflectee);
+      _parameters.forEach((p) {
+        p._type = p.type._instantiateInContextOf(reflectType(_instantiator));
+      });
     }
     return _parameters;
   }
+
+  bool get isOriginalDeclaration => true;
+  get originalDeclaration => this;
+  get typeVariables => [];
+  get typeArguments => [];
+  get metadata => [];
 
   Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
   Map<Symbol, MethodMirror> get constructors => new Map<Symbol,MethodMirror>();
@@ -908,7 +917,8 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     var instantiator = declaration;
     while (instantiator is MethodMirror) instantiator = instantiator.owner;
     if (instantiator is LibraryMirror) return this;
-    if (instantiator is! ClassMirror) throw "UNREACHABLE";
+    if (!(instantiator is ClassMirror || instantiator is TypedefMirror))
+      throw "UNREACHABLE";
     if (instantiator.isOriginalDeclaration) return this;
 
     return reflectType(
@@ -921,15 +931,18 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
     implements TypedefMirror {
   _LocalTypedefMirrorImpl(reflectee,
+                          this._reflectedType,
                           String simpleName,
+                          this._isGeneric,
+                          this._isGenericDeclaration,
                           this._owner)
       : super(reflectee, _s(simpleName));
 
-  final bool isTopLevel = true;
+  final Type _reflectedType;
+  final bool _isGeneric;
+  final bool _isGenericDeclaration;
 
-  // TODO(12282): Deal with generic typedefs.
-  bool get _isGeneric => false;
-
+  bool get isTopLevel => true;
   bool get isPrivate => false;
 
   DeclarationMirror _owner;
@@ -947,20 +960,71 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
   TypeMirror _referent = null;
   TypeMirror get referent {
     if (_referent == null) {
-      // TODO(12282): Deal with generic typedef.
-      return new _LocalFunctionTypeMirrorImpl(
-          _TypedefMirror_referent(_reflectee), null);
+      _referent = _nativeReferent(_reflectedType);
+      _referent._instantiator = _reflectedType;
     }
     return _referent;
   }
 
+  bool get isOriginalDeclaration => !_isGeneric || _isGenericDeclaration;
+
+  TypedefMirror get originalDeclaration {
+    if (isOriginalDeclaration) {
+      return this;
+    } else {
+      return _nativeDeclaration(_reflectedType);
+    }
+  }
+
+  List<TypeVariableMirror> _typeVariables = null;
+  List<TypeVariableMirror> get typeVariables {
+    if (_typeVariables == null) {
+      _typeVariables = new List<TypeVariableMirror>();
+      List params = _LocalClassMirrorImpl._ClassMirror_type_variables(_reflectee);
+      var mirror;
+      for (var i = 0; i < params.length; i += 2) {
+        mirror = new _LocalTypeVariableMirrorImpl(
+            params[i + 1], params[i], this);
+        _typeVariables.add(mirror);
+      }
+    }
+    return _typeVariables;
+  }
+
+  List<TypeMirror> _typeArguments = null;
+  List<TypeMirror> get typeArguments {
+    if(_typeArguments == null) {
+      if(_isGenericDeclaration) {
+        _typeArguments = new List<TypeMirror>();
+      } else {
+        _typeArguments =
+            new List<TypeMirror>.from(_LocalClassMirrorImpl._computeTypeArguments(_reflectedType));
+      }
+    }
+    return _typeArguments;
+  }
+
+  TypeMirror _instantiateInContextOf(declaration) {
+    var instantiator = declaration;
+    while (instantiator is MethodMirror) instantiator = instantiator.owner;
+    if (instantiator is LibraryMirror) return this;
+    if (!(instantiator is ClassMirror || instantiator is TypedefMirror))
+      throw "UNREACHABLE";
+
+    return reflectType(
+        _nativeInstatniateFrom(_reflectedType, instantiator._reflectedType));
+  }
+
   String toString() => "TypedefMirror on '${_n(simpleName)}'";
 
-  static _TypedefMirror_referent(_reflectee)
+  static _nativeReferent(reflectedType)
       native "TypedefMirror_referent";
 
-  // TODO(12282): This is wrong.
-  TypeMirror _instantiateInContextOf(declaration) => this;
+  static _nativeInstatniateFrom(reflectedType, instantiator)
+      native "TypedefMirror_instantiate_from";
+
+  static _nativeDeclaration(reflectedType)
+      native "TypedefMirror_declaration";
 }
 
 class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
