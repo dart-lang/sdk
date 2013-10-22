@@ -32931,7 +32931,18 @@ void _registerCustomElement(context, document, String tag, Type type,
   if (baseClassName == null) {
     throw new ArgumentError(type);
   }
-  if (baseClassName == 'Element') baseClassName = 'HTMLElement';
+
+  if (extendsTagName == null) {
+    if (baseClassName != 'HTMLElement') {
+      throw new UnsupportedError('Class must provide extendsTag if base '
+          'native class is not HTMLElement');
+    }
+  } else {
+    if (!JS('bool', '(#.createElement(#) instanceof window[#])',
+        document, extendsTagName, baseClassName)) {
+      throw new UnsupportedError('extendsTag does not match base native class');
+    }
+  }
 
   var baseConstructor = JS('=Object', '#[#]', context, baseClassName);
 

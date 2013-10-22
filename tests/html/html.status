@@ -411,6 +411,3 @@ async_test: Timeout # Issue 13719: Please triage this failure.
 dromaeo_smoke_test: Fail # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
 touchevent_test/supported: Fail # Issue 13719: Please triage this failure.
-
-[ $compiler == dart2js ]
-custom/document_register_type_extensions_test/registration: Fail # Issue 14093
