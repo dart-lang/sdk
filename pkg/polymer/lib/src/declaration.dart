@@ -172,7 +172,7 @@ class PolymerDeclaration extends HtmlElement {
     _shimShadowDomStyling(templateContent, name);
 
     // register our custom element
-    registerType(name, extendsTag: extendee);
+    registerType(name);
 
     // NOTE: skip in Dart because we don't have mutable global scope.
     // reference constructor in a global named by 'constructor' attribute
@@ -234,10 +234,15 @@ class PolymerDeclaration extends HtmlElement {
 
   }
 
-  void registerType(String name, {String extendsTag}) {
+  void registerType(String name) {
+    var baseTag;
+    var decl = this;
+    while (decl != null) {
+      baseTag = decl.attributes['extends'];
+      decl = decl.superDeclaration;
+    }
     // native element must be specified in extends
-    var nativeExtends = (extendsTag != null && !extendsTag.contains('-')) ?
-        extendsTag : null;
+    var nativeExtends = baseTag;
     document.register(name, type, extendsTag: nativeExtends);
   }
 

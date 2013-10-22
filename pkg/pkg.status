@@ -44,6 +44,7 @@ polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
+polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
 
 [$compiler == dart2dart]
@@ -99,6 +100,7 @@ polymer/test/instance_attrs_test: Pass, Fail, Timeout # Issue 13260, 14293
 polymer/test/prop_attr_bind_reflection_test: Pass, Fail, Timeout # Issue 13260, 14293
 polymer/test/prop_attr_reflection_test: Pass, Fail, Timeout # Issue 13260, 14293
 polymer/test/publish_attributes_test: Pass, Fail, Timeout # Issue 13260, 14293
+polymer/test/register_test: Pass, Fail, Timeout # Issue 13260, 14293
 polymer/test/take_attributes_test: Pass, Fail, Timeout # Issue 13260, 14293
 
 
