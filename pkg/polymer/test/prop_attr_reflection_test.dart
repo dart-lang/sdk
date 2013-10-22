@@ -37,6 +37,7 @@ Future onAttributeChange(Element node) {
     observer.disconnect();
     completer.complete();
   })..observe(node, attributes: true);
+  Platform.flush();
   return completer.future;
 }
 
@@ -52,9 +53,9 @@ main() {
   Polymer.register('x-compose', XCompose);
 
   test('property attribute reflection', () {
-    var xcompose = query('x-compose').xtag;
-    var xfoo = query('x-foo').xtag;
-    var xbar = query('x-bar').xtag;
+    var xcompose = query('x-compose');
+    var xfoo = query('x-foo');
+    var xbar = query('x-bar');
     xfoo.foo = 5;
     return onAttributeChange(xfoo).then((_) {
       expect(xcompose.$['bar'].attributes.containsKey('zim'), false,

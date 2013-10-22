@@ -292,6 +292,3 @@ observe/test/observe_test: fail
 
 # pkg issue 13945; Missing inherited member 'Trace.frames'
 observe/test/observe_test: fail
-
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-polymer/test/prop_attr_reflection_test: Fail # Issue 14295
