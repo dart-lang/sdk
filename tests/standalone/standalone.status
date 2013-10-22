@@ -135,10 +135,10 @@ vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
 deoptimization_test: RuntimeError, OK # Requires bigint.
 out_of_memory_test: RuntimeError, OK # d8 handles much larger arrays than Dart VM.
-io/options_test: CompileTimeError, OK # Cannot pass options to d8.
+io/arguments_test: CompileTimeError, OK # Cannot pass arguments to d8.
 
 [ $compiler == dart2js && $runtime == none ]
-io/options_test: Fail
+io/arguments_test: Fail # DartOptions not supported by dart2js, and issue 14200.
 medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
