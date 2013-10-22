@@ -89,6 +89,7 @@ polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 1326
 polymer/test/prop_attr_bind_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/register_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $system == windows && ($runtime == chrome || $runtime == ff) ]

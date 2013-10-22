@@ -241,9 +241,7 @@ class PolymerDeclaration extends HtmlElement {
       baseTag = decl.attributes['extends'];
       decl = decl.superDeclaration;
     }
-    // native element must be specified in extends
-    var nativeExtends = baseTag;
-    document.register(name, type, extendsTag: nativeExtends);
+    document.register(name, type, extendsTag: baseTag);
   }
 
   void publishAttributes(ClassMirror cls, PolymerDeclaration superDecl) {
