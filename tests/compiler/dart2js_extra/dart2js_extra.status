@@ -43,5 +43,5 @@ bailout8_test: Fail, OK # Mismatch in thrown exception.
 deferred/deferred_class_test: Fail # http://dartbug.com/3940
 deferred/deferred_constant_test: Fail # http://dartbug.com/3940
 
-[ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == ie9 || $runtime == chrome) ]
+[ $compiler == dart2js && $browser ]
 mirror_printer_test: Fail # Issue 14304
