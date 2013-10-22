@@ -55,6 +55,7 @@ element_types_test/supported_datalist: Fail # TODO(kasperl): Please triage.
 fileapi_test/directoryReader: Fail # TODO(kasperl): Please triage.
 input_element_test/supported_week: Fail # TODO(kasperl): Please triage.
 media_stream_test/supported_media: Fail # TODO(kasperl): Please triage.
+notifications_test/supported: Fail # TODO(kasperl): Please triage.
 rtc_test/supported: Fail # TODO(kasperl): Please triage.
 speechrecognition_test/supported: Fail # TODO(kasperl): Please triage.
 speechrecognition_test/types: Fail # TODO(kasperl): Please triage.
@@ -145,6 +146,7 @@ media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
+notifications_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -225,6 +227,7 @@ media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
+notifications_test/supported: Fail
 range_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
@@ -271,6 +274,7 @@ xsltprocessor_test/supported: Fail
 [ $runtime == safari ]
 worker_test: Skip # Issue 13221
 worker_api_test: Skip # Issue 13221
+notifications_test/supported: Pass, Fail # Issue 13210
 element_types_test/supported_track: Pass, Fail
 input_element_test/supported_month: Fail, Crash
 input_element_test/supported_time: Fail, Crash
@@ -295,6 +299,7 @@ input_element_test/supported_datetime-local: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
+notifications_test/supported: Fail
 performance_api_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
@@ -338,6 +343,7 @@ element_types_test/supported_template: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
+notifications_test/supported: Fail
 performance_api_test/supported: Fail
 speechrecognition_test/supported: Fail
 websql_test/supported: Fail
@@ -373,6 +379,7 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
+notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail

@@ -599,11 +599,6 @@ class DartMetadata(object):
         annotations = ann2
     return annotations
 
-  def IsDeprecated(self, interface, member_name):
-    annotations = self._GetSupportLevelAnnotations(interface.id, member_name)
-    return any(
-        annotation.startswith('@deprecated') for annotation in annotations)
-
   def _GetCommonAnnotations(self, interface, member_name=None,
       source_member_name=None):
     if member_name:

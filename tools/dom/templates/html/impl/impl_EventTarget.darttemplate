@@ -87,7 +87,8 @@ class ElementEvents extends Events {
 /**
  * Base class for all browser objects that support events.
  *
- * Use the [on] property to add, and remove events
+ * Use the [on] property to add, and remove events (rather than
+ * [$dom_addEventListener] and [$dom_removeEventListener]
  * for compile-time type checks and a more concise API.
  */
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {

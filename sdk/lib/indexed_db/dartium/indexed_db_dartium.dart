@@ -226,7 +226,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.addEventListener')
   @DocsEditable()
-  void _addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
 
   @DomName('IDBDatabase.dispatchEvent')
   @DocsEditable()
@@ -234,7 +234,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.removeEventListener')
   @DocsEditable()
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
@@ -902,7 +902,7 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.addEventListener')
   @DocsEditable()
-  void _addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
 
   @DomName('IDBRequest.dispatchEvent')
   @DocsEditable()
@@ -910,7 +910,7 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.removeEventListener')
   @DocsEditable()
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
   @DomName('IDBRequest.onerror')
   @DocsEditable()
@@ -995,7 +995,7 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.addEventListener')
   @DocsEditable()
-  void _addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
 
   @DomName('IDBTransaction.dispatchEvent')
   @DocsEditable()
@@ -1003,7 +1003,7 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.removeEventListener')
   @DocsEditable()
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
 
   @DomName('IDBTransaction.onabort')
   @DocsEditable()
