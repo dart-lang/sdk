@@ -38,8 +38,9 @@ class FilePool {
 
   /// The maximum number of file descriptors that the pool will allocate.
   ///
-  /// Barback may only use half the available file descriptors.
-  int get _maxOpenFiles => (maxFileDescriptors / 2).floor();
+  /// This is based on empirical tests that indicate that beyond 32, additional
+  /// file reads don't provide substantial additional throughput.
+  final int _maxOpenFiles = 32;
 
   /// Opens [file] for reading.
   ///
