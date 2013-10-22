@@ -27,14 +27,15 @@ class InvocationMirror : public AllStatic {
   };
 
   enum Call {
-    // These values, except kDynamic, are only used when throwing
+    // These values, except kDynamic and kSuper, are only used when throwing
     // NoSuchMethodError for compile-time resolution failures.
     kDynamic = 0,
-    kStatic  = 1,
-    kConstructor = 2,
-    kTopLevel = 3,
+    kSuper = 1,
+    kStatic  = 2,
+    kConstructor = 3,
+    kTopLevel = 4,
     kCallShift = kTypeBits,
-    kCallBits = 2,
+    kCallBits = 3,
     kCallMask = (1 << kCallBits) - 1
   };
 

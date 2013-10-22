@@ -396,7 +396,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     const Script& script = Script::Handle(target_class.script());
     ReportError(Error::Handle(),  // No previous error.
                 script, target.token_pos(),
-                "constructor '%s' must be const as required by redirecting"
+                "constructor '%s' must be const as required by redirecting "
                 "const factory '%s'",
                 String::Handle(target.name()).ToCString(),
                 String::Handle(factory.name()).ToCString());

@@ -223,6 +223,11 @@ patch class NoSuchMethodError {
         }
         break;
       }
+      case _InvocationMirror._SUPER: {
+        msg = "Super class of class '${_receiver.runtimeType}' has no instance "
+              "$type_str '$memberName'$args_message.";
+        break;
+      }
       case _InvocationMirror._STATIC: {
         msg = "No static $type_str '$memberName' declared in class "
             "'$_receiver'.";

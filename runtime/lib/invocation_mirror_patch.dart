@@ -13,20 +13,22 @@ class _InvocationMirror implements Invocation {
   static const int _TYPE_BITS = 2;
   static const int _TYPE_MASK = (1 << _TYPE_BITS) - 1;
 
-  // These values, except _DYNAMIC, are only used when throwing
+  // These values, except _DYNAMIC and _SUPER, are only used when throwing
   // NoSuchMethodError for compile-time resolution failures.
   static const int _DYNAMIC = 0;
-  static const int _STATIC = 1;
-  static const int _CONSTRUCTOR = 2;
-  static const int _TOP_LEVEL = 3;
+  static const int _SUPER = 1;
+  static const int _STATIC = 2;
+  static const int _CONSTRUCTOR = 3;
+  static const int _TOP_LEVEL = 4;
   static const int _CALL_SHIFT = _TYPE_BITS;
-  static const int _CALL_BITS = 2;
+  static const int _CALL_BITS = 3;
   static const int _CALL_MASK = (1 << _CALL_BITS) - 1;
 
   // Internal representation of the invocation mirror.
   final String _functionName;
   final List _argumentsDescriptor;
   final List _arguments;
+  final bool _isSuperInvocation;
 
   // External representation of the invocation mirror; populated on demand.
   Symbol _memberName;
@@ -45,7 +47,7 @@ class _InvocationMirror implements Invocation {
           new _collection_dev.Symbol.unvalidated(
               _functionName.substring(4) + "=");
     } else {
-      _type = _METHOD;
+      _type = _isSuperInvocation ? (_SUPER << _CALL_SHIFT) | _METHOD : _METHOD;
       _memberName = new _collection_dev.Symbol.unvalidated(_functionName);
     }
   }
@@ -93,38 +95,43 @@ class _InvocationMirror implements Invocation {
     if (_type == null) {
       _setMemberNameAndType();
     }
-    return _type == _METHOD;
+    return (_type & _TYPE_MASK) == _METHOD;
   }
 
   bool get isAccessor {
     if (_type == null) {
       _setMemberNameAndType();
     }
-    return _type != _METHOD;
+    return (_type & _TYPE_MASK) != _METHOD;
   }
 
   bool get isGetter {
     if (_type == null) {
       _setMemberNameAndType();
     }
-    return _type == _GETTER;
+    return (_type & _TYPE_MASK) == _GETTER;
   }
 
   bool get isSetter {
     if (_type == null) {
       _setMemberNameAndType();
     }
-    return _type == _SETTER;
+    return (_type & _TYPE_MASK) == _SETTER;
   }
 
   _InvocationMirror(this._functionName,
                     this._argumentsDescriptor,
-                    this._arguments);
+                    this._arguments,
+                    this._isSuperInvocation);
 
   static _allocateInvocationMirror(String functionName,
                                    List argumentsDescriptor,
-                                   List arguments) {
-    return new _InvocationMirror(functionName, argumentsDescriptor, arguments);
+                                   List arguments,
+                                   bool isSuperInvocation) {
+    return new _InvocationMirror(functionName,
+                                 argumentsDescriptor,
+                                 arguments,
+                                 isSuperInvocation);
   }
 
   static _invoke(Object receiver,

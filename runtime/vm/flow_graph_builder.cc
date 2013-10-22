@@ -2746,7 +2746,8 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
                                       node->receiver(),
                                       getter_name,
                                       arguments,
-                                      false);  // Don't save last argument.
+                                      false,  // Don't save last argument.
+                                      true);  // Super invocation.
       ReturnDefinition(call);
       return;
     } else {
@@ -2824,7 +2825,8 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
           node->receiver(),
           setter_name,
           arguments,
-          result_is_needed);  // Save last arg if result is needed.
+          result_is_needed,  // Save last arg if result is needed.
+          true);  // Super invocation.
     } else {
       // Throw a NoSuchMethodError.
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
@@ -3180,7 +3182,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
                                       node->array(),
                                       Symbols::IndexToken(),
                                       arguments,
-                                      false);  // Don't save last arg.
+                                      false,  // Don't save last arg.
+                                      true);  // Super invocation.
       ReturnDefinition(call);
       return;
     }
@@ -3241,7 +3244,8 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
           node->array(),
           Symbols::AssignIndexToken(),
           arguments,
-          result_is_needed);  // Save last arg if result is needed.
+          result_is_needed,  // Save last arg if result is needed.
+          true);  // Super invocation.
       if (result_is_needed) {
         Do(call);
         // BuildStaticNoSuchMethodCall stores the value in expression_temp.
@@ -3622,7 +3626,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
     AstNode* receiver,
     const String& method_name,
     ArgumentListNode* method_arguments,
-    bool save_last_arg) {
+    bool save_last_arg,
+    bool is_super_invocation) {
   intptr_t args_pos = method_arguments->token_pos();
   LocalVariable* temp = NULL;
   if (save_last_arg) {
@@ -3632,7 +3637,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
       Parser::BuildNoSuchMethodArguments(args_pos,
                                          method_name,
                                          *method_arguments,
-                                         temp);
+                                         temp,
+                                         is_super_invocation);
   const Function& no_such_method_func = Function::ZoneHandle(
       Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
   // We are guaranteed to find noSuchMethod of class Object.

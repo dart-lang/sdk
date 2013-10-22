@@ -1198,8 +1198,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
   }
 
   if (desc.NamedCount() > 0) {
-    const Array& arg_names =
-        Array::ZoneHandle(Array::New(desc.NamedCount()));
+    const Array& arg_names = Array::ZoneHandle(Array::New(desc.NamedCount()));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       arg_names.SetAt(i, String::Handle(desc.NameAt(i)));
     }
@@ -1207,15 +1206,13 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
   }
 
   const String& func_name = String::ZoneHandle(func.name());
-  ArgumentListNode* arguments = BuildNoSuchMethodArguments(token_pos,
-                                                           func_name,
-                                                           *func_args);
+  ArgumentListNode* arguments = BuildNoSuchMethodArguments(
+      token_pos, func_name, *func_args, NULL, false);
   const Function& no_such_method = Function::ZoneHandle(
-        Resolver::ResolveDynamicAnyArgs(Class::Handle(func.Owner()),
-                                        Symbols::NoSuchMethod()));
+      Resolver::ResolveDynamicAnyArgs(Class::Handle(func.Owner()),
+                                      Symbols::NoSuchMethod()));
   StaticCallNode* call =
       new StaticCallNode(token_pos, no_such_method, arguments);
-
 
   ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
@@ -1649,7 +1646,8 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
-    const LocalVariable* temp_for_last_arg) {
+    const LocalVariable* temp_for_last_arg,
+    bool is_super_invocation) {
   const intptr_t args_pos = function_args.token_pos();
   // Build arguments to the call to the static
   // InvocationMirror._allocateInvocationMirror method.
@@ -1680,6 +1678,7 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     }
   }
   arguments->Add(args_array);
+  arguments->Add(new LiteralNode(args_pos, Bool::Get(is_super_invocation)));
   // Lookup the static InvocationMirror._allocateInvocationMirror method.
   const Class& mirror_class =
       Class::Handle(Library::LookupCoreClass(Symbols::InvocationMirror()));
@@ -1696,14 +1695,18 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
     intptr_t call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
-    const LocalVariable* temp_for_last_arg) {
+    const LocalVariable* temp_for_last_arg,
+    bool is_super_invocation) {
   ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
   const intptr_t args_pos = function_args.token_pos();
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   arguments->Add(function_args.NodeAt(0));
   // The second argument is the invocation mirror.
-  arguments->Add(BuildInvocationMirrorAllocation(
-      call_pos, function_name, function_args, temp_for_last_arg));
+  arguments->Add(BuildInvocationMirrorAllocation(call_pos,
+                                                 function_name,
+                                                 function_args,
+                                                 temp_for_last_arg,
+                                                 is_super_invocation));
   return arguments;
 }
 
@@ -1745,7 +1748,7 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   }
   if (is_no_such_method) {
     arguments = BuildNoSuchMethodArguments(
-        supercall_pos, function_name, *arguments);
+        supercall_pos, function_name, *arguments, NULL, true);
   }
   return new StaticCallNode(supercall_pos, super_function, arguments);
 }
@@ -1779,7 +1782,7 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
                          &is_no_such_method));
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
-          super_pos, operator_function_name, *op_arguments);
+          super_pos, operator_function_name, *op_arguments, NULL, true);
     }
     super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
   } else {
@@ -1836,7 +1839,7 @@ AstNode* Parser::ParseSuperOperator() {
                          &is_no_such_method));
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
-          operator_pos, operator_function_name, *op_arguments);
+          operator_pos, operator_function_name, *op_arguments, NULL, true);
     }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
     if (negate_result) {

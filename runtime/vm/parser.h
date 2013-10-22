@@ -426,14 +426,16 @@ class Parser : public ValueObject {
       intptr_t call_pos,
       const String& function_name,
       const ArgumentListNode& function_args,
-      const LocalVariable* temp = NULL);
+      const LocalVariable* temp,
+      bool is_super_invocation);
   // Build arguments for a NoSuchMethodCall. If LocalVariable temp is not NULL,
   // the last argument is stored in temp.
   static ArgumentListNode* BuildNoSuchMethodArguments(
       intptr_t call_pos,
       const String& function_name,
       const ArgumentListNode& function_args,
-      const LocalVariable* temp = NULL);
+      const LocalVariable* temp,
+      bool is_super_invocation);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
                                 ArgumentListNode* arguments,

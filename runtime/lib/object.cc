@@ -4,6 +4,7 @@
 
 #include "vm/bootstrap_natives.h"
 
+#include "lib/invocation_mirror.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/native_entry.h"
@@ -61,7 +62,9 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   dart_arguments.SetAt(3, func_args);
   dart_arguments.SetAt(4, func_named_args);
 
-  if (is_method.value()) {
+  if (is_method.value() &&
+      (((invocation_type.Value() >> InvocationMirror::kCallShift) &
+        InvocationMirror::kCallMask) != InvocationMirror::kSuper)) {
     // Report if a function with same name (but different arguments) has been
     // found.
     Function& function = Function::Handle();
