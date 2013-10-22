@@ -103,7 +103,6 @@ double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
 factory_redirection_test/01: CompileTimeError # Issue 12752
-factory_redirection_test/07: MissingCompileTimeError # Issue 12752
 bad_override_test/01: CompileTimeError # Issue 11496
 bad_override_test/02: CompileTimeError # Issue 11496
 bad_override_test/06: CompileTimeError # Issue 11496
@@ -252,7 +251,6 @@ scope_variable_test/01: Fail # Issue 13016
 factory_redirection_test/01: Fail # Issue 12753
 factory_redirection_test/02: Crash # Issue 12753
 factory_redirection_test/03: Crash # Issue 12753
-factory_redirection_test/07: Fail # Issue 12753
 factory_redirection_test/09: Fail # Issue 12753
 
 malbounded_type_literal_test: Fail # Issue 13960

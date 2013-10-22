@@ -9661,8 +9661,8 @@ AstNode* Parser::ParseSymbolLiteral() {
 }
 
 
-static const String& BuildConstructorName(const String& type_class_name,
-                                          const String* named_constructor) {
+static String& BuildConstructorName(const String& type_class_name,
+                                    const String* named_constructor) {
   // By convention, the static function implementing a named constructor 'C'
   // for class 'A' is labeled 'A.C', and the static function implementing the
   // unnamed constructor for class 'A' is labeled 'A.'.
@@ -9743,7 +9743,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
   // Resolve the type and optional identifier to a constructor or factory.
   Class& type_class = Class::Handle(type.type_class());
-  const String& type_class_name = String::Handle(type_class.Name());
+  String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
 
@@ -9757,7 +9757,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   AbstractType& type_bound = AbstractType::ZoneHandle();
 
   // Make sure that an appropriate constructor exists.
-  const String& constructor_name =
+  String& constructor_name =
       BuildConstructorName(type_class_name, named_constructor);
   Function& constructor = Function::ZoneHandle(
       type_class.LookupConstructor(constructor_name));
@@ -9811,8 +9811,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       }
       type = redirect_type.raw();
       type_class = type.type_class();
+      type_class_name = type_class.Name();
       type_arguments = type.arguments();
       constructor = constructor.RedirectionTarget();
+      constructor_name = constructor.name();
       ASSERT(!constructor.IsNull());
     }
     if (constructor.IsFactory()) {
