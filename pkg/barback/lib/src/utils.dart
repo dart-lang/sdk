@@ -5,6 +5,7 @@
 library barback.utils;
 
 import 'dart:async';
+import 'dart:io';
 
 /// A pair of values.
 class Pair<E, F> {
@@ -195,3 +196,23 @@ Stream futureStream(Future<Stream> future) {
   });
   return controller.stream;
 }
+
+// TODO(nweiz): Use a built-in function when issue 14244 is fixed.
+int get maxFileDescriptors {
+  if (_maxFileDescriptors != null) return _maxFileDescriptors;
+
+  // Running "sh -c ulimit -n" via the command line always reports "unlimited",
+  // even when that's clearly false. Instead we fall back on OS-based
+  // heuristics.
+  if (Platform.isWindows) {
+    _maxFileDescriptors = 512;
+    return _maxFileDescriptors;
+  } else if (Platform.isMacOS) {
+    _maxFileDescriptors = 16348;
+    return _maxFileDescriptors;
+  } else {
+    _maxFileDescriptors = 256;
+    return _maxFileDescriptors;
+  }
+}
+int _maxFileDescriptors;
