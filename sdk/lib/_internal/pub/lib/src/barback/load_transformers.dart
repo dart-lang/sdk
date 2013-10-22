@@ -367,36 +367,40 @@ Stream _futureStream(Future<Stream> future) {
 ///
 /// [server] is used to serve any Dart files needed to load the transformers.
 Future<Set> loadTransformers(BarbackServer server, TransformerId id) {
-  var path = id.asset.path.replaceFirst('lib/', '');
-  // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-  var hostAndPort = '${server.address.address}:${server.port}';
-  var uri = 'http://$hostAndPort/packages/${id.asset.package}/$path';
-  var code = 'import "$uri";' +
-      _TRANSFORMER_ISOLATE.replaceAll('<<HOST_AND_PORT>>', hostAndPort);
-  log.fine("Loading transformers from ${id.asset}");
-  return dart.runInIsolate(code).then((sendPort) {
-    return _receiveFuture(sendPort.call({
-      'library': uri,
-      // TODO(nweiz): support non-JSON-encodable configuration maps.
-      'configuration': JSON.encode(id.configuration)
-    })).then((transformers) {
-      transformers = transformers.map(_deserializeTransformerOrGroup).toSet();
-      log.fine("Transformers from ${id.asset}: $transformers");
-      return transformers;
-    });
-  }).catchError((error) {
-    if (error is! dart.CrossIsolateException) throw error;
-    if (error.type != 'IsolateSpawnException') throw error;
-    // TODO(nweiz): don't parse this as a string once issues 12617 and 12689 are
-    // fixed.
-    if (!error.message.split('\n')[1].startsWith('import "$uri";')) {
-      throw error;
-    }
+  return id.getAssetId(server.barback).then((assetId) {
+    var path = assetId.path.replaceFirst('lib/', '');
+    // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
+    var hostAndPort = '${server.address.address}:${server.port}';
+    var uri = 'http://$hostAndPort/packages/${id.package}/$path';
+    var code = 'import "$uri";' +
+        _TRANSFORMER_ISOLATE.replaceAll('<<HOST_AND_PORT>>', hostAndPort);
+    log.fine("Loading transformers from $assetId");
 
-    // If there was an IsolateSpawnException and the import that actually failed
-    // was the one we were loading transformers from, throw an application
-    // exception with a more user-friendly message.
-    fail('Transformer library "package:${id.asset.package}/$path" not found.');
+    return dart.runInIsolate(code).then((sendPort) {
+      return _receiveFuture(sendPort.call({
+        'library': uri,
+        // TODO(nweiz): support non-JSON-encodable configuration maps.
+        'configuration': JSON.encode(id.configuration)
+      })).then((transformers) {
+        transformers = transformers.map(_deserializeTransformerOrGroup).toSet();
+        log.fine("Transformers from $assetId: $transformers");
+        return transformers;
+      });
+    }).catchError((error) {
+      if (error is! dart.CrossIsolateException) throw error;
+      if (error.type != 'IsolateSpawnException') throw error;
+      // TODO(nweiz): don't parse this as a string once issues 12617 and 12689
+      // are fixed.
+      if (!error.message.split('\n')[1].startsWith('import "$uri";')) {
+        throw error;
+      }
+
+      // If there was an IsolateSpawnException and the import that actually
+      // failed was the one we were loading transformers from, throw an
+      // application exception with a more user-friendly message.
+      fail('Transformer library "package:${id.package}/$path" not '
+          'found.');
+    });
   });
 }
 
