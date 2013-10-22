@@ -689,7 +689,7 @@ main() {
       // Draw a blue box.
       context.fillText('█', x, y);
 
-      var width = context.measureText('█').width;
+      var width = context.measureText('█').width.toInt();
 
       checkPixel(readPixel(x, y), [0, 0, 255, 255]);
       checkPixel(readPixel(x + 10, y), [0, 0, 255, 255]);
@@ -710,7 +710,7 @@ main() {
       // Draw a blue box with null maxWidth.
       context.fillText('█', x, y, null);
 
-      var width = context.measureText('█').width;
+      var width = context.measureText('█').width.toInt();
 
       checkPixel(readPixel(x, y), [0, 0, 255, 255]);
       checkPixel(readPixel(x + 10, y), [0, 0, 255, 255]);
