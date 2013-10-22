@@ -22,8 +22,7 @@ main() {
     final items = listComp.queryAll('li');
     expect(items.length, 6);
     expect(extractLinks(items), ['1', '2', '3', '4', '4', '5']);
-    expect(listComp.xtag is Polymer, true,
-        reason: 'x-news should be created');
+    expect(listComp is Polymer, true, reason: 'x-news should be created');
 
     final contents = listComp.shadowRoot.queryAll('content');
     expect(contents.length, 2, reason: 'news has 2 content tags');

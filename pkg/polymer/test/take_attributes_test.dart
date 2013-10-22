@@ -56,7 +56,7 @@ main() {
   setUp(() => Polymer.onReady);
 
   test('take attributes', () {
-    queryXTag(x) => document.query(x).xtag;
+    queryXTag(x) => document.query(x);
 
     expect(queryXTag("#foo0").boolean, true);
     expect(queryXTag("#foo1").boolean, false);
