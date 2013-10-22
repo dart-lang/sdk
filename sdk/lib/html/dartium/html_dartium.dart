@@ -13663,7 +13663,7 @@ class HtmlDocument extends Document {
   @Experimental()
   String get visibilityState => _webkitVisibilityState;
 
-  @Experimental
+  @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *

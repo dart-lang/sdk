@@ -13179,7 +13179,7 @@ class HtmlDocument extends Document native "HTMLDocument" {
     '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
       '#.webkitVisibilityState)', this, this, this, this);
 
-  @Experimental
+  @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *

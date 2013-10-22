@@ -159,7 +159,7 @@ $else
   String get visibilityState => _webkitVisibilityState;
 $endif
 
-  @Experimental
+  @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *
