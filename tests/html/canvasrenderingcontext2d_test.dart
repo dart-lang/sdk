@@ -243,6 +243,17 @@ main() {
     });
   });
 
+  group('linedash', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
+
+    test('setLineDash', () {
+      expect(context.getLineDash(), equals([]));
+      var old = context.getLineDash();
+      context.setLineDash(old);
+    });
+  });
+
   group('arc', () {
     setUp(setupFunc);
     tearDown(tearDownFunc);

@@ -1745,7 +1745,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.getLineDash')
   @DocsEditable()
-  List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
+  List<num> _getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
   bool isPointInPath(num x, num y, [String winding]) {
     if (winding != null) {
@@ -2082,6 +2082,14 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
         destX, destY, destWidth, destHeight);
   }
 
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() {
+    var result = _getLineDash();
+    if (result == null) {
+      result = [];
+    }
+    return result;
+  }
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.
 }
@@ -35674,8 +35682,31 @@ class _Utils {
     }
     var className = MirrorSystem.getName(cls.simpleName);
     if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
-      throw new UnsupportedError('Class is missing constructor $className.created');
+      throw new UnsupportedError(
+          'Class is missing constructor $className.created');
     }
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+        cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+        cls != null && cls.qualifiedName == elementName;
+    ClassMirror superClass = cls.superclass;
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
+    if (extendsTagName == null) {
+      if (nativeClass.reflectedType != HtmlElement) {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HTMLElement');
+      }
+    }
+
     _register(document, tag, type, extendsTagName);
   }
 

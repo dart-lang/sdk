@@ -1383,9 +1383,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native;
 
+  @JSName('getLineDash')
   @DomName('CanvasRenderingContext2D.getLineDash')
   @DocsEditable()
-  List<num> getLineDash() native;
+  List<num> _getLineDash() native;
 
   @DomName('CanvasRenderingContext2D.isPointInPath')
   @DocsEditable()
@@ -1746,6 +1747,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
+
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() => _getLineDash();
 
   /**
    * Draws text to the canvas.

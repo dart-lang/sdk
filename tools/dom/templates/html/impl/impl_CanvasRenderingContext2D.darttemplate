@@ -261,7 +261,18 @@ $if DART2JS
   void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
+
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() => _getLineDash();
 $else
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() {
+    var result = _getLineDash();
+    if (result == null) {
+      result = [];
+    }
+    return result;
+  }
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.
 $endif
