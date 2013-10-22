@@ -37,10 +37,6 @@ type_promotion_logical_and_test/none: Fail # Issue 13807
 type_promotion_multiple_test/none: Fail # Issue 13807
 type_promotion_parameter_test/none: Fail # Issue 13807
 
-# Missing checks for cyclic typedefs (through bounds)
-cyclic_typedef_test/10: Fail # Issue 13906
-cyclic_typedef_test/11: Fail # Issue 13906
-
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

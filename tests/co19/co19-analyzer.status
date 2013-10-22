@@ -19,10 +19,6 @@ Language/15_Types/4_Interface_Types_A11_t02: Skip
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
 
-# TBF: typedef self reference
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail
-
 
 
 # co19 issue #442, undefined name "Expect"
