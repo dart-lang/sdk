@@ -224,6 +224,7 @@ mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 mirrors/typevariable_mirror_metadata_test/none: Fail # Issue 13093
+mirrors/redirecting_factory_test/none: Fail # Issue 14285
 
 [ $compiler == dart2analyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
