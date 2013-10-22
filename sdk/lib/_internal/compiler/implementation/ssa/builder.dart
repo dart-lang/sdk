@@ -274,6 +274,11 @@ class LocalsHandler {
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
     JavaScriptBackend backend = compiler.backend;
+
+    // When the class extends a native class, the instance is pre-constructed
+    // and passed to the generative constructor factory function as a parameter.
+    // Instead of allocating and initializing the object, the constructor
+    // 'upgrades' the native subclass object by initializing the Dart fields.
     bool isNativeUpgradeFactory = element.isGenerativeConstructor()
         && Elements.isNativeOrExtendsNative(cls);
     if (backend.isInterceptedMethod(element)) {
@@ -291,7 +296,6 @@ class LocalsHandler {
       }
       value.instructionType = builder.getTypeOfThis();
     } else if (isNativeUpgradeFactory) {
-      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       Element parameter = new InterceptedElement(
           cls.computeType(compiler), 'receiver', element);
       HParameterValue value = new HParameterValue(parameter);
@@ -1613,8 +1617,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               // Unassigned fields of native classes are not initialized to
               // prevent overwriting pre-initialized native properties.
               if (!Elements.isNativeOrExtendsNative(classElement)) {
-                HInstruction value = graph.addConstantNull(compiler);
-                fieldValues[member] = value;
+                fieldValues[member] = graph.addConstantNull(compiler);
               }
             } else {
               Node right = assignment.arguments.head;
@@ -1626,8 +1629,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                   member, node, elements);
               inlinedFrom(member, () => right.accept(this));
               elements = savedElements;
-              HInstruction value = pop();
-              fieldValues[member] = value;
+              fieldValues[member] = pop();
             }
           });
         });

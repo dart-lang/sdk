@@ -168,7 +168,7 @@ var interceptedNames;
 // TODO(sra): Mark this as initialized to a constant with unknown value.
 var mapTypeToInterceptor;
 
-int findIndexForWebComponentType(Type type) {
+int findIndexForNativeSubclassType(Type type) {
   JS_EFFECT((_){ mapTypeToInterceptor = _; });
   if (mapTypeToInterceptor == null) return null;
   List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
@@ -181,7 +181,7 @@ int findIndexForWebComponentType(Type type) {
 }
 
 findInterceptorConstructorForType(Type type) {
-  var index = findIndexForWebComponentType(type);
+  var index = findIndexForNativeSubclassType(type);
   if (index == null) return null;
   List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
   return mapTypeToInterceptor[index + 1];
@@ -193,8 +193,8 @@ findInterceptorConstructorForType(Type type) {
  *
  * The returned function takes one argument, the web component object.
  */
-findConstructorForWebComponentType(Type type, String name) {
-  var index = findIndexForWebComponentType(type);
+findConstructorForNativeSubclassType(Type type, String name) {
+  var index = findIndexForNativeSubclassType(type);
   if (index == null) return null;
   List map = JS('JSFixedArray', '#', mapTypeToInterceptor);
   var constructorMap = mapTypeToInterceptor[index + 2];

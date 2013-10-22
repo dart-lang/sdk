@@ -56,7 +56,7 @@ import 'dart:_js_helper' show
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
-    findConstructorForWebComponentType, getNativeInterceptor,
+    findConstructorForNativeSubclassType, getNativeInterceptor,
     setDispatchProperty, findInterceptorForType;
 
 export 'dart:math' show Rectangle, Point;
@@ -32423,7 +32423,7 @@ void _registerCustomElement(context, document, String tag, Type type,
     throw new ArgumentError(type);
   }
 
-  var constructor = findConstructorForWebComponentType(type, 'created');
+  var constructor = findConstructorForNativeSubclassType(type, 'created');
   if (constructor == null) {
     throw new ArgumentError("$type has no constructor called 'created'");
   }

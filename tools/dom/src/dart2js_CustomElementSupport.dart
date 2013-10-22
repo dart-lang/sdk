@@ -62,7 +62,7 @@ void _registerCustomElement(context, document, String tag, Type type,
     throw new ArgumentError(type);
   }
 
-  var constructor = findConstructorForWebComponentType(type, 'created');
+  var constructor = findConstructorForNativeSubclassType(type, 'created');
   if (constructor == null) {
     throw new ArgumentError("$type has no constructor called 'created'");
   }

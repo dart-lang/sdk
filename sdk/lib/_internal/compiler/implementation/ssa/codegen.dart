@@ -1796,8 +1796,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
-    js.Expression constructor = new js.VariableUse(jsClassReference);
-    push(new js.New(constructor, arguments), node);
+    push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
     registerForeignTypes(node);
     if (node.instantiatedTypes == null) {
       return;
