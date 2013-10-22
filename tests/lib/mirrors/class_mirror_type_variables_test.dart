@@ -30,8 +30,8 @@ void testA() {
 
   TypeVariableMirror aT = a.typeVariables[0];
   TypeVariableMirror aS = a.typeVariables[1];
-  TypeMirror aTBound = aT.upperBound;
-  TypeMirror aSBound = aS.upperBound;
+  ClassMirror aTBound = aT.upperBound;
+  ClassMirror aSBound = aS.upperBound;
 
   Expect.isTrue(aTBound.isOriginalDeclaration);
   Expect.isTrue(aSBound.isOriginalDeclaration);
@@ -59,10 +59,10 @@ void testBAndC() {
   Expect.equals(b, bZBound.originalDeclaration);
   Expect.equals(b, cZBound.originalDeclaration);
 
-  TypeArgumentMirror bZBoundTypeArgument = bZBound.typeArguments.single;
-  TypeArgumentMirror cZBoundTypeArgument = cZBound.typeArguments.single;
-  TypeVarialbeMirror bZBoundTypeVariable = bZBound.typeVariables.single;
-  TypeVarialbeMirror cZBoundTypeVariable = cZBound.typeVariables.single;
+  TypeMirror bZBoundTypeArgument = bZBound.typeArguments.single;
+  TypeMirror cZBoundTypeArgument = cZBound.typeArguments.single;
+  TypeVariableMirror bZBoundTypeVariable = bZBound.typeVariables.single;
+  TypeVariableMirror cZBoundTypeVariable = cZBound.typeVariables.single;
 
   Expect.equals(b, bZ.owner);
   Expect.equals(c, cZ.owner);
@@ -106,7 +106,7 @@ void testF() {
   ClassMirror f = reflectClass(F);
   TypeVariableMirror fZ = f.typeVariables[0];
   ClassMirror fZBound = fZ.upperBound;
-  TypeArgumentMirror fZBoundTypeArgument = fZBound.typeArguments.single;
+  ClassMirror fZBoundTypeArgument = fZBound.typeArguments.single;
 
   Expect.equals(1, f.typeVariables.length);
   Expect.isFalse(fZBound.isOriginalDeclaration);
