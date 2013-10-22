@@ -308,10 +308,7 @@ class _File extends FileSystemEntity implements File {
     return new File(newPath);
   }
 
-  Directory get directory {
-    _Path path = new _Path(this.path).directoryPath;
-    return new Directory(path.toNativePath());
-  }
+  Directory get directory => super.parent;
 
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&

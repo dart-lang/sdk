@@ -81,8 +81,10 @@ abstract class File implements FileSystemEntity {
 
   /**
    * Get a [Directory] object for the directory containing this
-   * file.
+   * file. Deprecated: Replaced by [FileSystemEntity.parent].
+   * Will be removed on Oct 25, 2013.
    */
+  @deprecated
   Directory get directory;
 
   /**
