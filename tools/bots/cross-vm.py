@@ -42,11 +42,7 @@ def cross_compiling_builder(arch, mode):
     if num_run == 1:
       with bot.BuildStep('Build %s %s' % (arch, mode)):
         run([sys.executable, build_py,
-             '-m%s' % mode, '--arch=%s' % arch, 'runtime'])
-        # We need to build 'run_vm_tests.host' as well to enable
-        # test.py to list the VM tests.
-        run([sys.executable, build_py,
-             '-m%s' % mode, '--arch=%s' % arch, 'run_vm_tests.host'])
+             '-m%s' % mode, '--arch=%s' % arch])
 
       with bot.BuildStep('Create build tarball'):
         run(['tar', '-cjf', tarball, '--exclude=**/obj',
