@@ -156,7 +156,7 @@ void testHttpServerRequestBody() {
               expect(response.statusCode, equals(HttpStatus.BAD_REQUEST));
             }
             return response.drain();
-          )}
+          })
           .then((_) {
             client.close();
             server.close();
