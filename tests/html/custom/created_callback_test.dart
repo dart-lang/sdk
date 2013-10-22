@@ -147,6 +147,12 @@ main() {
     expect(e is ErrorConstructorElement, isFalse);
   });
 
+  test('cannot register created with params', () {
+    expect(() {
+      document.register('x-created-with-params', CreatedWithParametersElement);
+    }, throws);
+  });
+
   test('created cannot be called from nested constructor',
       NestedCreatedConstructorElement.test);
 
@@ -271,6 +277,10 @@ class NestedCreatedConstructorElement extends HtmlElement {
     // Should not have been set.
     expect(constructedB, isNull);
   }
+}
+
+class CreatedWithParametersElement extends HtmlElement {
+  CreatedWithParametersElement.created(ignoredParam) : super.created();
 }
 
 void expectGlobalError(Function test) {

@@ -410,9 +410,15 @@ class _Utils {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
-    if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
+    var createdConstructor = cls.constructors[new Symbol('$className.created')];
+    if (createdConstructor == null) {
       throw new UnsupportedError(
           'Class is missing constructor $className.created');
+    }
+
+    if (createdConstructor.parameters.length > 0) {
+      throw new UnsupportedError(
+          'Constructor $className.created must take zero arguments');
     }
 
     Symbol objectName = reflectClass(Object).qualifiedName;
