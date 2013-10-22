@@ -14,9 +14,6 @@ $else
   CanvasRenderingContext2D get context2D => getContext('2d');
 $endif
 
-  @deprecated
-  CanvasRenderingContext2D get context2d => this.context2D;
-
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()

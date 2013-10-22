@@ -22,23 +22,6 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 $!MEMBERS
 
-  @deprecated
-  int get clientX => client.x;
-  @deprecated
-  int get clientY => client.y;
-  @deprecated
-  int get offsetX => offset.x;
-  @deprecated
-  int get offsetY => offset.y;
-  @deprecated
-  int get movementX => movement.x;
-  @deprecated
-  int get movementY => movement.y;
-  @deprecated
-  int get screenX => screen.x;
-  @deprecated
-  int get screenY => screen.y;
-
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
   Point get client => new Point(_clientX, _clientY);

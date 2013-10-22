@@ -1377,15 +1377,6 @@ $endif
   String get innerHtml => _innerHtml;
 
   /**
-   * For use while transitioning to the safe [innerHtml] or [setInnerHtml].
-   * Unsafe because it opens the app to cross-site scripting vulnerabilities.
-   */
-  @deprecated
-  void set unsafeInnerHtml(String html) {
-    _innerHtml = html;
-  }
-
-  /**
    * This is an ease-of-use accessor for event streams which should only be
    * used when an explicit accessor is not available.
    */

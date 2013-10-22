@@ -1157,9 +1157,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D => getContext('2d');
 
-  @deprecated
-  CanvasRenderingContext2D get context2d => this.context2D;
-
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
@@ -10364,15 +10361,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
         html, validator: validator, treeSanitizer: treeSanitizer));
   }
   String get innerHtml => _innerHtml;
-
-  /**
-   * For use while transitioning to the safe [innerHtml] or [setInnerHtml].
-   * Unsafe because it opens the app to cross-site scripting vulnerabilities.
-   */
-  @deprecated
-  void set unsafeInnerHtml(String html) {
-    _innerHtml = html;
-  }
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -26474,16 +26462,6 @@ class UIEvent extends Event {
   @DocsEditable()
   void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
-
-  @deprecated
-  int get layerX => layer.x;
-  @deprecated
-  int get layerY => layer.y;
-
-  @deprecated
-  int get pageX => page.x;
-  @deprecated
-  int get pageY => page.y;
 
   @DomName('UIEvent.layerX')
   @DomName('UIEvent.layerY')

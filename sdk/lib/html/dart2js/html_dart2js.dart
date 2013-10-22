@@ -978,9 +978,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
   CanvasRenderingContext2D get context2D =>
       JS('Null|CanvasRenderingContext2D', '#.getContext(#)', this, '2d');
 
-  @deprecated
-  CanvasRenderingContext2D get context2d => this.context2D;
-
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
@@ -10017,15 +10014,6 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   String get innerHtml => _innerHtml;
 
   /**
-   * For use while transitioning to the safe [innerHtml] or [setInnerHtml].
-   * Unsafe because it opens the app to cross-site scripting vulnerabilities.
-   */
-  @deprecated
-  void set unsafeInnerHtml(String html) {
-    _innerHtml = html;
-  }
-
-  /**
    * This is an ease-of-use accessor for event streams which should only be
    * used when an explicit accessor is not available.
    */
@@ -17243,23 +17231,6 @@ class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent,MSPoi
   @DocsEditable()
   void _initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
-
-  @deprecated
-  int get clientX => client.x;
-  @deprecated
-  int get clientY => client.y;
-  @deprecated
-  int get offsetX => offset.x;
-  @deprecated
-  int get offsetY => offset.y;
-  @deprecated
-  int get movementX => movement.x;
-  @deprecated
-  int get movementY => movement.y;
-  @deprecated
-  int get screenX => screen.x;
-  @deprecated
-  int get screenY => screen.y;
 
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
@@ -24519,16 +24490,6 @@ class UIEvent extends Event native "UIEvent" {
   @DocsEditable()
   void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native;
 
-
-  @deprecated
-  int get layerX => layer.x;
-  @deprecated
-  int get layerY => layer.y;
-
-  @deprecated
-  int get pageX => page.x;
-  @deprecated
-  int get pageY => page.y;
 
   @DomName('UIEvent.layerX')
   @DomName('UIEvent.layerY')
