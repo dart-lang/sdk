@@ -79,15 +79,6 @@ class _Utils {
     return result;
   }
 
-  static List captureParsedStackTrace() {
-    try {
-      // Throwing an exception is the only way to generate a stack trace.
-      throw new Exception();
-    } catch (e, stackTrace) {
-      return parseStackTrace(stackTrace);
-    }
-  }
-
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];
