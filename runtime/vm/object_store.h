@@ -19,7 +19,7 @@ class ObjectPointerVisitor;
 // by snapshots eventually.
 class ObjectStore {
  public:
-  enum {
+  enum BootstrapLibraryId {
     kNone = 0,
     kAsync,
     kCore,
@@ -282,7 +282,7 @@ class ObjectStore {
   RawLibrary* mirrors_library() const { return mirrors_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
   RawLibrary* utf_library() const { return utf_library_; }
-  void set_bootstrap_library(intptr_t index, const Library& value) {
+  void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
       case kAsync:
         async_library_ = value.raw();
