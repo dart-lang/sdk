@@ -13369,14 +13369,6 @@ class HtmlDocument extends Document {
     _title = value;
   }
 
-  @DomName('Document.webkitCancelFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void cancelFullScreen() {
-    _webkitCancelFullScreen();
-  }
-
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -13410,12 +13402,6 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   bool get hidden => _webkitHidden;
-
-  @DomName('Document.webkitIsFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get isFullScreen => _webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -34346,11 +34332,6 @@ class _WrappedEvent implements Event {
   _WrappedEvent(this.wrapped);
 
   bool get bubbles => wrapped.bubbles;
-
-  bool get cancelBubble => wrapped.bubbles;
-  void set cancelBubble(bool value) {
-    wrapped.cancelBubble = value;
-  }
 
   bool get cancelable => wrapped.cancelable;
 

@@ -13,11 +13,6 @@ class _WrappedEvent implements Event {
 
   bool get bubbles => wrapped.bubbles;
 
-  bool get cancelBubble => wrapped.bubbles;
-  void set cancelBubble(bool value) {
-    wrapped.cancelBubble = value;
-  }
-
   bool get cancelable => wrapped.cancelable;
 
   DataTransfer get clipboardData => wrapped.clipboardData;

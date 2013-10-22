@@ -105,14 +105,6 @@ $endif
     _title = value;
   }
 
-  @DomName('Document.webkitCancelFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void cancelFullScreen() {
-    _webkitCancelFullScreen();
-  }
-
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -146,12 +138,6 @@ $endif
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   bool get hidden => _webkitHidden;
-
-  @DomName('Document.webkitIsFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get isFullScreen => _webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
