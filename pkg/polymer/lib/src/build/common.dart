@@ -36,7 +36,13 @@ Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
 
 /** Additional options used by polymer transformers */
 class TransformOptions {
-  List<String> entryPoints;
+  /**
+   * List of entrypoints paths. The paths are relative to the package root and
+   * are represented using posix style, which matches the representation used in
+   * asset ids in barback. If null, anything under 'web/' or 'test/' is
+   * considered an entry point.
+   */
+  final List<String> entryPoints;
 
   /**
    * True to enable Content Security Policy.
@@ -44,7 +50,7 @@ class TransformOptions {
    *
    * This flag has no effect unless [directlyIncludeJS] is enabled.
    */
-  bool contentSecurityPolicy;
+  final bool contentSecurityPolicy;
 
   /**
    * True to include the compiled JavaScript directly from the HTML page.
@@ -54,7 +60,7 @@ class TransformOptions {
    * If [contentSecurityPolicy] enabled, this will reference files
    * named *.dart.precompiled.js.
    */
-  bool directlyIncludeJS;
+  final bool directlyIncludeJS;
 
   TransformOptions({entryPoints, this.contentSecurityPolicy: false,
       this.directlyIncludeJS: true})

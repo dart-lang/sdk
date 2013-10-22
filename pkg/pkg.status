@@ -93,16 +93,16 @@ polymer/test/register_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $system == windows && ($runtime == chrome || $runtime == ff) ]
-polymer/test/attr_deserialize_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/attr_mustache_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/event_path_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/events_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/instance_attrs_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/prop_attr_bind_reflection_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/prop_attr_reflection_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/publish_attributes_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/register_test: Pass, Fail, Timeout # Issue 13260, 14293
-polymer/test/take_attributes_test: Pass, Fail, Timeout # Issue 13260, 14293
+polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
+polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
+polymer/test/event_path_test: Pass, Timeout # Issue 13260
+polymer/test/events_test: Pass, Timeout # Issue 13260
+polymer/test/instance_attrs_test: Pass, Timeout # Issue 13260
+polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
+polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
+polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
+polymer/test/register_test: Pass, Timeout # Issue 13260
+polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 
 
 # Skip browser-specific tests on VM

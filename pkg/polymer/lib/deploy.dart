@@ -38,13 +38,15 @@ main() {
   var test = args['test'];
   var outDir = args['out'];
 
-  var transformOps = new TransformOptions(
-      directlyIncludeJS: args['js'],
-      contentSecurityPolicy: args['csp']);
-
-  var options = (test == null)
-    ? new BarbackOptions(createDeployPhases(transformOps), outDir)
-    : _createTestOptions(transformOps, test, outDir);
+  var options;
+  if (test == null) {
+    var transformOps = new TransformOptions(
+        directlyIncludeJS: args['js'],
+        contentSecurityPolicy: args['csp']);
+    options = new BarbackOptions(createDeployPhases(transformOps), outDir);
+  } else {
+    options = _createTestOptions(test, outDir, args['js'], args['csp']);
+  }
   if (options == null) exit(1);
 
   print('polymer/deploy.dart: creating a deploy target for '
@@ -57,8 +59,8 @@ main() {
 
 createDeployPhases(options) => new PolymerTransformerGroup(options).phases;
 
-BarbackOptions _createTestOptions(TransformOptions transformOps,
-    String testFile, String outDir) {
+BarbackOptions _createTestOptions(String testFile, String outDir,
+    bool directlyIncludeJS, bool contentSecurityPolicy) {
   var testDir = path.normalize(path.dirname(testFile));
 
   // A test must be allowed to import things in the package.
@@ -71,8 +73,10 @@ BarbackOptions _createTestOptions(TransformOptions transformOps,
     return null;
   }
 
-  transformOps.entryPoints = [path.relative(testFile, from: pubspecDir)];
-  var phases = createDeployPhases(transformOps);
+  var phases = createDeployPhases(new TransformOptions(
+      entryPoints: [path.relative(testFile, from: pubspecDir)],
+      directlyIncludeJS: directlyIncludeJS,
+      contentSecurityPolicy: contentSecurityPolicy));
   return new BarbackOptions(phases, outDir,
       currentPackage: '_test',
       packageDirs: {'_test' : pubspecDir},
