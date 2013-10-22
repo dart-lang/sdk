@@ -155,7 +155,9 @@ void testHttpServerRequestBody() {
             if (shouldFail) {
               expect(response.statusCode, equals(HttpStatus.BAD_REQUEST));
             }
-            response.fold(null, (x, y) {});
+            return response.drain();
+          )}
+          .then((_) {
             client.close();
             server.close();
           });
