@@ -139,10 +139,6 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
 }
 
 abstract class _LocalMirrorImpl implements Mirror {
-  int get hashCode {
-    throw new UnimplementedError('Mirror.hashCode is not implemented');
-  }
-
   // Local mirrors always return the same MirrorSystem.  This field
   // is more interesting once we implement remote mirrors.
   MirrorSystem get mirrors => _Mirrors.currentMirrorSystem();
