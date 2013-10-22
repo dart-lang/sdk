@@ -64,13 +64,6 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
-[ $system == windows && $runtime == ff ]
-polymer/test/events_test: Pass, Fail # Issue 14167
-polymer/test/prop_attr_bind_reflection_test: Pass, Fail # Issue 14167
-polymer/test/prop_attr_reflection_test: Pass, Fail # Issue 14167
-polymer/test/take_attributes_test: Pass, Fail # Issue 14167
-polymer/test/attr_mustache_test: Pass, Fail # Issue 14167
-
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 crypto/test/hmac_sha1_test: Pass, Fail # Issue 11407.
@@ -91,19 +84,6 @@ polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/register_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer_expressions/test/globals_test: Fail # Issue 13890
-
-[ $system == windows && ($runtime == chrome || $runtime == ff) ]
-polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
-polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
-polymer/test/event_path_test: Pass, Timeout # Issue 13260
-polymer/test/events_test: Pass, Timeout # Issue 13260
-polymer/test/instance_attrs_test: Pass, Timeout # Issue 13260
-polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
-polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
-polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
-polymer/test/register_test: Pass, Timeout # Issue 13260
-polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
-
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
