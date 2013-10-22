@@ -1191,6 +1191,7 @@ class StandardTestSuite extends TestSuite {
     args..add('package:polymer/deploy.dart')
         ..add('--test')..add(inputFile)
         ..add('--out')..add(outputDir);
+    if (configuration['csp']) args.add('--csp');
 
     return CommandBuilder.instance.getCommand(
         'polymer_deploy', vmFileName, args, configurationDir);
