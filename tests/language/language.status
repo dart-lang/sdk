@@ -96,6 +96,3 @@ vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 typed_message_test: Fail # Issue 13921
 
-[ $compiler == none && $runtime == vm && $arch == arm ]
-vm/load_to_load_forwarding_vm_test: Crash # Issue 14280
-
