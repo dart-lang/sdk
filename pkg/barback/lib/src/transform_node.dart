@@ -6,6 +6,8 @@ library barback.transform_node;
 
 import 'dart:async';
 
+import 'package:source_maps/span.dart';
+
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';

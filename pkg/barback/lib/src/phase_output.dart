@@ -30,7 +30,7 @@ class PhaseOutput {
 
   /// The asset node for this output.
   AssetNode get output => _outputForwarder.node;
-  AssetNodeForwarder _outputForwarder;
+  AssetForwarder _outputForwarder;
 
   /// A stream that emits an [AssetNode] each time this output starts forwarding
   /// a new asset.

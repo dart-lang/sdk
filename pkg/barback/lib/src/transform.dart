@@ -7,10 +7,13 @@ library barback.transform;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:source_maps/span.dart';
+
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'errors.dart';
 import 'transform_logger.dart';
 import 'transform_node.dart';

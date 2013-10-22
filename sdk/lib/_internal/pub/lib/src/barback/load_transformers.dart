@@ -27,6 +27,8 @@ import 'dart:isolate';
 import 'dart:convert';
 import 'dart:mirrors';
 
+import 'http://<<HOST_AND_PORT>>/packages/source_maps/span.dart';
+import 'http://<<HOST_AND_PORT>>/packages/stack_trace/stack_trace.dart';
 import 'http://<<HOST_AND_PORT>>/packages/barback/barback.dart';
 
 /// Sets up the initial communication with the host isolate.

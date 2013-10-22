@@ -845,7 +845,7 @@ class _LinkedHashMapValueIterable<V> extends IterableBase<V>
                                      implements EfficientLength {
   LinkedHashMap<dynamic, V> _map;
   _LinkedHashMapValueIterable(this._map);
-  Iterator<K> get iterator => new _LinkedHashMapValueIterator<V>(_map);
+  Iterator<V> get iterator => new _LinkedHashMapValueIterator<V>(_map);
   bool contains(Object value) => _map.containsValue(value);
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
