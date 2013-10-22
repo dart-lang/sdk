@@ -54,7 +54,7 @@ TransformOptions _parseArgs(Map args) {
       print('Invalid value for "entry_points" in the polymer transformer.');
     }
   }
-  return new TransformOptions(entryPoints);
+  return new TransformOptions(entryPoints: entryPoints);
 }
 
 List<List<Transformer>> _createDeployPhases(TransformOptions options) {
