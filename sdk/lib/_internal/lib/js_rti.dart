@@ -158,6 +158,8 @@ String runtimeTypeToString(var type) {
   } else if (isJsFunction(type)) {
     // A reference to the constructor.
     return getConstructorName(type);
+  } else if (type is int) {
+    return type.toString();
   } else {
     return null;
   }

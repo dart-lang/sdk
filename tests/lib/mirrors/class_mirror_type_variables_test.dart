@@ -9,11 +9,15 @@ import "package:expect/expect.dart";
 class NoTypeParams {}
 class A<T, S extends String> {}
 class B<Z extends B<Z>> {}
-class C<R,S,T> {
+class C<Z extends B<Z>> {}
+class D<R,S,T> {
   R foo(R r) => r;
   S bar(S s) => s;
   T baz(T t) => t;
 }
+class Helper<S> {}
+class E<R extends Map<R, Helper<String>>> {}
+class F<Z extends Helper<F<Z>>> {}
 
 testNoTypeParams() {
   ClassMirror cm = reflectClass(NoTypeParams);
@@ -26,26 +30,57 @@ void testA() {
 
   TypeVariableMirror aT = a.typeVariables[0];
   TypeVariableMirror aS = a.typeVariables[1];
-  TypeMirror aTBound = aT.upperBound.originalDeclaration;
-  TypeMirror aSBound = aS.upperBound.originalDeclaration;
+  TypeMirror aTBound = aT.upperBound;
+  TypeMirror aSBound = aS.upperBound;
+
+  Expect.isTrue(aTBound.isOriginalDeclaration);
+  Expect.isTrue(aSBound.isOriginalDeclaration);
 
   Expect.equals(reflectClass(Object), aTBound);
   Expect.equals(reflectClass(String), aSBound);
 }
 
-void testB() {
+void testBAndC() {
   ClassMirror b = reflectClass(B);
+  ClassMirror c = reflectClass(C);
+
   Expect.equals(1, b.typeVariables.length);
+  Expect.equals(1, c.typeVariables.length);
 
   TypeVariableMirror bZ = b.typeVariables[0];
-  ClassMirror bZBound = bZ.upperBound.originalDeclaration;
-  Expect.equals(b, bZBound);
-  Expect.equals(bZ, bZBound.typeVariables[0]);
+  TypeVariableMirror cZ = c.typeVariables[0];
+  ClassMirror bZBound = bZ.upperBound;
+  ClassMirror cZBound = cZ.upperBound;
+
+  Expect.isFalse(bZBound.isOriginalDeclaration);
+  Expect.isFalse(cZBound.isOriginalDeclaration);
+
+  Expect.notEquals(bZBound, cZBound);
+  Expect.equals(b, bZBound.originalDeclaration);
+  Expect.equals(b, cZBound.originalDeclaration);
+
+  TypeArgumentMirror bZBoundTypeArgument = bZBound.typeArguments.single;
+  TypeArgumentMirror cZBoundTypeArgument = cZBound.typeArguments.single;
+  TypeVarialbeMirror bZBoundTypeVariable = bZBound.typeVariables.single;
+  TypeVarialbeMirror cZBoundTypeVariable = cZBound.typeVariables.single;
+
+  Expect.equals(b, bZ.owner);
+  Expect.equals(c, cZ.owner);
+  Expect.equals(b, bZBoundTypeVariable.owner); /// 01: ok
+  Expect.equals(b, cZBoundTypeVariable.owner); /// 01: ok
+  Expect.equals(b, bZBoundTypeArgument.owner);
+  Expect.equals(c, cZBoundTypeArgument.owner);
+
+  Expect.notEquals(bZ, cZ);
+  Expect.equals(bZ, bZBoundTypeArgument);
+  Expect.equals(cZ, cZBoundTypeArgument);
+  Expect.equals(bZ, bZBoundTypeVariable); /// 01: ok
+  Expect.equals(bZ, cZBoundTypeVariable); /// 01: ok
 }
 
-testC() {
+testD() {
   ClassMirror cm;
-  cm = reflectClass(C);
+  cm = reflectClass(D);
   Expect.equals(3, cm.typeVariables.length);
   var values = cm.typeVariables;
   values.forEach((e) {
@@ -56,9 +91,35 @@ testC() {
   Expect.equals(#T, values.elementAt(2).simpleName);
 }
 
+void testE() {
+  ClassMirror e = reflectClass(E);
+  TypeVariableMirror eR = e.typeVariables.single;
+  ClassMirror mapRAndHelperOfString = eR.upperBound;
+
+  Expect.isFalse(mapRAndHelperOfString.isOriginalDeclaration);
+  Expect.equals(eR, mapRAndHelperOfString.typeArguments.first);
+  Expect.equals(reflect(new Helper<String>()).type,
+      mapRAndHelperOfString.typeArguments.last);
+}
+
+void testF() {
+  ClassMirror f = reflectClass(F);
+  TypeVariableMirror fZ = f.typeVariables[0];
+  ClassMirror fZBound = fZ.upperBound;
+  TypeArgumentMirror fZBoundTypeArgument = fZBound.typeArguments.single;
+
+  Expect.equals(1, f.typeVariables.length);
+  Expect.isFalse(fZBound.isOriginalDeclaration);
+  Expect.isFalse(fZBoundTypeArgument.isOriginalDeclaration);
+  Expect.equals(f, fZBoundTypeArgument.originalDeclaration);
+  Expect.equals(fZ, fZBoundTypeArgument.typeArguments.single);
+}
+
 main() {
   testNoTypeParams();
   testA();
-  testB();
-  testC();
+  testBAndC();
+  testD();
+  testE();
+  testF();
 }

@@ -826,54 +826,63 @@ class JsTypeBoundClassMirror implements ClassMirror {
    * brackets. Then, when get typeArguments is called the first time, the string
    * is parsed into the actual list of TypeMirrors, and the field is overridden
    * with this value.
+   *
+   * If an integer is encountered as a type argument, it represents the type
+   * variable at the corresponding entry in [emitter.globalMetadata].
    */
-  var _typeArgs;
+  var _typeArguments;
 
-  JsTypeBoundClassMirror(this._class, this._typeArgs);
+  JsTypeBoundClassMirror(this._class, this._typeArguments);
 
   List<TypeVariableMirror> get typeVariables => _class.typeVariables;
 
   List<TypeMirror> get typeArguments {
-    if (_typeArgs is! String) return _typeArgs;
+    if (_typeArguments is! String) return _typeArguments;
     List result = new List();
 
-    if (_typeArgs.indexOf('<') == -1) {
-      for (String s in _typeArgs.split(',')) {
-        result.add(reflectClassByMangledName(s.trim()));
+    addTypeArgument(String typeArgument) {
+      int parsedIndex = int.parse(typeArgument, onError: (_) => -1);
+      if (parsedIndex == -1) {
+        result.add(reflectClassByMangledName(typeArgument.trim()));
+      } else {
+        TypeVariable typeVariable = JS('', 'init.metadata[#]', parsedIndex);
+        TypeMirror owner = reflectClass(typeVariable.owner);
+        TypeVariableMirror typeMirror =
+            new JsTypeVariableMirror(typeVariable, owner);
+        result.add(typeMirror);
       }
+    }
+
+    if (_typeArguments.indexOf('<') == -1) {
+      _typeArguments.split(',').forEach((t) => addTypeArgument(t));
     } else {
       int level = 0;
-      StringBuffer currentTypeArg = new StringBuffer();
+      String currentTypeArgument = '';
 
-      addCurrentTypeArg() {
-        var classMirror = reflectClassByMangledName(currentTypeArg.toString());
-        result.add(classMirror);
-        currentTypeArg.clear();
-      }
-
-      for (int i = 0; i < _typeArgs.length; i++) {
-        var character = _typeArgs[i];
+      for (int i = 0; i < _typeArguments.length; i++) {
+        var character = _typeArguments[i];
         if (character == ' ') {
           continue;
         } else if (character == '<') {
-          currentTypeArg.write(character);
+          currentTypeArgument += character;
           level++;
         } else if (character == '>') {
-          currentTypeArg.write(character);
+          currentTypeArgument += character;
           level--;
         } else if (character == ',') {
           if (level > 0) {
-            currentTypeArg.write(character);
+            currentTypeArgument += character;
           } else {
-            addCurrentTypeArg();
+            addTypeArgument(currentTypeArgument);
+            currentTypeArgument = '';
           }
         } else {
-          currentTypeArg.write(character);
+          currentTypeArgument += character;
         }
       }
-      addCurrentTypeArg();
+      addTypeArgument(currentTypeArgument);
     }
-    return _typeArgs = new UnmodifiableListView(result);
+    return _typeArguments = new UnmodifiableListView(result);
   }
 
   Map<Symbol, MethodMirror> get constructors => _class.constructors;
@@ -1813,7 +1822,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(type) {
   if (type == null) return JsMirrorSystem._dynamicType;
   String representation = runtimeTypeToString(type);
   if (representation == null) return reflectClass(Function);
-  return reflectClass(createRuntimeType(representation));
+  return reflectType(createRuntimeType(representation));
 }
 
 Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
