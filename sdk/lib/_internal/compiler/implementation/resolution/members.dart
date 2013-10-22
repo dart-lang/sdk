@@ -1627,21 +1627,16 @@ class TypeResolver {
                           Identifier prefixName,
                           Identifier typeName) {
     if (prefixName != null) {
-      Element e = lookupInScope(compiler, prefixName, scope, prefixName.source);
-      if (e != null) {
-        if (identical(e.kind, ElementKind.PREFIX)) {
-          // The receiver is a prefix. Lookup in the imported members.
-          PrefixElement prefix = e;
-          return prefix.lookupLocalMember(typeName.source);
-        } else if (identical(e.kind, ElementKind.CLASS)) {
-          // TODO(johnniwinther): Remove this case.
-          // The receiver is the class part of a named constructor.
-          return e;
-        }
-      } else {
-        // The caller creates the ErroneousElement for the MalformedType.
-        return null;
+      Element element =
+          lookupInScope(compiler, prefixName, scope, prefixName.source);
+      if (element != null && element.isPrefix()) {
+        // The receiver is a prefix. Lookup in the imported members.
+        PrefixElement prefix = element;
+        return prefix.lookupLocalMember(typeName.source);
       }
+      // The caller of this method will create the ErroneousElement for
+      // the MalformedType.
+      return null;
     } else {
       String stringValue = typeName.source;
       if (identical(stringValue, 'void')) {
@@ -1668,7 +1663,6 @@ class TypeResolver {
     }
 
     Element element = resolveTypeName(visitor.scope, prefixName, typeName);
-    DartType type;
 
     DartType reportFailureAndCreateType(DualKind messageKind,
                                         Map messageArguments,
@@ -1701,6 +1695,7 @@ class TypeResolver {
       return type;
     }
 
+    DartType type;
     if (element == null) {
       type = reportFailureAndCreateType(
           MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName});
