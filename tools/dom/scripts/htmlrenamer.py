@@ -181,7 +181,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'AudioNode.connect',
   'CanvasRenderingContext2D.arc',
   'CanvasRenderingContext2D.drawImage',
-  'CanvasRenderingContext2D.getLineDash',
   'CSSStyleDeclaration.getPropertyValue',
   'CSSStyleDeclaration.setProperty',
   'CSSStyleDeclaration.var',
