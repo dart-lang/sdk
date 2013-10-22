@@ -32365,8 +32365,10 @@ _convertNativeToDart_XHR_Response(o) {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_callConstructor(constructor) {
+_callConstructor(constructor, interceptor) {
   return (receiver) {
+    setNativeSubclassDispatchRecord(receiver, interceptor);
+
     return JS('', '#(#)', constructor, receiver);
   };
 }
@@ -32423,6 +32425,8 @@ void _registerCustomElement(context, document, String tag, Type type,
     throw new ArgumentError(type);
   }
 
+  var interceptor = JS('=Object', '#.prototype', interceptorClass);
+
   var constructor = findConstructorForNativeSubclassType(type, 'created');
   if (constructor == null) {
     throw new ArgumentError("$type has no constructor called 'created'");
@@ -32455,7 +32459,7 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   JS('void', '#.createdCallback = #', properties,
       JS('=Object', '{value: #}',
-          _makeCallbackMethod(_callConstructor(constructor))));
+          _makeCallbackMethod(_callConstructor(constructor, interceptor))));
   JS('void', '#.enteredViewCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
   JS('void', '#.leftViewCallback = #', properties,
@@ -32471,8 +32475,6 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   var baseProto = JS('=Object', '#.prototype', baseConstructor);
   var proto = JS('=Object', 'Object.create(#, #)', baseProto, properties);
-
-  var interceptor = JS('=Object', '#.prototype', interceptorClass);
 
   setNativeSubclassDispatchRecord(proto, interceptor);
 
