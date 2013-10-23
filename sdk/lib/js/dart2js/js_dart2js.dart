@@ -272,9 +272,12 @@ Object _convertToDart(o) {
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o)) {
     return o;
-  } else if (o is Blob || o is DateTime || o is KeyRange 
-      || o is ImageData || o is Node || o is TypedData) {
-    return JS('Blob|DateTime|KeyRange|ImageData|Node|TypedData', '#', o);
+  } else if (o is Blob || o is KeyRange || o is ImageData || o is Node
+    || o is TypedData) {
+    return JS('Blob|KeyRange|ImageData|Node|TypedData', '#', o);
+  } else if (JS('bool', '# instanceof Date', o)) {
+    var ms = JS('num', '#.getMilliseconds()', o);
+    return new DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
         (o) => new JsFunction._fromJs(o));
