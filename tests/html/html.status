@@ -67,7 +67,6 @@ indexeddb_5_test: Fail # Issue 12893
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
-js_test: Fail # Issue 14246
 
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
