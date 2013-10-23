@@ -63,12 +63,13 @@ def main(argv):
   (options, args) = get_options()
   target = os.path.relpath(args[0])
   if os.path.exists(target):
-    # Remove the packages directory if it already exists.
-    # This is necessary, otherwise we can end up having links in there
+    # If the packages directory already exists, delete the current links inside
+    # it. This is necessary, otherwise we can end up having links in there
     # pointing to directories which no longer exist (on incremental builds).
-    print 'Removing %s' % target
-    shutil.rmtree(target)
-  os.makedirs(target)
+    for link in os.listdir(target):
+      os.remove(os.path.join(target, link))
+  else:
+    os.makedirs(target)
   for source in args[1:]:
     # Assume the source directory is named ".../NAME/lib".
     (name, lib) = os.path.split(source)
