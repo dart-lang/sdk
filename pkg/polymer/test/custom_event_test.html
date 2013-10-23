@@ -1,0 +1,29 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <!--polymer-test: this comment is needed for test_suite.dart-->
+    <title>custom events</title>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+
+  <polymer-element name="foo-bar">
+    <template></template>
+  </polymer-element>
+
+  <polymer-element name="test-custom-event">
+    <template>
+      <foo-bar on-foo="fooHandler" on-barbaz="barBazHandler"></foo-bar>
+    </template>
+  </polymer-element>
+
+  <test-custom-event></test-custom-event>
+
+  <script type="application/dart" src="custom_event_test.dart"></script>
+  </body>
+</html>

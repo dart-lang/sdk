@@ -44,6 +44,7 @@ unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.c
 polymer/example: Skip # Uses dart:html
 polymer/test/attr_deserialize_test: Skip # uses dart:html
 polymer/test/attr_mustache_test: Skip #uses dart:html
+polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
@@ -82,6 +83,7 @@ polymer_expressions/test/globals_test: Fail # Issue 13890
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/attr_mustache_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/custom_event_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
@@ -239,6 +241,7 @@ unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
 unittest/test/unitttest_group_name_test: Fail # 13921
 template_binding/test/template_element_test: Pass, Fail # Flaky, 14330
+polymer/test/custom_event_test: Pass, Crash # 14360
 
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
