@@ -259,7 +259,6 @@ malbounded_type_literal_test: Fail # Issue 13960
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-super_first_constructor_test: Fail
 throwing_lazy_variable_test: Fail # Issue 5802
 f_bounded_equality_test: RuntimeError # Issue 14000
 
