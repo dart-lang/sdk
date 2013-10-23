@@ -511,6 +511,9 @@ The former section on variables in interfaces (now removed): Added specification
 
 \subsubsection{Changes Since Version 0.7}
 
+
+\ref{variables}: Final variables no longer introduce setters.
+
 \ref{new}: Instantiating subclasses of malbounded types is a dynamic error.
 
 \ref{leastUpperBounds}:  Extended LUBs to all types.
@@ -821,10 +824,13 @@ We say that a variable $v$ is {\em potentially mutated} in some scope $s$ if $v$
 
 If a variable declaration does not explicitly specify a type, the type of the declared variable(s) is  \DYNAMIC{}, the unknown type (\ref{typeDynamic}). 
 
-Static and instance variable declarations always induce implicit getters and setters.
+A variable is {\em mutable} if it is not final.
+Static and instance variable declarations always induce implicit getters. If the variable is mutable it also introduces an implicit setter.
 The scope into which the implicit getters and setters are introduced depends on the kind of variable declaration involved. 
 
-A library variable introduces a getter and a setter into the top level scope of the enclosing library. A static class variable introduces a static getter and a static setter into the immediately enclosing class. An instance variable introduces an instance getter and an instance setter into the immediately enclosing class. 
+A library variable introduces a getter into the top level scope of the enclosing library. A static class variable introduces a static getter into the immediately enclosing class. An instance variable introduces an instance getter into the immediately enclosing class. 
+
+A mutable library variable introduces a setter into the top level scope of the enclosing library. A mutable static class variable introduces a static setter into the immediately enclosing class. A mutable instance variable introduces an instance setter into the immediately enclosing class. 
 
 Local variables are added to the innermost enclosing scope.  They do not induce getters and setters.  A local variable may only be referenced at a source code location that is after its initializer, if any, is complete, or a compile-time error occurs.  The error may be reported either at the point where the premature reference occurs, or at the variable declaration.
 
@@ -908,24 +914,6 @@ A  non-final variable declaration  of the form \code{\VAR{} $v$;} or the form  \
 \SET{} $v=(x)$
 
 whose execution sets the value of $v$ to the incoming argument $x$.
-
-% A final variable introduces a setter that throws and causes a type warning
-
-A final or constant variable declaration  of the form \code{\FINAL{} $T$ $v$;}, \code{\FINAL{} $T$ $v$ = $e$;} or the form  \code{\CONST{} $T$ $v$ = $e$;}   always induces an implicit  setter function (\ref{setters}) with signature 
-
- \VOID{} \SET{} $v=(T$ $x)$
-
-whose execution causes a runtime exception. It is a static warning to invoke such a setter.
-
-A  final variable declaration  of the form \code{\FINAL{} $v$;},  \code{\FINAL{} $v$ = $e$;} or the form  \code{\CONST{} $v$ = $e$;}   always induces an implicit  setter function with signature 
-
-\SET{} $v=(x)$
-
-whose execution causes a runtime exception. It is a static warning to invoke such a setter. % maybe redundant with rules for assignment?
-
-\rationale{
-Creating a setter that may not be used may seem pointless, but it prevents situations where a setter from an enclosing scope might be accidentally accessed from a scope that defines an immutable variable.
-}
 
 
 \subsection{Evaluation of Implicit  Variable Getters}
