@@ -32,7 +32,6 @@ LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: fail # Dart issue 12549
 Language/12_Expressions/12_Instance_Creation/1_New_A09_t09: fail # Dart issue 1372
 Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593

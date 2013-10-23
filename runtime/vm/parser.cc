@@ -9827,14 +9827,21 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   // a dynamic error to instantiate an abstract class.
   ASSERT(!constructor.IsNull());
   if (type_class.is_abstract() && !constructor.IsFactory()) {
-    ArgumentListNode* arguments = new ArgumentListNode(type_pos);
-    arguments->Add(new LiteralNode(
+    // Evaluate arguments before throwing.
+    LetNode* result = new LetNode(call_pos);
+    for (intptr_t i = 0; i < arguments->length(); ++i) {
+      result->AddNode(arguments->NodeAt(i));
+    }
+    ArgumentListNode* error_arguments = new ArgumentListNode(type_pos);
+    error_arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
-    arguments->Add(new LiteralNode(
+    error_arguments->Add(new LiteralNode(
         TokenPos(), String::ZoneHandle(type_class_name.raw())));
-    return MakeStaticCall(Symbols::AbstractClassInstantiationError(),
-                          Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                          arguments);
+    result->AddNode(
+        MakeStaticCall(Symbols::AbstractClassInstantiationError(),
+                       Library::PrivateCoreLibName(Symbols::ThrowNew()),
+                       error_arguments));
+    return result;
   }
   String& error_message = String::Handle();
   if (!constructor.AreValidArguments(arguments_length,
