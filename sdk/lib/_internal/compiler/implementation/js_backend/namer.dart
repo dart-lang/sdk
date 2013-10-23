@@ -243,8 +243,6 @@ class Namer implements ClosureNamer {
   final Map<String, String> operatorNameMap;
   final Map<String, int> popularNameCounters;
 
-  final Map<Element, String> bailoutNames;
-
   final Map<Constant, String> constantNames;
   final Map<Constant, String> constantLongNames;
   ConstantCanonicalHasher constantHasher;
@@ -254,7 +252,6 @@ class Namer implements ClosureNamer {
         CURRENT_ISOLATE = compiler.globalJsName,
         globals = new Map<Element, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
-        bailoutNames = new Map<Element, String>(),
         usedGlobalNames = new Set<String>(),
         usedInstanceNames = new Set<String>(),
         instanceNameMap = new Map<String, String>(),
@@ -663,39 +660,6 @@ class Namer implements ClosureNamer {
     }
   }
 
-  String getBailoutName(Element element) {
-    String name = bailoutNames[element];
-    if (name != null) return name;
-    bool global = !element.isInstanceMember();
-    // Despite the name of the variable, this gets the minified name when we
-    // are minifying, but it doesn't really make much difference.  The
-    // important thing is that it is a unique name.  We add $bailout and, if we
-    // are minifying, we minify the minified name and '$bailout'.
-    String unminifiedName = '${getNameX(element)}\$bailout';
-    if (global) {
-      name = getMappedGlobalName(unminifiedName);
-    } else {
-      // Make sure two bailout methods on the same inheritance chain do not have
-      // the same name to prevent a subclass bailout method being accidentally
-      // called from the superclass main method.  Use the count of the number of
-      // elements with the same name on the superclass chain to disambiguate
-      // based on 'level'.
-      int level = 0;
-      ClassElement classElement = element.getEnclosingClass().superclass;
-      while (classElement != null) {
-        if (classElement.localLookup(element.name) != null) level++;
-        classElement = classElement.superclass;
-      }
-      name = unminifiedName;
-      if (level != 0) {
-        name = '$unminifiedName$level';
-      }
-      name = getMappedInstanceName(name);
-    }
-    bailoutNames[element] = name;
-    return name;
-  }
-
   /// Returns the runtime name for [element].  The result is not safe as an id.
   String getRuntimeTypeName(Element element) {
     if (identical(element, compiler.dynamicClass)) return 'dynamic';
@@ -737,7 +701,7 @@ class Namer implements ClosureNamer {
    * guaranteed to be unique.
    *
    * For accessing statics consider calling
-   * [isolateAccess]/[isolateBailoutAccess] or [isolatePropertyAccess] instead.
+   * [isolateAccess] or [isolatePropertyAccess] instead.
    */
   // TODO(ahe): This is an internal method to the Namer (and its subclasses)
   // and should not be call from outside.
@@ -863,11 +827,6 @@ class Namer implements ClosureNamer {
 
   String isolateAccess(Element element) {
     return "${globalObjectFor(element)}.${getNameX(element)}";
-  }
-
-  String isolateBailoutAccess(Element element) {
-    String newName = getMappedGlobalName('${getNameX(element)}\$bailout');
-    return '${globalObjectFor(element)}.$newName';
   }
 
   String isolateLazyInitializerAccess(Element element) {

@@ -158,8 +158,7 @@ REMOVED,
 
 """
 main(value) {
-  // Force [value] to be an int by having the speculative optimizer
-  // want an int.
+  value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
   var a = new List();
@@ -172,8 +171,7 @@ REMOVED,
 
 """
 main(value) {
-  // Force [value] to be an int by having the speculative optimizer
-  // want an int.
+  value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
   var a = new List();
@@ -187,8 +185,7 @@ main(value) {
 REMOVED,
 """
 main(value) {
-  // Force [value] to be an int by having the speculative optimizer
-  // want an int.
+  value = value is int ? value as int : 42;
   int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
   var a = new List();

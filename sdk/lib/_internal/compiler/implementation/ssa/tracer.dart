@@ -211,16 +211,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$prefix${instruction.id}";
   }
 
-  String visitBailoutTarget(HBailoutTarget node) {
-    StringBuffer envBuffer = new StringBuffer();
-    List<HInstruction> inputs = node.inputs;
-    for (int i = 0; i < inputs.length; i++) {
-      envBuffer.write(" ${temporaryId(inputs[i])}");
-    }
-    String on = node.isEnabled ? "enabled" : "disabled";
-    return "BailoutTarget($on): id: ${node.state} env: $envBuffer";
-  }
-
   String visitBoolify(HBoolify node) {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }
@@ -504,49 +494,6 @@ class HInstructionStringifier implements HVisitor<String> {
 
     return "Try: $tryBlock, Catch: $catchBlock, Finally: $finallyBlock, "
         "Join: B${successors.last.id}";
-  }
-
-  String visitTypeGuard(HTypeGuard node) {
-    String type;
-    HType guardedType = node.guardedType;
-    if (guardedType.isExtendableArray(compiler)) {
-      type = "extendable_array";
-    } else if (guardedType.isMutableArray(compiler)) {
-      type = "mutable_array";
-    } else if (guardedType.isReadableArray(compiler)) {
-      type = "readable_array";
-    } else if (guardedType == HType.BOOLEAN) {
-      type = "bool";
-    } else if (guardedType == HType.INTEGER) {
-      type = "integer";
-    } else if (guardedType == HType.DOUBLE) {
-      type = "double";
-    } else if (guardedType == HType.NUMBER) {
-      type = "number";
-    } else if (guardedType.isString(compiler)) {
-      type = "string";
-    } else if (guardedType.isIndexable(compiler)) {
-      type = "string_or_array";
-    } else if (guardedType == HType.UNKNOWN) {
-      type = 'unknown';
-    } else {
-      throw new CompilerCancelledException('Unexpected type guard: $type');
-    }
-    HInstruction guarded = node.guarded;
-    HInstruction bailoutTarget = node.bailoutTarget;
-    StringBuffer envBuffer = new StringBuffer();
-    List<HInstruction> inputs = node.inputs;
-    assert(inputs.length >= 2);
-    assert(inputs[0] == guarded);
-    assert(inputs[1] == bailoutTarget);
-    for (int i = 2; i < inputs.length; i++) {
-      envBuffer.write(" ${temporaryId(inputs[i])}");
-    }
-    String on = node.isEnabled ? "enabled" : "disabled";
-    String guardedId = temporaryId(node.guarded);
-    String bailoutId = temporaryId(node.bailoutTarget);
-    return "TypeGuard($on): $guardedId is $type bailout: $bailoutId "
-           "env: $envBuffer";
   }
 
   String visitIs(HIs node) {

@@ -803,30 +803,12 @@ class CodeEmitterTask extends CompilerTask {
 
     Iterable<Element> elements =
         backend.generatedCode.keys.where(isStaticFunction);
-    Set<Element> pendingElementsWithBailouts =
-        backend.generatedBailoutCode.keys
-            .where(isStaticFunction)
-            .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      pendingElementsWithBailouts.remove(element);
       ClassBuilder builder = new ClassBuilder();
       containerBuilder.addMember(element, builder);
       builder.writeOn_DO_NOT_USE(
           bufferForElement(element, eagerBuffer), compiler, ',$n$n');
-    }
-
-    if (!pendingElementsWithBailouts.isEmpty) {
-      addComment('pendingElementsWithBailouts', eagerBuffer);
-    }
-    // Is it possible the primary function was inlined but the bailout was not?
-    for (Element element in
-             Elements.sortedByPosition(pendingElementsWithBailouts)) {
-      jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
-      new ClassBuilder()
-          ..addProperty(namer.getBailoutName(element), bailoutCode)
-          ..writeOn_DO_NOT_USE(
-              bufferForElement(element, eagerBuffer), compiler, ',$n$n');
     }
   }
 
@@ -857,7 +839,6 @@ class CodeEmitterTask extends CompilerTask {
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
-        assert(backend.generatedBailoutCode[element] == null);
         jsAst.Expression code = backend.generatedCode[element];
         // The code is null if we ended up not needing the lazily
         // initialized field after all because of constant folding

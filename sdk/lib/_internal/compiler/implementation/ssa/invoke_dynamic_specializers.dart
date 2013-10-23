@@ -13,12 +13,6 @@ part of ssa;
 class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    return HType.UNKNOWN;
-  }
-
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
     HType receiverType = instruction.getDartReceiver(compiler).instructionType;
@@ -93,22 +87,6 @@ class InvokeDynamicSpecializer {
 class IndexAssignSpecializer extends InvokeDynamicSpecializer {
   const IndexAssignSpecializer();
 
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    HInstruction index = instruction.inputs[2];
-    if (input == instruction.inputs[1] &&
-        index.instructionType.canBePrimitiveNumber(compiler)) {
-      JavaScriptBackend backend = compiler.backend;
-      return backend.mutableArrayType;
-    }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
-    return HType.UNKNOWN;
-  }
-
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     if (instruction.inputs[1].isMutableIndexable(compiler)) {
@@ -127,22 +105,6 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 
 class IndexSpecializer extends InvokeDynamicSpecializer {
   const IndexSpecializer();
-
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    HInstruction index = instruction.inputs[2];
-    if (input == instruction.inputs[1] &&
-        index.instructionType.canBePrimitiveNumber(compiler)) {
-      JavaScriptBackend backend = compiler.backend;
-      return backend.indexablePrimitiveType;
-    }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
-    return HType.UNKNOWN;
-  }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
@@ -168,18 +130,6 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.bitNot;
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    if (input == instruction.inputs[1]) {
-      HType propagatedType = instruction.instructionType;
-      if (propagatedType.canBePrimitiveNumber(compiler)) {
-        return HType.INTEGER;
-      }
-    }
-    return HType.UNKNOWN;
-  }
-
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
@@ -201,20 +151,6 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 
   UnaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.negate;
-  }
-
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    if (input == instruction.inputs[1]) {
-      HType propagatedType = instruction.instructionType;
-      // If the outgoing type should be a number (integer, double or both) we
-      // want the outgoing type to be the input too.
-      // If we don't know the outgoing type we try to make it a number.
-      if (propagatedType.isNumber()) return propagatedType;
-      if (propagatedType.canBePrimitiveNumber(compiler)) return HType.NUMBER;
-    }
-    return HType.UNKNOWN;
   }
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
@@ -245,34 +181,6 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       return HType.NUMBER;
     }
     return super.computeTypeFromInputTypes(instruction, compiler);
-  }
-
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    if (input == instruction.inputs[0]) return HType.UNKNOWN;
-
-    HType propagatedType = instruction.instructionType;
-    // If the desired output type should be an integer we want to get two
-    // integers as arguments.
-    if (propagatedType.isInteger()) return HType.INTEGER;
-    // If the outgoing type should be a number we can get that if both inputs
-    // are numbers. If we don't know the outgoing type we try to make it a
-    // number.
-    if (propagatedType.canBePrimitiveNumber(compiler)) {
-      return HType.NUMBER;
-    }
-    // Even if the desired outgoing type is not a number we still want the
-    // second argument to be a number if the first one is a number. This will
-    // not help for the outgoing type, but at least the binary arithmetic
-    // operation will not have type problems.
-    // TODO(floitsch): normally we shouldn't request a number, but simply
-    // throw an ArgumentError if it isn't. This would be similar
-    // to the array case.
-    HInstruction left = instruction.inputs[1];
-    HInstruction right = instruction.inputs[2];
-    if (input == right && left.isNumber()) return HType.NUMBER;
-    return HType.UNKNOWN;
   }
 
   bool isBuiltin(HInvokeDynamic instruction) {
@@ -323,16 +231,6 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
     HInstruction left = instruction.inputs[1];
     if (left.isNumberOrNull()) return HType.DOUBLE;
     return super.computeTypeFromInputTypes(instruction, compiler);
-  }
-
-  HType computeDesiredTypeForInput(HInstruction instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    if (input == instruction.inputs[0]) return HType.UNKNOWN;
-    // A division can never return an integer. So don't ask for integer inputs.
-    if (instruction.isInteger()) return HType.UNKNOWN;
-    return super.computeDesiredTypeForInput(
-        instruction, input, compiler);
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
@@ -403,20 +301,6 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     HInstruction left = instruction.inputs[1];
     if (left.isPrimitiveOrNull(compiler)) return HType.INTEGER;
     return super.computeTypeFromInputTypes(instruction, compiler);
-  }
-
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    if (input == instruction.inputs[0]) return HType.UNKNOWN;
-    // We match the implementation of bit operations on the
-    // [:JSNumber:] class by requesting a number if the receiver can
-    // be a number.
-    HInstruction left = instruction.inputs[1];
-    if (left.instructionType.canBePrimitiveNumber(compiler)) {
-      return HType.NUMBER;
-    }
-    return HType.UNKNOWN;
   }
 }
 
@@ -515,23 +399,6 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    if (input == instruction.inputs[0]) return HType.UNKNOWN;
-    HType propagatedType = instruction.instructionType;
-    // For all relational operations except HIdentity, we expect to get numbers
-    // only. With numbers the outgoing type is a boolean. If something else
-    // is desired, then numbers are incorrect, though.
-    if (propagatedType.canBePrimitiveBoolean(compiler)) {
-      HInstruction left = instruction.inputs[1];
-      if (left.instructionType.canBePrimitiveNumber(compiler)) {
-        return HType.NUMBER;
-      }
-    }
-    return HType.UNKNOWN;
-  }
-
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     HInstruction left = instruction.inputs[1];
@@ -547,33 +414,6 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
 
 class EqualsSpecializer extends RelationalSpecializer {
   const EqualsSpecializer();
-
-  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
-                                   HInstruction input,
-                                   Compiler compiler) {
-    HInstruction left = instruction.inputs[1];
-    HInstruction right = instruction.inputs[2];
-    if (input == left && right.instructionType.isUseful()) {
-      // All our useful types have 'identical' semantics. But we don't want to
-      // speculatively test for all possible types. Therefore we try to match
-      // the two types. That is, if we see x == 3, then we speculatively test
-      // if x is a number and bailout if it isn't.
-      // If right is a number we don't need more than a number (no need to match
-      // the exact type of right).
-      if (right.isNumber()) return HType.NUMBER;
-      return right.instructionType;
-    }
-    // String equality testing is much more common than array equality testing.
-    JavaScriptBackend backend = compiler.backend;
-    if (input == left && left.isIndexablePrimitive(compiler)) {
-      return backend.readableArrayType;
-    }
-    // String equality testing is much more common than array equality testing.
-    if (input == right && right.isIndexablePrimitive(compiler)) {
-      return backend.stringType;
-    }
-    return HType.UNKNOWN;
-  }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {

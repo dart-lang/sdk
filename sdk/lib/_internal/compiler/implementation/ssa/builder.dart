@@ -3120,7 +3120,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
     push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
-                      effects: nativeBehavior.sideEffects));
+                      effects: nativeBehavior.sideEffects,
+                      nativeBehavior: nativeBehavior));
     return;
   }
 
@@ -4836,8 +4837,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                     void buildSwitchCase(SwitchCase switchCase)) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
 
-    // TODO(ngeoffray): Handle switch-instruction in bailout code.
-    work.allowSpeculativeOptimization = false;
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
     if (switchCases.isEmpty) {
@@ -4970,7 +4969,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitTryStatement(TryStatement node) {
-    work.allowSpeculativeOptimization = false;
     // Save the current locals. The catch block and the finally block
     // must not reuse the existing locals handler. None of the variables
     // that have been defined in the body-block will be used, but for

@@ -7,23 +7,13 @@ import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
   foo(a) {
-    // Make sure there is a bailout version.
-    foo(a);
-    // This will make a one shot interceptor that will be optimized in
-    // the non-bailout version because we know a is a number.
-    return (a + 42).toString;
-  }
-""";
-
-const String TEST_TWO = r"""
-  foo(a) {
     var myVariableName = a.toString();
     print(myVariableName);
     print(myVariableName);
   }
 """;
 
-const String TEST_THREE = r"""
+const String TEST_TWO = r"""
   class A {
     var length;
   }
@@ -34,21 +24,16 @@ const String TEST_THREE = r"""
 """;
 
 main() {
-  var generated = compile(TEST_ONE, entry: 'foo');
-  // Check that the one shot interceptor got converted to a direct
-  // call to the interceptor object.
-  Expect.isTrue(generated.contains('JSNumber_methods.get\$toString(a + 42);'));
-
   // Check that one-shot interceptors preserve variable names, see
   // https://code.google.com/p/dart/issues/detail?id=8106.
-  generated = compile(TEST_TWO, entry: 'foo');
+  String generated = compile(TEST_ONE, entry: 'foo');
   Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.toString\$0\(a\)')));
   Expect.isTrue(generated.contains('myVariableName'));
 
   // Check that an intercepted getter that does not need to be
   // intercepted, is turned into a regular getter call or field
   // access.
-  generated = compile(TEST_THREE, entry: 'foo');
+  generated = compile(TEST_TWO, entry: 'foo');
   Expect.isFalse(generated.contains(r'a.get$length()'));
   Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
   Expect.isTrue(

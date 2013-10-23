@@ -71,8 +71,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Expression generateLazyInitializer(work, graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
-      SsaOptimizedCodeGenerator codegen =
-          new SsaOptimizedCodeGenerator(backend, work);
+      SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
       return new js.Fun(codegen.parameters,
           attachPosition(codegen.body, work.element));
@@ -82,35 +81,17 @@ class SsaCodeGeneratorTask extends CompilerTask {
   js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
-      SsaOptimizedCodeGenerator codegen =
-          new SsaOptimizedCodeGenerator(backend, work);
+      SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
-
       FunctionElement element = work.element;
       return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
-    });
-  }
-
-  js.Expression generateBailoutMethod(CodegenWorkItem work, HGraph graph) {
-    return measure(() {
-      compiler.tracer.traceGraph("codegen-bailout", graph);
-
-      SsaUnoptimizedCodeGenerator codegen =
-          new SsaUnoptimizedCodeGenerator(backend, work);
-      codegen.visitGraph(graph);
-
-      js.Block body = new js.Block(<js.Statement>[]);
-      body.statements.add(codegen.body);
-      js.Fun fun =
-          buildJavaScriptFunction(work.element, codegen.newParameters, body);
-      return fun;
     });
   }
 }
 
 typedef void ElementAction(Element element);
 
-abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
+class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
    * Returned by [expressionType] to tell how code can be generated for
    * a subgraph.
@@ -297,15 +278,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return jsNode;
   }
 
-  visitTypeGuard(HTypeGuard node);
-  visitBailoutTarget(HBailoutTarget node);
-
   beginGraph(HGraph graph);
   endGraph(HGraph graph);
-
-  preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
-  startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
-  endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
 
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
@@ -370,10 +344,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentGraph = graph;
     indent++;  // We are already inside a function.
     subGraph = new SubGraph(graph.entry, graph.exit);
-    HBasicBlock start = beginGraph(graph);
-    visitBasicBlock(start);
+    visitBasicBlock(graph.entry);
     handleDelayedVariableDeclarations();
-    endGraph(graph);
   }
 
   void visitSubGraph(SubGraph newSubGraph) {
@@ -405,14 +377,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // counter-example, we degrade our assumption to either expression or
     // statement, and in the latter case, we can return immediately since
     // it can't get any worse. E.g., a function call where the return value
-    // isn't used can't be in a declaration. A bailout can't be in an
-    // expression.
+    // isn't used can't be in a declaration.
     int result = TYPE_DECLARATION;
     HBasicBlock basicBlock = limits.start;
     do {
       HInstruction current = basicBlock.first;
       while (current != basicBlock.last) {
-        // E.g, type guards.
+        // E.g, bounds check.
         if (current.isControlFlow()) {
           return TYPE_STATEMENT;
         }
@@ -962,7 +933,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
-    preLabeledBlock(labeledBlockInfo);
     Link<Element> continueOverrides = const Link<Element>();
 
     js.Block oldContainer = currentContainer;
@@ -1011,9 +981,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     currentContainer = body;
-    startLabeledBlock(labeledBlockInfo);
     generateStatements(labeledBlockInfo.body);
-    endLabeledBlock(labeledBlockInfo);
 
     if (labeledBlockInfo.isContinue) {
       while (!continueOverrides.isEmpty) {
@@ -1208,9 +1176,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void iterateBasicBlock(HBasicBlock node) {
     HInstruction instruction = node.first;
     while (!identical(instruction, node.last)) {
-      if (instruction is HTypeGuard || instruction is HBailoutTarget) {
-        visit(instruction);
-      } else if (!isGenerateAtUseSite(instruction)) {
+      if (!isGenerateAtUseSite(instruction)) {
         define(instruction);
       }
       instruction = instruction.next;
@@ -1408,8 +1374,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitTry(HTry node) {
     // We should never get here. Try/catch/finally is always handled using block
-    // information in [visitTryInfo], or not at all, in the case of the bailout
-    // generator.
+    // information in [visitTryInfo].
     compiler.internalError('visitTry should not be called', instruction: node);
   }
 
@@ -2610,433 +2575,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeKnown(HTypeKnown node) {
     use(node.checkedInput);
-  }
-}
-
-class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
-  SsaOptimizedCodeGenerator(backend, work) : super(backend, work);
-
-  HBasicBlock beginGraph(HGraph graph) {
-    return graph.entry;
-  }
-
-  void endGraph(HGraph graph) {}
-
-  // Called by visitTypeGuard to generate the actual bailout call, something
-  // like "return $.foo$bailout(t0, t1);"
-  js.Statement bailout(HTypeGuard guard) {
-    HBailoutTarget target = guard.bailoutTarget;
-    List<js.Expression> arguments = <js.Expression>[];
-    arguments.add(new js.LiteralNumber("${guard.state}"));
-
-    for (int i = 0; i < target.inputs.length; i++) {
-      HInstruction parameter = target.inputs[i];
-      for (int pad = target.padding[i]; pad != 0; pad--) {
-        // This argument will not be used by the bailout function, because
-        // of the control flow (controlled by the state argument passed
-        // above).  We need to pass it to get later arguments in the right
-        // position.
-        arguments.add(new js.LiteralNumber('0'));
-      }
-      use(parameter);
-      arguments.add(pop());
-    }
-    // Don't bother emitting the rest of the pending nulls.  Doing so might make
-    // the function invocation a little faster by having the call site and
-    // function defintion have the same number of arguments, but it would be
-    // more verbose and we don't expect the calls to bailout functions to be
-    // hot.
-
-    Element method = work.element;
-    js.Expression bailoutTarget;  // Receiver of the bailout call.
-    Namer namer = backend.namer;
-    if (method.isInstanceMember()) {
-      String bailoutName = namer.getBailoutName(method);
-      bailoutTarget = new js.PropertyAccess.field(new js.This(), bailoutName);
-    } else {
-      assert(!method.isField());
-      bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(method));
-    }
-    js.Call call = new js.Call(bailoutTarget, arguments);
-    attachLocation(call, guard);
-    return new js.Return(call);
-  }
-
-  // Generate a type guard, something like "if (typeof t0 == 'number')" and the
-  // corresponding bailout call, something like "return $.foo$bailout(t0, t1);"
-  void visitTypeGuard(HTypeGuard node) {
-    js.Expression test = generateTest(node);
-    pushStatement(new js.If.noElse(test, bailout(node)), node);
-  }
-
-  void visitBailoutTarget(HBailoutTarget target) {
-    // Do nothing. Bailout targets are only used in the non-optimized version.
-  }
-
-  void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-  }
-
-  void startLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-  }
-
-  void endLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-  }
-}
-
-class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
-
-  js.Switch currentBailoutSwitch;
-  final List<js.Switch> oldBailoutSwitches;
-  final List<js.Parameter> newParameters;
-  final List<String> labels;
-  int labelId = 0;
-  /**
-   * Keeps track if a bailout switch already used its [:default::] clause. New
-   * bailout-switches just push [:false:] on the stack and replace it when
-   * they used the [:default::] clause.
-   */
-  final List<bool> defaultClauseUsedInBailoutStack;
-
-  SsaBailoutPropagator propagator;
-  HInstruction savedFirstInstruction;
-
-  SsaUnoptimizedCodeGenerator(backend, work)
-    : super(backend, work),
-      oldBailoutSwitches = <js.Switch>[],
-      newParameters = <js.Parameter>[],
-      labels = <String>[],
-      defaultClauseUsedInBailoutStack = <bool>[];
-
-  String pushLabel() {
-    String label = 'L${labelId++}';
-    labels.add(label);
-    return label;
-  }
-
-  String popLabel() {
-    return labels.removeLast();
-  }
-
-  String currentLabel() {
-    return labels.last;
-  }
-
-  js.VariableUse generateStateUse()
-      => new js.VariableUse(variableNames.stateName);
-
-  HBasicBlock beginGraph(HGraph graph) {
-    propagator = new SsaBailoutPropagator(compiler, variableNames);
-    propagator.visitGraph(graph);
-    // TODO(ngeoffray): We could avoid generating the state at the
-    // call site for non-complex bailout methods.
-    newParameters.add(new js.Parameter(variableNames.stateName));
-
-    List<String> names = new List<String>(propagator.bailoutArity);
-    for (String variable in propagator.parameterNames.keys) {
-      int index = propagator.parameterNames[variable];
-      assert(names[index] == null);
-      names[index] = variable;
-    }
-    for (int i = 0; i < names.length; i++) {
-      declaredLocals.add(names[i]);
-      newParameters.add(new js.Parameter(names[i]));
-    }
-
-    if (propagator.hasComplexBailoutTargets) {
-      startBailoutSwitch();
-
-      return graph.entry;
-    } else {
-      // We change the first instruction of the first guard to be the
-      // bailout target. We will change it back in the call to [endGraph].
-      HBasicBlock block = propagator.firstBailoutTarget.block;
-      savedFirstInstruction = block.first;
-      block.first = propagator.firstBailoutTarget;
-      return block;
-    }
-  }
-
-  // If argument is a [HCheck] and it does not have a name, we try to
-  // find the name of its checked input. Note that there must be a
-  // name, otherwise the instruction would not be in the live
-  // environment.
-  HInstruction unwrap(var argument) {
-    while (argument is HCheck && !variableNames.hasName(argument)) {
-      argument = argument.checkedInput;
-    }
-    assert(variableNames.hasName(argument));
-    return argument;
-  }
-
-  void endGraph(HGraph graph) {
-    if (propagator.hasComplexBailoutTargets) {
-      endBailoutSwitch();
-    } else {
-      // Put back the original first instruction of the block.
-      propagator.firstBailoutTarget.block.first = savedFirstInstruction;
-    }
-  }
-
-  visitParameterValue(HParameterValue node) {
-    // Nothing to do, parameters are dealt with specially in a bailout
-    // method.
-  }
-
-  bool visitAndOrInfo(HAndOrBlockInformation info) => false;
-
-  visitLoopBranch(HLoopBranch node) {
-    if (node.computeLoopHeader().hasBailoutTargets()) {
-      // The graph visitor in [visitLoopInfo] does not handle the
-      // condition. We must instead manually emit it here.
-      handleLoopCondition(node);
-      // We must also visit the body from here.
-      // For a do while loop, the body has already been visited.
-      if (!node.isDoWhile()) {
-        visitBasicBlock(node.block.dominatedBlocks[0]);
-      }
-    } else {
-      super.visitLoopBranch(node);
-    }
-  }
-
-
-  bool visitIfInfo(HIfBlockInformation info) {
-    if (info.thenGraph.start.hasBailoutTargets()) return false;
-    if (info.elseGraph.start.hasBailoutTargets()) return false;
-    return super.visitIfInfo(info);
-  }
-
-  bool visitLoopInfo(HLoopBlockInformation info) {
-    // Always emit with block flow traversal.
-    if (info.loopHeader.hasBailoutTargets()) {
-      // If there are any bailout targets in the loop, we cannot use
-      // the pretty [SsaCodeGenerator.visitLoopInfo] printer.
-      if (info.initializer != null) {
-        generateStatements(info.initializer);
-      }
-      beginLoop(info.loopHeader);
-      if (!info.isDoWhile()) {
-        generateStatements(info.condition);
-      }
-      generateStatements(info.body);
-      if (info.isDoWhile()) {
-        generateStatements(info.condition);
-      }
-      if (info.updates != null) {
-        generateStatements(info.updates);
-      }
-      endLoop(info.end);
-      return true;
-    }
-    return super.visitLoopInfo(info);
-  }
-
-  bool visitTryInfo(HTryBlockInformation info) => false;
-  bool visitSequenceInfo(HStatementSequenceInformation info) => false;
-
-  void visitTypeGuard(HTypeGuard node) {
-    // Do nothing. Type guards are only used in the optimized version.
-  }
-
-  void visitBailoutTarget(HBailoutTarget node) {
-    if (propagator.hasComplexBailoutTargets) {
-      js.Block nextBlock = new js.Block.empty();
-      js.Case clause = new js.Case(new js.LiteralNumber('${node.state}'),
-                                   nextBlock);
-      currentBailoutSwitch.cases.add(clause);
-      currentContainer = nextBlock;
-      pushExpressionAsStatement(new js.Assignment(generateStateUse(),
-                                                  new js.LiteralNumber('0')));
-    }
-    // Here we need to rearrange the inputs of the bailout target, so that they
-    // are output in the correct order, perhaps with interspersed nulls, to
-    // match the order in the bailout function, which is of course common to all
-    // the bailout points.
-    var newInputs = new List<HInstruction>(propagator.bailoutArity);
-    for (HInstruction input in node.inputs) {
-      int index = propagator.parameterNames[variableNames.getName(input)];
-      newInputs[index] = input;
-    }
-    // We record the count of unused arguments instead of just filling in the
-    // inputs list with dummy arguments because it is useful to be able easily
-    // to distinguish between a dummy argument (eg 0 or null) and a real
-    // argument that happens to have the same value.  The dummy arguments are
-    // not going to be accessed by the bailout function due to the control flow
-    // implied by the state argument, so we can put anything there, including
-    // just not emitting enough arguments and letting the JS engine insert
-    // undefined for the trailing arguments.
-    node.padding = new List<int>(node.inputs.length);
-    int j = 0;
-    int pendingUnusedArguments = 0;
-    for (int i = 0; i < newInputs.length; i++) {
-      HInstruction input = newInputs[i];
-      if (input == null) {
-        pendingUnusedArguments++;
-      } else {
-        node.padding[j] = pendingUnusedArguments;
-        pendingUnusedArguments = 0;
-        node.updateInput(j, input);
-        j++;
-      }
-    }
-    assert(j == node.inputs.length);
-  }
-
-  void startBailoutCase(List<HBailoutTarget> bailouts1,
-                        [List<HBailoutTarget> bailouts2 = const []]) {
-    if (!defaultClauseUsedInBailoutStack.last &&
-        bailouts1.length + bailouts2.length >= 2) {
-      currentContainer = new js.Block.empty();
-      currentBailoutSwitch.cases.add(new js.Default(currentContainer));
-      int len = defaultClauseUsedInBailoutStack.length;
-      defaultClauseUsedInBailoutStack[len - 1] = true;
-    } else {
-      _handleBailoutCase(bailouts1);
-      _handleBailoutCase(bailouts2);
-      currentContainer = currentBailoutSwitch.cases.last.body;
-    }
-  }
-
-  void _handleBailoutCase(List<HBailoutTarget> targets) {
-    for (int i = 0, len = targets.length; i < len; i++) {
-      js.LiteralNumber expr = new js.LiteralNumber('${targets[i].state}');
-      currentBailoutSwitch.cases.add(new js.Case(expr, new js.Block.empty()));
-    }
-  }
-
-  void startBailoutSwitch() {
-    defaultClauseUsedInBailoutStack.add(false);
-    oldBailoutSwitches.add(currentBailoutSwitch);
-    List<js.SwitchClause> cases = <js.SwitchClause>[];
-    js.Block firstBlock = new js.Block.empty();
-    cases.add(new js.Case(new js.LiteralNumber("0"), firstBlock));
-    currentBailoutSwitch = new js.Switch(generateStateUse(), cases);
-    pushStatement(currentBailoutSwitch);
-    oldContainerStack.add(currentContainer);
-    currentContainer = firstBlock;
-  }
-
-  js.Switch endBailoutSwitch() {
-    js.Switch result = currentBailoutSwitch;
-    currentBailoutSwitch = oldBailoutSwitches.removeLast();
-    defaultClauseUsedInBailoutStack.removeLast();
-    currentContainer = oldContainerStack.removeLast();
-    return result;
-  }
-
-  void beginLoop(HBasicBlock block) {
-    String loopLabel = pushLabel();
-    if (block.hasBailoutTargets()) {
-      startBailoutCase(block.bailoutTargets);
-    }
-    oldContainerStack.add(currentContainer);
-    currentContainer = new js.Block.empty();
-    if (block.hasBailoutTargets()) {
-      startBailoutSwitch();
-      HLoopInformation loopInformation = block.loopInformation;
-      if (loopInformation.target != null) {
-        breakAction[loopInformation.target] = (TargetElement target) {
-          pushStatement(new js.Break(loopLabel));
-        };
-      }
-    }
-  }
-
-  void endLoop(HBasicBlock block) {
-    String loopLabel = popLabel();
-
-    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
-    HLoopInformation info = header.loopInformation;
-    if (header.hasBailoutTargets()) {
-      endBailoutSwitch();
-      if (info.target != null) breakAction.remove(info.target);
-    }
-
-    js.Statement body = unwrapStatement(currentContainer);
-    currentContainer = oldContainerStack.removeLast();
-
-    js.Statement result = new js.While(newLiteralBool(true), body);
-    attachLocationRange(result,
-                        info.loopBlockInformation.sourcePosition,
-                        info.loopBlockInformation.endSourcePosition);
-    result = new js.LabeledStatement(loopLabel, result);
-    result = wrapIntoLabels(result, info.labels);
-    pushStatement(result);
-  }
-
-  void handleLoopCondition(HLoopBranch node) {
-    use(node.inputs[0]);
-    js.Expression test = new js.Prefix('!', pop());
-    js.Statement then = new js.Break(currentLabel());
-    pushStatement(new js.If.noElse(test, then), node);
-  }
-
-  void generateIf(HIf node, HIfBlockInformation info) {
-    HStatementInformation thenGraph = info.thenGraph;
-    HStatementInformation elseGraph = info.elseGraph;
-    bool thenHasGuards = thenGraph.start.hasBailoutTargets();
-    bool elseHasGuards = elseGraph.start.hasBailoutTargets();
-    bool hasGuards = thenHasGuards || elseHasGuards;
-    if (!hasGuards) {
-      super.generateIf(node, info);
-      return;
-    }
-
-    startBailoutCase(thenGraph.start.bailoutTargets,
-                     elseGraph.start.bailoutTargets);
-
-    use(node.inputs[0]);
-    js.Binary stateEquals0 =
-        new js.Binary('===', generateStateUse(), new js.LiteralNumber('0'));
-    js.Expression condition = new js.Binary('&&', stateEquals0, pop());
-    // TODO(ngeoffray): Put the condition initialization in the
-    // arguments?
-    List<HBailoutTarget> targets = node.thenBlock.bailoutTargets;
-    for (int i = 0, len = targets.length; i < len; i++) {
-      js.VariableUse stateRef = generateStateUse();
-      js.Expression targetState = new js.LiteralNumber('${targets[i].state}');
-      js.Binary stateTest = new js.Binary('===', stateRef, targetState);
-      condition = new js.Binary('||', stateTest, condition);
-    }
-
-    js.Statement thenBody = new js.Block.empty();
-    js.Block oldContainer = currentContainer;
-    currentContainer = thenBody;
-    if (thenHasGuards) startBailoutSwitch();
-    generateStatements(thenGraph);
-    if (thenHasGuards) endBailoutSwitch();
-    thenBody = unwrapStatement(thenBody);
-
-    js.Statement elseBody = null;
-    elseBody = new js.Block.empty();
-    currentContainer = elseBody;
-    if (elseHasGuards) startBailoutSwitch();
-    generateStatements(elseGraph);
-    if (elseHasGuards) endBailoutSwitch();
-    elseBody = unwrapStatement(elseBody);
-
-    currentContainer = oldContainer;
-    pushStatement(new js.If(condition, thenBody, elseBody), node);
-  }
-
-  void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-    if (labeledBlockInfo.body.start.hasBailoutTargets()) {
-      indent--;
-      startBailoutCase(labeledBlockInfo.body.start.bailoutTargets);
-      indent++;
-    }
-  }
-
-  void startLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-    if (labeledBlockInfo.body.start.hasBailoutTargets()) {
-      startBailoutSwitch();
-    }
-  }
-
-  void endLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-    if (labeledBlockInfo.body.start.hasBailoutTargets()) {
-      endBailoutSwitch();
-    }
   }
 }
 

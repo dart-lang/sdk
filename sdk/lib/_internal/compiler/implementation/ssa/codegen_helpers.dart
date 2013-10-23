@@ -95,10 +95,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     analyzeInputs(instruction, 1);
   }
 
-  // A type guard should not generate its input at use site, otherwise
-  // they would not be alive.
-  void visitTypeGuard(HTypeGuard instruction) {}
-
   // An identity operation must only have its inputs generated at use site if
   // does not require an expression with multiple uses (because of null /
   // undefined).
