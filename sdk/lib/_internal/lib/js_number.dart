@@ -49,6 +49,8 @@ class JSNumber extends Interceptor implements num {
         || JS('bool', r'# == -Infinity', this);
   }
 
+  bool get isFinite => JS('bool', r'isFinite(#)', this);
+
   num remainder(num b) {
     checkNull(b); // TODO(ngeoffray): This is not specified but co19 tests it.
     if (b is! num) throw new ArgumentError(b);

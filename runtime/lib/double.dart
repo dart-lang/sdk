@@ -96,6 +96,7 @@ class _Double implements double {
   bool get isNegative native "Double_getIsNegative";
   bool get isInfinite native "Double_getIsInfinite";
   bool get isNaN native "Double_getIsNaN";
+  bool get isFinite => !isInfinite && !isNaN;  // Can be optimized.
 
   double abs() {
     // Handle negative 0.0.

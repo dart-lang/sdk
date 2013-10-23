@@ -142,11 +142,29 @@ abstract class num implements Comparable<num> {
   /** Relational greater than or equal operator. */
   bool operator >=(num other);
 
+  /** True if the number is the double Not-a-Number value; otherwise, false. */
   bool get isNaN;
 
+  /**
+   * True if the number is negative; otherwise, false.
+   *
+   * Negative numbers are those less than zero, and the double `-0.0`.
+   */
   bool get isNegative;
 
+  /**
+   * True if the number is positive infinity or negative infinity; otherwise,
+   * false.
+   */
   bool get isInfinite;
+
+  /**
+   * True if the number is finite; otherwise, false.
+   *
+   * The only non-finite numbers are NaN, positive infinitity and
+   * negative infinity.
+   */
+  bool get isFinite;
 
   /** Returns the absolute value of this [num]. */
   num abs();
