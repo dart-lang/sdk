@@ -209,7 +209,7 @@ class _MyCustomBinding extends NodeBinding {
  * and see changes that the data binding system is making to the attributes.
  */
 class WithAttrsCustomElement extends HtmlElement {
-  AttributeMapWrapper<String, String> _attributes;
+  AttributeMapWrapper _attributes;
 
   factory WithAttrsCustomElement() =>
       new Element.tag('with-attrs-custom-element');
