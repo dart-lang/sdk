@@ -112,6 +112,8 @@ main() {
         '<span>![CDATA[ some text ]]></span>');
 
     test('sanitizes template contents', () {
+      if (!TemplateElement.supported) return;
+
       var html = '<template>'
           '<div></div>'
           '<script></script>'

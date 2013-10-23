@@ -277,6 +277,8 @@ wheelevent_test: Fail # Issue: 12798
 xhr_test/xhr_requestBlob: Fail # Issue: 9178 Safari doesn't support Blob responses.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+audiocontext_test/functional: Fail # Issue 14354
+
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
