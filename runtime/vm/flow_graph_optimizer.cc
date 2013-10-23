@@ -4344,8 +4344,8 @@ class Place : public ValueObject {
         StoreInstanceFieldInstr* store_instance_field =
             instr->AsStoreInstanceField();
         kind_ = kField;
-        // Value is at input index 1.
-        representation_ = store_instance_field->RequiredInputRepresentation(1);
+        representation_ = store_instance_field->
+            RequiredInputRepresentation(StoreInstanceFieldInstr::kValuePos);
         instance_ =
             OriginalDefinition(store_instance_field->instance()->definition());
         field_ = &store_instance_field->field();
@@ -4355,8 +4355,8 @@ class Place : public ValueObject {
       case Instruction::kStoreVMField: {
         StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
         kind_ = kVMField;
-        // Value is at input index 0.
-        representation_ = store_vm_field->RequiredInputRepresentation(0);
+        representation_ = store_vm_field->
+            RequiredInputRepresentation(StoreVMFieldInstr::kValuePos);
         instance_ = OriginalDefinition(store_vm_field->dest()->definition());
         offset_in_bytes_ = store_vm_field->offset_in_bytes();
         break;
@@ -4371,9 +4371,8 @@ class Place : public ValueObject {
 
       case Instruction::kStoreStaticField:
         kind_ = kField;
-        // Value is at input index 0.
-        representation_ =
-            instr->AsStoreStaticField()->RequiredInputRepresentation(0);
+        representation_ = instr->AsStoreStaticField()->
+            RequiredInputRepresentation(StoreStaticFieldInstr::kValuePos);
         field_ = &instr->AsStoreStaticField()->field();
         break;
 
@@ -4390,8 +4389,8 @@ class Place : public ValueObject {
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
         kind_ = kIndexed;
-        // Value is at input index 2.
-        representation_ = store_indexed->RequiredInputRepresentation(2);
+        representation_ = store_indexed->
+            RequiredInputRepresentation(StoreIndexedInstr::kValuePos);
         instance_ = OriginalDefinition(store_indexed->array()->definition());
         index_ = store_indexed->index()->definition();
         break;
@@ -4406,8 +4405,8 @@ class Place : public ValueObject {
 
       case Instruction::kStoreContext:
         kind_ = kContext;
-        ASSERT(instr->AsStoreContext()->RequiredInputRepresentation(0) ==
-               kTagged);
+        ASSERT(instr->AsStoreContext()->RequiredInputRepresentation(
+            StoreContextInstr::kValuePos) == kTagged);
         representation_ = kTagged;
         break;
 
