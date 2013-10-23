@@ -16,6 +16,8 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               checkString,
                               defineProperty,
                               getRuntimeType,
+                              initNativeDispatch,
+                              initNativeDispatchFlag,
                               regExpGetNative,
                               stringContainsUnchecked,
                               stringLastIndexOfUnchecked,
@@ -115,6 +117,13 @@ dispatchRecordIndexability(record) => JS('bool|Null', '#.x', record);
 getNativeInterceptor(object) {
   var record = getDispatchProperty(object);
 
+  if (record == null) {
+    if (initNativeDispatchFlag == null) {
+      initNativeDispatch();
+      record = getDispatchProperty(object);
+    }
+  }
+
   if (record != null) {
     var proto = dispatchRecordProto(record);
     if (false == proto) return dispatchRecordInterceptor(record);
@@ -141,7 +150,6 @@ getNativeInterceptor(object) {
   setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', object), record);
   return getNativeInterceptor(object);
 }
-
 
 /**
  * If [JSInvocationMirror._invokeOn] is being used, this variable

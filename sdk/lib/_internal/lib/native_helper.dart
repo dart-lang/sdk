@@ -285,8 +285,7 @@ lookupDispatchRecord(obj) {
     return null;
   }
   var interceptor = JS('', '#.prototype', interceptorClass);
-  var isLeaf =
-      (leafTags != null) && JS('bool', '(#[#]) === true', leafTags, tag);
+  var isLeaf = JS('bool', '(#[#]) === true', leafTags, tag);
   if (isLeaf) {
     return makeLeafDispatchRecord(interceptor);
   } else {
@@ -300,6 +299,44 @@ makeLeafDispatchRecord(interceptor) {
   bool indexability = JS('bool', r'!!#[#]', interceptor, fieldName);
   return makeDispatchRecord(interceptor, false, null, indexability);
 }
+
+makeDefaultDispatchRecord(tag, interceptorClass, proto) {
+  var interceptor = JS('', '#.prototype', interceptorClass);
+  var isLeaf = JS('bool', '(#[#]) === true', leafTags, tag);
+  if (isLeaf) {
+    return makeLeafDispatchRecord(interceptor);
+  } else {
+    return makeDispatchRecord(interceptor, proto, null, null);
+  }
+}
+
+var initNativeDispatchFlag;  // null or true
+
+void initNativeDispatch() {
+  initNativeDispatchFlag = true;
+
+  // Try to pro-actively patch prototypes of DOM objects.  For each of our known
+  // tags `TAG`, if `window.TAG` is a (constructor) function, set the dispatch
+  // property if the function's prototype to a dispatch record.
+  if (JS('bool', 'typeof window != "undefined"')) {
+    var context = JS('=Object', 'window');
+    var map = interceptorsByTag;
+    var tags = JS('JSMutableArray', 'Object.getOwnPropertyNames(#)', map);
+    for (int i = 0; i < tags.length; i++) {
+      var tag = tags[i];
+      if (JS('bool', 'typeof (#[#]) == "function"', context, tag)) {
+        var constructor = JS('', '#[#]', context, tag);
+        var proto = JS('', '#.prototype', constructor);
+        var interceptorClass = JS('', '#[#]', map, tag);
+        var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
+        if (record != null) {
+          setDispatchProperty(proto, record);
+        }
+      }
+    }
+  }
+}
+
 
 /**
  * [proto] should have no shadowing prototypes that are not also assigned a
