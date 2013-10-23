@@ -484,7 +484,7 @@ class TypeGraphInferrerEngine
 
     if (_VERBOSE) {
       types.allocatedContainers.values.forEach((ContainerTypeInformation info) {
-        print('${info.type} ${info.type.forwardTo}'
+        print('${info.type} '
               'for ${info.originalContainerType.allocationNode} '
               'at ${info.originalContainerType.allocationElement}');
       });
