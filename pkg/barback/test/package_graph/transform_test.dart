@@ -806,6 +806,30 @@ main() {
     buildShouldSucceed();
   });
 
+  test("one transformer takes a long time while the other finishes, then "
+      "the input is removed", () {
+    var rewrite1 = new RewriteTransformer("txt", "out1");
+    var rewrite2 = new RewriteTransformer("txt", "out2");
+    initGraph(["app|foo.txt"], {"app": [[rewrite1, rewrite2]]});
+
+    rewrite1.pauseApply();
+
+    updateSources(["app|foo.txt"]);
+
+    // Wait for rewrite1 to pause and rewrite2 to finish.
+    schedule(pumpEventQueue);
+
+    removeSources(["app|foo.txt"]);
+
+    // Make sure the removal is processed completely before we restart rewrite2.
+    schedule(pumpEventQueue);
+    rewrite1.resumeApply();
+
+    buildShouldSucceed();
+    expectNoAsset("app|foo.out1");
+    expectNoAsset("app|foo.out2");
+  });
+
   group("pass-through", () {
     test("passes an asset through a phase in which no transforms apply", () {
       initGraph([
