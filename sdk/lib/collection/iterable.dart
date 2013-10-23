@@ -404,110 +404,122 @@ abstract class IterableBase<E> implements Iterable<E> {
 }
 
 String _iterableToString(Iterable iterable) {
-  const int LENGTH_LIMIT = 80;
-  const int MIN_COUNT = 3;  // Always at least this many elements at the start.
-  const int MAX_COUNT = 100;
-  // Per entry length overhead for ", " (or for "(" and ")" for initial entry)
-  const int OVERHEAD = 2;
-  const int ELLIPSIS_SIZE = 3;  // "...".length.
   if (_toStringVisiting.contains(iterable)) return "(...)";
   _toStringVisiting.add(iterable);
-  List result = [];
+  List parts = [];
   try {
-    building: {  // Break this block to complete the toString.
-      int length = 0;
-      int count = 0;
-      Iterator it = iterable.iterator;
-      // Initial run of elements, at least MIN_COUNT, and then continue until
-      // passing at most LENGTH_LIMIT characters.
-      while (count < MIN_COUNT || length < LENGTH_LIMIT) {
-        if (!it.moveNext()) break building;
-        String next = "${it.current}";
-        result.add(next);
-        length += next.length + OVERHEAD;  // Includes ")" for the first entry.
-        count++;
-      }
-      String penultimateString;
-      String ultimateString;
-
-      // Find last two elements. One or more of them may already be in the
-      // result array. Include their length in `length`.
-      var penultimate = null;
-      var ultimate = null;
-      if (!it.moveNext()) {
-        if (count <= MIN_COUNT + 2) break building;
-        ultimateString = result.removeLast();
-        penultimateString = result.removeLast();
-      } else {
-        penultimate = it.current;
-        count++;
-        if (!it.moveNext()) {
-          if (count <= MIN_COUNT + 1) {
-            result.add("$penultimate");
-            break building;
-          }
-          ultimateString = "$penultimate";
-          penultimateString = result.removeLast();
-          length += ultimateString.length + OVERHEAD;
-        } else {
-          ultimate = it.current;
-          count++;
-          // Then keep looping, keeping the last two elements in variables.
-          assert(count < MAX_COUNT);
-          while (it.moveNext()) {
-            penultimate = ultimate;
-            ultimate = it.current;
-            count++;
-            if (count > MAX_COUNT) {
-              // If we haven't found the end before MAX_COUNT, give up.
-              // This cannot happen before because each count increases
-              // length by at least two, so there is no way to see more
-              // than ~40 elements before this loop.
-
-              // Remove any surplus elements until length including ", ...)"
-              // is at most LENGTH_LIMIT.
-              while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
-                     count > MIN_COUNT) {
-                length -= result.removeLast().length + OVERHEAD;
-                count--;
-              }
-              result.add("...");
-              break building;
-            }
-          }
-          penultimateString = "$penultimate";
-          ultimateString = "$ultimate";
-          length +=
-              ultimateString.length + penultimateString.length + 2 * OVERHEAD;
-        }
-      }
-
-      // If there is a gap between the initial run and the last two,
-      // prepare to add an ellipsis.
-      String elision = null;
-      if (count > result.length + 2) {
-        elision = "...";
-        length += ELLIPSIS_SIZE + OVERHEAD;
-      }
-
-      // If the last two elements were very long, and we have more than
-      // MIN_COUNT elements in the initial run, drop some to make room for
-      // the last two.
-      while (length > LENGTH_LIMIT && result.length > MIN_COUNT) {
-        length -= result.removeLast().length + OVERHEAD;
-        if (elision == null) {
-          elision = "...";
-          length += ELLIPSIS_SIZE + OVERHEAD;
-        }
-      }
-      if (elision != null) {
-        result.add(elision);
-      }
-      result.add(penultimateString);
-      result.add(ultimateString);
-    }
+    _iterablePartsToStrings(iterable, parts);
   } finally {
     _toStringVisiting.remove(iterable);
   }
-  return (new StringBuffer("(")..writeAll(result, ", ")..write(")")).toString();
+  return (new StringBuffer("(")..writeAll(parts, ", ")..write(")")).toString();
+}
+
+/** Convert elments of [iterable] to strings and store them in [parts]. */
+String _iterablePartsToStrings(Iterable iterable, List parts) {
+  /// Try to stay below this many characters.
+  const int LENGTH_LIMIT = 80;
+  /// Always at least this many elements at the start.
+  const int HEAD_COUNT = 3;
+  /// Always at least this many elements at the end.
+  const int TAIL_COUNT = 2;
+  /// Stop iterating after this many elements. Iterables can be infinite.
+  const int MAX_COUNT = 100;
+  // Per entry length overhead. It's for ", " for all after the first entry,
+  // and for "(" and ")" for the initial entry. By pure luck, that's the same
+  // number.
+  const int OVERHEAD = 2;
+  const int ELLIPSIS_SIZE = 3;  // "...".length.
+
+  int length = 0;
+  int count = 0;
+  Iterator it = iterable.iterator;
+  // Initial run of elements, at least HEAD_COUNT, and then continue until
+  // passing at most LENGTH_LIMIT characters.
+  while (length < LENGTH_LIMIT || count < HEAD_COUNT) {
+    if (!it.moveNext()) return;
+    String next = "${it.current}";
+    parts.add(next);
+    length += next.length + OVERHEAD;
+    count++;
+  }
+
+  String penultimateString;
+  String ultimateString;
+
+  // Find last two elements. One or more of them may already be in the
+  // parts array. Include their length in `length`.
+  var penultimate = null;
+  var ultimate = null;
+  if (!it.moveNext()) {
+    if (count <= HEAD_COUNT + TAIL_COUNT) return;
+    ultimateString = parts.removeLast();
+    penultimateString = parts.removeLast();
+  } else {
+    penultimate = it.current;
+    count++;
+    if (!it.moveNext()) {
+      if (count <= HEAD_COUNT + 1) {
+        parts.add("$penultimate");
+        return;
+      }
+      ultimateString = "$penultimate";
+      penultimateString = parts.removeLast();
+      length += ultimateString.length + OVERHEAD;
+    } else {
+      ultimate = it.current;
+      count++;
+      // Then keep looping, keeping the last two elements in variables.
+      assert(count < MAX_COUNT);
+      while (it.moveNext()) {
+        penultimate = ultimate;
+        ultimate = it.current;
+        count++;
+        if (count > MAX_COUNT) {
+          // If we haven't found the end before MAX_COUNT, give up.
+          // This cannot happen in the code above because each entry
+          // increases length by at least two, so there is no way to
+          // visit more than ~40 elements before this loop.
+
+          // Remove any surplus elements until length, including ", ...)",
+          // is at most LENGTH_LIMIT.
+          while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
+                 count > HEAD_COUNT) {
+            length -= parts.removeLast().length + OVERHEAD;
+            count--;
+          }
+          parts.add("...");
+          return;
+        }
+      }
+      penultimateString = "$penultimate";
+      ultimateString = "$ultimate";
+      length +=
+          ultimateString.length + penultimateString.length + 2 * OVERHEAD;
+    }
+  }
+
+  // If there is a gap between the initial run and the last two,
+  // prepare to add an ellipsis.
+  String elision = null;
+  if (count > parts.length + TAIL_COUNT) {
+    elision = "...";
+    length += ELLIPSIS_SIZE + OVERHEAD;
+  }
+
+  // If the last two elements were very long, and we have more than
+  // HEAD_COUNT elements in the initial run, drop some to make room for
+  // the last two.
+  while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
+    length -= parts.removeLast().length + OVERHEAD;
+    if (elision == null) {
+      elision = "...";
+      length += ELLIPSIS_SIZE + OVERHEAD;
+    }
+  }
+  if (elision != null) {
+    parts.add(elision);
+  }
+  parts.add(penultimateString);
+  parts.add(ultimateString);
 }
