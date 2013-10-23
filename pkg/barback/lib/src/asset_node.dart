@@ -62,26 +62,30 @@ class AssetNode {
   final _stateChangeController =
       new StreamController<AssetState>.broadcast(sync: true);
 
-  /// Returns a Future that completes when the node's asset is available.
+  /// Calls [callback] when the node's asset is available.
   ///
-  /// If the asset is currently available, this completes synchronously to
-  /// ensure that the asset is still available in the [Future.then] callback.
+  /// If the asset is currently available, this calls [callback] synchronously
+  /// to ensure that the asset is still available.
   ///
-  /// If the asset is removed before becoming available, this will throw an
-  /// [AssetNotFoundException].
-  Future<Asset> get whenAvailable {
-    return _waitForState((state) => state.isAvailable || state.isRemoved)
-        .then((state) {
+  /// The return value of [callback] is piped to the returned Future. If the
+  /// asset is removed before becoming available, the returned future will throw
+  /// an [AssetNotFoundException].
+  Future whenAvailable(callback(Asset asset)) {
+    return _waitForState((state) => state.isAvailable || state.isRemoved,
+        (state) {
       if (state.isRemoved) throw new AssetNotFoundException(id);
-      return asset;
+      return callback(asset);
     });
   }
 
-  /// Returns a Future that completes when the node's asset is removed.
+  /// Calls [callback] when the node's asset is removed.
   ///
-  /// If the asset is already removed when this is called, it completes
+  /// If the asset is already removed when this is called, it calls [callback]
   /// synchronously.
-  Future get whenRemoved => _waitForState((state) => state.isRemoved);
+  ///
+  /// The return value of [callback] is piped to the returned Future.
+  Future whenRemoved(callback()) =>
+    _waitForState((state) => state.isRemoved, (_) => callback());
 
   /// Runs [callback] repeatedly until the node's asset has maintained the same
   /// value for the duration.
@@ -95,7 +99,7 @@ class AssetNode {
   /// If this asset is removed, this will throw an [AssetNotFoundException] as
   /// soon as [callback]'s Future is finished running.
   Future tryUntilStable(Future callback(Asset asset)) {
-    return whenAvailable.then((asset) {
+    return whenAvailable((asset) {
       var modifiedDuringCallback = false;
       var subscription;
       subscription = onStateChange.listen((_) {
@@ -114,13 +118,15 @@ class AssetNode {
     });
   }
 
-  /// Returns a Future that completes as soon as the node is in a state that
-  /// matches [test].
+  /// Calls [callback] as soon as the node is in a state that matches [test].
   ///
-  /// The Future completes synchronously if this is already in such a state.
-  Future<AssetState> _waitForState(bool test(AssetState state)) {
-    if (test(state)) return new Future.sync(() => state);
-    return onStateChange.firstWhere(test);
+  /// [callback] is called synchronously if this is already in such a state.
+  ///
+  /// The return value of [callback] is piped to the returned Future.
+  Future _waitForState(bool test(AssetState state),
+      callback(AssetState state)) {
+    if (test(state)) return new Future.sync(() => callback(state));
+    return onStateChange.firstWhere(test).then((_) => callback(state));
   }
 
   AssetNode._(this.id, this._transform, this._origin)

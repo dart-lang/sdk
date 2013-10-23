@@ -165,7 +165,7 @@ class TransformNode {
 
       // If the asset node is found, wait until its contents are actually
       // available before we return them.
-      return node.whenAvailable.then((asset) {
+      return node.whenAvailable((asset) {
         _inputSubscriptions.putIfAbsent(node.id,
             () => node.onStateChange.listen((_) => _dirty()));
 

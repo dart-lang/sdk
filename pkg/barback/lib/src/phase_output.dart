@@ -82,7 +82,7 @@ class PhaseOutput {
 
   /// Watches [node] to adjust [_assets] and [output] when it's removed.
   void _watchAsset(AssetNode node) {
-    node.whenRemoved.then((_) {
+    node.whenRemoved(() {
       if (_assets.length == 1) {
         assert(_assets.single == node);
         _outputForwarder.close();

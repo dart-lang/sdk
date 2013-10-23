@@ -151,7 +151,7 @@ class Phase {
     _inputOrigins.add(node.origin);
     var input = new PhaseInput(this, node, _transformers);
     _inputs[node.id] = input;
-    input.input.whenRemoved.then((_) {
+    input.input.whenRemoved(() {
       _inputOrigins.remove(node.origin);
       _inputs.remove(node.id);
       _forwarders.remove(node.id).remove();

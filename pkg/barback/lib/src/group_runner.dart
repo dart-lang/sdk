@@ -85,7 +85,7 @@ class GroupRunner {
     var newOutputs = _phases.last.availableOutputs
         .difference(_alreadyEmittedOutputs);
     for (var output in newOutputs) {
-      output.whenRemoved.then((_) => _alreadyEmittedOutputs.remove(output));
+      output.whenRemoved(() => _alreadyEmittedOutputs.remove(output));
     }
     _alreadyEmittedOutputs.addAll(newOutputs);
 
