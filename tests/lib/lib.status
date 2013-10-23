@@ -202,18 +202,6 @@ convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
 convert/utf85_test: Pass, Slow # Issue 12644.
 
 [ $compiler == dartanalyzer ]
-async/stream_controller_test: Fail # Issue 14284
-async/stream_event_transformed_test: Fail # Issue 14284
-async/stream_controller_async_test: Fail # Issue 14284
-async/stream_first_where_test: Fail # Issue 14284
-async/stream_from_iterable_test: Fail # Issue 14284
-async/stream_join_test: Fail # Issue 14284
-async/stream_last_where_test: Fail # Issue 14284
-async/stream_single_test: Fail # Issue 14284
-async/stream_single_to_multi_subscriber_test: Fail # Issue 14284
-async/stream_transformer_from_handlers_test: Fail # Issue 14284
-async/stream_transformer_test: Fail # Issue 14284
-async/stream_transform_test: Fail # Issue 14284
 mirrors/typedef_test/none: Fail # Issue 13093
 mirrors/generics_test/none: Fail # Issue 13432
 mirrors/generic_bounded_test/none: Fail # Issue 13432
