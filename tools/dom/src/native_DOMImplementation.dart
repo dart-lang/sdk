@@ -165,7 +165,7 @@ class _Utils {
    * that does not expect REPL support.
    */
   static const _CONSOLE_API_SUPPORT_HEADER =
-      'with ((this && this.console && this.console._commandLineAPI) || {}) {\n';
+      'with ((console && console._commandLineAPI) || {}) {\n';
 
   /**
    * Takes an [expression] and a list of [local] variable and returns an
