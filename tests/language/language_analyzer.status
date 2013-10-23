@@ -29,13 +29,13 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-# test issue 13807, missing support for type promotion
+# TBF 13807, missing support for type promotion
 type_promotion_closure_test/none: Fail # Issue 13807
 type_promotion_functions_test/none: Fail # Issue 13807
 type_promotion_local_test/none: Fail # Issue 13807
-type_promotion_logical_and_test/none: Fail # Issue 13807
 type_promotion_multiple_test/none: Fail # Issue 13807
 type_promotion_parameter_test/none: Fail # Issue 13807
+type_promotion_more_specific_test/08: Fail # Issue 13807
 
 # Invalid constant redirecting factories should cause compile-time error.
 const_types_test/23: Fail # Issue 14306
