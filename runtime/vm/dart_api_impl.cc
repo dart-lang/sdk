@@ -264,6 +264,9 @@ bool Api::StringGetPeerHelper(Dart_NativeArguments args,
   NoGCScope no_gc_scope;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  if (!raw_obj->IsHeapObject()) {
+    return false;
+  }
   intptr_t cid = raw_obj->GetClassId();
   if (cid == kExternalOneByteStringCid) {
     RawExternalOneByteString* raw_string =

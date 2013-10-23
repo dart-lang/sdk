@@ -5615,7 +5615,8 @@ class TypedData : public Instance {
   }
 
   void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    ASSERT((byte_offset == 0) ||
+           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
     return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
   }
 
@@ -5747,7 +5748,8 @@ class ExternalTypedData : public Instance {
   }
 
   void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    ASSERT((byte_offset == 0) ||
+           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
     return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
   }
 

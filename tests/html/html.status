@@ -87,9 +87,6 @@ touchevent_test/supported: Fail
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 
-[ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
-audiocontext_test: Skip # Issue 9322
-
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid]
 webgl_1_test: Pass, Fail # Issue 8219
 
