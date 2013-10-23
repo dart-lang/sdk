@@ -24,6 +24,11 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: RuntimeError #Issue 12341
+collection_helpers/test/equality_test/01: Fail # Issue 1533
+collection_helpers/test/equality_test/02: Fail # Issue 1533
+collection_helpers/test/equality_test/03: Fail # Issue 1533
+collection_helpers/test/equality_test/04: Fail # Issue 1533
+collection_helpers/test/equality_test/05: Fail # Issue 1533
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -103,6 +108,7 @@ stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 # them in the analyzer.
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
+collection_helpers/test/equality_test/none: Fail # TODO(lrn): Figure out if it's an error.
 
 [ $compiler == dart2js && $csp ]
 unittest/test/mirror_matchers_test: Skip # Issue 12151
