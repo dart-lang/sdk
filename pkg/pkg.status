@@ -236,7 +236,7 @@ unittest/test/unitttest_group_name_test: Fail # 13921
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
 custom_element: Skip
-mdv: Skip
+template_binding: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
 polymer_expressions/test/globals_test: Skip
@@ -260,7 +260,7 @@ source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this fa
 [ $compiler == dartanalyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
-mdv/test/analyzer_test: fail
+template_binding/test/analyzer_test: fail
 observe/test/observe_test: fail
 
 # pkg issue 13945; Missing inherited member 'Trace.frames'
@@ -269,7 +269,7 @@ observe/test/observe_test: fail
 [ $compiler == dart2analyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
-mdv/test/analyzer_test: fail
+template_binding/test/analyzer_test: fail
 observe/test/observe_test: fail
 
 # pkg issue 13945; Missing inherited member 'Trace.frames'

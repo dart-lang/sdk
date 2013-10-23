@@ -19,7 +19,6 @@ library custom_element;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:mdv/mdv.dart' as mdv;
 import 'package:meta/meta.dart';
 import 'src/custom_tag_name.dart';
 
@@ -40,7 +39,6 @@ part 'src/attribute_map.dart';
 void registerCustomElement(String localName, CustomElement create()) {
   if (_customElements == null) {
     _customElements = {};
-    mdv.instanceCreated.add(initCustomElements);
     // TODO(jmesserly): use MutationObserver to watch for inserts?
   }
 

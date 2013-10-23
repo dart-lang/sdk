@@ -9,7 +9,7 @@
  *
  * It can collect all observed objects, which can be used to trigger predictable
  * delivery of all pending changes in a test, including objects allocated
- * internally to another library, such as those in `package:mdv`.
+ * internally to another library, such as those in `package:template_binding`.
  */
 library observe.src.dirty_check;
 

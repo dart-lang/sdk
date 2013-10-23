@@ -8,7 +8,5 @@ description: >
 dependencies:
   meta: any
   mutation_observer: any
-  # TODO(jmesserly): fix this, we should not depend on MDV.
-  mdv: any
 dev_dependencies:
   unittest: any

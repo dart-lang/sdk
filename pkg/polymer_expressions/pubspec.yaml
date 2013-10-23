@@ -4,7 +4,7 @@ description: An expressive custom binding syntax for MDV templates
 homepage: http://www.dartlang.org/polymer-dart/
 dependencies:
   browser: any
-  mdv: any
   observe: any
+  template_binding: any
 dev_dependencies:
   unittest: any
