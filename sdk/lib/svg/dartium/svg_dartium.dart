@@ -999,7 +999,7 @@ class ElementInstance extends EventTarget {
   @DomName('SVGElementInstance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
 
   @DomName('SVGElementInstance.dispatchEvent')
   @DocsEditable()
@@ -1009,7 +1009,7 @@ class ElementInstance extends EventTarget {
   @DomName('SVGElementInstance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
 
   @DomName('SVGElementInstance.onabort')
   @DocsEditable()

@@ -12,7 +12,7 @@ from generator import AnalyzeOperation, ConstantOutputOrder, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
-    keep_overloaded_members, private_html_members, dom_private_html_members, renamed_html_members, \
+    keep_overloaded_members, private_html_members, renamed_html_members, \
     renamed_overloads, removed_html_members
 import logging
 import monitored
@@ -203,7 +203,6 @@ class HtmlDartGenerator(object):
         operation_str not in keep_overloaded_members and
         operation_str not in renamed_html_members and
         operation_str not in private_html_members and
-        operation_str not in dom_private_html_members and
         operation_str not in removed_html_members and
         operation.id != '__getter__' and
         operation.id != '__setter__' and

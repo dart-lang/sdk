@@ -156,15 +156,6 @@ convert_to_future_members = monitored.Set(
   'WorkerGlobalScope.webkitResolveLocalFileSystemURL',
 ])
 
-# "Private" members in the form $dom_foo.
-# TODO(efortuna): Remove this set. This allows us to make the change of removing
-# $dom in installments instead of all at once, but the intent is to move all of
-# these either into private_html_members or remove them from this list entirely.
-dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'EventTarget.addEventListener',
-  'EventTarget.removeEventListener',
-])
-
 # Classes where we have customized constructors, but we need to keep the old
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(
@@ -768,8 +759,9 @@ _library_ids = monitored.Dict('htmlrenamer._library_names', {
 })
 
 class HtmlRenamer(object):
-  def __init__(self, database):
+  def __init__(self, database, metadata):
     self._database = database
+    self._metadata = metadata
 
   def RenameInterface(self, interface):
     if 'Callback' in interface.ext_attrs:
@@ -817,10 +809,6 @@ class HtmlRenamer(object):
     if self._FindMatch(interface, member, member_prefix, private_html_members):
       if not target_name.startswith('_'):  # e.g. _svgClassName
         target_name = '_' + target_name
-    elif self._FindMatch(interface, member, member_prefix,
-        dom_private_html_members):
-      if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
-        target_name = '$dom_' + target_name
 
     if not name and target_name.startswith('webkit'):
       target_name = member[len('webkit'):]
@@ -835,6 +823,11 @@ class HtmlRenamer(object):
     if self._FindMatch(interface, member, member_prefix, removed_html_members):
       return True
     if interface.id in _removed_html_interfaces:
+      return True
+    metadata_member = member
+    if member_prefix == 'on:':
+      metadata_member = 'on' + metadata_member.lower()
+    if self._metadata.IsDeprecated(interface, metadata_member):
       return True
     return False
 
