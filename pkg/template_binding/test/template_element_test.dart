@@ -1103,8 +1103,8 @@ templateElementTests() {
       }));
     }));
     expect(select.nodes[0].tagName, 'TEMPLATE');
-    expect(templateBind(select.nodes[0]).ref.content.nodes[0].tagName,
-        'OPTGROUP');
+    expect((templateBind(templateBind(select.nodes[0]).ref)
+        .content.nodes[0] as Element).tagName, 'OPTGROUP');
 
     var optgroup = select.nodes[1];
     expect(optgroup.nodes[0].tagName, 'TEMPLATE');
@@ -1500,8 +1500,8 @@ templateElementTests() {
         '<template><b></b></template>');
     var templateA = div.nodes.first;
     var templateB = div.nodes.last;
-    var contentA = templateA.content;
-    var contentB = templateB.content;
+    var contentA = templateBind(templateA).content;
+    var contentB = templateBind(templateB).content;
     expect(contentA, isNotNull);
 
     expect(templateA.ownerDocument, isNot(equals(contentA.ownerDocument)));
@@ -1529,10 +1529,12 @@ templateElementTests() {
         '<template></template>'
         '</template>');
     var templateA = div.nodes.first;
-    var templateB = templateA.content.nodes.first;
+    var templateB = templateBind(templateA).content.nodes.first;
 
-    expect(templateB.ownerDocument, templateA.content.ownerDocument);
-    expect(templateB.content.ownerDocument, templateA.content.ownerDocument);
+    expect(templateB.ownerDocument, templateBind(templateA)
+        .content.ownerDocument);
+    expect(templateBind(templateB).content.ownerDocument,
+        templateBind(templateA).content.ownerDocument);
   });
 
   observeTest('BindShadowDOM', () {
@@ -1666,9 +1668,9 @@ templateElementTests() {
       '</template>';
 
     TemplateBindExtension.bootstrap(template);
-    template2 = template.content.nodes.first;
+    template2 = templateBind(templateBind(template).content.nodes.first);
     expect(template2.content.nodes.length, 2);
-    var template3 = template2.content.nodes.first.nextNode;
+    var template3 = templateBind(template2.content.nodes.first.nextNode);
     expect(template3.content.nodes.length, 1);
     expect(template3.content.nodes.first.text, 'Hello');
   });

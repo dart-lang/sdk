@@ -104,7 +104,7 @@ elementBindingTests() {
     el.text = 'dummy';
     el.nodes.first.text = 'Hello {{ adj }} {{noun}}!';
     var template = new Element.html('<template bind>');
-    template.content.append(el);
+    templateBind(template).content.append(el);
     testDiv.append(template);
     templateBind(template).model = model;
 
@@ -383,7 +383,7 @@ elementBindingTests() {
   observeTest('MultipleReferences', () {
     var el = new DivElement();
     var template = new Element.html('<template bind>');
-    template.content.append(el);
+    templateBind(template).content.append(el);
     testDiv.append(template);
 
     var model = toObservable({'foo': 'bar'});
