@@ -47,7 +47,7 @@ abstract class Equality<E> {
  * This equality uses the objects' own [Object.==] and [Object.hashCode] for
  * the equality.
  */
-class DefaultEquality implements Equality<Object> {
+class DefaultEquality implements Equality {
   const DefaultEquality();
   bool equals(Object e1, Object e2) => e1 == e2;
   int hash(Object e) => e.hashCode;
@@ -57,7 +57,7 @@ class DefaultEquality implements Equality<Object> {
 /**
  * Equality of objects that compares only the identity of the objects.
  */
-class IdentityEquality implements Equality<Object> {
+class IdentityEquality implements Equality {
   const IdentityEquality();
   bool equals(Object e1, Object e2) => identical(e1, e2);
   int hash(Object e) => identityHashCode(e);
