@@ -167,6 +167,10 @@ class _Utils {
   static const _CONSOLE_API_SUPPORT_HEADER =
       'with ((console && console._commandLineAPI) || {}) {\n';
 
+  static bool expectsConsoleApi(String expression) {
+    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
+  }
+
   /**
    * Takes an [expression] and a list of [local] variable and returns an
    * expression for a closure with a body matching the original expression
@@ -211,7 +215,7 @@ class _Utils {
       args[arg] = value;
     }
 
-    if (expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0) {
+    if (expectsConsoleApi(expression)) {
       expression = expression.substring(expression.indexOf('\n') + 1);
       expression = expression.substring(0, expression.lastIndexOf('\n'));
 
