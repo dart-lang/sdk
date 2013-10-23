@@ -332,6 +332,10 @@
     },
     "support_level": "experimental"
   },
+  "BeforeUnloadEvent": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "BiquadFilterNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section",
     "members": {
@@ -388,7 +392,10 @@
     "comment": "http://www.w3.org/TR/css3-fonts/",
     "members": {
       "error": {},
-      "fontface": {}
+      "fontface": {},
+      "fontfaces": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -757,6 +764,9 @@
       "drawSystemFocusRing": {
         "support_level": "untriaged"
       },
+      "ellipse": {
+        "support_level": "untriaged"
+      },
       "fill": {},
       "fillRect": {},
       "fillStyle": {},
@@ -786,6 +796,9 @@
       "putImageData": {},
       "quadraticCurveTo": {},
       "rect": {},
+      "resetTransform": {
+        "support_level": "untriaged"
+      },
       "restore": {},
       "rotate": {},
       "save": {},
@@ -1090,6 +1103,12 @@
         "support_level": "untriaged"
       },
       "timeStamp": {
+        "support_level": "untriaged"
+      },
+      "timeline": {
+        "support_level": "untriaged"
+      },
+      "timelineEnd": {
         "support_level": "untriaged"
       },
       "trace": {
@@ -1717,6 +1736,9 @@
       "fontloader": {
         "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
         "support_level": "experimental"
+      },
+      "fonts": {
+        "support_level": "untriaged"
       },
       "forms": {},
       "getCSSCanvasContext": {
@@ -2883,6 +2905,59 @@
     },
     "support_level": "stable"
   },
+  "FontFace": {
+    "members": {
+      "FontFace": {},
+      "family": {
+        "support_level": "untriaged"
+      },
+      "featureSettings": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      },
+      "stretch": {
+        "support_level": "untriaged"
+      },
+      "style": {
+        "support_level": "untriaged"
+      },
+      "unicodeRange": {
+        "support_level": "untriaged"
+      },
+      "variant": {
+        "support_level": "untriaged"
+      },
+      "weight": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "FontFaceSet": {
+    "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "check": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "match": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "FontLoader": {
     "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
     "members": {
@@ -3714,6 +3789,9 @@
       "naturalHeight": {},
       "naturalWidth": {},
       "src": {},
+      "srcset": {
+        "support_level": "untriaged"
+      },
       "useMap": {},
       "vspace": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLImageElement-partial",
@@ -5233,6 +5311,17 @@
     },
     "support_level": "untriaged"
   },
+  "KeyPair": {
+    "members": {
+      "privateKey": {
+        "support_level": "untriaged"
+      },
+      "publicKey": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "KeyboardEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent",
     "members": {
@@ -5961,6 +6050,9 @@
   },
   "NavigatorID": {
     "members": {
+      "appCodeName": {
+        "support_level": "untriaged"
+      },
       "appName": {
         "support_level": "untriaged"
       },
@@ -5968,6 +6060,9 @@
         "support_level": "untriaged"
       },
       "platform": {
+        "support_level": "untriaged"
+      },
+      "product": {
         "support_level": "untriaged"
       },
       "userAgent": {
@@ -10384,6 +10479,10 @@
     },
     "support_level": "stable"
   },
+  "ServiceWorker": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "ShadowRoot": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root",
     "members": {
@@ -10446,6 +10545,9 @@
         "support_level": "untriaged"
       },
       "appendBufferView": {
+        "support_level": "untriaged"
+      },
+      "appendStream": {
         "support_level": "untriaged"
       },
       "appendWindowEnd": {

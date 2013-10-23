@@ -748,6 +748,21 @@ class BeforeLoadEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('BeforeUnloadEvent')
+@Experimental() // untriaged
+class BeforeUnloadEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DomName('Blob')
 class Blob extends NativeFieldWrapperClass2 {
@@ -1658,6 +1673,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental() // untriaged
   void drawSystemFocusRing(Element element) native "CanvasRenderingContext2D_drawSystemFocusRing_Callback";
 
+  @DomName('CanvasRenderingContext2D.ellipse')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_ellipse_Callback";
+
   void fill([String winding]) {
     if (winding != null) {
       _fill_1(winding);
@@ -1752,6 +1772,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.rect')
   @DocsEditable()
   void rect(num x, num y, num width, num height) native "CanvasRenderingContext2D_rect_Callback";
+
+  @DomName('CanvasRenderingContext2D.resetTransform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resetTransform() native "CanvasRenderingContext2D_resetTransform_Callback";
 
   @DomName('CanvasRenderingContext2D.restore')
   @DocsEditable()
@@ -2348,7 +2373,7 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   @DomName('ConsoleBase.markTimeline')
   @DocsEditable()
   @Experimental() // untriaged
-  void markTimeline(Object arg) native "ConsoleBase_markTimeline_Callback";
+  void markTimeline(String title) native "ConsoleBase_markTimeline_Callback";
 
   @DomName('ConsoleBase.profile')
   @DocsEditable()
@@ -2378,7 +2403,17 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   @DomName('ConsoleBase.timeStamp')
   @DocsEditable()
   @Experimental() // untriaged
-  void timeStamp(Object arg) native "ConsoleBase_timeStamp_Callback";
+  void timeStamp(String title) native "ConsoleBase_timeStamp_Callback";
+
+  @DomName('ConsoleBase.timeline')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timeline(String title) native "ConsoleBase_timeline_Callback";
+
+  @DomName('ConsoleBase.timelineEnd')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timelineEnd(String title) native "ConsoleBase_timelineEnd_Callback";
 
   @DomName('ConsoleBase.trace')
   @DocsEditable()
@@ -2708,13 +2743,10 @@ class CssFontFaceLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CssFontFaceLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('CSSFontFaceLoadEvent.error')
+  @DomName('CSSFontFaceLoadEvent.fontfaces')
   @DocsEditable()
-  DomError get error native "CSSFontFaceLoadEvent_error_Getter";
-
-  @DomName('CSSFontFaceLoadEvent.fontface')
-  @DocsEditable()
-  CssFontFaceRule get fontface native "CSSFontFaceLoadEvent_fontface_Getter";
+  @Experimental() // untriaged
+  List<FontFace> get fontfaces native "CSSFontFaceLoadEvent_fontfaces_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7692,11 +7724,10 @@ class Document extends Node
   @DocsEditable()
   String get domain native "Document_domain_Getter";
 
-  @DomName('Document.fontloader')
+  @DomName('Document.fonts')
   @DocsEditable()
-  // http://www.w3.org/TR/css3-fonts/#document-fontloader
-  @Experimental()
-  FontLoader get fontloader native "Document_fontloader_Getter";
+  @Experimental() // untriaged
+  FontFaceSet get fonts native "Document_fonts_Getter";
 
   @DomName('Document.head')
   @DocsEditable()
@@ -7848,12 +7879,6 @@ class Document extends Node
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
-
-  @DomName('Document.createTouchList')
-  @DocsEditable()
-  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
-  @Experimental()
-  TouchList _createTouchList() native "Document_createTouchList_Callback";
 
   TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
     if (expandEntityReferences != null) {
@@ -12332,87 +12357,140 @@ class FocusEvent extends UIEvent {
 
 
 @DocsEditable()
-@DomName('FontLoader')
-// http://www.w3.org/TR/css3-fonts/#document-fontloader
-@Experimental()
-class FontLoader extends EventTarget {
+@DomName('FontFace')
+@Experimental() // untriaged
+class FontFace extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
-  factory FontLoader._() { throw new UnsupportedError("Not supported"); }
+  factory FontFace._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('FontLoader.errorEvent')
+  @DomName('FontFace.FontFace')
   @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  @DomName('FontLoader.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadEvent = const EventStreamProvider<CssFontFaceLoadEvent>('load');
-
-  @DomName('FontLoader.loadingEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadingEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loading');
-
-  @DomName('FontLoader.loadingdoneEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadingDoneEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadingdone');
-
-  @DomName('FontLoader.loadstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadStartEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadstart');
-
-  @DomName('FontLoader.loading')
-  @DocsEditable()
-  bool get loading native "FontLoader_loading_Getter";
-
-  @DomName('FontLoader.checkFont')
-  @DocsEditable()
-  bool checkFont(String font, String text) native "FontLoader_checkFont_Callback";
-
-  @DomName('FontLoader.loadFont')
-  @DocsEditable()
-  void loadFont(Map params) native "FontLoader_loadFont_Callback";
-
-  @DomName('FontLoader.notifyWhenFontsReady')
-  @DocsEditable()
-  void _notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
-
-  Future notifyWhenFontsReady() {
-    var completer = new Completer();
-    _notifyWhenFontsReady(
-        () { completer.complete(); });
-    return completer.future;
+  factory FontFace(String family, String source, Map descriptors) {
+    return FontFace._create_1(family, source, descriptors);
   }
 
-  @DomName('FontLoader.addEventListener')
   @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_addEventListener_Callback";
+  static FontFace _create_1(family, source, descriptors) native "FontFace__create_1constructorCallback";
 
-  @DomName('FontLoader.dispatchEvent')
+  @DomName('FontFace.family')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "FontLoader_dispatchEvent_Callback";
+  @Experimental() // untriaged
+  String get family native "FontFace_family_Getter";
 
-  @DomName('FontLoader.removeEventListener')
+  @DomName('FontFace.family')
   @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_removeEventListener_Callback";
+  @Experimental() // untriaged
+  void set family(String value) native "FontFace_family_Setter";
 
-  @DomName('FontLoader.onerror')
+  @DomName('FontFace.featureSettings')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  @Experimental() // untriaged
+  String get featureSettings native "FontFace_featureSettings_Getter";
 
-  @DomName('FontLoader.onload')
+  @DomName('FontFace.featureSettings')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoad => loadEvent.forTarget(this);
+  @Experimental() // untriaged
+  void set featureSettings(String value) native "FontFace_featureSettings_Setter";
 
-  @DomName('FontLoader.onloading')
+  @DomName('FontFace.status')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoading => loadingEvent.forTarget(this);
+  @Experimental() // untriaged
+  String get status native "FontFace_status_Getter";
 
-  @DomName('FontLoader.onloadingdone')
+  @DomName('FontFace.stretch')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoadingDone => loadingDoneEvent.forTarget(this);
+  @Experimental() // untriaged
+  String get stretch native "FontFace_stretch_Getter";
 
-  @DomName('FontLoader.onloadstart')
+  @DomName('FontFace.stretch')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoadStart => loadStartEvent.forTarget(this);
+  @Experimental() // untriaged
+  void set stretch(String value) native "FontFace_stretch_Setter";
+
+  @DomName('FontFace.style')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get style native "FontFace_style_Getter";
+
+  @DomName('FontFace.style')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set style(String value) native "FontFace_style_Setter";
+
+  @DomName('FontFace.unicodeRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get unicodeRange native "FontFace_unicodeRange_Getter";
+
+  @DomName('FontFace.unicodeRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set unicodeRange(String value) native "FontFace_unicodeRange_Setter";
+
+  @DomName('FontFace.variant')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get variant native "FontFace_variant_Getter";
+
+  @DomName('FontFace.variant')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set variant(String value) native "FontFace_variant_Setter";
+
+  @DomName('FontFace.weight')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get weight native "FontFace_weight_Getter";
+
+  @DomName('FontFace.weight')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set weight(String value) native "FontFace_weight_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('FontFaceSet')
+@Experimental() // untriaged
+class FontFaceSet extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FontFaceSet.status')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get status native "FontFaceSet_status_Getter";
+
+  @DomName('FontFaceSet.check')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool check(String font, String text) native "FontFaceSet_check_Callback";
+
+  @DomName('FontFaceSet.match')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<FontFace> match(String font, String text) native "FontFaceSet_match_Callback";
+
+  @DomName('FontFaceSet.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "FontFaceSet_addEventListener_Callback";
+
+  @DomName('FontFaceSet.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "FontFaceSet_dispatchEvent_Callback";
+
+  @DomName('FontFaceSet.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "FontFaceSet_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14397,6 +14475,16 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   void set src(String value) native "HTMLImageElement_src_Setter";
 
+  @DomName('HTMLImageElement.srcset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get srcset native "HTMLImageElement_srcset_Getter";
+
+  @DomName('HTMLImageElement.srcset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set srcset(String value) native "HTMLImageElement_srcset_Setter";
+
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
   String get useMap native "HTMLImageElement_useMap_Getter";
@@ -15539,6 +15627,31 @@ class InputMethodContext extends NativeFieldWrapperClass2 {
   @DomName('InputMethodContext.setExclusionRectangle')
   @DocsEditable()
   void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setExclusionRectangle_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('KeyPair')
+@Experimental() // untriaged
+class KeyPair extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory KeyPair._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('KeyPair.privateKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoKey get privateKey native "KeyPair_privateKey_Getter";
+
+  @DomName('KeyPair.publicKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoKey get publicKey native "KeyPair_publicKey_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17632,11 +17745,6 @@ class MessageEvent extends Event {
   @DocsEditable()
   String get origin native "MessageEvent_origin_Getter";
 
-  @DomName('MessageEvent.ports')
-  @DocsEditable()
-  @Unstable()
-  List<MessagePort> get ports native "MessageEvent_ports_Getter";
-
   @DomName('MessageEvent.source')
   @DocsEditable()
   EventTarget get source native "MessageEvent_source_Getter";
@@ -18745,11 +18853,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Navigator.appCodeName')
-  @DocsEditable()
-  @Experimental() // non-standard
-  String get appCodeName native "Navigator_appCodeName_Getter";
-
   @DomName('Navigator.cookieEnabled')
   @DocsEditable()
   @Unstable()
@@ -18774,11 +18877,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @DocsEditable()
   @Experimental() // nonstandard
   MimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
-
-  @DomName('Navigator.product')
-  @DocsEditable()
-  @Unstable()
-  String get product native "Navigator_product_Getter";
 
   @DomName('Navigator.productSub')
   @DocsEditable()
@@ -18841,6 +18939,11 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @Experimental()
   void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
+  @DomName('Navigator.appCodeName')
+  @DocsEditable()
+  @Experimental() // non-standard
+  String get appCodeName native "Navigator_appCodeName_Getter";
+
   @DomName('Navigator.appName')
   @DocsEditable()
   String get appName native "Navigator_appName_Getter";
@@ -18852,6 +18955,11 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @DomName('Navigator.platform')
   @DocsEditable()
   String get platform native "Navigator_platform_Getter";
+
+  @DomName('Navigator.product')
+  @DocsEditable()
+  @Unstable()
+  String get product native "Navigator_product_Getter";
 
   @DomName('Navigator.userAgent')
   @DocsEditable()
@@ -18877,6 +18985,11 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('NavigatorID.appCodeName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get appCodeName native "NavigatorID_appCodeName_Getter";
+
   @DomName('NavigatorID.appName')
   @DocsEditable()
   @Experimental() // untriaged
@@ -18891,6 +19004,11 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   String get platform native "NavigatorID_platform_Getter";
+
+  @DomName('NavigatorID.product')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get product native "NavigatorID_product_Getter";
 
   @DomName('NavigatorID.userAgent')
   @DocsEditable()
@@ -19564,14 +19682,6 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
 class Notation extends Node {
   // To suppress missing implicit constructor warnings.
   factory Notation._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Notation.publicId')
-  @DocsEditable()
-  String get publicId native "Notation_publicId_Getter";
-
-  @DomName('Notation.systemId')
-  @DocsEditable()
-  String get systemId native "Notation_systemId_Getter";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -21117,11 +21227,6 @@ class Promise extends NativeFieldWrapperClass2 {
   @Experimental() // untriaged
   static Promise every(Object values) native "Promise_every_Callback";
 
-  @DomName('Promise.fulfill')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Promise fulfill(Object value) native "Promise_fulfill_Callback";
-
   @DomName('Promise.reject')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21131,41 +21236,6 @@ class Promise extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   static Promise resolve(Object value) native "Promise_resolve_Callback";
-
-  @DomName('Promise.some')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Promise some(Object values) native "Promise_some_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('PromiseResolver')
-@Experimental() // untriaged
-class PromiseResolver extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory PromiseResolver._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('PromiseResolver.fulfill')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void fulfill([Object value]) native "PromiseResolver_fulfill_Callback";
-
-  @DomName('PromiseResolver.reject')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void reject([Object value]) native "PromiseResolver_reject_Callback";
-
-  @DomName('PromiseResolver.resolve')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void resolve([Object value]) native "PromiseResolver_resolve_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21922,7 +21992,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
-  void addIceCandidate(RtcIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
+  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) native "RTCPeerConnection_addIceCandidate_Callback";
 
   @DomName('RTCPeerConnection.addStream')
   @DocsEditable()
@@ -22716,6 +22786,21 @@ class Selection extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('ServiceWorker')
+@Experimental() // untriaged
+class ServiceWorker extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorker._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental()
@@ -22919,6 +23004,19 @@ class SourceBuffer extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void appendBufferView(TypedData data) native "SourceBuffer_appendBufferView_Callback";
+
+  void appendStream(FileStream stream, [int maxSize]) {
+    if (maxSize != null) {
+      _appendStream_1(stream, maxSize);
+      return;
+    }
+    _appendStream_2(stream);
+    return;
+  }
+
+  void _appendStream_1(stream, maxSize) native "SourceBuffer__appendStream_1_Callback";
+
+  void _appendStream_2(stream) native "SourceBuffer__appendStream_2_Callback";
 
   @DomName('SourceBuffer.remove')
   @DocsEditable()
@@ -27027,50 +27125,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   bool confirm(String message) native "Window_confirm_Callback";
 
-  Object _createImageBitmap(canvas_OR_context_OR_image_OR_video, [int sx, int sy, int sw, int sh]) {
-    if ((canvas_OR_context_OR_image_OR_video is ImageElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_1(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is ImageElement || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_2(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    if ((canvas_OR_context_OR_image_OR_video is CanvasRenderingContext2D || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_3(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is CanvasElement || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_4(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    if ((canvas_OR_context_OR_image_OR_video is CanvasElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_5(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((canvas_OR_context_OR_image_OR_video is VideoElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_6(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is VideoElement || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_7(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is CanvasRenderingContext2D || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_8(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Object _createImageBitmap_1(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_1_Callback";
-
-  Object _createImageBitmap_2(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_2_Callback";
-
-  Object _createImageBitmap_3(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_3_Callback";
-
-  Object _createImageBitmap_4(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_4_Callback";
-
-  Object _createImageBitmap_5(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_5_Callback";
-
-  Object _createImageBitmap_6(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_6_Callback";
-
-  Object _createImageBitmap_7(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_7_Callback";
-
-  Object _createImageBitmap_8(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_8_Callback";
-
   @DomName('Window.find')
   @DocsEditable()
   @Experimental() // non-standard
@@ -27493,21 +27547,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
     _moveTo(p.x, p.y);
   }
 
-}
-
-/**
- * Event object that is fired before the window is closed.
- *
- * The standard window close behavior can be prevented by setting the
- * [returnValue]. This will display a dialog to the user confirming that they
- * want to close the page.
- */
-abstract class BeforeUnloadEvent implements Event {
-  /**
-   * If set to a non-null value, a dialog will be presented to the user
-   * confirming that they want to close the page.
-   */
-  String returnValue;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
@@ -28824,18 +28863,6 @@ class _DomPoint extends NativeFieldWrapperClass2 {
 class _Entity extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Entity._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Entity.notationName')
-  @DocsEditable()
-  String get notationName native "Entity_notationName_Getter";
-
-  @DomName('Entity.publicId')
-  @DocsEditable()
-  String get publicId native "Entity_publicId_Getter";
-
-  @DomName('Entity.systemId')
-  @DocsEditable()
-  String get systemId native "Entity_systemId_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34407,7 +34434,11 @@ class _Utils {
    * that does not expect REPL support.
    */
   static const _CONSOLE_API_SUPPORT_HEADER =
-      'with ((this && this.console && this.console._commandLineAPI) || {}) {\n';
+      'with ((console && console._commandLineAPI) || {}) {\n';
+
+  static bool expectsConsoleApi(String expression) {
+    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
+  }
 
   /**
    * Takes an [expression] and a list of [local] variable and returns an
@@ -34453,7 +34484,7 @@ class _Utils {
       args[arg] = value;
     }
 
-    if (expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0) {
+    if (expectsConsoleApi(expression)) {
       expression = expression.substring(expression.indexOf('\n') + 1);
       expression = expression.substring(0, expression.lastIndexOf('\n'));
 
