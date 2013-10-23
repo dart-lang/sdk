@@ -278,11 +278,17 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
                                                const Function& factory) {
   const Function& target = Function::Handle(factory.RedirectionTarget());
   if (target.IsNull()) {
-    const Type& type = Type::Handle(factory.RedirectionType());
+    Type& type = Type::Handle(factory.RedirectionType());
     if (!type.IsMalformed()) {
       const GrowableObjectArray& visited_factories =
           GrowableObjectArray::Handle(GrowableObjectArray::New());
       ResolveRedirectingFactoryTarget(cls, factory, visited_factories);
+    }
+    if (factory.is_const()) {
+      type = factory.RedirectionType();
+      if (type.IsMalformed()) {
+        ReportError(Error::Handle(type.malformed_error()));
+      }
     }
   }
 }
