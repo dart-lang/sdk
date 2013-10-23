@@ -609,7 +609,6 @@ Language/07_Classes/6_Constructors/2_Factories_A10_t03: fail # co19-roll r587: P
 Language/10_Generics/09_Generics_A01_t17: fail # co19-roll r587: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/07_Maps_A13_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A03_t02: MissingCompileTimeError # Issue 14299
 Language/14_Libraries_and_Scripts/2_Exports_A05_t03: MissingCompileTimeError # co19-roll r623: Please triage this failure
 Language/12_Expressions/06_Symbols_A01_t02: CompileTimeError # co19-roll r623: Please triage this failure
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure

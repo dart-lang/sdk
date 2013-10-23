@@ -31,6 +31,13 @@ implicit_setter_test: Fail # Issue 13917
 cyclic_typedef_test/10: Fail # Issue 13675
 cyclic_typedef_test/11: Fail # Issue 13675
 
+const_types_test/23: MissingCompileTimeError # Issue 14305
+const_types_test/24: MissingCompileTimeError # Issue 14305
+const_types_test/25: MissingCompileTimeError # Issue 14305
+const_types_test/26: MissingCompileTimeError # Issue 14305
+const_types_test/27: MissingCompileTimeError # Issue 14305
+const_types_test/41: MissingCompileTimeError # Issue 14305
+
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 

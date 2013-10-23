@@ -41,6 +41,16 @@ type_promotion_parameter_test/none: Fail # Issue 13807
 cyclic_typedef_test/10: Fail # Issue 13906
 cyclic_typedef_test/11: Fail # Issue 13906
 
+# Invalid constant redirecting factories should cause compile-time error.
+const_types_test/23: Fail # Issue 14306
+const_types_test/24: Fail # Issue 14306
+const_types_test/25: Fail # Issue 14306
+const_types_test/26: Fail # Issue 14306
+const_types_test/27: Fail # Issue 14306
+const_types_test/28: Fail # Issue 14306
+const_types_test/29: Fail # Issue 14306
+const_types_test/30: Fail # Issue 14306
+const_types_test/41: Fail # Issue 14306
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

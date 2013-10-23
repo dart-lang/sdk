@@ -2577,13 +2577,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // TODO(johnniwinther): Use seen type tests to avoid registration of
         // mutation/access to unpromoted variables.
         DartType type =
-            resolveTypeExpression(node.typeAnnotationFromIsCheckOrCast);
+            resolveTypeAnnotation(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type, mapping);
         }
         resolvedArguments = true;
       } else if (identical(operatorString, 'as')) {
-        DartType type = resolveTypeExpression(node.arguments.head);
+        DartType type = resolveTypeAnnotation(node.arguments.head);
         if (type != null) {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
@@ -2852,21 +2852,24 @@ class ResolverVisitor extends MappingVisitor<Element> {
       compiler.reportHint(
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
-    FunctionElement redirectionTarget = resolveRedirectingFactory(node);
-    useElement(node.expression, redirectionTarget);
     FunctionElement constructor = enclosingElement;
-    if (constructor.modifiers.isConst() &&
-        !redirectionTarget.modifiers.isConst()) {
-      error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
-    }
-    if (redirectionTarget == constructor) {
-      compiler.reportError(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
-      return;
-    }
+    bool isConstConstructor = constructor.modifiers.isConst();
+    FunctionElement redirectionTarget = resolveRedirectingFactory(
+        node, inConstContext: isConstConstructor);
     constructor.defaultImplementation = redirectionTarget;
+    useElement(node.expression, redirectionTarget);
     if (Elements.isUnresolved(redirectionTarget)) {
       compiler.backend.registerThrowNoSuchMethod(mapping);
       return;
+    } else {
+      if (isConstConstructor &&
+          !redirectionTarget.modifiers.isConst()) {
+        compiler.reportError(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
+      }
+      if (redirectionTarget == constructor) {
+        compiler.reportError(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
+        return;
+      }
     }
 
     // Check that the target constructor is type compatible with the
@@ -2991,7 +2994,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     InterfaceType type = mapping.getType(node);
     if (node.isConst() && type.containsTypeVariables) {
       compiler.reportError(node.send.selector,
-                               MessageKind.TYPE_VARIABLE_IN_CONSTANT);
+                           MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
     world.registerInstantiatedType(type, mapping);
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
@@ -3072,16 +3075,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return node.accept(new ConstructorResolver(compiler, this));
   }
 
-  FunctionElement resolveRedirectingFactory(Return node) {
-    return node.accept(new ConstructorResolver(compiler, this));
+  FunctionElement resolveRedirectingFactory(Return node,
+                                            {bool inConstContext: false}) {
+    return node.accept(new ConstructorResolver(compiler, this,
+                                               inConstContext: inConstContext));
   }
 
-  DartType resolveTypeExpression(TypeAnnotation node) {
-    return resolveTypeAnnotation(node);
-  }
-
-  DartType resolveTypeAnnotation(TypeAnnotation node) {
-    DartType type = typeResolver.resolveTypeAnnotation(this, node);
+  DartType resolveTypeAnnotation(TypeAnnotation node,
+                                 {bool malformedIsError: false}) {
+    DartType type = typeResolver.resolveTypeAnnotation(
+        this, node, malformedIsError: malformedIsError);
     if (type == null) return null;
     if (inCheckContext) {
       compiler.enqueuer.resolution.registerIsCheck(type, mapping);
@@ -3104,7 +3107,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // The syntax [: <>[] :] is not allowed.
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
       } else {
-        typeArgument = resolveTypeExpression(nodes.head);
+        typeArgument = resolveTypeAnnotation(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
           warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
           resolveTypeAnnotation(nodes.head);
@@ -3319,12 +3322,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // The syntax [: <>{} :] is not allowed.
         error(arguments, MessageKind.MISSING_TYPE_ARGUMENT.error);
       } else {
-        keyTypeArgument = resolveTypeExpression(nodes.head);
+        keyTypeArgument = resolveTypeAnnotation(nodes.head);
         nodes = nodes.tail;
         if (nodes.isEmpty) {
           warning(arguments, MessageKind.MISSING_TYPE_ARGUMENT.warning);
         } else {
-          valueTypeArgument = resolveTypeExpression(nodes.head);
+          valueTypeArgument = resolveTypeAnnotation(nodes.head);
           for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
             warning(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT.warning);
             resolveTypeAnnotation(nodes.head);
@@ -4505,10 +4508,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
 class ConstructorResolver extends CommonResolverVisitor<Element> {
   final ResolverVisitor resolver;
-  bool inConstContext = false;
+  bool inConstContext;
   DartType type;
 
-  ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
+  ConstructorResolver(Compiler compiler, this.resolver,
+                      {bool this.inConstContext: false})
+      : super(compiler);
 
   visitNode(Node node) {
     throw 'not supported';
@@ -4529,9 +4534,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
           new ResolutionWarning(
               kind.warning, arguments, compiler.terseDiagnostics);
       compiler.reportWarning(diagnosticNode, warning);
-      return new ErroneousElementX(
-          kind.error, arguments, targetName, enclosing);
     }
+    return new ErroneousElementX(
+        kind.error, arguments, targetName, enclosing);
   }
 
   Selector createConstructorSelector(String constructorName) {
@@ -4567,101 +4572,107 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     return result;
   }
 
-  visitNewExpression(NewExpression node) {
+  Element visitNewExpression(NewExpression node) {
     inConstContext = node.isConst();
     Node selector = node.send.selector;
-    Element e = visit(selector);
-    return finishConstructorReference(e, node.send.selector, node);
+    Element element = visit(selector);
+    assert(invariant(selector, element != null,
+        message: 'No element return for $selector.'));
+    return finishConstructorReference(element, node.send.selector, node);
   }
 
   /// Finishes resolution of a constructor reference and records the
   /// type of the constructed instance on [expression].
-  FunctionElement finishConstructorReference(Element e,
+  FunctionElement finishConstructorReference(Element element,
                                              Node diagnosticNode,
                                              Node expression) {
+    assert(invariant(diagnosticNode, element != null,
+        message: 'No element return for $diagnosticNode.'));
     // Find the unnamed constructor if the reference resolved to a
     // class.
-    if (!Elements.isUnresolved(e) && !e.isConstructor()) {
-      if (e.isClass()) {
-        ClassElement cls = e;
+    if (!Elements.isUnresolved(element) && !element.isConstructor()) {
+      if (element.isClass()) {
+        ClassElement cls = element;
         cls.ensureResolved(compiler);
         // The unnamed constructor may not exist, so [e] may become unresolved.
-        e = lookupConstructor(cls, diagnosticNode, '');
+        element = lookupConstructor(cls, diagnosticNode, '');
       } else {
-        e = failOrReturnErroneousElement(
-              e, diagnosticNode, e.name, MessageKind.NOT_A_TYPE,
-              {'node': diagnosticNode});
+        element = failOrReturnErroneousElement(
+            element, diagnosticNode, element.name, MessageKind.NOT_A_TYPE,
+            {'node': diagnosticNode});
       }
     }
     if (type == null) {
-      if (Elements.isUnresolved(e)) {
+      if (Elements.isUnresolved(element)) {
         type = compiler.types.dynamicType;
       } else {
-        type = e.getEnclosingClass().computeType(compiler).asRaw();
+        type = element.getEnclosingClass().computeType(compiler).asRaw();
       }
     }
     resolver.mapping.setType(expression, type);
-    return e;
+    return element;
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
+  Element visitTypeAnnotation(TypeAnnotation node) {
     assert(invariant(node, type == null));
-    type = resolver.resolveTypeExpression(node);
+    type = resolver.resolveTypeAnnotation(node,
+                                          malformedIsError: inConstContext);
     compiler.backend.registerRequiredType(type, resolver.enclosingElement);
-    return resolver.mapping[node];
+    return type.element;
   }
 
-  visitSend(Send node) {
-    Element e = visit(node.receiver);
-    if (Elements.isUnresolved(e)) return e;
+  Element visitSend(Send node) {
+    Element element = visit(node.receiver);
+    assert(invariant(node.receiver, element != null,
+        message: 'No element return for $node.receiver.'));
+    if (Elements.isUnresolved(element)) return element;
     Identifier name = node.selector.asIdentifier();
     if (name == null) internalError(node.selector, 'unexpected node');
 
-    if (identical(e.kind, ElementKind.CLASS)) {
-      ClassElement cls = e;
+    if (element.isClass()) {
+      ClassElement cls = element;
       cls.ensureResolved(compiler);
       return lookupConstructor(cls, name, name.source);
-    } else if (identical(e.kind, ElementKind.PREFIX)) {
-      PrefixElement prefix = e;
-      e = prefix.lookupLocalMember(name.source);
-      e = Elements.unwrap(e, compiler, node);
-      if (e == null) {
+    } else if (element.isPrefix()) {
+      PrefixElement prefix = element;
+      element = prefix.lookupLocalMember(name.source);
+      element = Elements.unwrap(element, compiler, node);
+      if (element == null) {
         return failOrReturnErroneousElement(
             resolver.enclosingElement, name,
             name.source,
             MessageKind.CANNOT_RESOLVE,
             {'name': name});
-      } else if (!identical(e.kind, ElementKind.CLASS)) {
+      } else if (!element.isClass()) {
         error(node, MessageKind.NOT_A_TYPE.error, {'node': name});
       }
     } else {
-      internalError(node.receiver, 'unexpected element $e');
+      internalError(node.receiver, 'unexpected element $element');
     }
-    return e;
+    return element;
   }
 
   Element visitIdentifier(Identifier node) {
     String name = node.source;
-    Element e = resolver.reportLookupErrorIfAny(
+    Element element = resolver.reportLookupErrorIfAny(
         lookupInScope(compiler, node, resolver.scope, name), node, name);
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
-    if (e == null) {
+    if (element == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
                                           MessageKind.CANNOT_RESOLVE,
                                           {'name': name});
-    } else if (e.isErroneous()) {
-      return e;
-    } else if (identical(e.kind, ElementKind.TYPEDEF)) {
+    } else if (element.isErroneous()) {
+      return element;
+    } else if (element.isTypedef()) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
             {'typedefName': name});
-    } else if (identical(e.kind, ElementKind.TYPE_VARIABLE)) {
+    } else if (element.isTypeVariable()) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
             {'typeVariableName': name});
-    } else if (!identical(e.kind, ElementKind.CLASS)
-        && !identical(e.kind, ElementKind.PREFIX)) {
+    } else if (!element.isClass() && !element.isPrefix()) {
       error(node, MessageKind.NOT_A_TYPE.error, {'node': name});
     }
-    return e;
+    return element;
   }
 
   /// Assumed to be called by [resolveRedirectingFactory].

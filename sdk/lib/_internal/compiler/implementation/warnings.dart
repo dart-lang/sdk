@@ -527,7 +527,20 @@ main() => new C(0);"""]);
           "within a static member."));
 
   static const MessageKind TYPE_VARIABLE_IN_CONSTANT = const MessageKind(
-      "Error: Cannot refer to type variable in constant.");
+      "Error: Constant expressions can't refer to type variables.",
+      howToFix: "Try removing the type variable or replacing it with a "
+                "concrete type.",
+      examples: const ["""
+class C<T> {
+  const C();
+
+  m(T t) => const C<T>();
+}
+
+void main() => new C().m(null);  
+"""
+]);
+
 
   static const MessageKind INVALID_TYPE_VARIABLE_BOUND = const MessageKind(
       "Warning: '#{typeArgument}' is not a subtype of bound '#{bound}' for "
