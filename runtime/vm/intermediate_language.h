@@ -177,8 +177,19 @@ class Range;
   V(_StringBase, get:length, StringBaseLength, 1483520063)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 90930587)                    \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1305127405)            \
-  V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)
+  V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)                  \
 
+// A list of core functions that internally dispatch based on received id.
+#define POLYMORPHC_TARGET_LIST(V)                                              \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1762714698)                \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 48785449)                    \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 1392579206)                \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -194,6 +205,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 
   static Kind RecognizeKind(const Function& function);
   static bool AlwaysInline(const Function& function);
+  static bool PolymorphicTarget(const Function& function);
   static const char* KindToCString(Kind kind);
   static void InitializeState();
 };

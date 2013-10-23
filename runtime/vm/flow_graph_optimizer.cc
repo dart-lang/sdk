@@ -829,7 +829,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   TargetEntryInstr* entry;
   Definition* last;
-  if (!TryInlineRecognizedMethod(target,
+  if (!TryInlineRecognizedMethod(ic_data.GetReceiverClassIdAt(0),
+                                 target,
                                  call,
                                  call->token_pos(),
                                  *call->ic_data(),
@@ -995,7 +996,8 @@ bool FlowGraphOptimizer::InlineSetIndexed(
 }
 
 
-bool FlowGraphOptimizer::TryInlineRecognizedMethod(const Function& target,
+bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
+                                                   const Function& target,
                                                    Instruction* call,
                                                    intptr_t token_pos,
                                                    const ICData& ic_data,
@@ -1074,6 +1076,45 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(const Function& target,
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       return InlineSetIndexed(kind, target, call, token_pos,
                               &ic_data, value_check, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetInt8:
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataInt8ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetUint8:
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataUint8ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetInt16:
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataInt16ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetUint16:
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataUint16ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetInt32:
+      if (!CanUnboxInt32()) return false;
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataInt32ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetUint32:
+      if (!CanUnboxInt32()) return false;
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataUint32ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetFloat32:
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataFloat32ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetFloat64:
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataFloat64ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
+      if (!ShouldInlineSimd()) return false;
+      return InlineByteArrayViewLoad(call, receiver_cid,
+                                     kTypedDataFloat32x4ArrayCid,
+                                     ic_data, entry, last);
     default:
       return false;
   }
@@ -1198,7 +1239,8 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   TargetEntryInstr* entry;
   Definition* last;
-  if (!TryInlineRecognizedMethod(target,
+  if (!TryInlineRecognizedMethod(ic_data.GetReceiverClassIdAt(0),
+                                 target,
                                  call,
                                  call->token_pos(),
                                  *call->ic_data(),
@@ -2026,32 +2068,23 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     switch (recognized_kind) {
       // ByteArray getters.
       case MethodRecognizer::kByteArrayBaseGetInt8:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataInt8ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataInt8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint8:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataUint8ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataUint8ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt16:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataInt16ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataInt16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint16:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataUint16ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataUint16ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetInt32:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataInt32ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataInt32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetUint32:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataUint32ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataUint32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataFloat32ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataFloat32ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat64:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataFloat64ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-        return BuildByteArrayViewLoad(
-            call, class_ids[0], kTypedDataFloat32x4ArrayCid);
+        return BuildByteArrayViewLoad(call, kTypedDataFloat32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
@@ -2449,33 +2482,175 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
 }
 
 
-bool FlowGraphOptimizer::BuildByteArrayViewLoad(
-    InstanceCallInstr* call,
-    intptr_t receiver_cid,
-    intptr_t view_cid) {
+bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
+                                                 intptr_t array_cid,
+                                                 intptr_t view_cid,
+                                                 const ICData& ic_data,
+                                                 TargetEntryInstr** entry,
+                                                 Definition** last) {
+  ASSERT(array_cid != kIllegalCid);
+  Definition* array = call->ArgumentAt(0);
+  Definition* index = call->ArgumentAt(1);
+  *entry = new TargetEntryInstr(flow_graph()->allocate_block_id(),
+                                call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(call);
+  Instruction* cursor = *entry;
+
+  array_cid = PrepareInlineByteArrayViewOp(call,
+                                           array_cid,
+                                           view_cid,
+                                           &array,
+                                           index,
+                                           &cursor);
+
+  intptr_t deopt_id = Isolate::kNoDeoptId;
+  if ((array_cid == kTypedDataInt32ArrayCid) ||
+      (array_cid == kTypedDataUint32ArrayCid)) {
+    // Set deopt_id if we can optimistically assume that the result is Smi.
+    // Assume mixed Mint/Smi if this instruction caused deoptimization once.
+    deopt_id = (ic_data.deopt_reason() == kDeoptUnknown) ?
+        call->deopt_id() : Isolate::kNoDeoptId;
+  }
+
+  *last = new LoadIndexedInstr(new Value(array),
+                               new Value(index),
+                               1,
+                               view_cid,
+                               deopt_id);
+  flow_graph()->AppendTo(cursor,
+                         *last,
+                         deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                         Definition::kValue);
+  return true;
+}
+
+
+intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
+    Instruction* call,
+    intptr_t array_cid,
+    intptr_t view_cid,
+    Definition** array,
+    Definition* byte_index,
+    Instruction** cursor) {
+  // Insert byte_index smi check.
+  *cursor = flow_graph()->AppendTo(*cursor,
+                                   new CheckSmiInstr(new Value(byte_index),
+                                                     call->deopt_id()),
+                                   call->env(),
+                                   Definition::kEffect);
+
+  const bool is_immutable = true;
+  LoadFieldInstr* length =
+      new LoadFieldInstr(new Value(*array),
+                         CheckArrayBoundInstr::LengthOffsetFor(array_cid),
+                         Type::ZoneHandle(Type::SmiType()),
+                         is_immutable);
+  length->set_result_cid(kSmiCid);
+  length->set_recognized_kind(
+      LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
+  *cursor = flow_graph()->AppendTo(*cursor,
+                                   length,
+                                   NULL,
+                                   Definition::kValue);
+
+  intptr_t element_size = FlowGraphCompiler::ElementSizeFor(array_cid);
+  ConstantInstr* bytes_per_element =
+      flow_graph()->GetConstant(Smi::Handle(Smi::New(element_size)));
+  BinarySmiOpInstr* len_in_bytes =
+      new BinarySmiOpInstr(Token::kMUL,
+                           new Value(length),
+                           new Value(bytes_per_element),
+                           call->deopt_id());
+  *cursor = flow_graph()->AppendTo(*cursor, len_in_bytes, call->env(),
+                                   Definition::kValue);
+
+  ConstantInstr* length_adjustment =
+      flow_graph()->GetConstant(Smi::Handle(Smi::New(
+          FlowGraphCompiler::ElementSizeFor(view_cid) - 1)));
+  // adjusted_length = len_in_bytes - (element_size - 1).
+  BinarySmiOpInstr* adjusted_length =
+      new BinarySmiOpInstr(Token::kSUB,
+                           new Value(len_in_bytes),
+                           new Value(length_adjustment),
+                           call->deopt_id());
+  *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
+                                   Definition::kValue);
+
+  // Check adjusted_length > 0.
+  ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
+  *cursor = flow_graph()->AppendTo(*cursor,
+                                   new CheckArrayBoundInstr(
+                                       new Value(adjusted_length),
+                                       new Value(zero),
+                                       call->deopt_id()),
+                                   call->env(),
+                                   Definition::kEffect);
+  // Check 0 <= byte_index < adjusted_length.
+  *cursor = flow_graph()->AppendTo(*cursor,
+                                   new CheckArrayBoundInstr(
+                                       new Value(adjusted_length),
+                                       new Value(byte_index),
+                                       call->deopt_id()),
+                                   call->env(),
+                                   Definition::kEffect);
+
+  if (RawObject::IsExternalTypedDataClassId(array_cid)) {
+    LoadUntaggedInstr* elements =
+        new LoadUntaggedInstr(new Value(*array),
+                              ExternalTypedData::data_offset());
+    *cursor = flow_graph()->AppendTo(*cursor,
+                                     elements,
+                                     NULL,
+                                     Definition::kValue);
+    *array = elements;
+  }
+  return array_cid;
+}
+
+
+bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
+                                                intptr_t view_cid) {
   if ((view_cid == kTypedDataFloat32x4ArrayCid) && !ShouldInlineSimd()) {
     return false;
   }
 
-  Definition* array = call->ArgumentAt(0);
-  PrepareByteArrayViewOp(call, receiver_cid, view_cid, &array);
+  ASSERT(call->HasICData());
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  call->ic_data()->GetCheckAt(0, &class_ids, &target);
+  const intptr_t receiver_cid = class_ids[0];
 
-  // Optimistically build a smi-checked load for Int32 and Uint32
-  // loads on ia32 like we do for normal array loads, and only revert to
-  // mint case after deoptimizing here.
-  intptr_t deopt_id = Isolate::kNoDeoptId;
-  if ((view_cid == kTypedDataInt32ArrayCid ||
-       view_cid == kTypedDataUint32ArrayCid) &&
-      call->ic_data()->deopt_reason() == kDeoptUnknown) {
-    deopt_id = call->deopt_id();
+  TargetEntryInstr* entry;
+  Definition* last;
+  if (!TryInlineRecognizedMethod(receiver_cid,
+                                 target,
+                                 call,
+                                 call->token_pos(),
+                                 *call->ic_data(),
+                                 &entry, &last)) {
+    return false;
   }
-  Definition* byte_index = call->ArgumentAt(1);
-  LoadIndexedInstr* array_op = new LoadIndexedInstr(new Value(array),
-                                                    new Value(byte_index),
-                                                    1,  // Index scale.
-                                                    view_cid,
-                                                    deopt_id);
-  ReplaceCall(call, array_op);
+
+  // Insert receiver class check.
+  AddReceiverCheck(call);
+  // Remove the original push arguments.
+  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+    PushArgumentInstr* push = call->PushArgumentAt(i);
+    push->ReplaceUsesWith(push->value()->definition());
+    push->RemoveFromGraph();
+  }
+  // Replace all uses of this definition with the result.
+  call->ReplaceUsesWith(last);
+  // Finally insert the sequence other definition in place of this one in the
+  // graph.
+  call->previous()->LinkTo(entry->next());
+  entry->UnuseAllInputs();  // Entry block is not in the graph.
+  last->LinkTo(call);
+  // Remove through the iterator.
+  ASSERT(current_iterator()->Current() == call);
+  current_iterator()->RemoveCurrentFromGraph();
+  call->set_previous(NULL);
+  call->set_next(NULL);
   return true;
 }
 
@@ -2825,7 +3000,15 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  const bool has_one_target = unary_checks.HasOneTarget();
+  bool has_one_target = unary_checks.HasOneTarget();
+
+  if (has_one_target) {
+    // Check if the single target is a polymorphic target, if it is,
+    // we don't have one target.
+    const Function& target = Function::Handle(unary_checks.GetTargetAt(0));
+    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
+    has_one_target = !polymorphic_target;
+  }
 
   if (has_one_target) {
     const bool is_method_extraction =

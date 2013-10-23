@@ -407,6 +407,28 @@ INLINE_WHITE_LIST(RECOGNIZE_FUNCTION)
 }
 
 
+bool MethodRecognizer::PolymorphicTarget(const Function& function) {
+  const Class& function_class = Class::Handle(function.Owner());
+  const Library& lib = Library::Handle(function_class.library());
+  if (!IsRecognizedLibrary(lib)) {
+    return false;
+  }
+
+  const String& function_name = String::Handle(function.name());
+  const String& class_name = String::Handle(function_class.Name());
+
+#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
+  if (CompareNames(lib, #test_function_name, function_name) &&                 \
+      CompareNames(lib, #test_class_name, class_name)) {                       \
+    ASSERT(function.CheckSourceFingerprint(fp));                               \
+    return true;                                                               \
+  }
+POLYMORPHC_TARGET_LIST(RECOGNIZE_FUNCTION)
+#undef RECOGNIZE_FUNCTION
+  return false;
+}
+
+
 const char* MethodRecognizer::KindToCString(Kind kind) {
 #define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
   if (kind == k##enum_name) return #enum_name;

@@ -363,8 +363,8 @@ class PolymorphicInliner : public ValueObject {
   bool CheckInlinedDuplicate(const Function& target);
   bool CheckNonInlinedDuplicate(const Function& target);
 
-  bool TryInlining(const Function& target);
-  bool TryInlineRecognizedMethod(const Function& target);
+  bool TryInlining(intptr_t receiver_cid, const Function& target);
+  bool TryInlineRecognizedMethod(intptr_t receiver_cid, const Function& target);
 
   TargetEntryInstr* BuildDecisionGraph();
 
@@ -1033,7 +1033,8 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
 //   * JoinEntry: the inlined body is shared and this is a subsequent variant.
 bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
-    if (target.raw() == inlined_variants_[i].target->raw()) {
+    if ((target.raw() == inlined_variants_[i].target->raw()) &&
+        !MethodRecognizer::PolymorphicTarget(target)) {
       // The call target is shared with a previous inlined variant.  Share
       // the graph.  This requires a join block at the entry, and edge-split
       // form requires a target for each branch.
@@ -1089,9 +1090,10 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 }
 
 
-bool PolymorphicInliner::TryInlining(const Function& target) {
+bool PolymorphicInliner::TryInlining(intptr_t receiver_cid,
+                                     const Function& target) {
   if (!target.is_optimizable()) {
-    if (TryInlineRecognizedMethod(target)) {
+    if (TryInlineRecognizedMethod(receiver_cid, target)) {
       owner_->inlined_ = true;
       return true;
     }
@@ -1157,11 +1159,13 @@ static Instruction* AppendInstruction(Instruction* first,
 }
 
 
-bool PolymorphicInliner::TryInlineRecognizedMethod(const Function& target) {
+bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
+                                                   const Function& target) {
   FlowGraphOptimizer optimizer(owner_->caller_graph());
   TargetEntryInstr* entry;
   Definition* last;
-  if (optimizer.TryInlineRecognizedMethod(target,
+  if (optimizer.TryInlineRecognizedMethod(receiver_cid,
+                                          target,
                                           call_,
                                           call_->instance_call()->token_pos(),
                                           *call_->instance_call()->ic_data(),
@@ -1412,6 +1416,7 @@ void PolymorphicInliner::Inline() {
   FlowGraphCompiler::SortICDataByCount(call_->ic_data(), &variants_);
   for (intptr_t var_idx = 0; var_idx < variants_.length(); ++var_idx) {
     const Function& target = *variants_[var_idx].target;
+    const intptr_t receiver_cid = variants_[var_idx].cid;
 
     // First check if this is the same target as an earlier inlined variant.
     if (CheckInlinedDuplicate(target)) {
@@ -1428,7 +1433,7 @@ void PolymorphicInliner::Inline() {
     }
 
     // Make an inlining decision.
-    if (TryInlining(target)) {
+    if (TryInlining(receiver_cid, target)) {
       inlined_variants_.Add(variants_[var_idx]);
     } else {
       non_inlined_variants_.Add(variants_[var_idx]);
