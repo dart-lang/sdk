@@ -555,10 +555,9 @@ class ClosureTranslator extends Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       mutatedVariables.add(element);
-    }
-    if (Elements.isLocal(element) &&
-        element.computeType(compiler).containsTypeVariables) {
-      registerNeedsThis();
+      if (compiler.enableTypeAssertions) {
+        analyzeTypeVariables(element.computeType(compiler));
+      }
     }
     super.visitSendSet(node);
   }

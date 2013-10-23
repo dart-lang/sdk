@@ -1892,7 +1892,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (type.containsTypeVariables) {
         bool contextIsTypeArguments = false;
         HInstruction context;
-        if (currentElement.isInstanceMember()) {
+        if (!currentElement.enclosingElement.isClosure()
+            && currentElement.isInstanceMember()) {
           context = localsHandler.readThis();
         } else {
           ClassElement contextClass = Types.getClassContext(type);
@@ -2936,7 +2937,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         contextName = graph.addConstantString(
             new DartString.literal(backend.namer.getNameOfClass(contextClass)),
             node, compiler);
-        if (currentElement.isInstanceMember()) {
+        if (!currentElement.enclosingElement.isClosure()
+            && currentElement.isInstanceMember()) {
           context = localsHandler.readThis();
           typeArguments = graph.addConstantNull(compiler);
         } else {
