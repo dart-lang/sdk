@@ -1,0 +1,11 @@
+name: template_binding
+author: Polymer.dart Team <web-ui-dev@dartlang.org>
+description: >
+  Extends the capabilities of the HTML Template Element by enabling it to
+  create, manage, and remove instances of content bound to data defined in Dart.
+homepage: https://www.dartlang.org/polymer-dart/
+dependencies:
+  logging: any
+  observe: any
+dev_dependencies:
+  unittest: any

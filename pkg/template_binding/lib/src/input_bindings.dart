@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv;
+part of template_binding;
 
 abstract class _InputBinding extends NodeBinding {
   StreamSubscription _eventSub;
@@ -86,7 +86,7 @@ class _CheckedBinding extends _InputBinding {
     // CheckedBinding manually.
     if (node is InputElement && node.type == 'radio') {
       for (var r in _getAssociatedRadioButtons(node)) {
-        var checkedBinding = r.bindings['checked'];
+        var checkedBinding = nodeBind(r).bindings['checked'];
         if (checkedBinding != null) {
           // Set the value directly to avoid an infinite call stack.
           checkedBinding.value = false;
@@ -124,7 +124,7 @@ class _CheckedBinding extends _InputBinding {
   static bool _isNodeInDocument(Node node) {
     // On non-IE this works:
     // return node.ownerDocument.contains(node);
-    var document = node.document;
+    var document = node.ownerDocument;
     if (node == document || node.parentNode == document) return true;
     return document.documentElement.contains(node);
   }

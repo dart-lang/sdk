@@ -2,27 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library node_bindings_test;
+library template_binding.test.node_bindings_test;
 
 import 'dart:html';
-import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart' show toObservable;
+import 'package:template_binding/template_binding.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_test_utils.dart';
+import 'utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/node_bindings.js
 
 main() {
-  mdv.initialize();
   useHtmlConfiguration();
   group('Node Bindings', nodeBindingTests);
 }
 
 nodeBindingTests() {
-  var testDiv;
-
   setUp(() {
     document.body.append(testDiv = new DivElement());
   });
@@ -35,14 +32,14 @@ nodeBindingTests() {
   observeTest('Text', () {
     var text = new Text('hi');
     var model = toObservable({'a': 1});
-    text.bind('text', model, 'a');
+    nodeBind(text).bind('text', model, 'a');
     expect(text.text, '1');
 
     model['a'] = 2;
     performMicrotaskCheckpoint();
     expect(text.text, '2');
 
-    text.unbind('text');
+    nodeBind(text).unbind('text');
     model['a'] = 3;
     performMicrotaskCheckpoint();
     expect(text.text, '2');
@@ -53,8 +50,8 @@ nodeBindingTests() {
   observeTest('Element', () {
     var element = new DivElement();
     var model = toObservable({'a': 1, 'b': 2});
-    element.bind('hidden?', model, 'a');
-    element.bind('id', model, 'b');
+    nodeBind(element).bind('hidden?', model, 'a');
+    nodeBind(element).bind('id', model, 'b');
 
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
@@ -81,7 +78,7 @@ nodeBindingTests() {
     var el = new Element.tag(tagName);
     testDiv.nodes.add(el);
     var model = toObservable({'x': 42});
-    el.bind('value', model, 'x');
+    nodeBind(el).bind('value', model, 'x');
     expect(el.value, '42');
 
     model['x'] = 'Hi';
@@ -93,13 +90,13 @@ nodeBindingTests() {
     dispatchEvent('input', el);
     expect(model['x'], 'changed');
 
-    el.unbind('value');
+    nodeBind(el).unbind('value');
 
     el.value = 'changed again';
     dispatchEvent('input', el);
     expect(model['x'], 'changed');
 
-    el.bind('value', model, 'x');
+    nodeBind(el).bind('value', model, 'x');
     model['x'] = null;
     performMicrotaskCheckpoint();
     expect(el.value, '');
@@ -112,7 +109,7 @@ nodeBindingTests() {
     var input = new InputElement();
     input.type = 'radio';
     var model = toObservable({'x': true});
-    input.bind('checked', model, 'x');
+    nodeBind(input).bind('checked', model, 'x');
     expect(input.checked, true);
 
     model['x'] = false;
@@ -124,7 +121,7 @@ nodeBindingTests() {
     dispatchEvent('change', input);
     expect(model['x'], true, reason: 'input.checked should set model');
 
-    input.unbind('checked');
+    nodeBind(input).unbind('checked');
 
     input.checked = false;
     dispatchEvent('change', input);
@@ -137,7 +134,7 @@ nodeBindingTests() {
     testDiv.append(input);
     input.type = 'checkbox';
     var model = toObservable({'x': true});
-    input.bind('checked', model, 'x');
+    nodeBind(input).bind('checked', model, 'x');
     expect(input.checked, true);
 
     model['x'] = false;

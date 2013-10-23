@@ -2,26 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library custom_element_bindings_test;
+library template_binding.test.custom_element_bindings_test;
 
+import 'dart:async';
 import 'dart:html';
-import 'package:mdv/mdv.dart' as mdv;
+import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart' show toObservable;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_test_utils.dart';
+import 'utils.dart';
+
+Future _registered;
 
 main() {
-  mdv.initialize();
   useHtmlConfiguration();
+
+  _registered = loadCustomElementPolyfill().then((_) {
+    document.register('my-custom-element', MyCustomElement);
+    document.register('with-attrs-custom-element', WithAttrsCustomElement);
+  });
+
   group('Custom Element Bindings', customElementBindingsTest);
 }
 
-customElementBindingsTest() {
-  var testDiv;
+Future loadCustomElementPolyfill() {
+  if (!document.supportsRegister) {
+    var script = new ScriptElement()
+        ..src = '/packages/custom_element/custom-elements.debug.js';
+    document.head.append(script);
+    return document.on['WebComponentsReady'].first;
+  }
+  return new Future.value();
+}
 
+customElementBindingsTest() {
   setUp(() {
     document.body.append(testDiv = new DivElement());
+    return _registered;
   });
 
   tearDown(() {
@@ -29,25 +46,13 @@ customElementBindingsTest() {
     testDiv = null;
   });
 
-  createTestHtml(s) {
-    var div = new DivElement();
-    div.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
-    testDiv.append(div);
-
-    for (var node in div.queryAll('*')) {
-      if (node.isTemplate) TemplateElement.decorate(node);
-    }
-
-    return div;
-  }
-
-
   observeTest('override bind/unbind/unbindAll', () {
     var element = new MyCustomElement();
     var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
 
-    element.bind('my-point', model, 'a');
-    element.bind('scary-monster', model, 'b');
+    nodeBind(element)
+        ..bind('my-point', model, 'a')
+        ..bind('scary-monster', model, 'b');
 
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
@@ -58,7 +63,7 @@ customElementBindingsTest() {
     model['a'] = null;
     performMicrotaskCheckpoint();
     expect(element.myPoint, null);
-    element.unbind('my-point');
+    nodeBind(element).unbind('my-point');
 
     model['a'] = new Point(1, 2);
     model['b'] = new Monster(200);
@@ -66,17 +71,17 @@ customElementBindingsTest() {
     expect(element.scaryMonster, model['b']);
     expect(element.myPoint, null, reason: 'a was unbound');
 
-    element.unbindAll();
+    nodeBind(element).unbindAll();
     model['b'] = null;
     performMicrotaskCheckpoint();
     expect(element.scaryMonster.health, 200);
   });
 
   observeTest('override attribute setter', () {
-    var element = new WithAttrsCustomElement().real;
+    var element = new WithAttrsCustomElement();
     var model = toObservable({'a': 1, 'b': 2});
-    element.bind('hidden?', model, 'a');
-    element.bind('id', model, 'b');
+    nodeBind(element).bind('hidden?', model, 'a');
+    nodeBind(element).bind('id', model, 'b');
 
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
@@ -103,7 +108,7 @@ customElementBindingsTest() {
     expect(element.attributes['hidden'], '');
     expect(element.id, 'x');
 
-    expect(element.xtag.attributes.log, [
+    expect(element.attributes.log, [
       ['remove', 'hidden?'],
       ['[]=', 'hidden', ''],
       ['[]=', 'id', '2'],
@@ -117,38 +122,30 @@ customElementBindingsTest() {
   observeTest('template bind uses overridden custom element bind', () {
 
     var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
-
     var div = createTestHtml('<template bind>'
           '<my-custom-element my-point="{{a}}" scary-monster="{{b}}">'
           '</my-custom-element>'
         '</template>');
 
-    callback(fragment) {
-      for (var e in fragment.queryAll('my-custom-element')) {
-        new MyCustomElement.attach(e);
-      }
-    }
-    mdv.instanceCreated.add(callback);
-
-    div.query('template').model = model;
+    templateBind(div.query('template')).model = model;
     performMicrotaskCheckpoint();
 
     var element = div.nodes[1];
 
-    expect(element.xtag is MyCustomElement, true,
-        reason: '${element.xtag} should be a MyCustomElement');
+    expect(element is MyCustomElement, true,
+        reason: '${element} should be a MyCustomElement');
 
-    expect(element.xtag.myPoint, model['a']);
-    expect(element.xtag.scaryMonster, model['b']);
+    expect(element.myPoint, model['a']);
+    expect(element.scaryMonster, model['b']);
 
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
 
     model['a'] = null;
     performMicrotaskCheckpoint();
-    expect(element.xtag.myPoint, null);
+    expect(element.myPoint, null);
 
-    div.query('template').model = null;
+    templateBind(div.query('template')).model = null;
     performMicrotaskCheckpoint();
 
     expect(element.parentNode, null, reason: 'element was detached');
@@ -157,10 +154,8 @@ customElementBindingsTest() {
     model['b'] = new Monster(200);
     performMicrotaskCheckpoint();
 
-    expect(element.xtag.myPoint, null, reason: 'model was unbound');
-    expect(element.xtag.scaryMonster.health, 100, reason: 'model was unbound');
-
-    mdv.instanceCreated.remove(callback);
+    expect(element.myPoint, null, reason: 'model was unbound');
+    expect(element.scaryMonster.health, 100, reason: 'model was unbound');
   });
 
 }
@@ -171,20 +166,13 @@ class Monster {
 }
 
 /** Demonstrates a custom element overriding bind/unbind/unbindAll. */
-class MyCustomElement implements Element {
-  final Element real;
-
+class MyCustomElement extends HtmlElement implements NodeBindExtension {
   Point myPoint;
   Monster scaryMonster;
 
-  MyCustomElement() : this.attach(new Element.tag('my-custom-element'));
+  factory MyCustomElement() => new Element.tag('my-custom-element');
 
-  MyCustomElement.attach(this.real) {
-    real.xtag = this;
-  }
-
-  get attributes => real.attributes;
-  get bindings => real.bindings;
+  MyCustomElement.created() : super.created();
 
   NodeBinding createBinding(String name, model, String path) {
     switch (name) {
@@ -192,15 +180,15 @@ class MyCustomElement implements Element {
       case 'scary-monster':
         return new _MyCustomBinding(this, name, model, path);
     }
-    return real.createBinding(name, model, path);
+    return nodeBindFallback(this).createBinding(name, model, path);
   }
 
-  bind(String name, model, String path) => real.bind(name, model, path);
-  void unbind(String name) => real.unbind(name);
-  void unbindAll() => real.unbindAll();
+  bind(name, model, path) => nodeBindFallback(this).bind(name, model, path);
+  unbind(name) => nodeBindFallback(this).unbind(name);
+  unbindAll() => nodeBindFallback(this).unbindAll();
 }
 
-class _MyCustomBinding extends mdv.NodeBinding {
+class _MyCustomBinding extends NodeBinding {
   _MyCustomBinding(MyCustomElement node, property, model, path)
       : super(node, property, model, path) {
 
@@ -220,25 +208,17 @@ class _MyCustomBinding extends mdv.NodeBinding {
  * Demonstrates a custom element can override attributes []= and remove.
  * and see changes that the data binding system is making to the attributes.
  */
-class WithAttrsCustomElement implements Element {
-  final Element real;
-  final AttributeMapWrapper<String, String> attributes;
+class WithAttrsCustomElement extends HtmlElement {
+  AttributeMapWrapper<String, String> _attributes;
 
-  factory WithAttrsCustomElement() {
-    var real = new Element.tag('with-attrs-custom-element');
-    var attributes = new AttributeMapWrapper(real.attributes);
-    return new WithAttrsCustomElement._(real, attributes);
+  factory WithAttrsCustomElement() =>
+      new Element.tag('with-attrs-custom-element');
+
+  WithAttrsCustomElement.created() : super.created() {
+    _attributes = new AttributeMapWrapper(super.attributes);
   }
 
-  WithAttrsCustomElement._(this.real, this.attributes) {
-    real.xtag = this;
-  }
-
-  createBinding(String name, model, String path) =>
-      real.createBinding(name, model, path);
-  bind(String name, model, String path) => real.bind(name, model, path);
-  void unbind(String name) => real.unbind(name);
-  void unbindAll() => real.unbindAll();
+  get attributes => _attributes;
 }
 
 // TODO(jmesserly): would be nice to use mocks when mirrors work on dart2js.
@@ -264,6 +244,7 @@ class AttributeMapWrapper<K, V> implements Map<K, V> {
     _map.remove(key);
   }
 
+  void addAll(Map<K, V> other) => _map.addAll(other);
   void clear() => _map.clear();
   void forEach(void f(K key, V value)) => _map.forEach(f);
   Iterable<K> get keys => _map.keys;
@@ -271,11 +252,4 @@ class AttributeMapWrapper<K, V> implements Map<K, V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
-}
-
-/**
- * Sanitizer which does nothing.
- */
-class NullTreeSanitizer implements NodeTreeSanitizer {
-  void sanitizeTree(Node node) {}
 }

@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library template_element_test;
+library template_binding.test.template_element_test;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:math' as math;
-import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
+import 'package:template_binding/template_binding.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_test_utils.dart';
+import 'utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/template_element.js
@@ -21,14 +21,11 @@ import 'mdv_test_utils.dart';
 // look for "assertNodesAre".
 
 main() {
-  mdv.initialize();
   useHtmlConfiguration();
   group('Template Element', templateElementTests);
 }
 
 templateElementTests() {
-  var testDiv;
-
   setUp(() {
     document.body.append(testDiv = new DivElement());
   });
@@ -37,31 +34,6 @@ templateElementTests() {
     testDiv.remove();
     testDiv = null;
   });
-
-  createTestHtml(s) {
-    var div = new DivElement();
-    div.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
-    testDiv.append(div);
-
-    for (var node in div.queryAll('*')) {
-      if (node.isTemplate) TemplateElement.decorate(node);
-    }
-
-    return div;
-  }
-
-  createShadowTestHtml(s) {
-    var div = new DivElement();
-    var root = div.createShadowRoot();
-    root.innerHtml = s;
-    testDiv.append(div);
-
-    for (var node in root.queryAll('*')) {
-      if (node.isTemplate) TemplateElement.decorate(node);
-    }
-
-    return root;
-  }
 
   var expando = new Expando('observeTest');
   void addExpandos(node) {
@@ -417,7 +389,8 @@ templateElementTests() {
   observeTest('Removal from iteration needs to unbind', () {
     var div = createTestHtml(
         '<template repeat="{{}}"><a>{{v}}</a></template>');
-    var model = toObservable([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3}, {'v': 4}]);
+    var model = toObservable([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3},
+        {'v': 4}]);
     recursivelySetTemplateModel(div, model);
     deliverChanges(model);
 
@@ -583,7 +556,7 @@ templateElementTests() {
 
   observeTest('DefaultStyles', () {
     var t = new Element.tag('template');
-    TemplateElement.decorate(t);
+    TemplateBindExtension.decorate(t);
 
     document.body.append(t);
     expect(t.getComputedStyle().display, 'none');
@@ -609,14 +582,15 @@ templateElementTests() {
     var t = div.nodes.first;
 
     var model = toObservable({'name': 'Leela'});
-    t.bind('bind', model, '');
+    nodeBind(t).bind('bind', model, '');
 
     deliverChanges(model);
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
   observeTest('BindPlaceHolderHasNewLine', () {
-    var div = createTestHtml('<template bind="{{}}">Hi {{\nname\n}}</template>');
+    var div = createTestHtml(
+        '<template bind="{{}}">Hi {{\nname\n}}</template>');
     var model = toObservable({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
 
@@ -635,7 +609,7 @@ templateElementTests() {
     var t1 = div.nodes.first;
     var t2 = div.nodes[1];
 
-    expect(t2.ref, t1);
+    expect(templateBind(t2).ref, t1);
 
     var model = toObservable({'name': 'Fry'});
     recursivelySetTemplateModel(div, model);
@@ -662,7 +636,7 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(t.nextNode.text, 'Hi Leela');
 
-    t.bind('bind', model, 'XZ');
+    nodeBind(t).bind('bind', model, 'XZ');
     deliverChanges(model);
 
     expect(div.nodes.length, 2);
@@ -718,7 +692,8 @@ templateElementTests() {
     m['contacts'].replaceRange(0, 1,
         toObservable([{'name': 'Tab'}, {'name': 'Neal'}]));
     deliverChanges(m);
-    assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
+    assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri',
+        'Hi Alex']);
 
     m['contacts'] = toObservable([{'name': 'Alex'}]);
     deliverChanges(m);
@@ -750,7 +725,8 @@ templateElementTests() {
   });
 
   observeTest('RepeatEmptyPath', () {
-    var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
+    var div = createTestHtml(
+        '<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
     var m = toObservable([
@@ -782,7 +758,8 @@ templateElementTests() {
 
     m.replaceRange(0, 1, toObservable([{'name': 'Tab'}, {'name': 'Neal'}]));
     deliverChanges(m);
-    assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
+    assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri',
+        'Hi Alex']);
 
     m.length = 0;
     m.add(toObservable({'name': 'Alex'}));
@@ -791,7 +768,8 @@ templateElementTests() {
   });
 
   observeTest('RepeatNullModel', () {
-    var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
+    var div = createTestHtml(
+        '<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
     var m = null;
@@ -808,7 +786,8 @@ templateElementTests() {
   });
 
   observeTest('RepeatReuse', () {
-    var div = createTestHtml('<template repeat="{{}}">Hi {{ name }}</template>');
+    var div = createTestHtml(
+        '<template repeat="{{}}">Hi {{ name }}</template>');
     var t = div.nodes.first;
 
     var m = toObservable([
@@ -860,7 +839,7 @@ templateElementTests() {
     var m = toObservable({
       'a': true
     });
-    t.bind('bind', m, '');
+    nodeBind(t).bind('bind', m, '');
     deliverChanges(m);
 
     var instanceInput = t.nextNode;
@@ -1124,7 +1103,8 @@ templateElementTests() {
       }));
     }));
     expect(select.nodes[0].tagName, 'TEMPLATE');
-    expect(select.nodes[0].ref.content.nodes[0].tagName, 'OPTGROUP');
+    expect(templateBind(select.nodes[0]).ref.content.nodes[0].tagName,
+        'OPTGROUP');
 
     var optgroup = select.nodes[1];
     expect(optgroup.nodes[0].tagName, 'TEMPLATE');
@@ -1207,8 +1187,8 @@ templateElementTests() {
     expect(tbody.nodes[2].nodes[1].text, '2');
     expect(tbody.nodes[2].nodes[2].text, '3');
 
-    // Asset the 'class' binding is retained on the semantic template (just check
-    // the last one).
+    // Asset the 'class' binding is retained on the semantic template (just
+    // check the last one).
     expect(tbody.nodes[2].nodes[2].attributes['class'], '3');
   });
 
@@ -1428,7 +1408,7 @@ templateElementTests() {
     observer.observe(div, childList: true);
 
     var template = div.firstChild;
-    template.bind('repeat', toObservable(m.toList()), '');
+    nodeBind(template).bind('repeat', toObservable(m.toList()), '');
     performMicrotaskCheckpoint();
     var records = observer.takeRecords();
     expect(records.length, 0);
@@ -1473,16 +1453,17 @@ templateElementTests() {
     expect(div.nodes.length, 2);
     expect(div.nodes[1].text, '3');
 
-    template.unbind('bind');
-    template.bind('repeat', m, 'a');
+    nodeBind(template)
+        ..unbind('bind')
+        ..bind('repeat', m, 'a');
     deliverChanges(m);
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '0');
     expect(div.nodes[2].text, '1');
     expect(div.nodes[3].text, '2');
 
-    template.unbind('repeat');
-    template.bind('bind', m, 'a.1.b');
+    nodeBind(template).unbind('repeat');
+    nodeBind(template).bind('bind', m, 'a.1.b');
 
     deliverChanges(m);
     expect(div.nodes.length, 2);
@@ -1570,7 +1551,7 @@ templateElementTests() {
       var model = toObservable({'name': 'Leela'});
       var template = new Element.html('<template>Hi {{ name }}</template>');
       var root = createShadowTestHtml('');
-      root.nodes.add(template.createInstance(model));
+      root.nodes.add(templateBind(template).createInstance(model));
 
       performMicrotaskCheckpoint();
       expect(root.text, 'Hi Leela');
@@ -1645,12 +1626,13 @@ templateElementTests() {
           '{{ foo }}:{{ replaceme }}'
         '</template>'
       '</template>');
-    var outer = div.nodes.first;
+    var outer = templateBind(div.nodes.first);
     var model = toObservable({'b': {'foo': 'bar'}});
 
     var host = new DivElement();
     var instance = outer.createInstance(model, new TestBindingSyntax());
-    expect(outer.content.nodes.first, instance.nodes.first.ref);
+    expect(outer.content.nodes.first,
+        templateBind(instance.nodes.first).ref);
 
     host.append(instance);
     performMicrotaskCheckpoint();
@@ -1667,10 +1649,10 @@ templateElementTests() {
         '</template>'
       '</template>';
 
-    TemplateElement.bootstrap(div);
-    var template = div.nodes.first;
+    TemplateBindExtension.bootstrap(div);
+    var template = templateBind(div.nodes.first);
     expect(template.content.nodes.length, 2);
-    var template2 = template.content.nodes.first.nextNode;
+    var template2 = templateBind(template.content.nodes.first.nextNode);
     expect(template2.content.nodes.length, 1);
     expect(template2.content.nodes.first.text, 'Hello');
 
@@ -1683,31 +1665,12 @@ templateElementTests() {
         '</template>'
       '</template>';
 
-    TemplateElement.bootstrap(template);
+    TemplateBindExtension.bootstrap(template);
     template2 = template.content.nodes.first;
     expect(template2.content.nodes.length, 2);
     var template3 = template2.content.nodes.first.nextNode;
     expect(template3.content.nodes.length, 1);
     expect(template3.content.nodes.first.text, 'Hello');
-  });
-
-  observeTest('instanceCreated hack', () {
-    var called = false;
-
-    callback(node) {
-      called = true;
-      expect(node.nodeType, Node.DOCUMENT_FRAGMENT_NODE);
-    }
-    mdv.instanceCreated.add(callback);
-
-    var div = createTestHtml('<template bind="{{}}">Foo</template>');
-    expect(called, false);
-
-    recursivelySetTemplateModel(div, null);
-    performMicrotaskCheckpoint();
-    expect(called, true);
-
-    mdv.instanceCreated.remove(callback);
   });
 }
 
@@ -1773,11 +1736,4 @@ _deepToSymbol(value) {
     return value.map(_deepToSymbol).toList();
   }
   return value;
-}
-
-/**
- * Sanitizer which does nothing.
- */
-class NullTreeSanitizer implements NodeTreeSanitizer {
-  void sanitizeTree(Node node) {}
 }

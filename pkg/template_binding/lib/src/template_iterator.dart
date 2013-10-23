@@ -2,25 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv;
+part of template_binding;
 
-// This code is a port of Model-Driven-Views:
-// https://github.com/polymer-project/mdv
-// The code mostly comes from src/template_element.js
+// This code is a port of what was formerly known as Model-Driven-Views, now
+// located at:
+//     https://github.com/polymer/TemplateBinding
+//     https://github.com/polymer/NodeBind
 
 // TODO(jmesserly): not sure what kind of boolean conversion rules to
 // apply for template data-binding. HTML attributes are true if they're
 // present. However Dart only treats "true" as true. Since this is HTML we'll
 // use something closer to the HTML rules: null (missing) and false are false,
-// everything else is true. See: https://github.com/polymer-project/mdv/issues/59
+// everything else is true.
+// See: https://github.com/polymer/TemplateBinding/issues/59
 bool _toBoolean(value) => null != value && false != value;
 
 Node _createDeepCloneAndDecorateTemplates(Node node, BindingDelegate delegate) {
   var clone = node.clone(false); // Shallow clone.
-  if (clone is Element && clone.isTemplate) {
-    TemplateElement.decorate(clone, node);
+  if (isSemanticTemplate(clone)) {
+    TemplateBindExtension.decorate(clone, node);
     if (delegate != null) {
-      _mdv(clone)._bindingDelegate = delegate;
+      templateBindFallback(clone)._bindingDelegate = delegate;
     }
   }
 
@@ -52,7 +54,7 @@ List _parseAttributeBindings(Element element) {
   var bindings = null;
   var ifFound = false;
   var bindFound = false;
-  var isTemplateNode = element.isTemplate;
+  var isTemplateNode = isSemanticTemplate(element);
 
   element.attributes.forEach((name, value) {
     if (isTemplateNode) {
@@ -91,9 +93,6 @@ void _processBindings(List bindings, Node node, model,
 void _setupBinding(Node node, String name, List tokens, model,
     BindingDelegate delegate) {
 
-  // If this is a custom element, give the .xtag a change to bind.
-  node = _nodeOrCustom(node);
-
   if (_isSimpleBinding(tokens)) {
     _bindOrDelegate(node, name, model, tokens[1], delegate);
     return;
@@ -129,7 +128,7 @@ void _setupBinding(Node node, String name, List tokens, model,
 
   replacementBinding.resolve();
 
-  node.bind(name, replacementBinding, 'value');
+  nodeBind(node).bind(name, replacementBinding, 'value');
 }
 
 void _bindOrDelegate(node, name, model, String path,
@@ -143,16 +142,12 @@ void _bindOrDelegate(node, name, model, String path,
     }
   }
 
-  node.bind(name, model, path);
+  if (node is CompoundBinding) {
+    node.bind(name, model, path);
+  } else {
+    nodeBind(node).bind(name, model, path);
+  }
 }
-
-/**
- * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
- * the node. This is used so nodes can override [Node.bind], [Node.unbind],
- * and [Node.unbindAll] like InputElement does.
- */
-// TODO(jmesserly): remove this when we can extend Element for real.
-_nodeOrCustom(node) => node is Element ? node.xtag : node;
 
 /** True if and only if [tokens] is of the form `['', path, '']`. */
 bool _isSimpleBinding(List<String> tokens) =>
@@ -201,7 +196,7 @@ void _addTemplateInstanceRecord(fragment, model) {
 
   var node = instanceRecord.firstNode;
   while (node != null) {
-    _mdv(node)._templateInstance = instanceRecord;
+    nodeBindFallback(node)._templateInstance = instanceRecord;
     node = node.nextNode;
   }
 }
@@ -256,16 +251,16 @@ class _TemplateIterator {
 
     if (inputs.length == 0) {
       close();
-      _mdv(_templateElement)._templateIterator = null;
+      templateBindFallback(_templateElement)._templateIterator = null;
     }
   }
 
   Node getTerminatorAt(int index) {
     if (index == -1) return _templateElement;
     var terminator = terminators[index];
-    if (terminator is Element && (terminator as Element).isTemplate &&
+    if (isSemanticTemplate(terminator) &&
         !identical(terminator, _templateElement)) {
-      var subIterator = _mdv(terminator)._templateIterator;
+      var subIterator = templateBindFallback(terminator)._templateIterator;
       if (subIterator != null) {
         return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
       }
@@ -325,7 +320,7 @@ class _TemplateIterator {
   }
 
   DocumentFragment getInstanceFragment(model, BindingDelegate delegate) {
-    return _templateElement.createInstance(model, delegate);
+    return templateBind(_templateElement).createInstance(model, delegate);
   }
 
   void _handleChanges(Iterable<ChangeRecord> splices) {
@@ -334,7 +329,7 @@ class _TemplateIterator {
     splices = splices.where((s) => s is ListChangeRecord);
 
     var template = _templateElement;
-    var delegate = template.bindingDelegate;
+    var delegate = templateBind(template).bindingDelegate;
 
     if (template.parentNode == null || template.ownerDocument.window == null) {
       close();
@@ -350,7 +345,8 @@ class _TemplateIterator {
       for (int i = 0; i < splice.removedCount; i++) {
         var instanceNodes = extractInstanceAt(splice.index + removeDelta);
         if (instanceNodes.length == 0) continue;
-        var model = _mdv(instanceNodes.first)._templateInstance.model;
+        var model = nodeBindFallback(instanceNodes.first)
+            ._templateInstance.model;
         instanceCache[model] = instanceNodes;
       }
 
@@ -395,9 +391,9 @@ class _TemplateIterator {
   }
 
   static void _unbindAllRecursively(Node node) {
-    var nodeExt = _mdv(node);
+    var nodeExt = nodeBindFallback(node);
     nodeExt._templateInstance = null;
-    if (node is Element && (node as Element).isTemplate) {
+    if (isSemanticTemplate(node)) {
       // Make sure we stop observing when we remove an element.
       var templateIterator = nodeExt._templateIterator;
       if (templateIterator != null) {
@@ -406,7 +402,7 @@ class _TemplateIterator {
       }
     }
 
-    _nodeOrCustom(node).unbindAll();
+    nodeBind(node).unbindAll();
     for (var c = node.firstChild; c != null; c = c.nextNode) {
       _unbindAllRecursively(c);
     }

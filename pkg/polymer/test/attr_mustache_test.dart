@@ -4,9 +4,10 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import 'package:polymer/polymer.dart';
+import 'package:template_binding/template_binding.dart';
 
 @CustomTag('x-target')
 class XTarget extends PolymerElement {
@@ -17,7 +18,7 @@ class XTarget extends PolymerElement {
 
   // force an mdv binding
   bind(name, model, path) =>
-      TemplateElement.mdvPackage(this).bind(name, model, path);
+      nodeBindFallback(this).bind(name, model, path);
 
   inserted() {
     testSrcForMustache();

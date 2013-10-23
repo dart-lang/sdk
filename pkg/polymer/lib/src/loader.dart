@@ -50,8 +50,6 @@ void initPolymer() {
 void _initPolymerOptimized() {
   preventFlashOfUnstyledContent();
 
-  // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
-  mdv.initialize();
   document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
   _loadLibraries();

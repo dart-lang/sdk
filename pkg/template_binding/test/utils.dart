@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library observe_utils;
+library template_binding.test.utils;
 
 import 'dart:html';
 import 'package:observe/observe.dart';
+import 'package:template_binding/template_binding.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:observe/src/microtask.dart';
@@ -19,9 +20,10 @@ final bool parserHasNativeTemplate = () {
 
 recursivelySetTemplateModel(element, model, [delegate]) {
   for (var node in element.queryAll('*')) {
-    if (node.isTemplate) {
-      node.bindingDelegate = delegate;
-      node.model = model;
+    if (isSemanticTemplate(node)) {
+      templateBind(node)
+          ..bindingDelegate = delegate
+          ..model = model;
     }
   }
 }
@@ -58,3 +60,37 @@ class FooBarNotifyModel extends ChangeNotifier implements FooBarModel {
 observeTest(name, testCase) => test(name, wrapMicrotask(testCase));
 
 solo_observeTest(name, testCase) => solo_test(name, wrapMicrotask(testCase));
+
+DivElement testDiv;
+
+createTestHtml(s) {
+  var div = new DivElement();
+  div.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
+  testDiv.append(div);
+
+  for (var node in div.queryAll('*')) {
+    if (isSemanticTemplate(node)) TemplateBindExtension.decorate(node);
+  }
+
+  return div;
+}
+
+createShadowTestHtml(s) {
+  var div = new DivElement();
+  var root = div.createShadowRoot();
+  root.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
+  testDiv.append(div);
+
+  for (var node in root.querySelectorAll('*')) {
+    if (isSemanticTemplate(node)) TemplateBindExtension.decorate(node);
+  }
+
+  return root;
+}
+
+/**
+ * Sanitizer which does nothing.
+ */
+class NullTreeSanitizer implements NodeTreeSanitizer {
+  void sanitizeTree(Node node) {}
+}

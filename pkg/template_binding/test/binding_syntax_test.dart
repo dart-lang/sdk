@@ -2,21 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library binding_syntax_test;
+library template_binding.test.binding_syntax_test;
 
 import 'dart:collection';
 import 'dart:html';
-import 'package:mdv/mdv.dart' as mdv;
+import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
-import 'mdv_test_utils.dart';
+import 'utils.dart';
 
 // Note: this file ported from
 // https://github.com/toolkitchen/mdv/blob/master/tests/syntax.js
 
 main() {
-  mdv.initialize();
   useHtmlConfiguration();
 
   group('Syntax FooBarModel', () {
@@ -28,8 +27,6 @@ main() {
 }
 
 syntaxTests(FooBarModel fooModel([foo, bar])) {
-  var testDiv;
-
   setUp(() {
     document.body.append(testDiv = new DivElement());
   });
@@ -39,21 +36,8 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     testDiv = null;
   });
 
-  createTestHtml(s) {
-    var div = new DivElement();
-    div.innerHtml = s;
-    testDiv.append(div);
-
-    for (var node in div.queryAll('*')) {
-      if (node.isTemplate) TemplateElement.decorate(node);
-    }
-
-    return div;
-  }
-
   observeTest('Registration', () {
     var model = fooModel('bar');
-
     var testSyntax = new TestBindingSyntax();
     var div = createTestHtml('<template bind>{{ foo }}'
         '<template bind>{{ foo }}</template></template>');
@@ -62,7 +46,6 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     expect(div.nodes.length, 4);
     expect(div.nodes.last.text, 'bar');
     expect(div.nodes[2].tagName, 'TEMPLATE');
-
     expect(testSyntax.log, [
       [model, '', 'bind', 'TEMPLATE'],
       [model, 'foo', 'text', null],
@@ -135,7 +118,7 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
 class TestBindingSyntax extends BindingDelegate {
   var log = [];
 
-  getBinding(model, String path, String name, Node node) {
+  getBinding(model, String path, String name, node) {
     log.add([model, path, name, node is Element ? node.tagName : null]);
   }
 }
@@ -166,7 +149,7 @@ class WhitespaceRemover extends BindingDelegate {
   int removed = 0;
 
   DocumentFragment getInstanceFragment(Element template) {
-    var instance = template.createInstance();
+    var instance = templateBind(template).createInstance();
     var walker = new TreeWalker(instance, NodeFilter.SHOW_TEXT);
 
     var toRemove = [];

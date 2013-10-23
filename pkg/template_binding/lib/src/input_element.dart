@@ -2,19 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv;
+part of template_binding;
 
-/** Extensions to the [TextAreaElement] API. */
-class _TextAreaElementExtension extends _ElementExtension {
-  _TextAreaElementExtension(TextAreaElement node) : super(node);
+/** Extensions to the [InputElement] API. */
+class _InputElementExtension extends _ElementExtension {
+  _InputElementExtension(InputElement node) : super(node);
 
-  TextAreaElement get node => super.node;
+  InputElement get _node => super._node;
 
   NodeBinding createBinding(String name, model, String path) {
     if (name == 'value') {
       // TODO(rafaelw): Maybe template should remove all binding instructions.
-      node.attributes.remove(name);
-      return new _ValueBinding(node, model, path);
+      _node.attributes.remove(name);
+      return new _ValueBinding(_node, model, path);
+    }
+    if (name == 'checked') {
+      _node.attributes.remove(name);
+      return new _CheckedBinding(_node, model, path);
     }
     return super.createBinding(name, model, path);
   }

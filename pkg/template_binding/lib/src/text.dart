@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of mdv;
+part of template_binding;
 
 /** Extensions to the [Text] API. */
-class _TextExtension extends _NodeExtension {
-  _TextExtension(Text node) : super(node);
+class _TextExtension extends NodeBindExtension {
+  _TextExtension(Text node) : super._(node);
 
   NodeBinding createBinding(String name, model, String path) {
-    if (name == 'text') return new _TextBinding(node, model, path);
+    if (name == 'text') return new _TextBinding(_node, model, path);
     return super.createBinding(name, model, path);
   }
 }

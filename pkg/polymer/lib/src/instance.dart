@@ -25,7 +25,7 @@ class PublishedProperty extends ObservableProperty {
  * The mixin class for Polymer elements. It provides convenience features on top
  * of the custom elements web standard.
  */
-abstract class Polymer implements Element, Observable {
+abstract class Polymer implements Element, Observable, NodeBindExtension {
   // Fully ported from revision:
   // https://github.com/Polymer/polymer/blob/4dc481c11505991a7c43228d3797d28f21267779
   //
@@ -370,7 +370,7 @@ abstract class Polymer implements Element, Observable {
    * Creates the document fragment to use for each instance of the custom
    * element, given the `<template>` node. By default this is equivalent to:
    *
-   *     template.createInstance(this, polymerSyntax);
+   *     templateBind(template).createInstance(this, polymerSyntax);
    *
    * Where polymerSyntax is a singleton `PolymerExpressions` instance from the
    * [polymer_expressions](https://pub.dartlang.org/packages/polymer_expressions)
@@ -380,7 +380,10 @@ abstract class Polymer implements Element, Observable {
    * template, for example to use a different data-binding syntax.
    */
   DocumentFragment instanceTemplate(Element template) =>
-      template.createInstance(this, _polymerSyntax);
+      templateBind(template).createInstance(this, _polymerSyntax);
+
+  NodeBinding createBinding(String name, model, String path) =>
+      nodeBindFallback(this).createBinding(name, model, path);
 
   NodeBinding bind(String name, model, String path) {
     // note: binding is a prepare signal. This allows us to be sure that any
@@ -400,12 +403,14 @@ abstract class Polymer implements Element, Observable {
       reflectPropertyToAttribute(MirrorSystem.getName(property.simpleName));
       return bindings[name] = observer;
     } else {
-      // Cannot call super.bind because of
-      // https://code.google.com/p/dart/issues/detail?id=13156
-      // https://code.google.com/p/dart/issues/detail?id=12456
-      return TemplateElement.mdvPackage(this).bind(name, model, path);
+      // Cannot call super.bind because template_binding is its own package
+      return nodeBindFallback(this).bind(name, model, path);
     }
   }
+
+  Map<String, NodeBinding> get bindings => nodeBindFallback(this).bindings;
+
+  void unbind(String name) => nodeBindFallback(this).unbind(name);
 
   void asyncUnbindAll() {
     if (_unbound == true) return;
@@ -417,10 +422,7 @@ abstract class Polymer implements Element, Observable {
     if (_unbound == true) return;
 
     unbindAllProperties();
-    // Cannot call super.bind because of
-    // https://code.google.com/p/dart/issues/detail?id=13156
-    // https://code.google.com/p/dart/issues/detail?id=12456
-    TemplateElement.mdvPackage(this).unbindAll();
+    nodeBindFallback(this).unbindAll();
 
     _unbindNodeTree(shadowRoot);
     // TODO(sjmiles): must also unbind inherited shadow roots
@@ -450,7 +452,7 @@ abstract class Polymer implements Element, Observable {
   }
 
   static void _unbindNodeTree(Node node) {
-    _forNodeTree(node, (node) => node.unbindAll());
+    _forNodeTree(node, (node) => nodeBind(node).unbindAll());
   }
 
   static void _forNodeTree(Node node, void callback(Node node)) {

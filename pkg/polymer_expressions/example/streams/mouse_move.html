@@ -16,13 +16,11 @@ BSD-style license that can be found in the LICENSE file.
       import 'package:mdv/mdv.dart' as mdv;
 
       main() {
-        mdv.initialize();
-
         var globals = {
           'mouse': document.onMouseMove,
         };
 
-        query('#test')
+        templateBind(query('#test'))
             ..bindingDelegate = new PolymerExpressions(globals: globals)
             ..model = null;
       }

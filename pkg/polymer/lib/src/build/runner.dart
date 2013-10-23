@@ -105,9 +105,10 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
 final Set<String> _polymerPackageDependencies = [
     'analyzer_experimental', 'args', 'barback', 'browser', 'csslib',
     'custom_element', 'fancy_syntax', 'html5lib', 'html_import', 'js',
-    'logging', 'mdv', 'meta', 'mutation_observer', 'observe', 'path'
+    'logging', 'meta', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'shadow_dom', 'source_maps',
-    'stack_trace', 'unittest', 'unmodifiable_collection', 'yaml'].toSet();
+    'stack_trace', 'template_binding', 'unittest', 'unmodifiable_collection',
+    'yaml'].toSet();
 
 /** Return the relative path of each file under [subDir] in [package]. */
 Iterable<String> _listPackageDir(String package, String subDir,

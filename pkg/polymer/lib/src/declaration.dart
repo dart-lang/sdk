@@ -68,8 +68,8 @@ class PolymerDeclaration extends HtmlElement {
   List<Element> get styles => _styles;
 
   DocumentFragment get templateContent {
-    final template = this.query('template');
-    return template != null ? template.content : null;
+    final template = this.querySelector('template');
+    return template != null ? templateBind(template).content : null;
   }
 
   /** Maps event names and their associated method in the element class. */
@@ -336,8 +336,8 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   void accumulateTemplatedEvents(Element node, Set<String> events) {
-    if (node.localName == 'template' && node.content != null) {
-      accumulateChildEvents(node.content, events);
+    if (node.localName == 'template') {
+      accumulateChildEvents(templateBind(node).content, events);
     }
   }
 

@@ -15,13 +15,13 @@ dependencies:
   html5lib: any
   html_import: any
   logging: any
-  mdv: any
   meta: any
   observe: any
   path: any
   polymer_expressions: any
   shadow_dom: any
   source_maps: any
+  template_binding: any
   yaml: any
 dev_dependencies:
   unittest: any

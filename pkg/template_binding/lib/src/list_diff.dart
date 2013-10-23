@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library mdv.src.list_diff;
+library template_binding.src.list_diff;
 
 import 'dart:math' as math;
 import 'package:observe/observe.dart' show ListChangeRecord;

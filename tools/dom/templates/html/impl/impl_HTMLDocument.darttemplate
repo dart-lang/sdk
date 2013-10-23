@@ -238,12 +238,6 @@ $else
   }
 $endif
 
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  // Note: used to polyfill <template>
-  Document _templateContentsOwner;
-
   @DomName('Document.visibilityChange')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)

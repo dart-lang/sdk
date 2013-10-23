@@ -7,15 +7,14 @@ library bindings_test;
 import 'dart:html';
 
 import 'package:logging/logging.dart';
-import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:observe/src/microtask.dart';
 import 'package:polymer_expressions/polymer_expressions.dart';
+import 'package:template_binding/template_binding.dart' show templateBind;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
-  mdv.initialize();
   useHtmlConfiguration();
 
   group('bindings', () {
@@ -48,8 +47,8 @@ main() {
 
     observeTest('should update text content when data changes', () {
       var model = new NotifyModel('abcde');
-      var template = new Element.html(
-          '<template><span>{{x}}</span></template>');
+      var template = templateBind(new Element.html(
+          '<template><span>{{x}}</span></template>'));
       testDiv.append(template.createInstance(model, new PolymerExpressions()));
 
       performMicrotaskCheckpoint();
@@ -65,8 +64,8 @@ main() {
 
     observeTest('should log eval exceptions', () {
       var model = new NotifyModel('abcde');
-      var template = new Element.html(
-          '<template><span>{{foo}}</span></template>');
+      var template = templateBind(new Element.html(
+          '<template><span>{{foo}}</span></template>'));
       testDiv.append(template.createInstance(model, new PolymerExpressions()));
       performMicrotaskCheckpoint();
       expect(messages.length, 1);
@@ -76,8 +75,8 @@ main() {
 
     observeTest('should preserve the cursor position', () {
       var model = new NotifyModel('abcde');
-      var template = new Element.html(
-          '<template><input id="i1" value={{x}}></template>');
+      var template = templateBind(new Element.html(
+          '<template><input id="i1" value={{x}}></template>'));
       testDiv.append(template.createInstance(model, new PolymerExpressions()));
 
       performMicrotaskCheckpoint();
