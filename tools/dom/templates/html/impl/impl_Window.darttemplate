@@ -292,21 +292,6 @@ $if DART2JS
 $endif
 }
 
-/**
- * Event object that is fired before the window is closed.
- *
- * The standard window close behavior can be prevented by setting the
- * [returnValue]. This will display a dialog to the user confirming that they
- * want to close the page.
- */
-abstract class BeforeUnloadEvent implements Event {
-  /**
-   * If set to a non-null value, a dialog will be presented to the user
-   * confirming that they want to close the page.
-   */
-  String returnValue;
-}
-
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 

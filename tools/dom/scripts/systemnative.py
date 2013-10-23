@@ -51,9 +51,13 @@ _cpp_callback_map = {
   ('Navigator', 'vibrate'): 'NavigatorVibration',
   ('Navigator', 'appName'): 'NavigatorID',
   ('Navigator', 'appVersion'): 'NavigatorID',
+  ('Navigator', 'appCodeName'): 'NavigatorID',
   ('Navigator', 'platform'): 'NavigatorID',
+  ('Navigator', 'product'): 'NavigatorID',
   ('Navigator', 'userAgent'): 'NavigatorID',
   ('Navigator', 'onLine'): 'NavigatorOnLine',
+  ('Navigator', 'registerServiceWorker'): 'NavigatorServiceWorker',
+  ('Navigator', 'unregisterServiceWorker'): 'NavigatorServiceWorker',
   ('WorkerGlobalScope', 'crypto'): 'WorkerGlobalScopeCrypto',
   ('WorkerGlobalScope', 'indexedDB'): 'WorkerGlobalScopeIndexedDatabase',
   ('WorkerGlobalScope', 'webkitNotifications'): 'WorkerGlobalScopeNotifications',
@@ -879,7 +883,7 @@ class DartiumBackend(HtmlDartGenerator):
           '            exception = Dart_NewStringFromCString("Failed to fetch domWindow");\n'
           '            goto fail;\n'
           '        }\n'
-          '        Document* document = domWindow->document();\n')
+          '        Document& document = *domWindow->document();\n')
 
     if needs_receiver:
       body_emitter.Emit(
