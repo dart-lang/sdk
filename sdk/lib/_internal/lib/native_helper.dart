@@ -327,10 +327,12 @@ void initNativeDispatch() {
       if (JS('bool', 'typeof (#[#]) == "function"', context, tag)) {
         var constructor = JS('', '#[#]', context, tag);
         var proto = JS('', '#.prototype', constructor);
-        var interceptorClass = JS('', '#[#]', map, tag);
-        var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
-        if (record != null) {
-          setDispatchProperty(proto, record);
+        if (proto != null) {  // E.g. window.mozRTCIceCandidate.prototype
+          var interceptorClass = JS('', '#[#]', map, tag);
+          var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
+          if (record != null) {
+            setDispatchProperty(proto, record);
+          }
         }
       }
     }
