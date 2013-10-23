@@ -6028,10 +6028,11 @@ static bool ImplementsEqualOperator(const Instance& value) {
 // or any other class that does not override the == operator.
 // The expressions are compile-time constants and are thus in the form
 // of a LiteralNode.
-void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
+RawClass* Parser::CheckCaseExpressions(
+    const GrowableArray<LiteralNode*>& values) {
   const intptr_t num_expressions = values.length();
   if (num_expressions == 0) {
-    return;
+    return Object::dynamic_class();
   }
   const Instance& first_value = values[0]->literal();
   for (intptr_t i = 0; i < num_expressions; i++) {
@@ -6066,6 +6067,12 @@ void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
       }
     }
   }
+  if (first_value.IsInteger()) {
+    return Type::Handle(Type::IntType()).type_class();
+  } else if (first_value.IsString()) {
+    return Type::Handle(Type::StringType()).type_class();
+  }
+  return first_value.clazz();
 }
 
 
@@ -6164,11 +6171,18 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   OpenBlock();
   current_block_->scope->AddLabel(label);
 
-  // Store switch expression in temporary local variable.
+  // Store switch expression in temporary local variable. The type of the
+  // variable is set to dynamic. It will later be patched to match the
+  // type of the case clause expressions. Therefore, we have to allocate
+  // a new type representing dynamic and can't reuse the canonical
+  // type object for dynamic.
+  const Type& temp_var_type =
+      Type::ZoneHandle(Type::New(Class::Handle(Object::dynamic_class()),
+                                 TypeArguments::Handle(),
+                                 expr_pos));
+  temp_var_type.SetIsFinalized();
   LocalVariable* temp_variable =
-      new LocalVariable(expr_pos,
-                        Symbols::SwitchExpr(),
-                        Type::ZoneHandle(Type::DynamicType()));
+      new LocalVariable(expr_pos,  Symbols::SwitchExpr(), temp_var_type);
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr =
       new StoreLocalNode(expr_pos, temp_variable, switch_expr);
@@ -6221,8 +6235,11 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   }
 
   // Check that all expressions in case clauses are of the same class,
-  // or implement int, double or String.
-  CheckCaseExpressions(case_expr_values);
+  // or implement int, double or String. Patch the type of the temporary
+  // variable holding the switch expression to match the type of the
+  // case clause constants.
+  temp_var_type.set_type_class(
+      Class::Handle(CheckCaseExpressions(case_expr_values)));
 
   // Check for unresolved label references.
   SourceLabel* unresolved_label =

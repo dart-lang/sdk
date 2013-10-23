@@ -162,8 +162,8 @@ LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail # co19 issue 626
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
+Language/13_Statements/09_Switch_A09_t01: PASS, FAIL, OK # co19 issue 633
 Language/07_Classes/6_Constructors/2_Factories_A12_t02: fail # co19-roll r587: Please triage this failure
-Language/13_Statements/09_Switch_A05_t01: FAIL, OK # co19 issue 498
 Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
 Language/14_Libraries_and_Scripts/1_Imports_A03_t66: PASS, FAIL, OK # co19 issue 560
 LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
