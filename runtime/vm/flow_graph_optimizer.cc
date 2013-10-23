@@ -6410,79 +6410,8 @@ void ConstantPropagator::VisitStringFromCharCode(
 
 
 void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
-  // TODO(srdjan): Remove the code below and enable constant folding once
-  // issue resolved.
   SetValue(instr, non_constant_);
   return;
-
-  if (IsNonConstant(instr->constant_value())) {
-    // Do not bother with costly analysis if we already know that the
-    // instruction is not a constant.
-    SetValue(instr, non_constant_);
-    return;
-  }
-  // If all inputs are constant strings, numbers, booleans or null, then
-  // constant fold.
-  // TODO(srdjan): Also constant fold an interval of constant arguments.
-  //   v2 <- CreateArray(v0)
-  //   StoreIndexed(v2, v3, v4)   -- v3:constant index, v4: value.
-  //   ..
-  //   v8 <- StringInterpolate(v2)
-  CreateArrayInstr* create_array =
-      instr->value()->definition()->AsCreateArray();
-  ASSERT(create_array != NULL);
-
-  // Check if the string interpolation has only constant inputs.
-  for (Value::Iterator it(create_array->input_use_list());
-       !it.Done();
-       it.Advance()) {
-    Instruction* curr = it.Current()->instruction();
-    if (curr != instr) {
-      StoreIndexedInstr* store = curr->AsStoreIndexed();
-      ASSERT(store != NULL);
-      const Object& value = store->value()->definition()->constant_value();
-      if (IsNonConstant(value)) {
-        SetValue(instr, non_constant_);
-        return;
-      } else if (IsUnknown(value)) {
-        ASSERT(IsUnknown(instr->constant_value()));
-        return;
-      }
-    }
-  }
-  // Interpolate string at compile time.
-  const Array& value_arr =
-      Array::Handle(Array::New(create_array->num_elements()));
-  // Build array of literal values to interpolate.
-  for (Value::Iterator it(create_array->input_use_list());
-       !it.Done();
-       it.Advance()) {
-    Instruction* curr = it.Current()->instruction();
-    // Skip StringInterpolateInstr.
-    if (curr != instr) {
-      StoreIndexedInstr* store = curr->AsStoreIndexed();
-      ASSERT(store != NULL);
-      Value* index_value = store->index();
-      ASSERT(index_value->BindsToConstant() && index_value->IsSmiValue());
-      const intptr_t ix = Smi::Cast(index_value->BoundConstant()).Value();
-      ASSERT(IsConstant(store->value()->definition()->constant_value()));
-      value_arr.SetAt(ix, store->value()->definition()->constant_value());
-    }
-  }
-  // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
-  interpolate_arg.SetAt(0, value_arr);
-  // Call interpolation function.
-  String& concatenated = String::ZoneHandle();
-  concatenated ^=
-      DartEntry::InvokeFunction(instr->CallFunction(), interpolate_arg);
-  if (concatenated.IsUnhandledException()) {
-    SetValue(instr, non_constant_);
-    return;
-  }
-
-  concatenated = Symbols::New(concatenated);
-  SetValue(instr, concatenated);
 }
 
 
@@ -7258,16 +7187,6 @@ void ConstantPropagator::Transform() {
         ConstantInstr* constant = graph_->GetConstant(defn->constant_value());
         defn->ReplaceUsesWith(constant);
         i.RemoveCurrentFromGraph();
-        if (defn->IsStringInterpolate()) {
-          CreateArrayInstr* create_array = defn->AsStringInterpolate()->
-              value()->definition()->AsCreateArray();
-          for (Value* use = create_array->input_use_list();
-              use != NULL;
-              use = create_array->input_use_list()) {
-            use->instruction()->RemoveFromGraph();
-          }
-          create_array->RemoveFromGraph();
-        }
       }
     }
 

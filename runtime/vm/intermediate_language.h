@@ -3701,6 +3701,8 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
 
   const Function& CallFunction() const;
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   DECLARE_INSTRUCTION(StringInterpolate)
 
  private:
