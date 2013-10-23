@@ -26,8 +26,8 @@ Selection selection;
 const followLinks = false;
 
 
-main() {
-  var options = argParser.parse(new Options().arguments);
+main(args) {
+  var options = argParser.parse(args);
   if (options['help']) {
     _printUsage();
     return;
