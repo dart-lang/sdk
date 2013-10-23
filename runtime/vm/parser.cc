@@ -2506,7 +2506,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   SequenceNode* init_statements = CloseBlock();
-  if (init_statements->length() > 0) {
+  if (is_redirecting_constructor) {
+    // A redirecting super constructor simply passes the phase parameter on to
+    // the target which executes the corresponding phase.
+    current_block_->statements->Add(init_statements);
+  } else if (init_statements->length() > 0) {
     // Generate guard around the initializer code.
     LocalVariable* phase_param = LookupPhaseParameter();
     AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
