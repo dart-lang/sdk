@@ -875,6 +875,36 @@ TEST_CASE(SerializeScript) {
       "  static s2() { return 'this is a \"string\" in the source'; }\n"
       "  static s3() { return 'this is a \\\'string\\\' in \"the\" source'; }\n"
       "  static s4() { return 'this \"is\" a \"string\" in \"the\" source'; }\n"
+      "  static ms1() {\n"
+      "    return '''\n"
+      "abc\n"
+      "def\n"
+      "ghi''';\n"
+      "  }\n"
+      "  static ms2() {\n"
+      "    return '''\n"
+      "abc\n"
+      "$def\n"
+      "ghi''';\n"
+      "  }\n"
+      "  static ms3() {\n"
+      "    return '''\n"
+      "a b c\n"
+      "d $d e\n"
+      "g h i''';\n"
+      "  }\n"
+      "  static ms4() {\n"
+      "    return '''\n"
+      "abc\n"
+      "${def}\n"
+      "ghi''';\n"
+      "  }\n"
+      "  static ms5() {\n"
+      "    return '''\n"
+      "a b c\n"
+      "d ${d} e\n"
+      "g h i''';\n"
+      "  }\n"
       "}\n";
 
   String& url = String::Handle(String::New("dart-test:SerializeScript"));
@@ -940,34 +970,29 @@ TEST_CASE(SerializeScript) {
 static void IterateScripts(const Library& lib) {
   const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
   Script& script = Script::Handle();
+  String& uri = String::Handle();
   for (intptr_t i = 0; i < lib_scripts.Length(); i++) {
     script ^= lib_scripts.At(i);
     EXPECT(!script.IsNull());
+    uri = script.url();
+    OS::Print("Generating source for part: %s\n", uri.ToCString());
     GenerateSourceAndCheck(script);
   }
 }
 
 TEST_CASE(GenerateSource) {
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
   Library& lib = Library::Handle();
-  // Check core lib.
-  lib = Library::CoreLibrary();
-  EXPECT(!lib.IsNull());
-  IterateScripts(lib);
-
-  // Check isolate lib.
-  lib = Library::IsolateLibrary();
-  EXPECT(!lib.IsNull());
-  IterateScripts(lib);
-
-  // Check math lib.
-  lib = Library::MathLibrary();
-  EXPECT(!lib.IsNull());
-  IterateScripts(lib);
-
-  // Check mirrors lib.
-  lib = Library::MirrorsLibrary();
-  EXPECT(!lib.IsNull());
-  IterateScripts(lib);
+  String& uri = String::Handle();
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    EXPECT(!lib.IsNull());
+    uri = lib.url();
+    OS::Print("Generating source for library: %s\n", uri.ToCString());
+    IterateScripts(lib);
+  }
 }
 
 

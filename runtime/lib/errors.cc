@@ -35,13 +35,16 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   script.GetTokenLocation(assertion_start, &from_line, &from_column);
   intptr_t to_line, to_column;
   script.GetTokenLocation(assertion_end, &to_line, &to_column);
+  // The snippet will extract the correct assertion code even if the source
+  // is generated.
   args.SetAt(0, String::Handle(
       script.GetSnippet(from_line, from_column, to_line, to_column)));
 
   // Initialize location arguments starting at position 1.
+  // Do not set a column if the source has been generated as it will be wrong.
   args.SetAt(1, String::Handle(script.url()));
   args.SetAt(2, Smi::Handle(Smi::New(from_line)));
-  args.SetAt(3, Smi::Handle(Smi::New(from_column)));
+  args.SetAt(3, Smi::Handle(Smi::New(script.HasSource() ? from_column : -1)));
 
   Exceptions::ThrowByType(Exceptions::kAssertion, args);
   UNREACHABLE();
@@ -89,8 +92,8 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   iterator.NextFrame();  // Skip native call.
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
   args.SetAt(0, String::Handle(script.url()));
-  intptr_t line, column;
-  script.GetTokenLocation(fallthrough_pos, &line, &column);
+  intptr_t line;
+  script.GetTokenLocation(fallthrough_pos, &line, NULL);
   args.SetAt(1, Smi::Handle(Smi::New(line)));
 
   Exceptions::ThrowByType(Exceptions::kFallThrough, args);
@@ -116,8 +119,8 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 2) {
   const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
   args.SetAt(0, class_name);
   args.SetAt(1, String::Handle(script.url()));
-  intptr_t line, column;
-  script.GetTokenLocation(error_pos, &line, &column);
+  intptr_t line;
+  script.GetTokenLocation(error_pos, &line, NULL);
   args.SetAt(2, Smi::Handle(Smi::New(line)));
 
   Exceptions::ThrowByType(Exceptions::kAbstractClassInstantiation, args);

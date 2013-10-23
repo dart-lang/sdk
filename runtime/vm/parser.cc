@@ -7099,11 +7099,21 @@ RawString* Parser::FormatMessage(const Script& script,
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
-      result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
-                                    script_url.ToCString(),
-                                    message_header,
-                                    line,
-                                    column);
+      // Only report the line position if we have the original source. We still
+      // need to get a valid column so that we can report the ^ mark below the
+      // snippet.
+      if (script.HasSource()) {
+        result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
+                                      script_url.ToCString(),
+                                      message_header,
+                                      line,
+                                      column);
+      } else {
+        result = String::NewFormatted("'%s': %s: line %" Pd ": ",
+                                      script_url.ToCString(),
+                                      message_header,
+                                      line);
+      }
       // Append the formatted error or warning message.
       result = String::Concat(result, msg);
       const String& new_line = String::Handle(String::New("\n"));

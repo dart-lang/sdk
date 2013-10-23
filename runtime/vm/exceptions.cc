@@ -505,8 +505,13 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 
   DartFrameIterator iterator;
   const Script& script = Script::Handle(GetCallerScript(&iterator));
-  intptr_t line, column;
-  script.GetTokenLocation(location, &line, &column);
+  intptr_t line;
+  intptr_t column = -1;
+  if (script.HasSource()) {
+    script.GetTokenLocation(location, &line, &column);
+  } else {
+    script.GetTokenLocation(location, &line, NULL);
+  }
   // Initialize '_url', '_line', and '_column' arguments.
   args.SetAt(0, String::Handle(script.url()));
   args.SetAt(1, Smi::Handle(Smi::New(line)));
@@ -524,8 +529,6 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
     if (!bound_error.IsNull()) {
       OS::Print("%s\n", bound_error.ToCString());
     }
-    intptr_t line, column;
-    script.GetTokenLocation(location, &line, &column);
     OS::Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
               String::Handle(script.url()).ToCString(), line, column);
     if (!dst_name.IsNull() && (dst_name.Length() > 0)) {

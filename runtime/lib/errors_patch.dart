@@ -20,7 +20,12 @@ patch class AssertionError extends Error {
       native "AssertionError_throwNew";
 
   String toString() {
-    return "'$_url': Failed assertion: line $_line pos $_column: "
+    var columnInfo = "";
+    if (_column > 0) {
+      // Only add column information if it is valid.
+      columnInfo = " pos $_column";
+    }
+    return "'$_url': Failed assertion: line $_line$columnInfo: "
         "'$_failedAssertion' is not true.";
   }
   final String _failedAssertion;

@@ -6234,7 +6234,7 @@ RawString* TokenStream::GenerateSource() const {
 
 
 intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
-  Iterator iterator(*this, 0);
+  Iterator iterator(*this, 0, Iterator::kAllTokens);
   intptr_t src_pos = 0;
   Token::Kind kind = iterator.CurrentTokenKind();
   while (iterator.CurrentPosition() < tok_pos && kind != Token::kEOS) {
@@ -6243,19 +6243,6 @@ intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
     src_pos += 1;
   }
   return src_pos;
-}
-
-
-intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
-  Iterator iterator(*this, 0);
-  intptr_t index = 0;
-  Token::Kind kind = iterator.CurrentTokenKind();
-  while (index < src_pos && kind != Token::kEOS) {
-    iterator.Advance();
-    kind = iterator.CurrentTokenKind();
-    index += 1;
-  }
-  return iterator.CurrentPosition();
 }
 
 
@@ -6303,7 +6290,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   // Add an IDENT token into the stream and the token objects array.
-  void AddIdentToken(String* ident) {
+  void AddIdentToken(const String* ident) {
     if (ident != NULL) {
       // If the IDENT token is already in the tokens object array use the
       // same index instead of duplicating it.
@@ -6321,7 +6308,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   // Add a LITERAL token into the stream and the token objects array.
-  void AddLiteralToken(Token::Kind kind, String* literal) {
+  void AddLiteralToken(Token::Kind kind, const String* literal) {
     if (literal != NULL) {
       // If the literal token is already in the tokens object array use the
       // same index instead of duplicating it.
@@ -6356,7 +6343,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
  private:
-  intptr_t FindIdentIndex(String* ident) {
+  intptr_t FindIdentIndex(const String* ident) {
     ASSERT(ident != NULL);
     intptr_t hash_value = ident->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = ident_table_[hash_value];
@@ -6374,7 +6361,7 @@ class CompressedTokenStreamData : public ValueObject {
     return -1;
   }
 
-  intptr_t FindLiteralIndex(Token::Kind kind, String* literal) {
+  intptr_t FindLiteralIndex(Token::Kind kind, const String* literal) {
     ASSERT(literal != NULL);
     intptr_t hash_value = literal->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = literal_table_[hash_value];

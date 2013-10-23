@@ -10,10 +10,10 @@
 
 namespace dart {
 
-void LogTokenDesc(Scanner::TokenDescriptor token) {
+static void LogTokenDesc(Scanner::TokenDescriptor token) {
   OS::Print("pos %2d:%d-%d token %s  ",
             token.position.line, token.position.column,
-            token.position.column + token.length,
+            token.position.column,
             Token::Name(token.kind));
   if (token.literal != NULL) {
     OS::Print("%s", token.literal->ToCString());
@@ -22,7 +22,7 @@ void LogTokenDesc(Scanner::TokenDescriptor token) {
 }
 
 
-void LogTokenStream(const Scanner::GrowableTokenStream& token_stream) {
+static void LogTokenStream(const Scanner::GrowableTokenStream& token_stream) {
   int token_index = 0;
   EXPECT_GT(token_stream.length(), 0);
   while (token_index < token_stream.length()) {
@@ -35,7 +35,7 @@ void LogTokenStream(const Scanner::GrowableTokenStream& token_stream) {
 }
 
 
-void CheckKind(const Scanner::GrowableTokenStream &token_stream,
+static void CheckKind(const Scanner::GrowableTokenStream &token_stream,
                int index,
                Token::Kind kind) {
   if (token_stream[index].kind != kind) {
@@ -46,7 +46,7 @@ void CheckKind(const Scanner::GrowableTokenStream &token_stream,
 }
 
 
-void CheckLiteral(const Scanner::GrowableTokenStream& token_stream,
+static void CheckLiteral(const Scanner::GrowableTokenStream& token_stream,
                  int index,
                  const char* literal) {
   if (token_stream[index].literal == NULL) {
@@ -59,7 +59,7 @@ void CheckLiteral(const Scanner::GrowableTokenStream& token_stream,
 }
 
 
-void CheckIdent(const Scanner::GrowableTokenStream& token_stream,
+static void CheckIdent(const Scanner::GrowableTokenStream& token_stream,
                int index,
                const char* literal) {
   CheckKind(token_stream, index, Token::kIDENT);
@@ -67,7 +67,7 @@ void CheckIdent(const Scanner::GrowableTokenStream& token_stream,
 }
 
 
-void CheckInteger(const Scanner::GrowableTokenStream& token_stream,
+static void CheckInteger(const Scanner::GrowableTokenStream& token_stream,
                  int index,
                  const char* literal) {
   CheckKind(token_stream, index, Token::kINTEGER);
@@ -75,7 +75,7 @@ void CheckInteger(const Scanner::GrowableTokenStream& token_stream,
 }
 
 
-void CheckLineNumber(const Scanner::GrowableTokenStream& token_stream,
+static void CheckLineNumber(const Scanner::GrowableTokenStream& token_stream,
                      int index,
                      int line_number) {
   if (token_stream[index].position.line != line_number) {
@@ -85,7 +85,7 @@ void CheckLineNumber(const Scanner::GrowableTokenStream& token_stream,
 }
 
 
-void CheckNumTokens(const Scanner::GrowableTokenStream& token_stream,
+static void CheckNumTokens(const Scanner::GrowableTokenStream& token_stream,
                     int index) {
   if (token_stream.length() != index) {
     OS::PrintErr("Expected %d tokens but got only %" Pd ".\n",
@@ -94,7 +94,7 @@ void CheckNumTokens(const Scanner::GrowableTokenStream& token_stream,
 }
 
 
-const Scanner::GrowableTokenStream& Scan(const char* source) {
+static const Scanner::GrowableTokenStream& Scan(const char* source) {
   Scanner scanner(String::Handle(String::New(source)),
                   String::Handle(String::New("")));
 
@@ -105,7 +105,7 @@ const Scanner::GrowableTokenStream& Scan(const char* source) {
 }
 
 
-void BoringTest() {
+static void BoringTest() {
   const Scanner::GrowableTokenStream& tokens = Scan("x = iffy++;");
 
   CheckNumTokens(tokens, 6);
@@ -117,7 +117,7 @@ void BoringTest() {
 }
 
 
-void CommentTest() {
+static void CommentTest() {
   const Scanner::GrowableTokenStream& tokens =
       Scan("Foo( /*block \n"
            "comment*/ 0xff) // line comment;");
@@ -133,7 +133,7 @@ void CommentTest() {
 }
 
 
-void GreedIsGood() {
+static void GreedIsGood() {
   // means i++ + j
   const Scanner::GrowableTokenStream& tokens = Scan("x=i+++j");
 
@@ -147,7 +147,7 @@ void GreedIsGood() {
 }
 
 
-void StringEscapes() {
+static void StringEscapes() {
   // sss = "\" \\ \n\r\t \'"
   const Scanner::GrowableTokenStream& tokens =
       Scan("sss = \"\\\" \\\\ \\n\\r\\t \\\'\"");
@@ -171,7 +171,7 @@ void StringEscapes() {
 }
 
 
-void InvalidStringEscapes() {
+static void InvalidStringEscapes() {
   const Scanner::GrowableTokenStream& high_start_4 =
       Scan("\"\\uD800\"");
   EXPECT_EQ(2, high_start_4.length());
@@ -244,7 +244,7 @@ void InvalidStringEscapes() {
 }
 
 
-void RawString() {
+static void RawString() {
   // rs = @"\' \\"
   const Scanner::GrowableTokenStream& tokens = Scan("rs = r\"\\\' \\\\\"");
 
@@ -265,7 +265,7 @@ void RawString() {
 }
 
 
-void MultilineString() {
+static void MultilineString() {
   // |mls = '''
   // |1' x
   // |2''';
@@ -293,7 +293,7 @@ void MultilineString() {
 }
 
 
-void EmptyString() {
+static void EmptyString() {
   // es = "";
   const Scanner::GrowableTokenStream& tokens = Scan("es = \"\";");
 
@@ -306,7 +306,7 @@ void EmptyString() {
   EXPECT_EQ(0, (tokens)[2].literal->Length());
 }
 
-void EmptyMultilineString() {
+static void EmptyMultilineString() {
   // es = """""";
   const Scanner::GrowableTokenStream& tokens = Scan("es = \"\"\"\"\"\";");
 
@@ -320,7 +320,7 @@ void EmptyMultilineString() {
 }
 
 
-void NumberLiteral() {
+static void NumberLiteral() {
   const Scanner::GrowableTokenStream& tokens =
       Scan("5 0x5d 0.3 0.33 1E+12 .42 +5");
 
@@ -336,7 +336,7 @@ void NumberLiteral() {
 }
 
 
-void ScanLargeText() {
+static void ScanLargeText() {
   const char* dart_source =
       "// This source is not meant to be valid Dart code. The text is used to"
       "// test the Dart scanner."

@@ -2218,7 +2218,6 @@ class TokenStream : public Object {
 
   RawString* GenerateSource() const;
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
-  intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
   RawString* PrivateKey() const;
 
@@ -2529,14 +2528,12 @@ class Library : public Object {
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
-  static RawLibrary* CryptoLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* JsonLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* TypedDataLibrary();
-  static RawLibrary* UriLibrary();
   static RawLibrary* UtfLibrary();
 
   // Eagerly compile all classes and functions in the library.
