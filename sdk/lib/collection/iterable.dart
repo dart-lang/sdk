@@ -416,7 +416,7 @@ String _iterableToString(Iterable iterable) {
 }
 
 /** Convert elments of [iterable] to strings and store them in [parts]. */
-String _iterablePartsToStrings(Iterable iterable, List parts) {
+void _iterablePartsToStrings(Iterable iterable, List parts) {
   /// Try to stay below this many characters.
   const int LENGTH_LIMIT = 80;
   /// Always at least this many elements at the start.
