@@ -81,7 +81,7 @@ class Int64 implements IntX {
       int c = s.codeUnitAt(i);
       int digit = Int32._decodeDigit(c);
       if (digit < 0 || digit >= radix) {
-        throw new Exception("Non-radix char code: $c");
+        throw new FormatException("Non-radix char code: $c");
       }
 
       // [radix] and [digit] are at most 6 bits, component is 22, so we can

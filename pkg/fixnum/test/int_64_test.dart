@@ -658,6 +658,9 @@ void main() {
       checkInt(4294967296);
       checkInt(-4294967295);
       checkInt(-4294967296);
+      expect(() => Int64.parseRadix('xyzzy', -1), throwsArgumentError);
+      expect(() => Int64.parseRadix('plugh', 10),
+          throwsA(new isInstanceOf<FormatException>()));
     });
 
     test("parseRadix", () {

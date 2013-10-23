@@ -304,6 +304,33 @@ void main() {
     });
   });
 
+  group("parse", () {
+    test("base 10", () {
+      checkInt(int x) {
+        expect(Int32.parseRadix('$x', 10), new Int32(x));
+      }
+      checkInt(0);
+      checkInt(1);
+      checkInt(1000);
+      checkInt(12345678);
+      checkInt(2147483647);
+      checkInt(2147483648);
+      checkInt(4294967295);
+      checkInt(4294967296);
+      expect(() => Int32.parseRadix('xyzzy', -1), throwsArgumentError);
+      expect(() => Int32.parseRadix('plugh', 10),
+          throwsA(new isInstanceOf<FormatException>()));
+    });
+
+    test("parseRadix", () {
+      check(String s, int r, String x) {
+        expect(Int32.parseRadix(s, r).toString(), x);
+      }
+      check('deadbeef', 16, '-559038737');
+      check('95', 12, '113');
+    });
+  });
+
   group("string representation", () {
     test("toString", () {
       expect(new Int32(0).toString(), "0");
