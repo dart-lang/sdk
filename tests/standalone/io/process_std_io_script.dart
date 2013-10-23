@@ -6,14 +6,13 @@
 
 import "dart:io";
 
-main() {
-  var options = new Options();
-  if (options.arguments.length > 0) {
-    if (options.arguments[0] == "0") {
+main(List<String> arguments) {
+  if (arguments.length > 0) {
+    if (arguments[0] == "0") {
       stdin.pipe(stdout);
-    } else if (options.arguments[0] == "1") {
+    } else if (arguments[0] == "1") {
       stdin.pipe(stderr);
-    } else if (options.arguments[0] == "2") {
+    } else if (arguments[0] == "2") {
       stdin.listen((data) {
         stdout.add(data);
         stderr.add(data);

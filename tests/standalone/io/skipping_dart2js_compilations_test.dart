@@ -22,6 +22,7 @@ import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;
 import '../../../tools/testing/dart/test_options.dart' as options;
 import '../../../tools/testing/dart/status_file_parser.dart' as status;
+import '../../../tools/testing/dart/utils.dart';
 
 /**
  * This class is reponsible for setting up the files necessary for this test

@@ -6,26 +6,25 @@
 
 import "dart:io";
 
-main() {
-  var options = new Options();
+main(List<String> arguments) {
   if (stdioType(stdin) is !StdioType) exit(1);
   if (stdioType(stdout) is !StdioType) exit(1);
   if (stdioType(stderr) is !StdioType) exit(1);
-  if (stdioType(stdin).name != options.arguments[1]) {
+  if (stdioType(stdin).name != arguments[1]) {
     throw stdioType(stdin).name;
   }
-  if (stdioType(stdout).name != options.arguments[2]) {
+  if (stdioType(stdout).name != arguments[2]) {
     throw stdioType(stdout).name;
   }
-  if (stdioType(stderr).name != options.arguments[3]) {
+  if (stdioType(stderr).name != arguments[3]) {
     throw stdioType(stderr).name;
   }
-  if (options.arguments.length > 0) {
-    if (options.arguments[0] == "0") {
+  if (arguments.length > 0) {
+    if (arguments[0] == "0") {
       stdin.pipe(stdout);
-    } else if (options.arguments[0] == "1") {
+    } else if (arguments[0] == "1") {
       stdin.pipe(stderr);
-    } else if (options.arguments[0] == "2") {
+    } else if (arguments[0] == "2") {
       stdin.listen((data) {
         stdout.add(data);
         stderr.add(data);

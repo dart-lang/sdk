@@ -125,11 +125,10 @@ class EventListener extends progress.EventListener{
   }
 }
 
-void main() {
+void main(List<String> arguments) {
   // Run the test_runner_test if there are no command-line options.
   // Otherwise, run one of the component tests that always pass,
   // fail, or timeout.
-  var arguments = new Options().arguments;
   if (arguments.isEmpty) {
     testProcessQueue();
   } else {

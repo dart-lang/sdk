@@ -4,6 +4,6 @@
 
 import "dart:io";
 
-void main() {
-  new Options().arguments.forEach(print);
+void main(List<String> arguments) {
+  arguments.forEach(print);
 }

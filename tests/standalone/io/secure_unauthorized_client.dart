@@ -37,8 +37,7 @@ Future runClients(int port) {
 }
 
 
-void main() {
-  final args = new Options().arguments;
+void main(List<String> args) {
   SecureSocket.initialize();
   runClients(int.parse(args[0]))
     .then((_) => print('SUCCESS'));

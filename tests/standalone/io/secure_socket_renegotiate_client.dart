@@ -73,8 +73,7 @@ void runClient(int port) {
 }
 
 
-void main() {
-  final args = new Options().arguments;
+void main(List<String> args) {
   SecureSocket.initialize(database: args[1], password: 'dartdart');
   runClient(int.parse(args[0]));
 }

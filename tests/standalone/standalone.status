@@ -7,12 +7,6 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
-# The testing infrastructure is using the dart:io Path and LineTransformer
-# classes.
-io/skipping_dart2js_compilations_test: Skip # http/dartbug.com/12449
-io/dependency_graph_test: Skip # http/dartbug.com/12449
-io/status_file_parser_test: Skip # http/dartbug.com/12449
-
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
 [ $runtime == vm && $system == windows ]
@@ -130,6 +124,12 @@ javascript_int_overflow_literal_test: Skip
 oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 
+# Suppress tests that use main(List<String> args) until issue 14200 is fixed.
+io/secure_builtin_roots_test: Fail # Issue 14200
+io/test_runner_test: Fail # Issue 14200
+io/http_cross_process_test: Fail # Issue 14200
+io/socket_cross_process_test: Fail # Issue 14200
+io/raw_socket_cross_process_test: Fail # Issue 14200
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.

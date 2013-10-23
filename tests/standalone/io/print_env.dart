@@ -4,6 +4,6 @@
 
 import "dart:io";
 
-main() {
-  print(Platform.environment[new Options().arguments[0]]);
+main(List<String> arguments) {
+  print(Platform.environment[arguments[0]]);
 }

@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
-void main() {
-  int port = int.parse(new Options().arguments.first);
+void main(List<String> arguments) {
+  int port = int.parse(arguments.first);
   var client = new HttpClient();
   const MAX = 64;
   int count = 0;
@@ -23,4 +23,3 @@ void main() {
   }
   for (int i = 0; i < 4; i++) run();
 }
-

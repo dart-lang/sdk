@@ -8,11 +8,10 @@ import "dart:async";
 import "dart:math";
 import "dart:io";
 
-main() {
-  var options = new Options();
-  var blockCount = int.parse(options.arguments[0]);
-  var stdoutBlockSize = int.parse(options.arguments[1]);
-  var stderrBlockSize = int.parse(options.arguments[2]);
+main(List<String> arguments) {
+  var blockCount = int.parse(arguments[0]);
+  var stdoutBlockSize = int.parse(arguments[1]);
+  var stderrBlockSize = int.parse(arguments[2]);
   var stdoutBlock =
       new String.fromCharCodes(new List.filled(stdoutBlockSize, 65));
   var stderrBlock =
@@ -22,6 +21,6 @@ main() {
     stderr.write(stderrBlock);
   }
   Future.wait([stdout.close(), stderr.close()]).then((_) {
-    exit(int.parse(options.arguments[3]));
+    exit(int.parse(arguments[3]));
   });
 }

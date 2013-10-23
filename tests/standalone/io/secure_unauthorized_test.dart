@@ -15,7 +15,7 @@ const CERTIFICATE = "localhost_cert";
 
 Future<SecureServerSocket> runServer() {
   SecureSocket.initialize(
-      database: join(dirname(new Options().script), 'pkcert'),
+      database: join(dirname(Platform.script), 'pkcert'),
       password: 'dartdart');
 
   return SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE)
@@ -31,12 +31,11 @@ Future<SecureServerSocket> runServer() {
 }
 
 void main() {
-  final options = new Options();
-  var clientScript = join(dirname(options.script),
+  var clientScript = join(dirname(Platform.script),
                           'secure_unauthorized_client.dart');
 
   Future clientProcess(int port) {
-    return Process.run(options.executable,
+    return Process.run(Platform.executable,
         [clientScript, port.toString()])
     .then((ProcessResult result) {
       if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {

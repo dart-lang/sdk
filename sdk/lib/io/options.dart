@@ -4,9 +4,16 @@
 
 part of dart.io;
 
+@deprecated
 /**
- * The Options object allows accessing the arguments which have been passed to
- * the current isolate.
+ * Deprecated: the Options object allows accessing the arguments which
+ * have been passed to the current isolate.
+ *
+ * This class has been replaced by making the arguments an optional parameter
+ * to main.  The other members, executable, script, and versione, are already
+ * available on Platform (which will move to the dart:plaform library).
+ *
+ * This class will be removed on October 28, 2013.
  */
 abstract class Options {
   /**

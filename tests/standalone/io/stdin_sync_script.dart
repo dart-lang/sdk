@@ -6,8 +6,7 @@ import "dart:convert";
 import "dart:io";
 import "dart:json";
 
-void main() {
-  var arguments = new Options().arguments;
+void main(List<String> arguments) {
   int i = 0;
   String line;
   while ((line = stdin.readLineSync(encoding: UTF8)) != null) {
