@@ -4,24 +4,11 @@
 
 part of types;
 
-/// A holder for an element type. We define a special class for it so
-/// that nullable ContainerTypeMask and non-nullable ContainerTypeMask
-/// share the same [ElementTypeHolder].
-class ElementTypeHolder {
-  // These fields will be set after global analysis.
-  TypeMask elementType;
-  int length;
-
-  int get hashCode => elementType.hashCode;
-}
-
 /// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
 /// site of a container (currently only List) that will get specialized
-/// once the [ListTracer] phase finds an element type for it.
+/// once the [TypeGraphInferrer] phase finds an element type for it.
 class ContainerTypeMask extends ForwardingTypeMask {
-  // The flat version of a [ContainerTypeMask] is the container type
-  // (for example List).
-  final FlatTypeMask forwardTo;
+  final TypeMask forwardTo;
 
   // The [Node] where this type mask was created.
   final Node allocationNode;
@@ -29,24 +16,17 @@ class ContainerTypeMask extends ForwardingTypeMask {
   // The [Element] where this type mask was created.
   final Element allocationElement;
 
-  // A holder for the element type. Shared between all
-  // [ContainerTypeMask] for the same node.
-  final ElementTypeHolder holder;
+  // The element type of this container.
+  final TypeMask elementType;
 
-  TypeMask get elementType => holder.elementType;
-  void set elementType(TypeMask mask) {
-    holder.elementType = mask;
-  }
-  int get length => holder.length;
-  void set length(int length) {
-    holder.length = length;
-  }
+  // The length of the container.
+  final int length;
 
   ContainerTypeMask(this.forwardTo,
                     this.allocationNode,
                     this.allocationElement,
-                    [holder])
-      : this.holder = (holder == null) ? new ElementTypeHolder() : holder;
+                    this.elementType,
+                    this.length);
 
   TypeMask nullable() {
     return isNullable
@@ -54,7 +34,8 @@ class ContainerTypeMask extends ForwardingTypeMask {
         : new ContainerTypeMask(forwardTo.nullable(),
                                 allocationNode,
                                 allocationElement,
-                                holder);
+                                elementType,
+                                length);
   }
 
   TypeMask nonNullable() {
@@ -62,7 +43,8 @@ class ContainerTypeMask extends ForwardingTypeMask {
         ? new ContainerTypeMask(forwardTo.nonNullable(),
                                 allocationNode,
                                 allocationElement,
-                                holder)
+                                elementType,
+                                length)
         : this;
   }
 
@@ -71,7 +53,9 @@ class ContainerTypeMask extends ForwardingTypeMask {
 
   bool equalsDisregardNull(other) {
     if (other is! ContainerTypeMask) return false;
-    return allocationNode == other.allocationNode;
+    return allocationNode == other.allocationNode
+        && elementType == other.elementType
+        && length == other.length;
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
@@ -82,13 +66,38 @@ class ContainerTypeMask extends ForwardingTypeMask {
         : nonNullable();
   }
 
+  TypeMask union(other, Compiler compiler) {
+    if (this == other) {
+      return this;
+    } else if (equalsDisregardNull(other)) {
+      return other.isNullable ? other : this;
+    } else if (other.isEmpty) {
+      return other.isNullable ? this.nullable() : this;
+    } else if (other.isContainer
+               && elementType != null
+               && other.elementType != null) {
+      TypeMask newElementType =
+          elementType.union(other.elementType, compiler);
+      int newLength = (length == other.length) ? length : null;
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
+      return new ContainerTypeMask(
+          newForwardTo, null, null, newElementType, newLength);
+    } else {
+      return forwardTo.union(other, compiler);
+    }
+  }
+
   bool operator==(other) {
     if (other is! ContainerTypeMask) return false;
     return allocationNode == other.allocationNode
-        && isNullable == other.isNullable;
+        && isNullable == other.isNullable
+        && elementType == other.elementType
+        && length == other.length;
   }
 
-  int get hashCode => computeHashCode(allocationNode, isNullable);
+  int get hashCode {
+    return computeHashCode(allocationNode, isNullable, elementType, length);
+  }
 
   String toString() {
     return 'Container mask: $elementType';

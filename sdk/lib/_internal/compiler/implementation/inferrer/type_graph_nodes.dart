@@ -101,6 +101,13 @@ abstract class TypeInformation {
     return true;
   }
 
+  /// Reset the analysis of this node by making its type empty.
+  void reset(TypeGraphInferrerEngine inferrer) {
+    if (abandonInferencing) return;
+    type = const TypeMask.nonNullEmpty();
+    refineCount = 0;
+  }
+
   accept(TypeInformationVisitor visitor);
 
   /// The [Element] where this [TypeInformation] was created. May be
@@ -436,15 +443,19 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
                                             TypeGraphInferrerEngine inferrer) {
     if (!inferrer.compiler.backend.intImplementation.isResolved) return null;
     TypeMask intType = inferrer.compiler.typesTask.intType;
+    TypeMask nullableIntType = intType.nullable();
     TypeMask emptyType = const TypeMask.nonNullEmpty();
-    if (selector.mask != intType) return null;
+    if (selector.mask != intType && selector.mask != nullableIntType) {
+      return null;
+    }
     if (!selector.isCall() && !selector.isOperator()) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
     String name = selector.name;
     if (name == '*' || name == '+' || name == '%' || name == 'remainder') {
-      if (hasOnePositionalArgumentWithType(intType)) {
+      if (hasOnePositionalArgumentWithType(intType)
+          || hasOnePositionalArgumentWithType(nullableIntType)) {
         return inferrer.types.intType;
       } else if (hasOnePositionalArgumentWithType(emptyType)) {
         return inferrer.types.nonNullEmptyType;
@@ -453,7 +464,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       }
     } else if (name == '-') {
       if (arguments.hasNoArguments()) return inferrer.types.intType;
-      if (hasOnePositionalArgumentWithType(intType)) {
+      if (hasOnePositionalArgumentWithType(intType)
+          || hasOnePositionalArgumentWithType(nullableIntType)) {
         return inferrer.types.intType;
       } else if (hasOnePositionalArgumentWithType(emptyType)) {
         return inferrer.types.nonNullEmptyType;
@@ -473,7 +485,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
-    TypeMask newType = inferrer.types.computeTypeMask(targets.map((element) {
+    TypeMask newType = inferrer.types.joinTypeMasks(targets.map((element) {
       if (!oldTargets.contains(element)) {
         ElementTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
@@ -484,22 +496,13 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       }
 
       if (returnsElementType(typedSelector)) {
-        // Find the [ElementInContainerTypeInformation] node and tell
-        // that this node is a user of it. Later, when the element
-        // type changes, this node will be notified.
         ContainerTypeMask mask = receiver.type;
-        ContainerTypeInformation container =
-            inferrer.types.allocatedContainers[mask.allocationNode];
-        ElementInContainerTypeInformation element = container.elementType;
-        if (!element.users.contains(element)) {
-          element.addUser(this);
-        }
-        return element;
+        return mask.elementType;
       } else {
         TypeInformation info =
             handleIntrisifiedSelector(typedSelector, inferrer);
-        if (info != null) return info;
-        return inferrer.typeOfElementWithSelector(element, typedSelector);
+        if (info != null) return info.type;
+        return inferrer.typeOfElementWithSelector(element, typedSelector).type;
       }
     }));
 
@@ -610,6 +613,10 @@ class ConcreteTypeInformation extends TypeInformation {
     assert(false);
   }
 
+  void reset(TypeGraphInferrerEngine inferrer) {
+    assert(false);
+  }
+
   String toString() => 'Type $type';
 
   accept(TypeInformationVisitor visitor) {
@@ -661,14 +668,41 @@ class NarrowTypeInformation extends TypeInformation {
 class ContainerTypeInformation extends TypeInformation {
   final ElementInContainerTypeInformation elementType;
 
-  ContainerTypeInformation(containerType, this.elementType) {
-    type = containerType;
+  /** The container type before it is inferred. */
+  final ContainerTypeMask originalContainerType;
+
+  /** The length at the allocation site. */
+  final int originalLength;
+
+  /** The length after the container has been traced. */
+  int inferredLength;
+
+  ContainerTypeInformation(this.originalContainerType,
+                           this.elementType,
+                           this.originalLength) {
+    type = originalContainerType;
+    inferredLength = originalContainerType.length;
+    elementType.addUser(this);
   }
 
   String toString() => 'Container type $type';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitContainerTypeInformation(this);
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    var mask = type;
+    if (!mask.isContainer
+        || mask.elementType != elementType.type
+        || mask.length != inferredLength) {
+      return new ContainerTypeMask(originalContainerType.forwardTo,
+                                   originalContainerType.allocationNode,
+                                   originalContainerType.allocationElement,
+                                   elementType.type,
+                                   inferredLength);
+    }
+    return mask;
   }
 }
 
@@ -677,23 +711,18 @@ class ContainerTypeInformation extends TypeInformation {
  * elements in a [ContainerTypeInformation].
  */
 class ElementInContainerTypeInformation extends TypeInformation {
-  final ContainerTypeMask container;
+  /** Whether the element type in that container has been inferred. */
+  bool inferred = false;
 
-  ElementInContainerTypeInformation(elementType, this.container) {
+  ElementInContainerTypeInformation(elementType) {
     if (elementType != null) addAssignment(elementType);
   }
 
-  bool get isInConstContainer {
-    LiteralList literal = container.allocationNode.asLiteralList();
-    return (literal != null) && literal.isConst();
-  }
-
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    if (!isInConstContainer) {
+    if (!inferred) {
       return inferrer.types.dynamicType.type;
     }
-    return container.elementType =
-        inferrer.types.computeTypeMask(assignments);
+    return inferrer.types.computeTypeMask(assignments);
   }
 
   String toString() => 'Element in container $type';

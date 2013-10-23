@@ -209,7 +209,7 @@ void doTest(String allocation, {bool nullify}) {
     checkType('listPassedToSelector', typesTask.numType);
     checkType('listReturnedFromSelector', typesTask.numType);
     checkType('listUsedWithAddAndInsert', typesTask.numType);
-    checkType('listUsedWithConstraint', typesTask.numType);
+    checkType('listUsedWithConstraint', typesTask.intType);
     checkType('listEscapingFromSetter', typesTask.numType);
     checkType('listUsedInLocal', typesTask.numType);
     checkType('listEscapingInSetterValue', typesTask.numType);

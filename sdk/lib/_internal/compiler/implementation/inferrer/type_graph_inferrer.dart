@@ -253,18 +253,20 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
                                     Node node,
                                     Element enclosing,
                                     [TypeInformation elementType, int length]) {
-    ContainerTypeMask mask = new ContainerTypeMask(type.type, node, enclosing);
-    // Set the element type now for const lists, so that the inferrer
-    // can use it.
-    mask.elementType = (type.type == compiler.typesTask.constListType)
-        ? elementType.type
-        : null;
-    mask.length = length;
-    TypeInformation element =
-        new ElementInContainerTypeInformation(elementType, mask);
+    bool isConst = (type.type == compiler.typesTask.constListType);
+    bool isFixed = (type.type == compiler.typesTask.fixedListType) || isConst;
+
+    int inferredLength = isFixed ? length : null;
+    TypeMask elementTypeMask = isConst ? elementType.type : dynamicType.type;
+    ContainerTypeMask mask = new ContainerTypeMask(
+        type.type, node, enclosing, elementTypeMask, inferredLength);
+    ElementInContainerTypeInformation element =
+        new ElementInContainerTypeInformation(elementType);
+    element.inferred = isConst;
+
     allocatedTypes.add(element);
     return allocatedContainers[node] =
-        new ContainerTypeInformation(mask, element);
+        new ContainerTypeInformation(mask, element, length);
   }
 
   Selector newTypedSelector(TypeInformation info, Selector selector) {
@@ -318,9 +320,13 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeMask computeTypeMask(Iterable<TypeInformation> assignments) {
+    return joinTypeMasks(assignments.map((e) => e.type));
+  }
+
+  TypeMask joinTypeMasks(Iterable<TypeMask> masks) {
     TypeMask newType = const TypeMask.nonNullEmpty();
-    for (var info in assignments) {
-      newType = newType.union(info.type, compiler);
+    for (TypeMask mask in masks) {
+      newType = newType.union(mask, compiler);
     }
     return newType.containsAll(compiler) ? dynamicType.type : newType;
   }
@@ -448,6 +454,42 @@ class TypeGraphInferrerEngine
     buildWorkQueue();
     refine();
 
+    // Try to infer element types of lists.
+    types.allocatedContainers.values.forEach((ContainerTypeInformation info) {
+      if (info.elementType.inferred) return;
+      ContainerTracerVisitor tracer = new ContainerTracerVisitor(info, this);
+      List<TypeInformation> newAssignments = tracer.run();
+      if (newAssignments == null) return;
+
+      info.elementType.inferred = true;
+      newAssignments.forEach(info.elementType.addAssignment);
+      workQueue.add(info);
+      workQueue.add(info.elementType);
+    });
+
+    // Reset all nodes that use lists that have been inferred, as well
+    // as nodes that use elements fetched from these lists. The
+    // workset for a new run of the analysis will be these nodes.
+    Set<TypeInformation> seenTypes = new Set<TypeInformation>();
+    while (!workQueue.isEmpty) {
+      TypeInformation info = workQueue.remove();
+      if (seenTypes.contains(info)) continue;
+      info.reset(this);
+      seenTypes.add(info);
+      workQueue.addAll(info.users);
+    }
+
+    workQueue.addAll(seenTypes);
+    refine();
+
+    if (_VERBOSE) {
+      types.allocatedContainers.values.forEach((ContainerTypeInformation info) {
+        print('${info.type} ${info.type.forwardTo}'
+              'for ${info.originalContainerType.allocationNode} '
+              'at ${info.originalContainerType.allocationElement}');
+      });
+    }
+
     compiler.log('Inferred $overallRefineCount types.');
 
     if (compiler.enableTypeAssertions) {
@@ -469,7 +511,6 @@ class TypeGraphInferrerEngine
     }
 
     processLoopInformation();
-    types.allocatedContainers.values.forEach(analyzeContainer);
   }
 
   void processLoopInformation() {
@@ -506,11 +547,6 @@ class TypeGraphInferrerEngine
         workQueue.addAll(info.users);
       }
     }
-  }
-
-  void analyzeContainer(ContainerTypeInformation info) {
-    if (info.elementType.isInConstContainer) return;
-    new ContainerTracerVisitor(info, this).run();
   }
 
   void buildWorkQueue() {
