@@ -14,6 +14,7 @@ import 'barback_logger.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_provider.dart';
+import 'pool.dart';
 import 'transformer.dart';
 import 'utils.dart';
 
@@ -64,6 +65,13 @@ class PackageGraph {
   /// This is used to pipe an unexpected error from a build to the resulting
   /// [Future] returned by [getAllAssets].
   var _lastUnexpectedError;
+
+  // TODO(nweiz): Allow transformers to declare themselves as "lightweight" or
+  // "heavyweight" and adjust their restrictions appropriately. Simple
+  // transformers may be very efficient to run in parallel, whereas dart2js uses
+  // a lot of memory and should be run more sequentially.
+  /// A pool that controls how many transformers may be applied at once.
+  final Pool transformPool = new Pool(10);
 
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
