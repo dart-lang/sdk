@@ -68,6 +68,7 @@ mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
+mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/unnamed_library_test: RuntimeError # Issue 10580
 
 [ $compiler == dart2js && $unchecked ]
@@ -175,9 +176,6 @@ mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_f_bounded_test/01: RuntimeError # Issue 14000
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
-mirrors/typevariable_mirror_metadata_test/none: RuntimeError # Issue 12282
-mirrors/type_variable_owner_test: RuntimeError # Issue 14240
-mirrors/class_mirror_type_variables_test/01: RuntimeError # Issue 14240
 
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
@@ -213,6 +211,7 @@ mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 mirrors/typevariable_mirror_metadata_test/none: Fail # Issue 13093
 mirrors/redirecting_factory_test/none: Fail # Issue 14285
+mirrors/type_variable_owner_test/none: Fail # Issue 14356
 
 [ $compiler == dart2analyzer ]
 mirrors/typedef_test/none: Fail # Issue 13093
@@ -223,6 +222,7 @@ mirrors/generic_mixin_test/none: Fail # Issue 13432
 mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
+mirrors/type_variable_owner_test/none: Fail # Issue 14356
 
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.

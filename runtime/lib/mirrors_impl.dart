@@ -666,10 +666,11 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       _typeVariables = new List<TypeVariableMirror>();
 
       List params = _ClassMirror_type_variables(_reflectee);
+      ClassMirror owner = originalDeclaration;
       var mirror;
       for (var i = 0; i < params.length; i += 2) {
         mirror = new _LocalTypeVariableMirrorImpl(
-            params[i + 1], params[i], this);
+            params[i + 1], params[i], owner);
         _typeVariables.add(mirror);
       }
       _typeVariables = new UnmodifiableListView(_typeVariables);
@@ -906,7 +907,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _TypeVariableMirror_owner(_reflectee);
+      _owner = _TypeVariableMirror_owner(_reflectee).originalDeclaration;
     }
     return _owner;
   }
@@ -1023,10 +1024,11 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
     if (_typeVariables == null) {
       _typeVariables = new List<TypeVariableMirror>();
       List params = _LocalClassMirrorImpl._ClassMirror_type_variables(_reflectee);
+      TypedefMirror owner = originalDeclaration;
       var mirror;
       for (var i = 0; i < params.length; i += 2) {
         mirror = new _LocalTypeVariableMirrorImpl(
-            params[i + 1], params[i], this);
+            params[i + 1], params[i], owner);
         _typeVariables.add(mirror);
       }
     }
