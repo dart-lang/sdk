@@ -22,95 +22,16 @@ import 'dart:html';
 import 'package:meta/meta.dart';
 import 'src/custom_tag_name.dart';
 
-part 'src/attribute_map.dart';
-
-// TODO(jmesserly): replace with a real custom element polyfill.
-// This is just something temporary.
 /**
- * *Warning*: this implementation is a work in progress. It only implements
- * the specification partially.
+ * *Deprecated* -- do not use. Extend [HtmlElement] and use
+ * [document.register] instead. If running on a browser without native
+ * document.register, you can add the polyfill script to your page:
  *
- * Registers a custom HTML element with [localName] and the associated
- * constructor. This will ensure the element is detected and
+ *     <script src="packages/custom_element/custom-elements.debug.js"></script>
  *
- * See the specification at:
- * <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html>
+ * You can also use "custom-elements.min.js" for the minified version.
  */
-void registerCustomElement(String localName, CustomElement create()) {
-  if (_customElements == null) {
-    _customElements = {};
-    // TODO(jmesserly): use MutationObserver to watch for inserts?
-  }
-
-  if (!isCustomTag(localName)) {
-    throw new ArgumentError('$localName is not a valid custom element name, '
-        'it should have at least one dash and not be a reserved name.');
-  }
-
-  if (_customElements.containsKey(localName)) {
-    throw new ArgumentError('custom element $localName already registered.');
-  }
-
-  // TODO(jmesserly): validate this is a valid tag name, not a selector.
-  _customElements[localName] = create;
-
-  // Initialize elements already on the page.
-  for (var query in [localName, '[is=$localName]']) {
-    for (var element in document.queryAll(query)) {
-      _initCustomElement(element, create);
-    }
-  }
-}
-
-/**
- * Creates a new element and returns it. If the [localName] has been registered
- * with [registerCustomElement], it will create the custom element.
- *
- * This is similar to `new Element.tag` in Dart and `document.createElement`
- * in JavaScript.
- *
- * *Warning*: this API is temporary until [dart:html] supports custom elements.
- */
-Element createElement(String localName) =>
-    initCustomElements(new Element.tag(localName));
-
-/**
- * Similar to `new Element.html`, but automatically creates registed custom
- * elements.
- * *Warning*: this API is temporary until [dart:html] supports custom elements.
- */
-Element createElementFromHtml(String html) =>
-    initCustomElements(new Element.html(html));
-
-/**
- * Initialize any registered custom elements recursively in the [node] tree.
- * For convenience this returns the [node] instance.
- *
- * *Warning*: this API is temporary until [dart:html] supports custom elements.
- */
-Node initCustomElements(Node node) {
-  for (var c = node.firstChild; c != null; c = c.nextNode) {
-    initCustomElements(c);
-  }
-  if (node is Element) {
-    var ctor = _customElements[(node as Element).localName];
-    if (ctor == null) {
-      var attr = (node as Element).attributes['is'];
-      if (attr != null) ctor = _customElements[attr];
-    }
-    if (ctor != null) _initCustomElement(node, ctor);
-  }
-  return node;
-}
-
-/**
- * The base class for all Dart web components. In addition to the [Element]
- * interface, it also provides lifecycle methods:
- * - [created]
- * - [inserted]
- * - [attributeChanged]
- * - [removed]
- */
+// This is only used by Dart Web UI.
 class CustomElement implements Element {
   /** The web component element wrapped by this class. */
   Element _host;
@@ -607,48 +528,4 @@ class CustomElement implements Element {
   Stream<WheelEvent> get onMouseWheel {
     throw new UnsupportedError('onMouseWheel is not supported');
   }
-}
-
-
-Map<String, Function> _customElements;
-
-void _initCustomElement(Element node, CustomElement ctor()) {
-  CustomElement element = ctor();
-  element.host = node;
-
-  // TODO(jmesserly): replace lifecycle stuff with a proper polyfill.
-  element.created();
-
-  _registerLifecycleInsert(element);
-}
-
-void _registerLifecycleInsert(CustomElement element) {
-  scheduleMicrotask(() {
-    // TODO(jmesserly): bottom up or top down insert?
-    var node = element.host;
-
-    // TODO(jmesserly): need a better check to see if the node has been removed.
-    if (node.parentNode == null) return;
-
-    _registerLifecycleRemove(element);
-    element.inserted();
-  });
-}
-
-void _registerLifecycleRemove(CustomElement element) {
-  // TODO(jmesserly): need fallback or polyfill for MutationObserver.
-  if (!MutationObserver.supported) return;
-
-  new MutationObserver((records, observer) {
-    var node = element.host;
-    for (var record in records) {
-      for (var removed in record.removedNodes) {
-        if (identical(node, removed)) {
-          observer.disconnect();
-          element.removed();
-          return;
-        }
-      }
-    }
-  }).observe(element.parentNode, childList: true);
 }
