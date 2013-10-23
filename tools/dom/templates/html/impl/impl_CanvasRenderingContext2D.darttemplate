@@ -253,11 +253,23 @@ $else
 $endif
 
 $if DART2JS
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
   @DomName('CanvasRenderingContext2D.lineDashOffset')
+  // TODO(14316): Firefox has this functionality with mozDashOffset, but it
+  // needs to be polyfilled.
   num get lineDashOffset => JS('num',
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
   @DomName('CanvasRenderingContext2D.lineDashOffset')
+  // TODO(14316): Firefox has this functionality with mozDashOffset, but it
+  // needs to be polyfilled.
   void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
@@ -265,6 +277,47 @@ $else
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.
 $endif
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+$if DART2JS
+    if (JS('bool', '!!#.getLineDash', this)) {
+      return JS('List<num>', '#.getLineDash()', this);
+    } else if (JS('bool', '!!#.webkitLineDash', this)) {
+      return JS('List<num>', '#.webkitLineDash', this);
+    } 
+$else
+    var result = _getLineDash();
+    if (result == null) {
+      result = [];
+    }
+    return result;
+$endif
+  }
+
+$if DART2JS
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  @DomName('CanvasRenderingContext2D.setLineDash')
+  void setLineDash(List<num> dash) {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    if (JS('bool', '!!#.setLineDash', this)) {
+      JS('void', '#.setLineDash(#)', this, dash);
+    } else if (JS('bool', '!!#.webkitLineDash', this)) {
+      JS('void', '#.webkitLineDash = #', this, dash);
+    }
+  }
+$endif
+
 $if DART2JS
 
   /**

@@ -27,6 +27,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'CanvasRenderingContext2D.drawImage',
     'CanvasRenderingContext2D.fillText',
     'CanvasRenderingContext2D.lineDashOffset',
+    'CanvasRenderingContext2D.setLineDash',
     'Console.memory',
     'ConsoleBase.assertCondition',
     'ConsoleBase.clear',

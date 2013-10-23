@@ -1742,7 +1742,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.getLineDash')
   @DocsEditable()
-  List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
+  List<num> _getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
   bool isPointInPath(num x, num y, [String winding]) {
     if (winding != null) {
@@ -2081,6 +2081,23 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    var result = _getLineDash();
+    if (result == null) {
+      result = [];
+    }
+    return result;
+  }
+
+
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35301,6 +35318,15 @@ class _Utils {
     return result;
   }
 
+  static List captureParsedStackTrace() {
+    try {
+      // Throwing an exception is the only way to generate a stack trace.
+      throw new Exception();
+    } catch (e, stackTrace) {
+      return parseStackTrace(stackTrace);
+    }
+  }
+
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];
@@ -35632,9 +35658,38 @@ class _Utils {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
-    if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
-      throw new UnsupportedError('Class is missing constructor $className.created');
+    var createdConstructor = cls.constructors[new Symbol('$className.created')];
+    if (createdConstructor == null) {
+      throw new UnsupportedError(
+          'Class is missing constructor $className.created');
     }
+
+    if (createdConstructor.parameters.length > 0) {
+      throw new UnsupportedError(
+          'Constructor $className.created must take zero arguments');
+    }
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+        cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+        cls != null && cls.qualifiedName == elementName;
+    ClassMirror superClass = cls.superclass;
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
+    if (extendsTagName == null) {
+      if (nativeClass.reflectedType != HtmlElement) {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HTMLElement');
+      }
+    }
+
     _register(document, tag, type, extendsTagName);
   }
 

@@ -1380,9 +1380,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native;
 
+  @JSName('getLineDash')
   @DomName('CanvasRenderingContext2D.getLineDash')
   @DocsEditable()
-  List<num> getLineDash() native;
+  List<num> _getLineDash() native;
 
   @DomName('CanvasRenderingContext2D.isPointInPath')
   @DocsEditable()
@@ -1451,10 +1452,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.scale')
   @DocsEditable()
   void scale(num sx, num sy) native;
-
-  @DomName('CanvasRenderingContext2D.setLineDash')
-  @DocsEditable()
-  void setLineDash(List<num> dash) native;
 
   @DomName('CanvasRenderingContext2D.setTransform')
   @DocsEditable()
@@ -1735,14 +1732,57 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       num sourceX, num sourceY, num sourceWidth, num sourceHeight,
       num destX, num destY, num destWidth, num destHeight) native;
 
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
   @DomName('CanvasRenderingContext2D.lineDashOffset')
+  // TODO(14316): Firefox has this functionality with mozDashOffset, but it
+  // needs to be polyfilled.
   num get lineDashOffset => JS('num',
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
   @DomName('CanvasRenderingContext2D.lineDashOffset')
+  // TODO(14316): Firefox has this functionality with mozDashOffset, but it
+  // needs to be polyfilled.
   void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    if (JS('bool', '!!#.getLineDash', this)) {
+      return JS('List<num>', '#.getLineDash()', this);
+    } else if (JS('bool', '!!#.webkitLineDash', this)) {
+      return JS('List<num>', '#.webkitLineDash', this);
+    } 
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  @DomName('CanvasRenderingContext2D.setLineDash')
+  void setLineDash(List<num> dash) {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    if (JS('bool', '!!#.setLineDash', this)) {
+      JS('void', '#.setLineDash(#)', this, dash);
+    } else if (JS('bool', '!!#.webkitLineDash', this)) {
+      JS('void', '#.webkitLineDash = #', this, dash);
+    }
+  }
+
 
   /**
    * Draws text to the canvas.
