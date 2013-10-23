@@ -21,7 +21,9 @@ Future customElementsReady = () {
   if (_isReady) return new Future.value();
 
   // Not upgraded. Wait for the polyfill to fire the WebComponentsReady event.
-  return document.body.on['WebComponentsReady'].first;
+  // Note: we listen on document (not on document.body) to allow this polyfill
+  // to be loaded in the HEAD element.
+  return document.on['WebComponentsReady'].first;
 }();
 
 // Return true if we are using the polyfill and upgrade is complete, or if we

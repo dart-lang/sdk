@@ -25,7 +25,7 @@ class PublishedProperty extends ObservableProperty {
  * The mixin class for Polymer elements. It provides convenience features on top
  * of the custom elements web standard.
  */
-abstract class Polymer implements Element {
+abstract class Polymer implements Element, Observable {
   // Fully ported from revision:
   // https://github.com/Polymer/polymer/blob/4dc481c11505991a7c43228d3797d28f21267779
   //
@@ -38,7 +38,6 @@ abstract class Polymer implements Element {
   //
   // Not yet ported:
   //   src/instance/style.js -- blocked on ShadowCSS.shimPolyfillDirectives
-
 
   // TODO(jmesserly): should this really be public?
   /** Regular expression that matches data-bindings. */
@@ -250,7 +249,7 @@ abstract class Polymer implements Element {
   /** Locate nodes with id and store references to them in [$] hash. */
   void marshalNodeReferences(Node root) {
     if (root == null) return;
-    for (var n in root.queryAll('[id]')) {
+    for (var n in (root as dynamic).queryAll('[id]')) {
       $[n.id] = n;
     }
   }
