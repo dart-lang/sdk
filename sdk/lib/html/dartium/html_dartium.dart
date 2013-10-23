@@ -25734,7 +25734,8 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
-  factory TouchList() => document._createTouchList();
+  // TODO(5760): createTouchList now uses varargs.
+  factory TouchList() => null;//document._createTouchList();
   // To suppress missing implicit constructor warnings.
   factory TouchList._() { throw new UnsupportedError("Not supported"); }
 
