@@ -194,9 +194,6 @@ class JSNumber extends Interceptor implements num {
 
   num operator ~/(num other) {
     if (other is !num) throw new ArgumentError(other);
-    if (2 == other && this >= 0 && this <= 0x80000000) {
-      return JS('num', "# >> 1", this);
-    }
     return (JS('num', r'# / #', this, other)).truncate();
   }
 
