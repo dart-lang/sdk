@@ -538,11 +538,11 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         headers.chunkedTransferEncoding = false;
         headers.contentLength = 0;
       } else if (!_ignoreBody && headers.contentLength > 0) {
-        _headersSink.close().catchError((_) {});
-        return new Future.error(new HttpException(
+        _headersSink.addError(new HttpException(
             "No content while contentLength was specified to be greater "
-            " than 0: ${headers.contentLength}.",
+            "than 0: ${headers.contentLength}.",
             uri: _uri));
+        return _headersSink.done;
       }
     }
     return _writeHeaders().then((_) => _headersSink.close());
@@ -620,11 +620,9 @@ class _HttpOutboundConsumer implements StreamConsumer {
     }
     _completer = new Completer();
     _subscription = stream.listen(
-        (data) {
-          _controller.add(data);
-        },
+        (data) => _controller.add(data),
         onDone: _done,
-        onError: _done,
+        onError: (e, s) => _controller.addError(e, s),
         cancelOnError: true);
     // Pause the first request.
     if (_controller == null) _subscription.pause();
@@ -1878,7 +1876,9 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
                 if (_state == _DETACHED) return;
                 if (response.persistentConnection &&
                     request.persistentConnection &&
-                    incoming.fullBodyRead) {
+                    incoming.fullBodyRead &&
+                    !_httpParser.upgrade &&
+                    !_httpServer.closed) {
                   _state = _IDLE;
                   _startTimeout();
                   // Resume the subscription for incoming requests as the
@@ -2007,7 +2007,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
                                      cancelOnError: cancelOnError);
   }
 
-  Future close() {
+  Future close({bool force: false}) {
     closed = true;
     Future result;
     if (_serverSocket != null && _closeServer) {
@@ -2015,15 +2015,27 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     } else {
       result = new Future.value();
     }
-    if (_sessionManagerInstance != null) {
+    if (force) {
+      for (var c in _connections.toList()) {
+        c.destroy();
+      }
+      assert(_connections.isEmpty);
+    } else {
+      for (var c in _connections.where((c) => c._isIdle).toList()) {
+        c.destroy();
+      }
+    }
+    _maybeCloseSessionManager();
+    return result;
+  }
+
+  void _maybeCloseSessionManager() {
+    if (closed &&
+        _connections.isEmpty &&
+        _sessionManagerInstance != null) {
       _sessionManagerInstance.close();
       _sessionManagerInstance = null;
     }
-    for (_HttpConnection connection in _connections.toList()) {
-      connection.destroy();
-    }
-    _connections.clear();
-    return result;
   }
 
   int get port {
@@ -2050,6 +2062,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
 
   void _connectionClosed(_HttpConnection connection) {
     _connections.remove(connection);
+    _maybeCloseSessionManager();
   }
 
   _HttpSessionManager get _sessionManager {
@@ -2176,7 +2189,7 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
   static _HttpConnectionInfo create(Socket socket) {
     if (socket == null) return null;
     try {
-      _HttpConnectionInfo info = new _HttpConnectionInfo._();
+      _HttpConnectionInfo info = new _HttpConnectionInfo();
       info.remoteHost = socket.remoteHost;
       info.remotePort = socket.remotePort;
       info.localPort = socket.port;
@@ -2184,8 +2197,6 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
     } catch (e) { }
     return null;
   }
-
-  _HttpConnectionInfo._();
 
   String remoteHost;
   int remotePort;
