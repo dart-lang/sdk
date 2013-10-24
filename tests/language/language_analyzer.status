@@ -46,8 +46,6 @@ const_types_test/41: Fail # Issue 14306
 #
 
 
-
-
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
 block_scope_test: fail
 lazy_static3_test: fail
@@ -201,6 +199,9 @@ type_promotion_parameter_test/53: Fail
 # test issue 14364, "E<A> << D"
 type_promotion_more_specific_test/08: fail
 
+# test issue 14406, setter for final field was removed from spec
+implicit_setter_test/01: fail
+implicit_setter_test/02: fail
 
 #
 # Please don't add new items here.
