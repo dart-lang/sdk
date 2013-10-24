@@ -111,6 +111,24 @@ void testWatchDeleteFile() {
 }
 
 
+void testWatchDeleteDir() {
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
+  var watcher = dir.watch(events: 0);
+
+  asyncStart();
+  var sub;
+  sub = watcher.listen((event) {
+    if (event is FileSystemDeleteEvent) {
+      Expect.isTrue(event.path == dir.path);
+    }
+  }, onDone: () {
+    asyncEnd();
+  });
+
+  dir.deleteSync();
+}
+
+
 void testWatchOnlyModifyFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(dir.path + '/file');
@@ -244,6 +262,7 @@ void main() {
   testWatchModifyFile();
   testWatchMoveFile();
   testWatchDeleteFile();
+  testWatchDeleteDir();
   testWatchOnlyModifyFile();
   testMultipleEvents();
   testWatchNonRecursive();

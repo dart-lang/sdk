@@ -353,8 +353,13 @@ abstract class FileSystemEntity {
    *     files and directories. Recursive watching is supported.
    *
    * The system will start listening for events once the returned [Stream] is
-   * being listened to, not when the call to [watch] is issued. Note that the
-   * returned [Stream] is endless. To stop the [Stream], cancel the subscription.
+   * being listened to, not when the call to [watch] is issued.
+   *
+   * Note that the returned [Stream] is endless, unless:
+   *
+   *   * The [Stream] is canceled, e.g. by calling `cancel` on the
+   *      [StreamSubscription].
+   *   * The [FileSystemEntity] being watches, is deleted.
    */
   Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
                                  bool recursive: false})
@@ -623,6 +628,7 @@ class FileSystemEvent {
   static const int ALL = CREATE | MODIFY | DELETE | MOVE;
 
   static const int _MODIFY_ATTRIBUTES = 1 << 4;
+  static const int _DELETE_SELF = 1 << 5;
 
   /**
    * The type of event. See [FileSystemEvent] for a list of events.
