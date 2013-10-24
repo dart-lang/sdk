@@ -65,7 +65,9 @@ testIsolate() {
   .then((results) {
     Expect.equals(Platform.executable, results[0]);
     Uri uri = Uri.parse(results[1]);
-    Expect.equals("file", uri.scheme);
+    // SpawnFunction retains the script url of the parent which in this
+    // case was a relative path.
+    Expect.equals("", uri.scheme);
     Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
     Expect.equals(Platform.packageRoot, results[2]);
     Expect.listEquals(Platform.executableArguments, results[3]);

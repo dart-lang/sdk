@@ -968,15 +968,6 @@ T* Isolate::AllocateReusableHandle() {
 }
 
 
-static char* GetRootScriptUri(Isolate* isolate) {
-  const Library& library =
-      Library::Handle(isolate->object_store()->root_library());
-  ASSERT(!library.IsNull());
-  const String& script_name = String::Handle(library.url());
-  return isolate->current_zone()->MakeCopyOfString(script_name.ToCString());
-}
-
-
 IsolateSpawnState::IsolateSpawnState(const Function& func,
                                      const Function& callback_func)
     : isolate_(NULL),
@@ -984,7 +975,7 @@ IsolateSpawnState::IsolateSpawnState(const Function& func,
       library_url_(NULL),
       function_name_(NULL),
       exception_callback_name_(NULL) {
-  script_url_ = strdup(GetRootScriptUri(Isolate::Current()));
+  script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   ASSERT(cls.IsTopLevel());
   const Library& lib = Library::Handle(cls.library());

@@ -84,8 +84,10 @@ bool VmService::Start(intptr_t server_port) {
 bool VmService::_Start(intptr_t server_port) {
   ASSERT(isolate_ == NULL);
   char* error = NULL;
-  isolate_ = Dart_CreateIsolate("vmservice:", "main", snapshot_buffer,
-                                new IsolateData(),
+  const char* script_uri = "vmservice:";
+  IsolateData* isolate_data = new IsolateData(script_uri);
+  isolate_ = Dart_CreateIsolate(script_uri, "main", snapshot_buffer,
+                                isolate_data,
                                 &error);
   if (isolate_ == NULL) {
     error_msg_ = error;

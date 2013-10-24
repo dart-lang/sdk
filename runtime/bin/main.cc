@@ -460,7 +460,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
   CHECK_RESULT(result);
 
-  Dart_Handle library = DartUtils::LoadScript(script_uri, builtin_lib);
+  IsolateData* isolate_data = reinterpret_cast<IsolateData*>(data);
+  ASSERT(isolate_data != NULL);
+  ASSERT(isolate_data->script_url != NULL);
+  Dart_Handle library = DartUtils::LoadScript(isolate_data->script_url,
+                                              builtin_lib);
   CHECK_RESULT(library);
   if (!Dart_IsLibrary(library)) {
     char errbuf[256];
@@ -514,9 +518,22 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           void* data, char** error) {
   bool is_compile_error = false;
+  if (script_uri == NULL) {
+    if (data == NULL) {
+      *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
+      return NULL;
+    }
+    IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
+    script_uri = parent_isolate_data->script_url;
+    if (script_uri == NULL) {
+      *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
+      return NULL;
+    }
+  }
+  IsolateData* isolate_data = new IsolateData(script_uri);
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
-                                     new IsolateData(),
+                                     isolate_data,
                                      error,
                                      &is_compile_error);
 }
@@ -781,9 +798,10 @@ int main(int argc, char** argv) {
   char* error = NULL;
   bool is_compile_error = false;
   char* isolate_name = BuildIsolateName(script_name, "main");
+  IsolateData* isolate_data = new IsolateData(script_name);
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
-                                                     new IsolateData(),
+                                                     isolate_data,
                                                      &error,
                                                      &is_compile_error);
   if (isolate == NULL) {
