@@ -203,6 +203,9 @@ type_promotion_more_specific_test/08: fail
 implicit_setter_test/01: fail
 implicit_setter_test/02: fail
 
+# test issue 14410, "typedef C = " is now really illegal syntax
+mixin_illegal_syntax_test/none: fail
+
 #
 # Please don't add new items here.
 # This is section for invalid tests.
