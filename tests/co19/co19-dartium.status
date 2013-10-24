@@ -6,6 +6,7 @@
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
 [ $compiler == none && $runtime == dartium ]
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
 Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A05_t01: Fail # Issue 13719: Please triage this failure.
 Language/05_Variables/05_Variables_A05_t02: Fail # Issue 13719: Please triage this failure.
