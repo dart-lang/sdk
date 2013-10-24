@@ -1613,8 +1613,25 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // EAX: Target function.
-  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  Label is_compiled;
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If code might be GC'd, then EBX might be null. If it is, recompile.
+    __ cmpl(EBX, raw_null);
+    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
+    __ EnterStubFrame();
+    __ pushl(EDX);  // Preserve arguments descriptor array.
+    __ pushl(ECX);  // Preserve IC data object.
+    __ pushl(EAX);  // Pass function.
+    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+    __ popl(EAX);  // Restore function.
+    __ popl(ECX);  // Restore IC data array.
+    __ popl(EDX);  // Restore arguments descriptor array.
+    __ LeaveFrame();
+    __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ movl(EAX, FieldAddress(EBX, Code::instructions_offset()));
   __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EAX);
 
@@ -1793,6 +1810,24 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
+}
+
+
+// Stub for calling the CompileFunction runtime call.
+// ECX: IC-Data.
+// EDX: Arguments descriptor.
+// EAX: Function.
+void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushl(EDX);  // Preserve arguments descriptor array.
+  __ pushl(ECX);  // Preserve IC data object.
+  __ pushl(EAX);  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+  __ popl(EAX);  // Restore function.
+  __ popl(ECX);  // Restore IC data array.
+  __ popl(EDX);  // Restore arguments descriptor array.
+  __ LeaveFrame();
+  __ ret();
 }
 
 

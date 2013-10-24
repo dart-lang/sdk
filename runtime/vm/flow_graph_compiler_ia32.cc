@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -1412,8 +1413,19 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpl(EBX, raw_null);
+    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
+    __ call(&StubCode::CompileFunctionRuntimeCallLabel());
+    __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ movl(EAX, FieldAddress(EBX, Code::instructions_offset()));
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
   __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));

@@ -4039,6 +4039,22 @@ void Function::SetCode(const Code& value) const {
 }
 
 
+void Function::DetachCode() const {
+  // Set unoptimized code as non-entrant, and set code and unoptimized code
+  // to null.
+  CodePatcher::PatchEntry(Code::Handle(unoptimized_code()));
+  StorePointer(&raw_ptr()->code_, Code::null());
+  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+}
+
+
+void Function::ReattachCode(const Code& code) const {
+  set_unoptimized_code(code);
+  SetCode(code);
+  CodePatcher::RestoreEntry(code);
+}
+
+
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
 
@@ -4067,6 +4083,7 @@ void Function::SwitchToUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+  ASSERT(!value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
 
@@ -9261,6 +9278,19 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   Function& function = Function::Handle();
   function ^= array.At(i + kSCallTableFunctionEntry);
   return function.raw();
+}
+
+
+RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
+  const intptr_t i = BinarySearchInSCallTable(pc);
+  if (i < 0) {
+    return Code::null();
+  }
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  Code& code = Code::Handle();
+  code ^= array.At(i + kSCallTableCodeEntry);
+  return code.raw();
 }
 
 

@@ -1477,6 +1477,13 @@ class Function : public Object {
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
 
+  // Detaches code from the function by setting the code to null, and patches
+  // the code to be non-entrant.
+  void DetachCode() const;
+
+  // Reattaches code to the function, and patches the code to be entrant.
+  void ReattachCode(const Code& code) const;
+
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
 
@@ -1487,6 +1494,9 @@ class Function : public Object {
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
+  static intptr_t unoptimized_code_offset() {
+    return OFFSET_OF(RawFunction, unoptimized_code_);
+  }
   inline bool HasCode() const;
 
   // Returns true if there is at least one debugger breakpoint
@@ -2659,6 +2669,9 @@ class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
   RawCode* code() const { return raw_ptr()->code_; }
+  static intptr_t code_offset() {
+    return OFFSET_OF(RawInstructions, code_);
+  }
   RawArray* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
     return OFFSET_OF(RawInstructions, object_pool_);
@@ -3121,6 +3134,8 @@ class Code : public Object {
 
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
+  // Returns null if there is no static call at 'pc'.
+  RawCode* GetStaticCallTargetCodeAt(uword pc) const;
   // Aborts if there is no static call at 'pc'.
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
 

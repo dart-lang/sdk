@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -1412,11 +1413,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ sll(TMP1, T3, 2);
-  __ addu(TMP1, T2, TMP1);
-  __ lw(T0, FieldAddress(TMP, base + kWordSize));
-  __ lw(T0, FieldAddress(T0, Function::code_offset()));
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ sll(T1, T3, 2);
+  __ addu(T1, T2, T1);
+  __ lw(T0, FieldAddress(T1, base + kWordSize));
+  __ lw(T1, FieldAddress(T0, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
+                      &is_compiled);
+    __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
+    __ lw(T1, FieldAddress(T0, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ lw(T0, FieldAddress(T1, Code::instructions_offset()));
   __ LoadObject(S5, ic_data);
   __ LoadObject(S4, arguments_descriptor);
   __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);

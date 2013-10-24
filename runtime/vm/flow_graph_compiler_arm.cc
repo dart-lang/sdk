@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -1368,8 +1369,18 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // be invoked as a normal Dart function.
   __ add(IP, R2, ShifterOperand(R3, LSL, 2));
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(R0, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ b(&is_compiled, NE);
+    __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
+    // R0: target function.
+    __ ldr(R1, FieldAddress(R0, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ ldr(R0, FieldAddress(R1, Code::instructions_offset()));
   __ LoadObject(R5, ic_data);
   __ LoadObject(R4, arguments_descriptor);
   __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
