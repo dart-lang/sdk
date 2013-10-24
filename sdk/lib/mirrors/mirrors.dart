@@ -751,6 +751,43 @@ abstract class TypeMirror implements DeclarationMirror {
    * This list preserves the order of declaration of the type variables.
    */
   List<TypeVariableMirror> get typeVariables;
+
+  /**
+   * An immutable list with mirrors for all type arguments for
+   * this type.
+   *
+   * If the reflectee is an invocation of a generic class,
+   * the type arguments are the bindings of its type parameters.
+   * If the reflectee is the original declaration of a generic,
+   * it has no type arguments and this method returns an empty list.
+   * If the reflectee is not generic, then
+   * it has no type arguments and this method returns an empty list.
+   *
+   * This list preserves the order of declaration of the type variables.
+   */
+  List<TypeMirror> get typeArguments;
+
+  /**
+   * Is this the original declaration of this type?
+   *
+   * For most classes, they are their own original declaration.  For
+   * generic classes, however, there is a distinction between the
+   * original class declaration, which has unbound type variables, and
+   * the instantiations of generic classes, which have bound type
+   * variables.
+   */
+  bool get isOriginalDeclaration;
+
+  /**
+   * A mirror on the original declaration of this type.
+   *
+   * For most classes, they are their own original declaration.  For
+   * generic classes, however, there is a distinction between the
+   * original class declaration, which has unbound type variables, and
+   * the instantiations of generic classes, which have bound type
+   * variables.
+   */
+  TypeMirror get originalDeclaration;
 }
 
 /**
@@ -831,43 +868,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * declarations for this type.
    */
   Map<Symbol, MethodMirror> get constructors;
-
-  /**
-   * An immutable list with mirrors for all type arguments for
-   * this type.
-   *
-   * If the reflectee is an invocation of a generic class,
-   * the type arguments are the bindings of its type parameters.
-   * If the reflectee is the original declaration of a generic,
-   * it has no type arguments and this method returns an empty list.
-   * If the reflectee is not generic, then
-   * it has no type arguments and this method returns an empty list.
-   *
-   * This list preserves the order of declaration of the type variables.
-   */
-  List<TypeMirror> get typeArguments;
-
-  /**
-   * Is this the original declaration of this type?
-   *
-   * For most classes, they are their own original declaration.  For
-   * generic classes, however, there is a distinction between the
-   * original class declaration, which has unbound type variables, and
-   * the instantiations of generic classes, which have bound type
-   * variables.
-   */
-  bool get isOriginalDeclaration;
-
-  /**
-   * A mirror on the original declaration of this type.
-   *
-   * For most classes, they are their own original declaration.  For
-   * generic classes, however, there is a distinction between the
-   * original class declaration, which has unbound type variables, and
-   * the instantiations of generic classes, which have bound type
-   * variables.
-   */
-  ClassMirror get originalDeclaration;
 
    /**
    * Invokes the named constructor and returns a mirror on the result.

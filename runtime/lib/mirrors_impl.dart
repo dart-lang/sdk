@@ -1415,8 +1415,13 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   final DeclarationMirror owner = null;
   final Symbol simpleName;
   final bool isTopLevel = true;
-  // Fixed length 0, therefore immutable.
   final List<InstanceMirror> metadata = emptyList;
+
+  List<TypeVariableMirror> get typeVariables => emptyList;
+  List<TypeMirror> get typeArguments => emptyList;
+
+  bool get isOriginalDeclaration => true;
+  TypeMirror get originalDeclaration => this;
 
   SourceLocation get location {
     throw new UnimplementedError('TypeMirror.location is not implemented');
