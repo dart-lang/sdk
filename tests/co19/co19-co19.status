@@ -39,6 +39,9 @@ LibTest/collection/IterableBase/IterableBase_class_A01_t02: RuntimeError # co19-
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 
+LibTest/core/Match/str_A01_t01: RuntimeError # Issue 635
+LibTest/core/RegExp/allMatches_A01_t01: RuntimeError # Issue 635
+
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 LibTest/core/List/removeAt_A02_t01: RuntimeError # co19-roll r623: Please triage this failure
