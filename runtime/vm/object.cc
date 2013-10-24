@@ -7912,6 +7912,10 @@ RawLibrary* Library::NativeWrappersLibrary() {
   return Isolate::Current()->object_store()->native_wrappers_library();
 }
 
+RawLibrary* Library::PlatformLibrary() {
+  return Isolate::Current()->object_store()->platform_library();
+}
+
 
 RawLibrary* Library::TypedDataLibrary() {
   return Isolate::Current()->object_store()->typed_data_library();

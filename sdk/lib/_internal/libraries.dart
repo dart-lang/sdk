@@ -95,7 +95,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "mirrors": const LibraryInfo(
       "mirrors/mirrors.dart",
-      maturity: Maturity.UNSTABLE, 
+      maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/lib/mirrors_patch.dart"),
 
   "nativewrappers": const LibraryInfo(
@@ -104,6 +104,11 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       implementation: true,
       documented: false,
       platforms: VM_PLATFORM),
+
+  "platform": const LibraryInfo(
+      "platform/platform.dart",
+      maturity: Maturity.UNSTABLE,
+      dart2jsPatchPath: "_internal/lib/platform_patch.dart"),
 
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",

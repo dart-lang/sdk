@@ -2533,6 +2533,7 @@ class Library : public Object {
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
+  static RawLibrary* PlatformLibrary();
   static RawLibrary* TypedDataLibrary();
   static RawLibrary* UtfLibrary();
 
