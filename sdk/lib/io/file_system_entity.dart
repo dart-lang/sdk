@@ -340,24 +340,21 @@ abstract class FileSystemEntity {
 
 
   /**
-   * Start watch the [FileSystemEntity] for changes.
+   * Start watching the [FileSystemEntity] for changes.
    *
-   * The implementation uses platform-depending event-based APIs for receiving
-   * file-system notifixations, thus behvaiour depends on the platform.
+   * The implementation uses platform-dependent event-based APIs for receiving
+   * file-system notifications, thus behavior depends on the platform.
    *
-   *   * `Windows`: Uses `ReadDirectoryChangesW`. The implementation supports
-   *     only watching dirctories but supports recursive watching.
+   *   * `Windows`: Uses `ReadDirectoryChangesW`. The implementation only
+   *     supports watching directories. Recursive watching is supported.
    *   * `Linux`: Uses `inotify`. The implementation supports watching both
-   *     files and dirctories, but doesn't support recursive watching.
+   *     files and directories. Recursive watching is not supported.
    *   * `Mac OS`: Uses `FSEvents`. The implementation supports watching both
-   *     files and dirctories, and also recursive watching. Note that FSEvents
-   *     always use recursion internally, so when disabled, some events are
-   *     ignored.
+   *     files and directories. Recursive watching is supported.
    *
-   * The system will start listen for events once the returned [Stream] is
+   * The system will start listening for events once the returned [Stream] is
    * being listened to, not when the call to [watch] is issued. Note that the
-   * returned [Stream] is endless. To stop the [Stream], simply cancel the
-   * subscription.
+   * returned [Stream] is endless. To stop the [Stream], cancel the subscription.
    */
   Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
                                  bool recursive: false})
