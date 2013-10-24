@@ -294,6 +294,39 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
   return copy;
 }
 
+// Conversions for ContextAttributes.
+//
+// On Firefox, the returned ContextAttributes is a plain object.
+class _TypedContextAttributes implements gl.ContextAttributes {
+  bool alpha;
+  bool antialias;
+  bool depth;
+  bool premultipliedAlpha;
+  bool preserveDrawingBuffer;
+  bool stencil;
+
+  _TypedContextAttributes(this.alpha, this.antialias, this.depth,
+      this.premultipliedAlpha, this.preserveDrawingBuffer, this.stencil);
+}
+
+gl.ContextAttributes convertNativeToDart_ContextAttributes(
+    nativeContextAttributes) {
+  if (nativeContextAttributes is gl.ContextAttributes) {
+    return nativeContextAttributes;
+  }
+
+  // On Firefox the above test fails because ContextAttributes is a plain
+  // object so we create a _TypedContextAttributes.
+
+  return new _TypedContextAttributes(
+      JS('var', '#.alpha', nativeContextAttributes),
+      JS('var', '#.antialias', nativeContextAttributes),
+      JS('var', '#.depth', nativeContextAttributes),
+      JS('var', '#.premultipliedAlpha', nativeContextAttributes),
+      JS('var', '#.preserveDrawingBuffer', nativeContextAttributes),
+      JS('var', '#.stencil', nativeContextAttributes));
+}
+
 // Conversions for ImageData
 //
 // On Firefox, the returned ImageData is a plain object.

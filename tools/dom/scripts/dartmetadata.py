@@ -315,6 +315,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
                 "|Uint32List|Framebuffer|Renderbuffer|Texture')",
     ],
 
+    'WebGLRenderingContext.getContextAttributes': [
+      "@Creates('ContextAttributes|=Object')",
+    ],
+
     'XMLHttpRequest.response': [
       "@Creates('ByteBuffer|Blob|Document|=Object|JSExtendableArray|String"
                 "|num')",

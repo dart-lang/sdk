@@ -6,6 +6,7 @@ library html_common;
 
 import 'dart:collection';
 import 'dart:html';
+import 'dart:web_gl' as gl;
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns;
 import 'dart:_foreign_helper' show JS;

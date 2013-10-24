@@ -536,6 +536,10 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
       Conversion('_convertDartToNative_EventTarget', 'EventTarget',
                  'dynamic'),
 
+    'WebGLContextAttributes get':
+      Conversion('convertNativeToDart_ContextAttributes', 'dynamic',
+                 'ContextAttributes'),
+
     'ImageData get':
       Conversion('convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
     'ImageData set':
