@@ -6014,7 +6014,7 @@ class Stacktrace : public Instance {
                             Heap::Space space = Heap::kNew);
 
   RawString* FullStacktrace() const;
-  const char* ToCStringInternal(intptr_t frame_index) const;
+  const char* ToCStringInternal(intptr_t* frame_index) const;
 
  private:
   void set_code_array(const Array& code_array) const;

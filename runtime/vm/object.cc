@@ -15275,19 +15275,19 @@ void Stacktrace::SetCatchStacktrace(const Array& code_array,
 
 RawString* Stacktrace::FullStacktrace() const {
   const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
+  intptr_t idx = 0;
   if (!code_array.IsNull() && (code_array.Length() > 0)) {
     const Array& pc_offset_array =
         Array::Handle(raw_ptr()->catch_pc_offset_array_);
     const Stacktrace& catch_trace = Stacktrace::Handle(
         Stacktrace::New(code_array, pc_offset_array));
-    intptr_t idx = Length();
-    const String& trace =
-        String::Handle(String::New(catch_trace.ToCStringInternal(idx)));
-    const String& throw_trace =
-        String::Handle(String::New(ToCStringInternal(0)));
-    return String::Concat(throw_trace, trace);
+    const String& throw_string =
+        String::Handle(String::New(ToCStringInternal(&idx)));
+    const String& catch_string =
+        String::Handle(String::New(catch_trace.ToCStringInternal(&idx)));
+    return String::Concat(throw_string, catch_string);
   }
-  return String::New(ToCStringInternal(0));
+  return String::New(ToCStringInternal(&idx));
 }
 
 
@@ -15349,7 +15349,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
 }
 
 
-const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
+const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -15357,7 +15357,6 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
   // for each frame.
   intptr_t total_len = 0;
   GrowableArray<char*> frame_strings;
-  intptr_t current_frame_index = frame_index;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
@@ -15385,13 +15384,13 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
           ASSERT(code.EntryPoint() <= pc);
           ASSERT(pc < (code.EntryPoint() + code.Size()));
           total_len += PrintOneStacktrace(
-              isolate, &frame_strings, pc, function, code, current_frame_index);
-          current_frame_index++;  // To account for inlined frames.
+              isolate, &frame_strings, pc, function, code, *frame_index);
+          (*frame_index)++;  // To account for inlined frames.
         }
       } else {
         total_len += PrintOneStacktrace(
-            isolate, &frame_strings, pc, function, code, current_frame_index);
-        current_frame_index++;
+            isolate, &frame_strings, pc, function, code, *frame_index);
+        (*frame_index)++;
       }
     }
   }
