@@ -134,9 +134,15 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
+  /** Retrieves the custom element name by inspecting the host node. */
+  String get _customTagName {
+    var isAttr = attributes['is'];
+    return (isAttr == null || isAttr == '') ? localName : isAttr;
+  }
+
   void prepareElement() {
     // Dart note: get the _declaration, which also marks _elementPrepared
-    _declaration = _getDeclaration(this.runtimeType);
+    _declaration = _getDeclaration(_customTagName);
     // do this first so we can observe changes during initialization
     observeProperties();
     // install boilerplate attributes

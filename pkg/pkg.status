@@ -50,6 +50,7 @@ polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
@@ -94,6 +95,7 @@ polymer/test/bind_mdv_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/custom_event_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/noscript_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_bind_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260

@@ -156,7 +156,7 @@ class PolymerDeclaration extends HtmlElement {
 
     // back reference declaration element
     // TODO(sjmiles): replace `element` with `elementElement` or `declaration`
-    _declarations[_type] = this;
+    _declarations[name] = this;
 
     // more declarative features
     desugar();
@@ -192,7 +192,7 @@ class PolymerDeclaration extends HtmlElement {
 
     // get basal prototype
     _supertype = _getRegisteredType(extendee);
-    if (supertype != null) _super = _getDeclaration(supertype);
+    if (_supertype != null) _super = _getDeclaration(extendee);
 
     var cls = reflectClass(_type);
 
@@ -521,7 +521,6 @@ void _notifyType(String name) {
 final Map _waitSuper = new Map<String, List<PolymerDeclaration>>();
 
 void _notifySuper(String name) {
-  _registered.add(name);
   var waiting = _waitSuper.remove(name);
   if (waiting != null) {
     for (var w in waiting) {
@@ -530,14 +529,11 @@ void _notifySuper(String name) {
   }
 }
 
-/// track document.register'ed tag names
-final Set _registered = new Set<String>();
+/// track document.register'ed tag names and their declarations
+final Map _declarations = new Map<String, PolymerDeclaration>();
 
-bool _isRegistered(name) => _registered.contains(name);
-
-final Map _declarations = new Map<Type, PolymerDeclaration>();
-
-PolymerDeclaration _getDeclaration(Type type) => _declarations[type];
+bool _isRegistered(String name) => _declarations.containsKey(name);
+PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
 final _objectType = reflectClass(Object);
 
