@@ -607,7 +607,7 @@ class Dartdoc {
       // race conditions).
       try {
         dir.createSync();
-      } on DirectoryException catch (e) {
+      } on FileSystemException catch (e) {
         // Ignore.
       }
     }

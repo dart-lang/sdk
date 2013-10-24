@@ -57,7 +57,7 @@ class _FileSystemWatcherImpl
 
   _FileSystemWatcherImpl(this._path, this._events, this._recursive) {
     if (!isSupported) {
-      throw new FileException(
+      throw new FileSystemException(
           "File system watching is not supported on this system",
           _path);
     }
@@ -69,7 +69,7 @@ class _FileSystemWatcherImpl
     try {
       socketId = _watchPath(_path, _events, identical(true, _recursive));
     } catch (e) {
-      throw new FileException(
+      throw new FileSystemException(
           "Failed to watch path",
           _path,
           e);

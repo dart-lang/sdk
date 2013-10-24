@@ -216,7 +216,7 @@ String ensureDir(String dirPath) {
 
   try {
     createDir(dirPath);
-  } on DirectoryException catch (ex) {
+  } on FileSystemException catch (ex) {
     // Error 17 means the directory already exists (or 183 on Windows).
     if (ex.osError.errorCode == 17 || ex.osError.errorCode == 183) {
       log.fine("Got 'already exists' error when creating directory.");

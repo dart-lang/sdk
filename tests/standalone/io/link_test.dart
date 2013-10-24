@@ -204,7 +204,7 @@ void testLinkErrorSync() {
   Expect.throws(() =>
       new Link('some-dir-that-doent exist/some link file/bla/fisk').createSync(
           'bla bla bla/b lalal/blfir/sdfred/es'),
-      (e) => e is LinkException);
+      (e) => e is FileSystemException);
 }
 
 checkExists(String filePath) => Expect.isTrue(new File(filePath).existsSync());

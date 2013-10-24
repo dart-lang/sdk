@@ -14,7 +14,7 @@ void testReadAsString() {
 
   file.writeAsBytesSync([0xb0]);
 
-  Expect.throws(file.readAsStringSync, (e) => e is FileException);
+  Expect.throws(file.readAsStringSync, (e) => e is FileSystemException);
 
   asyncStart();
   file.readAsString().then((_) {
@@ -22,7 +22,7 @@ void testReadAsString() {
   }).catchError((e) {
     tmp.deleteSync(recursive: true);
     asyncEnd();
-  }, test: (e) => e is FileException);
+  }, test: (e) => e is FileSystemException);
 }
 
 void testReadAsLines() {
@@ -33,7 +33,7 @@ void testReadAsLines() {
 
   file.writeAsBytesSync([0xb0]);
 
-  Expect.throws(file.readAsLinesSync, (e) => e is FileException);
+  Expect.throws(file.readAsLinesSync, (e) => e is FileSystemException);
 
   asyncStart();
   file.readAsLines().then((_) {
@@ -41,7 +41,7 @@ void testReadAsLines() {
   }).catchError((e) {
     tmp.deleteSync(recursive: true);
     asyncEnd();
-  }, test: (e) => e is FileException);
+  }, test: (e) => e is FileSystemException);
 }
 
 void main() {

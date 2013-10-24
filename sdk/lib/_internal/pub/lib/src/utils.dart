@@ -713,9 +713,8 @@ final _userFacingExceptions = new Set<String>.from([
   // invalid import.
   'IsolateSpawnException',
   // TODO(nweiz): clean up the dart:io errors when issue 9955 is fixed.
-  'DirectoryException', 'FileException', 'HttpException', 'HttpException',
-  'LinkException', 'OSError', 'ProcessException', 'SocketException',
-  'WebSocketException'
+  'FileSystemException', 'HttpException', 'HttpException', 'OSError',
+  'ProcessException', 'SocketException', 'WebSocketException'
 ]);
 
 /// Returns whether [error] is a user-facing error object. This includes both
@@ -731,11 +730,9 @@ bool isUserFacingException(error) {
     error is AnalyzerError ||
     error is AnalyzerErrorGroup ||
     error is IsolateSpawnException ||
-    error is DirectoryException ||
-    error is FileException ||
+    error is FileSystemException ||
     error is HttpException ||
     error is HttpException ||
-    error is LinkException ||
     error is OSError ||
     error is ProcessException ||
     error is SocketException ||

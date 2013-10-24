@@ -46,7 +46,7 @@ class ExportMap {
       var importsAndExports;
       try {
         importsAndExports = _importsAndExportsForFile(path, packageRoot);
-      } on FileException catch (_) {
+      } on FileSystemException catch (_) {
         // Ignore unreadable/nonexistent files.
         return;
       }

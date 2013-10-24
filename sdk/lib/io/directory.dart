@@ -187,32 +187,3 @@ abstract class Directory implements FileSystemEntity {
    */
   final String path;
 }
-
-
-class DirectoryException implements IOException {
-  const DirectoryException([String this.message = "",
-                            String this.path = "",
-                            OSError this.osError = null]);
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write("DirectoryException");
-    if (!message.isEmpty) {
-      sb.write(": $message");
-      if (path != null) {
-        sb.write(", path = $path");
-      }
-      if (osError != null) {
-        sb.write(" ($osError)");
-      }
-    } else if (osError != null) {
-      sb.write(": $osError");
-      if (path != null) {
-        sb.write(", path = $path");
-      }
-    }
-    return sb.toString();
-  }
-  final String message;
-  final String path;
-  final OSError osError;
-}

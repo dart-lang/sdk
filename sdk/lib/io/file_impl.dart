@@ -369,7 +369,7 @@ class _File extends FileSystemEntity implements File {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      throw new FileException("Unknown file mode. Use FileMode.READ, "
+      throw new FileSystemException("Unknown file mode. Use FileMode.READ, "
                               "FileMode.WRITE or FileMode.APPEND.",
                               path);
     }
@@ -383,7 +383,7 @@ class _File extends FileSystemEntity implements File {
   static RandomAccessFile _openStdioSync(int fd) {
     var id = _openStdio(fd);
     if (id == 0) {
-      throw new FileException("Cannot open stdio file for: $fd");
+      throw new FileSystemException("Cannot open stdio file for: $fd");
     }
     return new _RandomAccessFile(id, "");
   }
@@ -437,7 +437,7 @@ class _File extends FileSystemEntity implements File {
     try {
       return encoding.decode(bytes);
     } catch (_) {
-      throw new FileException(
+      throw new FileSystemException(
           "Failed to decode data using encoding '${encoding.name}'", path);
     }
   }
@@ -465,7 +465,7 @@ class _File extends FileSystemEntity implements File {
     controller.add(bytes);
     controller.close();
     if (error != null) {
-      throw new FileException(
+      throw new FileSystemException(
           "Failed to decode data using encoding '${encoding.name}'", path);
     }
     return list;
@@ -519,7 +519,7 @@ class _File extends FileSystemEntity implements File {
 
   static throwIfError(Object result, String msg, String path) {
     if (result is OSError) {
-      throw new FileException(msg, path, result);
+      throw new FileSystemException(msg, path, result);
     }
   }
 }
@@ -539,7 +539,7 @@ class _RandomAccessFile implements RandomAccessFile {
         _id = result;
         return this;
       } else {
-        throw new FileException("Cannot close file", path);
+        throw new FileSystemException("Cannot close file", path);
       }
     });
   }
@@ -550,7 +550,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var id = _close(_id);
     if (id == -1) {
-      throw new FileException("Cannot close file", path);
+      throw new FileSystemException("Cannot close file", path);
     }
     _id = id;
   }
@@ -570,7 +570,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var result = _readByte(_id);
     if (result is OSError) {
-      throw new FileException("readByte failed", path, result);
+      throw new FileSystemException("readByte failed", path, result);
     }
     return result;
   }
@@ -596,7 +596,7 @@ class _RandomAccessFile implements RandomAccessFile {
     }
     var result = _read(_id, bytes);
     if (result is OSError) {
-      throw new FileException("readSync failed", path, result);
+      throw new FileSystemException("readSync failed", path, result);
     }
     return result;
   }
@@ -644,7 +644,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkReadWriteListArguments(buffer.length, start, end);
     var result = _readInto(_id, buffer, start, end);
     if (result is OSError) {
-      throw new FileException("readInto failed", path, result);
+      throw new FileSystemException("readInto failed", path, result);
     }
     return result;
   }
@@ -670,7 +670,7 @@ class _RandomAccessFile implements RandomAccessFile {
     }
     var result = _writeByte(_id, value);
     if (result is OSError) {
-      throw new FileException("writeByte failed", path, result);
+      throw new FileSystemException("writeByte failed", path, result);
     }
     return result;
   }
@@ -722,7 +722,7 @@ class _RandomAccessFile implements RandomAccessFile {
                             bufferAndStart.start,
                             end - (start - bufferAndStart.start));
     if (result is OSError) {
-      throw new FileException("writeFrom failed", path, result);
+      throw new FileSystemException("writeFrom failed", path, result);
     }
   }
 
@@ -758,7 +758,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var result = _position(_id);
     if (result is OSError) {
-      throw new FileException("position failed", path, result);
+      throw new FileSystemException("position failed", path, result);
     }
     return result;
   }
@@ -779,7 +779,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var result = _setPosition(_id, position);
     if (result is OSError) {
-      throw new FileException("setPosition failed", path, result);
+      throw new FileSystemException("setPosition failed", path, result);
     }
   }
 
@@ -798,7 +798,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var result = _truncate(_id, length);
     if (result is OSError) {
-      throw new FileException("truncate failed", path, result);
+      throw new FileSystemException("truncate failed", path, result);
     }
   }
 
@@ -817,7 +817,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var result = _length(_id);
     if (result is OSError) {
-      throw new FileException("length failed", path, result);
+      throw new FileSystemException("length failed", path, result);
     }
     return result;
   }
@@ -839,7 +839,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkAvailable();
     var result = _flush(_id);
     if (result is OSError) {
-      throw new FileException("flush failed", path, result);
+      throw new FileSystemException("flush failed", path, result);
     }
   }
 
@@ -847,11 +847,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future _dispatch(int request, List data, { bool markClosed: false }) {
     if (closed) {
-      return new Future.error(new FileException("File closed", path));
+      return new Future.error(new FileSystemException("File closed", path));
     }
     if (_asyncDispatched) {
       var msg = "An async operation is currently pending";
-      return new Future.error(new FileException(msg, path));
+      return new Future.error(new FileSystemException(msg, path));
     }
     if (markClosed) {
       // Set the id_ to 0 (NULL) to ensure the no more async requests
@@ -867,10 +867,10 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void _checkAvailable() {
     if (_asyncDispatched) {
-      throw new FileException("An async operation is currently pending", path);
+      throw new FileSystemException("An async operation is currently pending", path);
     }
     if (closed) {
-      throw new FileException("File closed", path);
+      throw new FileSystemException("File closed", path);
     }
   }
 }

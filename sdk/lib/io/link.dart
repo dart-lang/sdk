@@ -106,7 +106,7 @@ abstract class Link implements FileSystemEntity {
    * directory containing the link.
    *
    * If the link does not exist, or is not a link, the future completes with
-   * a LinkException.
+   * a FileSystemException.
    */
   Future<String> target();
 
@@ -116,7 +116,7 @@ abstract class Link implements FileSystemEntity {
    * If the returned target is a relative path, it is relative to the
    * directory containing the link.
    *
-   * If the link does not exist, or is not a link, throws a LinkException.
+   * If the link does not exist, or is not a link, throws a FileSystemException.
    */
   String targetSync();
 }
@@ -176,7 +176,7 @@ class _Link extends FileSystemEntity implements Link {
     if (result.length > 3 && result[1] == ':' && result[2] == '\\') {
       return '\\??\\$result';
     } else {
-      throw new LinkException(
+      throw new FileSystemException(
           'Target $result of Link.create on Windows cannot be converted' +
           ' to start with a drive letter.  Unexpected error.');
     }
@@ -254,7 +254,7 @@ class _Link extends FileSystemEntity implements Link {
 
   static throwIfError(Object result, String msg, [String path = ""]) {
     if (result is OSError) {
-      throw new LinkException(msg, path, result);
+      throw new FileSystemException(msg, path, result);
     }
   }
 
@@ -270,38 +270,9 @@ class _Link extends FileSystemEntity implements Link {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new LinkException(message, path, err);
+        return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");
     }
   }
-}
-
-
-class LinkException implements IOException {
-  const LinkException([String this.message = "",
-                       String this.path = "",
-                       OSError this.osError = null]);
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write("LinkException");
-    if (!message.isEmpty) {
-      sb.write(": $message");
-      if (path != null) {
-        sb.write(", path = $path");
-      }
-      if (osError != null) {
-        sb.write(" ($osError)");
-      }
-    } else if (osError != null) {
-      sb.write(": $osError");
-      if (path != null) {
-        sb.write(", path = $path");
-      }
-    }
-    return sb.toString();
-  }
-  final String message;
-  final String path;
-  final OSError osError;
 }

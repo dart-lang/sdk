@@ -225,7 +225,7 @@ abstract class FileSystemEntity {
    * to resolve the path, using the realpath function on linux and
    * Mac OS, and the GetFinalPathNameByHandle function on Windows.
    * If the path does not point to an existing file system object,
-   * [resolveSymbolicLinks] completes the returned Future with an FileException.
+   * [resolveSymbolicLinks] completes the returned Future with an FileSystemException.
    *
    * On Windows, symbolic links are resolved to their target before applying
    * a '..' that follows, and on other platforms, the '..' is applied to the
@@ -256,7 +256,7 @@ abstract class FileSystemEntity {
    * filesystem api to resolve the path, using the realpath function
    * on linux and Mac OS, and the GetFinalPathNameByHandle function on Windows.
    * If the path does not point to an existing file system object,
-   * [resolveSymbolicLinksSync] throws a FileException.
+   * [resolveSymbolicLinksSync] throws a FileSystemException.
    *
    * On Windows, symbolic links are resolved to their target before applying
    * a '..' that follows, and on other platforms, the '..' is applied to the
@@ -592,7 +592,7 @@ abstract class FileSystemEntity {
 
   static _throwIfError(Object result, String msg, [String path]) {
     if (result is OSError) {
-      throw new FileException(msg, path, result);
+      throw new FileSystemException(msg, path, result);
     } else if (result is ArgumentError) {
       throw result;
     }

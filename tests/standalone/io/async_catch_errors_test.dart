@@ -24,14 +24,14 @@ Future testSocketException() {
   return completer.future;
 }
 
-Future testFileException() {
+Future testFileSystemException() {
   var completer = new Completer();
   runZoned(() {
     new File("lol it's not a file\n").openRead().listen(null);
   }, onError: (err) {
-    if (err is! FileException) Expect.fail("Not expected error: $err");
+    if (err is! FileSystemException) Expect.fail("Not expected error: $err");
     completer.complete("file test, ok.");
-    events.add("FileException");
+    events.add("FileSystemException");
   });
   return completer.future;
 }
@@ -41,10 +41,10 @@ main() {
   // hang if the callbacks are not invoked and the test will time out.
   asyncStart();
   testSocketException()
-    .then((_) => testFileException())
+    .then((_) => testFileSystemException())
     .then((_) {
       asyncEnd();
-      Expect.listEquals(["SocketException", "FileException"],
+      Expect.listEquals(["SocketException", "FileSystemException"],
                         events);
     });
 }
