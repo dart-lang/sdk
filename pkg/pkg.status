@@ -85,6 +85,7 @@ crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
 polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $runtime == ie9 || $runtime == ie10 ]
+polymer/example/canonicalization/test/canonicalization_deploy_test: Pass, Timeout
 polymer/example/canonicalization/test/canonicalization_test: Fail, Timeout, OK # tests development only behavior
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/attr_mustache_test: Fail, Timeout # Issue 12865, 13197, 13260
