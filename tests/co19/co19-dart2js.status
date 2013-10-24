@@ -109,6 +109,7 @@ LibTest/core/int/operator_truncating_division_A01_t01: Fail # TODO(ngeoaffray): 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 
 [ $compiler == dart2js && $checked ]
+Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # co19-roll r607: Please triage this failure
