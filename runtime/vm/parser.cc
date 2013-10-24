@@ -7862,8 +7862,11 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
 
 LiteralNode* Parser::ParseConstExpr() {
   TRACE_PARSER("ParseConstExpr");
+  intptr_t expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kRequireConst, kNoCascades);
-  ASSERT(expr->IsLiteralNode());
+  if (!expr->IsLiteralNode()) {
+    ErrorMsg(expr_pos, "expression must be a compile-time constant");
+  }
   return expr->AsLiteralNode();
 }
 
