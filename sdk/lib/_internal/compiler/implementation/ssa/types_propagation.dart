@@ -140,21 +140,21 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   HType visitTypeConversion(HTypeConversion instruction) {
-    HType oldType = instruction.instructionType;
-    // Do not change a checked mode check.
-    if (instruction.isCheckedModeCheck) return oldType;
-    // We must make sure a type conversion for receiver or argument check
-    // does not try to do an int check, because an int check is not enough.
-    // We only do an int check if the input is integer or null.
-    HInstruction checked = instruction.checkedInput;
-    if (oldType.isNumber()
-        && !oldType.isDouble()
-        && checked.isIntegerOrNull()) {
-      return HType.INTEGER;
-    } else if (oldType.isInteger() && !checked.isIntegerOrNull()) {
-      return HType.NUMBER;
+    HType inputType = instruction.checkedInput.instructionType;
+    HType checkedType = instruction.checkedType;
+    if (instruction.isArgumentTypeCheck || instruction.isReceiverTypeCheck) {
+      // We must make sure a type conversion for receiver or argument check
+      // does not try to do an int check, because an int check is not enough.
+      // We only do an int check if the input is integer or null.
+      if (checkedType.isNumber()
+          && !checkedType.isDouble()
+          && inputType.isIntegerOrNull()) {
+        instruction.checkedType = HType.INTEGER;
+      } else if (checkedType.isInteger() && !inputType.isIntegerOrNull()) {
+        instruction.checkedType = HType.NUMBER;
+      }
     }
-    return oldType;
+    return checkedType.intersection(inputType, compiler);
   }
 
   HType visitTypeKnown(HTypeKnown instruction) {
