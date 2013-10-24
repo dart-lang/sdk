@@ -143,9 +143,10 @@ class _FileSystemWatcherImpl
   }
 
   void _cancel() {
-    _unwatchPath();
     if (_subscription != null) {
+      _unwatchPath();
       _subscription.cancel();
+      _subscription = null;
     }
     _controller.close();
   }

@@ -201,7 +201,9 @@ class FSEventsWatcher {
     Node* node = reinterpret_cast<Node*>(client);
     for (size_t i = 0; i < num_events; i++) {
       char *path = reinterpret_cast<char**>(event_paths)[i];
-      path += node->base_path_length() + 1;
+      path += node->base_path_length();
+      // If path is longer the base, skip next character ('/').
+      if (path[0] != '\0') path += 1;
       if (!node->recursive() && strstr(path, "/") != NULL) continue;
       FSEvent event;
       event.data.flags = event_flags[i];
