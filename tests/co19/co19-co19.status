@@ -8,6 +8,11 @@
 
 ### GENERAL FAILURES ###
 
+[ $runtime == vm || $runtime != vm ]
+# Tests that fail everywhere, including the analyzer.
+LibTest/core/Match/str_A01_t01: Fail, OK # Issue 635
+LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # Issue 635
+LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 Language/05_Variables/05_Variables_A06_t01: fail, pass, ok # co19 issue 624
@@ -38,9 +43,6 @@ LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError # co19-roll r623:
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-
-LibTest/core/Match/str_A01_t01: RuntimeError # Issue 635
-LibTest/core/RegExp/allMatches_A01_t01: RuntimeError # Issue 635
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
