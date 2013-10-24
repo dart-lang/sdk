@@ -375,7 +375,6 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     // Get stacktrace field of class Error.
     const Field& stacktrace_field =
         Field::Handle(isolate, LookupStacktraceField(exception));
-    bool full_stacktrace = !stacktrace_field.IsNull();
     handler_exists = FindExceptionHandler(&handler_pc,
                                           &handler_sp,
                                           &handler_fp,
@@ -383,28 +382,39 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     Array& code_array = Array::Handle(isolate, Object::empty_array().raw());
     Array& pc_offset_array =
         Array::Handle(isolate, Object::empty_array().raw());
-    if (handler_needs_stacktrace || full_stacktrace) {
-      RegularStacktraceBuilder frame_builder(full_stacktrace);
-      BuildStackTrace(&frame_builder);
-
-      // Create arrays for function, code and pc_offset triplet of each frame.
-      code_array = Array::MakeArray(frame_builder.code_list());
-      pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
-      if (!stacktrace_field.IsNull()) {
+    // If we have an error with a stacktrace field then collect the full stack
+    // trace and store it into the field.
+    if (!stacktrace_field.IsNull()) {
+      if (exception.GetField(stacktrace_field) == Object::null()) {
         // This is an error object and we need to capture the full stack trace
         // here implicitly, so we set up the stack trace. The stack trace field
         // is set only once, it is not overriden.
-        const Array& catch_code_array = Array::Handle(isolate,
+        RegularStacktraceBuilder frame_builder(true);
+        BuildStackTrace(&frame_builder);
+
+        // Create arrays for code and pc_offset tuples of each frame.
+        const Array& full_code_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.code_list()));
+        const Array& full_pc_offset_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.pc_offset_list()));
+        const Array& full_catch_code_array = Array::Handle(isolate,
             Array::MakeArray(frame_builder.catch_code_list()));
-        const Array& catch_pc_offset_array = Array::Handle(isolate,
+        const Array& full_catch_pc_offset_array = Array::Handle(isolate,
             Array::MakeArray(frame_builder.catch_pc_offset_list()));
-        stacktrace = Stacktrace::New(code_array, pc_offset_array);
-        stacktrace.SetCatchStacktrace(catch_code_array,
-                                      catch_pc_offset_array);
-        if (exception.GetField(stacktrace_field) == Object::null()) {
-          exception.SetField(stacktrace_field, stacktrace);
-        }
-      }  // if stacktrace needed.
+        const Stacktrace& full_stacktrace = Stacktrace::Handle(isolate,
+            Stacktrace::New(full_code_array, full_pc_offset_array));
+        full_stacktrace.SetCatchStacktrace(full_catch_code_array,
+                                           full_catch_pc_offset_array);
+        exception.SetField(stacktrace_field, full_stacktrace);
+      }
+    }
+    if (handler_needs_stacktrace) {
+      RegularStacktraceBuilder frame_builder(false);
+      BuildStackTrace(&frame_builder);
+
+      // Create arrays for code and pc_offset tuples of each frame.
+      code_array = Array::MakeArray(frame_builder.code_list());
+      pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
     }
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(code_array, pc_offset_array);
