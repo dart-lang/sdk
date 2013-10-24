@@ -18598,6 +18598,16 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return true;
   }
 
+  /**
+   * Observes the target for the specified changes.
+   *
+   * Some requirements for the optional parameters:
+   *
+   * * Either childList, attributes or characterData must be true.
+   * * If attributeOldValue is true then attributes must also be true.
+   * * If attributeFilter is specified then attributes must be true.
+   * * If characterDataOldValue is true then characterData must be true.
+   */
   void observe(Node target,
                {bool childList,
                 bool attributes,
