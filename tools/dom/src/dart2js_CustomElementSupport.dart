@@ -106,12 +106,6 @@ void _registerCustomElement(context, document, String tag, Type type,
   JS('void', '#.attributeChangedCallback = #', properties,
       JS('=Object', '{value: #}', _makeCallbackMethod3(_callAttributeChanged)));
 
-  // TODO(blois): Bug 13220- remove once transition is complete
-  JS('void', '#.enteredDocumentCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callEnteredView)));
-  JS('void', '#.leftDocumentCallback = #', properties,
-      JS('=Object', '{value: #}', _makeCallbackMethod(_callLeftView)));
-
   var baseProto = JS('=Object', '#.prototype', baseConstructor);
   var proto = JS('=Object', 'Object.create(#, #)', baseProto, properties);
 
