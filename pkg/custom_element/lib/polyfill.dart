@@ -42,3 +42,22 @@ bool get _isReady {
 
   return customElements['ready'] == true;
 }
+
+/**
+ * Loads `custom-elements.debug.js` or `custom-elements.min.js` by adding the
+ * script tag to the page. Returns a future that completes when custom elements
+ * are ready (equivalent to [customElementsReady]).
+ *
+ * Normally you should add this to your HTML file
+ * (the Polymer package will do this automatically), but loading dynamically
+ * can be useful for scenarios such as tests.
+ */
+Future loadCustomElementPolyfill() {
+  if (!document.supportsRegister && !js.context.hasProperty('CustomElements')) {
+    var script = new ScriptElement()
+        ..src = '/packages/custom_element/custom-elements.debug.js';
+    document.head.append(script);
+    return document.on['WebComponentsReady'].first;
+  }
+  return new Future.value();
+}

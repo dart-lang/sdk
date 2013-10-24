@@ -28,6 +28,7 @@ Job runJob(Job job, void callback(), Duration wait) {
 // TODO(jmesserly): it isn't clear to me what is supposed to be public API here.
 // Or what name we should use. "Job" is awfully generic.
 // (The type itself is not exported in Polymer.)
+// Remove this type in favor of Timer?
 class Job {
   Function _callback;
   Timer _timer;

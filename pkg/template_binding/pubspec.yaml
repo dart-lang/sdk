@@ -8,4 +8,5 @@ dependencies:
   logging: any
   observe: any
 dev_dependencies:
+  custom_element: any
   unittest: any

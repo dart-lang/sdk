@@ -6,6 +6,7 @@ library template_binding.test.custom_element_bindings_test;
 
 import 'dart:async';
 import 'dart:html';
+import 'package:custom_element/polyfill.dart';
 import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart' show toObservable;
 import 'package:unittest/html_config.dart';
@@ -23,16 +24,6 @@ main() {
   });
 
   group('Custom Element Bindings', customElementBindingsTest);
-}
-
-Future loadCustomElementPolyfill() {
-  if (!document.supportsRegister) {
-    var script = new ScriptElement()
-        ..src = '/packages/custom_element/custom-elements.debug.js';
-    document.head.append(script);
-    return document.on['WebComponentsReady'].first;
-  }
-  return new Future.value();
 }
 
 customElementBindingsTest() {

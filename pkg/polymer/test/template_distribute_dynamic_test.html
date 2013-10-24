@@ -1,0 +1,37 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head>
+    <title>template distribute</title>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+
+  <x-test></x-test>
+
+  <polymer-element name="x-echo" noscript>
+    <template>
+      <div>Echoing:</div>
+      <content select="*"></content>
+    </template>
+  </polymer-element>
+
+  <polymer-element name="x-test">
+    <template>
+      <x-echo id="echo">
+        <template repeat="{{list}}">
+          <div>{{this['name']}}</div>
+        </template>
+      </x-echo>
+    </template>
+  </polymer-element>
+
+  <script type="application/dart" src="template_distribute_dynamic_test.dart">
+  </script>
+  </body>
+</html>

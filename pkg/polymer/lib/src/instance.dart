@@ -520,15 +520,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 
   void observeProperty(String name, Symbol method) {
-    final self = reflect(this);
-    _observe(name, (value, old) => self.invoke(method, [old]));
+    _observe(name, (value, old) => _invoke(method, [old]));
   }
 
   void observeBoth(String name, Symbol methodName) {
-    final self = reflect(this);
     _observe(name, (value, old) {
       reflectPropertyToAttribute(name);
-      self.invoke(methodName, [old]);
+      _invoke(methodName, [old]);
     });
   }
 
@@ -657,10 +655,15 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     bool log = _eventsLog.isLoggable(Level.FINE);
     if (log) _eventsLog.fine('>>> [$localName]: dispatch $methodName');
 
-    // TODO(sigmund): consider making event listeners list all arguments
-    // explicitly. Unless VM mirrors are optimized first, this reflectClass call
-    // will be expensive once custom elements extend directly from Element (see
-    // dartbug.com/11108).
+    _invoke(methodName, args);
+
+    if (log) _eventsLog.info('<<< [$localName]: dispatch $methodName');
+  }
+
+  InstanceMirror _invoke(Symbol methodName, List args) {
+    // TODO(sigmund): consider making callbacks list all arguments
+    // explicitly. Unless VM mirrors are optimized first, this will be expensive
+    // once custom elements extend directly from Element (see issue 11108).
     var self = reflect(this);
     var method = self.type.methods[methodName];
     if (method != null) {
@@ -670,9 +673,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       // them appart from named arguments (see http://dartbug.com/11334)
       args.length = method.parameters.where((p) => !p.isOptional).length;
     }
-    self.invoke(methodName, args);
-
-    if (log) _eventsLog.fine('<<< [$localName]: dispatch $methodName');
+    return self.invoke(methodName, args);
   }
 
   void instanceEventListener(Event event) {

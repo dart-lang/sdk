@@ -34,7 +34,7 @@ class FooBar extends PolymerElement {
 class TestCustomEvent extends PolymerElement {
   TestCustomEvent.created() : super.created();
 
-  get fooBar => getShadowRoot('test-custom-event').query('foo-bar').xtag;
+  get fooBar => getShadowRoot('test-custom-event').query('foo-bar');
 
   final events = [];
   fooHandler(e) => events.add(['foo', e]);
