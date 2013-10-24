@@ -148,12 +148,6 @@ class Int64 implements IntX {
     return new Int64._bits(v0, v1, v2);
   }
 
-  /**
-   * Constructs an [Int64] with a given [int] value.
-   */
-  @deprecated
-  factory Int64.fromInt(int value) => new Int64(value);
-
   factory Int64.fromBytes(List<int> bytes) {
     int top = bytes[7] & 0xff;
     top <<= 8;

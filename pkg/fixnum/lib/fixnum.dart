@@ -14,8 +14,6 @@
  */
 library fixnum;
 
-import 'package:meta/meta.dart';
-
 part 'src/intx.dart';
 part 'src/int32.dart';
 part 'src/int64.dart';

@@ -138,13 +138,6 @@ class Int32 implements IntX {
    */
   Int32([int i=0]) : _i = (i & 0x7fffffff) - (i & 0x80000000);
 
-  /**
-   * Constructs an [Int32] from an [int].  Only the low 32 bits of the input
-   * are used.
-   */
-  @deprecated
-  Int32.fromInt(int i) : this(i);
-
   // Returns the [int] representation of the specified value. Throws
   // [ArgumentError] for non-integer arguments.
   int _toInt(val) {
