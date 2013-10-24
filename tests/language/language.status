@@ -33,14 +33,6 @@ cyclic_typedef_test/11: Fail # Issue 13675
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 
-[ $compiler == none && $runtime == vm && $checked ]
-compile_time_constant_checked3_test/01: MissingCompileTimeError # Issue 13685
-compile_time_constant_checked3_test/02: MissingCompileTimeError # Issue 13685
-compile_time_constant_checked3_test/03: MissingCompileTimeError # Issue 13685
-compile_time_constant_checked3_test/04: MissingCompileTimeError # Issue 13685
-compile_time_constant_checked3_test/05: MissingCompileTimeError # Issue 13685
-compile_time_constant_checked3_test/06: MissingCompileTimeError # Issue 13685
-
 [ $compiler == none && $unchecked ]
 # Only checked mode reports an error on type assignment
 # problems in compile time constants.
