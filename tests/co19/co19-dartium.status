@@ -63,7 +63,6 @@ LibTest/core/int/operator_left_shift_A01_t02: Pass, Fail # Issue 13719: Please t
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/core/Invocation/namedArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/positionalArguments_A01_t01: Fail # co19-roll r607: Please triage this failure
-LibTest/core/List/List_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 13719: Please triage this failure.
@@ -137,3 +136,16 @@ LibTest/isolate/isolate_api/spawnUri_A01_t02: Skip # Issue 13992
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Skip # Issue 13992
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Skip # Issue 13992
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Skip # Issue 13992
+
+[ $compiler == none && $runtime == dartium && $checked ]
+Language/07_Classes/6_Constructors/2_Factories_A12_t02: Fail # Please triage this failure (enabled checked mode tests on dartium)
+Language/13_Statements/09_Switch_A09_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/collection/LinkedList/LinkedList_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/collection/Queue/Queue_class_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/core/Iterable/Iterable.generate_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+Language/12_Expressions/12_Instance_Creation_A01_t08: Fail # Please triage this failure (enabled checked mode tests on dartium)
+LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
+

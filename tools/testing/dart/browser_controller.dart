@@ -54,13 +54,15 @@ abstract class Browser {
 
   Browser();
 
-  factory Browser.byName(String name, [Map globalConfiguration = const {}]) {
+  factory Browser.byName(String name,
+                         [Map globalConfiguration = const {},
+                          bool checkedMode = false]) {
     if (name == 'ff' || name == 'firefox') {
       return new Firefox();
     } else if (name == 'chrome') {
       return new Chrome();
     } else if (name == 'dartium') {
-      return new Dartium(globalConfiguration);
+      return new Dartium(globalConfiguration, checkedMode);
     } else if (name == 'safari') {
       return new Safari();
     } else if (name.startsWith('ie')) {
@@ -410,8 +412,9 @@ class Chrome extends Browser {
 
 class Dartium extends Chrome {
   final Map globalConfiguration;
+  final bool checkedMode;
 
-  Dartium(this.globalConfiguration);
+  Dartium(this.globalConfiguration, this.checkedMode);
 
   String _getBinary() {
     return Locations.getDartiumLocation(globalConfiguration);
@@ -423,6 +426,9 @@ class Dartium extends Chrome {
     // calls in dart to the top-level javascript function "dartPrint()" if
     // available.
     environment['DART_FORWARDING_PRINT'] = '1';
+    if (checkedMode) {
+      environment['DART_FLAGS'] = '--checked';
+    }
     return environment;
   }
 
@@ -657,6 +663,7 @@ class BrowserTestOutput {
  */
 class BrowserTestRunner {
   final Map globalConfiguration;
+  final bool checkedMode; // needed for dartium
 
   String localIp;
   String browserName;
@@ -683,7 +690,8 @@ class BrowserTestRunner {
   BrowserTestRunner(this.globalConfiguration,
                     this.localIp,
                     this.browserName,
-                    this.maxNumBrowsers);
+                    this.maxNumBrowsers,
+                    {bool this.checkedMode: false});
 
   Future<bool> start() {
     // If [browserName] doesn't support opening new windows, we use new iframes
@@ -947,7 +955,8 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
-    var browser = new Browser.byName(browserName, globalConfiguration);
+    var browser =
+        new Browser.byName(browserName, globalConfiguration, checkedMode);
     browser.logger = logger;
     return browser;
   }

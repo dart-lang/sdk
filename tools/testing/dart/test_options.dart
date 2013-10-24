@@ -533,15 +533,6 @@ Note: currently only implemented for dart2js.''',
       print("Error: shard index is ${config['shard']} out of "
             "${config['shards']} shards");
     }
-    if (config['runtime'] == 'dartium' &&
-        const ['none', 'dart2dart'].contains(config['compiler']) &&
-        config['checked']) {
-      // TODO(vsm): Set the DART_FLAGS environment appropriately when
-      // invoking Selenium to support checked mode.  It's not clear
-      // the current selenium API supports this.
-      isValid = false;
-      print("Warning: checked mode is not yet supported for dartium tests.");
-    }
     return isValid;
   }
 

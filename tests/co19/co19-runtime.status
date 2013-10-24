@@ -92,7 +92,7 @@ LibTest/core/double/toInt_A01_t01: Fail
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
-[ $compiler == none && $runtime == vm && $checked ]
+[ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
 LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/first_A01_t01: Fail # Dart issue 12861
@@ -120,5 +120,5 @@ Language/12_Expressions/12_Instance_Creation_A01_t08: CompileTimeError # co19-ro
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
 Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
 
-[ $compiler == none && $runtime == vm && $unchecked ]
+[ $compiler == none && $unchecked && ($runtime == vm || $runtime == dartium) ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure

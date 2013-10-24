@@ -281,12 +281,14 @@ class ContentShellCommand extends Command {
 class BrowserTestCommand extends Command {
   final String browser;
   final String url;
+  final bool checkedMode; // needed for dartium
 
   BrowserTestCommand._(String _browser,
                        this.url,
                        String executable,
                        List<String> arguments,
-                       String configurationDir)
+                       String configurationDir,
+                       {bool this.checkedMode: false})
       : super._(_browser, executable, arguments, configurationDir),
         browser = _browser;
 
@@ -294,6 +296,7 @@ class BrowserTestCommand extends Command {
     super._buildHashCode(builder);
     builder.add(browser);
     builder.add(url);
+    builder.add(checkedMode);
   }
 
   bool _equal(Command other) {
@@ -301,7 +304,8 @@ class BrowserTestCommand extends Command {
         other is BrowserTestCommand &&
         super._equal(other) &&
         browser == other.browser &&
-        url == other.url;
+        url == other.url &&
+        checkedMode == other.checkedMode;
   }
 }
 
@@ -396,9 +400,11 @@ class CommandBuilder {
                                            String url,
                                            String executable,
                                            List<String> arguments,
-                                           String configurationDir) {
+                                           String configurationDir,
+                                           {bool checkedMode: false}) {
     var command = new BrowserTestCommand._(
-        browser, url, executable, arguments, configurationDir);
+        browser, url, executable, arguments, configurationDir,
+        checkedMode: checkedMode);
     return _getUniqueCommand(command);
   }
 
@@ -1907,7 +1913,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
   // For dartc/selenium batch processing we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
-  // For browser tests we keepa [BrowserTestRunner]
+  // We keep a BrowserTestRunner for every "browserName-checked" configuration.
   final _browserTestRunners = new Map<String, BrowserTestRunner>();
 
   bool _finishing = false;
@@ -2022,24 +2028,28 @@ class CommandExecutorImpl implements CommandExecutor {
     BrowserTest browserTest = new BrowserTest(browserCommand.url,
                                               callback,
                                               timeout);
-    _getBrowserTestRunner(browserCommand.browser).then((testRunner) {
+    _getBrowserTestRunner(browserCommand.browser, browserCommand.checkedMode)
+        .then((testRunner) {
       testRunner.queueTest(browserTest);
     });
 
     return completer.future;
   }
 
-  Future<BrowserTestRunner> _getBrowserTestRunner(String browser) {
+  Future<BrowserTestRunner> _getBrowserTestRunner(
+      String browser, bool checkedMode) {
+    var browserCheckedString = "$browser-$checkedMode";
+
     var localIp = globalConfiguration['local_ip'];
     var num_browsers = maxBrowserProcesses;
-    if (_browserTestRunners[browser] == null) {
-      var testRunner =
-        new BrowserTestRunner(
-            globalConfiguration, localIp, browser, num_browsers);
+    if (_browserTestRunners[browserCheckedString] == null) {
+      var testRunner = new BrowserTestRunner(
+            globalConfiguration, localIp, browser, num_browsers,
+            checkedMode: checkedMode);
       if (globalConfiguration['verbose']) {
         testRunner.logger = DebugLogger.info;
       }
-      _browserTestRunners[browser] = testRunner;
+      _browserTestRunners[browserCheckedString] = testRunner;
       return testRunner.start().then((started) {
         if (started) {
           return testRunner;
@@ -2048,7 +2058,7 @@ class CommandExecutorImpl implements CommandExecutor {
         io.exit(1);
       });
     }
-    return new Future.value(_browserTestRunners[browser]);
+    return new Future.value(_browserTestRunners[browserCheckedString]);
   }
 }
 

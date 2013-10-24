@@ -1097,8 +1097,8 @@ class StandardTestSuite extends TestSuite {
                   runtime,
                   fullHtmlPath];
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath,
-              TestUtils.dartTestExecutable.toString(), args, configurationDir));
+              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
+              args, configurationDir, checkedMode: configuration['checked']));
         } else if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
