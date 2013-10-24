@@ -158,6 +158,7 @@ import "dart:_collection-dev" as _collection_dev;
 import "dart:convert" show UTF8, Encoding;
 import "dart:math" show Random;  // Used by List.shuffle.
 
+part "annotations.dart";
 part "bool.dart";
 part "comparable.dart";
 part "date_time.dart";
