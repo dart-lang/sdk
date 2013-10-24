@@ -74,23 +74,23 @@ main() {
 
   test('containsRectangle', () {
     var r = new Rectangle(-10, 0, 20, 10);
-    expect(r.contains(r), isTrue);
+    expect(r.containsRectangle(r), isTrue);
 
-    expect(r.contains(
+    expect(r.containsRectangle(
         new Rectangle(double.NAN, double.NAN, double.NAN, double.NAN)), isFalse);
 
     var r2 = new Rectangle(0, 2, 5, 5);
-    expect(r.contains(r2), isTrue);
-    expect(r2.contains(r), isFalse);
+    expect(r.containsRectangle(r2), isTrue);
+    expect(r2.containsRectangle(r), isFalse);
 
     r2 = new Rectangle(-11, 2, 5, 5);
-    expect(r.contains(r2), isFalse);
+    expect(r.containsRectangle(r2), isFalse);
     r2 = new Rectangle(0, 2, 15, 5);
-    expect(r.contains(r2), isFalse);
+    expect(r.containsRectangle(r2), isFalse);
     r2 = new Rectangle(0, 2, 5, 10);
-    expect(r.contains(r2), isFalse);
+    expect(r.containsRectangle(r2), isFalse);
     r2 = new Rectangle(0, 0, 5, 10);
-    expect(r.contains(r2), isTrue);
+    expect(r.containsRectangle(r2), isTrue);
   });
 
   test('containsPoint', () {
