@@ -600,7 +600,7 @@ class IsolateNatives {
     // TODO(floitsch): support precompiled version of dart2js output.
     if (uri != null && uri.endsWith(".dart")) uri += ".js";
 
-    Completer<SendPort> completer = new Completer.sync<SendPort>();
+    Completer<SendPort> completer = new Completer<SendPort>.sync();
     ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
       port.close();

@@ -52,8 +52,7 @@ void runClient(int port, result) {
 }
 
 
-void main() {
-  final args = new Options().arguments;
+void main(List<String> args) {
   SecureSocket.initialize();
   runClient(int.parse(args[0]), args[1]);
 }

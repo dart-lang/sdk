@@ -65,8 +65,9 @@ Future<AssetSet> runBarback(BarbackOptions options) {
 }
 
 /** Extract the current package from the pubspec.yaml file. */
-String readCurrentPackageFromPubspec() {
-  var pubspec = new File('pubspec.yaml');
+String readCurrentPackageFromPubspec([String dir]) {
+  var pubspec = new File(
+      dir == null ? 'pubspec.yaml' : path.join(dir, 'pubspec.yaml'));
   if (!pubspec.existsSync()) {
     print('error: pubspec.yaml file not found, please run this script from '
         'your package root directory.');
@@ -105,9 +106,10 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
 final Set<String> _polymerPackageDependencies = [
     'analyzer_experimental', 'args', 'barback', 'browser', 'csslib',
     'custom_element', 'fancy_syntax', 'html5lib', 'html_import', 'js',
-    'logging', 'mdv', 'meta', 'mutation_observer', 'observe', 'path'
+    'logging', 'meta', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'shadow_dom', 'source_maps',
-    'stack_trace', 'unittest', 'unmodifiable_collection', 'yaml'].toSet();
+    'stack_trace', 'template_binding', 'unittest', 'unmodifiable_collection',
+    'yaml'].toSet();
 
 /** Return the relative path of each file under [subDir] in [package]. */
 Iterable<String> _listPackageDir(String package, String subDir,

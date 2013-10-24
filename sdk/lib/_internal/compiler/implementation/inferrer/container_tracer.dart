@@ -141,16 +141,13 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   bool enableLengthTracking = true;
   bool continueAnalyzing = true;
 
-  static const int MAX_ANALYSIS_COUNT = 11;
+  static const int MAX_ANALYSIS_COUNT = 16;
   final Setlet<Element> analyzedElements = new Setlet<Element>();
 
   ContainerTracerVisitor(this.container, inferrer)
       : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
-  void run() {
-    // Add the assignments found at allocation site.
-    assignments.addAll(container.elementType.assignments);
-
+  List<TypeInformation> run() {
     // Collect the [TypeInformation] where the container can flow in,
     // as well as the operations done on all these [TypeInformation]s.
     List<TypeInformation> workList = <TypeInformation>[];
@@ -179,21 +176,13 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
       }
     }
 
-    ContainerTypeMask mask = container.type;
-    if (!enableLengthTracking
-        && (mask.forwardTo != compiler.typesTask.fixedListType)) {
-      mask.length = null;
+    if (continueAnalyzing) {
+      if (enableLengthTracking && container.inferredLength == null) {
+        container.inferredLength = container.originalLength;
+      }
+      return assignments;
     }
-
-    TypeMask result = continueAnalyzing
-      ? inferrer.types.computeTypeMask(assignments)
-      : inferrer.types.dynamicType.type;
-
-    mask.elementType = result;
-    if (_VERBOSE) {
-      print('$result and ${mask.length} '
-            'for ${mask.allocationNode} ${mask.allocationElement}');
-    }
+    return null;
   }
 
   void bailout(String reason) {

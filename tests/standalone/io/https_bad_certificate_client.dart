@@ -72,8 +72,7 @@ Future runHttpClient(int port, result) {
   return Future.wait(testFutures);
 }
 
-void main() {
-  final args = new Options().arguments;
+void main(List<String> args) {
   SecureSocket.initialize();
   int port = int.parse(args[0]);
   runHttpClient(port, args[1])

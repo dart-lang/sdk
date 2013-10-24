@@ -156,15 +156,6 @@ convert_to_future_members = monitored.Set(
   'WorkerGlobalScope.webkitResolveLocalFileSystemURL',
 ])
 
-# "Private" members in the form $dom_foo.
-# TODO(efortuna): Remove this set. This allows us to make the change of removing
-# $dom in installments instead of all at once, but the intent is to move all of
-# these either into private_html_members or remove them from this list entirely.
-dom_private_html_members = monitored.Set('htmlrenamer.private_html_members', [
-  'EventTarget.addEventListener',
-  'EventTarget.removeEventListener',
-])
-
 # Classes where we have customized constructors, but we need to keep the old
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(
@@ -181,6 +172,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'AudioNode.connect',
   'CanvasRenderingContext2D.arc',
   'CanvasRenderingContext2D.drawImage',
+  'CanvasRenderingContext2D.getLineDash',
   'CSSStyleDeclaration.getPropertyValue',
   'CSSStyleDeclaration.setProperty',
   'CSSStyleDeclaration.var',
@@ -249,7 +241,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'HTMLTableRowElement.insertCell',
   'HTMLTableSectionElement.insertRow',
   'HTMLTableSectionElement.rows',
-  'HTMLTemplateElement.content',
   'IDBCursor.delete',
   'IDBCursor.update',
   'IDBDatabase.createObjectStore',
@@ -323,11 +314,9 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
-  'WebGLRenderingContext.texImage2D',
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
-  'Window.createImageBitmap',
   'Window.getComputedStyle',
   'Window.clearInterval',
   'Window.clearTimeout',
@@ -363,7 +352,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'SVGStopElement.offset': 'gradientOffset',
     'URL.createObjectURL': 'createObjectUrl',
     'URL.revokeObjectURL': 'revokeObjectUrl',
-    'WebGLRenderingContext.texSubImage2D': '_texSubImageImage2D',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })
@@ -378,8 +366,6 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
-  'Document.createElement(DOMString tagName)': None,
-  'Document.createElementNS(DOMString namespaceURI, DOMString qualifiedName)': None,
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
   'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':
@@ -388,25 +374,11 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'transactionList',
   'IDBDatabase.transaction(DOMString storeName, DOMString mode)':
       'transactionStore',
-  'ImageBitmapFactories.createImageBitmap(HTMLImageElement image)' : 'createImageBitmap0',
-  'ImageBitmapFactories.createImageBitmap(HTMLImageElement image, long sx, long sy, long sw, long sh)' : 'createImageBitmap1',
-  'ImageBitmapFactories.createImageBitmap(HTMLVideoElement video)' : 'createImageBitmap2',
-  'ImageBitmapFactories.createImageBitmap(HTMLVideoElement video, long sx, long sy, long sw, long sh)' : 'createImageBitmap3',
-  'ImageBitmapFactories.createImageBitmap(CanvasRenderingContext2D context)' : 'createImageBitmap4',
-  'ImageBitmapFactories.createImageBitmap(CanvasRenderingContext2D context, long sx, long sy, long sw, long sh)' : 'createImageBitmap5',
-  'ImageBitmapFactories.createImageBitmap(HTMLCanvasElement canvas)' : 'createImageBitmap6',
-  'ImageBitmapFactories.createImageBitmap(HTMLCanvasElement canvas, long sx, long sy, long sw, long sh)' : 'createImageBitmap7',
-  'ImageBitmapFactories.createImageBitmap(ImageData data)' : 'createImageBitmap8',
-  'ImageBitmapFactories.createImageBitmap(ImageData data, long sx, long sy, long sw, long sh)' : 'createImageBitmap9',
-  'ImageBitmapFactories.createImageBitmap(ImageBitmap bitmap)' : 'createImageBitmap10',
-  'ImageBitmapFactories.createImageBitmap(ImageBitmap bitmap, long sx, long sy, long sw, long sh)' : 'createImageBitmap11',
-  'ImageBitmapFactories.createImageBitmap(Blob blob)' : 'createImageBitmap12',
-  'ImageBitmapFactories.createImageBitmap(Blob blob, long sx, long sy, long sw, long sh)' : 'createImageBitmap13',
   'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
   'RTCDataChannel.send(Blob data)': 'sendBlob',
   'RTCDataChannel.send(DOMString data)': 'sendString',
-  'SourceBuffer.appendBuffer(ArrayBufferView data)': 'appendBufferView',
+  'SourceBuffer.appendBuffer(ArrayBufferView data)': 'appendTypedData',
   'URL.createObjectURL(MediaSource source)':
       'createObjectUrlFromSource',
   'URL.createObjectURL(WebKitMediaSource source)':
@@ -459,6 +431,8 @@ keep_overloaded_members = monitored.Set(
   'CanvasRenderingContext2D.putImageData',
   'CanvasRenderingContext2D.webkitPutImageDataHD',
   'DataTransferItemList.add',
+  'Document.createElement',
+  'Document.createElementNS',
   'HTMLInputElement.setRangeText',
   'HTMLTextAreaElement.setRangeText',
   'IDBDatabase.transaction',
@@ -466,6 +440,14 @@ keep_overloaded_members = monitored.Set(
   'URL.createObjectURL',
   'WebSocket.send',
   'XMLHttpRequest.send'
+])
+
+overloaded_and_renamed = monitored.Set(
+    'htmldartgenerator.overloaded_and_renamed', [
+  'WebGLRenderingContext.texImage2D',
+  'WebGLRenderingContext.texSubImage2D',
+  'WebGLRenderingContext.bufferData',
+  'WebGLRenderingContext.bufferSubData',
 ])
 
 for member in convert_to_future_members:
@@ -499,6 +481,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Window.call:blur',
     'Window.call:focus',
     'Window.clientInformation',
+    'Window.createImageBitmap',
     'Window.get:frames',
     'Window.get:length',
     'Window.on:beforeUnload',
@@ -602,6 +585,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Event.returnValue',
     'Event.srcElement',
     'EventSource.URL',
+    'FontFaceSet.load',
+    'FontFaceSet.ready',
     'HTMLAnchorElement.charset',
     'HTMLAnchorElement.coords',
     'HTMLAnchorElement.rev',
@@ -709,9 +694,12 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
     'Location.valueOf',
+    'MessageEvent.ports',
     'MessageEvent.webkitInitMessageEvent',
     'MouseEvent.x',
     'MouseEvent.y',
+    'Navigator.registerServiceWorker',
+    'Navigator.unregisterServiceWorker',
     'Node.compareDocumentPosition',
     'Node.get:DOCUMENT_POSITION_CONTAINED_BY',
     'Node.get:DOCUMENT_POSITION_CONTAINS',
@@ -767,8 +755,9 @@ _library_ids = monitored.Dict('htmlrenamer._library_names', {
 })
 
 class HtmlRenamer(object):
-  def __init__(self, database):
+  def __init__(self, database, metadata):
     self._database = database
+    self._metadata = metadata
 
   def RenameInterface(self, interface):
     if 'Callback' in interface.ext_attrs:
@@ -816,10 +805,6 @@ class HtmlRenamer(object):
     if self._FindMatch(interface, member, member_prefix, private_html_members):
       if not target_name.startswith('_'):  # e.g. _svgClassName
         target_name = '_' + target_name
-    elif self._FindMatch(interface, member, member_prefix,
-        dom_private_html_members):
-      if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
-        target_name = '$dom_' + target_name
 
     if not name and target_name.startswith('webkit'):
       target_name = member[len('webkit'):]
@@ -834,6 +819,11 @@ class HtmlRenamer(object):
     if self._FindMatch(interface, member, member_prefix, removed_html_members):
       return True
     if interface.id in _removed_html_interfaces:
+      return True
+    metadata_member = member
+    if member_prefix == 'on:':
+      metadata_member = 'on' + metadata_member.lower()
+    if self._metadata.IsDeprecated(interface, metadata_member):
       return True
     return False
 

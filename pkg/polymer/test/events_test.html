@@ -5,6 +5,7 @@
    BSD-style license that can be found in the LICENSE file.
 -->
 <html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
   <head>
     <title>event path</title>
     <script src="packages/unittest/test_controller.js"></script>
@@ -20,19 +21,6 @@
 
   <polymer-element name="test-a" on-click="clickHandler">
     <template></template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-
-      @CustomTag("test-a")
-      class TestA extends PolymerElement {
-        TestA.created() : super.created();
-
-        List clicks = [];
-        void clickHandler() {
-          clicks.add('host click on: $localName (id $id)');
-        }
-      }
-    </script>
   </polymer-element>
 
   <polymer-element name="test-b">
@@ -42,25 +30,11 @@
         <span id="b-2" on-click="clickHandler">2</span>
       </div>
     </template>
-    <script type="application/dart">
-      import 'package:polymer/polymer.dart';
-
-      @CustomTag("test-b")
-      class TestB extends PolymerElement {
-        TestB.created() : super.created();
-
-        List clicks = [];
-        void clickHandler(event, detail, target) {
-          clicks.add('local click under $localName (id $id) on ${target.id}');
-        }
-      }
-    </script>
   </polymer-element>
 
   <test-a id="a"></test-a>
   <test-b id="b"></test-b>
 
   <script type="application/dart" src="events_test.dart"></script>
-  <script type="application/dart" src="packages/polymer/init.dart"></script>
   </body>
 </html>

@@ -2292,9 +2292,27 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void bufferByteData(int target, ByteBuffer data, int usage) native "WebGLRenderingContext_bufferByteData_Callback";
 
-  @DomName('WebGLRenderingContext.bufferData')
-  @DocsEditable()
-  void bufferData(int target, int size, int usage) native "WebGLRenderingContext_bufferData_Callback";
+  void bufferData(int target, data_OR_size, int usage) {
+    if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
+      _bufferData_1(target, data_OR_size, usage);
+      return;
+    }
+    if ((usage is int || usage == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int || target == null)) {
+      _bufferData_2(target, data_OR_size, usage);
+      return;
+    }
+    if ((usage is int || usage == null) && (data_OR_size is int || data_OR_size == null) && (target is int || target == null)) {
+      _bufferData_3(target, data_OR_size, usage);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void _bufferData_1(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_1_Callback";
+
+  void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_2_Callback";
+
+  void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
   @DomName('WebGLRenderingContext.bufferDataTyped')
   @DocsEditable()
@@ -2303,6 +2321,22 @@ class RenderingContext extends CanvasRenderingContext {
   @DomName('WebGLRenderingContext.bufferSubByteData')
   @DocsEditable()
   void bufferSubByteData(int target, int offset, ByteBuffer data) native "WebGLRenderingContext_bufferSubByteData_Callback";
+
+  void bufferSubData(int target, int offset, data) {
+    if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
+      _bufferSubData_1(target, offset, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
+      _bufferSubData_2(target, offset, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void _bufferSubData_1(target, offset, data) native "WebGLRenderingContext__bufferSubData_1_Callback";
+
+  void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext__bufferSubData_2_Callback";
 
   @DomName('WebGLRenderingContext.bufferSubDataTyped')
   @DocsEditable()
@@ -2656,9 +2690,39 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  @DomName('WebGLRenderingContext.texImage2D')
-  @DocsEditable()
-  void _texImage2D(int target, int level, int internalformat, int width, int height, int border, int format, int type, TypedData pixels) native "WebGLRenderingContext_texImage2D_Callback";
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
+      _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext__texImage2D_1_Callback";
+
+  void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_2_Callback";
+
+  void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_3_Callback";
+
+  void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_4_Callback";
+
+  void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_5_Callback";
 
   @DomName('WebGLRenderingContext.texImage2DCanvas')
   @DocsEditable()
@@ -2684,9 +2748,39 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  @DomName('WebGLRenderingContext.texSubImage2D')
-  @DocsEditable()
-  void _texSubImageImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int type, TypedData pixels) native "WebGLRenderingContext_texSubImage2D_Callback";
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
+      _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext__texSubImage2D_1_Callback";
+
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_2_Callback";
+
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_3_Callback";
+
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_4_Callback";
+
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_5_Callback";
 
   @DomName('WebGLRenderingContext.texSubImage2DCanvas')
   @DocsEditable()
@@ -2838,9 +2932,8 @@ class RenderingContext extends CanvasRenderingContext {
    * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
    *
    */
-  @DomName('WebGLRenderingContext.texImage2D')
-  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) {
+  void texImage2DUntyped(int targetTexture, int levelOfDetail, 
+      int internalFormat, int format, int type, data) {
     if (data is ImageElement) {
       texImage2DImage(targetTexture, levelOfDetail, internalFormat, format,
           type, data);
@@ -2861,7 +2954,7 @@ class RenderingContext extends CanvasRenderingContext {
    */
   void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
       int width, int height, int border, int format, int type, TypedData data) {
-    _texImage2D(targetTexture, levelOfDetail, internalFormat,
+    texImage2D(targetTexture, levelOfDetail, internalFormat,
         width, height, border, format, type, data);
   }
 
@@ -2874,10 +2967,9 @@ class RenderingContext extends CanvasRenderingContext {
    * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
    *
    */
-  @DomName('WebGLRenderingContext.texSubImage2D')
-  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) {
-    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+  void texSubImage2DUntyped(int targetTexture, int levelOfDetail, 
+      int internalFormat, int format, int type, data) {
+    texSubImage2D(targetTexture, levelOfDetail, internalFormat,
         format, type, data);
   }
 
@@ -2887,7 +2979,7 @@ class RenderingContext extends CanvasRenderingContext {
   void texSubImage2DTyped(int targetTexture, int levelOfDetail,
       int internalFormat, int width, int height, int border, int format,
       int type, TypedData data) {
-    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+    texSubImage2D(targetTexture, levelOfDetail, internalFormat,
         width, height, border, format, type, data);
   }
 }

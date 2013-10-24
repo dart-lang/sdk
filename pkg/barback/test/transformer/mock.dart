@@ -27,6 +27,9 @@ abstract class MockTransformer extends Transformer {
   Future<int> get numRuns => schedule(() => _numRuns);
   var _numRuns = 0;
 
+  Future<int> get maxParallelRuns => schedule(() => _maxParallelRuns);
+  var _maxParallelRuns = 0;
+
   /// The number of currently running transforms.
   int _runningTransforms = 0;
 
@@ -176,6 +179,9 @@ abstract class MockTransformer extends Transformer {
     _numRuns++;
     if (_runningTransforms == 0) _started.complete();
     _runningTransforms++;
+    if (_runningTransforms > _maxParallelRuns) {
+      _maxParallelRuns = _runningTransforms;
+    }
     return newFuture(() => doApply(transform)).then((_) {
       if (_apply != null) return _apply.future;
     }).whenComplete(() {

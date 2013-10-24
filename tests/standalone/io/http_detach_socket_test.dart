@@ -62,8 +62,8 @@ void testBadServerDetachSocket() {
       socket.write("GET / HTTP/1.1\r\n"
                    "content-length: 0\r\n\r\n");
       socket.listen((_) {}, onDone: () {
-          socket.close();
-        });
+        socket.close();
+      });
     });
   });
 }

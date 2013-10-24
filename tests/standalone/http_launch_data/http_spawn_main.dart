@@ -7,8 +7,8 @@ library http_lanuch_main;
 import 'dart:isolate';
 import 'dart:io';
 
-main() {
-  int port = int.parse(new Options().arguments[0]);
+main(List<String> arguments) {
+  int port = int.parse(arguments[0]);
   SendPort spawnedPort =
       spawnUri('http://127.0.0.1:$port/http_isolate_main.dart');
   spawnedPort.call('hello').then((response) {

@@ -2218,7 +2218,6 @@ class TokenStream : public Object {
 
   RawString* GenerateSource() const;
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
-  intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
   RawString* PrivateKey() const;
 
@@ -2529,14 +2528,12 @@ class Library : public Object {
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
-  static RawLibrary* CryptoLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* JsonLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* TypedDataLibrary();
-  static RawLibrary* UriLibrary();
   static RawLibrary* UtfLibrary();
 
   // Eagerly compile all classes and functions in the library.
@@ -5615,7 +5612,8 @@ class TypedData : public Instance {
   }
 
   void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    ASSERT((byte_offset == 0) ||
+           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
     return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
   }
 
@@ -5747,7 +5745,8 @@ class ExternalTypedData : public Instance {
   }
 
   void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < LengthInBytes()));
+    ASSERT((byte_offset == 0) ||
+           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
     return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
   }
 

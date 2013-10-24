@@ -37,9 +37,8 @@ class Scanner : ValueObject {
   struct TokenDescriptor {
     Token::Kind kind;
     int offset;               // Offset in source string.
-    int length;               // Length of token in source.
     SourcePosition position;  // Text position in source.
-    String* literal;          // Identifier, number or string literal.
+    const String* literal;    // Identifier, number or string literal.
   };
 
   // Dummy token index reflecting an unknown source position.
@@ -92,7 +91,7 @@ class Scanner : ValueObject {
   static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
                              Token::Kind literal_kind,
                              bool* is_positive,
-                             String** value);
+                             const String** value);
 
  private:
   struct ScanContext {
@@ -197,14 +196,15 @@ class Scanner : ValueObject {
 
   TokenDescriptor current_token_;  // Current token.
   TokenDescriptor newline_token_;  // Newline token.
+  TokenDescriptor empty_string_token_;  // Token for "".
   const String& source_;           // The source text being tokenized.
-  intptr_t source_length_;     // The length of the source text.
-  intptr_t lookahead_pos_;     // Position of lookahead character
-                               // within source_.
-  intptr_t token_start_;       // Begin of current token in src_.
-  int32_t c0_;                 // Lookahead character.
-  bool newline_seen_;          // Newline before current token.
-  intptr_t prev_token_line_;   // Line number of the previous token.
+  intptr_t source_length_;         // The length of the source text.
+  intptr_t lookahead_pos_;         // Position of lookahead character
+                                   // within source_.
+  intptr_t token_start_;           // Begin of current token in src_.
+  int32_t c0_;                     // Lookahead character.
+  bool newline_seen_;              // Newline before current token.
+  intptr_t prev_token_line_;       // Line number of the previous token.
 
   // The following fields keep track whether we are scanning a string literal
   // and its interpolated expressions.

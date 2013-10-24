@@ -105,14 +105,6 @@ $endif
     _title = value;
   }
 
-  @DomName('Document.webkitCancelFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void cancelFullScreen() {
-    _webkitCancelFullScreen();
-  }
-
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -147,12 +139,6 @@ $endif
   @Experimental()
   bool get hidden => _webkitHidden;
 
-  @DomName('Document.webkitIsFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get isFullScreen => _webkitIsFullScreen;
-
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -173,7 +159,7 @@ $else
   String get visibilityState => _webkitVisibilityState;
 $endif
 
-  @Experimental
+  @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *
@@ -251,12 +237,6 @@ $else
     _Utils.register(this, tag, customElementClass, extendsTag);
   }
 $endif
-
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  // Note: used to polyfill <template>
-  Document _templateContentsOwner;
 
   @DomName('Document.visibilityChange')
   @SupportedBrowser(SupportedBrowser.CHROME)

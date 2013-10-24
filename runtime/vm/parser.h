@@ -426,14 +426,16 @@ class Parser : public ValueObject {
       intptr_t call_pos,
       const String& function_name,
       const ArgumentListNode& function_args,
-      const LocalVariable* temp = NULL);
+      const LocalVariable* temp,
+      bool is_super_invocation);
   // Build arguments for a NoSuchMethodCall. If LocalVariable temp is not NULL,
   // the last argument is stored in temp.
   static ArgumentListNode* BuildNoSuchMethodArguments(
       intptr_t call_pos,
       const String& function_name,
       const ArgumentListNode& function_args,
-      const LocalVariable* temp = NULL);
+      const LocalVariable* temp,
+      bool is_super_invocation);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
                                 ArgumentListNode* arguments,
@@ -496,7 +498,7 @@ class Parser : public ValueObject {
   AstNode* ParseDoWhileStatement(String* label_name);
   AstNode* ParseForStatement(String* label_name);
   AstNode* ParseForInStatement(intptr_t forin_pos, SourceLabel* label);
-  void CheckCaseExpressions(const GrowableArray<LiteralNode*>& values);
+  RawClass* CheckCaseExpressions(const GrowableArray<LiteralNode*>& values);
   CaseNode* ParseCaseClause(LocalVariable* switch_expr_value,
                             GrowableArray<LiteralNode*>* case_expr_values,
                             SourceLabel* case_label);
@@ -556,7 +558,7 @@ class Parser : public ValueObject {
   AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
   AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
-  AstNode* ParseStringLiteral();
+  AstNode* ParseStringLiteral(bool allow_interpolation);
   String* ParseImportStringLiteral();
   AstNode* ParseCompoundLiteral();
   AstNode* ParseSymbolLiteral();

@@ -131,37 +131,38 @@ class Pubspec {
               '"$transformer".');
         }
 
-        var id;
+        var library;
         var configuration;
         if (transformer is String) {
-          id = _wrapFormatException('library identifier', field,
-              () => libraryIdentifierToId(transformer));
+          library = transformer;
         } else {
           if (transformer.length != 1) {
-            _error('"$field" must have a single key: the library identifier.');
+            _error('"$field" must have a single key: the transformer '
+                'identifier.');
           } else if (transformer.keys.single is! String) {
-            _error('"$field" library identifier must be a string, but was '
-                '"$id".');
+            _error('"$field" transformer identifier must be a string, but was '
+                '"$library".');
           }
 
-          id = _wrapFormatException('library identifier', field,
-              () => libraryIdentifierToId(transformer.keys.single));
+          library = transformer.keys.single;
           configuration = transformer.values.single;
           if (configuration is! Map) {
-            _error('"$field.${idToLibraryIdentifier(id)}" field must be a map, '
-                'but was "$configuration".');
+            _error('"$field.$library" field must be a map, but was '
+                '"$configuration".');
           }
         }
+
+        var id = _wrapFormatException("transformer identifier",
+            "$field.$library",
+            () => new TransformerId.parse(library, configuration));
 
         if (id.package != name &&
             !dependencies.any((ref) => ref.name == id.package)) {
-          _error('"$field.${idToLibraryIdentifier(id)}" refers to a package '
-              'that\'s not listed in "dependencies".');
+          _error('"$field.$library" refers to a package that\'s not listed in '
+              '"dependencies".');
         }
 
-        return _wrapFormatException("transformer identifier",
-            "$field.${idToLibraryIdentifier(id)}",
-            () => new TransformerId(id, configuration));
+        return id;
       }).toSet();
     }).toList();
     return _transformers;

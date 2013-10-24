@@ -12,11 +12,13 @@ namespace dart {
 
 class FlowGraphTypePropagator : public FlowGraphVisitor {
  public:
+  static void Propagate(FlowGraph* flow_graph);
+
+ private:
   explicit FlowGraphTypePropagator(FlowGraph* flow_graph);
 
   void Propagate();
 
- private:
   void PropagateRecursive(BlockEntryInstr* block);
   void HandleBranchOnNull(BlockEntryInstr* block);
 

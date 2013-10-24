@@ -332,6 +332,10 @@
     },
     "support_level": "experimental"
   },
+  "BeforeUnloadEvent": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "BiquadFilterNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section",
     "members": {
@@ -388,7 +392,10 @@
     "comment": "http://www.w3.org/TR/css3-fonts/",
     "members": {
       "error": {},
-      "fontface": {}
+      "fontface": {},
+      "fontfaces": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -757,6 +764,9 @@
       "drawSystemFocusRing": {
         "support_level": "untriaged"
       },
+      "ellipse": {
+        "support_level": "untriaged"
+      },
       "fill": {},
       "fillRect": {},
       "fillStyle": {},
@@ -786,6 +796,9 @@
       "putImageData": {},
       "quadraticCurveTo": {},
       "rect": {},
+      "resetTransform": {
+        "support_level": "untriaged"
+      },
       "restore": {},
       "rotate": {},
       "save": {},
@@ -1090,6 +1103,12 @@
         "support_level": "untriaged"
       },
       "timeStamp": {
+        "support_level": "untriaged"
+      },
+      "timeline": {
+        "support_level": "untriaged"
+      },
+      "timelineEnd": {
         "support_level": "untriaged"
       },
       "trace": {
@@ -1718,6 +1737,9 @@
         "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
         "support_level": "experimental"
       },
+      "fonts": {
+        "support_level": "untriaged"
+      },
       "forms": {},
       "getCSSCanvasContext": {
         "comment": "https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html",
@@ -1767,6 +1789,9 @@
       "oncopy": {},
       "oncut": {},
       "ondblclick": {},
+      "ondoubleclick": {
+        "support_level": "untriaged"
+      },
       "ondrag": {},
       "ondragend": {},
       "ondragenter": {},
@@ -1776,6 +1801,12 @@
       "ondrop": {},
       "onerror": {},
       "onfocus": {},
+      "onfullscreenchange": {
+        "support_level": "untriaged"
+      },
+      "onfullscreenerror": {
+        "support_level": "untriaged"
+      },
       "oninput": {},
       "oninvalid": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/section-index.html#attributes-1"
@@ -1797,6 +1828,12 @@
       "onmouseup": {},
       "onmousewheel": {},
       "onpaste": {},
+      "onpointerlockchange": {
+        "support_level": "untriaged"
+      },
+      "onpointerlockerror": {
+        "support_level": "untriaged"
+      },
       "onreadystatechange": {},
       "onreset": {},
       "onscroll": {},
@@ -2069,10 +2106,10 @@
       "firstElementChild": {},
       "focus": {},
       "getAttribute": {
-        "support_level": "deprecated"
+        "support_level": "untriaged"
       },
       "getAttributeNS": {
-        "support_level": "deprecated"
+        "support_level": "untriaged"
       },
       "getAttributeNode": {
         "comment": "http://dom.spec.whatwg.org/#dom-element-getattributenode",
@@ -2119,6 +2156,15 @@
       "inputMethodContext": {
         "support_level": "untriaged"
       },
+      "insertAdjacentElement": {
+        "support_level": "untriaged"
+      },
+      "insertAdjacentHTML": {
+        "support_level": "untriaged"
+      },
+      "insertAdjacentText": {
+        "support_level": "untriaged"
+      },
       "isContentEditable": {
         "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
         "dart_action": "stable",
@@ -2153,6 +2199,9 @@
       "oncopy": {},
       "oncut": {},
       "ondblclick": {},
+      "ondoubleclick": {
+        "support_level": "untriaged"
+      },
       "ondrag": {},
       "ondragend": {},
       "ondragenter": {},
@@ -2162,6 +2211,12 @@
       "ondrop": {},
       "onerror": {},
       "onfocus": {},
+      "onfullscreenchange": {
+        "support_level": "untriaged"
+      },
+      "onfullscreenerror": {
+        "support_level": "untriaged"
+      },
       "oninput": {},
       "oninvalid": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/section-index.html#attributes-1"
@@ -2272,12 +2327,8 @@
       "scrollLeft": {},
       "scrollTop": {},
       "scrollWidth": {},
-      "setAttribute": {
-        "support_level": "deprecated"
-      },
-      "setAttributeNS": {
-        "support_level": "deprecated"
-      },
+      "setAttribute": {},
+      "setAttributeNS": {},
       "setAttributeNode": {
         "comment": "http://dom.spec.whatwg.org/#dom-element-setattributenode",
         "dart_action": "suppress",
@@ -2645,13 +2696,9 @@
   },
   "EventTarget": {
     "members": {
-      "addEventListener": {
-        "support_level": "deprecated"
-      },
+      "addEventListener": {},
       "dispatchEvent": {},
-      "removeEventListener": {
-        "support_level": "deprecated"
-      }
+      "removeEventListener": {}
     },
     "support_level": "stable"
   },
@@ -2857,6 +2904,59 @@
       "relatedTarget": {}
     },
     "support_level": "stable"
+  },
+  "FontFace": {
+    "members": {
+      "FontFace": {},
+      "family": {
+        "support_level": "untriaged"
+      },
+      "featureSettings": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      },
+      "stretch": {
+        "support_level": "untriaged"
+      },
+      "style": {
+        "support_level": "untriaged"
+      },
+      "unicodeRange": {
+        "support_level": "untriaged"
+      },
+      "variant": {
+        "support_level": "untriaged"
+      },
+      "weight": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "FontFaceSet": {
+    "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "check": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "match": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "FontLoader": {
     "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
@@ -3689,6 +3789,9 @@
       "naturalHeight": {},
       "naturalWidth": {},
       "src": {},
+      "srcset": {
+        "support_level": "untriaged"
+      },
       "useMap": {},
       "vspace": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLImageElement-partial",
@@ -3750,6 +3853,9 @@
       "min": {},
       "multiple": {},
       "name": {},
+      "onspeechchange": {
+        "support_level": "untriaged"
+      },
       "onwebkitSpeechChange": {
         "comment": "http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements",
         "support_level": "experimental"
@@ -3982,10 +4088,22 @@
       "ondurationchange": {},
       "onemptied": {},
       "onended": {},
+      "onkeyadded": {
+        "support_level": "untriaged"
+      },
+      "onkeyerror": {
+        "support_level": "untriaged"
+      },
+      "onkeymessage": {
+        "support_level": "untriaged"
+      },
       "onloadeddata": {},
       "onloadedmetadata": {},
       "onloadstart": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart"
+      },
+      "onneedkey": {
+        "support_level": "untriaged"
       },
       "onpause": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart"
@@ -4786,6 +4904,9 @@
       "LOADING": {},
       "NONE": {},
       "default": {},
+      "defaultValue": {
+        "support_level": "untriaged"
+      },
       "kind": {},
       "label": {},
       "readyState": {},
@@ -5190,6 +5311,17 @@
     },
     "support_level": "untriaged"
   },
+  "KeyPair": {
+    "members": {
+      "privateKey": {
+        "support_level": "untriaged"
+      },
+      "publicKey": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "KeyboardEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent",
     "members": {
@@ -5460,6 +5592,15 @@
       "dispatchEvent": {},
       "error": {},
       "keySystem": {},
+      "onkeyadded": {
+        "support_level": "untriaged"
+      },
+      "onkeyerror": {
+        "support_level": "untriaged"
+      },
+      "onkeymessage": {
+        "support_level": "untriaged"
+      },
       "onwebkitkeyadded": {},
       "onwebkitkeyerror": {},
       "onwebkitkeymessage": {},
@@ -5909,6 +6050,9 @@
   },
   "NavigatorID": {
     "members": {
+      "appCodeName": {
+        "support_level": "untriaged"
+      },
       "appName": {
         "support_level": "untriaged"
       },
@@ -5916,6 +6060,9 @@
         "support_level": "untriaged"
       },
       "platform": {
+        "support_level": "untriaged"
+      },
+      "product": {
         "support_level": "untriaged"
       },
       "userAgent": {
@@ -5987,9 +6134,7 @@
       "addEventListener": {},
       "appendChild": {},
       "baseURI": {},
-      "childNodes": {
-        "support_level": "deprecated"
-      },
+      "childNodes": {},
       "cloneNode": {},
       "compareDocumentPosition": {},
       "contains": {},
@@ -6011,16 +6156,12 @@
       },
       "lastChild": {},
       "localName": {
-        "comment": "http://dom.spec.whatwg.org/#dom-node-localname",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
+        "comment": "http://dom.spec.whatwg.org/#dom-node-localname"
       },
       "lookupNamespaceURI": {},
       "lookupPrefix": {},
       "namespaceURI": {
-        "comment": "http://dom.spec.whatwg.org/#dom-node-namespaceuri",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
+        "comment": "http://dom.spec.whatwg.org/#dom-node-namespaceuri"
       },
       "nextSibling": {},
       "nodeName": {},
@@ -6451,6 +6592,9 @@
       "navigation": {},
       "now": {
         "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/HighResolutionTime/Overview.html#sec-extenstions-performance-interface"
+      },
+      "onresourcetimingbufferfull": {
+        "support_level": "untriaged"
       },
       "onwebkitresourcetimingbufferfull": {
         "comment": "http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods",
@@ -7673,6 +7817,9 @@
       "oncopy": {},
       "oncut": {},
       "ondblclick": {},
+      "ondoubleclick": {
+        "support_level": "untriaged"
+      },
       "ondrag": {},
       "ondragend": {},
       "ondragenter": {},
@@ -10332,6 +10479,10 @@
     },
     "support_level": "stable"
   },
+  "ServiceWorker": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "ShadowRoot": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root",
     "members": {
@@ -10394,6 +10545,15 @@
         "support_level": "untriaged"
       },
       "appendBufferView": {
+        "support_level": "untriaged"
+      },
+      "appendByteBuffer": {
+        "support_level": "untriaged"
+      },
+      "appendStream": {
+        "support_level": "untriaged"
+      },
+      "appendTypedData": {
         "support_level": "untriaged"
       },
       "appendWindowEnd": {
@@ -10618,6 +10778,9 @@
     "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
     "members": {
       "default": {},
+      "defaultValue": {
+        "support_level": "untriaged"
+      },
       "lang": {},
       "localService": {},
       "name": {},
@@ -12143,12 +12306,24 @@
       },
       "onDOMContentLoaded": {},
       "onabort": {},
+      "onanimationend": {
+        "support_level": "untriaged"
+      },
+      "onanimationiteration": {
+        "support_level": "untriaged"
+      },
+      "onanimationstart": {
+        "support_level": "untriaged"
+      },
       "onbeforeunload": {},
       "onblur": {},
       "oncanplay": {},
       "oncanplaythrough": {},
       "onchange": {},
       "onclick": {},
+      "oncontentloaded": {
+        "support_level": "untriaged"
+      },
       "oncontextmenu": {},
       "ondblclick": {},
       "ondevicemotion": {
@@ -12158,6 +12333,9 @@
       "ondeviceorientation": {
         "comment": "http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion",
         "support_level": "experimental"
+      },
+      "ondoubleclick": {
+        "support_level": "untriaged"
       },
       "ondrag": {},
       "ondragend": {},

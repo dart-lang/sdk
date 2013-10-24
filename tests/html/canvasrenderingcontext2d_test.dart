@@ -674,4 +674,74 @@ main() {
       //var pattern2 = context.createPatternFromImage(new ImageElement(), '');
     });
   });
+
+  group('fillText', () {
+    setUp(setupFunc);
+    tearDown(tearDownFunc);
+
+    final x = 20;
+    final y = 20;
+
+    test('without maxWidth', () {
+      context.font = '40pt Garamond';
+      context.fillStyle = 'blue';
+
+      // Draw a blue box.
+      context.fillText('█', x, y);
+
+      var width = context.measureText('█').width.toInt();
+
+      checkPixel(readPixel(x, y), [0, 0, 255, 255]);
+      checkPixel(readPixel(x + 10, y), [0, 0, 255, 255]);
+
+      expectPixelUnfilled(x - 10, y);
+      expectPixelFilled(x, y);
+      expectPixelFilled(x + 10, y);
+
+      // The box does not draw after `width` pixels.
+      expectPixelFilled(x + width - 1, y);
+      expectPixelUnfilled(x + width + 1, y);
+    });
+
+    test('with maxWidth null', () {
+      context.font = '40pt Garamond';
+      context.fillStyle = 'blue';
+
+      // Draw a blue box with null maxWidth.
+      context.fillText('█', x, y, null);
+
+      var width = context.measureText('█').width.toInt();
+
+      checkPixel(readPixel(x, y), [0, 0, 255, 255]);
+      checkPixel(readPixel(x + 10, y), [0, 0, 255, 255]);
+
+      expectPixelUnfilled(x - 10, y);
+      expectPixelFilled(x, y);
+      expectPixelFilled(x + 10, y);
+
+      // The box does not draw after `width` pixels.
+      expectPixelFilled(x + width - 1, y);
+      expectPixelUnfilled(x + width + 1, y);
+    });
+
+    test('with maxWidth defined', () {
+      context.font = '40pt Garamond';
+      context.fillStyle = 'blue';
+
+      final maxWidth = 20;
+
+      // Draw a blue box that's at most 20 pixels wide.
+      context.fillText('█', x, y, maxWidth);
+
+      checkPixel(readPixel(x, y), [0, 0, 255, 255]);
+      checkPixel(readPixel(x + 10, y), [0, 0, 255, 255]);
+
+      // The box does not draw after 20 pixels.
+      expectPixelUnfilled(x - 10, y);
+      expectPixelUnfilled(x + maxWidth + 1, y);
+      expectPixelUnfilled(x + maxWidth + 20, y);
+      expectPixelFilled(x, y);
+      expectPixelFilled(x + 10, y);
+    });
+  });
 }

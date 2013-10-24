@@ -97,6 +97,7 @@ class _IntegerImplementation {
   bool get isNaN => false;
   bool get isNegative => this < 0;
   bool get isInfinite => false;
+  bool get isFinite => true;
 
   int toUnsigned(int width) {
     return this & ((1 << width) - 1);

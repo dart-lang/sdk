@@ -36,6 +36,8 @@ class B<T> extends A<T> {
   factory B.test04() = A.test04;  /// 04: continued
 
   factory B.test05(int incompatible) = A<T>.factory;  /// 05: runtime error
+
+  factory B.test05(int incompatible) = A<T>.factory;  /// 06: runtime error
 }
 
 class C<K, V> extends B<V> {
@@ -49,7 +51,7 @@ class C<K, V> extends B<V> {
 
   factory C.test04() = B.test04;  /// 04: continued
 
-  factory C.test06(int incompatible) = B<K>.test05;  /// 06: runtime error
+  factory C.test06(int incompatible) = B<K>.test05;  /// 06: continued
 
   const factory C.test07(V x) = B<V>.A;  /// 07: compile-time error
 }
@@ -60,8 +62,8 @@ main() {
   new A<List>.test03();  /// 03: continued
   new C.test04();  /// 04: continued
   new B.test05(0);  /// 05: continued
-  new C.test06<int, int>(0);  /// 06: continued
-  new C.test07<int, int>(0);  /// 07: continued
+  new C<int, int>.test06(0);  /// 06: continued
+  new C<int, int>.test07(0);  /// 07: continued
   Expect.isTrue(new A<List>() is A<List>);
   Expect.isTrue(new A<bool>.constant(true).x);
   Expect.isTrue(new A<Set>.factory() is B<Set>);

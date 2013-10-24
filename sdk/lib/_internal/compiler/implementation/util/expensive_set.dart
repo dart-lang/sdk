@@ -33,10 +33,12 @@ class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
     _sets[0].forEach(action);
   }
 
-  void add(E element) {
-    for (int i = 0; i < _sets.length; i++) {
+  bool add(E element) {
+    bool result = _sets[0].add(element);
+    for (int i = 1; i < _sets.length; i++) {
       _sets[i].add(element);
     }
+    return result;
   }
 
   void addAll(Iterable<E> objects) {

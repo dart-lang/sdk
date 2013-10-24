@@ -9,8 +9,7 @@ import 'dart:io';
 
 const int NUM_SERVERS = 10;
 
-void main() {
-  var args = new Options().arguments;
+void main(List<String> args) {
   if (args.isEmpty) {
     for (int i = 0; i < NUM_SERVERS; ++i) {
       makeServer().then((server) {

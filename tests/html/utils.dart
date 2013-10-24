@@ -2,6 +2,7 @@ library TestUtils;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:js' as js;
 import 'dart:typed_data';
 import 'package:unittest/unittest.dart';
 
@@ -172,4 +173,17 @@ Future loadCustomElementPolyfill() {
 
 Future loadPolyfills() {
   return loadCustomElementPolyfill();
+}
+
+/**
+ * Upgrade all custom elements in the subtree which have not been upgraded.
+ *
+ * This is needed to cover timing scenarios which the custom element polyfill
+ * does not cover.
+ */
+void upgradeCustomElements(Node node) {
+  if (js.context.hasProperty('CustomElements') &&
+      js.context['CustomElements'].hasProperty('upgradeAll')) {
+    js.context['CustomElements'].callMethod('upgradeAll', [node]);
+  }
 }

@@ -91,7 +91,7 @@ main() {
     document.body.append(container);
     container.setInnerHtml("<x-foo></x-foo>",
         treeSanitizer: new NullTreeSanitizer());
-    Platform.upgradeCustomElements(container);
+    upgradeCustomElements(container);
     var parsedFoo = container.firstChild;
 
     expect(parsedFoo is Foo, isTrue);
@@ -127,7 +127,7 @@ main() {
 
     container.setInnerHtml("<X-BAR></X-BAR><X-Bar></X-Bar>",
         treeSanitizer: new NullTreeSanitizer());
-    Platform.upgradeCustomElements(container);
+    upgradeCustomElements(container);
     expect(container.firstChild is Bar, isTrue);
     expect(container.firstChild.tagName, "X-BAR");
     expect(container.lastChild is Bar, isTrue);

@@ -625,10 +625,6 @@ class ContainerBuilder extends CodeEmitterHelper {
         builder.addProperty('*$unmangledName', defaultValues);
       }
     }
-    code = backend.generatedBailoutCode[member];
-    if (code != null) {
-      builder.addProperty(namer.getBailoutName(member), code);
-    }
     if (member.isInstanceMember()) {
       // TODO(ahe): Where is this done for static/top-level methods?
       FunctionSignature parameters = member.computeSignature(compiler);

@@ -90,7 +90,7 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph,
       var transformers = [[rewrite]];
       return Future.forEach(graph.packages[package].pubspec.transformers,
           (phase) {
-        return Future.wait(phase.where((id) => id.asset.package == package)
+        return Future.wait(phase.where((id) => id.package == package)
             .map(loader.load)).then((_) {
           transformers.add(unionAll(phase.map(
               (id) => loader.transformersFor(id))));
@@ -157,7 +157,7 @@ Map<String, Set<String>> _computeOrderingDeps(PackageGraph graph) {
 /// Returns the set of transformer dependencies for [package].
 Set<String> _transformerDeps(PackageGraph graph, String package) =>
   unionAll(graph.packages[package].pubspec.transformers)
-      .map((id) => id.asset.package).toSet();
+      .map((id) => id.package).toSet();
 
 /// Returns an [ApplicationException] describing an ordering dependency cycle
 /// detected in [graph].
@@ -176,8 +176,8 @@ ApplicationException _cycleError(PackageGraph graph, String dependee,
   return new ApplicationException("Transformer cycle detected:\n" +
       pairs(path).map((pair) {
     var transformers = unionAll(graph.packages[pair.first].pubspec.transformers)
-        .where((id) => id.asset.package == pair.last)
-        .map((id) => idToLibraryIdentifier(id.asset)).toList();
+        .where((id) => id.package == pair.last)
+        .map((id) => id.toString()).toList();
     if (transformers.isEmpty) {
       return "  ${pair.first} depends on ${pair.last}";
     } else {
@@ -195,7 +195,7 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
   for (var package in graph.packages.values) {
     for (var phase in package.pubspec.transformers) {
       for (var id in phase) {
-        packageTransformers[id.asset.package].add(id);
+        packageTransformers[id.package].add(id);
       }
     }
   }
@@ -213,12 +213,13 @@ class _TransformerLoader {
   /// The packages that use each transformer asset id.
   ///
   /// Used for error reporting.
-  final _transformerUsers = new Map<AssetId, Set<String>>();
+  final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
 
   _TransformerLoader(this._server, PackageGraph graph) {
     for (var package in graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
-        _transformerUsers.putIfAbsent(id.asset, () => new Set<String>())
+        _transformerUsers.putIfAbsent(
+            new Pair(id.package, id.path), () => new Set<String>())
             .add(package.name);
       }
     }
@@ -244,9 +245,19 @@ class _TransformerLoader {
       if (id.configuration != null) {
         message += " that accept configuration";
       }
+
+      var location;
+      if (id.path == null) {
+        location = 'package:${id.package}/transformer.dart or '
+          'package:${id.package}/${id.package}.dart';
+      } else {
+        location = 'package:$id.dart';
+      }
+      var pair = new Pair(id.package, id.path);
+
       throw new ApplicationException(
-          "$message were defined in ${idToPackageUri(id.asset)},\n"
-          "required by ${ordered(_transformerUsers[id.asset]).join(', ')}.");
+          "$message were defined in $location,\n"
+          "required by ${ordered(_transformerUsers[pair]).join(', ')}.");
     });
   }
 

@@ -27,9 +27,9 @@ main() {
   cm = reflectClass(B);
   checkMetadata(cm.typeVariables[0], [m3]);
 
-  // Partial coverage.
-  return; /// 01: ok
 
   TypedefMirror tm = reflectType(Predicate);
   checkMetadata(tm.typeVariables[0], [m1, m2]);
+  FunctionTypeMirror ftm = tm.referent;
+  checkMetadata(ftm, []);
 }

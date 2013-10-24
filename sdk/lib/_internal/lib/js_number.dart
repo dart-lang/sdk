@@ -49,6 +49,8 @@ class JSNumber extends Interceptor implements num {
         || JS('bool', r'# == -Infinity', this);
   }
 
+  bool get isFinite => JS('bool', r'isFinite(#)', this);
+
   num remainder(num b) {
     checkNull(b); // TODO(ngeoffray): This is not specified but co19 tests it.
     if (b is! num) throw new ArgumentError(b);
@@ -190,9 +192,19 @@ class JSNumber extends Interceptor implements num {
     }
   }
 
+  bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
+
   num operator ~/(num other) {
+    if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
+      return JS('num', r'(# / #) | 0', this, other);
+    } else {
+      return _slowTdiv(other);
+    }
+  }
+
+  num _slowTdiv(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return (JS('num', r'# / #', this, other)).truncate();
+    return (JS('num', r'# / #', this, other)).toInt();
   }
 
   // TODO(ngeoffray): Move the bit operations below to [JSInt] and
@@ -289,7 +301,7 @@ class JSInt extends JSNumber implements int, double {
   }
 
   int get bitLength {
-    int nonneg = this < 0 ? -this-1 : this;
+    int nonneg = this < 0 ? -this - 1 : this;
     if (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;
       return _bitCount(_spread(nonneg)) + 32;

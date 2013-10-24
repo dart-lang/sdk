@@ -92,12 +92,15 @@ interface HTMLCanvasElement {
 [Supplemental]
 interface HTMLOptionsCollection {
   [Suppressed] void add(optional HTMLOptionElement element, optional long before);
+  [Suppressed] void remove(HTMLOptionElement option); // Non standard.
 };
 
 [Supplemental]
 interface HTMLSelectElement {
   [Suppressed] void add([Default=Undefined] HTMLElement element, [Default=Undefined] HTMLElement before);
   [Suppressed, Custom] void remove();
+  [Suppressed] void remove(long index);
+  [Suppressed] void remove(HTMLOptionElement option); // Non standard.
 };
 
 [Supplemental]
@@ -129,6 +132,11 @@ interface HTMLMediaElement {
   attribute EventListener ontimeupdate;
   attribute EventListener onvolumechange;
   attribute EventListener onwaiting;
+};
+
+[Supplemental]
+interface RTCPeerConnection {
+  [Suppressed, RaisesException] void addIceCandidate(RTCIceCandidate candidate);
 };
 
 [Supplemental]

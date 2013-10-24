@@ -24,8 +24,6 @@
     'io_service.dart',
     'link.dart',
     'options.dart',
-    'path.dart',
-    'path_impl.dart',
     'platform.dart',
     'platform_impl.dart',
     'process.dart',

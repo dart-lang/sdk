@@ -676,7 +676,7 @@ class Assembler : public ValueObject {
   void Vreciprocalqs(QRegister qd, QRegister qm);
   void VreciprocalSqrtqs(QRegister qd, QRegister qm);
   // If qm must be preserved, then provide a (non-QTMP) temporary.
-  void Vsqrtqs(QRegister qd, QRegister qm, QRegister temp = kNoQRegister);
+  void Vsqrtqs(QRegister qd, QRegister qm, QRegister temp);
   void Vdivqs(QRegister qd, QRegister qn, QRegister qm);
 
   void SmiTag(Register reg, Condition cond = AL) {

@@ -364,7 +364,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
       AstNode* receiver,
       const String& method_name,
       ArgumentListNode* method_arguments,
-      bool save_last_arg);
+      bool save_last_arg,
+      bool is_super_invocation);
 
   StaticCallInstr* BuildThrowNoSuchMethodError(
       intptr_t token_pos,

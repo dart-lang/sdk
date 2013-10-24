@@ -25,15 +25,13 @@ BSD-style license that can be found in the LICENSE file.
       }
 
       main() {
-        mdv.initialize();
-
         var globals = {
           'keyPress': document.onKeyPress
               .map((e) => new String.fromCharCode(e.charCode)),
           'collect': collect,
         };
 
-        query('#test')
+        templateBind(query('#test'))
             ..bindingDelegate = new PolymerExpressions(globals: globals)
             ..model = null;
       }

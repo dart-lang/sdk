@@ -86,6 +86,8 @@ import 'package:args/args.dart';
 
 import 'src/build/linter.dart';
 import 'src/build/runner.dart';
+import 'src/build/common.dart';
+
 import 'transformer.dart';
 
 
@@ -142,7 +144,7 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
   if (options == null) options = _options;
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
-  var linterOptions = new TransformOptions(currentPackage, entryPoints);
+  var linterOptions = new TransformOptions(entryPoints: entryPoints);
   var formatter = options.machineFormat ? jsonFormatter : consoleFormatter;
   var linter = new Linter(linterOptions, formatter);
   return runBarback(new BarbackOptions([[linter]], null,
@@ -198,8 +200,14 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
   if (options == null) options = _options;
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
+
+  var transformOptions = new TransformOptions(
+      entryPoints: entryPoints,
+      directlyIncludeJS: options.directlyIncludeJS,
+      contentSecurityPolicy: options.contentSecurityPolicy);
+
   var barbackOptions = new BarbackOptions(
-      createDeployPhases(new TransformOptions(currentPackage, entryPoints)),
+      new PolymerTransformerGroup(transformOptions).phases,
       options.outDir, currentPackage: currentPackage,
       packageDirs: packageDirs);
   return runBarback(barbackOptions)
@@ -233,8 +241,18 @@ class CommandLineOptions {
   /** Location where to generate output files. */
   final String outDir;
 
+  /** True to use the CSP-compliant JS file. */
+  final bool contentSecurityPolicy;
+
+  /**
+   * True to include the JS script tag directly, without the
+   * "packages/browser/dart.js" trampoline.
+   */
+  final bool directlyIncludeJS;
+
   CommandLineOptions(this.changedFiles, this.removedFiles, this.clean,
-      this.full, this.machineFormat, this.forceDeploy, this.outDir);
+      this.full, this.machineFormat, this.forceDeploy, this.outDir,
+      this.directlyIncludeJS, this.contentSecurityPolicy);
 }
 
 /** Options parsed directly from the command line arguments. */
@@ -251,6 +269,10 @@ CommandLineOptions _options = parseOptions();
  *   * `--machine`: produce output that can be parsed by tools, such as the Dart
  *     Editor.
  *   * `--deploy`: force deploy.
+ *   * `--no-js`: deploy replaces *.dart scripts with *.dart.js. You can turn
+ *     this feature off with --no-js, which leaves "packages/browser/dart.js".
+ *   * `--csp`: replaces *.dart with *.dart.precompiled.js to comply with
+ *     Content Security Policy restrictions.
  *   * `--help`: print documentation for each option and exit.
  *
  * Currently not all the flags are used by [lint] or [deploy] above, but they
@@ -277,16 +299,36 @@ CommandLineOptions parseOptions([List<String> args]) {
         help: 'Whether to force deploying.')
     ..addOption('out', abbr: 'o', help: 'Directory to generate files into.',
         defaultsTo: 'out')
+    ..addFlag('js', help:
+        'deploy replaces *.dart scripts with *.dart.js. This flag \n'
+        'leaves "packages/browser/dart.js" to do the replacement at runtime.',
+        defaultsTo: true)
+    ..addFlag('csp', help:
+        'replaces *.dart with *.dart.precompiled.js to comply with \n'
+        'Content Security Policy restrictions.')
     ..addFlag('help', abbr: 'h',
         negatable: false, help: 'Displays this help and exit.');
-  var res = parser.parse(args == null ? new Options().arguments : args);
-  if (res['help']) {
-    print('A build script that invokes the polymer linter and deploy tools.');
+
+  showUsage() {
     print('Usage: dart build.dart [options]');
     print('\nThese are valid options expected by build.dart:');
     print(parser.getUsage());
+  }
+
+  var res;
+  try {
+    res = parser.parse(args == null ? new Options().arguments : args);
+  } on FormatException catch (e) {
+    print(e.message);
+    showUsage();
+    exit(1);
+  }
+  if (res['help']) {
+    print('A build script that invokes the polymer linter and deploy tools.');
+    showUsage();
     exit(0);
   }
   return new CommandLineOptions(res['changed'], res['removed'], res['clean'],
-      res['full'], res['machine'], res['deploy'], res['out']);
+      res['full'], res['machine'], res['deploy'], res['out'], res['js'],
+      res['csp']);
 }

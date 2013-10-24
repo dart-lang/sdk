@@ -4,9 +4,7 @@
 
 part of ssa;
 
-abstract class SsaTypePropagator extends HBaseVisitor
-    implements OptimizationPhase {
-
+class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
   final List<int> worklist = new List<int>();
   final Map<HInstruction, Function> pendingOptimizations =
@@ -109,8 +107,6 @@ abstract class SsaTypePropagator extends HBaseVisitor
   }
 
 
-  void addDependentInstructionsToWorkList(HInstruction instruction) {}
-
   void addToWorkList(HInstruction instruction) {
     final int id = instruction.id;
 
@@ -118,11 +114,6 @@ abstract class SsaTypePropagator extends HBaseVisitor
       worklist.add(id);
       workmap[id] = instruction;
     }
-  }
-
-  HType visitInvokeDynamic(HInvokeDynamic instruction) {
-    return instruction.specializer.computeTypeFromInputTypes(
-        instruction, compiler);
   }
 
   HType visitBinaryArithmetic(HBinaryArithmetic instruction) {
@@ -241,15 +232,6 @@ abstract class SsaTypePropagator extends HBaseVisitor
     HInstruction left = instruction.inputs[1];
     HType receiverType = left.instructionType;
 
-    // A [HTypeGuard] holds the speculated type when it is being
-    // inserted, so we go find the real receiver type.
-    if (left is HTypeGuard) {
-      var guard = left;
-      while (guard is HTypeGuard && !guard.isEnabled) {
-        guard = guard.checkedInput;
-      }
-      receiverType = guard.instructionType;
-    }
     HInstruction right = instruction.inputs[2];
     Selector selector = instruction.selector;
     if (selector.isOperator() && receiverType.isNumber()) {
@@ -272,16 +254,10 @@ abstract class SsaTypePropagator extends HBaseVisitor
     pendingOptimizations.forEach((instruction, action) => action());
     pendingOptimizations.clear();
   }
-}
-
-class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
-  final String name = 'non speculative type propagator';
-  DesiredTypeVisitor desiredTypeVisitor;
-  SsaNonSpeculativeTypePropagator(Compiler compiler) : super(compiler);
 
   void addDependentInstructionsToWorkList(HInstruction instruction) {
     for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      // The non-speculative type propagator only propagates types forward. We
+      // The type propagator only propagates types forward. We
       // thus only need to add the users of the [instruction] to the list.
       addToWorkList(instruction.usedBy[i]);
     }
@@ -311,179 +287,7 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
         }
       });
     }
-    return super.visitInvokeDynamic(instruction);
-  }
-}
-
-/**
- * Visitor whose methods return the desired type for the input of an
- * instruction.
- */
-class DesiredTypeVisitor extends HBaseVisitor {
-  final Compiler compiler;
-  final SsaTypePropagator propagator;
-  HInstruction input;
-
-  DesiredTypeVisitor(this.compiler, this.propagator);
-
-  HType visitInstruction(HInstruction instruction) {
-    return HType.UNKNOWN;
-  }
-
-  HType visitCheck(HCheck check) {
-    // If the desired type of the input is already a number, we want
-    // to specialize it to an integer.
-    if (input == check.checkedInput
-        && check.isInteger()
-        && check.checkedInput.isNumberOrNull()) {
-      return HType.INTEGER;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType visitTypeConversion(HTypeConversion check) {
-    return HType.UNKNOWN;
-  }
-
-  HType visitTypeKnown(HTypeKnown check) {
-    return HType.UNKNOWN;
-  }
-
-  HType visitInvokeDynamic(HInvokeDynamic instruction) {
-    return instruction.specializer.computeDesiredTypeForInput(
-        instruction, input, compiler);
-  }
-
-  HType visitPhi(HPhi phi) {
-    // Best case scenario for a phi is, when all inputs have the same type. If
-    // there is no desired outgoing type we therefore try to unify the input
-    // types (which is basically the [likelyType]).
-    HType propagatedType = phi.instructionType;
-
-    // If the incoming type of a phi is an integer, we don't want to
-    // be too restrictive for the back edge and desire an integer
-    // too. Therefore we only return integer if the phi is used by a
-    // bounds check, which includes an integer check.
-    if (propagatedType.isInteger()) {
-      if (phi.usedBy.any((user) => user is HBoundsCheck && user.index == phi)) {
-        return propagatedType;
-      }
-      return HType.NUMBER;
-    }
-    if (propagatedType.isUnknown()) return computeLikelyType(phi);
-    // When the desired outgoing type is conflicting we don't need to give any
-    // requirements on the inputs.
-    if (propagatedType.isConflicting()) return HType.UNKNOWN;
-    // Otherwise the input type must match the desired outgoing type.
-    return propagatedType;
-  }
-
-  HType computeLikelyType(HPhi phi) {
-    HType agreedType = propagator.computeInputsType(phi, true);
-    if (agreedType.isConflicting()) return HType.UNKNOWN;
-    // Don't be too restrictive. If the agreed type is integer or double just
-    // say that the likely type is number. If more is expected the type will be
-    // propagated back.
-    if (agreedType.isNumber()) return HType.NUMBER;
-    return agreedType;
-  }
-
-  HType visitInterceptor(HInterceptor instruction) {
-    if (instruction.interceptedClasses.length != 1) return HType.UNKNOWN;
-    // If the only class being intercepted is of type number, we
-    // make this interceptor call say it wants that class as input.
-    Element interceptor = instruction.interceptedClasses.toList()[0];
-    JavaScriptBackend backend = compiler.backend;
-    if (interceptor == backend.jsNumberClass) {
-      return HType.NUMBER;
-    } else if (interceptor == backend.jsIntClass) {
-      return HType.INTEGER;
-    } else if (interceptor == backend.jsDoubleClass) {
-      return HType.DOUBLE;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForInput(HInstruction user, HInstruction input) {
-    this.input = input;
-    // We simplify the desired type to avoid requesting the type of an
-    // instantiation node, for example [ContainerTypeMask].
-    HType desired = user.accept(this).simplify(compiler);
-    assert(!desired.computeMask(compiler).isContainer);
-    this.input = null;
-    return desired;
-  }
-}
-
-class SsaSpeculativeTypePropagator extends SsaTypePropagator {
-  final String name = 'speculative type propagator';
-  DesiredTypeVisitor desiredTypeVisitor;
-  final Map<HInstruction, HType> savedTypes;
-  SsaSpeculativeTypePropagator(Compiler compiler, this.savedTypes)
-      : super(compiler) {
-    desiredTypeVisitor = new DesiredTypeVisitor(compiler, this);
-  }
-
-  void addDependentInstructionsToWorkList(HInstruction instruction) {
-    // The speculative type propagator propagates types forward and backward.
-    // Not only do we need to add the users of the [instruction] to the list.
-    // We also need to add the inputs fo the [instruction], since they might
-    // want to propagate the desired outgoing type.
-    for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      addToWorkList(instruction.usedBy[i]);
-    }
-    for (int i = 0, length = instruction.inputs.length; i < length; i++) {
-      addToWorkList(instruction.inputs[i]);
-    }
-  }
-
-  HType computeDesiredType(HInstruction instruction) {
-    HType desiredType = instruction.instructionType;
-    for (final user in instruction.usedBy) {
-      HType userDesiredType =  desiredTypeVisitor.computeDesiredTypeForInput(
-          user, instruction);
-      desiredType = desiredType.intersection(userDesiredType, compiler);
-      // No need to continue if two users disagree on the type.
-      if (desiredType.isConflicting()) break;
-    }
-    return desiredType;
-  }
-
-  bool hasBeenSpeculativelyOptimized(HInstruction instruction) {
-    return savedTypes.containsKey(instruction);
-  }
-
-  HType computeType(HInstruction instruction) {
-    // Once we are in a conflicting state don't update the type anymore.
-    HType oldType = instruction.instructionType;
-    if (oldType.isConflicting()) return oldType;
-
-    HType newType = super.computeType(instruction);
-    if (oldType != newType && !hasBeenSpeculativelyOptimized(instruction)) {
-      savedTypes[instruction] = oldType;
-    }
-    // [computeDesiredType] goes to all usedBys and lets them compute their
-    // desired type. By setting the [newType] here we give them more context to
-    // work with.
-    instruction.instructionType = newType;
-    HType desiredType = computeDesiredType(instruction);
-    // If the desired type is conflicting just return the computed type.
-    if (desiredType.isConflicting()) return newType;
-    if (desiredType.isUnknown() && hasBeenSpeculativelyOptimized(instruction)) {
-      // If we ever change our decision for a desired type to unknown,
-      // we stop the computation on this instruction.
-      return HType.CONFLICTING;
-    }
-    // TODO(ngeoffray): Allow speculative optimizations on
-    // non-primitive types?
-    if (!desiredType.isPrimitive(compiler)) return newType;
-    // It's not worth having a bailout method just because we want a
-    // boolean. Comparing to true is enough.
-    if (desiredType.isBooleanOrNull()) return newType;
-    desiredType = newType.intersection(desiredType, compiler);
-    if (desiredType != newType && !hasBeenSpeculativelyOptimized(instruction)) {
-      savedTypes[instruction] = oldType;
-    }
-    return desiredType;
+    return instruction.specializer.computeTypeFromInputTypes(
+        instruction, compiler);
   }
 }

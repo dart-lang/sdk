@@ -68,6 +68,41 @@ void testGetServerClose() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       server.close();
+      new Timer(const Duration(milliseconds: 100), () {
+        request.response.close();
+      });
+    });
+
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+      .then((request) => request.close())
+      .then((response) => response.drain())
+      .then((_) => asyncEnd());
+  });
+}
+
+void testGetServerCloseNoKeepAlive() {
+  asyncStart();
+  var client = new HttpClient();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    int port = server.port;
+    server.first.then((request) => request.response.close());
+
+    client.get("127.0.0.1", port, "/")
+      .then((request) => request.close())
+      .then((response) => response.drain())
+      .then((_) => client.get("127.0.0.1", port, "/"))
+      .then((request) => request.close())
+      .then((_) => Expect.fail('should not succeed'), onError: (_) {})
+      .then((_) => asyncEnd());
+  });
+}
+
+void testGetServerForceClose() {
+  asyncStart();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.listen((request) {
+      server.close(force: true);
     });
 
     var client = new HttpClient();
@@ -76,12 +111,12 @@ void testGetServerClose() {
       .then((response) {
         Expect.fail("Request not expected");
       })
-        .catchError((error) => asyncEnd(),
-                    test: (error) => error is HttpException);
+      .catchError((error) => asyncEnd(),
+                  test: (error) => error is HttpException);
   });
 }
 
-void testGetDataServerClose() {
+void testGetDataServerForceClose() {
   asyncStart();
   var completer = new Completer();
   HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -89,7 +124,7 @@ void testGetDataServerClose() {
       request.response.contentLength = 100;
       request.response.write("data");
       request.response.write("more data");
-      completer.future.then((_) => server.close());
+      completer.future.then((_) => server.close(force: true));
     });
 
     var client = new HttpClient();
@@ -132,6 +167,8 @@ void main() {
   testGetDataRequest();
   testGetInvalidHost();
   testGetServerClose();
-  testGetDataServerClose();
+  testGetServerCloseNoKeepAlive();
+  testGetServerForceClose();
+  testGetDataServerForceClose();
   testPostEmptyRequest();
 }

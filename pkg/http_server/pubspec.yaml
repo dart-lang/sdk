@@ -2,6 +2,7 @@ name: http_server
 author: Dart Team <misc@dartlang.org>
 description: Library of HTTP server classes.
 homepage: http://www.dartlang.org
+documentation: http://api.dartlang.org/docs/pkg/http_server
 dependencies:
   mime: any
 dev_dependencies:

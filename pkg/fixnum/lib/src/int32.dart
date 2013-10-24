@@ -71,7 +71,7 @@ class Int32 implements IntX {
       int c = s.codeUnitAt(i);
       int digit = _decodeDigit(c);
       if (digit < 0 || digit >= radix) {
-        throw new Exception("Non-radix code unit: $c");
+        throw new FormatException("Non-radix code unit: $c");
       }
       x = (x * radix) + digit;
     }

@@ -73,7 +73,7 @@ class Events implements EventSink {
 
   /** Capture events from a stream into a new [Events] object. */
   factory Events.capture(Stream stream,
-                         { bool cancelOnError: false }) = CaptureEvents;
+                         { bool cancelOnError }) = CaptureEvents;
 
   // EventSink interface.
   void add(var value) {

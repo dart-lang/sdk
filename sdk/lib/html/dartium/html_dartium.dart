@@ -265,24 +265,6 @@ class AnchorElement extends HtmlElement {
   @DocsEditable()
   void set hreflang(String value) native "HTMLAnchorElement_hreflang_Setter";
 
-  @DomName('HTMLAnchorElement.name')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAnchorElement-partial
-  @deprecated // deprecated
-  String get name native "HTMLAnchorElement_name_Getter";
-
-  @DomName('HTMLAnchorElement.name')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAnchorElement-partial
-  @deprecated // deprecated
-  void set name(String value) native "HTMLAnchorElement_name_Setter";
-
-  @DomName('HTMLAnchorElement.origin')
-  @DocsEditable()
-  // WebKit only
-  @deprecated // nonstandard
-  String get origin native "HTMLAnchorElement_origin_Getter";
-
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
   String get pathname native "HTMLAnchorElement_pathname_Getter";
@@ -290,18 +272,6 @@ class AnchorElement extends HtmlElement {
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
   void set pathname(String value) native "HTMLAnchorElement_pathname_Setter";
-
-  @DomName('HTMLAnchorElement.ping')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/text-level-semantics.html#the-a-element
-  @deprecated // deprecated
-  String get ping native "HTMLAnchorElement_ping_Getter";
-
-  @DomName('HTMLAnchorElement.ping')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/text-level-semantics.html#the-a-element
-  @deprecated // deprecated
-  void set ping(String value) native "HTMLAnchorElement_ping_Setter";
 
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
@@ -477,7 +447,7 @@ class ApplicationCache extends EventTarget {
 
   @DomName('ApplicationCache.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "ApplicationCache_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "ApplicationCache_addEventListener_Callback";
 
   @DomName('ApplicationCache.dispatchEvent')
   @DocsEditable()
@@ -485,7 +455,7 @@ class ApplicationCache extends EventTarget {
 
   @DomName('ApplicationCache.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "ApplicationCache_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "ApplicationCache_removeEventListener_Callback";
 
   @DomName('ApplicationCache.oncached')
   @DocsEditable()
@@ -592,18 +562,6 @@ class AreaElement extends HtmlElement {
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
   String get pathname native "HTMLAreaElement_pathname_Getter";
-
-  @DomName('HTMLAreaElement.ping')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAreaElement-partial
-  @deprecated // deprecated
-  String get ping native "HTMLAreaElement_ping_Getter";
-
-  @DomName('HTMLAreaElement.ping')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAreaElement-partial
-  @deprecated // deprecated
-  void set ping(String value) native "HTMLAreaElement_ping_Setter";
 
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
@@ -784,6 +742,21 @@ class BeforeLoadEvent extends Event {
   @DomName('BeforeLoadEvent.url')
   @DocsEditable()
   String get url native "BeforeLoadEvent_url_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('BeforeUnloadEvent')
+@Experimental() // untriaged
+class BeforeUnloadEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1198,9 +1171,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D => getContext('2d');
-
-  @deprecated
-  CanvasRenderingContext2D get context2d => this.context2D;
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -1703,6 +1673,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental() // untriaged
   void drawSystemFocusRing(Element element) native "CanvasRenderingContext2D_drawSystemFocusRing_Callback";
 
+  @DomName('CanvasRenderingContext2D.ellipse')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_ellipse_Callback";
+
   void fill([String winding]) {
     if (winding != null) {
       _fill_1(winding);
@@ -1745,7 +1720,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.getLineDash')
   @DocsEditable()
-  List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
+  List<num> _getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
   bool isPointInPath(num x, num y, [String winding]) {
     if (winding != null) {
@@ -1797,6 +1772,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.rect')
   @DocsEditable()
   void rect(num x, num y, num width, num height) native "CanvasRenderingContext2D_rect_Callback";
+
+  @DomName('CanvasRenderingContext2D.resetTransform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resetTransform() native "CanvasRenderingContext2D_resetTransform_Callback";
 
   @DomName('CanvasRenderingContext2D.restore')
   @DocsEditable()
@@ -2084,6 +2064,23 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  @DomName('CanvasRenderingContext2D.getLineDash')
+  List<num> getLineDash() {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    var result = _getLineDash();
+    if (result == null) {
+      result = [];
+    }
+    return result;
+  }
+
+
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2376,7 +2373,7 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   @DomName('ConsoleBase.markTimeline')
   @DocsEditable()
   @Experimental() // untriaged
-  void markTimeline(Object arg) native "ConsoleBase_markTimeline_Callback";
+  void markTimeline(String title) native "ConsoleBase_markTimeline_Callback";
 
   @DomName('ConsoleBase.profile')
   @DocsEditable()
@@ -2406,7 +2403,17 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   @DomName('ConsoleBase.timeStamp')
   @DocsEditable()
   @Experimental() // untriaged
-  void timeStamp(Object arg) native "ConsoleBase_timeStamp_Callback";
+  void timeStamp(String title) native "ConsoleBase_timeStamp_Callback";
+
+  @DomName('ConsoleBase.timeline')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timeline(String title) native "ConsoleBase_timeline_Callback";
+
+  @DomName('ConsoleBase.timelineEnd')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void timelineEnd(String title) native "ConsoleBase_timelineEnd_Callback";
 
   @DomName('ConsoleBase.trace')
   @DocsEditable()
@@ -2736,13 +2743,10 @@ class CssFontFaceLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CssFontFaceLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('CSSFontFaceLoadEvent.error')
+  @DomName('CSSFontFaceLoadEvent.fontfaces')
   @DocsEditable()
-  DomError get error native "CSSFontFaceLoadEvent_error_Getter";
-
-  @DomName('CSSFontFaceLoadEvent.fontface')
-  @DocsEditable()
-  CssFontFaceRule get fontface native "CSSFontFaceLoadEvent_fontface_Getter";
+  @Experimental() // untriaged
+  List<FontFace> get fontfaces native "CSSFontFaceLoadEvent_fontfaces_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3298,12 +3302,6 @@ class CssRule extends NativeFieldWrapperClass2 {
   @DomName('CSSRule.SUPPORTS_RULE')
   @DocsEditable()
   static const int SUPPORTS_RULE = 12;
-
-  @DomName('CSSRule.UNKNOWN_RULE')
-  @DocsEditable()
-  // http://dev.w3.org/csswg/cssom/#changes-from-dom2
-  @deprecated // deprecated
-  static const int UNKNOWN_RULE = 0;
 
   @DomName('CSSRule.VIEWPORT_RULE')
   @DocsEditable()
@@ -7701,16 +7699,6 @@ class Document extends Node
   @DocsEditable()
   void set _body(HtmlElement value) native "Document_body_Setter";
 
-  @DomName('Document.charset')
-  @DocsEditable()
-  @deprecated // nonstandard
-  String get charset native "Document_charset_Getter";
-
-  @DomName('Document.charset')
-  @DocsEditable()
-  @deprecated // nonstandard
-  void set charset(String value) native "Document_charset_Setter";
-
   @DomName('Document.cookie')
   @DocsEditable()
   String get cookie native "Document_cookie_Getter";
@@ -7736,11 +7724,10 @@ class Document extends Node
   @DocsEditable()
   String get domain native "Document_domain_Getter";
 
-  @DomName('Document.fontloader')
+  @DomName('Document.fonts')
   @DocsEditable()
-  // http://www.w3.org/TR/css3-fonts/#document-fontloader
-  @Experimental()
-  FontLoader get fontloader native "Document_fontloader_Getter";
+  @Experimental() // untriaged
+  FontFaceSet get fonts native "Document_fonts_Getter";
 
   @DomName('Document.head')
   @DocsEditable()
@@ -7816,15 +7803,6 @@ class Document extends Node
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
   bool get _webkitHidden native "Document_webkitHidden_Getter";
 
-  @DomName('Document.webkitIsFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  bool get _webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
-
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7850,12 +7828,6 @@ class Document extends Node
   // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
   @Experimental()
   Range _caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
-
-  @DomName('Document.createCDATASection')
-  @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-document-createcdatasection
-  @deprecated // deprecated
-  CDataSection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
   @DomName('Document.createDocumentFragment')
   @DocsEditable()
@@ -7907,12 +7879,6 @@ class Document extends Node
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
-
-  @DomName('Document.createTouchList')
-  @DocsEditable()
-  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
-  @Experimental()
-  TouchList _createTouchList() native "Document_createTouchList_Callback";
 
   TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
     if (expandEntityReferences != null) {
@@ -8019,15 +7985,6 @@ class Document extends Node
   @DomName('Document.querySelectorAll')
   @DocsEditable()
   List<Node> _querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
-
-  @DomName('Document.webkitCancelFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  void _webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable()
@@ -10073,140 +10030,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
     return false;
   }
 
-  Element _templateInstanceRef;
-
-  // Note: only used if `this is! TemplateElement`
-  DocumentFragment _templateContent;
-
-  bool _templateIsDecorated;
-
-
-
-  /**
-   * Gets the template this node refers to.
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental()
-  Element get ref {
-    _ensureTemplate();
-
-    Element result = null;
-    var refId = attributes['ref'];
-    if (refId != null) {
-      var treeScope = this;
-      while (treeScope.parentNode != null) {
-        treeScope = treeScope.parentNode;
-      }
-
-      // Note: JS code tests that getElementById is present. We can't do that
-      // easily, so instead check for the types known to implement it.
-      if (treeScope is Document ||
-          treeScope is ShadowRoot ||
-          treeScope is svg.SvgSvgElement) {
-
-        result = treeScope.getElementById(refId);
-      }
-    }
-
-    if (result == null) {
-      result = _templateInstanceRef;
-      if (result == null) return this;
-    }
-
-    var nextRef = result.ref;
-    return nextRef != null ? nextRef : result;
-  }
-
-  /**
-   * Gets the content of this template.
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental()
-  DocumentFragment get content {
-    _ensureTemplate();
-    return _templateContent;
-  }
-
-  /**
-   * Creates an instance of the template, using the provided model and optional
-   * binding delegate.
-   *
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental()
-  DocumentFragment createInstance(model, [BindingDelegate delegate]) {
-    _ensureTemplate();
-    return TemplateElement.mdvPackage(this).createInstance(model, delegate);
-  }
-
-  /**
-   * The data model which is inherited through the tree.
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental()
-  get model => TemplateElement.mdvPackage(this).model;
-
-  @Experimental()
-  void set model(value) {
-    _ensureTemplate();
-    TemplateElement.mdvPackage(this).model = value;
-  }
-
-  /**
-   * The binding delegate which is inherited through the tree. It can be used
-   * to configure custom syntax for `{{bindings}}` inside this template.
-   *
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental()
-  BindingDelegate get bindingDelegate =>
-      TemplateElement.mdvPackage(this).bindingDelegate;
-
-  @Experimental()
-  void set bindingDelegate(BindingDelegate value) {
-    _ensureTemplate();
-    TemplateElement.mdvPackage(this).bindingDelegate = value;
-  }
-
-  // TODO(jmesserly): const set would be better
-  static const _TABLE_TAGS = const {
-    'caption': null,
-    'col': null,
-    'colgroup': null,
-    'tbody': null,
-    'td': null,
-    'tfoot': null,
-    'th': null,
-    'thead': null,
-    'tr': null,
-  };
-
-  bool get _isAttributeTemplate => attributes.containsKey('template') &&
-      (localName == 'option' || localName == 'optgroup' ||
-       _TABLE_TAGS.containsKey(localName));
-
-  /**
-   * Returns true if this node is a template.
-   *
-   * A node is a template if [tagName] is TEMPLATE, or the node has the
-   * 'template' attribute and this tag supports attribute form for backwards
-   * compatibility with existing HTML parsers. The nodes that can use attribute
-   * form are table elments (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
-   * and COL), OPTION, and OPTGROUP.
-   */
-  // TODO(jmesserly): this is not a public MDV API, but it seems like a useful
-  // place to document which tags our polyfill considers to be templates.
-  // Otherwise I'd be repeating it in several other places.
-  // See if we can replace this with a TemplateMixin.
-  @Experimental()
-  bool get isTemplate => tagName == 'TEMPLATE' || _isAttributeTemplate;
-
-  void _ensureTemplate() {
-    if (!isTemplate) {
-      throw new UnsupportedError('$this is not a template.');
-    }
-    TemplateElement.decorate(this);
-  }
 
   /**
    * Access this element's content position.
@@ -10289,6 +10112,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
+  @Experimental()
   Point get documentOffset => offsetTo(document.documentElement);
 
   /**
@@ -10302,6 +10126,7 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * element is _not_ an offset parent or transitive offset parent to this
    * element, an [ArgumentError] is thrown.
    */
+  @Experimental()
   Point offsetTo(Element parent) {
     return Element._offsetToHelper(this, parent);
   }
@@ -10444,15 +10269,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
         html, validator: validator, treeSanitizer: treeSanitizer));
   }
   String get innerHtml => _innerHtml;
-
-  /**
-   * For use while transitioning to the safe [innerHtml] or [setInnerHtml].
-   * Unsafe because it opens the app to cross-site scripting vulnerabilities.
-   */
-  @deprecated
-  void set unsafeInnerHtml(String html) {
-    _innerHtml = html;
-  }
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -10726,12 +10542,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   void insertAdjacentText(String where, String text);
 
-  @DomName('Element.ALLOW_KEYBOARD_INPUT')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
-  @deprecated // deprecated
-  static const int ALLOW_KEYBOARD_INPUT = 1;
-
   @DomName('Element.attributes')
   @DocsEditable()
   _NamedNodeMap get _attributes native "Element_attributes_Getter";
@@ -10871,12 +10681,12 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.getAttribute')
   @DocsEditable()
-  @deprecated
+  @Experimental() // untriaged
   String getAttribute(String name) native "Element_getAttribute_Callback";
 
   @DomName('Element.getAttributeNS')
   @DocsEditable()
-  @deprecated
+  @Experimental() // untriaged
   String getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
   @DomName('Element.getBoundingClientRect')
@@ -10977,12 +10787,10 @@ abstract class Element extends Node implements ParentNode, ChildNode {
 
   @DomName('Element.setAttribute')
   @DocsEditable()
-  @deprecated
   void setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  @deprecated
   void setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
   @DomName('Element.webkitGetRegionFlowRanges')
@@ -10998,15 +10806,6 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @Experimental()
   // http://dev.w3.org/2006/webapi/selectors-api2/#matches
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
-
-  @DomName('Element.webkitRequestFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
-  @deprecated // deprecated
-  void requestFullScreen(int flags) native "Element_webkitRequestFullScreen_Callback";
 
   @DomName('Element.webkitRequestFullscreen')
   @DocsEditable()
@@ -11335,18 +11134,6 @@ class EmbedElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('HTMLEmbedElement.align')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial
-  @deprecated // deprecated
-  String get align native "HTMLEmbedElement_align_Getter";
-
-  @DomName('HTMLEmbedElement.align')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial
-  @deprecated // deprecated
-  void set align(String value) native "HTMLEmbedElement_align_Setter";
-
   @DomName('HTMLEmbedElement.height')
   @DocsEditable()
   String get height native "HTMLEmbedElement_height_Getter";
@@ -11651,12 +11438,6 @@ class Event extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static const int AT_TARGET = 2;
 
-  @DomName('Event.BLUR')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int BLUR = 8192;
-
   @DomName('Event.BUBBLING_PHASE')
   @DocsEditable()
   static const int BUBBLING_PHASE = 3;
@@ -11665,117 +11446,9 @@ class Event extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static const int CAPTURING_PHASE = 1;
 
-  @DomName('Event.CHANGE')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int CHANGE = 32768;
-
-  @DomName('Event.CLICK')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int CLICK = 64;
-
-  @DomName('Event.DBLCLICK')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int DBLCLICK = 128;
-
-  @DomName('Event.DRAGDROP')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int DRAGDROP = 2048;
-
-  @DomName('Event.FOCUS')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int FOCUS = 4096;
-
-  @DomName('Event.KEYDOWN')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int KEYDOWN = 256;
-
-  @DomName('Event.KEYPRESS')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int KEYPRESS = 1024;
-
-  @DomName('Event.KEYUP')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int KEYUP = 512;
-
-  @DomName('Event.MOUSEDOWN')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEDOWN = 1;
-
-  @DomName('Event.MOUSEDRAG')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEDRAG = 32;
-
-  @DomName('Event.MOUSEMOVE')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEMOVE = 16;
-
-  @DomName('Event.MOUSEOUT')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEOUT = 8;
-
-  @DomName('Event.MOUSEOVER')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEOVER = 4;
-
-  @DomName('Event.MOUSEUP')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int MOUSEUP = 2;
-
-  @DomName('Event.NONE')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int NONE = 0;
-
-  @DomName('Event.SELECT')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
-  @deprecated // deprecated
-  static const int SELECT = 16384;
-
   @DomName('Event.bubbles')
   @DocsEditable()
   bool get bubbles native "Event_bubbles_Getter";
-
-  @DomName('Event.cancelBubble')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-3-Events/#events-event-type-stopPropagation
-  @deprecated // deprecated
-  bool get cancelBubble native "Event_cancelBubble_Getter";
-
-  @DomName('Event.cancelBubble')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-3-Events/#events-event-type-stopPropagation
-  @deprecated // deprecated
-  void set cancelBubble(bool value) native "Event_cancelBubble_Setter";
 
   @DomName('Event.cancelable')
   @DocsEditable()
@@ -11906,7 +11579,7 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
 
   @DomName('EventSource.dispatchEvent')
   @DocsEditable()
@@ -11914,7 +11587,7 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
   @DomName('EventSource.onerror')
   @DocsEditable()
@@ -11984,10 +11657,32 @@ class Events {
 class ElementEvents extends Events {
   /* Raw event target. */
   final Element _ptr;
+  static final webkitEvents = {
+    'animationend' : 'webkitAnimationEnd', 
+    'animationiteration' : 'webkitAnimationIteration', 
+    'animationstart' : 'webkitAnimationStart', 
+    'fullscreenchange' : 'webkitfullscreenchange', 
+    'fullscreenerror' : 'webkitfullscreenerror',
+    'keyadded' : 'webkitkeyadded', 
+    'keyerror' : 'webkitkeyerror', 
+    'keymessage' : 'webkitkeymessage', 
+    'needkey' : 'webkitneedkey', 
+    'pointerlockchange' : 'webkitpointerlockchange', 
+    'pointerlockerror' : 'webkitpointerlockerror', 
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
+    'transitionend': 'webkitTransitionEnd',
+    'speechchange' : 'webkitSpeechChange'
+  };
 
   ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
 
   Stream operator [](String type) {
+    if (webkitEvents.keys.contains(type.toLowerCase())) {
+      if (Device.isWebKit) {
+        return new _ElementEventStreamImpl(
+            _ptr, webkitEvents[type.toLowerCase()], false);
+      }
+    }
     return new _ElementEventStreamImpl(_ptr, type, false);
   }
 }
@@ -11995,8 +11690,7 @@ class ElementEvents extends Events {
 /**
  * Base class for all browser objects that support events.
  *
- * Use the [on] property to add, and remove events (rather than
- * [$dom_addEventListener] and [$dom_removeEventListener]
+ * Use the [on] property to add, and remove events
  * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
@@ -12015,8 +11709,7 @@ class EventTarget extends NativeFieldWrapperClass2 {
 
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
-  @deprecated
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable()
@@ -12024,8 +11717,7 @@ class EventTarget extends NativeFieldWrapperClass2 {
 
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
-  @deprecated
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12395,12 +12087,6 @@ class FileReader extends EventTarget {
   @DocsEditable()
   void readAsArrayBuffer(Blob blob) native "FileReader_readAsArrayBuffer_Callback";
 
-  @DomName('FileReader.readAsBinaryString')
-  @DocsEditable()
-  // http://blog.whatwg.org/weekly-stream-autocomplete
-  @deprecated // deprecated
-  void readAsBinaryString(Blob blob) native "FileReader_readAsBinaryString_Callback";
-
   @DomName('FileReader.readAsDataURL')
   @DocsEditable()
   void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
@@ -12420,7 +12106,7 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
 
   @DomName('FileReader.dispatchEvent')
   @DocsEditable()
@@ -12428,7 +12114,7 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
   @DomName('FileReader.onabort')
   @DocsEditable()
@@ -12599,7 +12285,7 @@ class FileWriter extends EventTarget {
 
   @DomName('FileWriter.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
 
   @DomName('FileWriter.dispatchEvent')
   @DocsEditable()
@@ -12607,7 +12293,7 @@ class FileWriter extends EventTarget {
 
   @DomName('FileWriter.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
 
   @DomName('FileWriter.onabort')
   @DocsEditable()
@@ -12671,87 +12357,140 @@ class FocusEvent extends UIEvent {
 
 
 @DocsEditable()
-@DomName('FontLoader')
-// http://www.w3.org/TR/css3-fonts/#document-fontloader
-@Experimental()
-class FontLoader extends EventTarget {
+@DomName('FontFace')
+@Experimental() // untriaged
+class FontFace extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
-  factory FontLoader._() { throw new UnsupportedError("Not supported"); }
+  factory FontFace._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('FontLoader.errorEvent')
+  @DomName('FontFace.FontFace')
   @DocsEditable()
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  @DomName('FontLoader.loadEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadEvent = const EventStreamProvider<CssFontFaceLoadEvent>('load');
-
-  @DomName('FontLoader.loadingEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadingEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loading');
-
-  @DomName('FontLoader.loadingdoneEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadingDoneEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadingdone');
-
-  @DomName('FontLoader.loadstartEvent')
-  @DocsEditable()
-  static const EventStreamProvider<CssFontFaceLoadEvent> loadStartEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadstart');
-
-  @DomName('FontLoader.loading')
-  @DocsEditable()
-  bool get loading native "FontLoader_loading_Getter";
-
-  @DomName('FontLoader.checkFont')
-  @DocsEditable()
-  bool checkFont(String font, String text) native "FontLoader_checkFont_Callback";
-
-  @DomName('FontLoader.loadFont')
-  @DocsEditable()
-  void loadFont(Map params) native "FontLoader_loadFont_Callback";
-
-  @DomName('FontLoader.notifyWhenFontsReady')
-  @DocsEditable()
-  void _notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
-
-  Future notifyWhenFontsReady() {
-    var completer = new Completer();
-    _notifyWhenFontsReady(
-        () { completer.complete(); });
-    return completer.future;
+  factory FontFace(String family, String source, Map descriptors) {
+    return FontFace._create_1(family, source, descriptors);
   }
 
-  @DomName('FontLoader.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_addEventListener_Callback";
+  static FontFace _create_1(family, source, descriptors) native "FontFace__create_1constructorCallback";
 
-  @DomName('FontLoader.dispatchEvent')
+  @DomName('FontFace.family')
   @DocsEditable()
-  bool dispatchEvent(Event event) native "FontLoader_dispatchEvent_Callback";
+  @Experimental() // untriaged
+  String get family native "FontFace_family_Getter";
 
-  @DomName('FontLoader.removeEventListener')
+  @DomName('FontFace.family')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_removeEventListener_Callback";
+  @Experimental() // untriaged
+  void set family(String value) native "FontFace_family_Setter";
 
-  @DomName('FontLoader.onerror')
+  @DomName('FontFace.featureSettings')
   @DocsEditable()
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  @Experimental() // untriaged
+  String get featureSettings native "FontFace_featureSettings_Getter";
 
-  @DomName('FontLoader.onload')
+  @DomName('FontFace.featureSettings')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoad => loadEvent.forTarget(this);
+  @Experimental() // untriaged
+  void set featureSettings(String value) native "FontFace_featureSettings_Setter";
 
-  @DomName('FontLoader.onloading')
+  @DomName('FontFace.status')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoading => loadingEvent.forTarget(this);
+  @Experimental() // untriaged
+  String get status native "FontFace_status_Getter";
 
-  @DomName('FontLoader.onloadingdone')
+  @DomName('FontFace.stretch')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoadingDone => loadingDoneEvent.forTarget(this);
+  @Experimental() // untriaged
+  String get stretch native "FontFace_stretch_Getter";
 
-  @DomName('FontLoader.onloadstart')
+  @DomName('FontFace.stretch')
   @DocsEditable()
-  Stream<CssFontFaceLoadEvent> get onLoadStart => loadStartEvent.forTarget(this);
+  @Experimental() // untriaged
+  void set stretch(String value) native "FontFace_stretch_Setter";
+
+  @DomName('FontFace.style')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get style native "FontFace_style_Getter";
+
+  @DomName('FontFace.style')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set style(String value) native "FontFace_style_Setter";
+
+  @DomName('FontFace.unicodeRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get unicodeRange native "FontFace_unicodeRange_Getter";
+
+  @DomName('FontFace.unicodeRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set unicodeRange(String value) native "FontFace_unicodeRange_Setter";
+
+  @DomName('FontFace.variant')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get variant native "FontFace_variant_Getter";
+
+  @DomName('FontFace.variant')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set variant(String value) native "FontFace_variant_Setter";
+
+  @DomName('FontFace.weight')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get weight native "FontFace_weight_Getter";
+
+  @DomName('FontFace.weight')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set weight(String value) native "FontFace_weight_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('FontFaceSet')
+@Experimental() // untriaged
+class FontFaceSet extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FontFaceSet.status')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get status native "FontFaceSet_status_Getter";
+
+  @DomName('FontFaceSet.check')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool check(String font, String text) native "FontFaceSet_check_Callback";
+
+  @DomName('FontFaceSet.match')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<FontFace> match(String font, String text) native "FontFaceSet_match_Callback";
+
+  @DomName('FontFaceSet.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "FontFaceSet_addEventListener_Callback";
+
+  @DomName('FontFaceSet.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "FontFaceSet_dispatchEvent_Callback";
+
+  @DomName('FontFaceSet.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "FontFaceSet_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13504,18 +13243,6 @@ class HtmlDocument extends Document {
   @DocsEditable()
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
-  @DomName('HTMLDocument.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native "HTMLDocument_captureEvents_Callback";
-
-  @DomName('HTMLDocument.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native "HTMLDocument_releaseEvents_Callback";
-
 
   @DomName('Document.body')
   BodyElement get body => _body;
@@ -13603,14 +13330,6 @@ class HtmlDocument extends Document {
     _title = value;
   }
 
-  @DomName('Document.webkitCancelFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void cancelFullScreen() {
-    _webkitCancelFullScreen();
-  }
-
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -13645,12 +13364,6 @@ class HtmlDocument extends Document {
   @Experimental()
   bool get hidden => _webkitHidden;
 
-  @DomName('Document.webkitIsFullScreen')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get isFullScreen => _webkitIsFullScreen;
-
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -13665,7 +13378,7 @@ class HtmlDocument extends Document {
   @Experimental()
   String get visibilityState => _webkitVisibilityState;
 
-  @Experimental
+  @Experimental()
   /**
    * Register a custom subclass of Element to be instantiatable by the DOM.
    *
@@ -13736,9 +13449,6 @@ class HtmlDocument extends Document {
   void register(String tag, Type customElementClass, {String extendsTag}) {
     _Utils.register(this, tag, customElementClass, extendsTag);
   }
-
-  // Note: used to polyfill <template>
-  Document _templateContentsOwner;
 
   @DomName('Document.visibilityChange')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -14721,16 +14431,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   void set alt(String value) native "HTMLImageElement_alt_Setter";
 
-  @DomName('HTMLImageElement.border')
-  @DocsEditable()
-  @deprecated // deprecated
-  String get border native "HTMLImageElement_border_Getter";
-
-  @DomName('HTMLImageElement.border')
-  @DocsEditable()
-  @deprecated // deprecated
-  void set border(String value) native "HTMLImageElement_border_Setter";
-
   @DomName('HTMLImageElement.complete')
   @DocsEditable()
   bool get complete native "HTMLImageElement_complete_Getter";
@@ -14759,16 +14459,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   void set isMap(bool value) native "HTMLImageElement_isMap_Setter";
 
-  @DomName('HTMLImageElement.lowsrc')
-  @DocsEditable()
-  @deprecated // deprecated
-  String get lowsrc native "HTMLImageElement_lowsrc_Getter";
-
-  @DomName('HTMLImageElement.lowsrc')
-  @DocsEditable()
-  @deprecated // deprecated
-  void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
-
   @DomName('HTMLImageElement.naturalHeight')
   @DocsEditable()
   int get naturalHeight native "HTMLImageElement_naturalHeight_Getter";
@@ -14785,6 +14475,16 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   void set src(String value) native "HTMLImageElement_src_Setter";
 
+  @DomName('HTMLImageElement.srcset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get srcset native "HTMLImageElement_srcset_Getter";
+
+  @DomName('HTMLImageElement.srcset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set srcset(String value) native "HTMLImageElement_srcset_Setter";
+
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
   String get useMap native "HTMLImageElement_useMap_Getter";
@@ -14800,16 +14500,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.width')
   @DocsEditable()
   void set width(int value) native "HTMLImageElement_width_Setter";
-
-  @DomName('HTMLImageElement.x')
-  @DocsEditable()
-  @deprecated // deprecated
-  int get x native "HTMLImageElement_x_Getter";
-
-  @DomName('HTMLImageElement.y')
-  @DocsEditable()
-  @deprecated // deprecated
-  int get y native "HTMLImageElement_y_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15167,18 +14857,6 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.type')
   @DocsEditable()
   void set type(String value) native "HTMLInputElement_type_Setter";
-
-  @DomName('HTMLInputElement.useMap')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLInputElement-partial
-  @deprecated // deprecated
-  String get useMap native "HTMLInputElement_useMap_Getter";
-
-  @DomName('HTMLInputElement.useMap')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLInputElement-partial
-  @deprecated // deprecated
-  void set useMap(String value) native "HTMLInputElement_useMap_Setter";
 
   @DomName('HTMLInputElement.validationMessage')
   @DocsEditable()
@@ -15955,6 +15633,31 @@ class InputMethodContext extends NativeFieldWrapperClass2 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('KeyPair')
+@Experimental() // untriaged
+class KeyPair extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory KeyPair._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('KeyPair.privateKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoKey get privateKey native "KeyPair_privateKey_Getter";
+
+  @DomName('KeyPair.publicKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CryptoKey get publicKey native "KeyPair_publicKey_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
@@ -16173,18 +15876,6 @@ class LIElement extends HtmlElement {
    * This can only be called by subclasses from their created constructor.
    */
   LIElement.created() : super.created();
-
-  @DomName('HTMLLIElement.type')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLLIElement-partial
-  @deprecated // deprecated
-  String get type native "HTMLLIElement_type_Getter";
-
-  @DomName('HTMLLIElement.type')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLLIElement-partial
-  @deprecated // deprecated
-  void set type(String value) native "HTMLLIElement_type_Setter";
 
   @DomName('HTMLLIElement.value')
   @DocsEditable()
@@ -16616,7 +16307,7 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
 
   @DomName('MediaController.dispatchEvent')
   @DocsEditable()
@@ -16624,7 +16315,7 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17448,7 +17139,7 @@ class MediaKeySession extends EventTarget {
 
   @DomName('MediaKeySession.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_addEventListener_Callback";
 
   @DomName('MediaKeySession.dispatchEvent')
   @DocsEditable()
@@ -17456,7 +17147,7 @@ class MediaKeySession extends EventTarget {
 
   @DomName('MediaKeySession.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_removeEventListener_Callback";
 
   @DomName('MediaKeySession.onwebkitkeyadded')
   @DocsEditable()
@@ -17655,7 +17346,7 @@ class MediaSource extends EventTarget {
 
   @DomName('MediaSource.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
 
   @DomName('MediaSource.dispatchEvent')
   @DocsEditable()
@@ -17663,7 +17354,7 @@ class MediaSource extends EventTarget {
 
   @DomName('MediaSource.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -17754,7 +17445,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
 
   @DomName('MediaStream.dispatchEvent')
   @DocsEditable()
@@ -17762,7 +17453,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
   @DomName('MediaStream.onaddtrack')
   @DocsEditable()
@@ -17876,7 +17567,7 @@ class MediaStreamTrack extends EventTarget {
 
   @DomName('MediaStreamTrack.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
 
   @DomName('MediaStreamTrack.dispatchEvent')
   @DocsEditable()
@@ -17884,7 +17575,7 @@ class MediaStreamTrack extends EventTarget {
 
   @DomName('MediaStreamTrack.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
   @DomName('MediaStreamTrack.onended')
   @DocsEditable()
@@ -18054,11 +17745,6 @@ class MessageEvent extends Event {
   @DocsEditable()
   String get origin native "MessageEvent_origin_Getter";
 
-  @DomName('MessageEvent.ports')
-  @DocsEditable()
-  @Unstable()
-  List<MessagePort> get ports native "MessageEvent_ports_Getter";
-
   @DomName('MessageEvent.source')
   @DocsEditable()
   EventTarget get source native "MessageEvent_source_Getter";
@@ -18100,7 +17786,7 @@ class MessagePort extends EventTarget {
 
   @DomName('MessagePort.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
 
   @DomName('MessagePort.dispatchEvent')
   @DocsEditable()
@@ -18108,7 +17794,7 @@ class MessagePort extends EventTarget {
 
   @DomName('MessagePort.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
   @DomName('MessagePort.onmessage')
   @DocsEditable()
@@ -18315,7 +18001,7 @@ class MidiAccess extends EventTarget {
 
   @DomName('MIDIAccess.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_addEventListener_Callback";
 
   @DomName('MIDIAccess.dispatchEvent')
   @DocsEditable()
@@ -18323,7 +18009,7 @@ class MidiAccess extends EventTarget {
 
   @DomName('MIDIAccess.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_removeEventListener_Callback";
 
   @DomName('MIDIAccess.onconnect')
   @DocsEditable()
@@ -18492,7 +18178,7 @@ class MidiPort extends EventTarget {
 
   @DomName('MIDIPort.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_addEventListener_Callback";
 
   @DomName('MIDIPort.dispatchEvent')
   @DocsEditable()
@@ -18500,7 +18186,7 @@ class MidiPort extends EventTarget {
 
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_removeEventListener_Callback";
 
   @DomName('MIDIPort.ondisconnect')
   @DocsEditable()
@@ -19055,7 +18741,7 @@ class NamedFlow extends EventTarget {
 
   @DomName('WebKitNamedFlow.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
 
   @DomName('WebKitNamedFlow.dispatchEvent')
   @DocsEditable()
@@ -19063,7 +18749,7 @@ class NamedFlow extends EventTarget {
 
   @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19167,11 +18853,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Navigator.appCodeName')
-  @DocsEditable()
-  @Experimental() // non-standard
-  String get appCodeName native "Navigator_appCodeName_Getter";
-
   @DomName('Navigator.cookieEnabled')
   @DocsEditable()
   @Unstable()
@@ -19196,16 +18877,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @DocsEditable()
   @Experimental() // nonstandard
   MimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
-
-  @DomName('Navigator.plugins')
-  @DocsEditable()
-  @deprecated // nonstandard
-  PluginArray get plugins native "Navigator_plugins_Getter";
-
-  @DomName('Navigator.product')
-  @DocsEditable()
-  @Unstable()
-  String get product native "Navigator_product_Getter";
 
   @DomName('Navigator.productSub')
   @DocsEditable()
@@ -19244,11 +18915,6 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @Experimental()
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
-  @DomName('Navigator.javaEnabled')
-  @DocsEditable()
-  @deprecated // nonstandard
-  bool javaEnabled() native "Navigator_javaEnabled_Callback";
-
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
   @Unstable()
@@ -19273,6 +18939,11 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @Experimental()
   void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
+  @DomName('Navigator.appCodeName')
+  @DocsEditable()
+  @Experimental() // non-standard
+  String get appCodeName native "Navigator_appCodeName_Getter";
+
   @DomName('Navigator.appName')
   @DocsEditable()
   String get appName native "Navigator_appName_Getter";
@@ -19284,6 +18955,11 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorOnLine, Nav
   @DomName('Navigator.platform')
   @DocsEditable()
   String get platform native "Navigator_platform_Getter";
+
+  @DomName('Navigator.product')
+  @DocsEditable()
+  @Unstable()
+  String get product native "Navigator_product_Getter";
 
   @DomName('Navigator.userAgent')
   @DocsEditable()
@@ -19309,6 +18985,11 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('NavigatorID.appCodeName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get appCodeName native "NavigatorID_appCodeName_Getter";
+
   @DomName('NavigatorID.appName')
   @DocsEditable()
   @Experimental() // untriaged
@@ -19323,6 +19004,11 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   String get platform native "NavigatorID_platform_Getter";
+
+  @DomName('NavigatorID.product')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get product native "NavigatorID_product_Getter";
 
   @DomName('NavigatorID.userAgent')
   @DocsEditable()
@@ -19564,27 +19250,6 @@ class _ChildNodeListLazy extends ListBase<Node> {
   Node operator[](int index) => _this.childNodes[index];
 }
 
-/** Information about the instantiated template. */
-class TemplateInstance {
-  // TODO(rafaelw): firstNode & lastNode should be read-synchronous
-  // in cases where script has modified the template instance boundary.
-
-  /** The first node of this template instantiation. */
-  final Node firstNode;
-
-  /**
-   * The last node of this template instantiation.
-   * This could be identical to [firstNode] if the template only expanded to a
-   * single node.
-   */
-  final Node lastNode;
-
-  /** The model used to instantiate the template. */
-  final model;
-
-  TemplateInstance(this.firstNode, this.lastNode, this.model);
-}
-
 
 @DomName('Node')
 class Node extends EventTarget {
@@ -19663,52 +19328,6 @@ class Node extends EventTarget {
    */
   String toString() => nodeValue == null ? super.toString() : nodeValue;
 
-
-  /**
-   * Creates a binding to the attribute [name] to the [path] of the [model].
-   *
-   * This can be overridden by custom elements to provide the binding used in
-   * [Node.bind]. This will only create the binding; it will not add it to
-   * [bindings].
-   *
-   * You should not need to call this directly except from [Node.bind].
-   */
-  @Experimental()
-  createBinding(String name, model, String path) =>
-      TemplateElement.mdvPackage(this).createBinding(name, model, path);
-
-  /**
-   * Binds the attribute [name] to the [path] of the [model].
-   * Path is a String of accessors such as `foo.bar.baz`.
-   * Returns the `NodeBinding` instance.
-   */
-  @Experimental()
-  bind(String name, model, String path) =>
-      TemplateElement.mdvPackage(this).bind(name, model, path);
-
-  /** Unbinds the attribute [name]. */
-  @Experimental()
-  void unbind(String name) {
-    TemplateElement.mdvPackage(this).unbind(name);
-  }
-
-  /** Unbinds all bound attributes. */
-  @Experimental()
-  void unbindAll() {
-    TemplateElement.mdvPackage(this).unbindAll();
-  }
-
-  /** Gets the data bindings that are associated with this node. */
-  @Experimental()
-  Map<String, dynamic> get bindings =>
-      TemplateElement.mdvPackage(this).bindings;
-
-  /** Gets the template instance that instantiated this node, if any. */
-  @Experimental()
-  TemplateInstance get templateInstance =>
-      TemplateElement.mdvPackage(this).templateInstance;
-
-
   /**
    * Use ownerDocument instead.
    */
@@ -19772,7 +19391,6 @@ class Node extends EventTarget {
 
   @DomName('Node.childNodes')
   @DocsEditable()
-  @deprecated
   List<Node> get childNodes native "Node_childNodes_Getter";
 
   @DomName('Node.firstChild')
@@ -19785,14 +19403,10 @@ class Node extends EventTarget {
 
   @DomName('Node.localName')
   @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-node-localname
-  @deprecated // deprecated
   String get _localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-node-namespaceuri
-  @deprecated // deprecated
   String get _namespaceUri native "Node_namespaceURI_Getter";
 
   @DomName('Node.nextSibling')
@@ -19874,7 +19488,7 @@ class Node extends EventTarget {
 
   @DomName('Node.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
 
   @DomName('Node.dispatchEvent')
   @DocsEditable()
@@ -19882,7 +19496,7 @@ class Node extends EventTarget {
 
   @DomName('Node.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19915,16 +19529,6 @@ class NodeFilter extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static const int SHOW_ALL = 0xFFFFFFFF;
 
-  @DomName('NodeFilter.SHOW_ATTRIBUTE')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_ATTRIBUTE = 0x00000002;
-
-  @DomName('NodeFilter.SHOW_CDATA_SECTION')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_CDATA_SECTION = 0x00000008;
-
   @DomName('NodeFilter.SHOW_COMMENT')
   @DocsEditable()
   static const int SHOW_COMMENT = 0x00000080;
@@ -19944,21 +19548,6 @@ class NodeFilter extends NativeFieldWrapperClass2 {
   @DomName('NodeFilter.SHOW_ELEMENT')
   @DocsEditable()
   static const int SHOW_ELEMENT = 0x00000001;
-
-  @DomName('NodeFilter.SHOW_ENTITY')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_ENTITY = 0x00000020;
-
-  @DomName('NodeFilter.SHOW_ENTITY_REFERENCE')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_ENTITY_REFERENCE = 0x00000010;
-
-  @DomName('NodeFilter.SHOW_NOTATION')
-  @DocsEditable()
-  @deprecated // deprecated
-  static const int SHOW_NOTATION = 0x00000800;
 
   @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
   @DocsEditable()
@@ -20094,14 +19683,6 @@ class Notation extends Node {
   // To suppress missing implicit constructor warnings.
   factory Notation._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Notation.publicId')
-  @DocsEditable()
-  String get publicId native "Notation_publicId_Getter";
-
-  @DomName('Notation.systemId')
-  @DocsEditable()
-  String get systemId native "Notation_systemId_Getter";
-
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20219,7 +19800,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
 
   @DomName('Notification.dispatchEvent')
   @DocsEditable()
@@ -20227,7 +19808,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
   @DomName('Notification.onclick')
   @DocsEditable()
@@ -20380,18 +19961,6 @@ class ObjectElement extends HtmlElement {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
-
-  @DomName('HTMLObjectElement.code')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial
-  @deprecated // deprecated
-  String get code native "HTMLObjectElement_code_Getter";
-
-  @DomName('HTMLObjectElement.code')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial
-  @deprecated // deprecated
-  void set code(String value) native "HTMLObjectElement_code_Setter";
 
   @DomName('HTMLObjectElement.data')
   @DocsEditable()
@@ -21016,7 +20585,7 @@ class Performance extends EventTarget {
   @DomName('Performance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_addEventListener_Callback";
 
   @DomName('Performance.dispatchEvent')
   @DocsEditable()
@@ -21026,7 +20595,7 @@ class Performance extends EventTarget {
   @DomName('Performance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Performance_removeEventListener_Callback";
 
   @DomName('Performance.onwebkitresourcetimingbufferfull')
   @DocsEditable()
@@ -21527,16 +21096,6 @@ class PreElement extends HtmlElement {
    */
   PreElement.created() : super.created();
 
-  @DomName('HTMLPreElement.wrap')
-  @DocsEditable()
-  @deprecated // deprecated
-  bool get wrap native "HTMLPreElement_wrap_Getter";
-
-  @DomName('HTMLPreElement.wrap')
-  @DocsEditable()
-  @deprecated // deprecated
-  void set wrap(bool value) native "HTMLPreElement_wrap_Setter";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21668,11 +21227,6 @@ class Promise extends NativeFieldWrapperClass2 {
   @Experimental() // untriaged
   static Promise every(Object values) native "Promise_every_Callback";
 
-  @DomName('Promise.fulfill')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Promise fulfill(Object value) native "Promise_fulfill_Callback";
-
   @DomName('Promise.reject')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21682,41 +21236,6 @@ class Promise extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   static Promise resolve(Object value) native "Promise_resolve_Callback";
-
-  @DomName('Promise.some')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Promise some(Object values) native "Promise_some_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('PromiseResolver')
-@Experimental() // untriaged
-class PromiseResolver extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory PromiseResolver._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('PromiseResolver.fulfill')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void fulfill([Object value]) native "PromiseResolver_fulfill_Callback";
-
-  @DomName('PromiseResolver.reject')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void reject([Object value]) native "PromiseResolver_reject_Callback";
-
-  @DomName('PromiseResolver.resolve')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void resolve([Object value]) native "PromiseResolver_resolve_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21873,11 +21392,6 @@ class Range extends NativeFieldWrapperClass2 {
   @DocsEditable()
   void collapse(bool toStart) native "Range_collapse_Callback";
 
-  @DomName('Range.compareNode')
-  @DocsEditable()
-  @deprecated // deprecated
-  int compareNode(Node refNode) native "Range_compareNode_Callback";
-
   @DomName('Range.comparePoint')
   @DocsEditable()
   int comparePoint(Node refNode, int offset) native "Range_comparePoint_Callback";
@@ -21914,11 +21428,6 @@ class Range extends NativeFieldWrapperClass2 {
   @DomName('Range.insertNode')
   @DocsEditable()
   void insertNode(Node newNode) native "Range_insertNode_Callback";
-
-  @DomName('Range.intersectsNode')
-  @DocsEditable()
-  @deprecated // deprecated
-  bool intersectsNode(Node refNode) native "Range_intersectsNode_Callback";
 
   @DomName('Range.isPointInRange')
   @DocsEditable()
@@ -22183,7 +21692,7 @@ class RtcDataChannel extends EventTarget {
 
   @DomName('RTCDataChannel.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
 
   @DomName('RTCDataChannel.dispatchEvent')
   @DocsEditable()
@@ -22191,7 +21700,7 @@ class RtcDataChannel extends EventTarget {
 
   @DomName('RTCDataChannel.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
@@ -22290,7 +21799,7 @@ class RtcDtmfSender extends EventTarget {
 
   @DomName('RTCDTMFSender.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_addEventListener_Callback";
 
   @DomName('RTCDTMFSender.dispatchEvent')
   @DocsEditable()
@@ -22298,7 +21807,7 @@ class RtcDtmfSender extends EventTarget {
 
   @DomName('RTCDTMFSender.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_removeEventListener_Callback";
 
   @DomName('RTCDTMFSender.ontonechange')
   @DocsEditable()
@@ -22483,7 +21992,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
-  void addIceCandidate(RtcIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
+  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) native "RTCPeerConnection_addIceCandidate_Callback";
 
   @DomName('RTCPeerConnection.addStream')
   @DocsEditable()
@@ -22559,7 +22068,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable()
@@ -22567,7 +22076,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
   @DomName('RTCPeerConnection.onaddstream')
   @DocsEditable()
@@ -22822,30 +22331,6 @@ class ScriptElement extends HtmlElement {
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
   void set defer(bool value) native "HTMLScriptElement_defer_Setter";
-
-  @DomName('HTMLScriptElement.event')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
-  @deprecated // deprecated
-  String get event native "HTMLScriptElement_event_Getter";
-
-  @DomName('HTMLScriptElement.event')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
-  @deprecated // deprecated
-  void set event(String value) native "HTMLScriptElement_event_Setter";
-
-  @DomName('HTMLScriptElement.htmlFor')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
-  @deprecated // deprecated
-  String get htmlFor native "HTMLScriptElement_htmlFor_Getter";
-
-  @DomName('HTMLScriptElement.htmlFor')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
-  @deprecated // deprecated
-  void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable()
@@ -23301,6 +22786,21 @@ class Selection extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('ServiceWorker')
+@Experimental() // untriaged
+class ServiceWorker extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorker._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental()
@@ -23500,10 +23000,23 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void appendBuffer(ByteBuffer data) native "SourceBuffer_appendBuffer_Callback";
 
-  @DomName('SourceBuffer.appendBufferView')
+  void appendStream(FileStream stream, [int maxSize]) {
+    if (maxSize != null) {
+      _appendStream_1(stream, maxSize);
+      return;
+    }
+    _appendStream_2(stream);
+    return;
+  }
+
+  void _appendStream_1(stream, maxSize) native "SourceBuffer__appendStream_1_Callback";
+
+  void _appendStream_2(stream) native "SourceBuffer__appendStream_2_Callback";
+
+  @DomName('SourceBuffer.appendTypedData')
   @DocsEditable()
   @Experimental() // untriaged
-  void appendBufferView(TypedData data) native "SourceBuffer_appendBufferView_Callback";
+  void appendTypedData(TypedData data) native "SourceBuffer_appendTypedData_Callback";
 
   @DomName('SourceBuffer.remove')
   @DocsEditable()
@@ -23513,7 +23026,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_addEventListener_Callback";
 
   @DomName('SourceBuffer.dispatchEvent')
   @DocsEditable()
@@ -23523,7 +23036,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBuffer_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23596,7 +23109,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   @DomName('SourceBufferList.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
 
   @DomName('SourceBufferList.dispatchEvent')
   @DocsEditable()
@@ -23604,7 +23117,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   @DomName('SourceBufferList.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24029,7 +23542,7 @@ class SpeechRecognition extends EventTarget {
 
   @DomName('SpeechRecognition.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
 
   @DomName('SpeechRecognition.dispatchEvent')
   @DocsEditable()
@@ -24037,7 +23550,7 @@ class SpeechRecognition extends EventTarget {
 
   @DomName('SpeechRecognition.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
 
   @DomName('SpeechRecognition.onaudioend')
   @DocsEditable()
@@ -24375,7 +23888,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   @DomName('SpeechSynthesisUtterance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_addEventListener_Callback";
 
   @DomName('SpeechSynthesisUtterance.dispatchEvent')
   @DocsEditable()
@@ -24385,7 +23898,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   @DomName('SpeechSynthesisUtterance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechSynthesisUtterance_removeEventListener_Callback";
 
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable()
@@ -25066,18 +24579,6 @@ class TableElement extends HtmlElement {
    */
   TableElement.created() : super.created();
 
-  @DomName('HTMLTableElement.border')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLTableElement-partial
-  @deprecated // deprecated
-  String get border native "HTMLTableElement_border_Getter";
-
-  @DomName('HTMLTableElement.border')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLTableElement-partial
-  @deprecated // deprecated
-  void set border(String value) native "HTMLTableElement_border_Setter";
-
   @DomName('HTMLTableElement.caption')
   @DocsEditable()
   TableCaptionElement get caption native "HTMLTableElement_caption_Getter";
@@ -25247,88 +24748,6 @@ class TableSectionElement extends HtmlElement {
 // WARNING: Do not edit - generated code.
 
 
-/**
- * Model-Driven Views (MDV)'s native features enables a wide-range of use cases,
- * but (by design) don't attempt to implement a wide array of specialized
- * behaviors.
- *
- * Enabling these features in MDV is a matter of implementing and registering an
- * MDV Custom Syntax. A Custom Syntax is an object which contains one or more
- * delegation functions which implement specialized behavior. This object is
- * registered with MDV via [Element.bindingDelegate]:
- *
- *
- * HTML:
- *     <template bind>
- *       {{ What!Ever('crazy')->thing^^^I+Want(data) }}
- *     </template>
- *
- * Dart:
- *     class MySyntax extends BindingDelegate {
- *       getBinding(model, path, name, node) {
- *         // The magic happens here!
- *       }
- *     }
- *     ...
- *     query('template').bindingDelegate = new MySyntax();
- *     query('template').model = new MyModel();
- *
- * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for
- * more information about Custom Syntax.
- */
-// TODO(jmesserly): move this type to the MDV package? Two issues: we'd lose
-// type annotation on [Element.bindingDelegate], and "mdv" is normally imported
-// with a prefix.
-@Experimental()
-abstract class BindingDelegate {
-  /**
-   * This syntax method allows for a custom interpretation of the contents of
-   * mustaches (`{{` ... `}}`).
-   *
-   * When a template is inserting an instance, it will invoke this method for
-   * each mustache which is encountered. The function is invoked with four
-   * arguments:
-   *
-   * - [model]: The data context for which this instance is being created.
-   * - [path]: The text contents (trimmed of outer whitespace) of the mustache.
-   * - [name]: The context in which the mustache occurs. Within element
-   *   attributes, this will be the name of the attribute. Within text,
-   *   this will be 'text'.
-   * - [node]: A reference to the node to which this binding will be created.
-   *
-   * If the method wishes to handle binding, it is required to return an object
-   * which has at least a `value` property that can be observed. If it does,
-   * then MDV will call [Node.bind on the node:
-   *
-   *     node.bind(name, retval, 'value');
-   *
-   * If the 'getBinding' does not wish to override the binding, it should return
-   * null.
-   */
-  // TODO(jmesserly): I had to remove type annotations from "name" and "node"
-  // Normally they are String and Node respectively. But sometimes it will pass
-  // (int name, CompoundBinding node). That seems very confusing; we may want
-  // to change this API.
-  getBinding(model, String path, name, node) => null;
-
-  /**
-   * This syntax method allows a syntax to provide an alterate model than the
-   * one the template would otherwise use when producing an instance.
-   *
-   * When a template is about to create an instance, it will invoke this method
-   * The function is invoked with two arguments:
-   *
-   * - [template]: The template element which is about to create and insert an
-   *   instance.
-   * - [model]: The data context for which this instance is being created.
-   *
-   * The template element will always use the return value of `getInstanceModel`
-   * as the model for the new instance. If the syntax does not wish to override
-   * the value, it should simply return the `model` value it was passed.
-   */
-  getInstanceModel(Element template, model) => model;
-}
-
 @Experimental()
 @DomName('HTMLTemplateElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -25353,207 +24772,8 @@ class TemplateElement extends HtmlElement {
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable()
-  DocumentFragment get _content native "HTMLTemplateElement_content_Getter";
+  DocumentFragment get content native "HTMLTemplateElement_content_Getter";
 
-
-  // For real TemplateElement use the actual DOM .content field instead of
-  // our polyfilled expando.
-  @Experimental()
-  DocumentFragment get content => _content;
-
-
-  /**
-   * The MDV package, if available.
-   *
-   * This can be used to initialize MDV support via:
-   *
-   *     import 'dart:html';
-   *     import 'package:mdv/mdv.dart' as mdv;
-   *     main() {
-   *       mdv.initialize();
-   *     }
-   */
-  static Function mdvPackage = (node) {
-    throw new UnsupportedError("The MDV package is not available. "
-        "You can enable it with `import 'package:mdv/mdv.dart' as mdv;` and "
-        "`mdv.initialize()`");
-  };
-
-  /**
-   * Ensures proper API and content model for template elements.
-   *
-   * [instanceRef] can be used to set the [Element.ref] property of [template],
-   * and use the ref's content will be used as source when createInstance() is
-   * invoked.
-   *
-   * Returns true if this template was just decorated, or false if it was
-   * already decorated.
-   */
-  @Experimental()
-  static bool decorate(Element template, [Element instanceRef]) {
-    // == true check because it starts as a null field.
-    if (template._templateIsDecorated == true) return false;
-
-    _injectStylesheet();
-
-    var templateElement = template;
-    templateElement._templateIsDecorated = true;
-    var isNative = templateElement is TemplateElement;
-    var bootstrapContents = isNative;
-    var liftContents = !isNative;
-    var liftRoot = false;
-
-    if (!isNative && templateElement._isAttributeTemplate) {
-      if (instanceRef != null) {
-        // TODO(jmesserly): this is just an assert in MDV.
-        throw new ArgumentError('instanceRef should not be supplied for '
-            'attribute templates.');
-      }
-      templateElement = _extractTemplateFromAttributeTemplate(template);
-      templateElement._templateIsDecorated = true;
-      isNative = templateElement is TemplateElement;
-      liftRoot = true;
-     }
-
-    if (!isNative) {
-      var doc = _getTemplateContentsOwner(templateElement.document);
-      templateElement._templateContent = doc.createDocumentFragment();
-    }
-
-    if (instanceRef != null) {
-      // template is contained within an instance, its direct content must be
-      // empty
-      templateElement._templateInstanceRef = instanceRef;
-    } else if (liftContents) {
-      _liftNonNativeChildrenIntoContent(templateElement, template, liftRoot);
-    } else if (bootstrapContents) {
-      bootstrap(templateElement.content);
-    }
-
-    return true;
-  }
-
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-  static Document _getTemplateContentsOwner(HtmlDocument doc) {
-    if (doc.window == null) {
-      return doc;
-    }
-    var d = doc._templateContentsOwner;
-    if (d == null) {
-      // TODO(arv): This should either be a Document or HTMLDocument depending
-      // on doc.
-      d = doc.implementation.createHtmlDocument('');
-      while (d.lastChild != null) {
-        d.lastChild.remove();
-      }
-      doc._templateContentsOwner = d;
-    }
-    return d;
-  }
-
-  // For non-template browsers, the parser will disallow <template> in certain
-  // locations, so we allow "attribute templates" which combine the template
-  // element with the top-level container node of the content, e.g.
-  //
-  //   <tr template repeat="{{ foo }}"" class="bar"><td>Bar</td></tr>
-  //
-  // becomes
-  //
-  //   <template repeat="{{ foo }}">
-  //   + #document-fragment
-  //     + <tr class="bar">
-  //       + <td>Bar</td>
-  //
-  static Element _extractTemplateFromAttributeTemplate(Element el) {
-    var template = el.document.createElement('template');
-    el.parentNode.insertBefore(template, el);
-
-    for (var name in el.attributes.keys.toList()) {
-      switch (name) {
-        case 'template':
-          el.attributes.remove(name);
-          break;
-        case 'repeat':
-        case 'bind':
-        case 'ref':
-          template.attributes[name] = el.attributes.remove(name);
-          break;
-      }
-    }
-
-    return template;
-  }
-
-  static void _liftNonNativeChildrenIntoContent(Element template, Element el,
-      bool useRoot) {
-
-    var content = template.content;
-    if (useRoot) {
-      content.append(el);
-      return;
-    }
-
-    var child;
-    while ((child = el.firstChild) != null) {
-      content.append(child);
-    }
-  }
-
-  /**
-   * This used to decorate recursively all templates from a given node.
-   *
-   * By default [decorate] will be called on templates lazily when certain
-   * properties such as [model] are accessed, but it can be run eagerly to
-   * decorate an entire tree recursively.
-   */
-  // TODO(rafaelw): Review whether this is the right public API.
-  @Experimental()
-  static void bootstrap(Node content) {
-    void _bootstrap(template) {
-      if (!TemplateElement.decorate(template)) {
-        bootstrap(template.content);
-      }
-    }
-
-    // Need to do this first as the contents may get lifted if |node| is
-    // template.
-    // TODO(jmesserly): content is DocumentFragment or Element
-    var descendents =
-        (content as dynamic).querySelectorAll(_allTemplatesSelectors);
-    if (content is Element && (content as Element).isTemplate) {
-      _bootstrap(content);
-    }
-
-    descendents.forEach(_bootstrap);
-  }
-
-  static final String _allTemplatesSelectors =
-      'template, option[template], optgroup[template], ' +
-      Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
-
-  static bool _initStyles;
-
-  static void _injectStylesheet() {
-    if (_initStyles == true) return;
-    _initStyles = true;
-
-    var style = new StyleElement();
-    style.text = r'''
-template,
-thead[template],
-tbody[template],
-tfoot[template],
-th[template],
-tr[template],
-td[template],
-caption[template],
-colgroup[template],
-col[template],
-option[template] {
-  display: none;
-}''';
-    document.head.append(style);
-  }
 
   /**
    * An override to place the contents into content rather than as child nodes.
@@ -25592,12 +24812,6 @@ class Text extends CharacterData {
   @DocsEditable()
   @Experimental() // untriaged
   List<Node> getDestinationInsertionPoints() native "Text_getDestinationInsertionPoints_Callback";
-
-  @DomName('Text.replaceWholeText')
-  @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-text-replacewholetext
-  @deprecated // deprecated
-  Text replaceWholeText(String content) native "Text_replaceWholeText_Callback";
 
   @DomName('Text.splitText')
   @DocsEditable()
@@ -25946,7 +25160,7 @@ class TextTrack extends EventTarget {
 
   @DomName('TextTrack.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
 
   @DomName('TextTrack.dispatchEvent')
   @DocsEditable()
@@ -25954,7 +25168,7 @@ class TextTrack extends EventTarget {
 
   @DomName('TextTrack.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
   @DomName('TextTrack.oncuechange')
   @DocsEditable()
@@ -26106,7 +25320,7 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
 
   @DomName('TextTrackCue.dispatchEvent')
   @DocsEditable()
@@ -26114,7 +25328,7 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
   @DomName('TextTrackCue.onenter')
   @DocsEditable()
@@ -26272,7 +25486,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
   @DomName('TextTrackList.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
   @DomName('TextTrackList.dispatchEvent')
   @DocsEditable()
@@ -26280,7 +25494,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
   @DomName('TextTrackList.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
   @DomName('TextTrackList.onaddtrack')
   @DocsEditable()
@@ -26520,7 +25734,8 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
-  factory TouchList() => document._createTouchList();
+  // TODO(5760): createTouchList now uses varargs.
+  factory TouchList() => null;//document._createTouchList();
   // To suppress missing implicit constructor warnings.
   factory TouchList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26744,12 +25959,6 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   @DocsEditable()
   void set currentNode(Node value) native "TreeWalker_currentNode_Setter";
 
-  @DomName('TreeWalker.expandEntityReferences')
-  @DocsEditable()
-  // http://dom.spec.whatwg.org/#dom-traversal
-  @deprecated // deprecated
-  bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
-
   @DomName('TreeWalker.filter')
   @DocsEditable()
   NodeFilter get filter native "TreeWalker_filter_Getter";
@@ -26870,16 +26079,6 @@ class UIEvent extends Event {
   @DocsEditable()
   void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
-
-  @deprecated
-  int get layerX => layer.x;
-  @deprecated
-  int get layerY => layer.y;
-
-  @deprecated
-  int get pageX => page.x;
-  @deprecated
-  int get pageY => page.y;
 
   @DomName('UIEvent.layerX')
   @DomName('UIEvent.layerY')
@@ -27097,30 +26296,12 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @Experimental()
   int get decodedFrameCount native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
 
-  @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  bool get displayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
-
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   int get droppedFrameCount native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
-
-  @DomName('HTMLVideoElement.webkitSupportsFullscreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  bool get supportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
 
   @DomName('HTMLVideoElement.width')
   @DocsEditable()
@@ -27130,15 +26311,6 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @DocsEditable()
   void set width(int value) native "HTMLVideoElement_width_Setter";
 
-  @DomName('HTMLVideoElement.webkitEnterFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
-  @deprecated // deprecated
-  void enterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
-
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27146,15 +26318,6 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   void enterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
-
-  @DomName('HTMLVideoElement.webkitExitFullScreen')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
-  @deprecated // deprecated
-  void exitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
 
   @DomName('HTMLVideoElement.webkitExitFullscreen')
   @DocsEditable()
@@ -27287,11 +26450,6 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   static const int OPEN = 1;
 
-  @DomName('WebSocket.URL')
-  @DocsEditable()
-  @deprecated // deprecated
-  String get Url native "WebSocket_URL_Getter";
-
   @DomName('WebSocket.binaryType')
   @DocsEditable()
   String get binaryType native "WebSocket_binaryType_Getter";
@@ -27368,7 +26526,7 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
   @DomName('WebSocket.dispatchEvent')
   @DocsEditable()
@@ -27376,7 +26534,7 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
   @DomName('WebSocket.onclose')
   @DocsEditable()
@@ -27778,11 +26936,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   Document get document native "Window_document_Getter";
 
-  @DomName('Window.event')
-  @DocsEditable()
-  @deprecated // deprecated
-  Event get event native "Window_event_Getter";
-
   @DomName('Window.history')
   @DocsEditable()
   History get history native "Window_history_Getter";
@@ -27867,12 +27020,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @SupportedBrowser(SupportedBrowser.IE)
   Performance get performance native "Window_performance_Getter";
 
-  @DomName('Window.personalbar')
-  @DocsEditable()
-  // https://developer.mozilla.org/en-US/docs/DOM/window.personalbar
-  @deprecated // deprecated
-  BarProp get personalbar native "Window_personalbar_Getter";
-
   @DomName('Window.screen')
   @DocsEditable()
   Screen get screen native "Window_screen_Getter";
@@ -27945,24 +27092,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   WindowBase get top native "Window_top_Getter";
 
-  @DomName('Window.webkitNotifications')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // https://plus.sandbox.google.com/u/0/+GoogleChromeDevelopers/posts/8vWo8hq4pDm?e=Showroom
-  @deprecated // deprecated
-  NotificationCenter get notifications native "Window_webkitNotifications_Getter";
-
-  @DomName('Window.webkitStorageInfo')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://www.w3.org/TR/file-system-api/
-  @deprecated // deprecated
-  StorageInfo get storageInfo native "Window_webkitStorageInfo_Getter";
-
   @DomName('Window.window')
   @DocsEditable()
   WindowBase get window native "Window_window_Getter";
@@ -27989,12 +27118,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   void cancelAnimationFrame(int id) native "Window_cancelAnimationFrame_Callback";
 
-  @DomName('Window.captureEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void captureEvents() native "Window_captureEvents_Callback";
-
   @DomName('Window.close')
   @DocsEditable()
   void close() native "Window_close_Callback";
@@ -28002,50 +27125,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DomName('Window.confirm')
   @DocsEditable()
   bool confirm(String message) native "Window_confirm_Callback";
-
-  Object _createImageBitmap(canvas_OR_context_OR_image_OR_video, [int sx, int sy, int sw, int sh]) {
-    if ((canvas_OR_context_OR_image_OR_video is ImageElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_1(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is ImageElement || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_2(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    if ((canvas_OR_context_OR_image_OR_video is CanvasRenderingContext2D || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_3(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is CanvasElement || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_4(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    if ((canvas_OR_context_OR_image_OR_video is CanvasElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_5(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((canvas_OR_context_OR_image_OR_video is VideoElement || canvas_OR_context_OR_image_OR_video == null) && sx == null && sy == null && sw == null && sh == null) {
-      return _createImageBitmap_6(canvas_OR_context_OR_image_OR_video);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is VideoElement || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_7(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    if ((sh is int || sh == null) && (sw is int || sw == null) && (sy is int || sy == null) && (sx is int || sx == null) && (canvas_OR_context_OR_image_OR_video is CanvasRenderingContext2D || canvas_OR_context_OR_image_OR_video == null)) {
-      return _createImageBitmap_8(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Object _createImageBitmap_1(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_1_Callback";
-
-  Object _createImageBitmap_2(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_2_Callback";
-
-  Object _createImageBitmap_3(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_3_Callback";
-
-  Object _createImageBitmap_4(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_4_Callback";
-
-  Object _createImageBitmap_5(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_5_Callback";
-
-  Object _createImageBitmap_6(canvas_OR_context_OR_image_OR_video) native "Window__createImageBitmap_6_Callback";
-
-  Object _createImageBitmap_7(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_7_Callback";
-
-  Object _createImageBitmap_8(canvas_OR_context_OR_image_OR_video, sx, sy, sw, sh) native "Window__createImageBitmap_8_Callback";
 
   @DomName('Window.find')
   @DocsEditable()
@@ -28097,12 +27176,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DomName('Window.print')
   @DocsEditable()
   void print() native "Window_print_Callback";
-
-  @DomName('Window.releaseEvents')
-  @DocsEditable()
-  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
-  @deprecated // deprecated
-  void releaseEvents() native "Window_releaseEvents_Callback";
 
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
@@ -28188,7 +27261,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
   @DomName('Window.addEventListener')
   @DocsEditable()
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
 
   @DomName('Window.dispatchEvent')
   @DocsEditable()
@@ -28196,7 +27269,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
   @DomName('Window.removeEventListener')
   @DocsEditable()
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
 
   @DomName('Window.atob')
   @DocsEditable()
@@ -28477,21 +27550,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
 }
 
-/**
- * Event object that is fired before the window is closed.
- *
- * The standard window close behavior can be prevented by setting the
- * [returnValue]. This will display a dialog to the user confirming that they
- * want to close the page.
- */
-abstract class BeforeUnloadEvent implements Event {
-  /**
-   * If set to a non-null value, a dialog will be presented to the user
-   * confirming that they want to close the page.
-   */
-  String returnValue;
-}
-
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
@@ -28602,7 +27660,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_addEventListener_Callback";
 
   @DomName('Worker.dispatchEvent')
   @DocsEditable()
@@ -28612,7 +27670,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Worker_removeEventListener_Callback";
 
   @DomName('Worker.onerror')
   @DocsEditable()
@@ -28791,7 +27849,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_addEventListener_Callback";
 
   @DomName('WorkerGlobalScope.dispatchEvent')
   @DocsEditable()
@@ -28801,7 +27859,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerGlobalScope_removeEventListener_Callback";
 
   @DomName('WorkerGlobalScope.atob')
   @DocsEditable()
@@ -29080,7 +28138,7 @@ class XmlHttpRequestEventTarget extends EventTarget {
   @DomName('XMLHttpRequestEventTarget.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_addEventListener_Callback";
 
   @DomName('XMLHttpRequestEventTarget.dispatchEvent')
   @DocsEditable()
@@ -29090,7 +28148,7 @@ class XmlHttpRequestEventTarget extends EventTarget {
   @DomName('XMLHttpRequestEventTarget.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_removeEventListener_Callback";
 
   @DomName('XMLHttpRequestEventTarget.onabort')
   @DocsEditable()
@@ -29257,16 +28315,6 @@ class _Attr extends Node {
   @DocsEditable()
   @Experimental() // untriaged
   String get _namespaceUri native "Attr_namespaceURI_Getter";
-
-  @DomName('Attr.ownerElement')
-  @DocsEditable()
-  @deprecated // deprecated
-  Element get ownerElement native "Attr_ownerElement_Getter";
-
-  @DomName('Attr.specified')
-  @DocsEditable()
-  @deprecated // deprecated
-  bool get specified native "Attr_specified_Getter";
 
   @DomName('Attr.value')
   @DocsEditable()
@@ -29816,18 +28864,6 @@ class _DomPoint extends NativeFieldWrapperClass2 {
 class _Entity extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Entity._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Entity.notationName')
-  @DocsEditable()
-  String get notationName native "Entity_notationName_Getter";
-
-  @DomName('Entity.publicId')
-  @DocsEditable()
-  String get publicId native "Entity_publicId_Getter";
-
-  @DomName('Entity.systemId')
-  @DocsEditable()
-  String get systemId native "Entity_systemId_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31889,13 +30925,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !isPaused) {
-      _target.$dom_addEventListener(_eventType, _onData, _useCapture);
+      _target.addEventListener(_eventType, _onData, _useCapture);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
+      _target.removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 
@@ -34857,11 +33893,6 @@ class _WrappedEvent implements Event {
 
   bool get bubbles => wrapped.bubbles;
 
-  bool get cancelBubble => wrapped.bubbles;
-  void set cancelBubble(bool value) {
-    wrapped.cancelBubble = value;
-  }
-
   bool get cancelable => wrapped.cancelable;
 
   DataTransfer get clipboardData => wrapped.clipboardData;
@@ -35204,16 +34235,6 @@ class Platform {
    * error.
    */
   static final supportsSimd = true;
-
-  /**
-   * Upgrade all custom elements in the subtree which have not been upgraded.
-   *
-   * This is needed to cover timing scenarios which the custom element polyfill
-   * does not cover.
-   */
-  static void upgradeCustomElements(Node node) {
-    // no-op, provided for dart2js polyfill.
-  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35328,6 +34349,15 @@ class _Utils {
     return result;
   }
 
+  static List captureParsedStackTrace() {
+    try {
+      // Throwing an exception is the only way to generate a stack trace.
+      throw new Exception();
+    } catch (e, stackTrace) {
+      return parseStackTrace(stackTrace);
+    }
+  }
+
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];
@@ -35335,6 +34365,8 @@ class _Utils {
   }
 
   static bool isMap(obj) => obj is Map;
+
+  static List toListIfIterable(obj) => obj is Iterable ? obj.toList() : null;
 
   static Map createMap() => {};
 
@@ -35403,7 +34435,11 @@ class _Utils {
    * that does not expect REPL support.
    */
   static const _CONSOLE_API_SUPPORT_HEADER =
-      'with ((this && this.console && this.console._commandLineAPI) || {}) {\n';
+      'with ((console && console._commandLineAPI) || {}) {\n';
+
+  static bool expectsConsoleApi(String expression) {
+    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
+  }
 
   /**
    * Takes an [expression] and a list of [local] variable and returns an
@@ -35449,7 +34485,7 @@ class _Utils {
       args[arg] = value;
     }
 
-    if (expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0) {
+    if (expectsConsoleApi(expression)) {
       expression = expression.substring(expression.indexOf('\n') + 1);
       expression = expression.substring(0, expression.lastIndexOf('\n'));
 
@@ -35642,10 +34678,6 @@ class _Utils {
 
   static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 
-  // TODO(jacobr): we need a failsafe way to determine that a Node is really a
-  // DOM node rather than just a class that extends Node.
-  static bool isNode(obj) => obj is Node;
-
   static bool _isBuiltinType(ClassMirror cls) {
     // TODO(vsm): Find a less hackish way to do this.
     LibraryMirror lib = cls.owner;
@@ -35661,9 +34693,38 @@ class _Utils {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
-    if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
-      throw new UnsupportedError('Class is missing constructor $className.created');
+    var createdConstructor = cls.constructors[new Symbol('$className.created')];
+    if (createdConstructor == null) {
+      throw new UnsupportedError(
+          'Class is missing constructor $className.created');
     }
+
+    if (createdConstructor.parameters.length > 0) {
+      throw new UnsupportedError(
+          'Constructor $className.created must take zero arguments');
+    }
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+        cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+        cls != null && cls.qualifiedName == elementName;
+    ClassMirror superClass = cls.superclass;
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
+    if (extendsTagName == null) {
+      if (nativeClass.reflectedType != HtmlElement) {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HTMLElement');
+      }
+    }
+
     _register(document, tag, type, extendsTagName);
   }
 

@@ -44,7 +44,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void AnalyzeTryCatch();
 
-  bool TryInlineRecognizedMethod(const Function& target,
+  bool TryInlineRecognizedMethod(intptr_t receiver_cid,
+                                 const Function& target,
                                  Instruction* call,
                                  intptr_t token_pos,
                                  const ICData& ic_data,
@@ -118,8 +119,21 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   LoadIndexedInstr* BuildStringCodeUnitAt(InstanceCallInstr* call,
                                           intptr_t cid);
 
+  bool InlineByteArrayViewLoad(Instruction* call,
+                               intptr_t array_cid,
+                               intptr_t view_cid,
+                               const ICData& ic_data,
+                               TargetEntryInstr** entry,
+                               Definition** last);
+
+  intptr_t PrepareInlineByteArrayViewOp(Instruction* call,
+                                        intptr_t array_cid,
+                                        intptr_t view_cid,
+                                        Definition** array,
+                                        Definition* index,
+                                        Instruction** cursor);
+
   bool BuildByteArrayViewLoad(InstanceCallInstr* call,
-                              intptr_t receiver_cid,
                               intptr_t view_cid);
   bool BuildByteArrayViewStore(InstanceCallInstr* call,
                                intptr_t view_cid);

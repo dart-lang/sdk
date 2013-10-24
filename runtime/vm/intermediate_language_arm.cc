@@ -3308,10 +3308,11 @@ LocationSummary* Float32x4SqrtInstr::MakeLocationSummary() const {
 void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   QRegister left = locs()->in(0).fpu_reg();
   QRegister result = locs()->out().fpu_reg();
+  QRegister temp = locs()->temp(0).fpu_reg();
 
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4Sqrt:
-      __ Vsqrtqs(result, left);
+      __ Vsqrtqs(result, left, temp);
       break;
     case MethodRecognizer::kFloat32x4Reciprocal:
       __ Vreciprocalqs(result, left);

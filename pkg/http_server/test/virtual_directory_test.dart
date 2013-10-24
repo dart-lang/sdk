@@ -211,12 +211,12 @@ void main() {
           var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
           var virDir = new VirtualDirectory(dir.path);
           virDir.allowDirectoryListing = true;
-          virDir.setDirectoryHandler((dir2, request) {
+          virDir.directoryHandler = (dir2, request) {
             expect(dir2, isNotNull);
             expect(FileSystemEntity.identicalSync(dir.path, dir2.path), isTrue);
             request.response.write('My handler ${request.uri.path}');
             request.response.close();
-          });
+          };
 
           virDir.serve(server);
 
@@ -278,7 +278,7 @@ void main() {
               var dir =
                   Directory.systemTemp.createTempSync('http_server_virtual_');
               var file = new File('${dir.path}/file')..createSync();
-              var link = new Link('${dir.path}/dir3')
+              var link = new Link('${dir.path}/file2')
                   ..createSync('${dir.path}/file');
               var virDir = new VirtualDirectory(dir.path);
               virDir.followLinks = true;
@@ -287,7 +287,7 @@ void main() {
 
               return new HttpClient().get('localhost',
                                           server.port,
-                                          '/dir3/file')
+                                          '/file2')
                   .then((request) => request.close())
                   .then((response) => response.drain().then(
                       (_) => response.statusCode))
@@ -302,11 +302,11 @@ void main() {
             expect(HttpServer.bind('localhost', 0).then((server) {
               var dir =
                   Directory.systemTemp.createTempSync('http_server_virtual_');
-              var name = basename(dir.path);
+              var dir2 = new Directory('${dir.path}/dir')..createSync();
               var file = new File('${dir.path}/file')..createSync();
-              var link = new Link('${dir.path}/dir3')
-                  ..createSync('../$name/file');
-              var virDir = new VirtualDirectory(dir.path);
+              var link = new Link('${dir2.path}/file')
+                  ..createSync('../file');
+              var virDir = new VirtualDirectory(dir2.path);
               virDir.followLinks = true;
 
               virDir.serve(server);
@@ -345,6 +345,63 @@ void main() {
                   dir.deleteSync(recursive: true);
                 });
           }), completion(equals(HttpStatus.NOT_FOUND)));
+        });
+      });
+
+      group('follow-links', () {
+        test('no-root-jail', () {
+          test('absolute-link', () {
+            expect(HttpServer.bind('localhost', 0).then((server) {
+              var dir =
+                  Directory.systemTemp.createTempSync('http_server_virtual_');
+              var file = new File('${dir.path}/file')..createSync();
+              var link = new Link('${dir.path}/file2')
+                  ..createSync('${dir.path}/file');
+              var virDir = new VirtualDirectory(dir.path);
+              virDir.followLinks = true;
+              virDir.jailRoot = false;
+
+              virDir.serve(server);
+
+              return new HttpClient().get('localhost',
+                                          server.port,
+                                          '/file2')
+                  .then((request) => request.close())
+                  .then((response) => response.drain().then(
+                      (_) => response.statusCode))
+                  .whenComplete(() {
+                    server.close();
+                    dir.deleteSync(recursive: true);
+                  });
+            }), completion(equals(HttpStatus.OK)));
+          });
+
+          test('relative-parent-link', () {
+            expect(HttpServer.bind('localhost', 0).then((server) {
+              var dir =
+                  Directory.systemTemp.createTempSync('http_server_virtual_');
+              var dir2 = new Directory('${dir.path}/dir')..createSync();
+              var file = new File('${dir.path}/file')..createSync();
+              var link = new Link('${dir2.path}/file')
+                  ..createSync('../file');
+              var virDir = new VirtualDirectory(dir2.path);
+              virDir.followLinks = true;
+              virDir.jailRoot = false;
+
+              virDir.serve(server);
+
+              return new HttpClient().get('localhost',
+                                          server.port,
+                                          '/file')
+                  .then((request) => request.close())
+                  .then((response) => response.drain().then(
+                      (_) => response.statusCode))
+                  .whenComplete(() {
+                    server.close();
+                    dir.deleteSync(recursive: true);
+                  });
+            }), completion(equals(HttpStatus.OK)));
+          });
         });
       });
     }
@@ -469,11 +526,11 @@ void main() {
         var virDir = new VirtualDirectory(dir.path);
         dir.deleteSync();
 
-        virDir.setErrorPageHandler((request) {
+        virDir.errorPageHandler = (request) {
           request.response.write('my-page ');
           request.response.write(request.response.statusCode);
           request.response.close();
-        });
+        };
         virDir.serve(server);
 
         return getAsString(server.port, '/')

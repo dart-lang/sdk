@@ -24,6 +24,9 @@ class BadEqualityHash {
   int get hashCode => count++;
 }
 
+typedef bool Predicate(Object o);
+Predicate somePredicate;
+
 checkEquality(List<Map> equivalenceClasses) {
   for (var equivalenceClass in equivalenceClasses) {
     equivalenceClass.forEach((name, member) {
@@ -116,6 +119,38 @@ main() {
     {'reflectClass(B)' : reflectClass(B),
      'thisLibrary.classes[#B]' : thisLibrary.classes[#B],
      'reflect(new B()).type' : reflect(new B()).type},
+
+    {'reflectClass(BadEqualityHash).methods[#==]'  /// 02: ok
+        : reflectClass(BadEqualityHash).methods[#==],  /// 02: ok
+     'reflect(new BadEqualityHash()).type.methods[#==]'  /// 02: ok
+        : reflect(new BadEqualityHash()).type.methods[#==]},  /// 02: ok
+
+    {'reflectClass(BadEqualityHash).methods[#==].parameters[0]'  /// 02: ok
+        : reflectClass(BadEqualityHash).methods[#==].parameters[0],  /// 02: ok
+     'reflect(new BadEqualityHash()).type.methods[#==].parameters[0]'  /// 02: ok
+        : reflect(new BadEqualityHash()).type.methods[#==].parameters[0]},  /// 02: ok
+
+    {'reflectClass(BadEqualityHash).variables[#count]'  /// 02: ok
+        : reflectClass(BadEqualityHash).variables[#count],  /// 02: ok
+     'reflect(new BadEqualityHash()).type.variables[#count]'  /// 02: ok
+        : reflect(new BadEqualityHash()).type.variables[#count]},  /// 02: ok
+
+    {'reflectType(Predicate)' : reflectType(Predicate),  /// 02: ok
+     'thisLibrary.variables[#somePredicate].type'  /// 02: ok
+        : thisLibrary.variables[#somePredicate].type},  /// 02: ok
+
+    {'reflectType(Predicate).referent' : reflectType(Predicate).referent,  /// 02: ok
+     'thisLibrary.variables[#somePredicate].type.referent'  /// 02: ok
+        : thisLibrary.variables[#somePredicate].type.referent},  /// 02: ok
+
+    {'reflectClass(A).typeVariables.single'  /// 02: ok
+        : reflectClass(A).typeVariables.single,  /// 02: ok
+     'reflect(new A<int>()).type.originalDeclaration.typeVariables.single'  /// 02: ok
+        : reflect(new A<int>()).type.originalDeclaration.typeVariables.single},  /// 02: ok
+
+    {'currentMirrorSystem()' : currentMirrorSystem()},
+
+    {'currentMirrorSystem().isolate' : currentMirrorSystem().isolate},
 
     {'thisLibrary' : thisLibrary,
      'reflectClass(A).owner' : reflectClass(A).owner,

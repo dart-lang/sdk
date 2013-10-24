@@ -55,7 +55,6 @@ element_types_test/supported_datalist: Fail # TODO(kasperl): Please triage.
 fileapi_test/directoryReader: Fail # TODO(kasperl): Please triage.
 input_element_test/supported_week: Fail # TODO(kasperl): Please triage.
 media_stream_test/supported_media: Fail # TODO(kasperl): Please triage.
-notifications_test/supported: Fail # TODO(kasperl): Please triage.
 rtc_test/supported: Fail # TODO(kasperl): Please triage.
 speechrecognition_test/supported: Fail # TODO(kasperl): Please triage.
 speechrecognition_test/types: Fail # TODO(kasperl): Please triage.
@@ -65,10 +64,10 @@ xhr_test/json: Fail # TODO(kasperl): Please triage.
 [ $compiler == dart2js && $runtime == ie10 ]
 async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893
+js_test: Fail # Issue 14246
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
-js_test: Fail # Issue 14246
 
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
@@ -86,9 +85,6 @@ touchevent_test/supported: Fail
 
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
-
-[ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
-audiocontext_test: Skip # Issue 9322
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -146,7 +142,6 @@ media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
-notifications_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -227,7 +222,6 @@ media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
-notifications_test/supported: Fail
 range_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
@@ -274,7 +268,6 @@ xsltprocessor_test/supported: Fail
 [ $runtime == safari ]
 worker_test: Skip # Issue 13221
 worker_api_test: Skip # Issue 13221
-notifications_test/supported: Pass, Fail # Issue 13210
 element_types_test/supported_track: Pass, Fail
 input_element_test/supported_month: Fail, Crash
 input_element_test/supported_time: Fail, Crash
@@ -284,6 +277,8 @@ wheelevent_test: Fail # Issue: 12798
 xhr_test/xhr_requestBlob: Fail # Issue: 9178 Safari doesn't support Blob responses.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
+audiocontext_test/functional: Fail # Issue 14354
+
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -299,7 +294,6 @@ input_element_test/supported_datetime-local: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
-notifications_test/supported: Fail
 performance_api_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
@@ -343,7 +337,6 @@ element_types_test/supported_template: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
-notifications_test/supported: Fail
 performance_api_test/supported: Fail
 speechrecognition_test/supported: Fail
 websql_test/supported: Fail
@@ -379,7 +372,6 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
-notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
@@ -401,7 +393,6 @@ js_interop_2_test: Fail, OK        # Test cannot run under CSP restrictions.
 js_interop_3_test: Skip            # Test cannot run under CSP restrictions (times out).
 js_test: Skip                      # Test cannot run under CSP restrictions (times out).
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
-safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 
 [ $compiler == dart2js && $runtime == drt ]
 wheelevent_test: Fail # http://dartbug.com/12958
@@ -411,6 +402,3 @@ async_test: Timeout # Issue 13719: Please triage this failure.
 dromaeo_smoke_test: Fail # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
 touchevent_test/supported: Fail # Issue 13719: Please triage this failure.
-
-[ $compiler == dart2js ]
-custom/document_register_type_extensions_test/registration: Fail # Issue 14093

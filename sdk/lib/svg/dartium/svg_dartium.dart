@@ -999,7 +999,7 @@ class ElementInstance extends EventTarget {
   @DomName('SVGElementInstance.addEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
 
   @DomName('SVGElementInstance.dispatchEvent')
   @DocsEditable()
@@ -1009,7 +1009,7 @@ class ElementInstance extends EventTarget {
   @DomName('SVGElementInstance.removeEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
 
   @DomName('SVGElementInstance.onabort')
   @DocsEditable()
@@ -7443,31 +7443,6 @@ abstract class _SVGMissingGlyphElement extends SvgElement {
 abstract class _SVGPaint extends _SVGColor {
   // To suppress missing implicit constructor warnings.
   factory _SVGPaint._() { throw new UnsupportedError("Not supported"); }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGTRefElement')
-@Unstable()
-abstract class _SVGTRefElement extends TextPositioningElement implements UriReference {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGTRefElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGTRefElement.SVGTRefElement')
-  @DocsEditable()
-  factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGTRefElement.created() : super.created();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

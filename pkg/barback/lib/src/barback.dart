@@ -9,6 +9,7 @@ import 'dart:async';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_set.dart';
+import 'barback_logger.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_graph.dart';

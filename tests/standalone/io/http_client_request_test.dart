@@ -12,9 +12,9 @@ import "package:expect/expect.dart";
 void testClientRequest(Future handler(request)) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      request.listen((_) {}, onDone: () {
-        request.response.close();
-      }, onError: (e) {});
+      request.drain()
+          .then((_) => request.response.close())
+          .catchError((_) {});
     });
 
     var client = new HttpClient();
@@ -22,15 +22,11 @@ void testClientRequest(Future handler(request)) {
       .then((request) {
         return handler(request);
       })
-      .then((response) {
-        response.listen((_) {}, onDone: () {
-          client.close();
-          server.close();
-        });
-      })
-      .catchError((error) {
-        server.close();
+      .then((response) => response.drain())
+      .catchError((_) {})
+      .whenComplete(() {
         client.close();
+        server.close();
       });
   });
 }

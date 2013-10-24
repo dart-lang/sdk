@@ -44,8 +44,6 @@ part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
 part 'options.dart';
-part 'path.dart';
-part 'path_impl.dart';
 part 'platform.dart';
 part 'platform_impl.dart';
 part 'process.dart';

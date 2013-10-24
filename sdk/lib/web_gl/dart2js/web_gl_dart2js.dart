@@ -2203,25 +2203,71 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
   @JSName('bufferData')
+  /**
+   * Buffers the specified data.
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but
+   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
+   * depending on your purposes.
+   */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
   void bufferByteData(int target, ByteBuffer data, int usage) native;
 
+  /**
+   * Buffers the specified data.
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but
+   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
+   * depending on your purposes.
+   */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
-  void bufferData(int target, int size, int usage) native;
+  void bufferData(int target, data_OR_size, int usage) native;
 
   @JSName('bufferData')
+  /**
+   * Buffers the specified data.
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but
+   * it is highly recommended that you use [bufferDataTyped] or [bufferByteData]
+   * depending on your purposes.
+   */
   @DomName('WebGLRenderingContext.bufferData')
   @DocsEditable()
   void bufferDataTyped(int target, TypedData data, int usage) native;
 
   @JSName('bufferSubData')
+  /**
+   * Buffers the specified subset of data.
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but
+   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
+   * depending on your purposes.
+   */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
   void bufferSubByteData(int target, int offset, ByteBuffer data) native;
 
+  /**
+   * Buffers the specified subset of data.
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but
+   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
+   * depending on your purposes.
+   */
+  @DomName('WebGLRenderingContext.bufferSubData')
+  @DocsEditable()
+  void bufferSubData(int target, int offset, data) native;
+
   @JSName('bufferSubData')
+  /**
+   * Buffers the specified subset of data.
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but
+   * it is highly recommended that you use [bufferSubDataTyped] or [bufferSubByteData]
+   * depending on your purposes.
+   */
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable()
   void bufferSubDataTyped(int target, int offset, TypedData data) native;
@@ -2592,16 +2638,135 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+    if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
+      _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      var pixels_1 = convertDartToNative_ImageData(border_OR_canvas_OR_image_OR_pixels_OR_video);
+      _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
+      _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
   @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, TypedData pixels) native;
+  @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
+  @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
+  @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
+  @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable()
+  void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
+
+  @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) native;
 
   @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) native;
 
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) {
@@ -2610,11 +2775,27 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
     return;
   }
   @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void _texImage2DImageData_1(target, level, internalformat, format, type, pixels) native;
 
   @JSName('texImage2D')
+  /**
+   * Updates the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texImage2DUntyped] or [texImage2DTyped]
+   * (or for more specificity, the more specialized [texImage2DImageData],
+   * [texImage2DCanvas], [texImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) native;
@@ -2627,16 +2808,135 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DocsEditable()
   void texParameteri(int target, int pname, int param) native;
 
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+    if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
+      _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      var pixels_1 = convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
+      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
+      _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
   @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, TypedData pixels) native;
+  @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
+  @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
+  @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
+  @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable()
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
+
+  @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) native;
 
   @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) native;
 
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) {
@@ -2645,11 +2945,27 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
     return;
   }
   @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void _texSubImage2DImageData_1(target, level, xoffset, yoffset, format, type, pixels) native;
 
   @JSName('texSubImage2D')
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * This specific method is provided for WebGL API compatibility reasons, but it
+   * is highly recommended that you use [texSubImage2DUntyped] or [texSubImage2DTyped]
+   * (or for more specificity, the more specialized [texSubImage2DImageData],
+   * [texSubImage2DCanvas], [texSubImage2DVideo]).
+   */
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) native;
@@ -2788,10 +3104,9 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
    * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
    *
    */
-  @DomName('WebGLRenderingContext.texImage2D')
   @JSName('texImage2D')
-  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) native;
+  void texImage2DUntyped(int targetTexture, int levelOfDetail, 
+      int internalFormat, int format, int type, data) native;
 
   /**
    * Sets the currently bound texture to [data].
@@ -2810,10 +3125,9 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
    * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
    *
    */
-  @DomName('WebGLRenderingContext.texSubImage2D')
   @JSName('texSubImage2D')
-  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) native;
+  void texSubImage2DUntyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int format, int type, data) native;
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].

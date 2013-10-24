@@ -37,7 +37,7 @@ class Exceptions : AllStatic {
                                       const String& src_type_name,
                                       const String& dst_type_name,
                                       const String& dst_name,
-                                      const String& malformed_error);
+                                      const String& bound_error);
 
   enum ExceptionType {
     kNone,
@@ -58,7 +58,6 @@ class Exceptions : AllStatic {
     kType,
     kFallThrough,
     kAbstractClassInstantiation,
-    kMirroredUncaughtExceptionError,
     kMirroredCompilationError,
   };
 

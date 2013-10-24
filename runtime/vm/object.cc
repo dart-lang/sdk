@@ -330,7 +330,8 @@ RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
       }
       start = i + 1;
     } else if (name.CharAt(i) == '@') {
-      ASSERT(at_pos == -1);  // Only one @ is supported.
+      // Setters should have only one @ so we know where to put the =.
+      ASSERT(!is_setter || (at_pos == -1));
       at_pos = i;
     }
   }
@@ -2788,13 +2789,22 @@ bool Class::TypeTest(
   AbstractType& interface = AbstractType::Handle();
   Class& interface_class = Class::Handle();
   AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
-  Error& args_bound_error = Error::Handle();
+  Error& error = Error::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
     if (!interface.IsFinalized()) {
       // We may be checking bounds at finalization time. Skipping this
       // unfinalized interface will postpone bound checking to run time.
       continue;
+    }
+    error = Error::null();
+    if (interface.IsMalboundedWithError(&error)) {
+      // Return the first bound error to the caller if it requests it.
+      if ((bound_error != NULL) && bound_error->IsNull()) {
+        ASSERT(!error.IsNull());
+        *bound_error = error.raw();
+      }
+      continue;  // Another interface may work better.
     }
     interface_class = interface.type_class();
     interface_args = interface.arguments();
@@ -2807,13 +2817,12 @@ bool Class::TypeTest(
       // parameters of the interface are at the end of the type vector,
       // after the type arguments of the super type of this type.
       // The index of the type parameters is adjusted upon finalization.
-      args_bound_error = Error::null();
-      interface_args = interface_args.InstantiateFrom(type_arguments,
-                                                      &args_bound_error);
-      if (!args_bound_error.IsNull()) {
+      error = Error::null();
+      interface_args = interface_args.InstantiateFrom(type_arguments, &error);
+      if (!error.IsNull()) {
         // Return the first bound error to the caller if it requests it.
         if ((bound_error != NULL) && bound_error->IsNull()) {
-          *bound_error = args_bound_error.raw();
+          *bound_error = error.raw();
         }
         continue;  // Another interface may work better.
       }
@@ -6225,7 +6234,7 @@ RawString* TokenStream::GenerateSource() const {
 
 
 intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
-  Iterator iterator(*this, 0);
+  Iterator iterator(*this, 0, Iterator::kAllTokens);
   intptr_t src_pos = 0;
   Token::Kind kind = iterator.CurrentTokenKind();
   while (iterator.CurrentPosition() < tok_pos && kind != Token::kEOS) {
@@ -6234,19 +6243,6 @@ intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
     src_pos += 1;
   }
   return src_pos;
-}
-
-
-intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
-  Iterator iterator(*this, 0);
-  intptr_t index = 0;
-  Token::Kind kind = iterator.CurrentTokenKind();
-  while (index < src_pos && kind != Token::kEOS) {
-    iterator.Advance();
-    kind = iterator.CurrentTokenKind();
-    index += 1;
-  }
-  return iterator.CurrentPosition();
 }
 
 
@@ -6294,7 +6290,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   // Add an IDENT token into the stream and the token objects array.
-  void AddIdentToken(String* ident) {
+  void AddIdentToken(const String* ident) {
     if (ident != NULL) {
       // If the IDENT token is already in the tokens object array use the
       // same index instead of duplicating it.
@@ -6312,7 +6308,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   // Add a LITERAL token into the stream and the token objects array.
-  void AddLiteralToken(Token::Kind kind, String* literal) {
+  void AddLiteralToken(Token::Kind kind, const String* literal) {
     if (literal != NULL) {
       // If the literal token is already in the tokens object array use the
       // same index instead of duplicating it.
@@ -6347,7 +6343,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
  private:
-  intptr_t FindIdentIndex(String* ident) {
+  intptr_t FindIdentIndex(const String* ident) {
     ASSERT(ident != NULL);
     intptr_t hash_value = ident->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = ident_table_[hash_value];
@@ -6365,7 +6361,7 @@ class CompressedTokenStreamData : public ValueObject {
     return -1;
   }
 
-  intptr_t FindLiteralIndex(Token::Kind kind, String* literal) {
+  intptr_t FindLiteralIndex(Token::Kind kind, const String* literal) {
     ASSERT(literal != NULL);
     intptr_t hash_value = literal->Hash() % kTableSize;
     GrowableArray<intptr_t>& value = literal_table_[hash_value];

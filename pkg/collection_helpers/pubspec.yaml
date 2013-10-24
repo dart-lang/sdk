@@ -1,0 +1,6 @@
+name: collection_helpers
+author: '"Dart Team <misc@dartlang.org>"'
+description: Utility functions and classes for working with collections.
+homepage: http://www.dartlang.org
+dev_dependencies:
+  unittest: any

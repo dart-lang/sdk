@@ -195,6 +195,24 @@ testEqualPhisElimination() {
   Expect.equals(2, u.y);
 }
 
+
+testPhiMultipleRepresentations(f, arr) {
+  var w;
+  if (f) {
+    w = arr[0] + arr[1];
+  } else {
+    w = arr[0] - arr[1];
+  }
+  var v;
+  if (f) {
+    v = arr[0];
+  } else {
+    v = arr[0];
+  }
+  return v + w;
+}
+
+
 main() {
   final fixed = new List(10);
   final growable = [];
@@ -234,6 +252,11 @@ main() {
   for (var i = 0; i < 20; i++) {
     testPhiConvertions(true, u32List);
     testPhiConvertions(false, u32List);
+  }
+
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(0.0, testPhiMultipleRepresentations(true, f64List));
+    Expect.equals(0, testPhiMultipleRepresentations(false, const [1,2]));
   }
 
   final escape = new List(1);

@@ -10,7 +10,8 @@ import 'package:unittest/html_config.dart';
 /**
  * This test runs the news example and checks the state of the initial page.
  */
-@initMethod _main() {
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   extractLinks(nodes) => nodes.where((n) => n is Element)
@@ -21,8 +22,7 @@ import 'package:unittest/html_config.dart';
     final items = listComp.queryAll('li');
     expect(items.length, 6);
     expect(extractLinks(items), ['1', '2', '3', '4', '4', '5']);
-    expect(listComp.xtag is Polymer, true,
-        reason: 'x-news should be created');
+    expect(listComp is Polymer, true, reason: 'x-news should be created');
 
     final contents = listComp.shadowRoot.queryAll('content');
     expect(contents.length, 2, reason: 'news has 2 content tags');

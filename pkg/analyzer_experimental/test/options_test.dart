@@ -5,23 +5,48 @@
 library options_test;
 
 import 'package:unittest/unittest.dart';
-//import 'package:analyzer_experimental/options.dart';
+import 'package:analyzer_experimental/options.dart';
 
 main() {
 
   group('AnalyzerOptions.parse()', () {
 
     test('defaults', () {
-//      CommandLineOptions options = CommandLineOptions.parse(['foo.dart']);
-//      expect(options, isNotNull);
-//      expect(options.shouldBatch, isFalse);
-//      expect(options.machineFormat, isFalse);
-//      expect(options.ignoreUnrecognizedFlags, isFalse);
-//      expect(options.showPackageWarnings, isFalse);
-//      expect(options.showSdkWarnings, isFalse);
-//      expect(options.warningsAreFatal, isFalse);
-//      expect(options.dartSdkPath, isNull);
-//      expect(options.sourceFiles, equals(['foo.dart']));
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', 'foo.dart']);
+      expect(options, isNotNull);
+      expect(options.shouldBatch, isFalse);
+      expect(options.machineFormat, isFalse);
+      expect(options.ignoreUnrecognizedFlags, isFalse);
+      expect(options.showPackageWarnings, isFalse);
+      expect(options.showSdkWarnings, isFalse);
+      expect(options.warningsAreFatal, isFalse);
+      expect(options.dartSdkPath, isNotNull);
+      expect(options.sourceFiles, equals(['foo.dart']));
+    });
+
+    test('machine format', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--format=machine', 'foo.dart']);
+      expect(options.machineFormat, isTrue);
+    });
+
+    test('package root', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '-p', 'bar', 'foo.dart']);
+      expect(options.packageRootPath, equals('bar'));
+    });
+    
+    test('package warnings', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--package-warnings', 'foo.dart']);
+      expect(options.showPackageWarnings, isTrue);
+    });
+    
+    test('sdk warnings', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--warnings', 'foo.dart']);
+      expect(options.showSdkWarnings, isTrue);
     });
 
 //    test('notice unrecognized flags', () {

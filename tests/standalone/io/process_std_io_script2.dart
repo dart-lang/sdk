@@ -26,21 +26,20 @@ writeData(data, encoding, stream) {
   }
 }
 
-main() {
+main(List<String> arguments) {
   var asciiString = 'abc';
   var latin1String = 'æøå';
   var utf8String = new String.fromCharCodes([955]);
   var binary = [0, 1, 2];
-  var options = new Options();
-  if (options.arguments.length > 1) {
-    var stream = options.arguments[1];
-    if (options.arguments[0] == "ascii") {
+  if (arguments.length > 1) {
+    var stream = arguments[1];
+    if (arguments[0] == "ascii") {
       writeData(asciiString, ASCII, stream);
-    } else if (options.arguments[0] == "latin1") {
+    } else if (arguments[0] == "latin1") {
       writeData(latin1String, LATIN1, stream);
-    } else if (options.arguments[0] == "utf8") {
+    } else if (arguments[0] == "utf8") {
       writeData(utf8String, UTF8, stream);
-    } else if (options.arguments[0] == "binary") {
+    } else if (arguments[0] == "binary") {
       writeData(binary, null, stream);
     }
   }

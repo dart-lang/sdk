@@ -9,8 +9,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 
-void main() {
-  var args = new Options().arguments;
+void main(List<String> args) {
   if (!args.contains('--child')) {
     runAllTestsInChildProcesses();
   } else {

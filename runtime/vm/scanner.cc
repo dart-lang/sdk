@@ -42,12 +42,16 @@ void Scanner::InitKeywordTable() {
 
 
 void Scanner::Reset() {
-  // Non-chaning newline properties.
+  // Non-changing newline properties.
   newline_token_.kind = Token::kNEWLINE;
   newline_token_.literal = NULL;
-  newline_token_.length = 1;
   // We don't preserve the column information.
   newline_token_.position.column = 0;
+
+  // Non-changing empty string token properties.
+  empty_string_token_.kind = Token::kSTRING;
+  empty_string_token_.literal = &Symbols::Empty();
+  empty_string_token_.position.column = 0;
 
   lookahead_pos_ = -1;
   token_start_ = 0;
@@ -187,7 +191,7 @@ bool Scanner::IsIdent(const String& str) {
 bool Scanner::IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
                              Token::Kind literal_kind,
                              bool* is_positive,
-                             String** value) {
+                             const String** value) {
   if ((tokens.length() == 2) &&
       (tokens[0].kind == literal_kind) &&
       (tokens[1].kind == Token::kEOS)) {
@@ -877,7 +881,6 @@ void Scanner::Scan() {
         }
     }
   } while (current_token_.kind == Token::kWHITESP);
-  current_token_.length = lookahead_pos_ - token_start_;
 }
 
 
@@ -886,13 +889,21 @@ void Scanner::ScanAll(GrowableTokenStream* token_stream) {
   do {
     Scan();
 
+    bool inserted_new_lines = false;
     for (intptr_t diff = current_token_.position.line - prev_token_line_;
          diff > 0;
          diff--) {
       newline_token_.position.line = current_token_.position.line - diff;
       token_stream->Add(newline_token_);
+      inserted_new_lines = true;
     }
 
+    if (inserted_new_lines &&
+        ((current_token_.kind == Token::kINTERPOL_VAR) ||
+         (current_token_.kind == Token::kINTERPOL_START))) {
+      empty_string_token_.position.line = current_token_.position.line;
+      token_stream->Add(empty_string_token_);
+    }
     token_stream->Add(current_token_);
     prev_token_line_ = current_token_.position.line;
   } while (current_token_.kind != Token::kEOS);
@@ -904,7 +915,22 @@ void Scanner::ScanTo(intptr_t token_index) {
   Reset();
   do {
     Scan();
+
+    bool inserted_new_lines = false;
+    for (intptr_t diff = current_token_.position.line - prev_token_line_;
+         diff > 0;
+         diff--) {
+      index++;  // Advance the index to account for tokens added in ScanAll.
+      inserted_new_lines = true;
+    }
+
+    if (inserted_new_lines &&
+        ((current_token_.kind == Token::kINTERPOL_VAR) ||
+         (current_token_.kind == Token::kINTERPOL_START))) {
+          index++;  // Advance the index to account for tokens added in ScanAll.
+    }
     index++;
+    prev_token_line_ = current_token_.position.line;
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
 }
 

@@ -127,11 +127,12 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
                                     function_name,
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
-  const int kNumAllocationArgs = 3;
+  const int kNumAllocationArgs = 4;
   const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
   allocation_args.SetAt(0, target_name);
   allocation_args.SetAt(1, arguments_descriptor);
   allocation_args.SetAt(2, arguments);
+  allocation_args.SetAt(3, Bool::False());  // Not a super invocation.
   const Object& invocation_mirror = Object::Handle(
       InvokeFunction(allocation_function, allocation_args));
 

@@ -1198,8 +1198,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
   }
 
   if (desc.NamedCount() > 0) {
-    const Array& arg_names =
-        Array::ZoneHandle(Array::New(desc.NamedCount()));
+    const Array& arg_names = Array::ZoneHandle(Array::New(desc.NamedCount()));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       arg_names.SetAt(i, String::Handle(desc.NameAt(i)));
     }
@@ -1207,15 +1206,13 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
   }
 
   const String& func_name = String::ZoneHandle(func.name());
-  ArgumentListNode* arguments = BuildNoSuchMethodArguments(token_pos,
-                                                           func_name,
-                                                           *func_args);
+  ArgumentListNode* arguments = BuildNoSuchMethodArguments(
+      token_pos, func_name, *func_args, NULL, false);
   const Function& no_such_method = Function::ZoneHandle(
-        Resolver::ResolveDynamicAnyArgs(Class::Handle(func.Owner()),
-                                        Symbols::NoSuchMethod()));
+      Resolver::ResolveDynamicAnyArgs(Class::Handle(func.Owner()),
+                                      Symbols::NoSuchMethod()));
   StaticCallNode* call =
       new StaticCallNode(token_pos, no_such_method, arguments);
-
 
   ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
@@ -1649,7 +1646,8 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
-    const LocalVariable* temp_for_last_arg) {
+    const LocalVariable* temp_for_last_arg,
+    bool is_super_invocation) {
   const intptr_t args_pos = function_args.token_pos();
   // Build arguments to the call to the static
   // InvocationMirror._allocateInvocationMirror method.
@@ -1680,6 +1678,7 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     }
   }
   arguments->Add(args_array);
+  arguments->Add(new LiteralNode(args_pos, Bool::Get(is_super_invocation)));
   // Lookup the static InvocationMirror._allocateInvocationMirror method.
   const Class& mirror_class =
       Class::Handle(Library::LookupCoreClass(Symbols::InvocationMirror()));
@@ -1696,14 +1695,18 @@ ArgumentListNode* Parser::BuildNoSuchMethodArguments(
     intptr_t call_pos,
     const String& function_name,
     const ArgumentListNode& function_args,
-    const LocalVariable* temp_for_last_arg) {
+    const LocalVariable* temp_for_last_arg,
+    bool is_super_invocation) {
   ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
   const intptr_t args_pos = function_args.token_pos();
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   arguments->Add(function_args.NodeAt(0));
   // The second argument is the invocation mirror.
-  arguments->Add(BuildInvocationMirrorAllocation(
-      call_pos, function_name, function_args, temp_for_last_arg));
+  arguments->Add(BuildInvocationMirrorAllocation(call_pos,
+                                                 function_name,
+                                                 function_args,
+                                                 temp_for_last_arg,
+                                                 is_super_invocation));
   return arguments;
 }
 
@@ -1745,7 +1748,7 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
   }
   if (is_no_such_method) {
     arguments = BuildNoSuchMethodArguments(
-        supercall_pos, function_name, *arguments);
+        supercall_pos, function_name, *arguments, NULL, true);
   }
   return new StaticCallNode(supercall_pos, super_function, arguments);
 }
@@ -1779,7 +1782,7 @@ AstNode* Parser::BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super) {
                          &is_no_such_method));
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
-          super_pos, operator_function_name, *op_arguments);
+          super_pos, operator_function_name, *op_arguments, NULL, true);
     }
     super_op = new StaticCallNode(super_pos, super_operator, op_arguments);
   } else {
@@ -1836,7 +1839,7 @@ AstNode* Parser::ParseSuperOperator() {
                          &is_no_such_method));
     if (is_no_such_method) {
       op_arguments = BuildNoSuchMethodArguments(
-          operator_pos, operator_function_name, *op_arguments);
+          operator_pos, operator_function_name, *op_arguments, NULL, true);
     }
     super_op = new StaticCallNode(operator_pos, super_operator, op_arguments);
     if (negate_result) {
@@ -2503,7 +2506,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   SequenceNode* init_statements = CloseBlock();
-  if (init_statements->length() > 0) {
+  if (is_redirecting_constructor) {
+    // A redirecting super constructor simply passes the phase parameter on to
+    // the target which executes the corresponding phase.
+    current_block_->statements->Add(init_statements);
+  } else if (init_statements->length() > 0) {
     // Generate guard around the initializer code.
     LocalVariable* phase_param = LookupPhaseParameter();
     AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
@@ -4792,11 +4799,13 @@ void Parser::ParseLibraryImportExport() {
   if (CurrentToken() != Token::kSTRING) {
     ErrorMsg("library url expected");
   }
-  const String& url = *CurrentLiteral();
+  AstNode* url_literal = ParseStringLiteral(false);
+  ASSERT(url_literal->IsLiteralNode());
+  ASSERT(url_literal->AsLiteralNode()->literal().IsString());
+  const String& url = String::Cast(url_literal->AsLiteralNode()->literal());
   if (url.Length() == 0) {
     ErrorMsg("library url expected");
   }
-  ConsumeToken();
   String& prefix = String::Handle();
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
@@ -4881,8 +4890,10 @@ void Parser::ParseLibraryPart() {
   if (CurrentToken() != Token::kSTRING) {
     ErrorMsg("url expected");
   }
-  const String& url = *CurrentLiteral();
-  ConsumeToken();
+  AstNode* url_literal = ParseStringLiteral(false);
+  ASSERT(url_literal->IsLiteralNode());
+  ASSERT(url_literal->AsLiteralNode()->literal().IsString());
+  const String& url = String::Cast(url_literal->AsLiteralNode()->literal());
   ExpectSemicolon();
   const String& canon_url = String::CheckedHandle(
       CallLibraryTagHandler(Dart_kCanonicalizeUrl, source_pos, url));
@@ -6017,10 +6028,11 @@ static bool ImplementsEqualOperator(const Instance& value) {
 // or any other class that does not override the == operator.
 // The expressions are compile-time constants and are thus in the form
 // of a LiteralNode.
-void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
+RawClass* Parser::CheckCaseExpressions(
+    const GrowableArray<LiteralNode*>& values) {
   const intptr_t num_expressions = values.length();
   if (num_expressions == 0) {
-    return;
+    return Object::dynamic_class();
   }
   const Instance& first_value = values[0]->literal();
   for (intptr_t i = 0; i < num_expressions; i++) {
@@ -6055,6 +6067,12 @@ void Parser::CheckCaseExpressions(const GrowableArray<LiteralNode*>& values) {
       }
     }
   }
+  if (first_value.IsInteger()) {
+    return Type::Handle(Type::IntType()).type_class();
+  } else if (first_value.IsString()) {
+    return Type::Handle(Type::StringType()).type_class();
+  }
+  return first_value.clazz();
 }
 
 
@@ -6153,11 +6171,18 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   OpenBlock();
   current_block_->scope->AddLabel(label);
 
-  // Store switch expression in temporary local variable.
+  // Store switch expression in temporary local variable. The type of the
+  // variable is set to dynamic. It will later be patched to match the
+  // type of the case clause expressions. Therefore, we have to allocate
+  // a new type representing dynamic and can't reuse the canonical
+  // type object for dynamic.
+  const Type& temp_var_type =
+      Type::ZoneHandle(Type::New(Class::Handle(Object::dynamic_class()),
+                                 TypeArguments::Handle(),
+                                 expr_pos));
+  temp_var_type.SetIsFinalized();
   LocalVariable* temp_variable =
-      new LocalVariable(expr_pos,
-                        Symbols::SwitchExpr(),
-                        Type::ZoneHandle(Type::DynamicType()));
+      new LocalVariable(expr_pos,  Symbols::SwitchExpr(), temp_var_type);
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr =
       new StoreLocalNode(expr_pos, temp_variable, switch_expr);
@@ -6210,8 +6235,11 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   }
 
   // Check that all expressions in case clauses are of the same class,
-  // or implement int, double or String.
-  CheckCaseExpressions(case_expr_values);
+  // or implement int, double or String. Patch the type of the temporary
+  // variable holding the switch expression to match the type of the
+  // case clause constants.
+  temp_var_type.set_type_class(
+      Class::Handle(CheckCaseExpressions(case_expr_values)));
 
   // Check for unresolved label references.
   SourceLabel* unresolved_label =
@@ -6709,13 +6737,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       ExpectToken(Token::kRPAREN);
     }
 
-    // If a generic "catch all" statement has already been seen then all
-    // subsequent catch statements are dead. We issue an error for now,
-    // it might make sense to turn this into a warning.
-    if (generic_catch_seen) {
-      ErrorMsg("a generic 'catch all' statement already exists for this "
-               "try block. All subsequent catch statements are dead code");
-    }
     OpenBlock();
     AddCatchParamsToScope(exception_param,
                           stack_trace_param,
@@ -7095,11 +7116,21 @@ RawString* Parser::FormatMessage(const Script& script,
     if (token_pos >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_pos, &line, &column);
-      result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
-                                    script_url.ToCString(),
-                                    message_header,
-                                    line,
-                                    column);
+      // Only report the line position if we have the original source. We still
+      // need to get a valid column so that we can report the ^ mark below the
+      // snippet.
+      if (script.HasSource()) {
+        result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
+                                      script_url.ToCString(),
+                                      message_header,
+                                      line,
+                                      column);
+      } else {
+        result = String::NewFormatted("'%s': %s: line %" Pd ": ",
+                                      script_url.ToCString(),
+                                      message_header,
+                                      line);
+      }
       // Append the formatted error or warning message.
       result = String::Concat(result, msg);
       const String& new_line = String::Handle(String::New("\n"));
@@ -9661,8 +9692,8 @@ AstNode* Parser::ParseSymbolLiteral() {
 }
 
 
-static const String& BuildConstructorName(const String& type_class_name,
-                                          const String* named_constructor) {
+static String& BuildConstructorName(const String& type_class_name,
+                                    const String* named_constructor) {
   // By convention, the static function implementing a named constructor 'C'
   // for class 'A' is labeled 'A.C', and the static function implementing the
   // unnamed constructor for class 'A' is labeled 'A.'.
@@ -9743,7 +9774,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
   // Resolve the type and optional identifier to a constructor or factory.
   Class& type_class = Class::Handle(type.type_class());
-  const String& type_class_name = String::Handle(type_class.Name());
+  String& type_class_name = String::Handle(type_class.Name());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
 
@@ -9757,7 +9788,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   AbstractType& type_bound = AbstractType::ZoneHandle();
 
   // Make sure that an appropriate constructor exists.
-  const String& constructor_name =
+  String& constructor_name =
       BuildConstructorName(type_class_name, named_constructor);
   Function& constructor = Function::ZoneHandle(
       type_class.LookupConstructor(constructor_name));
@@ -9811,8 +9842,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       }
       type = redirect_type.raw();
       type_class = type.type_class();
+      type_class_name = type_class.Name();
       type_arguments = type.arguments();
       constructor = constructor.RedirectionTarget();
+      constructor_name = constructor.name();
       ASSERT(!constructor.IsNull());
     }
     if (constructor.IsFactory()) {
@@ -9825,14 +9858,21 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   // a dynamic error to instantiate an abstract class.
   ASSERT(!constructor.IsNull());
   if (type_class.is_abstract() && !constructor.IsFactory()) {
-    ArgumentListNode* arguments = new ArgumentListNode(type_pos);
-    arguments->Add(new LiteralNode(
+    // Evaluate arguments before throwing.
+    LetNode* result = new LetNode(call_pos);
+    for (intptr_t i = 0; i < arguments->length(); ++i) {
+      result->AddNode(arguments->NodeAt(i));
+    }
+    ArgumentListNode* error_arguments = new ArgumentListNode(type_pos);
+    error_arguments->Add(new LiteralNode(
         TokenPos(), Integer::ZoneHandle(Integer::New(type_pos))));
-    arguments->Add(new LiteralNode(
+    error_arguments->Add(new LiteralNode(
         TokenPos(), String::ZoneHandle(type_class_name.raw())));
-    return MakeStaticCall(Symbols::AbstractClassInstantiationError(),
-                          Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                          arguments);
+    result->AddNode(
+        MakeStaticCall(Symbols::AbstractClassInstantiationError(),
+                       Library::PrivateCoreLibName(Symbols::ThrowNew()),
+                       error_arguments));
+    return result;
   }
   String& error_message = String::Handle();
   if (!constructor.AreValidArguments(arguments_length,
@@ -9966,7 +10006,7 @@ String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
 // interpol = kINTERPOL_VAR | (kINTERPOL_START expression kINTERPOL_END)
 // In other words, the scanner breaks down interpolated strings so that
 // a string literal always begins and ends with a kSTRING token.
-AstNode* Parser::ParseStringLiteral() {
+AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
   TRACE_PARSER("ParseStringLiteral");
   AstNode* primary = NULL;
   const intptr_t literal_start = TokenPos();
@@ -9982,6 +10022,7 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
+  bool has_interpolation = false;
   GrowableArray<AstNode*> values_list;
   while (CurrentToken() == Token::kSTRING) {
     if (CurrentLiteral()->Length() > 0) {
@@ -9992,6 +10033,10 @@ AstNode* Parser::ParseStringLiteral() {
     ConsumeToken();
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
+      if (!allow_interpolation) {
+        ErrorMsg("string interpolation not allowed in this context");
+      }
+      has_interpolation = true;
       AstNode* expr = NULL;
       const intptr_t expr_pos = TokenPos();
       if (CurrentToken() == Token::kINTERPOL_VAR) {
@@ -10024,7 +10069,19 @@ AstNode* Parser::ParseStringLiteral() {
     }
   }
   if (is_compiletime_const) {
-    primary = new LiteralNode(literal_start, Interpolate(values_list));
+    if (has_interpolation) {
+      primary = new LiteralNode(literal_start, Interpolate(values_list));
+    } else {
+      const Array& strings = Array::Handle(Array::New(values_list.length()));
+      for (int i = 0; i < values_list.length(); i++) {
+        const Instance& part = values_list[i]->AsLiteralNode()->literal();
+        ASSERT(part.IsString());
+        strings.SetAt(i, String::Cast(part));
+      }
+      String& lit = String::ZoneHandle(String::ConcatAll(strings, Heap::kOld));
+      lit = Symbols::New(lit);
+      primary = new LiteralNode(literal_start, lit);
+    }
   } else {
     ArrayNode* values = new ArrayNode(
         TokenPos(),
@@ -10139,7 +10196,7 @@ AstNode* Parser::ParsePrimary() {
     primary = new LiteralNode(TokenPos(), double_value);
     ConsumeToken();
   } else if (CurrentToken() == Token::kSTRING) {
-    primary = ParseStringLiteral();
+    primary = ParseStringLiteral(true);
   } else if (CurrentToken() == Token::kNEW) {
     ConsumeToken();
     primary = ParseNewOperator(Token::kNEW);

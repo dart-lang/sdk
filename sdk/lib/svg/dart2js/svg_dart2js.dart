@@ -6761,30 +6761,6 @@ abstract class _SVGPaint extends _SVGColor native "SVGPaint" {
 
 
 @DocsEditable()
-@DomName('SVGTRefElement')
-@Unstable()
-abstract class _SVGTRefElement extends TextPositioningElement implements UriReference native "SVGTRefElement" {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGTRefElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGTRefElement.SVGTRefElement')
-  @DocsEditable()
-  factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGTRefElement.created() : super.created();
-
-  // From SVGURIReference
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('SVGVKernElement')
 @Unstable()
 abstract class _SVGVKernElement extends SvgElement native "SVGVKernElement" {

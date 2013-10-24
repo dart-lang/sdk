@@ -283,13 +283,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !isPaused) {
-      _target.$dom_addEventListener(_eventType, _onData, _useCapture);
+      _target.addEventListener(_eventType, _onData, _useCapture);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
+      _target.removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 

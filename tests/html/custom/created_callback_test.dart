@@ -88,7 +88,7 @@ main() {
 <x-b id="w"></x-b>
 """, treeSanitizer: new NullTreeSanitizer());
 
-    Platform.upgradeCustomElements(div);
+    upgradeCustomElements(div);
 
     expect(C.createdInvocations, 2);
     expect(div.query('#w') is B, isTrue);
@@ -145,6 +145,12 @@ main() {
     expect(ErrorConstructorElement.callCount, 1);
     expect(e is HtmlElement, isTrue);
     expect(e is ErrorConstructorElement, isFalse);
+  });
+
+  test('cannot register created with params', () {
+    expect(() {
+      document.register('x-created-with-params', CreatedWithParametersElement);
+    }, throws);
   });
 
   test('created cannot be called from nested constructor',
@@ -271,6 +277,10 @@ class NestedCreatedConstructorElement extends HtmlElement {
     // Should not have been set.
     expect(constructedB, isNull);
   }
+}
+
+class CreatedWithParametersElement extends HtmlElement {
+  CreatedWithParametersElement.created(ignoredParam) : super.created();
 }
 
 void expectGlobalError(Function test) {

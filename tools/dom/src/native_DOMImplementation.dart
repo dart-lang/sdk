@@ -79,6 +79,15 @@ class _Utils {
     return result;
   }
 
+  static List captureParsedStackTrace() {
+    try {
+      // Throwing an exception is the only way to generate a stack trace.
+      throw new Exception();
+    } catch (e, stackTrace) {
+      return parseStackTrace(stackTrace);
+    }
+  }
+
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];
@@ -156,7 +165,11 @@ class _Utils {
    * that does not expect REPL support.
    */
   static const _CONSOLE_API_SUPPORT_HEADER =
-      'with ((this && this.console && this.console._commandLineAPI) || {}) {\n';
+      'with ((console && console._commandLineAPI) || {}) {\n';
+
+  static bool expectsConsoleApi(String expression) {
+    return expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0;;
+  }
 
   /**
    * Takes an [expression] and a list of [local] variable and returns an
@@ -202,7 +215,7 @@ class _Utils {
       args[arg] = value;
     }
 
-    if (expression.indexOf(_CONSOLE_API_SUPPORT_HEADER) == 0) {
+    if (expectsConsoleApi(expression)) {
       expression = expression.substring(expression.indexOf('\n') + 1);
       expression = expression.substring(0, expression.lastIndexOf('\n'));
 
@@ -410,9 +423,38 @@ class _Utils {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
-    if (!cls.constructors.containsKey(new Symbol('$className.created'))) {
-      throw new UnsupportedError('Class is missing constructor $className.created');
+    var createdConstructor = cls.constructors[new Symbol('$className.created')];
+    if (createdConstructor == null) {
+      throw new UnsupportedError(
+          'Class is missing constructor $className.created');
     }
+
+    if (createdConstructor.parameters.length > 0) {
+      throw new UnsupportedError(
+          'Constructor $className.created must take zero arguments');
+    }
+
+    Symbol objectName = reflectClass(Object).qualifiedName;
+    bool isRoot(ClassMirror cls) =>
+        cls == null || cls.qualifiedName == objectName;
+    Symbol elementName = reflectClass(HtmlElement).qualifiedName;
+    bool isElement(ClassMirror cls) =>
+        cls != null && cls.qualifiedName == elementName;
+    ClassMirror superClass = cls.superclass;
+    ClassMirror nativeClass = _isBuiltinType(superClass) ? superClass : null;
+    while(!isRoot(superClass) && !isElement(superClass)) {
+      superClass = superClass.superclass;
+      if (nativeClass == null && _isBuiltinType(superClass)) {
+        nativeClass = superClass;
+      }
+    }
+    if (extendsTagName == null) {
+      if (nativeClass.reflectedType != HtmlElement) {
+        throw new UnsupportedError('Class must provide extendsTag if base '
+            'native class is not HTMLElement');
+      }
+    }
+
     _register(document, tag, type, extendsTagName);
   }
 

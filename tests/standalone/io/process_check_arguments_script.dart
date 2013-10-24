@@ -21,14 +21,13 @@ class Expect {
   }
 }
 
-main() {
-  var options = new Options();
+main(List<String> arguments) {
   Expect.isTrue(Platform.script.endsWith(
       'process_check_arguments_script.dart'));
-  var expected_num_args = int.parse(options.arguments[0]);
-  var contains_quote = int.parse(options.arguments[1]);
-  Expect.equals(expected_num_args, options.arguments.length);
-  for (var i = 2; i < options.arguments.length; i++) {
-    Expect.isTrue((contains_quote == 0) || options.arguments[i].contains('"'));
+  var expected_num_args = int.parse(arguments[0]);
+  var contains_quote = int.parse(arguments[1]);
+  Expect.equals(expected_num_args, arguments.length);
+  for (var i = 2; i < arguments.length; i++) {
+    Expect.isTrue((contains_quote == 0) || arguments[i].contains('"'));
   }
 }

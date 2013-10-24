@@ -278,11 +278,17 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
                                                const Function& factory) {
   const Function& target = Function::Handle(factory.RedirectionTarget());
   if (target.IsNull()) {
-    const Type& type = Type::Handle(factory.RedirectionType());
+    Type& type = Type::Handle(factory.RedirectionType());
     if (!type.IsMalformed()) {
       const GrowableObjectArray& visited_factories =
           GrowableObjectArray::Handle(GrowableObjectArray::New());
       ResolveRedirectingFactoryTarget(cls, factory, visited_factories);
+    }
+    if (factory.is_const()) {
+      type = factory.RedirectionType();
+      if (type.IsMalformed()) {
+        ReportError(Error::Handle(type.malformed_error()));
+      }
     }
   }
 }
@@ -396,7 +402,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     const Script& script = Script::Handle(target_class.script());
     ReportError(Error::Handle(),  // No previous error.
                 script, target.token_pos(),
-                "constructor '%s' must be const as required by redirecting"
+                "constructor '%s' must be const as required by redirecting "
                 "const factory '%s'",
                 String::Handle(target.name()).ToCString(),
                 String::Handle(factory.name()).ToCString());

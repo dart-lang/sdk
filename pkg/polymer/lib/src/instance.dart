@@ -25,7 +25,7 @@ class PublishedProperty extends ObservableProperty {
  * The mixin class for Polymer elements. It provides convenience features on top
  * of the custom elements web standard.
  */
-abstract class Polymer implements Element {
+abstract class Polymer implements Element, Observable, NodeBindExtension {
   // Fully ported from revision:
   // https://github.com/Polymer/polymer/blob/4dc481c11505991a7c43228d3797d28f21267779
   //
@@ -38,7 +38,6 @@ abstract class Polymer implements Element {
   //
   // Not yet ported:
   //   src/instance/style.js -- blocked on ShadowCSS.shimPolyfillDirectives
-
 
   // TODO(jmesserly): should this really be public?
   /** Regular expression that matches data-bindings. */
@@ -128,12 +127,8 @@ abstract class Polymer implements Element {
   Job job(Job job, void callback(), Duration wait) =>
       runJob(job, callback, wait);
 
-  // TODO(jmesserly): I am not sure if we should have the
-  // created/createdCallback distinction. See post here:
-  // https://groups.google.com/d/msg/polymer-dev/W0ZUpU5caIM/v5itFnvnehEJ
-  // Same issue with inserted and removed.
   void polymerCreated() {
-    if (this.document.window != null || alwaysPrepare ||
+    if (this.ownerDocument.window != null || alwaysPrepare ||
         _preparingElements > 0) {
       prepareElement();
     }
@@ -187,9 +182,8 @@ abstract class Polymer implements Element {
   void parseDeclaration(Element elementElement) {
     var root = shadowFromTemplate(fetchTemplate(elementElement));
 
-    // Dart note: this is extra code compared to Polymer to support
-    // the getShadowRoot method.
-    if (root == null) return;
+    // Dart note: the following code is to support the getShadowRoot method.
+    if (root is! ShadowRoot) return;
 
     var name = elementElement.attributes['name'];
     if (name == null) return;
@@ -202,7 +196,19 @@ abstract class Polymer implements Element {
   Element fetchTemplate(Element elementElement) =>
       elementElement.query('template');
 
-  /** Utility function that creates a shadow root from a `<template>`. */
+  /**
+   * Utility function that creates a shadow root from a `<template>`.
+   *
+   * The base implementation will return a [ShadowRoot], but you can replace it
+   * with your own code and skip ShadowRoot creation. In that case, you should
+   * return `null`.
+   *
+   * In your overridden method, you can use [instanceTemplate] to stamp the
+   * template and initialize data binding, and [shadowRootReady] to intialize
+   * other Polymer features like event handlers. It is fine to call
+   * shadowRootReady with a node something other than a ShadowRoot; for example,
+   * with this Node.
+   */
   ShadowRoot shadowFromTemplate(Element template) {
     if (template == null) return null;
     // cache elder shadow root (if any)
@@ -230,7 +236,7 @@ abstract class Polymer implements Element {
     return root;
   }
 
-  void shadowRootReady(ShadowRoot root, Element template) {
+  void shadowRootReady(Node root, Element template) {
     // locate nodes with id and store references to them in this.$ hash
     marshalNodeReferences(root);
     // add local events of interest...
@@ -241,9 +247,9 @@ abstract class Polymer implements Element {
   }
 
   /** Locate nodes with id and store references to them in [$] hash. */
-  void marshalNodeReferences(ShadowRoot root) {
+  void marshalNodeReferences(Node root) {
     if (root == null) return;
-    for (var n in root.queryAll('[id]')) {
+    for (var n in (root as dynamic).queryAll('[id]')) {
       $[n.id] = n;
     }
   }
@@ -329,15 +335,12 @@ abstract class Polymer implements Element {
   Object deserializeValue(String value, Object defaultValue, TypeMirror type) =>
       deserialize.deserializeValue(value, defaultValue, type);
 
-  String serializeValue(Object value, TypeMirror inferredType) {
+  String serializeValue(Object value) {
     if (value == null) return null;
 
-    final type = inferredType.qualifiedName;
-    if (type == #dart.core.bool) {
+    if (value is bool) {
       return _toBoolean(value) ? '' : null;
-    } else if (type == #dart.core.String
-        || type == #dart.core.int
-        || type == #dart.core.double) {
+    } else if (value is String || value is int || value is double) {
       return '$value';
     }
     return null;
@@ -349,9 +352,7 @@ abstract class Polymer implements Element {
     // try to intelligently serialize property value
     // TODO(jmesserly): cache symbol?
     final propValue = self.getField(new Symbol(name)).reflectee;
-    final property = _declaration._publish[name];
-    var inferredType = _inferPropertyType(propValue, property);
-    final serializedValue = serializeValue(propValue, inferredType);
+    final serializedValue = serializeValue(propValue);
     // boolean properties must reflect as boolean attributes
     if (serializedValue != null) {
       attributes[name] = serializedValue;
@@ -360,7 +361,7 @@ abstract class Polymer implements Element {
       // refine the attr reflection system to achieve this; pica, for example,
       // relies on having inferredType object properties not removed as
       // attrs.
-    } else if (inferredType.qualifiedName == #dart.core.bool) {
+    } else if (propValue is bool) {
       attributes.remove(name);
     }
   }
@@ -369,7 +370,7 @@ abstract class Polymer implements Element {
    * Creates the document fragment to use for each instance of the custom
    * element, given the `<template>` node. By default this is equivalent to:
    *
-   *     template.createInstance(this, polymerSyntax);
+   *     templateBind(template).createInstance(this, polymerSyntax);
    *
    * Where polymerSyntax is a singleton `PolymerExpressions` instance from the
    * [polymer_expressions](https://pub.dartlang.org/packages/polymer_expressions)
@@ -379,7 +380,10 @@ abstract class Polymer implements Element {
    * template, for example to use a different data-binding syntax.
    */
   DocumentFragment instanceTemplate(Element template) =>
-      template.createInstance(this, _polymerSyntax);
+      templateBind(template).createInstance(this, _polymerSyntax);
+
+  NodeBinding createBinding(String name, model, String path) =>
+      nodeBindFallback(this).createBinding(name, model, path);
 
   NodeBinding bind(String name, model, String path) {
     // note: binding is a prepare signal. This allows us to be sure that any
@@ -399,12 +403,14 @@ abstract class Polymer implements Element {
       reflectPropertyToAttribute(MirrorSystem.getName(property.simpleName));
       return bindings[name] = observer;
     } else {
-      // Cannot call super.bind because of
-      // https://code.google.com/p/dart/issues/detail?id=13156
-      // https://code.google.com/p/dart/issues/detail?id=12456
-      return TemplateElement.mdvPackage(this).bind(name, model, path);
+      // Cannot call super.bind because template_binding is its own package
+      return nodeBindFallback(this).bind(name, model, path);
     }
   }
+
+  Map<String, NodeBinding> get bindings => nodeBindFallback(this).bindings;
+
+  void unbind(String name) => nodeBindFallback(this).unbind(name);
 
   void asyncUnbindAll() {
     if (_unbound == true) return;
@@ -416,10 +422,7 @@ abstract class Polymer implements Element {
     if (_unbound == true) return;
 
     unbindAllProperties();
-    // Cannot call super.bind because of
-    // https://code.google.com/p/dart/issues/detail?id=13156
-    // https://code.google.com/p/dart/issues/detail?id=12456
-    TemplateElement.mdvPackage(this).unbindAll();
+    nodeBindFallback(this).unbindAll();
 
     _unbindNodeTree(shadowRoot);
     // TODO(sjmiles): must also unbind inherited shadow roots
@@ -449,7 +452,7 @@ abstract class Polymer implements Element {
   }
 
   static void _unbindNodeTree(Node node) {
-    _forNodeTree(node, (node) => node.unbindAll());
+    _forNodeTree(node, (node) => nodeBind(node).unbindAll());
   }
 
   static void _forNodeTree(Node node, void callback(Node node)) {
@@ -517,15 +520,13 @@ abstract class Polymer implements Element {
   }
 
   void observeProperty(String name, Symbol method) {
-    final self = reflect(this);
-    _observe(name, (value, old) => self.invoke(method, [old]));
+    _observe(name, (value, old) => _invoke(method, [old]));
   }
 
   void observeBoth(String name, Symbol methodName) {
-    final self = reflect(this);
     _observe(name, (value, old) {
       reflectPropertyToAttribute(name);
-      self.invoke(methodName, [old]);
+      _invoke(methodName, [old]);
     });
   }
 
@@ -597,7 +598,7 @@ abstract class Polymer implements Element {
   }
 
   /** Attach event listeners inside a shadow [root]. */
-  void addInstanceListeners(ShadowRoot root, Element template) {
+  void addInstanceListeners(Node root, Element template) {
     var templateDelegates = _declaration._templateDelegates;
     if (templateDelegates == null) return;
     var events = templateDelegates[template];
@@ -654,10 +655,15 @@ abstract class Polymer implements Element {
     bool log = _eventsLog.isLoggable(Level.FINE);
     if (log) _eventsLog.fine('>>> [$localName]: dispatch $methodName');
 
-    // TODO(sigmund): consider making event listeners list all arguments
-    // explicitly. Unless VM mirrors are optimized first, this reflectClass call
-    // will be expensive once custom elements extend directly from Element (see
-    // dartbug.com/11108).
+    _invoke(methodName, args);
+
+    if (log) _eventsLog.info('<<< [$localName]: dispatch $methodName');
+  }
+
+  InstanceMirror _invoke(Symbol methodName, List args) {
+    // TODO(sigmund): consider making callbacks list all arguments
+    // explicitly. Unless VM mirrors are optimized first, this will be expensive
+    // once custom elements extend directly from Element (see issue 11108).
     var self = reflect(this);
     var method = self.type.methods[methodName];
     if (method != null) {
@@ -667,12 +673,7 @@ abstract class Polymer implements Element {
       // them appart from named arguments (see http://dartbug.com/11334)
       args.length = method.parameters.where((p) => !p.isOptional).length;
     }
-    self.invoke(methodName, args);
-
-    if (log) _eventsLog.fine('<<< [$localName]: dispatch $methodName');
-
-    // TODO(jmesserly): workaround for HTML events not supporting zones.
-    performMicrotaskCheckpoint();
+    return self.invoke(methodName, args);
   }
 
   void instanceEventListener(Event event) {
@@ -922,10 +923,23 @@ TypeMirror _inferPropertyType(Object value, DeclarationMirror property) {
       type.qualifiedName == #dynamic) {
     // Attempt to infer field type from the default value.
     if (value != null) {
-      type = reflect(value).type;
+      Type t = _getCoreType(value);
+      if (t != null) return reflectClass(t);
+      return reflect(value).type;
     }
   }
   return type;
+}
+
+Type _getCoreType(Object value) {
+  if (value == null) return Null;
+  if (value is int) return int;
+  // Avoid "is double" to prevent warning that it won't work in dart2js.
+  if (value is num) return double;
+  if (value is bool) return bool;
+  if (value is String) return String;
+  if (value is DateTime) return DateTime;
+  return null;
 }
 
 final Logger _observeLog = new Logger('polymer.observe');

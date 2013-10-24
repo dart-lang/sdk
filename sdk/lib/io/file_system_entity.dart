@@ -530,6 +530,48 @@ abstract class FileSystemEntity {
   external static _identical(String path1, String path2);
   external static _resolveSymbolicLinks(String path);
 
+  // Finds the next-to-last component when dividing at path separators.
+  static final RegExp _parentRegExp = Platform.isWindows ?
+     new RegExp(r'[^/\\][/\\]+[^/\\]') :
+     new RegExp(r'[^/]/+[^/]');
+
+  /**
+   * Removes the final path component of a path, using the platform's
+   * path separator to split the path.  Will not remove the root component
+   * of a Windows path, like "C:\" or "\\server_name\".
+   * Ignores trailing path separators, and leaves no trailing path separators.
+   */
+  static String parentOf(String path) {
+    int rootEnd = -1;
+    if (Platform.isWindows) {
+      if (path.startsWith(_absoluteWindowsPathPattern)) {
+        // Root ends at first / or \ after the first two characters.
+        rootEnd = path.indexOf(new RegExp(r'[/\\]'), 2);
+        if (rootEnd == -1) return path;
+      } else if (path.startsWith('\\') || path.startsWith('/')) {
+        rootEnd = 0;
+      }
+    } else if (path.startsWith('/')) {
+      rootEnd = 0;
+    }
+    // Ignore trailing slashes.
+    // All non-trivial cases have separators between two non-separators.
+    int pos = path.lastIndexOf(_parentRegExp);
+    if (pos > rootEnd) {
+      return path.substring(0, pos + 1);
+    } else if (rootEnd > -1) {
+      return path.substring(0, rootEnd + 1);
+    } else {
+      return '.';
+    }
+  }
+
+  /**
+   * The directory containing [this].  If [this] is a root
+   * directory, returns [this].
+   */
+  Directory get parent => new Directory(parentOf(path));
+
   static int _getTypeSync(String path, bool followLinks) {
     var result = _getType(path, followLinks);
     _throwIfError(result, 'Error getting type of FileSystemEntity');
@@ -537,12 +579,13 @@ abstract class FileSystemEntity {
   }
 
   static Future<int> _getTypeAsync(String path, bool followLinks) {
-    return _IOService.dispatch(_FILE_TYPE, [path, followLinks]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Error getting type", path);
-      }
-      return response;
-    });
+    return _IOService.dispatch(_FILE_TYPE, [path, followLinks])
+      .then((response) {
+        if (_isErrorResponse(response)) {
+          throw _exceptionFromResponse(response, "Error getting type", path);
+        }
+        return response;
+      });
   }
 
   static _throwIfError(Object result, String msg, [String path]) {

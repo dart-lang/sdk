@@ -21,7 +21,7 @@ namespace dart {
     "dart:"#name"-patch", patch }                                              \
 
 typedef struct {
-  intptr_t index_;
+  ObjectStore::BootstrapLibraryId index_;
   const char* uri_;
   const char** source_paths_;
   const char* patch_uri_;

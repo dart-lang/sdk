@@ -16,6 +16,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, use_mirrored_compilation_error, false,
+    "Wrap compilation errors that occur during reflective access in a "
+    "MirroredCompilationError, rather than suspending the isolate.");
+
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -41,7 +45,7 @@ static void ThrowMirroredCompilationError(const String& message) {
 
 
 static void ThrowInvokeError(const Error& error) {
-  if (error.IsLanguageError()) {
+  if (FLAG_use_mirrored_compilation_error && error.IsLanguageError()) {
     // A compilation error that was delayed by lazy compilation.
     const LanguageError& compilation_error = LanguageError::Cast(error);
     String& message = String::Handle(compilation_error.message());
@@ -107,7 +111,9 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
 }
 
 static void EnsureConstructorsAreCompiled(const Function& func) {
-  if (func.kind() != RawFunction::kConstructor) return;
+  // Only generative constructors can have initializing formals.
+  if (!func.IsConstructor()) return;
+
   const Class& cls = Class::Handle(func.Owner());
   const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
   if (!error.IsNull()) {
@@ -235,11 +241,16 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
 
 
 static RawInstance* CreateTypedefMirror(const Class& cls,
+                                        const AbstractType& type,
+                                        const Bool& is_declaration,
                                         const Instance& owner_mirror) {
-  const Array& args = Array::Handle(Array::New(3));
+  const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
-  args.SetAt(1, String::Handle(cls.UserVisibleName()));
-  args.SetAt(2, owner_mirror);
+  args.SetAt(1, type);
+  args.SetAt(2, String::Handle(cls.UserVisibleName()));
+  args.SetAt(3, Bool::Get(cls.NumTypeParameters() != 0));
+  args.SetAt(4, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
+  args.SetAt(5, owner_mirror);
   return CreateMirror(Symbols::_LocalTypedefMirrorImpl(), args);
 }
 
@@ -328,7 +339,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
       return CreateFunctionTypeMirror(cls, type);
     } else {
       // We represent typedefs as non-canonical signature classes.
-      return CreateTypedefMirror(cls, owner_mirror);
+      return CreateTypedefMirror(cls, type, is_declaration, owner_mirror);
     }
   }
 
@@ -828,6 +839,31 @@ static RawInstance* LookupFunctionOrFieldInLibrary(const Library& library,
 }
 
 
+static RawAbstractType* InstantiateType(const AbstractType& type,
+                                        const AbstractType& instantiator) {
+  ASSERT(type.IsFinalized());
+  ASSERT(instantiator.IsFinalized());
+  ASSERT(!type.IsMalformed());
+  ASSERT(!instantiator.IsMalformed());
+
+  if (type.IsInstantiated()) {
+    return type.Canonicalize();
+  }
+
+  const AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(instantiator.arguments());
+  Error& bound_error = Error::Handle();
+  AbstractType& result =
+      AbstractType::Handle(type.InstantiateFrom(type_args, &bound_error));
+  if (!bound_error.IsNull()) {
+    ThrowInvokeError(bound_error);
+    UNREACHABLE();
+  }
+  ASSERT(result.IsFinalized());
+  return result.Canonicalize();
+}
+
+
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalMirrorSystem, 0) {
   return CreateMirrorSystem();
 }
@@ -979,6 +1015,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   return super_type.raw();
 }
 
+
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
   ASSERT(!type.IsMalformed());
@@ -988,25 +1025,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
     UNREACHABLE();
   }
   const Class& cls = Class::Handle(type.type_class());
-  AbstractType& super_type = AbstractType::Handle(cls.super_type());
-  AbstractType& result = AbstractType::Handle(super_type.raw());
-
-  ASSERT(super_type.IsType());
-  if (!super_type.IsInstantiated()) {
-    AbstractTypeArguments& type_args =
-        AbstractTypeArguments::Handle(type.arguments());
-    Error& bound_error = Error::Handle();
-    result ^= super_type.InstantiateFrom(type_args, &bound_error);
-    if (!bound_error.IsNull()) {
-      ThrowInvokeError(bound_error);
-      UNREACHABLE();
-    }
-    result ^= result.Canonicalize();
-    ASSERT(result.IsType());
-  }
-
-  ASSERT(result.IsFinalized());
-  return result.raw();
+  const AbstractType& super_type = AbstractType::Handle(cls.super_type());
+  return InstantiateType(super_type, type);
 }
 
 
@@ -1041,27 +1061,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
     ThrowInvokeError(error);
   }
 
-  AbstractTypeArguments& type_args =
-      AbstractTypeArguments::Handle(type.arguments());
-  Error& bound_error = Error::Handle();
-
   Array& interfaces = Array::Handle(cls.interfaces());
   Array& interfaces_inst = Array::Handle(Array::New(interfaces.Length()));
   AbstractType& interface = AbstractType::Handle();
 
   for (int i = 0; i < interfaces.Length(); i++) {
     interface ^= interfaces.At(i);
-    ASSERT(interface.IsType());
-    if (!interface.IsInstantiated()) {
-      bound_error ^= Object::null();
-      interface ^= interface.InstantiateFrom(type_args, &bound_error);
-      if (!bound_error.IsNull()) {
-        ThrowInvokeError(bound_error);
-        UNREACHABLE();
-      }
-      interface ^= interface.Canonicalize();
-      ASSERT(interface.IsType());
-    }
+    interface = InstantiateType(interface, type);
     interfaces_inst.SetAt(i, interface);
   }
 
@@ -1100,29 +1106,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
   if (mixin_type.IsNull()) {
     return mixin_type.raw();
   }
-  ASSERT(mixin_type.IsFinalized());
 
-  ASSERT(!instantiator.IsMalformed());
-  ASSERT(instantiator.IsFinalized());
-
-  AbstractType& result = AbstractType::Handle(mixin_type.raw());
-
-  ASSERT(mixin_type.IsType());
-  if (!mixin_type.IsInstantiated()) {
-    AbstractTypeArguments& type_args =
-        AbstractTypeArguments::Handle(instantiator.arguments());
-    Error& bound_error = Error::Handle();
-    result ^= mixin_type.InstantiateFrom(type_args, &bound_error);
-    if (!bound_error.IsNull()) {
-      ThrowInvokeError(bound_error);
-      UNREACHABLE();
-    }
-    result ^= result.Canonicalize();
-    ASSERT(result.IsType());
-  }
-
-  ASSERT(result.IsFinalized());
-  return result.raw();
+  return InstantiateType(mixin_type, instantiator);
 }
 
 
@@ -1319,19 +1304,32 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
 DEFINE_NATIVE_ENTRY(TypeVariableMirror_instantiate_from, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Type, instantiator, arguments->NativeArgAt(1));
-
   ASSERT(param.parameterized_class() == instantiator.type_class());
-
-  AbstractTypeArguments& type_args =
-      AbstractTypeArguments::Handle(instantiator.arguments());
-  Error& bound_error = Error::Handle();
-  AbstractType& result =
-      AbstractType::Handle(param.InstantiateFrom(type_args, &bound_error));
-  ASSERT(bound_error.IsNull());
-  ASSERT(result.IsFinalized());
-  return result.raw();
+  return InstantiateType(param, instantiator);
 }
 
+
+DEFINE_NATIVE_ENTRY(TypedefMirror_instantiate_from, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, instantiator, arguments->NativeArgAt(1));
+  const Class& cls = Class::Handle(type.type_class());
+  // We represent typedefs as non-canonical signature classes.
+  ASSERT(cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass());
+  return InstantiateType(type, instantiator);
+}
+
+
+
+DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
+  const Class& cls = Class::Handle(type.type_class());
+  // We represent typedefs as non-canonical signature classes.
+  ASSERT(cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass());
+  return CreateTypedefMirror(cls,
+                             AbstractType::Handle(cls.DeclarationType()),
+                             Bool::True(),  // is_declaration
+                             Object::null_instance());
+}
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   // Argument 0 is the mirror, which is unused by the native. It exists
@@ -1449,6 +1447,12 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, lookup_parts, arguments->NativeArgAt(1));
   ASSERT(lookup_parts.Length() >= 1 && lookup_parts.Length() <= 3);
+
+  if (!closure.IsClosure()) {
+    const Array& result_tuple = Array::Handle(Array::New(2));
+    result_tuple.SetAt(0, Bool::False());
+    return result_tuple.raw();
+  }
 
   Function& function = Function::Handle();
   const bool callable = closure.IsCallable(&function, NULL);
@@ -1950,11 +1954,15 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
 
 
 DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
-  const Class& cls = Class::Handle(ref.GetClassReferent());
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
+  const Class& cls = Class::Handle(type.type_class());
   const Function& sig_func = Function::Handle(cls.signature_function());
   const Class& sig_cls = Class::Handle(sig_func.signature_class());
-  return MirrorReference::New(sig_cls);
+
+  AbstractType& referent_type = AbstractType::Handle(sig_cls.DeclarationType());
+  referent_type = InstantiateType(referent_type, type);
+
+  return CreateFunctionTypeMirror(sig_cls, referent_type);
 }
 
 

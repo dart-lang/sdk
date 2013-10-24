@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
-    findInterceptorForType, findConstructorForWebComponentType;
+    findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test that subclasses of native classes can be initialized by calling the
 // 'upgrade' constructor.
@@ -69,9 +69,9 @@ getBPrototype = function(){return B.prototype;};
 
 test_one() {
   trace = [];
-  var constructor = findConstructorForWebComponentType(B, 'one');
+  var constructor = findConstructorForNativeSubclassType(B, 'one');
   Expect.isNotNull(constructor);
-  Expect.isNull(findConstructorForWebComponentType(B, 'Missing'));
+  Expect.isNull(findConstructorForNativeSubclassType(B, 'Missing'));
 
   var b = makeB();
   Expect.isTrue(b is B);
@@ -93,7 +93,7 @@ test_one() {
 
 test_two() {
   trace = [];
-  var constructor = findConstructorForWebComponentType(B, 'two');
+  var constructor = findConstructorForNativeSubclassType(B, 'two');
   Expect.isNotNull(constructor);
 
   var b = makeB();
@@ -117,7 +117,7 @@ test_two() {
 
 test_three() {
   trace = [];
-  var constructor = findConstructorForWebComponentType(B, 'three');
+  var constructor = findConstructorForNativeSubclassType(B, 'three');
   Expect.isNotNull(constructor);
 
   var b = makeB();
@@ -128,7 +128,7 @@ test_three() {
   // is as though the web components runtime explicitly passed `null` for all
   // parameters.
   //
-  // TODO(sra): The constructor returned by findConstructorForWebComponentType
+  // TODO(sra): The constructor returned by findConstructorForNativeSubclassType
   // should be a function that fills in the default values.
   JS('', '#(#)', constructor, b);
   Expect.isTrue(b is B);

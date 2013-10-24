@@ -6,7 +6,6 @@ part of ssa;
 
 abstract class HVisitor<R> {
   R visitAdd(HAdd node);
-  R visitBailoutTarget(HBailoutTarget node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
@@ -66,7 +65,6 @@ abstract class HVisitor<R> {
   R visitThrow(HThrow node);
   R visitThrowExpression(HThrowExpression node);
   R visitTry(HTry node);
-  R visitTypeGuard(HTypeGuard node);
   R visitTypeConversion(HTypeConversion node);
   R visitTypeKnown(HTypeKnown node);
 }
@@ -279,7 +277,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
-  visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
   visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
@@ -346,7 +343,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThrow(HThrow node) => visitControlFlow(node);
   visitThrowExpression(HThrowExpression node) => visitInstruction(node);
   visitTry(HTry node) => visitControlFlow(node);
-  visitTypeGuard(HTypeGuard node) => visitCheck(node);
   visitIs(HIs node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
@@ -467,7 +463,6 @@ class HBasicBlock extends HInstructionList {
   HLoopInformation loopInformation = null;
   HBlockFlow blockFlow = null;
   HBasicBlock parentLoopHeader = null;
-  List<HBailoutTarget> bailoutTargets;
   bool isLive = true;
 
   final List<HBasicBlock> predecessors;
@@ -481,8 +476,7 @@ class HBasicBlock extends HInstructionList {
       : phis = new HInstructionList(),
         predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
-        dominatedBlocks = <HBasicBlock>[],
-        bailoutTargets = <HBailoutTarget>[];
+        dominatedBlocks = <HBasicBlock>[];
 
   int get hashCode => id;
 
@@ -506,8 +500,6 @@ class HBasicBlock extends HInstructionList {
     if (isLoopHeader()) return this;
     return parentLoopHeader;
   }
-
-  bool hasBailoutTargets() => !bailoutTargets.isEmpty;
 
   void open() {
     assert(isNew());
@@ -803,11 +795,10 @@ abstract class HInstruction implements Spannable {
   static const int FIELD_GET_TYPECODE = 23;
   static const int TYPE_CONVERSION_TYPECODE = 24;
   static const int TYPE_KNOWN_TYPECODE = 25;
-  static const int BAILOUT_TARGET_TYPECODE = 26;
-  static const int INVOKE_STATIC_TYPECODE = 27;
-  static const int INDEX_TYPECODE = 28;
-  static const int IS_TYPECODE = 29;
-  static const int INVOKE_DYNAMIC_TYPECODE = 30;
+  static const int INVOKE_STATIC_TYPECODE = 26;
+  static const int INDEX_TYPECODE = 27;
+  static const int IS_TYPECODE = 28;
+  static const int INVOKE_DYNAMIC_TYPECODE = 29;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
     assert(inputs.every((e) => e != null));
@@ -1099,11 +1090,6 @@ abstract class HInstruction implements Spannable {
     return validator.isValid;
   }
 
-  /**
-   * The code for computing a bailout environment, and the code
-   * generation must agree on what does not need to be captured,
-   * so should always be generated at use site.
-   */
   bool isCodeMotionInvariant() => false;
 
   bool isJsStatement() => false;
@@ -1183,68 +1169,6 @@ abstract class HCheck extends HInstruction {
   bool canThrow() => true;
 
   HInstruction nonCheck() => checkedInput.nonCheck();
-}
-
-class HBailoutTarget extends HInstruction {
-  final int state;
-  bool isEnabled = true;
-  // For each argument we record how many dummy (unused) arguments should
-  // precede it, to make sure it lands in the correctly named parameter in the
-  // bailout function.
-  List<int> padding;
-  HBailoutTarget(this.state) : super(<HInstruction>[]) {
-    setUseGvn();
-  }
-
-  void disable() {
-    isEnabled = false;
-  }
-
-  bool isControlFlow() => isEnabled;
-  bool isJsStatement() => isEnabled;
-
-  accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
-  int typeCode() => HInstruction.BAILOUT_TARGET_TYPECODE;
-  bool typeEquals(other) => other is HBailoutTarget;
-  bool dataEquals(HBailoutTarget other) => other.state == state;
-}
-
-class HTypeGuard extends HCheck {
-  HType guardedType;
-  bool isEnabled = false;
-
-  HTypeGuard(this.guardedType, HInstruction guarded, HInstruction bailoutTarget)
-      : super(<HInstruction>[guarded, bailoutTarget]);
-
-  HInstruction get guarded => inputs[0];
-  HInstruction get checkedInput => guarded;
-  HBailoutTarget get bailoutTarget => inputs[1];
-  int get state => bailoutTarget.state;
-
-  void enable() {
-    isEnabled = true;
-    instructionType = guardedType;
-  }
-
-  void disable() {
-    isEnabled = false;
-    instructionType = guarded.instructionType;
-  }
-
-  bool isControlFlow() => true;
-  bool isJsStatement() => isEnabled;
-  bool canThrow() => isEnabled;
-
-  // A [HTypeGuard] cannot be moved anywhere in the graph, otherwise
-  // instructions that have side effects could end up before the guard
-  // in the optimized version, and after the guard in a bailout
-  // version.
-  bool isPure() => false;
-
-  accept(HVisitor visitor) => visitor.visitTypeGuard(this);
-  int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
-  bool typeEquals(other) => other is HTypeGuard;
-  bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
 }
 
 class HBoundsCheck extends HCheck {

@@ -41,12 +41,15 @@ class XSquid extends XZot {
   @published int squid = 7;
 }
 
-@initMethod _main() {
+main() {
+  initPolymer();
   useHtmlConfiguration();
+
+  setUp(() => Polymer.onReady);
 
   test('published properties', () {
     published(tag) =>
-        query('polymer-element[name=$tag]').xtag.publishedProperties;
+        query('polymer-element[name=$tag]').publishedProperties;
 
     print(published('x-foo'));
     print(published('x-bar'));

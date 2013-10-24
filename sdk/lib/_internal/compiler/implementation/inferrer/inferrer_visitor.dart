@@ -223,7 +223,10 @@ class ArgumentsTypes<T> {
   final List<T> positional;
   final Map<String, T> named;
   ArgumentsTypes(this.positional, named)
-    : this.named = (named == null || named.isEmpty) ? const {} : named;
+    : this.named = (named == null || named.isEmpty) ? const {} : named {
+    assert(this.positional.every((T type) => type != null));
+    assert(this.named.values.every((T type) => type != null));
+  }
 
   int get length => positional.length + named.length;
 

@@ -420,7 +420,7 @@ class IdentifierObserver extends ExpressionObserver<Identifier>
 
   IdentifierObserver(Identifier value) : super(value);
 
-  String get value => (_expr as Identifier).value;
+  String get value => _expr.value;
 
   _updateSelf(Scope scope) {
     _value = scope[value];

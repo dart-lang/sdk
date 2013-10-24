@@ -988,7 +988,7 @@ class StandardTestSuite extends TestSuite {
         // If necessary, run the Polymer deploy steps.
         // TODO(jmesserly): this should be generalized for any tests that
         // require Pub deploy, not just polymer.
-        if (customHtml.readAsStringSync().contains('polymer/init.dart')) {
+        if (customHtml.readAsStringSync().contains('<!--polymer-test')) {
           if (compiler != 'none') {
             commands.add(_polymerDeployCommand(
                 customHtmlPath, tempDir, optionsFromFile));
@@ -1191,6 +1191,7 @@ class StandardTestSuite extends TestSuite {
     args..add('package:polymer/deploy.dart')
         ..add('--test')..add(inputFile)
         ..add('--out')..add(outputDir);
+    if (configuration['csp']) args.add('--csp');
 
     return CommandBuilder.instance.getCommand(
         'polymer_deploy', vmFileName, args, configurationDir);

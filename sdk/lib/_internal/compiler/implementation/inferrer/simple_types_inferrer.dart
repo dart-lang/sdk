@@ -100,10 +100,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
                              Node node,
                              Element enclosing,
                              [TypeMask elementType, int length]) {
-    ContainerTypeMask mask = new ContainerTypeMask(type, node, enclosing);
-    mask.elementType = elementType;
-    mask.length = length;
-    return mask;
+    return new ContainerTypeMask(type, node, enclosing, elementType, length);
   }
 
   Selector newTypedSelector(TypeMask receiver, Selector selector) {

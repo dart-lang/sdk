@@ -17,6 +17,17 @@ main() {
   mainTest(sync: false, asBroadcast: true);
 }
 
+void terminateWithDone(t, asBroadcast) {
+  if (asBroadcast) {
+    t..expectCancel()
+     ..expectDone()
+     ..expectBroadcastCancel((_) => t.terminate());
+  } else {
+    t..expectCancel()
+     ..expectDone(t.terminate);
+  }
+}
+
 mainTest({bool sync, bool asBroadcast}) {
   var p = (sync ? "S" : "AS") + (asBroadcast ? "BC" : "SC");
   test("$p-sub-data-done", () {
@@ -24,10 +35,8 @@ mainTest({bool sync, bool asBroadcast}) {
                         : new StreamProtocolTest(sync: sync);
     t..expectListen()
      ..expectBroadcastListenOpt()
-     ..expectData(42)
-     ..expectDone()
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+     ..expectData(42);
+    terminateWithDone(t, asBroadcast);
     t..listen()..add(42)..close();
   });
 
@@ -36,10 +45,8 @@ mainTest({bool sync, bool asBroadcast}) {
                         : new StreamProtocolTest(sync: sync);
     t..expectListen()
      ..expectBroadcastListenOpt()
-     ..expectData(42)
-     ..expectDone()
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+     ..expectData(42);
+    terminateWithDone(t, asBroadcast);
     t..add(42)..close()..listen();
   });
 
@@ -48,10 +55,8 @@ mainTest({bool sync, bool asBroadcast}) {
                         : new StreamProtocolTest(sync: sync);
     t..expectListen()
      ..expectBroadcastListenOpt()
-     ..expectData(42)
-     ..expectDone()
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+     ..expectData(42);
+    terminateWithDone(t, asBroadcast);
     t..add(42)..close()..listen();
   });
 
@@ -64,22 +69,27 @@ mainTest({bool sync, bool asBroadcast}) {
          t.pause();
          t.resume();
          t.close();
-       })
-     ..expectDone()
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+       });
+    terminateWithDone(t, asBroadcast);
     t..listen()..add(42);
   });
 
   test("$p-sub-data-unsubonerror", () {
     var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
                         : new StreamProtocolTest(sync: sync);
-    t..expectListen()
-     ..expectBroadcastListenOpt()
-     ..expectData(42)
-     ..expectError("bad")
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+    if (asBroadcast) {
+      t..expectListen()
+       ..expectBroadcastListen()
+       ..expectData(42)
+       ..expectError("bad")
+       ..expectBroadcastCancel()
+       ..expectCancel(t.terminate);
+    } else {
+      t..expectListen()
+       ..expectData(42)
+       ..expectCancel()
+       ..expectError("bad", t.terminate);
+    }
     t..listen(cancelOnError: true)
      ..add(42)
      ..error("bad")
@@ -94,10 +104,8 @@ mainTest({bool sync, bool asBroadcast}) {
      ..expectBroadcastListenOpt()
      ..expectData(42)
      ..expectError("bad")
-     ..expectData(43)
-     ..expectDone()
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+     ..expectData(43);
+    terminateWithDone(t, asBroadcast);
     t..listen(cancelOnError: false)
      ..add(42)
      ..error("bad")
@@ -117,11 +125,41 @@ mainTest({bool sync, bool asBroadcast}) {
     if (!asBroadcast && !sync) {
       t..expectPause();
     }
-    t..expectDone()
-     ..expectBroadcastCancelOpt()
-     ..expectCancel(t.terminate);
+    if (asBroadcast && sync) {
+      t..expectDone()
+       ..expectCancel(t.terminate);
+    } else {
+      t..expectCancel()
+       ..expectDone(t.terminate);
+    }
     t..listen()
      ..add(42)
+     ..close();
+  });
+
+  test("$p-cancel-on-data", () {
+    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
+                        : new StreamProtocolTest(sync: sync);
+    t..expectListen()
+     ..expectBroadcastListenOpt()
+     ..expectData(42, t.cancel)
+     ..expectBroadcastCancelOpt()
+     ..expectCancel(t.terminate);
+    t..listen(cancelOnError: false)
+     ..add(42)
+     ..close();
+  });
+
+  test("$p-cancel-on-error", () {
+    var t = asBroadcast ? new StreamProtocolTest.asBroadcast(sync: sync)
+                        : new StreamProtocolTest(sync: sync);
+    t..expectListen()
+     ..expectBroadcastListenOpt()
+     ..expectError(42, t.cancel)
+     ..expectBroadcastCancelOpt()
+     ..expectCancel(t.terminate);
+    t..listen(cancelOnError: false)
+     ..error(42)
      ..close();
   });
 }

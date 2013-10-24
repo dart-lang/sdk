@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head>
+    <title>bind simple</title>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+    <x-foo></x-foo>
+
+    <polymer-element name="x-bar" noscript>
+      <template>
+        x-bar
+      </template>
+    </polymer-element>
+
+    <polymer-element name="x-foo">
+      <template>
+        <div id="foo" foo="{{foo}}"></div>
+        <div id="bool" foo?="{{foo}}"></div>
+        <div id="content">{{foo}}</div>
+        <x-bar id="bar" foo="{{foo}}" ></x-bar>
+        <x-bar id="barBool" foo?="{{foo}}"></x-bar>
+        <x-bar id="barContent">{{foo}}</x-bar>
+      </template>
+    </polymer-element>
+
+    <script type="application/dart" src="bind_test.dart"></script>
+  </body>
+</html>

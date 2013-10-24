@@ -20,18 +20,48 @@ import 'utils.dart';
 /// An identifier for a transformer and the configuration that will be passed to
 /// it.
 ///
-/// It's possible that [asset] defines multiple transformers. If so,
-/// [configuration] will be passed to all of them.
+/// It's possible that the library identified by [this] defines multiple
+/// transformers. If so, [configuration] will be passed to all of them.
 class TransformerId {
-  /// The asset containing the transformer.
-  final AssetId asset;
+  /// The package containing the library that this transformer identifies.
+  final String package;
+
+  /// The `/`-separated path identifying the library that contains this
+  /// transformer.
+  ///
+  /// This is relative to the `lib/` directory in [package], and doesn't end in
+  /// `.dart`.
+  ///
+  /// This can be null; if so, it indicates that the transformer(s) should be
+  /// loaded from `lib/transformer.dart` if that exists, and `lib/$package.dart`
+  /// otherwise.
+  final String path;
 
   /// The configuration to pass to the transformer.
   ///
   /// This will be null if no configuration was provided.
   final Map configuration;
 
-  TransformerId(this.asset, this.configuration) {
+  /// Parses a transformer identifier.
+  ///
+  /// A transformer identifier is a string of the form "package_name" or
+  /// "package_name/path/to/library". It does not have a trailing extension. If
+  /// it just has a package name, it expands to lib/transformer.dart if that
+  /// exists, or lib/${package}.dart otherwise. Otherwise, it expands to
+  /// lib/${path}.dart. In either case it's located in the given package.
+  factory TransformerId.parse(String identifier, Map configuration) {
+    if (identifier.isEmpty) {
+      throw new FormatException('Invalid library identifier: "".');
+    }
+
+    var parts = split1(identifier, "/");
+    if (parts.length == 1) {
+      return new TransformerId(parts.single, null, configuration);
+    }
+    return new TransformerId(parts.first, parts.last, configuration);
+  }
+
+  TransformerId(this.package, this.path, this.configuration) {
     if (configuration == null) return;
     for (var reserved in ['include', 'exclude']) {
       if (!configuration.containsKey(reserved)) continue;
@@ -42,10 +72,27 @@ class TransformerId {
 
   // TODO(nweiz): support deep equality on [configuration] as well.
   bool operator==(other) => other is TransformerId &&
-      other.asset == asset &&
+      other.package == package &&
+      other.path == path &&
       other.configuration == configuration;
 
-  int get hashCode => asset.hashCode ^ configuration.hashCode;
+  int get hashCode => package.hashCode ^ path.hashCode ^ configuration.hashCode;
+
+  String toString() => path == null ? package : '$package/$path';
+
+  /// Returns the asset id for the library identified by this transformer id.
+  ///
+  /// If `path` is null, this will determine which library to load.
+  Future<AssetId> getAssetId(Barback barback) {
+    if (path != null) {
+      return new Future.value(new AssetId(package, 'lib/$path.dart'));
+    }
+
+    var transformerAsset = new AssetId(package, 'lib/transformer.dart');
+    return barback.getAssetById(transformerAsset).then((_) => transformerAsset)
+        .catchError((e) => new AssetId(package, 'lib/$package.dart'),
+            test: (e) => e is AssetNotFoundException);
+  }
 }
 
 /// Creates a [BarbackServer] serving on [host] and [port].
@@ -95,47 +142,6 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
       }
     });
   });
-}
-
-/// Parses a library identifier to an asset id.
-///
-/// A library identifier is a string of the form "package_name" or
-/// "package_name/path/to/library". It does not have a trailing extension. If it
-/// just has a package name, it expands to lib/${package}.dart in that package.
-/// Otherwise, it expands to lib/${path}.dart in that package.
-AssetId libraryIdentifierToId(String identifier) {
-  if (identifier.isEmpty) {
-    throw new FormatException('Invalid library identifier: "".');
-  }
-
-  // Convert the concise asset name in the pubspec (of the form "package"
-  // or "package/library") to an AssetId that points to an actual dart
-  // file ("package/lib/package.dart" or "package/lib/library.dart",
-  // respectively).
-  var parts = split1(identifier, "/");
-  if (parts.length == 1) parts.add(parts.single);
-  return new AssetId(parts.first, 'lib/' + parts.last + '.dart');
-}
-
-final _libraryPathRegExp = new RegExp(r"^lib/(.*)\.dart$");
-
-/// Converts [id] to a library identifier.
-///
-/// A library identifier is a string of the form "package_name" or
-/// "package_name/path/to/library". It does not have a trailing extension. If it
-/// just has a package name, it expands to lib/${package}.dart in that package.
-/// Otherwise, it expands to lib/${path}.dart in that package.
-///
-/// This will throw an [ArgumentError] if [id] doesn't represent a library in
-/// `lib/`.
-String idToLibraryIdentifier(AssetId id) {
-  var match = _libraryPathRegExp.firstMatch(id.path);
-  if (match == null) {
-    throw new ArgumentError("Asset id $id doesn't identify a library.");
-  }
-
-  if (match[1] == id.package) return id.package;
-  return '${id.package}/${match[1]}';
 }
 
 /// Converts [id] to a "package:" URI.

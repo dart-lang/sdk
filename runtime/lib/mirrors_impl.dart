@@ -6,6 +6,49 @@
 
 import "dart:collection";
 
+final emptyList = new UnmodifiableListView([]);
+final emptyMap = new _UnmodifiableMapView({});
+
+// Copied from js_mirrors, in turn copied from the package
+// "unmodifiable_collection".
+// TODO(14314): Move to dart:collection.
+class _UnmodifiableMapView<K, V> implements Map<K, V> {
+   Map<K, V> _source;
+  _UnmodifiableMapView(Map<K, V> source) : _source = source;
+
+ static void _throw() {
+    throw new UnsupportedError("Cannot modify an unmodifiable Map");
+  }
+
+  int get length => _source.length;
+
+  bool get isEmpty => _source.isEmpty;
+
+  bool get isNotEmpty => _source.isNotEmpty;
+
+  V operator [](K key) => _source[key];
+
+  bool containsKey(K key) => _source.containsKey(key);
+
+  bool containsValue(V value) => _source.containsValue(value);
+
+  void forEach(void f(K key, V value)) => _source.forEach(f);
+
+  Iterable<K> get keys => _source.keys;
+
+  Iterable<V> get values => _source.values;
+
+  void operator []=(K key, V value) => _throw();
+
+  V putIfAbsent(K key, V ifAbsent()) { _throw(); }
+
+  void addAll(Map<K, V> other) => _throw();
+
+  V remove(K key) { _throw(); }
+
+  void clear() => _throw();
+}
+
 // These values are allowed to be passed directly over the wire.
 bool _isSimpleValue(var value) {
   return (value == null || value is num || value is String || value is bool);
@@ -18,11 +61,13 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
       new_map[key] = value;
     }
   });
-  return new_map;
+  return new _UnmodifiableMapView(new_map);
 }
 
-Map _makeMemberMap(List mirrors) => new Map<Symbol, dynamic>.fromIterable(
-    mirrors, key: (e) => e.simpleName);
+Map _makeMemberMap(List mirrors) {
+  return new _UnmodifiableMapView(
+      new Map<Symbol, dynamic>.fromIterable(mirrors, key: (e) => e.simpleName));
+}
 
 String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
@@ -139,10 +184,6 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
 }
 
 abstract class _LocalMirrorImpl implements Mirror {
-  int get hashCode {
-    throw new UnimplementedError('Mirror.hashCode is not implemented');
-  }
-
   // Local mirrors always return the same MirrorSystem.  This field
   // is more interesting once we implement remote mirrors.
   MirrorSystem get mirrors => _Mirrors.currentMirrorSystem();
@@ -510,8 +551,8 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       _superinterfaces = isOriginalDeclaration
           ? _nativeInterfaces(_reflectedType)
           : _nativeInterfacesInstantiated(_reflectedType);
-      _superinterfaces = _superinterfaces
-          .map((i) => reflectType(i)).toList(growable:false);
+      _superinterfaces =
+          new UnmodifiableListView(_superinterfaces.map(reflectType));
     }
     return _superinterfaces;
   }
@@ -621,16 +662,18 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   List<TypeVariableMirror> _typeVariables = null;
   List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
+      if (_isAnonymousMixinApplication) return _typeVariables = emptyList;
       _typeVariables = new List<TypeVariableMirror>();
-      if (_isAnonymousMixinApplication) return _typeVariables;
 
       List params = _ClassMirror_type_variables(_reflectee);
+      ClassMirror owner = originalDeclaration;
       var mirror;
       for (var i = 0; i < params.length; i += 2) {
         mirror = new _LocalTypeVariableMirrorImpl(
-            params[i + 1], params[i], this);
+            params[i + 1], params[i], owner);
         _typeVariables.add(mirror);
       }
+      _typeVariables = new UnmodifiableListView(_typeVariables);
     }
     return _typeVariables;
   }
@@ -639,10 +682,10 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   List<TypeMirror> get typeArguments {
     if(_typeArguments == null) {
       if(_isGenericDeclaration || _isAnonymousMixinApplication) {
-        _typeArguments = new List<TypeMirror>();
+        _typeArguments = emptyList;
       } else {
         _typeArguments =
-            new List<TypeMirror>.from(_computeTypeArguments(_reflectedType));
+            new UnmodifiableListView(_computeTypeArguments(_reflectedType));
       }
     }
     return _typeArguments;
@@ -700,7 +743,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
-    return _metadata(_reflectee).map(reflect).toList(growable:false);
+    return new UnmodifiableListView(_metadata(_reflectee).map(reflect));
   }
 
   bool operator ==(other) {
@@ -785,8 +828,8 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
-      _returnType =
-          reflectType(_FunctionTypeMirror_return_type(_reflectee));
+      _returnType = reflectType(_FunctionTypeMirror_return_type(_reflectee));
+      _returnType = _returnType._instantiateInContextOf(reflectType(_instantiator));
     }
     return _returnType;
   }
@@ -795,12 +838,21 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
       _parameters = _FunctionTypeMirror_parameters(_reflectee);
+      _parameters.forEach((p) {
+        p._type = p.type._instantiateInContextOf(reflectType(_instantiator));
+      });
+      _parameters = new UnmodifiableListView(_parameters);
     }
     return _parameters;
   }
 
-  Map<Symbol, Mirror> get members => new Map<Symbol,Mirror>();
-  Map<Symbol, MethodMirror> get constructors => new Map<Symbol,MethodMirror>();
+  bool get isOriginalDeclaration => true;
+  get originalDeclaration => this;
+  get typeVariables => emptyList;
+  get typeArguments => emptyList;
+  get metadata => emptyList;
+  Map<Symbol, Mirror> get members => emptyMap;
+  Map<Symbol, MethodMirror> get constructors => emptyMap;
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 
@@ -834,7 +886,7 @@ abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
-    return _metadata(_reflectee).map(reflect).toList(growable:false);
+    return new UnmodifiableListView(_metadata(_reflectee).map(reflect));
   }
 
   bool operator ==(other) {
@@ -855,7 +907,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _TypeVariableMirror_owner(_reflectee);
+      _owner = _TypeVariableMirror_owner(_reflectee).originalDeclaration;
     }
     return _owner;
   }
@@ -880,8 +932,8 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   bool get hasReflectedType => false;
   Type get reflectedType => throw new UnsupportedError() ;
 
-  List<TypeVariableMirror> get typeVariables => new UnmodifiableListView<TypeVariableMirror>();
-  List<TypeMirror> get typeArguments => new UnmodifiableListView<TypeMirror>();
+  List<TypeVariableMirror> get typeVariables => emptyList;
+  List<TypeMirror> get typeArguments => emptyList;
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
@@ -908,7 +960,8 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     var instantiator = declaration;
     while (instantiator is MethodMirror) instantiator = instantiator.owner;
     if (instantiator is LibraryMirror) return this;
-    if (instantiator is! ClassMirror) throw "UNREACHABLE";
+    if (!(instantiator is ClassMirror || instantiator is TypedefMirror))
+      throw "UNREACHABLE";
     if (instantiator.isOriginalDeclaration) return this;
 
     return reflectType(
@@ -921,15 +974,18 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
     implements TypedefMirror {
   _LocalTypedefMirrorImpl(reflectee,
+                          this._reflectedType,
                           String simpleName,
+                          this._isGeneric,
+                          this._isGenericDeclaration,
                           this._owner)
       : super(reflectee, _s(simpleName));
 
-  final bool isTopLevel = true;
+  final Type _reflectedType;
+  final bool _isGeneric;
+  final bool _isGenericDeclaration;
 
-  // TODO(12282): Deal with generic typedefs.
-  bool get _isGeneric => false;
-
+  bool get isTopLevel => true;
   bool get isPrivate => false;
 
   DeclarationMirror _owner;
@@ -947,20 +1003,72 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
   TypeMirror _referent = null;
   TypeMirror get referent {
     if (_referent == null) {
-      // TODO(12282): Deal with generic typedef.
-      return new _LocalFunctionTypeMirrorImpl(
-          _TypedefMirror_referent(_reflectee), null);
+      _referent = _nativeReferent(_reflectedType);
+      _referent._instantiator = _reflectedType;
     }
     return _referent;
   }
 
+  bool get isOriginalDeclaration => !_isGeneric || _isGenericDeclaration;
+
+  TypedefMirror get originalDeclaration {
+    if (isOriginalDeclaration) {
+      return this;
+    } else {
+      return _nativeDeclaration(_reflectedType);
+    }
+  }
+
+  List<TypeVariableMirror> _typeVariables = null;
+  List<TypeVariableMirror> get typeVariables {
+    if (_typeVariables == null) {
+      _typeVariables = new List<TypeVariableMirror>();
+      List params = _LocalClassMirrorImpl._ClassMirror_type_variables(_reflectee);
+      TypedefMirror owner = originalDeclaration;
+      var mirror;
+      for (var i = 0; i < params.length; i += 2) {
+        mirror = new _LocalTypeVariableMirrorImpl(
+            params[i + 1], params[i], owner);
+        _typeVariables.add(mirror);
+      }
+    }
+    return _typeVariables;
+  }
+
+  List<TypeMirror> _typeArguments = null;
+  List<TypeMirror> get typeArguments {
+    if(_typeArguments == null) {
+      if(_isGenericDeclaration) {
+        _typeArguments = emptyList;
+      } else {
+        _typeArguments = new UnmodifiableListView(
+            _LocalClassMirrorImpl._computeTypeArguments(_reflectedType));
+      }
+    }
+    return _typeArguments;
+  }
+
+  TypeMirror _instantiateInContextOf(declaration) {
+    var instantiator = declaration;
+    while (instantiator is MethodMirror) instantiator = instantiator.owner;
+    if (instantiator is LibraryMirror) return this;
+    if (!(instantiator is ClassMirror || instantiator is TypedefMirror))
+      throw "UNREACHABLE";
+
+    return reflectType(
+        _nativeInstatniateFrom(_reflectedType, instantiator._reflectedType));
+  }
+
   String toString() => "TypedefMirror on '${_n(simpleName)}'";
 
-  static _TypedefMirror_referent(_reflectee)
+  static _nativeReferent(reflectedType)
       native "TypedefMirror_referent";
 
-  // TODO(12282): This is wrong.
-  TypeMirror _instantiateInContextOf(declaration) => this;
+  static _nativeInstatniateFrom(reflectedType, instantiator)
+      native "TypedefMirror_instantiate_from";
+
+  static _nativeDeclaration(reflectedType)
+      native "TypedefMirror_declaration";
 }
 
 class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
@@ -1011,8 +1119,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   Map<Symbol, ClassMirror> _classes;
   Map<Symbol, ClassMirror> get classes {
     if (_classes == null) {
-      _classes = _filterMap(members,
-                            (key, value) => (value is ClassMirror));
+      _classes = _filterMap(members, (key, value) => (value is ClassMirror));
     }
     return _classes;
   }
@@ -1053,7 +1160,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   List<InstanceMirror> get metadata {
     // Get the metadata objects, convert them into InstanceMirrors using
     // reflect() and then make them into a Dart list.
-    return _metadata(_reflectee).map(reflect).toList(growable:false);
+    return new UnmodifiableListView(_metadata(_reflectee).map(reflect));
   }
 
   bool operator ==(other) {
@@ -1145,6 +1252,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
       _parameters = _MethodMirror_parameters(_reflectee);
+      _parameters = new UnmodifiableListView(_parameters);
     }
     return _parameters;
   }
@@ -1280,8 +1388,8 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
   bool get hasDefaultValue => _defaultValueReflectee != null;
 
   List<InstanceMirror> get metadata {
-    if ( _unmirroredMetadata == null) return const [];
-    return _unmirroredMetadata.map(reflect).toList(growable:false);
+    if ( _unmirroredMetadata == null) return emptyList;
+    return new UnmodifiableListView(_unmirroredMetadata.map(reflect));
   }
 
   TypeMirror _type = null;
@@ -1308,7 +1416,7 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   final Symbol simpleName;
   final bool isTopLevel = true;
   // Fixed length 0, therefore immutable.
-  final List<InstanceMirror> metadata = new List(0);
+  final List<InstanceMirror> metadata = emptyList;
 
   SourceLocation get location {
     throw new UnimplementedError('TypeMirror.location is not implemented');

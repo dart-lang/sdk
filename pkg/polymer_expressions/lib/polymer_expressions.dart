@@ -30,8 +30,9 @@ library polymer_expressions;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:observe/observe.dart';
 import 'package:logging/logging.dart';
+import 'package:observe/observe.dart';
+import 'package:template_binding/template_binding.dart';
 
 import 'eval.dart';
 import 'expression.dart';

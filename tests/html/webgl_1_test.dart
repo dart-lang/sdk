@@ -59,7 +59,7 @@ main() {
         var canvas = new CanvasElement();
         var context = canvas.getContext3d();
         var pixels = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
-        context.texImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
+        context.texImage2DUntyped(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
         canvas = new CanvasElement();
         document.body.children.add(canvas);
@@ -76,7 +76,7 @@ main() {
         var canvas = new CanvasElement();
         var context = canvas.getContext3d();
         var pixels = new Uint8List.fromList([0,0,3,255,0,0,0,0,0,0]);
-        context.texSubImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
+        context.texSubImage2DUntyped(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
         canvas = new CanvasElement();
         document.body.children.add(canvas);

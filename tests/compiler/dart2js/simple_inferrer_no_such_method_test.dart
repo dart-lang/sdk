@@ -120,8 +120,7 @@ main() {
 
   var compiler2 = compilerFor(TEST2, uri);
   asyncTest(() => compiler2.runCompiler(uri).then((_) {
-    checkReturn(compiler2, 'test1',
-        compiler2.typesTask.dynamicType.nonNullable());
+    checkReturn(compiler2, 'test1', compiler2.typesTask.mapType.nonNullable());
     checkReturn(compiler2, 'test2', compiler2.typesTask.mapType);
     checkReturn(compiler2, 'test3', compiler2.typesTask.mapType);
     checkReturn(compiler2, 'test4', compiler2.typesTask.mapType);

@@ -149,8 +149,6 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'function, '
                 'global_var, '
                 'main, '
-                'methodWithError, '
-                'methodWithException, '
                 'myFunc, '
                 'myVar, '
                 'myVar=, '
@@ -161,7 +159,6 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testImplements, '
                 'testIntegerInstanceMirror, '
                 'testLibrariesMap, '
-                'testMirrorErrors, '
                 'testMirrorSystem, '
                 'testNullInstanceMirror, '
                 'testRootLibraryMirror, '
@@ -202,8 +199,6 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'buildVariableString, '
                 'function, '
                 'main, '
-                'methodWithError, '
-                'methodWithException, '
                 'myVar, '
                 'myVar=, '
                 'sort, '
@@ -213,7 +208,6 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testImplements, '
                 'testIntegerInstanceMirror, '
                 'testLibrariesMap, '
-                'testMirrorErrors, '
                 'testMirrorSystem, '
                 'testNullInstanceMirror, '
                 'testRootLibraryMirror, '
@@ -430,7 +424,6 @@ class MySuperClass {
 class MyInterface {
 }
 
-@notDefined
 class MyClass extends MySuperClass implements MyInterface {
   MyClass(this.value) {}
   MyClass.named() {}
@@ -469,9 +462,6 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
                 cls.owner.simpleName);
   Expect.isTrue(cls.isClass);
   Expect.equals(const Symbol('MyInterface'), cls.superinterfaces[0].simpleName);
-  Expect.throws(() => cls.metadata,
-                (e) => e is MirroredCompilationError,
-                'Bad metadata');
   Expect.equals("ClassMirror on 'MyClass'", cls.toString());
 
   // Invoke mirror.method(1000).
@@ -491,57 +481,6 @@ class MyException implements Exception {
   String toString() { return 'MyException: $_message'; }
 }
 
-void methodWithException() {
-  throw new MyException("from methodWithException");
-}
-
-void methodWithError() {
-  // We get a parse error when we try to run this function.
-  +++;
-}
-
-void testMirrorErrors(MirrorSystem mirrors) {
-  LibraryMirror lib_mirror = mirrors.isolate.rootLibrary;
-
-  lib_mirror.invokeAsync(const Symbol('methodWithException'), [])
-    .then((InstanceMirror retval) {
-      // Should not reach here.
-      Expect.isTrue(false);
-    })
-    .catchError((error) {
-        Expect.isTrue(error is MyException);
-        Expect.equals('MyException: from methodWithException',
-                      error.toString());
-        testDone('testMirrorErrors1');
-      });
-
-  lib_mirror.invokeAsync(const Symbol('methodWithError'), [])
-    .then((InstanceMirror retval) {
-      // Should not reach here.
-      Expect.isTrue(false);
-    })
-    .catchError((error) {
-      Expect.isTrue(error is MirroredCompilationError);
-      Expect.isTrue(error.message.contains('unexpected token'));
-      testDone('testMirrorErrors2');
-    });
-
-  // TODO(turnidge): When we call a method that doesn't exist, we
-  // should probably call noSuchMethod().  I'm adding this test to
-  // document the current behavior in the meantime.
-  lib_mirror.invokeAsync(const Symbol('methodNotFound'), [])
-    .then((InstanceMirror retval) {
-      // Should not reach here.
-      Expect.isTrue(false);
-    })
-    .catchError((error) {
-      Expect.isTrue(error is NoSuchMethodError);
-      Expect.isTrue(error.toString().contains(
-          "No top-level method 'methodNotFound'"));
-      testDone('testMirrorErrors3');
-    });
-}
-
 void main() {
   // When all of the expected tests complete, the exit_port is closed,
   // allowing the program to terminate.
@@ -553,10 +492,7 @@ void main() {
                                         'testStringInstanceMirror',
                                         'testBoolInstanceMirror',
                                         'testNullInstanceMirror',
-                                        'testCustomInstanceMirror',
-                                        'testMirrorErrors1',
-                                        'testMirrorErrors2',
-                                        'testMirrorErrors3']);
+                                        'testCustomInstanceMirror']);
 
   // Test that an isolate can reflect on itself.
   mirrorSystemOf(exit_port.toSendPort()).then(testMirrorSystem);
@@ -566,5 +502,4 @@ void main() {
   testBoolInstanceMirror(reflect(true));
   testNullInstanceMirror(reflect(null));
   testCustomInstanceMirror(reflect(new MyClass(17)));
-  testMirrorErrors(currentMirrorSystem());
 }

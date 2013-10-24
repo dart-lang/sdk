@@ -177,8 +177,19 @@ class Range;
   V(_StringBase, get:length, StringBaseLength, 1483520063)                     \
   V(ListIterator, moveNext, ListIteratorMoveNext, 90930587)                    \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1305127405)            \
-  V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)
+  V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)                  \
 
+// A list of core functions that internally dispatch based on received id.
+#define POLYMORPHC_TARGET_LIST(V)                                              \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 1762714698)                \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 48785449)                    \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 1392579206)                \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -194,6 +205,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 
   static Kind RecognizeKind(const Function& function);
   static bool AlwaysInline(const Function& function);
+  static bool PolymorphicTarget(const Function& function);
   static const char* KindToCString(Kind kind);
   static void InitializeState();
 };
@@ -2219,14 +2231,18 @@ class BranchInstr : public ControlInstruction {
 class StoreContextInstr : public TemplateInstruction<1> {
  public:
   explicit StoreContextInstr(Value* value) {
-    SetInputAt(0, value);
+    SetInputAt(kValuePos, value);
   }
+
+  enum {
+    kValuePos = 0
+  };
 
   DECLARE_INSTRUCTION(StoreContext)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  Value* value() const { return inputs_[0]; }
+  Value* value() const { return inputs_[kValuePos]; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3419,17 +3435,24 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
                           StoreBarrierType emit_store_barrier)
       : field_(field),
         emit_store_barrier_(emit_store_barrier) {
-    SetInputAt(0, instance);
-    SetInputAt(1, value);
+    SetInputAt(kInstancePos, instance);
+    SetInputAt(kValuePos, value);
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
+
+  enum {
+    kInstancePos = 0,
+    kValuePos = 1
+  };
+
+  Value* instance() const { return inputs_[kInstancePos]; }
+  Value* value() const { return inputs_[kValuePos]; }
+
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
 
-  Value* instance() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer()
         && (emit_store_barrier_ == kEmitStoreBarrier);
@@ -3534,14 +3557,18 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   StoreStaticFieldInstr(const Field& field, Value* value)
       : field_(field) {
     ASSERT(field.IsZoneHandle());
-    SetInputAt(0, value);
+    SetInputAt(kValuePos, value);
   }
+
+  enum {
+    kValuePos = 0
+  };
 
   DECLARE_INSTRUCTION(StoreStaticField)
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
-  Value* value() const { return inputs_[0]; }
+  Value* value() const { return inputs_[kValuePos]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3674,6 +3701,8 @@ class StringInterpolateInstr : public TemplateDefinition<1> {
 
   const Function& CallFunction() const;
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   DECLARE_INSTRUCTION(StringInterpolate)
 
  private:
@@ -3696,17 +3725,24 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
       : emit_store_barrier_(emit_store_barrier),
         index_scale_(index_scale),
         class_id_(class_id) {
-    SetInputAt(0, array);
-    SetInputAt(1, index);
-    SetInputAt(2, value);
+    SetInputAt(kArrayPos, array);
+    SetInputAt(kIndexPos, index);
+    SetInputAt(kValuePos, value);
     deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreIndexed)
 
-  Value* array() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
-  Value* value() const { return inputs_[2]; }
+  enum {
+    kArrayPos = 0,
+    kIndexPos = 1,
+    kValuePos = 2
+  };
+
+  Value* array() const { return inputs_[kArrayPos]; }
+  Value* index() const { return inputs_[kIndexPos]; }
+  Value* value() const { return inputs_[kValuePos]; }
+
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
 
@@ -4197,15 +4233,20 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
                     const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    SetInputAt(0, value);
-    SetInputAt(1, dest);
+    SetInputAt(kValuePos, value);
+    SetInputAt(kDestPos, dest);
   }
+
+  enum {
+    kValuePos = 0,
+    kDestPos = 1
+  };
 
   DECLARE_INSTRUCTION(StoreVMField)
   virtual CompileType* ComputeInitialType() const;
 
-  Value* value() const { return inputs_[0]; }
-  Value* dest() const { return inputs_[1]; }
+  Value* value() const { return inputs_[kValuePos]; }
+  Value* dest() const { return inputs_[kDestPos]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
 

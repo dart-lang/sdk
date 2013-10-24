@@ -457,7 +457,7 @@ function DartObject(o) {
       if (proxiedObjectTable.contains(id)) {
         return proxiedObjectTable.get(id);
       }
-      proxy = new DartObject(id, port);
+      var proxy = new DartObject(id, port);
       proxiedObjectTable.add(proxy, id);
       return proxy;
     }

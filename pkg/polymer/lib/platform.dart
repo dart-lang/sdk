@@ -14,11 +14,9 @@ library polymer.platform;
 import 'dart:async' show Completer;
 import 'dart:html' show Text, MutationObserver;
 import 'dart:collection' show Queue;
-import 'package:observe/src/microtask.dart' show performMicrotaskCheckpoint;
+import 'package:observe/observe.dart';
 
-void flush() {
-  endOfMicrotask(performMicrotaskCheckpoint);
-}
+void flush() => endOfMicrotask(Observable.dirtyCheck);
 
 int _iterations = 0;
 final Queue _callbacks = new Queue();

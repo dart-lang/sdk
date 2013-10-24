@@ -274,6 +274,11 @@ class LocalsHandler {
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
     JavaScriptBackend backend = compiler.backend;
+
+    // When the class extends a native class, the instance is pre-constructed
+    // and passed to the generative constructor factory function as a parameter.
+    // Instead of allocating and initializing the object, the constructor
+    // 'upgrades' the native subclass object by initializing the Dart fields.
     bool isNativeUpgradeFactory = element.isGenerativeConstructor()
         && Elements.isNativeOrExtendsNative(cls);
     if (backend.isInterceptedMethod(element)) {
@@ -291,7 +296,6 @@ class LocalsHandler {
       }
       value.instructionType = builder.getTypeOfThis();
     } else if (isNativeUpgradeFactory) {
-      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       Element parameter = new InterceptedElement(
           cls.computeType(compiler), 'receiver', element);
       HParameterValue value = new HParameterValue(parameter);
@@ -1613,8 +1617,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               // Unassigned fields of native classes are not initialized to
               // prevent overwriting pre-initialized native properties.
               if (!Elements.isNativeOrExtendsNative(classElement)) {
-                HInstruction value = graph.addConstantNull(compiler);
-                fieldValues[member] = value;
+                fieldValues[member] = graph.addConstantNull(compiler);
               }
             } else {
               Node right = assignment.arguments.head;
@@ -1626,8 +1629,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                   member, node, elements);
               inlinedFrom(member, () => right.accept(this));
               elements = savedElements;
-              HInstruction value = pop();
-              fieldValues[member] = value;
+              fieldValues[member] = pop();
             }
           });
         });
@@ -1890,7 +1892,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (type.containsTypeVariables) {
         bool contextIsTypeArguments = false;
         HInstruction context;
-        if (currentElement.isInstanceMember()) {
+        if (!currentElement.enclosingElement.isClosure()
+            && currentElement.isInstanceMember()) {
           context = localsHandler.readThis();
         } else {
           ClassElement contextClass = Types.getClassContext(type);
@@ -2934,7 +2937,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         contextName = graph.addConstantString(
             new DartString.literal(backend.namer.getNameOfClass(contextClass)),
             node, compiler);
-        if (currentElement.isInstanceMember()) {
+        if (!currentElement.enclosingElement.isClosure()
+            && currentElement.isInstanceMember()) {
           context = localsHandler.readThis();
           typeArguments = graph.addConstantNull(compiler);
         } else {
@@ -3116,7 +3120,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
     push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
-                      effects: nativeBehavior.sideEffects));
+                      effects: nativeBehavior.sideEffects,
+                      nativeBehavior: nativeBehavior));
     return;
   }
 
@@ -4832,8 +4837,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                     void buildSwitchCase(SwitchCase switchCase)) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
 
-    // TODO(ngeoffray): Handle switch-instruction in bailout code.
-    work.allowSpeculativeOptimization = false;
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
     if (switchCases.isEmpty) {
@@ -4966,7 +4969,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitTryStatement(TryStatement node) {
-    work.allowSpeculativeOptimization = false;
     // Save the current locals. The catch block and the finally block
     // must not reuse the existing locals handler. None of the variables
     // that have been defined in the body-block will be used, but for

@@ -19,8 +19,7 @@ import 'package:analyzer_experimental/options.dart';
 import 'package:analyzer_experimental/src/analyzer_impl.dart';
 import 'package:analyzer_experimental/src/error_formatter.dart';
 
-void main() {
-  var args = new Options().arguments;
+void main(args) {
   var options = CommandLineOptions.parse(args);
   if (options.shouldBatch) {
     BatchRunner.runAsBatch(args, (List<String> args) {

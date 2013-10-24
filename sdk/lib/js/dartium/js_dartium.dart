@@ -111,5 +111,35 @@ class JsFunction extends JsObject {
 
   apply(List args, {thisArg}) native "JsFunction_apply";
 
+  /**
+   * Internal only version of apply which uses debugger proxies of Dart objects
+   * rather than opaque handles. This method is private because it cannot be
+   * efficiently implemented in Dart2Js so should only be used by internal
+   * tools.
+   */
+  _applyDebuggerOnly(List args, {thisArg}) native "JsFunction_applyDebuggerOnly";
+
   static JsFunction _withThis(Function f) native "JsFunction_withThis";
 }
+
+/**
+ * Placeholder object for cases where we need to determine exactly how many
+ * args were passed to a function.
+ */
+const _UNDEFINED = const Object();
+
+// FIXME(jacobr): this method is a hack to work around the lack of proper dart
+// support for varargs methods.
+List _stripUndefinedArgs(List args) =>
+    args.takeWhile((i) => i != _UNDEFINED).toList();
+
+/**
+ * Returns a method that can be called with an arbitrary number (for n less
+ * than 11) of arguments without violating Dart type checks.
+ */
+Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) =>
+  ([a1=_UNDEFINED, a2=_UNDEFINED, a3=_UNDEFINED, a4=_UNDEFINED,
+    a5=_UNDEFINED, a6=_UNDEFINED, a7=_UNDEFINED, a8=_UNDEFINED,
+    a9=_UNDEFINED, a10=_UNDEFINED]) =>
+    jsFunction._applyDebuggerOnly(_stripUndefinedArgs(
+        [a1,a2,a3,a4,a5,a6,a7,a8,a9,a10]));

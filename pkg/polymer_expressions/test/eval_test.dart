@@ -6,8 +6,8 @@ library eval_test;
 
 import 'dart:async';
 
-// NOTE: this import is unused, but we use it to cause all mirrors to be
-// enabled. The tests reflect on LinkedHashMap.length and String.length.
+// Import mirrors to cause all mirrors to be retained by dart2js.
+// The tests reflect on LinkedHashMap.length and String.length.
 import 'dart:mirrors';
 
 import 'package:polymer_expressions/eval.dart';
@@ -17,6 +17,7 @@ import 'package:unittest/unittest.dart';
 import 'package:observe/observe.dart';
 
 main() {
+  reflectClass(Object); // suppress unused import warning
 
   group('eval', () {
     test('should return the model for an empty expression', () {

@@ -5,6 +5,7 @@
 library barback.utils;
 
 import 'dart:async';
+import 'dart:io';
 
 /// A pair of values.
 class Pair<E, F> {

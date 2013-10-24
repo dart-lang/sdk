@@ -54,9 +54,6 @@ class ResolutionWorkItem extends WorkItem {
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
-  bool allowSpeculativeOptimization = true;
-  List<HTypeGuard> guards = const <HTypeGuard>[];
-
   CodegenWorkItem(Element element,
                   ItemCompilationContext compilationContext)
       : super(element, compilationContext);

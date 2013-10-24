@@ -297,6 +297,8 @@ namespace dart {
   V(MethodMirror_source, 1)                                                    \
   V(ParameterMirror_type, 2)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
+  V(TypedefMirror_instantiate_from, 2)                                         \
+  V(TypedefMirror_declaration, 1)                                              \
   V(VariableMirror_type, 1)                                                    \
   V(GrowableList_allocate, 2)                                                  \
   V(GrowableList_getIndexed, 2)                                                \

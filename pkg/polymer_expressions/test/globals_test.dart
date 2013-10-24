@@ -4,15 +4,14 @@
 
 import 'dart:html';
 
-import 'package:mdv/mdv.dart' as mdv;
 import 'package:observe/observe.dart';
 import 'package:observe/src/microtask.dart';
 import 'package:polymer_expressions/polymer_expressions.dart';
+import 'package:template_binding/template_binding.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_enhanced_config.dart';
 
 main() {
-  mdv.initialize();
   useHtmlEnhancedConfiguration();
 
   var testDiv;
@@ -30,12 +29,13 @@ main() {
     });
 
     tearDown(() {
-      testDiv..unbindAll()..remove();
+      nodeBind(testDiv).unbindAll();
+      testDiv.remove();
       testDiv = null;
     });
 
     test('should enumerate item and index', wrapMicrotask(() {
-      testDiv.query('template')
+      templateBind(testDiv.query('template'))
           ..bindingDelegate = new PolymerExpressions()
           ..model = toObservable(
               ['hello', 'from', 'polymer', 'expressions']);

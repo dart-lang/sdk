@@ -24,9 +24,12 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $compiler == dart2js ]
 analyzer_experimental/test/generated/ast_test: RuntimeError #Issue 12341
-
-[ $compiler == dart2js && $runtime == drt ]
-polymer/test/prop_attr_reflection_test: Fail # Issue 14048
+collection_helpers/test/equality_test/01: Fail # Issue 1533
+collection_helpers/test/equality_test/02: Fail # Issue 1533
+collection_helpers/test/equality_test/03: Fail # Issue 1533
+collection_helpers/test/equality_test/04: Fail # Issue 1533
+collection_helpers/test/equality_test/05: Fail # Issue 1533
+collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -41,13 +44,19 @@ unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.c
 polymer/example: Skip # Uses dart:html
 polymer/test/attr_deserialize_test: Skip # uses dart:html
 polymer/test/attr_mustache_test: Skip #uses dart:html
+polymer/test/bind_test: Skip # uses dart:html
+polymer/test/bind_mdv_test: Skip # uses dart:html
+polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
+polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
+polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
+polymer/test/unbind_test: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -66,13 +75,6 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
-[ $system == windows && $runtime == ff ]
-polymer/test/events_test: Pass, Fail # Issue 14167
-polymer/test/prop_attr_bind_reflection_test: Pass, Fail # Issue 14167
-polymer/test/prop_attr_reflection_test: Pass, Fail # Issue 14167
-polymer/test/take_attributes_test: Pass, Fail # Issue 14167
-polymer/test/attr_mustache_test: Pass, Fail # Issue 14167
-
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 crypto/test/hmac_sha1_test: Pass, Fail # Issue 11407.
@@ -83,26 +85,23 @@ crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
 polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $runtime == ie9 || $runtime == ie10 ]
+polymer/example/canonicalization/test/canonicalization_deploy_test: Pass, Timeout
+polymer/example/canonicalization/test/canonicalization_test: Fail, Timeout, OK # tests development only behavior
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/attr_mustache_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/bind_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/bind_mdv_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/custom_event_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/prop_attr_bind_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/register_test: Pass, Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/template_distribute_dynamic_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/unbind_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer_expressions/test/globals_test: Fail # Issue 13890
-
-[ $system == windows && ($runtime == chrome || $runtime == ff) ]
-polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
-polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
-polymer/test/event_path_test: Pass, Timeout # Issue 13260
-polymer/test/events_test: Pass, Timeout # Issue 13260
-polymer/test/instance_attrs_test: Pass, Timeout # Issue 13260
-polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
-polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
-polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
-polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -122,6 +121,11 @@ stack_trace/test/trace_test: Pass, Timeout # Issue 11645
 # them in the analyzer.
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
+collection_helpers/test/equality_test/none: Fail # TODO(lrn): Figure out if it's an error.
+polymer/example/canonicalization: Skip
+
+[ $compiler == dart2js && $runtime == none]
+polymer/example/canonicalization: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/mirror_matchers_test: Skip # Issue 12151
@@ -140,10 +144,14 @@ stack_trace/test/vm_test: Fail, OK # VM-specific traces
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
+polymer/example/canonicalization/test/canonicalization_test: Fail, OK # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
+
+[ $compiler == none && $runtime == vm && $system == windows ]
+http_server/test/http_body_test: Pass, Fail # Issue 14381
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, Timeout, OK # Uses dart:io.
@@ -250,12 +258,15 @@ unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
 unittest/test/unitttest_group_name_test: Fail # 13921
+template_binding/test/template_element_test: Pass, Fail # Flaky, 14330
+polymer/test/custom_event_test: Pass, Crash # 14360
 
+polymer/example/canonicalization/test/canonicalization_deploy_test: Fail, OK # tests deploy only behavior
 
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
 custom_element: Skip
-mdv: Skip
+template_binding: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
 polymer_expressions/test/globals_test: Skip
@@ -273,19 +284,13 @@ unittest/test/missing_tick_test: Fail, OK # This test should fail, not time out.
 [ $runtime == vm ]
 intl/test/message_extraction/message_extraction_test: Pass, Fail # Issue 12930
 
-[ $compiler == none && $runtime == vm ]
-observe/test/observe_test: Pass, Fail # Issue 13543
-
-[ $compiler == none && $runtime == vm && $checked ]
-intl/test/message_extraction/failed_extraction_test: Pass, Fail # Issue 13543
-
 [ $compiler == none && $runtime == dartium ]
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
-mdv/test/analyzer_test: fail
+template_binding/test/analyzer_test: fail
 observe/test/observe_test: fail
 
 # pkg issue 13945; Missing inherited member 'Trace.frames'
@@ -294,11 +299,8 @@ observe/test/observe_test: fail
 [ $compiler == dart2analyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
-mdv/test/analyzer_test: fail
+template_binding/test/analyzer_test: fail
 observe/test/observe_test: fail
 
 # pkg issue 13945; Missing inherited member 'Trace.frames'
 observe/test/observe_test: fail
-
-[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
-polymer/test/prop_attr_reflection_test: fail # Issue 14036

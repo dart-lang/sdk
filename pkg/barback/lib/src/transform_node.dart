@@ -6,6 +6,8 @@ library barback.transform_node;
 
 import 'dart:async';
 
+import 'package:source_maps/span.dart';
+
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
@@ -125,7 +127,10 @@ class TransformNode {
     _inputSubscriptions.clear();
 
     _isDirty = false;
-    return transformer.apply(transform).catchError((error) {
+
+    return phase.cascade.graph.transformPool
+        .withResource(() => transformer.apply(transform))
+        .catchError((error) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
       if (_isDirty) return;
@@ -160,7 +165,7 @@ class TransformNode {
 
       // If the asset node is found, wait until its contents are actually
       // available before we return them.
-      return node.whenAvailable.then((asset) {
+      return node.whenAvailable((asset) {
         _inputSubscriptions.putIfAbsent(node.id,
             () => node.onStateChange.listen((_) => _dirty()));
 

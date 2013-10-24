@@ -44,7 +44,6 @@ DEFINE_FLAG(bool, common_subexpression_elimination, true,
     "Do common subexpression elimination.");
 DEFINE_FLAG(bool, loop_invariant_code_motion, true,
     "Do loop invariant code motion.");
-DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
 DEFINE_FLAG(bool, allocation_sinking, true,
     "Attempt to sink temporary allocations to side exits");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
@@ -349,11 +348,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           TimerScope timer(FLAG_compiler_stats,
                            &CompilerStats::graphinliner_timer);
           // Propagate types to create more inlining opportunities.
-          if (FLAG_propagate_types) {
-            FlowGraphTypePropagator propagator(flow_graph);
-            propagator.Propagate();
-            DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          }
+          FlowGraphTypePropagator::Propagate(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
           // Use propagated class-ids to create more inlining opportunities.
           optimizer.ApplyClassIds();
@@ -366,11 +362,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         }
 
         // Propagate types and eliminate more type tests.
-        if (FLAG_propagate_types) {
-          FlowGraphTypePropagator propagator(flow_graph);
-          propagator.Propagate();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
+        FlowGraphTypePropagator::Propagate(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Use propagated class-ids to optimize further.
         optimizer.ApplyClassIds();
@@ -399,17 +392,14 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         }
 
         // Propagate types and eliminate even more type tests.
-        if (FLAG_propagate_types) {
-          // Recompute types after constant propagation to infer more precise
-          // types for uses that were previously reached by now eliminated phis.
-          FlowGraphTypePropagator propagator(flow_graph);
-          propagator.Propagate();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
+        // Recompute types after constant propagation to infer more precise
+        // types for uses that were previously reached by now eliminated phis.
+        FlowGraphTypePropagator::Propagate(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Unbox doubles. Performed after constant propagation to minimize
         // interference from phis merging double values and tagged
-        // values comming from dead paths.
+        // values coming from dead paths.
         optimizer.SelectRepresentations();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -438,13 +428,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         flow_graph->RemoveRedefinitions();
 
         if (FLAG_range_analysis) {
-          if (FLAG_propagate_types) {
-            // Propagate types after store-load-forwarding. Some phis may have
-            // become smi phis that can be processed by range analysis.
-            FlowGraphTypePropagator propagator(flow_graph);
-            propagator.Propagate();
-            DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          }
+          // Propagate types after store-load-forwarding. Some phis may have
+          // become smi phis that can be processed by range analysis.
+          FlowGraphTypePropagator::Propagate(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
           // We have to perform range analysis after LICM because it
           // optimistically moves CheckSmi through phis into loop preheaders
           // making some phis smi.
@@ -459,13 +447,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
-        if (FLAG_propagate_types) {
-          // Recompute types after code movement was done to ensure correct
-          // reaching types for hoisted values.
-          FlowGraphTypePropagator propagator(flow_graph);
-          propagator.Propagate();
-          DEBUG_ASSERT(flow_graph->VerifyUseLists());
-        }
+        // Recompute types after code movement was done to ensure correct
+        // reaching types for hoisted values.
+        FlowGraphTypePropagator::Propagate(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Optimize try-blocks.
         TryCatchAnalyzer::Optimize(flow_graph);

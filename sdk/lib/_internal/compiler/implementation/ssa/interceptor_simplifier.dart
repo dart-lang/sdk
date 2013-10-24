@@ -230,13 +230,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
 
-    if (node.usedBy.every((e) => e is HBailoutTarget || e is HTypeGuard)) {
-      // The interceptor is only used by the bailout version. We don't
-      // remove it because the bailout version will use it.
-      node.interceptedClasses = backend.interceptedClasses;
-      return false;
-    }
-
     node.interceptedClasses = interceptedClasses;
 
     // Try creating a one-shot interceptor.

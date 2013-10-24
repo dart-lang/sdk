@@ -91,12 +91,11 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Future<Directory> createRecursively() {
-    var path = new _Path(this.path);
     var dirsToCreate = [];
-    var terminator = path.isAbsolute ? '/' : '';
-    while (path.toString() != terminator) {
-      dirsToCreate.add(new Directory(path.toNativePath()));
-      path = path.directoryPath;
+    var dir = this;
+    while (dir.path != dir.parent.path) {
+      dirsToCreate.add(dir);
+      dir = dir.parent;
     }
     return _computeExistingIndex(dirsToCreate).then((index) {
       var future;
@@ -128,14 +127,12 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   void createRecursivelySync() {
-    var path = new _Path(this.path);
+    var dir = this;
     var dirsToCreate = [];
-    var terminator = path.isAbsolute ? '/' : '';
-    while (path.toString() != terminator) {
-      var dir = new Directory(path.toNativePath());
+    while (dir.path != dir.parent.path) {
       if (dir.existsSync()) break;
       dirsToCreate.add(dir);
-      path = path.directoryPath;
+      dir = dir.parent;
     }
     for (var i = dirsToCreate.length - 1; i >= 0; i--) {
       dirsToCreate[i].createSync();
@@ -155,9 +152,9 @@ class _Directory extends FileSystemEntity implements Directory {
   Future<Directory> createTemp([String prefix]) {
     if (prefix == null) prefix = '';
     if (path == '') {
-      return systemTemp.createTemp(prefix);
-      // TODO(13720): On Oct 18, 2013, replace this with
-      // an error.  createTemp cannot be called on a Directory with empty path.
+      throw new ArgumentError(
+          "Directory.createTemp called with an empty path. "
+          "To use the system temp directory, use Directory.systemTemp");
     }
     String fullPrefix;
     if (path.endsWith('/') || (Platform.isWindows && path.endsWith('\\'))) {
@@ -178,9 +175,9 @@ class _Directory extends FileSystemEntity implements Directory {
   Directory createTempSync([String prefix]) {
     if (prefix == null) prefix = '';
     if (path == '') {
-      return systemTemp.createTempSync(prefix);
-      // TODO(13720): On Oct 18, 2013, replace this with
-      // an error.  createTemp cannot be called on a Directory with empty path.
+      throw new ArgumentError(
+          "Directory.createTemp called with an empty path. "
+          "To use the system temp directory, use Directory.systemTemp");
     }
     String fullPrefix;
     if (path.endsWith('/') || (Platform.isWindows && path.endsWith('\\'))) {

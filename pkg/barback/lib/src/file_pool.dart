@@ -9,6 +9,9 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'pool.dart';
+import 'utils.dart';
+
 /// Manages a pool of files that are opened for reading to cope with maximum
 /// file descriptor limits.
 ///
@@ -17,16 +20,27 @@ import 'dart:io';
 /// again. If this doesn't succeed after a certain amount of time, the open
 /// will fail and the original "too many files" exception will be thrown.
 class FilePool {
-  /// [_FileReader]s whose last [listen] call failed and that are waiting for
-  /// another file to close so they can be retried.
-  final _pendingListens = new Queue<_FileReader>();
+  /// The underlying pool.
+  ///
+  /// The maximum number of allocated descriptors is based on empirical tests
+  /// that indicate that beyond 32, additional file reads don't provide
+  /// substantial additional throughput.
+  final Pool _pool = new Pool(32, timeout: new Duration(seconds: 60));
 
   /// Opens [file] for reading.
   ///
   /// When the returned stream is listened to, if there are too many files
   /// open, this will wait for a previously opened file to be closed and then
   /// try again.
-  Stream<List<int>> openRead(File file) => new _FileReader(this, file).stream;
+  Stream<List<int>> openRead(File file) {
+    return futureStream(_pool.checkOut().then((resource) {
+      return file.openRead().transform(new StreamTransformer.fromHandlers(
+          handleDone: (sink) {
+        sink.close();
+        resource.release();
+      }));
+    }));
+  }
 
   /// Reads [file] as a string using [encoding].
   ///
@@ -47,139 +61,5 @@ class FilePool {
     }, onError: completer.completeError, cancelOnError: true);
 
     return completer.future;
-  }
-
-  /// Tries to re-listen to the next pending file reader if there are any.
-  void _retryPendingListen() {
-    if (_pendingListens.isEmpty) return;
-
-    var pending = _pendingListens.removeFirst();
-    pending._listen();
-  }
-}
-
-/// Wraps a raw file reading stream in a stream that handles "too many files"
-/// errors.
-///
-/// This also notifies the pool when the underlying file stream is closed so
-/// that it can try to open a waiting file.
-class _FileReader {
-  final FilePool _pool;
-  final File _file;
-
-  /// The underyling file stream.
-  Stream<List<int>> _fileStream;
-
-  /// The controller for the stream wrapper.
-  StreamController<List<int>> _controller;
-
-  /// The current subscription to the underlying file stream.
-  ///
-  /// This will only be non-null while the wrapped stream is being listened to.
-  StreamSubscription _subscription;
-
-  /// The timeout timer.
-  ///
-  /// If this timer fires before the listen is retried, it gives up and throws
-  /// the original error.
-  Timer _timer;
-
-  /// When a [listen] call has thrown a "too many files" error, this will be
-  /// the exception object.
-  Object _exception;
-
-  /// When a [listen] call has thrown a "too many files" error, this will be
-  /// the captured stack trace.
-  Object _stackTrace;
-
-  /// The wrapped stream that the file can be read from.
-  Stream<List<int>> get stream => _controller.stream;
-
-  _FileReader(this._pool, this._file) {
-    _controller = new StreamController<List<int>>(onListen: _listen,
-        onPause: () {
-      _subscription.pause();
-    }, onResume: () {
-      _subscription.resume();
-    }, onCancel: () {
-      if (_subscription != null) _subscription.cancel();
-      _subscription = null;
-    }, sync: true);
-  }
-
-  /// Starts listening to the underlying file stream.
-  void _listen() {
-    if (_timer != null) {
-      _timer.cancel();
-      _timer = null;
-    }
-
-    _exception = null;
-    _stackTrace = null;
-
-    _fileStream = _file.openRead();
-    _subscription = _fileStream.listen(_controller.add,
-        onError: _onError, onDone: _onDone, cancelOnError: true);
-  }
-
-  /// Handles an error from the underlying file stream.
-  ///
-  /// "Too many file" errors are caught so that we can retry later. Other
-  /// errors are passed to the wrapped stream and the underlying stream
-  /// subscription is canceled.
-  void _onError(Object exception, Object stackTrace) {
-    assert(_subscription != null);
-    assert(_exception == null);
-
-    // The subscription is canceled after an error.
-    _subscription = null;
-
-    // We only handle "Too many open files errors".
-    if (exception is! FileException || exception.osError.errorCode != 24) {
-      _controller.addError(exception, stackTrace);
-      return;
-    }
-
-    _exception = exception;
-    _stackTrace = stackTrace;
-
-    // We'll try to defer the listen in the hopes that another file will close
-    // and we can try. If that doesn't happen after a while, give up and just
-    // throw the original error.
-    // TODO(rnystrom): The point of this timer is to not get stuck forever in
-    // a deadlock scenario. But this can also erroneously fire if there is a
-    // large number of slow reads that do incrementally finish. A file may not
-    // move to the front of the queue in time even though it is making
-    // progress. A better solution is to have a single deadlock timer on the
-    // FilePool itself that starts when a pending listen is enqueued and checks
-    // to see if progress has been made when it fires.
-    _timer = new Timer(new Duration(seconds: 60), _onTimeout);
-
-    // Tell the pool that this file is waiting.
-    _pool._pendingListens.add(this);
-  }
-
-  /// Handles the underlying file stream finishing.
-  void _onDone() {
-    _subscription = null;
-
-    _controller.close();
-    _pool._retryPendingListen();
-  }
-
-  /// If this file failed to be read because there were too many open files and
-  /// no file was closed in time to retry, this handles giving up.
-  void _onTimeout() {
-    assert(_subscription == null);
-    assert(_exception != null);
-
-    // We failed to open in time, so just fail with the original error.
-    _pool._pendingListens.remove(this);
-    _controller.addError(_exception, _stackTrace);
-    _controller.close();
-
-    _timer = null;
-    _exception = null;
-    _stackTrace = null;
   }
 }

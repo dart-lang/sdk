@@ -279,8 +279,8 @@ testPause() {
           })
         ..expectData(43)
         ..expectData(44)
-        ..expectDone()
-        ..expectCancel(test.terminate);
+        ..expectCancel()
+        ..expectDone(test.terminate);
     test.listen();
     test.add(42);
     test.add(43);
@@ -303,8 +303,8 @@ testPause() {
           })
         ..expectData(43)
         ..expectData(44)
-        ..expectDone()
-        ..expectCancel(test.terminate);
+        ..expectCancel()
+        ..expectDone(test.terminate);
     test..listen()
         ..add(42)
         ..add(43)
@@ -325,8 +325,8 @@ testPause() {
           })
         ..expectData(43)
         ..expectData(44)
-        ..expectDone()
-        ..expectCancel(test.terminate);
+        ..expectCancel()
+        ..expectDone(test.terminate);
     test..listen()
         ..add(42)
         ..add(43)
@@ -351,8 +351,8 @@ testPause() {
           })
         ..expectData(43)
         ..expectData(44)
-        ..expectDone()
-        ..expectCancel(test.terminate);
+        ..expectCancel()
+        ..expectDone(test.terminate);
     test..listen()
         ..add(42);
   });
@@ -417,8 +417,8 @@ void testBroadcastController() {
     StreamProtocolTest test = new StreamProtocolTest.broadcast();
     test..expectListen()
         ..expectData(42)
-        ..expectDone()
-        ..expectCancel(test.terminate);
+        ..expectCancel()
+        ..expectDone(test.terminate);
     test..listen()
         ..add(42)
         ..close();
@@ -436,8 +436,8 @@ void testBroadcastController() {
         ..expectData(37)
         ..expectData(37)
         ..expectDone()
-        ..expectDone()
-        ..expectCancel(test.terminate);
+        ..expectCancel()
+        ..expectDone(test.terminate);
     test.listen();
     test.add(42);
   });
@@ -459,8 +459,8 @@ void testBroadcastController() {
     ..expectData(37, () {
       test.close();
     })
-    ..expectDone()
-    ..expectCancel(test.terminate);
+    ..expectCancel()
+    ..expectDone(test.terminate);
     test.listen();
   });
 
@@ -560,9 +560,9 @@ void testAsBroadcast() {
         ..expectResume(() {
             test.close();
           })
+        ..expectCancel()
         ..expectDone()
-        ..expectBroadcastCancel()
-        ..expectCancel(test.terminate);
+        ..expectBroadcastCancel((_) => test.terminate());
     sub = test.listen();
   });
 }

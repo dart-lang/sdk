@@ -163,12 +163,6 @@ class JavaScriptBackend extends Backend {
     return compiler.enqueuer.codegen.generatedCode;
   }
 
-  /**
-   * The generated code as a js AST for compiled bailout methods.
-   */
-  final Map<Element, jsAst.Expression> generatedBailoutCode =
-      new Map<Element, jsAst.Expression>();
-
   FunctionInlineCache inlineCache = new FunctionInlineCache();
 
   ClassElement jsInterceptorClass;
@@ -1222,14 +1216,7 @@ class JavaScriptBackend extends Backend {
     }
 
     HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph, false);
-    if (work.allowSpeculativeOptimization
-        && optimizer.trySpeculativeOptimizations(work, graph)) {
-      jsAst.Expression code = generator.generateBailoutMethod(work, graph);
-      generatedBailoutCode[element] = code;
-      optimizer.prepareForSpeculativeOptimizations(work, graph);
-      optimizer.optimize(work, graph, true);
-    }
+    optimizer.optimize(work, graph);
     jsAst.Expression code = generator.generateCode(work, graph);
     generatedCode[element] = code;
   }

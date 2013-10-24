@@ -32,42 +32,82 @@ const initMethod = const _InitMethodAnnotation();
  * The urls in [libraries] can be absolute or relative to
  * `currentMirrorSystem().isolate.rootLibrary.uri`.
  */
-void initPolymer([List<String> libraries]) {
-  runMicrotask(() {
-    // DOM events don't yet go through microtasks, so we catch those here.
-    new Timer.periodic(new Duration(milliseconds: 125),
-        (_) => performMicrotaskCheckpoint());
-
-    preventFlashOfUnstyledContent();
-
-    // TODO(jmesserly): mdv should use initMdv instead of mdv.initialize.
-    mdv.initialize();
-    document.register(PolymerDeclaration._TAG, PolymerDeclaration);
-
-    // Note: we synchronously load all libraries because the script invoking
-    // this is run after all HTML imports are resolved.
-    if (libraries == null) {
-      libraries = _discoverScripts(document, window.location.href);
-    }
-    _loadLibraries(libraries);
-  });
+void initPolymer() {
+  if (_useDirtyChecking) {
+    dirtyCheckZone().run(_initPolymerOptimized);
+  } else {
+    _initPolymerOptimized();
+  }
 }
 
-void _loadLibraries(libraries) {
-  for (var lib in libraries) {
-    _loadLibrary(lib);
+/**
+ * Same as [initPolymer], but runs the version that is optimized for deployment
+ * to the internet. The biggest difference is it omits the [Zone] that
+ * automatically invokes [Observable.dirtyCheck], and the list of libraries must
+ * be supplied instead of being dynamically searched for at runtime.
+ */
+// TODO(jmesserly): change the Polymer build step to call this directly.
+void _initPolymerOptimized() {
+  preventFlashOfUnstyledContent();
+
+  document.register(PolymerDeclaration._TAG, PolymerDeclaration);
+
+  _loadLibraries();
+}
+
+/**
+ * Configures [initPolymer] making it optimized for deployment to the internet.
+ * With this setup the list of libraries to initialize is supplied instead of
+ * being dynamically searched for at runtime. Additionally, after this method is
+ * called, [initPolymer] omits the [Zone] that automatically invokes
+ * [Observable.dirtyCheck].
+ */
+void configureForDeployment(List<String> libraries) {
+  _librariesToLoad = libraries;
+  _useDirtyChecking = false;
+}
+
+/**
+ * Libraries that will be initialized. For each library, the intialization
+ * registers any type tagged with a [CustomTag] annotation and calls any
+ * top-level method annotated with [initMethod]. The value of this field is
+ * assigned programatically by the code generated from the polymer deploy
+ * scripts. During development, the libraries are inferred by crawling HTML
+ * imports and searching for script tags.
+ */
+List<String> _librariesToLoad =
+    _discoverScripts(document, window.location.href);
+bool _useDirtyChecking = true;
+
+void _loadLibraries() {
+  for (var lib in _librariesToLoad) {
+    try {
+      _loadLibrary(lib);
+    } catch (e, s) {
+      // Deliver errors async, so if a single library fails it doesn't prevent
+      // other things from loading.
+      new Completer().completeError(e, s);
+    }
   }
-  Polymer._ready.complete();
+
+  customElementsReady.then((_) => Polymer._ready.complete());
 }
 
 /**
  * Walks the HTML import structure to discover all script tags that are
- * implicitly loaded.
+ * implicitly loaded. This code is only used in Dartium and should only be
+ * called after all HTML imports are resolved. Polymer ensures this by asking
+ * users to put their Dart script tags after all HTML imports (this is checked
+ * by the linter, and Dartium will otherwise show an error message).
  */
 List<String> _discoverScripts(Document doc, String baseUri,
     [Set<Document> seen, List<String> scripts]) {
   if (seen == null) seen = new Set<Document>();
   if (scripts == null) scripts = <String>[];
+  if (doc == null) {
+    print('warning: $baseUri not found.');
+    return;
+  }
   if (seen.contains(doc)) return scripts;
   seen.add(doc);
 
@@ -99,6 +139,9 @@ final _libs = currentMirrorSystem().libraries;
 // TODO(sigmund): explore other (cheaper) ways to resolve URIs relative to the
 // root library (see dartbug.com/12612)
 final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
+
+final String _packageRoot =
+    '${path.dirname(Uri.parse(window.location.href).path)}/packages/';
 
 /** Regex that matches urls used to represent inlined scripts. */
 final RegExp _inlineScriptRegExp = new RegExp('\(.*\.html.*\):\([0-9]\+\)');
@@ -155,6 +198,13 @@ void _loadLibrary(String uriString) {
     var pos = int.parse(match.group(2), onError: (_) => -1);
     if (list != null && pos >= 0 && pos < list.length && list[pos] != null) {
       lib = _libs[list[pos]];
+    }
+  } else if (uri.path.startsWith(_packageRoot)) {
+    var packageUri =
+        Uri.parse('package:${uri.path.substring(_packageRoot.length)}');
+    lib = _libs[packageUri];
+    if (lib == null) {
+      lib = _libs[uri];
     }
   } else {
     lib = _libs[uri];

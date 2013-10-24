@@ -18,8 +18,17 @@ def execute(args):
   return process.returncode
 
 def main():
+  component = 'all'
+  if len(sys.argv) == 2:
+    component = sys.argv[1]
+
+  component_gyp_files = {
+    'all' : 'dart/dart.gyp',
+    'runtime' : 'dart/runtime/dart-runtime.gyp',
+  }
   args = ['python', 'dart/third_party/gyp/gyp_main.py',
-          '--depth=dart', '-Idart/tools/gyp/all.gypi', 'dart/dart.gyp']
+          '--depth=dart', '-Idart/tools/gyp/all.gypi',
+          component_gyp_files[component]]
 
   if sys.platform == 'win32':
     # Generate Visual Studio 2010 compatible files by default.

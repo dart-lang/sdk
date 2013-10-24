@@ -118,7 +118,7 @@ main() {
       });
 
       document.register(tag, CustomType);
-      Platform.upgradeCustomElements(dom);
+      upgradeCustomElements(dom);
 
       var postElement = dom.children[0];
       expect(postElement, isNotNull);
@@ -148,7 +148,7 @@ main() {
       var element = new DivElement();
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
-	  Platform.upgradeCustomElements(element);
+	  upgradeCustomElements(element);
       document.body.nodes.add(element);
       var queried = query(tag);
 
@@ -163,7 +163,7 @@ main() {
       var element = new DivElement();
       element.setInnerHtml('<$tag id="someid"></$tag>',
           treeSanitizer: new NullTreeSanitizer());
-	  Platform.upgradeCustomElements(element);
+	  upgradeCustomElements(element);
       document.body.nodes.add(element);
       var queried = query('#someid');
 
@@ -181,7 +181,7 @@ main() {
       var element = new DivElement();
       element.setInnerHtml('<$tag></$tag>',
           treeSanitizer: new NullTreeSanitizer());
-      Platform.upgradeCustomElements(element);
+      upgradeCustomElements(element);
       document.body.nodes.add(element);
       expect(customCreatedCount, oldCount + 1);
     });

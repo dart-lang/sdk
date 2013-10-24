@@ -151,7 +151,7 @@ class Phase {
     _inputOrigins.add(node.origin);
     var input = new PhaseInput(this, node, _transformers);
     _inputs[node.id] = input;
-    input.input.whenRemoved.then((_) {
+    input.input.whenRemoved(() {
       _inputOrigins.remove(node.origin);
       _inputs.remove(node.id);
       _forwarders.remove(node.id).remove();
@@ -281,12 +281,10 @@ class Phase {
       if (!input.isDirty) return new Future.value(new Set());
       return input.process().then(_handleOutputs);
     }));
-    outputFutures.addAll(_groups.values.map((input) {
-      if (!input.isDirty) return new Future.value(new Set());
-      return input.process().then(_handleOutputs);
+    outputFutures.addAll(_groups.values.map((group) {
+      if (!group.isDirty) return new Future.value(new Set());
+      return group.process().then(_handleOutputs);
     }));
-
-    // TODO(nweiz): handle pass-through.
 
     return Future.wait(outputFutures).then((_) {
       // Report collisions in a deterministic order.

@@ -12,10 +12,10 @@ import 'package:analyzer_experimental/src/services/runtime/log.dart' as log;
 import 'package:analyzer_experimental/src/services/runtime/coverage/coverage_impl.dart';
 
 
-main() {
+main(args) {
   ArgResults options;
   try {
-    options = _argParser.parse(new Options().arguments);
+    options = _argParser.parse(args);
   } on FormatException catch (e) {
     print(e.message);
     print('Run "coverage --help" to see available options.');

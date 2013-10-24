@@ -16,7 +16,12 @@ echo "*** Running unit tests for Polymer.dart and its dependencies."
 
 SUITES="pkg/polymer samples/third_party/todomvc"
 
-CONFIG="-m release -r vm,drt,ff,chrome,d8,jsshell -c none,dart2js,dartanalyzer --checked $*"
+ANALYZER_CONFIG="-m release -r none -c dartanalyzer $*"
+CONFIG="-m release -r vm,drt,ff,chrome,d8,jsshell -c none,dart2js --checked $*"
+
+CMD="./tools/test.py $ANALYZER_CONFIG $SUITES"
+echo "*** $CMD"
+$CMD
 
 CMD="xvfb-run ./tools/test.py $CONFIG $SUITES"
 echo "*** $CMD"

@@ -9,7 +9,28 @@ import 'package:polymer/polymer.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
-@initMethod _main() {
+@CustomTag("test-b")
+class TestB extends PolymerElement {
+  TestB.created() : super.created();
+
+  List clicks = [];
+  void clickHandler(event, detail, target) {
+    clicks.add('local click under $localName (id $id) on ${target.id}');
+  }
+}
+
+@CustomTag("test-a")
+class TestA extends PolymerElement {
+  TestA.created() : super.created();
+
+  List clicks = [];
+  void clickHandler() {
+    clicks.add('host click on: $localName (id $id)');
+  }
+}
+
+main() {
+  initPolymer();
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
@@ -18,21 +39,21 @@ import 'package:unittest/unittest.dart';
     // Note: this test is currently the only event in
     // polymer/test/js/events.js at commit #7936ff8
     var testA = query('#a');
-    expect(testA.xtag.clicks, isEmpty);
+    expect(testA.clicks, isEmpty);
     testA.click();
-    expect(testA.xtag.clicks, ['host click on: test-a (id a)']);
+    expect(testA.clicks, ['host click on: test-a (id a)']);
   });
 
   test('local event', () {
     var testB = query('#b');
-    expect(testB.xtag.clicks, isEmpty);
+    expect(testB.clicks, isEmpty);
     testB.click();
-    expect(testB.xtag.clicks, []);
+    expect(testB.clicks, []);
     var b1 = testB.shadowRoot.query('#b-1');
     b1.click();
-    expect(testB.xtag.clicks, []);
+    expect(testB.clicks, []);
     var b2 = testB.shadowRoot.query('#b-2');
     b2.click();
-    expect(testB.xtag.clicks, ['local click under test-b (id b) on b-2']);
+    expect(testB.clicks, ['local click under test-b (id b) on b-2']);
   });
 }

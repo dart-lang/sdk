@@ -264,6 +264,9 @@ bool Api::StringGetPeerHelper(Dart_NativeArguments args,
   NoGCScope no_gc_scope;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  if (!raw_obj->IsHeapObject()) {
+    return false;
+  }
   intptr_t cid = raw_obj->GetClassId();
   if (cid == kExternalOneByteStringCid) {
     RawExternalOneByteString* raw_string =
@@ -382,13 +385,6 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
   } else {
     return Api::NewError("Can only get stacktraces from error handles.");
   }
-}
-
-
-// Deprecated.
-// TODO(turnidge): Remove all uses and delete.
-DART_EXPORT Dart_Handle Dart_Error(const char* error) {
-  return Dart_NewApiError(error);
 }
 
 

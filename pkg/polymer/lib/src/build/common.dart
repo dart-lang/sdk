@@ -36,10 +36,34 @@ Document _parseHtml(String contents, String sourcePath, TransformLogger logger,
 
 /** Additional options used by polymer transformers */
 class TransformOptions {
-  String currentPackage;
-  List<String> entryPoints;
+  /**
+   * List of entrypoints paths. The paths are relative to the package root and
+   * are represented using posix style, which matches the representation used in
+   * asset ids in barback. If null, anything under 'web/' or 'test/' is
+   * considered an entry point.
+   */
+  final List<String> entryPoints;
 
-  TransformOptions([this.currentPackage, entryPoints])
+  /**
+   * True to enable Content Security Policy.
+   * This means the HTML page will include *.dart.precompiled.js
+   *
+   * This flag has no effect unless [directlyIncludeJS] is enabled.
+   */
+  final bool contentSecurityPolicy;
+
+  /**
+   * True to include the compiled JavaScript directly from the HTML page.
+   * If enabled this will remove "packages/browser/dart.js" and replace
+   * `type="application/dart"` scripts with equivalent *.dart.js files.
+   *
+   * If [contentSecurityPolicy] enabled, this will reference files
+   * named *.dart.precompiled.js.
+   */
+  final bool directlyIncludeJS;
+
+  TransformOptions({entryPoints, this.contentSecurityPolicy: false,
+      this.directlyIncludeJS: true})
       : entryPoints = entryPoints == null ? null
           : entryPoints.map(_systemToAssetPath).toList();
 
@@ -48,11 +72,11 @@ class TransformOptions {
     if (id.extension != '.html') return false;
 
     // Note: [id.path] is a relative path from the root of a package.
-    if (currentPackage == null || entryPoints == null) {
+    if (entryPoints == null) {
       return id.path.startsWith('web/') || id.path.startsWith('test/');
     }
 
-    return id.package == currentPackage && entryPoints.contains(id.path);
+    return entryPoints.contains(id.path);
   }
 }
 
@@ -71,11 +95,12 @@ abstract class PolymerTransformer {
 
   Future<Document> readAsHtml(AssetId id, Transform transform) {
     var primaryId = transform.primaryInput.id;
-    var url = (id.package == primaryId.package) ? id.path
+    bool samePackage = id.package == primaryId.package;
+    var url = samePackage ? id.path
         : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
     return transform.readInputAsString(id).then((content) {
       return _parseHtml(content, url, transform.logger,
-        checkDocType: options.isHtmlEntryPoint(id));
+        checkDocType: samePackage && options.isHtmlEntryPoint(id));
     });
   }
 

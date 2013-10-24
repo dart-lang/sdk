@@ -375,7 +375,6 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     // Get stacktrace field of class Error.
     const Field& stacktrace_field =
         Field::Handle(isolate, LookupStacktraceField(exception));
-    bool full_stacktrace = !stacktrace_field.IsNull();
     handler_exists = FindExceptionHandler(&handler_pc,
                                           &handler_sp,
                                           &handler_fp,
@@ -383,28 +382,39 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     Array& code_array = Array::Handle(isolate, Object::empty_array().raw());
     Array& pc_offset_array =
         Array::Handle(isolate, Object::empty_array().raw());
-    if (handler_needs_stacktrace || full_stacktrace) {
-      RegularStacktraceBuilder frame_builder(full_stacktrace);
-      BuildStackTrace(&frame_builder);
-
-      // Create arrays for function, code and pc_offset triplet of each frame.
-      code_array = Array::MakeArray(frame_builder.code_list());
-      pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
-      if (!stacktrace_field.IsNull()) {
+    // If we have an error with a stacktrace field then collect the full stack
+    // trace and store it into the field.
+    if (!stacktrace_field.IsNull()) {
+      if (exception.GetField(stacktrace_field) == Object::null()) {
         // This is an error object and we need to capture the full stack trace
         // here implicitly, so we set up the stack trace. The stack trace field
         // is set only once, it is not overriden.
-        const Array& catch_code_array = Array::Handle(isolate,
+        RegularStacktraceBuilder frame_builder(true);
+        BuildStackTrace(&frame_builder);
+
+        // Create arrays for code and pc_offset tuples of each frame.
+        const Array& full_code_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.code_list()));
+        const Array& full_pc_offset_array = Array::Handle(isolate,
+            Array::MakeArray(frame_builder.pc_offset_list()));
+        const Array& full_catch_code_array = Array::Handle(isolate,
             Array::MakeArray(frame_builder.catch_code_list()));
-        const Array& catch_pc_offset_array = Array::Handle(isolate,
+        const Array& full_catch_pc_offset_array = Array::Handle(isolate,
             Array::MakeArray(frame_builder.catch_pc_offset_list()));
-        stacktrace = Stacktrace::New(code_array, pc_offset_array);
-        stacktrace.SetCatchStacktrace(catch_code_array,
-                                      catch_pc_offset_array);
-        if (exception.GetField(stacktrace_field) == Object::null()) {
-          exception.SetField(stacktrace_field, stacktrace);
-        }
-      }  // if stacktrace needed.
+        const Stacktrace& full_stacktrace = Stacktrace::Handle(isolate,
+            Stacktrace::New(full_code_array, full_pc_offset_array));
+        full_stacktrace.SetCatchStacktrace(full_catch_code_array,
+                                           full_catch_pc_offset_array);
+        exception.SetField(stacktrace_field, full_stacktrace);
+      }
+    }
+    if (handler_needs_stacktrace) {
+      RegularStacktraceBuilder frame_builder(false);
+      BuildStackTrace(&frame_builder);
+
+      // Create arrays for code and pc_offset tuples of each frame.
+      code_array = Array::MakeArray(frame_builder.code_list());
+      pc_offset_array = Array::MakeArray(frame_builder.pc_offset_list());
     }
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(code_array, pc_offset_array);
@@ -491,39 +501,44 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 
 
 // Allocate, initialize, and throw a TypeError or CastError.
+// If bound_error is not null, throw a TypeError, even for a type cast.
 void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,
-                                         const String& malformed_error) {
+                                         const String& bound_error) {
   const Array& args = Array::Handle(Array::New(7));
 
   ExceptionType exception_type =
-      dst_name.Equals(kCastErrorDstName) ? kCast : kType;
+      (bound_error.IsNull() && dst_name.Equals(kCastErrorDstName)) ?
+          kCast : kType;
 
   DartFrameIterator iterator;
   const Script& script = Script::Handle(GetCallerScript(&iterator));
-  intptr_t line, column;
-  script.GetTokenLocation(location, &line, &column);
+  intptr_t line;
+  intptr_t column = -1;
+  if (script.HasSource()) {
+    script.GetTokenLocation(location, &line, &column);
+  } else {
+    script.GetTokenLocation(location, &line, NULL);
+  }
   // Initialize '_url', '_line', and '_column' arguments.
   args.SetAt(0, String::Handle(script.url()));
   args.SetAt(1, Smi::Handle(Smi::New(line)));
   args.SetAt(2, Smi::Handle(Smi::New(column)));
 
-  // Initialize '_srcType', '_dstType', '_dstName', and '_malformedError'.
+  // Initialize '_srcType', '_dstType', '_dstName', and '_boundError'.
   args.SetAt(3, src_type_name);
   args.SetAt(4, dst_type_name);
   args.SetAt(5, dst_name);
-  args.SetAt(6, malformed_error);
+  args.SetAt(6, bound_error);
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stacktrace_at_throw) {
-    if (!malformed_error.IsNull()) {
-      OS::Print("%s\n", malformed_error.ToCString());
+    if (!bound_error.IsNull()) {
+      OS::Print("%s\n", bound_error.ToCString());
     }
-    intptr_t line, column;
-    script.GetTokenLocation(location, &line, &column);
     OS::Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
               String::Handle(script.url()).ToCString(), line, column);
     if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
@@ -532,7 +547,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
                 dst_type_name.ToCString(),
                 dst_name.ToCString());
     } else {
-      OS::Print("malformed type used.\n");
+      OS::Print("malbounded type used.\n");
     }
   }
   // Throw TypeError or CastError instance.
@@ -691,10 +706,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::AbstractClassInstantiationError();
       constructor_name = &Symbols::DotCreate();
-      break;
-    case kMirroredUncaughtExceptionError:
-      library = Library::MirrorsLibrary();
-      class_name = &Symbols::MirroredUncaughtExceptionError();
       break;
     case kMirroredCompilationError:
       library = Library::MirrorsLibrary();

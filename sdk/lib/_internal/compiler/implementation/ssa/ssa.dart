@@ -29,7 +29,6 @@ import '../elements/modelx.dart'
 
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 
-part 'bailout.dart';
 part 'builder.dart';
 part 'codegen.dart';
 part 'codegen_helpers.dart';

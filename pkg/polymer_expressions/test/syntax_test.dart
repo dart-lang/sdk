@@ -5,15 +5,14 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:mdv/mdv.dart' as mdv;
 import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:polymer_expressions/polymer_expressions.dart';
+import 'package:template_binding/template_binding.dart';
 import 'package:unittest/html_enhanced_config.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
-  mdv.initialize();
   useHtmlEnhancedConfiguration();
 
   group('PolymerExpressions', () {
@@ -34,7 +33,7 @@ main() {
             <input id="input" value="{{ firstName }}">
           </template>'''));
       var person = new Person('John', 'Messerly', ['A', 'B', 'C']);
-      query('#test')
+      templateBind(query('#test'))
           ..bindingDelegate = new PolymerExpressions()
           ..model = person;
       return new Future.delayed(new Duration()).then((_) {
@@ -56,7 +55,7 @@ main() {
               {{ item }}
             </template>
           </template>'''));
-      query('#test').bindingDelegate =
+      templateBind(query('#test')).bindingDelegate =
           new PolymerExpressions(globals: {'items': null});
       // the template should be the only node
       expect(testDiv.nodes.length, 1);
@@ -68,7 +67,7 @@ main() {
       var logFuture = logger.onRecord.toList();
       testDiv.nodes.add(new Element.html('''
           <template id="test" bind>{{ foo }}</template>'''));
-      query('#test').bindingDelegate = new PolymerExpressions();
+      templateBind(query('#test')).bindingDelegate = new PolymerExpressions();
       return new Future(() {
         logger.clearListeners();
         return logFuture.then((records) {

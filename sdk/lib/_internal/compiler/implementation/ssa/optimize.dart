@@ -29,7 +29,7 @@ class SsaOptimizerTask extends CompilerTask {
     assert(graph.isValid());
   }
 
-  void optimize(CodegenWorkItem work, HGraph graph, bool speculative) {
+  void optimize(CodegenWorkItem work, HGraph graph) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
     measure(() {
@@ -39,7 +39,7 @@ class SsaOptimizerTask extends CompilerTask {
           // some patterns useful for type conversion.
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaTypeConversionInserter(compiler),
-          new SsaNonSpeculativeTypePropagator(compiler),
+          new SsaTypePropagator(compiler),
           // After type propagation, more instructions can be
           // simplified.
           new SsaInstructionSimplifier(constantSystem, backend, work),
@@ -47,7 +47,8 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
           new SsaInstructionSimplifier(constantSystem, backend, work),
-          new SsaNonSpeculativeTypePropagator(compiler),
+          new SsaCheckInserter(backend, work, context.boundsChecked),
+          new SsaTypePropagator(compiler),
           // Run a dead code eliminator before LICM because dead
           // interceptors are often in the way of LICM'able instructions.
           new SsaDeadCodeEliminator(compiler),
@@ -57,6 +58,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Previous optimizations may have generated new
           // opportunities for instruction simplification.
           new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
           dce = new SsaDeadCodeEliminator(compiler)];
       runPhases(graph, phases);
@@ -66,61 +68,10 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           new SsaInstructionSimplifier(constantSystem, backend, work),
+          new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
           new SsaDeadCodeEliminator(compiler)];
       runPhases(graph, phases);
-    });
-  }
-
-  bool trySpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
-    if (work.element.isField()) {
-      // Lazy initializers may not have bailout methods.
-      return false;
-    }
-    JavaScriptItemCompilationContext context = work.compilationContext;
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
-    return measure(() {
-      SsaTypeGuardInserter inserter = new SsaTypeGuardInserter(compiler, work);
-
-      // Run the phases that will generate type guards.
-      List<OptimizationPhase> phases = <OptimizationPhase>[
-          inserter,
-          new SsaEnvironmentBuilder(compiler),
-          // Then run the [SsaCheckInserter] because the type propagator also
-          // propagated types non-speculatively. For example, it might have
-          // propagated the type array for a call to the List constructor.
-          new SsaCheckInserter(backend, work, context.boundsChecked)];
-      runPhases(graph, phases);
-
-      if (work.guards.isEmpty && inserter.hasInsertedChecks) {
-        // If there is no guard, and we have inserted type checks
-        // instead, we can do the optimizations right away and avoid
-        // the bailout method.
-        optimize(work, graph, false);
-      }
-      return !work.guards.isEmpty;
-    });
-  }
-
-  void prepareForSpeculativeOptimizations(CodegenWorkItem work, HGraph graph) {
-    JavaScriptItemCompilationContext context = work.compilationContext;
-    measure(() {
-      // In order to generate correct code for the bailout version, we did not
-      // propagate types from the instruction to the type guard. We do it
-      // now to be able to optimize further.
-      work.guards.forEach((HTypeGuard guard) {
-        guard.bailoutTarget.disable();
-        guard.enable();
-      });
-      // We also need to insert range and integer checks for the type
-      // guards. Now that they claim to have a certain type, some
-      // depending instructions might become builtin (like native array
-      // accesses) and need to be checked.
-      // Also run the type propagator, to please the codegen in case
-      // no other optimization is run.
-      runPhases(graph, <OptimizationPhase>[
-          new SsaCheckInserter(backend, work, context.boundsChecked),
-          new SsaNonSpeculativeTypePropagator(compiler)]);
     });
   }
 }
@@ -530,16 +481,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIdentity(HIdentity node) {
     HInstruction newInstruction = handleIdentityCheck(node);
     return newInstruction == null ? super.visitIdentity(node) : newInstruction;
-  }
-
-  HInstruction visitTypeGuard(HTypeGuard node) {
-    HInstruction value = node.guarded;
-    // If the intersection of the types is still the incoming type then
-    // the incoming type was a subtype of the guarded type, and no check
-    // is required.
-    HType combinedType =
-        value.instructionType.intersection(node.guardedType, compiler);
-    return (combinedType == value.instructionType) ? value : node;
   }
 
   void simplifyCondition(HBasicBlock block,
@@ -987,7 +928,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       return true;
     }
     return !instruction.canThrow()
-           && instruction is !HTypeGuard
            && instruction is !HParameterValue
            && instruction is !HLocalSet;
   }

@@ -6,14 +6,25 @@
 library polymer.src.build.import_inliner;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show Document, Node, DocumentFragment;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
+
+import 'code_extractor.dart'; // import just for documentation.
 import 'common.dart';
 
-/** Recursively inlines the contents of HTML imports. */
+/**
+ * Recursively inlines the contents of HTML imports. Produces as output a single
+ * HTML file that inlines the polymer-element definitions, and a text file that
+ * contains, in order, the URIs to each library that sourced in a script tag.
+ *
+ * This transformer assumes that all script tags point to external files. To
+ * support script tags with inlined code, use this transformer after running
+ * [InlineCodeExtractor] on an earlier phase.
+ */
 // TODO(sigmund): currently we just inline polymer-element and script tags, we
 // need to make sure we match semantics of html-imports for other tags too.
 // (see dartbug.com/12613).
@@ -27,6 +38,7 @@ class ImportInliner extends Transformer with PolymerTransformer {
       new Future.value(options.isHtmlEntryPoint(input.id));
 
   Future apply(Transform transform) {
+    var logger = transform.logger;
     var seen = new Set<AssetId>();
     var elements = [];
     var id = transform.primaryInput.id;
@@ -34,8 +46,11 @@ class ImportInliner extends Transformer with PolymerTransformer {
     return readPrimaryAsHtml(transform).then((document) {
       var future = _visitImports(document, id, transform, seen, elements);
       return future.then((importsFound) {
+        // We produce a secondary asset with extra information for later phases.
+        var secondaryId = id.addExtension('.scriptUrls');
         if (!importsFound) {
           transform.addOutput(transform.primaryInput);
+          transform.addOutput(new Asset.fromString(secondaryId, '[]'));
           return;
         }
 
@@ -44,11 +59,49 @@ class ImportInliner extends Transformer with PolymerTransformer {
             tag.remove();
           }
         }
-        var fragment = new DocumentFragment()..nodes.addAll(elements);
+
+        // Split Dart script tags from all the other elements. Now that Dartium
+        // only allows a single script tag per page, we can't inline script
+        // tags. Instead, we collect the urls of each script tag so we import
+        // them directly from the Dart bootstrap code.
+        var scripts = [];
+        var rest = [];
+        for (var e in elements) {
+          if (e.tagName == 'script' &&
+              e.attributes['type'] == 'application/dart') {
+            scripts.add(e);
+          } else if (e.tagName == 'polymer-element') {
+            rest.add(e);
+            var script = e.query('script');
+            if (script != null &&
+                script.attributes['type'] == 'application/dart') {
+              script.remove();
+              scripts.add(script);
+            }
+          } else {
+            rest.add(e);
+          }
+        }
+
+        var fragment = new DocumentFragment()..nodes.addAll(rest);
         document.body.insertBefore(fragment,
             //TODO(jmesserly): add Node.firstChild to html5lib
             document.body.nodes.length == 0 ? null : document.body.nodes[0]);
         transform.addOutput(new Asset.fromString(id, document.outerHtml));
+
+        var scriptIds = [];
+        for (var script in scripts) {
+          var src = script.attributes['src'];
+          if (src == null) {
+            logger.warning('unexpected script without a src url. The '
+              'ImportInliner transformer should run after running the '
+              'InlineCodeExtractor', script.sourceSpan);
+            continue;
+          }
+          scriptIds.add(resolve(id, src, logger, script.sourceSpan));
+        }
+        transform.addOutput(new Asset.fromString(secondaryId,
+            JSON.encode(scriptIds, toEncodable: (id) => id.serialize())));
       });
     });
   }

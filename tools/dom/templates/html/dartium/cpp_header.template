@@ -9,6 +9,8 @@
 
 #include "bindings/dart/DartDOMWrapper.h"
 $WEBCORE_INCLUDES
+// FIXME: We need this to access the WrapperTypeInfo.
+#include "V8$(INTERFACE).h"
 #include <dart_api.h>
 
 namespace WebCore {

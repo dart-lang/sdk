@@ -18,6 +18,7 @@ void main() {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
+      'a|web/test.html.scriptUrls': '[]',
     });
 
   testPhases('empty import', phases, {
@@ -33,9 +34,11 @@ void main() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body></body></html>',
+      'a|web/test.html.scriptUrls': '[]',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body></body></html>',
+      'a|web/test2.html.scriptUrls': '[]',
     });
 
   testPhases('shallow, no elements', phases, {
@@ -50,9 +53,11 @@ void main() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '</head><body></body></html>',
+      'a|web/test.html.scriptUrls': '[]',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head></html>',
+      'a|web/test2.html.scriptUrls': '[]',
     });
 
   testPhases('shallow, elements, one import', phases,
@@ -70,9 +75,11 @@ void main() {
           '</head><body>'
           '<polymer-element>2</polymer-element>'
           '</body></html>',
+      'a|web/test.html.scriptUrls': '[]',
       'a|web/test2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body><polymer-element>2</polymer-element></html>',
+      'a|web/test2.html.scriptUrls': '[]',
     });
 
   testPhases('no transformation outside web/', phases,
@@ -289,6 +296,7 @@ void main() {
           '<script src="s2"></script>'
           '<polymer-element>1</polymer-element>'
           '<script src="s1"></script></body></html>',
+      'a|web/test.html.scriptUrls': '[]',
       'a|web/test_1.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
@@ -296,6 +304,7 @@ void main() {
           '<script src="s2"></script>'
           '<polymer-element>1</polymer-element>'
           '<script src="s1"></script></body></html>',
+      'a|web/test_1.html.scriptUrls': '[]',
       'a|web/test_2.html':
           '<!DOCTYPE html><html><head>'
           '</head><body>'
@@ -303,6 +312,53 @@ void main() {
           '<script src="s1"></script>'
           '<polymer-element>2</polymer-element>'
           '<script src="s2"></script></body></html>',
+      'a|web/test_2.html.scriptUrls': '[]',
+    });
+
+  testPhases('imports cycle, 1-step lasso, Dart scripts too', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_1.html">'
+          '</head></html>',
+      'a|web/test_1.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_2.html">'
+          '</head><body><polymer-element>1</polymer-element>'
+          '<script type="application/dart" src="s1.dart"></script></html>',
+      'a|web/test_2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_1.html">'
+          '</head><body><polymer-element>2'
+          '<script type="application/dart" src="s2.dart"></script>'
+          '</polymer-element>'
+          '</html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<polymer-element>2</polymer-element>'
+          '<polymer-element>1</polymer-element>'
+          '</body></html>',
+      'a|web/test.html.scriptUrls': '[["a","web/s2.dart"],["a","web/s1.dart"]]',
+      'a|web/test_1.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<polymer-element>2</polymer-element>'
+          '<polymer-element>1</polymer-element>'
+          '<script type="application/dart" src="s1.dart"></script>'
+          '</body></html>',
+      'a|web/test_1.html.scriptUrls':
+          '[["a","web/s2.dart"]]',
+      'a|web/test_2.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<polymer-element>1</polymer-element>'
+          '<polymer-element>2'
+          '<script type="application/dart" src="s2.dart"></script>'
+          '</polymer-element>'
+          '</body></html>',
+      'a|web/test_2.html.scriptUrls':
+          '[["a","web/s1.dart"]]',
     });
 
   testPhases('imports cycle, 2-step lasso', phases, {

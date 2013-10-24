@@ -273,16 +273,27 @@ class PhaseInput {
   }
 
   /// Processes the transforms for this input.
+  ///
+  /// Returns the set of newly-created asset nodes that transforms have emitted
+  /// for this input. The assets returned this way are guaranteed not to be
+  /// [AssetState.REMOVED].
   Future<Set<AssetNode>> process() {
-    if (_adjustTransformersFuture == null) return _processTransforms();
-    return _waitForInputs().then((_) => _processTransforms());
+    return _waitForTransformers(() => _processTransforms()).then((outputs) {
+      if (input.state.isRemoved) return new Set();
+      return outputs;
+    });
   }
 
-  Future _waitForInputs() {
-    // Return a synchronous future so we can be sure [_adjustTransformers] isn't
-    // called between now and when the Future completes.
-    if (_adjustTransformersFuture == null) return new Future.sync(() {});
-    return _adjustTransformersFuture.then((_) => _waitForInputs());
+  /// Runs [callback] once all the transformers are adjusted correctly and the
+  /// input is ready to be processed.
+  ///
+  /// If the transformers are already properly adjusted, [callback] is called
+  /// synchronously to ensure that [_adjustTransformers] isn't called before the
+  /// callback.
+  Future _waitForTransformers(callback()) {
+    if (_adjustTransformersFuture == null) return new Future.sync(callback);
+    return _adjustTransformersFuture.then(
+        (_) => _waitForTransformers(callback));
   }
 
   /// Applies all currently wired up and dirty transforms.

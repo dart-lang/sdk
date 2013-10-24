@@ -51,9 +51,13 @@ _cpp_callback_map = {
   ('Navigator', 'vibrate'): 'NavigatorVibration',
   ('Navigator', 'appName'): 'NavigatorID',
   ('Navigator', 'appVersion'): 'NavigatorID',
+  ('Navigator', 'appCodeName'): 'NavigatorID',
   ('Navigator', 'platform'): 'NavigatorID',
+  ('Navigator', 'product'): 'NavigatorID',
   ('Navigator', 'userAgent'): 'NavigatorID',
   ('Navigator', 'onLine'): 'NavigatorOnLine',
+  ('Navigator', 'registerServiceWorker'): 'NavigatorServiceWorker',
+  ('Navigator', 'unregisterServiceWorker'): 'NavigatorServiceWorker',
   ('WorkerGlobalScope', 'crypto'): 'WorkerGlobalScopeCrypto',
   ('WorkerGlobalScope', 'indexedDB'): 'WorkerGlobalScopeIndexedDatabase',
   ('WorkerGlobalScope', 'webkitNotifications'): 'WorkerGlobalScopeNotifications',
@@ -864,7 +868,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_script_state:
       body_emitter.Emit(
-          '        ScriptState* currentState = ScriptState::current();\n'
+          '        ScriptState* currentState = DartUtilities::currentScriptState();\n'
           '        if (!currentState) {\n'
           '            exception = Dart_NewStringFromCString("Failed to retrieve a script state");\n'
           '            goto fail;\n'
@@ -879,7 +883,7 @@ class DartiumBackend(HtmlDartGenerator):
           '            exception = Dart_NewStringFromCString("Failed to fetch domWindow");\n'
           '            goto fail;\n'
           '        }\n'
-          '        Document* document = domWindow->document();\n')
+          '        Document& document = *domWindow->document();\n')
 
     if needs_receiver:
       body_emitter.Emit(
@@ -891,7 +895,7 @@ class DartiumBackend(HtmlDartGenerator):
       self._cpp_impl_includes.add('"ScriptCallStack.h"')
       body_emitter.Emit(
           '\n'
-          '        ScriptState* currentState = ScriptState::current();\n'
+          '        ScriptState* currentState = DartUtilities::currentScriptState();\n'
           '        if (!currentState) {\n'
           '            exception = Dart_NewStringFromCString("Failed to retrieve a script state");\n'
           '            goto fail;\n'
@@ -914,10 +918,7 @@ class DartiumBackend(HtmlDartGenerator):
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
           '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
           '        if (!scriptArguments)\n'
-          '            goto fail;\n'
-          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
-          '        if (!scriptCallStack->size())\n'
-          '            return;\n',
+          '            goto fail;\n',
           INDEX=len(arguments) + 1)
 
     if needs_custom_element_callbacks:

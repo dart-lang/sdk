@@ -68,8 +68,8 @@ class PolymerDeclaration extends HtmlElement {
   List<Element> get styles => _styles;
 
   DocumentFragment get templateContent {
-    final template = this.query('template');
-    return template != null ? template.content : null;
+    final template = this.querySelector('template');
+    return template != null ? templateBind(template).content : null;
   }
 
   /** Maps event names and their associated method in the element class. */
@@ -169,10 +169,10 @@ class PolymerDeclaration extends HtmlElement {
     // TODO(jmesserly): resolvePath not ported, see first comment in this class.
 
     // under ShadowDOMPolyfill, transforms to approximate missing CSS features
-    _shimShadowDomStyling(templateContent, name);
+    _shimShadowDomStyling(templateContent, name, extendee);
 
     // register our custom element
-    registerType(name, extendsTag: extendee);
+    registerType(name);
 
     // NOTE: skip in Dart because we don't have mutable global scope.
     // reference constructor in a global named by 'constructor' attribute
@@ -234,11 +234,14 @@ class PolymerDeclaration extends HtmlElement {
 
   }
 
-  void registerType(String name, {String extendsTag}) {
-    // native element must be specified in extends
-    var nativeExtends = (extendsTag != null && !extendsTag.contains('-')) ?
-        extendsTag : null;
-    document.register(name, type, extendsTag: nativeExtends);
+  void registerType(String name) {
+    var baseTag;
+    var decl = this;
+    while (decl != null) {
+      baseTag = decl.attributes['extends'];
+      decl = decl.superDeclaration;
+    }
+    document.register(name, type, extendsTag: baseTag);
   }
 
   void publishAttributes(ClassMirror cls, PolymerDeclaration superDecl) {
@@ -333,8 +336,8 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   void accumulateTemplatedEvents(Element node, Set<String> events) {
-    if (node.localName == 'template' && node.content != null) {
-      accumulateChildEvents(node.content, events);
+    if (node.localName == 'template') {
+      accumulateChildEvents(templateBind(node).content, events);
     }
   }
 
@@ -479,7 +482,7 @@ class PolymerDeclaration extends HtmlElement {
       if (method.isStatic || !method.isRegularMethod) continue;
 
       String name = MirrorSystem.getName(method.simpleName);
-      if (name.endsWith('Changed')) {
+      if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
         if (_observe == null) _observe = {};
         name = name.substring(0, name.length - 7);
         _observe[name] = method.simpleName;
@@ -585,31 +588,16 @@ String _removeEventPrefix(String name) => name.substring(_EVENT_PREFIX.length);
 /**
  * Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
  */
-void _shimShadowDomStyling(DocumentFragment template, String localName) {
+void _shimShadowDomStyling(DocumentFragment template, String name,
+    String extendee) {
   if (js.context == null || template == null) return;
+  if (js.context.hasProperty('ShadowDOMPolyfill')) return;
 
   var platform = js.context['Platform'];
   if (platform == null) return;
-
-  var style = template.query('style');
-  if (style == null) return;
-
   var shadowCss = platform['ShadowCSS'];
   if (shadowCss == null) return;
-
-  // TODO(terry): Remove calls to shimShadowDOMStyling2 and replace with
-  //              shimShadowDOMStyling when we support unwrapping dart:html
-  //              Element to a JS DOM node.
-  var shimShadowDOMStyling2 = shadowCss['shimShadowDOMStyling2'];
-  if (shimShadowDOMStyling2 == null) return;
-
-  var scopedCSS = shimShadowDOMStyling2.apply([style.text, localName],
-      thisArg: shadowCss);
-
-  // TODO(terry): Remove when shimShadowDOMStyling is called we don't need to
-  //              replace original CSS with scoped CSS shimShadowDOMStyling
-  //              does that.
-  style.text = scopedCSS;
+  shadowCss.callMethod('shimStyling', [template, name, extendee]);
 }
 
 const _STYLE_SELECTOR = 'style';
@@ -638,7 +626,7 @@ void _applyStyleToScope(StyleElement style, Node scope) {
 
 String _cssTextFromSheet(Element sheet) {
   if (sheet == null || js.context == null) return '';
-  var resource = new JsObject.fromBrowserObject(sheet)['__resource'];
+  var resource = new js.JsObject.fromBrowserObject(sheet)['__resource'];
   return resource != null ? resource : '';
 }
 

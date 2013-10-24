@@ -208,7 +208,7 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
 
   Scanner scanner(value, Symbols::Empty());
   const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
-  String* int_string;
+  const String* int_string;
   bool is_positive;
   if (Scanner::IsValidLiteral(tokens,
                              Token::kINTEGER,

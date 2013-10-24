@@ -555,10 +555,9 @@ class ClosureTranslator extends Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       mutatedVariables.add(element);
-    }
-    if (Elements.isLocal(element) &&
-        element.computeType(compiler).containsTypeVariables) {
-      registerNeedsThis();
+      if (compiler.enableTypeAssertions) {
+        analyzeTypeVariables(element.computeType(compiler));
+      }
     }
     super.visitSendSet(node);
   }
@@ -770,18 +769,12 @@ class ClosureTranslator extends Visitor {
       }
 
       DartType type = element.computeType(compiler);
-      // Compute the function type and check for type variables in return or
-      // parameter types.
-      if (type.containsTypeVariables) {
-        registerNeedsThis();
-      }
-      // Ensure that closure that need runtime type information has access to
-      // this of the enclosing class.
-      if (element is FunctionElement &&
-          closureData.thisElement != null &&
-          type.containsTypeVariables &&
-          compiler.backend.methodNeedsRti(element)) {
-        registerNeedsThis();
+      // If the method needs RTI, or checked mode is set, we need to
+      // escape the potential type variables used in that closure.
+      if (element is FunctionElement
+          && (compiler.backend.methodNeedsRti(element) ||
+              compiler.enableTypeAssertions)) {
+        analyzeTypeVariables(type);
       }
 
       visitChildren();

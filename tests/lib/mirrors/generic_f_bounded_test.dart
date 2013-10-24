@@ -27,8 +27,8 @@ main() {
   Expect.isTrue(realDecl.isOriginalDeclaration);
   Expect.isTrue(sorterDecl.isOriginalDeclaration);
   Expect.isTrue(realSorterDecl.isOriginalDeclaration);
-  Expect.isFalse(magnitudeOfReal.isOriginalDeclaration);
-  Expect.isFalse(sorterOfReal.isOriginalDeclaration);
+  Expect.isFalse(magnitudeOfReal.isOriginalDeclaration); ///  01: ok
+  Expect.isFalse(sorterOfReal.isOriginalDeclaration); ///  01: ok
 
   TypeVariableMirror tFromMagnitude = magnitudeDecl.typeVariables.single;
   TypeVariableMirror rFromSorter = sorterDecl.typeVariables.single;
@@ -52,7 +52,7 @@ main() {
   typeArguments(realDecl, []);
   typeArguments(sorterDecl, []);
   typeArguments(realSorterDecl, []);
-  typeArguments(magnitudeOfReal, [realDecl]);
-  typeArguments(sorterOfReal, [realDecl]);
+  typeArguments(magnitudeOfReal, [realDecl]); ///  01: ok
+  typeArguments(sorterOfReal, [realDecl]); /// 01: ok
   typeArguments(magnitudeOfR, [rFromSorter]);
 }

@@ -26,14 +26,12 @@ BSD-style license that can be found in the LICENSE file.
       }
 
       main() {
-        mdv.initialize();
-
         var globals = {
           'mouseDown': document.onMouseDown,
           'count': count,
         };
 
-        query('#test')
+        templateBind(query('#test'))
             ..bindingDelegate = new PolymerExpressions(globals: globals)
             ..model = null;
       }

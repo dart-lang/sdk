@@ -1063,7 +1063,7 @@ if (useNative) {
     // force our .constructor to be our actual constructor
     definition.prototype.constructor = definition.ctor;
     // if initial parsing is complete
-    if (scope.ready) {
+    if (scope.ready || scope.performedInitialDocumentUpgrade) {
       // upgrade any pre-existing nodes of this type
       scope.upgradeAll(document);
     }
@@ -1385,6 +1385,7 @@ function bootstrap() {
   CustomElements.parser.parse(document);
   // one more pass before register is 'live'
   CustomElements.upgradeDocument(document);
+  CustomElements.performedInitialDocumentUpgrade = true;
   // choose async
   var async = window.Platform && Platform.endOfMicrotask ?
     Platform.endOfMicrotask :
