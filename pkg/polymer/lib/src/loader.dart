@@ -48,11 +48,14 @@ void initPolymer() {
  */
 // TODO(jmesserly): change the Polymer build step to call this directly.
 void _initPolymerOptimized() {
-  preventFlashOfUnstyledContent();
-
   document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
   _loadLibraries();
+
+  // Run this after user code so they can add to Polymer.veiledElements
+  _preventFlashOfUnstyledContent();
+
+  customElementsReady.then((_) => Polymer._ready.complete());
 }
 
 /**
@@ -89,8 +92,6 @@ void _loadLibraries() {
       new Completer().completeError(e, s);
     }
   }
-
-  customElementsReady.then((_) => Polymer._ready.complete());
 }
 
 /**

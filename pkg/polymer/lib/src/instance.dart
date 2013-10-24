@@ -27,17 +27,16 @@ class PublishedProperty extends ObservableProperty {
  */
 abstract class Polymer implements Element, Observable, NodeBindExtension {
   // Fully ported from revision:
-  // https://github.com/Polymer/polymer/blob/4dc481c11505991a7c43228d3797d28f21267779
+  // https://github.com/Polymer/polymer/blob/00e2982c78fcd396adaebff3118e94029a2b9fb0
   //
+  //   src/boot.js (static APIs on "Polymer" object)
   //   src/instance/attributes.js
   //   src/instance/base.js
   //   src/instance/events.js
   //   src/instance/mdv.js
   //   src/instance/properties.js
+  //   src/instance/style.js
   //   src/instance/utils.js
-  //
-  // Not yet ported:
-  //   src/instance/style.js -- blocked on ShadowCSS.shimPolyfillDirectives
 
   // TODO(jmesserly): should this really be public?
   /** Regular expression that matches data-bindings. */
@@ -81,15 +80,18 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /** The most derived `<polymer-element>` declaration for this element. */
   PolymerDeclaration get declaration => _declaration;
 
-  Map<String, StreamSubscription> _elementObservers;
+  Map<String, StreamSubscription> _observers;
   bool _unbound; // lazy-initialized
   Job _unbindAllJob;
+
+  StreamSubscription _propertyObserver;
 
   bool get _elementPrepared => _declaration != null;
 
   bool get applyAuthorStyles => false;
   bool get resetStyleInheritance => false;
   bool get alwaysPrepare => false;
+  bool get preventDispose => false;
 
   /**
    * Shadow roots created by [parseElement]. See [getShadowRoot].
@@ -151,10 +153,12 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     takeAttributes();
     // add event listeners
     addHostListeners();
-    // guarantees that while preparing, any sub-elements will also be prepared
+    // guarantees that while preparing, any
+    // sub-elements are also prepared
     _preparingElements++;
     // process declarative resources
     parseDeclarations(_declaration);
+    // decrement semaphore
     _preparingElements--;
     // user entry point
     ready();
@@ -171,7 +175,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 
   void leftView() {
-    asyncUnbindAll();
+    if (!preventDispose) asyncUnbindAll();
   }
 
   /** Recursive ancestral <element> initialization, oldest first. */
@@ -186,7 +190,16 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
    * Parse input `<polymer-element>` as needed, override for custom behavior.
    */
   void parseDeclaration(Element elementElement) {
-    var root = shadowFromTemplate(fetchTemplate(elementElement));
+    var template = fetchTemplate(elementElement);
+
+    var root = null;
+    if (template != null) {
+      if (_declaration.attributes.containsKey('lightdom')) {
+        lightFromTemplate(template);
+      } else {
+        root = shadowFromTemplate(template);
+      }
+    }
 
     // Dart note: the following code is to support the getShadowRoot method.
     if (root is! ShadowRoot) return;
@@ -201,6 +214,24 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
    */
   Element fetchTemplate(Element elementElement) =>
       elementElement.query('template');
+
+  /**
+   * Utility function that stamps a `<template>` into light-dom.
+   */
+  Node lightFromTemplate(Element template) {
+    if (template == null) return null;
+    // stamp template
+    // which includes parsing and applying MDV bindings before being
+    // inserted (to avoid {{}} in attribute values)
+    // e.g. to prevent <img src="images/{{icon}}"> from generating a 404.
+    var dom = instanceTemplate(template);
+    // append to shadow dom
+    append(dom);
+    // perform post-construction initialization tasks on shadow root
+    shadowRootReady(this, template);
+    // return the created shadow root
+    return dom;
+  }
 
   /**
    * Utility function that creates a shadow root from a `<template>`.
@@ -266,20 +297,20 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  // TODO(jmesserly): use stream or future here?
+  // TODO(jmesserly): this could be a top level method.
   /**
-   * Run the `listener` callback *once*
-   * when `node` changes, or when its children or subtree changes.
-   *
-   *
-   * See [MutationObserver] if you want to listen to a stream of
+   * Returns a future when `node` changes, or when its children or subtree
    * changes.
+   *
+   * Use [MutationObserver] if you want to listen to a stream of changes.
    */
-  void onMutation(Node node, void listener(MutationObserver obs)) {
-    new MutationObserver((records, MutationObserver observer) {
-      listener(observer);
+  Future<List<MutationRecord>> onMutation(Node node) {
+    var completer = new Completer();
+    new MutationObserver((mutations, observer) {
       observer.disconnect();
+      completer.complete(mutations);
     })..observe(node, childList: true, subtree: true);
+    return completer.future;
   }
 
   void copyInstanceAttributes() {
@@ -310,14 +341,14 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
     // get original value
     final self = reflect(this);
-    final defaultValue = self.getField(property.simpleName).reflectee;
+    final currentValue = self.getField(property.simpleName).reflectee;
 
     // deserialize Boolean or Number values from attribute
-    final newValue = deserializeValue(value, defaultValue,
-        _inferPropertyType(defaultValue, property));
+    final newValue = deserializeValue(value, currentValue,
+        _inferPropertyType(currentValue, property));
 
     // only act if the value has changed
-    if (!identical(newValue, defaultValue)) {
+    if (!identical(newValue, currentValue)) {
       // install new value (has side-effects)
       self.setField(property.simpleName, newValue);
     }
@@ -333,13 +364,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 
   /**
-   * Convert representation of [value] based on [type] and [defaultValue].
+   * Convert representation of [value] based on [type] and [currentValue].
    */
   // TODO(jmesserly): this should probably take a ClassMirror instead of
   // TypeMirror, but it is currently impossible to get from a TypeMirror to a
   // ClassMirror.
-  Object deserializeValue(String value, Object defaultValue, TypeMirror type) =>
-      deserialize.deserializeValue(value, defaultValue, type);
+  Object deserializeValue(String value, Object currentValue, TypeMirror type) =>
+      deserialize.deserializeValue(value, currentValue, type);
 
   String serializeValue(Object value) {
     if (value == null) return null;
@@ -352,23 +383,23 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     return null;
   }
 
-  void reflectPropertyToAttribute(String name) {
+  void reflectPropertyToAttribute(Symbol name) {
     // TODO(sjmiles): consider memoizing this
     final self = reflect(this);
     // try to intelligently serialize property value
     // TODO(jmesserly): cache symbol?
-    final propValue = self.getField(new Symbol(name)).reflectee;
+    final propValue = self.getField(name).reflectee;
     final serializedValue = serializeValue(propValue);
     // boolean properties must reflect as boolean attributes
     if (serializedValue != null) {
-      attributes[name] = serializedValue;
+      attributes[MirrorSystem.getName(name)] = serializedValue;
       // TODO(sorvell): we should remove attr for all properties
       // that have undefined serialization; however, we will need to
       // refine the attr reflection system to achieve this; pica, for example,
       // relies on having inferredType object properties not removed as
       // attrs.
     } else if (propValue is bool) {
-      attributes.remove(name);
+      attributes.remove(MirrorSystem.getName(name));
     }
   }
 
@@ -406,7 +437,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       // does not update due to not changing.
       // Dart note: we include this patch:
       // https://github.com/Polymer/polymer/pull/319
-      reflectPropertyToAttribute(MirrorSystem.getName(property.simpleName));
+      reflectPropertyToAttribute(property.simpleName);
       return bindings[name] = observer;
     } else {
       // Cannot call super.bind because template_binding is its own package
@@ -430,8 +461,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     unbindAllProperties();
     nodeBindFallback(this).unbindAll();
 
-    _unbindNodeTree(shadowRoot);
-    // TODO(sjmiles): must also unbind inherited shadow roots
+    var root = shadowRoot;
+    while (root != null) {
+      _unbindNodeTree(root);
+      root = root.olderShadowRoot;
+    }
     _unbound = true;
   }
 
@@ -472,80 +506,118 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
   /** Set up property observers. */
   void observeProperties() {
-    // TODO(sjmiles):
-    // we observe published properties so we can reflect them to attributes
-    // ~100% of our team's applications would work without this reflection,
-    // perhaps we can make it optional somehow
-    //
-    // add user's observers
+    // TODO(jmesserly): we don't have CompoundPathObserver, so this
+    // implementation is a little bit different. We also don't expose the
+    // "generateCompoundPathObserver" method.
     final observe = _declaration._observe;
     final publish = _declaration._publish;
+
     if (observe != null) {
-      observe.forEach((name, value) {
-        if (publish != null && publish.containsKey(name)) {
-          observeBoth(name, value);
-        } else {
-          observeProperty(name, value);
-        }
-      });
+      for (var name in observe.keys) {
+        observeArrayValue(name, reflect(this).getField(name), null);
+      }
     }
-    // add observers for published properties
-    if (publish != null) {
-      publish.forEach((name, value) {
-        if (observe == null || !observe.containsKey(name)) {
-          observeAttributeProperty(name);
-        }
-      });
+    if (observe != null || publish != null) {
+      // Instead of using CompoundPathObserver, set up a binding using normal
+      // change records.
+      _propertyObserver = changes.listen(notifyPropertyChanges);
     }
   }
 
-  void _observe(String name, void callback(newValue, oldValue)) {
-    _observeLog.fine('[$localName] watching [$name]');
-    // TODO(jmesserly): this is a little different than the JS version so we
-    // can pass the oldValue, which is missing from Dart's PathObserver.
-    // This probably gives us worse performance.
-    var path = new PathObserver(this, name);
-    Object oldValue = null;
-    _registerObserver(name, path.changes.listen((_) {
-      final newValue = path.value;
-      final old = oldValue;
-      oldValue = newValue;
-      callback(newValue, old);
-    }));
-  }
+  /** Responds to property changes on this element. */
+  // Dart note: this takes a list of changes rather than trying to deal with
+  // what CompoundPathObserver would give us. Simpler and probably faster too.
+  void notifyPropertyChanges(Iterable<ChangeRecord> changes) {
+    final observe = _declaration._observe;
+    final publish = _declaration._publish;
 
-  void _registerObserver(String name, StreamSubscription sub) {
-    if (_elementObservers == null) {
-      _elementObservers = new Map<String, StreamSubscription>();
+    // Summarize old and new values, so we only handle each change once.
+    final valuePairs = new Map<Symbol, _PropertyValue>();
+    for (var c in changes) {
+      if (c is! PropertyChangeRecord) continue;
+
+      valuePairs.putIfAbsent(c.name, () => new _PropertyValue(c.oldValue))
+          .newValue = c.newValue;
     }
-    _elementObservers[name] = sub;
-  }
 
-  void observeAttributeProperty(String name) {
-    _observe(name, (value, old) => reflectPropertyToAttribute(name));
-  }
+    valuePairs.forEach((name, pair) {
+      if (publish != null && publish.containsKey(name)) {
+        reflectPropertyToAttribute(name);
+      }
+      if (observe == null) return;
 
-  void observeProperty(String name, Symbol method) {
-    _observe(name, (value, old) => _invoke(method, [old]));
-  }
-
-  void observeBoth(String name, Symbol methodName) {
-    _observe(name, (value, old) {
-      reflectPropertyToAttribute(name);
-      _invoke(methodName, [old]);
+      var method = observe[name];
+      if (method != null) {
+        // observes the value if it is an array
+        observeArrayValue(name, pair.newValue, pair.oldValue);
+        // TODO(jmesserly): the JS code tries to avoid calling the same method
+        // twice, but I don't see how that is possible.
+        // Dart note: JS also passes "arguments", so we pass all change records.
+        invokeMethod(method, [pair.oldValue, pair.newValue, changes]);
+      }
     });
   }
 
-  void unbindProperty(String name) {
-    if (_elementObservers == null) return;
-    var sub = _elementObservers.remove(name);
-    if (sub != null) sub.cancel();
+  void observeArrayValue(Symbol name, Object value, Object old) {
+    final observe = _declaration._observe;
+    if (observe == null) return;
+
+    // we only care if there are registered side-effects
+    var callbackName = observe[name];
+    if (callbackName == null) return;
+
+    // if we are observing the previous value, stop
+    if (old is ObservableList) {
+      if (_observeLog.isLoggable(Level.FINE)) {
+        _observeLog.fine('[$localName] observeArrayValue: unregister observer '
+            '$name');
+      }
+
+      unregisterObserver('${MirrorSystem.getName(name)}__array');
+    }
+    // if the new value is an array, being observing it
+    if (value is ObservableList) {
+      if (_observeLog.isLoggable(Level.FINE)) {
+        _observeLog.fine('[$localName] observeArrayValue: register observer '
+            '$name');
+      }
+      var sub = (value as ObservableList).changes.listen((changes) {
+        invokeMethod(callbackName, [old]);
+      });
+      registerObserver('${MirrorSystem.getName(name)}__array', sub);
+    }
   }
 
+  void unbindProperty(String name) => unregisterObserver(name);
+
   void unbindAllProperties() {
-    if (_elementObservers == null) return;
-    for (var sub in _elementObservers.values) sub.cancel();
-    _elementObservers.clear();
+    if (_propertyObserver != null) {
+      _propertyObserver.cancel();
+      _propertyObserver = null;
+    }
+    unregisterObservers();
+  }
+
+  /** Bookkeeping observers for memory management. */
+  void registerObserver(String name, StreamSubscription sub) {
+    if (_observers == null) {
+      _observers = new Map<String, StreamSubscription>();
+    }
+    _observers[name] = sub;
+  }
+
+  bool unregisterObserver(String name) {
+    var sub = _observers.remove(name);
+    if (sub == null) return false;
+    subl.cancel();
+    return true;
+  }
+
+  void unregisterObservers() {
+    if (_observers == null) return;
+    for (var sub in _observers.values) sub.cancel();
+    _observers.clear();
+    _observers = null;
   }
 
   /**
@@ -661,12 +733,12 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     bool log = _eventsLog.isLoggable(Level.FINE);
     if (log) _eventsLog.fine('>>> [$localName]: dispatch $methodName');
 
-    _invoke(methodName, args);
+    invokeMethod(methodName, args);
 
     if (log) _eventsLog.info('<<< [$localName]: dispatch $methodName');
   }
 
-  InstanceMirror _invoke(Symbol methodName, List args) {
+  invokeMethod(Symbol methodName, List args) {
     // TODO(sigmund): consider making callbacks list all arguments
     // explicitly. Unless VM mirrors are optimized first, this will be expensive
     // once custom elements extend directly from Element (see issue 11108).
@@ -679,7 +751,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       // them appart from named arguments (see http://dartbug.com/11334)
       args.length = method.parameters.where((p) => !p.isOptional).length;
     }
-    return self.invoke(methodName, args);
+    return self.invoke(methodName, args).reflectee;
   }
 
   void instanceEventListener(Event event) {
@@ -870,6 +942,104 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       anew.classes.add(className);
     }
   }
+
+  /**
+   * Installs external stylesheets and <style> elements with the attribute
+   * polymer-scope='controller' into the scope of element. This is intended
+   * to be a called during custom element construction. Note, this incurs a
+   * per instance cost and should be used sparingly.
+   *
+   * The need for this type of styling should go away when the shadowDOM spec
+   * addresses these issues:
+   *
+   * https://www.w3.org/Bugs/Public/show_bug.cgi?id=21391
+   * https://www.w3.org/Bugs/Public/show_bug.cgi?id=21390
+   * https://www.w3.org/Bugs/Public/show_bug.cgi?id=21389
+   *
+   * @param element The custom element instance into whose controller (parent)
+   * scope styles will be installed.
+   * @param elementElement The <element> containing controller styles.
+   */
+  // TODO(sorvell): remove when spec issues are addressed
+  void installControllerStyles() {
+    var scope = findStyleController();
+    if (scope != null && scopeHasElementStyle(scope, _STYLE_CONTROLLER_SCOPE)) {
+      // allow inherited controller styles
+      var decl = _declaration;
+      var cssText = new StringBuffer();
+      while (decl != null) {
+        cssText.write(decl.cssTextForScope(_STYLE_CONTROLLER_SCOPE));
+        decl = decl.superDeclaration;
+      }
+      if (cssText.length > 0) {
+        var style = this.element.cssTextToScopeStyle(cssText.toString(),
+              _STYLE_CONTROLLER_SCOPE);
+        // TODO(sorvell): for now these styles are not shimmed
+        // but we may need to shim them
+        Polymer.applyStyleToScope(style, scope);
+      }
+    }
+  }
+
+  Node findStyleController() {
+    if (js.context != null && js.context['ShadowDOMPolyfill'] != null) {
+      return document.querySelector('head'); // get wrapped <head>.
+    } else {
+      // find the shadow root that contains this element
+      var n = this;
+      while (n.parentNode) {
+        n = n.parentNode;
+      }
+      return identical(n, document) ? document.head : n;
+    }
+  }
+
+  bool scopeHasElementStyle(scope, descriptor) {
+    var rule = '$_STYLE_SCOPE_ATTRIBUTE=$localName-$descriptor';
+    return scope.querySelector('style[$rule]') != null;
+  }
+
+  static void applyStyleToScope(StyleElement style, Node scope) {
+    if (style == null) return;
+
+    // TODO(sorvell): necessary for IE
+    // see https://connect.microsoft.com/IE/feedback/details/790212/
+    // cloning-a-style-element-and-adding-to-document-produces
+    // -unexpected-result#details
+    // var clone = style.cloneNode(true);
+    var clone = new StyleElement()..text = style.text;
+
+    var attr = style.attributes[_STYLE_SCOPE_ATTRIBUTE];
+    if (attr != null) {
+      clone.attributes[_STYLE_SCOPE_ATTRIBUTE] = attr;
+    }
+
+    scope.append(clone);
+  }
+
+  /**
+   * Prevents flash of unstyled content
+   * This is the list of selectors for veiled elements
+   */
+  static List<Element> veiledElements = ['body'];
+
+  /** Apply unveil class. */
+  static void unveilElements() {
+    window.requestAnimationFrame((_) {
+      var nodes = document.querySelectorAll('.$_VEILED_CLASS');
+      for (var node in nodes) {
+        (node.classes)..add(_UNVEIL_CLASS)..remove(_VEILED_CLASS);
+      }
+      // NOTE: depends on transition end event to remove 'unveil' class.
+      if (nodes.isNotEmpty) {
+        window.onTransitionEnd.first.then((_) {
+          for (var node in nodes) {
+            node.classes.remove(_UNVEIL_CLASS);
+          }
+        });
+      }
+    });
+  }
 }
 
 // Dart note: Polymer addresses n-way bindings by metaprogramming: redefine
@@ -966,4 +1136,9 @@ class PolymerElement extends HtmlElement with Polymer, Observable {
   PolymerElement.created() : super.created() {
     polymerCreated();
   }
+}
+
+class _PropertyValue {
+  Object oldValue, newValue;
+  _PropertyValue(this.oldValue);
 }

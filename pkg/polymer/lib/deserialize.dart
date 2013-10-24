@@ -30,11 +30,11 @@ final _typeHandlers = () {
 }();
 
 /**
- * Convert representation of [value] based on type of [defaultValue].
+ * Convert representation of [value] based on type of [currentValue].
  */
-Object deserializeValue(String value, Object defaultValue, TypeMirror type) {
+Object deserializeValue(String value, Object currentValue, TypeMirror type) {
   var handler = _typeHandlers[type.qualifiedName];
-  if (handler != null) return handler(value, defaultValue);
+  if (handler != null) return handler(value, currentValue);
 
   try {
     // If the string is an object, we can parse is with the JSON library.
