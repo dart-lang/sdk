@@ -11,7 +11,7 @@ package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
 [ $runtime == vm && $system == windows ]
 io/file_system_watcher_test: Pass, Timeout # Issue 13228
-io/platform_test.dart: Pass, Fail # Issue 14399
+io/platform_test: Pass, Fail # Issue 14399
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
