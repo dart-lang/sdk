@@ -335,7 +335,6 @@ Language/07_Classes/3_Setters_A04_t05: CompileTimeError # http://dartbug.com/502
 Language/07_Classes/3_Setters_A04_t06: CompileTimeError # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: CompileTimeError # http://dartbug.com/5023
 
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: CompileTimeError # Issue 13652
 Language/12_Expressions/01_Constants_A03_t01: CompileTimeError # Issue 13652
 
 

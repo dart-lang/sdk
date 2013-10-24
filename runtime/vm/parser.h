@@ -337,7 +337,7 @@ class Parser : public ValueObject {
 
   void CheckRecursiveInvocation();
 
-  const Instance& EvaluateConstExpr(AstNode* expr);
+  const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
   AstNode* RunStaticFieldInitializer(const Field& field);
   RawObject* EvaluateConstConstructorCall(
       const Class& type_class,

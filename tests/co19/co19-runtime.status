@@ -4,7 +4,6 @@
 
 [ $compiler == none && $runtime == vm ]
 Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392
-Language/12_Expressions/01_Constants_A16_t05: fail # Issue 392
 Language/13_Statements/03_Variable_Declaration_A04_t01: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t02: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t05: MissingCompileTimeError # Issue 7052
@@ -32,7 +31,6 @@ LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
-Language/12_Expressions/12_Instance_Creation/2_Const_A10_t01: fail # co19 issue 525
 Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # Dart issue 12593
 Language/13_Statements/03_Variable_Declaration_A04_t07: fail # co19 issue 535
 Language/13_Statements/03_Variable_Declaration_A04_t08: fail # co19 issue 535

@@ -97,22 +97,6 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 }
 
 
-static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
-  const UnhandledException& excp = UnhandledException::Cast(obj);
-  Instance& exception = Instance::ZoneHandle(excp.exception());
-  if (exception.IsNew()) {
-    exception ^= Object::Clone(exception, Heap::kOld);
-  }
-  Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
-  if (stack_trace.IsNew()) {
-    stack_trace ^= Object::Clone(stack_trace, Heap::kOld);
-  }
-  return new ThrowNode(token_pos,
-                       new LiteralNode(token_pos, exception),
-                       new LiteralNode(token_pos, stack_trace));
-}
-
-
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   if (!has_expression_temp_var()) {
     LocalVariable* temp =
@@ -897,7 +881,7 @@ RawArray* Parser::EvaluateMetadata() {
     if (expr->EvalConstExpr() == NULL) {
       ErrorMsg(expr_pos, "expression must be a compile-time constant");
     }
-    const Instance& val = EvaluateConstExpr(expr);
+    const Instance& val = EvaluateConstExpr(expr_pos, expr);
     meta_values.Add(val);
   }
   return Array::MakeArray(meta_values);
@@ -2128,13 +2112,15 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   ConsumeToken();
   ExpectToken(Token::kASSIGN);
   AstNode* init_expr = NULL;
+  intptr_t expr_pos = TokenPos();
   if (field.is_const()) {
     init_expr = ParseConstExpr();
   } else {
     init_expr = ParseExpr(kAllowConst, kConsumeCascades);
     if (init_expr->EvalConstExpr() != NULL) {
       init_expr =
-          new LiteralNode(field.token_pos(), EvaluateConstExpr(init_expr));
+          new LiteralNode(field.token_pos(),
+                          EvaluateConstExpr(expr_pos, init_expr));
     }
   }
   set_current_class(saved_class);
@@ -2173,10 +2159,11 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         if (field.is_const()) {
           init_expr = ParseConstExpr();
         } else {
+          intptr_t expr_pos = TokenPos();
           init_expr = ParseExpr(kAllowConst, kConsumeCascades);
           if (init_expr->EvalConstExpr() != NULL) {
             init_expr = new LiteralNode(field.token_pos(),
-                                        EvaluateConstExpr(init_expr));
+                                        EvaluateConstExpr(expr_pos, init_expr));
           }
         }
       }
@@ -7649,7 +7636,7 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
   if (expr->EvalConstExpr() == NULL) {
     ErrorMsg(expr_pos, "expression is not a valid compile-time constant");
   }
-  return new LiteralNode(expr_pos, EvaluateConstExpr(expr));
+  return new LiteralNode(expr_pos, EvaluateConstExpr(expr_pos, expr));
 }
 
 
@@ -9575,7 +9562,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                      map_constr,
                                      constr_args));
     if (constructor_result.IsUnhandledException()) {
-      return GenerateRethrow(literal_pos, constructor_result);
+      AppendErrorMsg(Error::Cast(constructor_result),
+                     literal_pos,
+                     "error executing const Map constructor");
     } else {
       const Instance& const_instance = Instance::Cast(constructor_result);
       return new LiteralNode(literal_pos,
@@ -9623,6 +9612,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                      factory_method,
                                      factory_param);
   }
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -9688,7 +9679,9 @@ AstNode* Parser::ParseSymbolLiteral() {
                                    constr,
                                    constr_args));
   if (result.IsUnhandledException()) {
-    return GenerateRethrow(symbol_pos, result);
+    AppendErrorMsg(Error::Cast(result),
+                   symbol_pos,
+                   "error executing const Symbol constructor");
   }
   const Instance& instance = Instance::Cast(result);
   return new LiteralNode(symbol_pos, Instance::ZoneHandle(instance.raw()));
@@ -9926,7 +9919,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                      constructor,
                                      arguments));
     if (constructor_result.IsUnhandledException()) {
-      new_object = GenerateRethrow(new_pos, constructor_result);
+      // It's a compile-time error if invocation of a const constructor
+      // call fails.
+      AppendErrorMsg(Error::Cast(constructor_result),
+                     new_pos,
+                     "error while evaluating const constructor");
     } else {
       const Instance& const_instance = Instance::Cast(constructor_result);
       new_object = new LiteralNode(new_pos,
@@ -10063,7 +10060,7 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
             const_expr->IsBool() ||
             const_expr->IsNull())) {
           // Change expr into a literal.
-          expr = new LiteralNode(expr_pos, EvaluateConstExpr(expr));
+          expr = new LiteralNode(expr_pos, EvaluateConstExpr(expr_pos, expr));
         } else {
           is_compiletime_const = false;
         }
@@ -10261,7 +10258,7 @@ AstNode* Parser::ParsePrimary() {
 
 // Evaluate expression in expr and return the value. The expression must
 // be a compile time constant.
-const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
+const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
   } else if (expr->IsLoadLocalNode() &&
@@ -10278,9 +10275,9 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
 
     Object& result = Object::Handle(Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
-      // Propagate the compilation error.
-      isolate()->long_jump_base()->Jump(1, Error::Cast(result));
-      UNREACHABLE();
+      AppendErrorMsg(Error::Cast(result),
+                     expr_pos,
+                     "error evaluating constant expression");
     }
     ASSERT(result.IsInstance());
     Instance& value = Instance::ZoneHandle();
