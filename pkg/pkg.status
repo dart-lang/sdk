@@ -150,6 +150,9 @@ polymer/example/canonicalization/test/canonicalization_test: Fail, OK # tests de
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
 intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triage.
 
+[ $compiler == none && $runtime == vm && $system == windows && mode == debug ]
+http_server/test/http_body_test: Pass, Fail # Issue 14381
+
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, Timeout, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
