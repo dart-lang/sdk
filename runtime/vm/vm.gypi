@@ -114,6 +114,7 @@
         'generate_mirrors_cc_file#host',
         'generate_mirrors_patch_cc_file#host',
         'generate_platform_cc_file#host',
+        'generate_platform_patch_cc_file#host',
         'generate_typed_data_cc_file#host',
         'generate_typed_data_patch_cc_file#host',
         'generate_utf_cc_file#host',
