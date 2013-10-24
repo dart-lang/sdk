@@ -72,14 +72,15 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
         'your package root directory or a subdirectory.');
     return null;
   }
+  var packageName = readCurrentPackageFromPubspec(pubspecDir);
 
   var phases = createDeployPhases(new TransformOptions(
       entryPoints: [path.relative(testFile, from: pubspecDir)],
       directlyIncludeJS: directlyIncludeJS,
       contentSecurityPolicy: contentSecurityPolicy));
   return new BarbackOptions(phases, outDir,
-      currentPackage: '_test',
-      packageDirs: {'_test' : pubspecDir},
+      currentPackage: packageName,
+      packageDirs: {packageName : pubspecDir},
       transformTests: true);
 }
 

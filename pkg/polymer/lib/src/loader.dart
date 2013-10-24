@@ -104,6 +104,10 @@ List<String> _discoverScripts(Document doc, String baseUri,
     [Set<Document> seen, List<String> scripts]) {
   if (seen == null) seen = new Set<Document>();
   if (scripts == null) scripts = <String>[];
+  if (doc == null) {
+    print('warning: $baseUri not found.');
+    return;
+  }
   if (seen.contains(doc)) return scripts;
   seen.add(doc);
 
@@ -135,6 +139,9 @@ final _libs = currentMirrorSystem().libraries;
 // TODO(sigmund): explore other (cheaper) ways to resolve URIs relative to the
 // root library (see dartbug.com/12612)
 final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
+
+final String _packageRoot =
+    '${path.dirname(Uri.parse(window.location.href).path)}/packages/';
 
 /** Regex that matches urls used to represent inlined scripts. */
 final RegExp _inlineScriptRegExp = new RegExp('\(.*\.html.*\):\([0-9]\+\)');
@@ -191,6 +198,13 @@ void _loadLibrary(String uriString) {
     var pos = int.parse(match.group(2), onError: (_) => -1);
     if (list != null && pos >= 0 && pos < list.length && list[pos] != null) {
       lib = _libs[list[pos]];
+    }
+  } else if (uri.path.startsWith(_packageRoot)) {
+    var packageUri =
+        Uri.parse('package:${uri.path.substring(_packageRoot.length)}');
+    lib = _libs[packageUri];
+    if (lib == null) {
+      lib = _libs[uri];
     }
   } else {
     lib = _libs[uri];

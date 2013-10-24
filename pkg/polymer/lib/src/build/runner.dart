@@ -65,8 +65,9 @@ Future<AssetSet> runBarback(BarbackOptions options) {
 }
 
 /** Extract the current package from the pubspec.yaml file. */
-String readCurrentPackageFromPubspec() {
-  var pubspec = new File('pubspec.yaml');
+String readCurrentPackageFromPubspec([String dir]) {
+  var pubspec = new File(
+      dir == null ? 'pubspec.yaml' : path.join(dir, 'pubspec.yaml'));
   if (!pubspec.existsSync()) {
     print('error: pubspec.yaml file not found, please run this script from '
         'your package root directory.');
