@@ -2661,81 +2661,6 @@ class CssFilterRule extends CssRule {
 
 
 @DocsEditable()
-@DomName('WebKitCSSFilterValue')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class CssFilterValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory CssFilterValue._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_BLUR')
-  @DocsEditable()
-  static const int CSS_FILTER_BLUR = 10;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_BRIGHTNESS')
-  @DocsEditable()
-  static const int CSS_FILTER_BRIGHTNESS = 8;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_CONTRAST')
-  @DocsEditable()
-  static const int CSS_FILTER_CONTRAST = 9;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_CUSTOM')
-  @DocsEditable()
-  static const int CSS_FILTER_CUSTOM = 12;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_DROP_SHADOW')
-  @DocsEditable()
-  static const int CSS_FILTER_DROP_SHADOW = 11;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_GRAYSCALE')
-  @DocsEditable()
-  static const int CSS_FILTER_GRAYSCALE = 2;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_HUE_ROTATE')
-  @DocsEditable()
-  static const int CSS_FILTER_HUE_ROTATE = 5;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_INVERT')
-  @DocsEditable()
-  static const int CSS_FILTER_INVERT = 6;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_OPACITY')
-  @DocsEditable()
-  static const int CSS_FILTER_OPACITY = 7;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_REFERENCE')
-  @DocsEditable()
-  static const int CSS_FILTER_REFERENCE = 1;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_SATURATE')
-  @DocsEditable()
-  static const int CSS_FILTER_SATURATE = 4;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_SEPIA')
-  @DocsEditable()
-  static const int CSS_FILTER_SEPIA = 3;
-
-  @DomName('WebKitCSSFilterValue.operationType')
-  @DocsEditable()
-  int get operationType native "WebKitCSSFilterValue_operationType_Getter";
-
-  @DomName('WebKitCSSFilterValue.__getter__')
-  @DocsEditable()
-  _CSSValue __getter__(int index) native "WebKitCSSFilterValue___getter___Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('CSSFontFaceLoadEvent')
 // http://www.w3.org/TR/css3-fonts/
 @Experimental()
@@ -2910,253 +2835,6 @@ class CssKeyframesRule extends CssRule {
 
 
 @DocsEditable()
-@DomName('WebKitCSSMatrix')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class CssMatrix extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory CssMatrix._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
-  @DocsEditable()
-  factory CssMatrix([String cssValue]) {
-    return CssMatrix._create_1(cssValue);
-  }
-
-  @DocsEditable()
-  static CssMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
-
-  @DomName('WebKitCSSMatrix.a')
-  @DocsEditable()
-  num get a native "WebKitCSSMatrix_a_Getter";
-
-  @DomName('WebKitCSSMatrix.a')
-  @DocsEditable()
-  void set a(num value) native "WebKitCSSMatrix_a_Setter";
-
-  @DomName('WebKitCSSMatrix.b')
-  @DocsEditable()
-  num get b native "WebKitCSSMatrix_b_Getter";
-
-  @DomName('WebKitCSSMatrix.b')
-  @DocsEditable()
-  void set b(num value) native "WebKitCSSMatrix_b_Setter";
-
-  @DomName('WebKitCSSMatrix.c')
-  @DocsEditable()
-  num get c native "WebKitCSSMatrix_c_Getter";
-
-  @DomName('WebKitCSSMatrix.c')
-  @DocsEditable()
-  void set c(num value) native "WebKitCSSMatrix_c_Setter";
-
-  @DomName('WebKitCSSMatrix.d')
-  @DocsEditable()
-  num get d native "WebKitCSSMatrix_d_Getter";
-
-  @DomName('WebKitCSSMatrix.d')
-  @DocsEditable()
-  void set d(num value) native "WebKitCSSMatrix_d_Setter";
-
-  @DomName('WebKitCSSMatrix.e')
-  @DocsEditable()
-  num get e native "WebKitCSSMatrix_e_Getter";
-
-  @DomName('WebKitCSSMatrix.e')
-  @DocsEditable()
-  void set e(num value) native "WebKitCSSMatrix_e_Setter";
-
-  @DomName('WebKitCSSMatrix.f')
-  @DocsEditable()
-  num get f native "WebKitCSSMatrix_f_Getter";
-
-  @DomName('WebKitCSSMatrix.f')
-  @DocsEditable()
-  void set f(num value) native "WebKitCSSMatrix_f_Setter";
-
-  @DomName('WebKitCSSMatrix.m11')
-  @DocsEditable()
-  num get m11 native "WebKitCSSMatrix_m11_Getter";
-
-  @DomName('WebKitCSSMatrix.m11')
-  @DocsEditable()
-  void set m11(num value) native "WebKitCSSMatrix_m11_Setter";
-
-  @DomName('WebKitCSSMatrix.m12')
-  @DocsEditable()
-  num get m12 native "WebKitCSSMatrix_m12_Getter";
-
-  @DomName('WebKitCSSMatrix.m12')
-  @DocsEditable()
-  void set m12(num value) native "WebKitCSSMatrix_m12_Setter";
-
-  @DomName('WebKitCSSMatrix.m13')
-  @DocsEditable()
-  num get m13 native "WebKitCSSMatrix_m13_Getter";
-
-  @DomName('WebKitCSSMatrix.m13')
-  @DocsEditable()
-  void set m13(num value) native "WebKitCSSMatrix_m13_Setter";
-
-  @DomName('WebKitCSSMatrix.m14')
-  @DocsEditable()
-  num get m14 native "WebKitCSSMatrix_m14_Getter";
-
-  @DomName('WebKitCSSMatrix.m14')
-  @DocsEditable()
-  void set m14(num value) native "WebKitCSSMatrix_m14_Setter";
-
-  @DomName('WebKitCSSMatrix.m21')
-  @DocsEditable()
-  num get m21 native "WebKitCSSMatrix_m21_Getter";
-
-  @DomName('WebKitCSSMatrix.m21')
-  @DocsEditable()
-  void set m21(num value) native "WebKitCSSMatrix_m21_Setter";
-
-  @DomName('WebKitCSSMatrix.m22')
-  @DocsEditable()
-  num get m22 native "WebKitCSSMatrix_m22_Getter";
-
-  @DomName('WebKitCSSMatrix.m22')
-  @DocsEditable()
-  void set m22(num value) native "WebKitCSSMatrix_m22_Setter";
-
-  @DomName('WebKitCSSMatrix.m23')
-  @DocsEditable()
-  num get m23 native "WebKitCSSMatrix_m23_Getter";
-
-  @DomName('WebKitCSSMatrix.m23')
-  @DocsEditable()
-  void set m23(num value) native "WebKitCSSMatrix_m23_Setter";
-
-  @DomName('WebKitCSSMatrix.m24')
-  @DocsEditable()
-  num get m24 native "WebKitCSSMatrix_m24_Getter";
-
-  @DomName('WebKitCSSMatrix.m24')
-  @DocsEditable()
-  void set m24(num value) native "WebKitCSSMatrix_m24_Setter";
-
-  @DomName('WebKitCSSMatrix.m31')
-  @DocsEditable()
-  num get m31 native "WebKitCSSMatrix_m31_Getter";
-
-  @DomName('WebKitCSSMatrix.m31')
-  @DocsEditable()
-  void set m31(num value) native "WebKitCSSMatrix_m31_Setter";
-
-  @DomName('WebKitCSSMatrix.m32')
-  @DocsEditable()
-  num get m32 native "WebKitCSSMatrix_m32_Getter";
-
-  @DomName('WebKitCSSMatrix.m32')
-  @DocsEditable()
-  void set m32(num value) native "WebKitCSSMatrix_m32_Setter";
-
-  @DomName('WebKitCSSMatrix.m33')
-  @DocsEditable()
-  num get m33 native "WebKitCSSMatrix_m33_Getter";
-
-  @DomName('WebKitCSSMatrix.m33')
-  @DocsEditable()
-  void set m33(num value) native "WebKitCSSMatrix_m33_Setter";
-
-  @DomName('WebKitCSSMatrix.m34')
-  @DocsEditable()
-  num get m34 native "WebKitCSSMatrix_m34_Getter";
-
-  @DomName('WebKitCSSMatrix.m34')
-  @DocsEditable()
-  void set m34(num value) native "WebKitCSSMatrix_m34_Setter";
-
-  @DomName('WebKitCSSMatrix.m41')
-  @DocsEditable()
-  num get m41 native "WebKitCSSMatrix_m41_Getter";
-
-  @DomName('WebKitCSSMatrix.m41')
-  @DocsEditable()
-  void set m41(num value) native "WebKitCSSMatrix_m41_Setter";
-
-  @DomName('WebKitCSSMatrix.m42')
-  @DocsEditable()
-  num get m42 native "WebKitCSSMatrix_m42_Getter";
-
-  @DomName('WebKitCSSMatrix.m42')
-  @DocsEditable()
-  void set m42(num value) native "WebKitCSSMatrix_m42_Setter";
-
-  @DomName('WebKitCSSMatrix.m43')
-  @DocsEditable()
-  num get m43 native "WebKitCSSMatrix_m43_Getter";
-
-  @DomName('WebKitCSSMatrix.m43')
-  @DocsEditable()
-  void set m43(num value) native "WebKitCSSMatrix_m43_Setter";
-
-  @DomName('WebKitCSSMatrix.m44')
-  @DocsEditable()
-  num get m44 native "WebKitCSSMatrix_m44_Getter";
-
-  @DomName('WebKitCSSMatrix.m44')
-  @DocsEditable()
-  void set m44(num value) native "WebKitCSSMatrix_m44_Setter";
-
-  @DomName('WebKitCSSMatrix.inverse')
-  @DocsEditable()
-  CssMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
-
-  @DomName('WebKitCSSMatrix.multiply')
-  @DocsEditable()
-  CssMatrix multiply(CssMatrix secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
-
-  @DomName('WebKitCSSMatrix.rotate')
-  @DocsEditable()
-  CssMatrix rotate(num rotX, num rotY, num rotZ) native "WebKitCSSMatrix_rotate_Callback";
-
-  @DomName('WebKitCSSMatrix.rotateAxisAngle')
-  @DocsEditable()
-  CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
-
-  @DomName('WebKitCSSMatrix.scale')
-  @DocsEditable()
-  CssMatrix scale(num scaleX, num scaleY, num scaleZ) native "WebKitCSSMatrix_scale_Callback";
-
-  @DomName('WebKitCSSMatrix.setMatrixValue')
-  @DocsEditable()
-  void setMatrixValue(String string) native "WebKitCSSMatrix_setMatrixValue_Callback";
-
-  @DomName('WebKitCSSMatrix.skewX')
-  @DocsEditable()
-  CssMatrix skewX(num angle) native "WebKitCSSMatrix_skewX_Callback";
-
-  @DomName('WebKitCSSMatrix.skewY')
-  @DocsEditable()
-  CssMatrix skewY(num angle) native "WebKitCSSMatrix_skewY_Callback";
-
-  @DomName('WebKitCSSMatrix.toString')
-  @DocsEditable()
-  String toString() native "WebKitCSSMatrix_toString_Callback";
-
-  @DomName('WebKitCSSMatrix.translate')
-  @DocsEditable()
-  CssMatrix translate(num x, num y, num z) native "WebKitCSSMatrix_translate_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('CSSMediaRule')
 class CssMediaRule extends CssRule {
   // To suppress missing implicit constructor warnings.
@@ -3177,25 +2855,6 @@ class CssMediaRule extends CssRule {
   @DomName('CSSMediaRule.insertRule')
   @DocsEditable()
   int insertRule(String rule, int index) native "CSSMediaRule_insertRule_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WebKitCSSMixFunctionValue')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class CssMixFunctionValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory CssMixFunctionValue._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6733,133 +6392,6 @@ class CssSupportsRule extends CssRule {
   @DomName('CSSSupportsRule.insertRule')
   @DocsEditable()
   int insertRule(String rule, int index) native "CSSSupportsRule_insertRule_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WebKitCSSTransformValue')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class CssTransformValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory CssTransformValue._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WebKitCSSTransformValue.CSS_MATRIX')
-  @DocsEditable()
-  static const int CSS_MATRIX = 11;
-
-  @DomName('WebKitCSSTransformValue.CSS_MATRIX3D')
-  @DocsEditable()
-  static const int CSS_MATRIX3D = 21;
-
-  @DomName('WebKitCSSTransformValue.CSS_PERSPECTIVE')
-  @DocsEditable()
-  static const int CSS_PERSPECTIVE = 20;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATE')
-  @DocsEditable()
-  static const int CSS_ROTATE = 4;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATE3D')
-  @DocsEditable()
-  static const int CSS_ROTATE3D = 17;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATEX')
-  @DocsEditable()
-  static const int CSS_ROTATEX = 14;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATEY')
-  @DocsEditable()
-  static const int CSS_ROTATEY = 15;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATEZ')
-  @DocsEditable()
-  static const int CSS_ROTATEZ = 16;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALE')
-  @DocsEditable()
-  static const int CSS_SCALE = 5;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALE3D')
-  @DocsEditable()
-  static const int CSS_SCALE3D = 19;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALEX')
-  @DocsEditable()
-  static const int CSS_SCALEX = 6;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALEY')
-  @DocsEditable()
-  static const int CSS_SCALEY = 7;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALEZ')
-  @DocsEditable()
-  static const int CSS_SCALEZ = 18;
-
-  @DomName('WebKitCSSTransformValue.CSS_SKEW')
-  @DocsEditable()
-  static const int CSS_SKEW = 8;
-
-  @DomName('WebKitCSSTransformValue.CSS_SKEWX')
-  @DocsEditable()
-  static const int CSS_SKEWX = 9;
-
-  @DomName('WebKitCSSTransformValue.CSS_SKEWY')
-  @DocsEditable()
-  static const int CSS_SKEWY = 10;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE')
-  @DocsEditable()
-  static const int CSS_TRANSLATE = 1;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE3D')
-  @DocsEditable()
-  static const int CSS_TRANSLATE3D = 13;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEX')
-  @DocsEditable()
-  static const int CSS_TRANSLATEX = 2;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEY')
-  @DocsEditable()
-  static const int CSS_TRANSLATEY = 3;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEZ')
-  @DocsEditable()
-  static const int CSS_TRANSLATEZ = 12;
-
-  @DomName('WebKitCSSTransformValue.operationType')
-  @DocsEditable()
-  int get operationType native "WebKitCSSTransformValue_operationType_Getter";
-
-  @DomName('WebKitCSSTransformValue.__getter__')
-  @DocsEditable()
-  _CSSValue __getter__(int index) native "WebKitCSSTransformValue___getter___Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSUnknownRule')
-// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
-@deprecated // deprecated
-class CssUnknownRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssUnknownRule._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13069,87 +12601,6 @@ class HmacParams extends Algorithm {
   @DocsEditable()
   @Experimental() // untriaged
   Algorithm get hash native "HmacParams_hash_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('HTMLAllCollection')
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
-@deprecated // deprecated
-class HtmlAllCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
-  // To suppress missing implicit constructor warnings.
-  factory HtmlAllCollection._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('HTMLAllCollection.length')
-  @DocsEditable()
-  int get length native "HTMLAllCollection_length_Getter";
-
-  Node operator[](int index) {
-    if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
-  }
-  Node _nativeIndexedGetter(int index) native "HTMLAllCollection_item_Callback";
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  Node get first {
-    if (this.length > 0) {
-      return _nativeIndexedGetter(0);
-    }
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    int len = this.length;
-    if (len > 0) {
-      return _nativeIndexedGetter(len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    int len = this.length;
-    if (len == 1) {
-      return _nativeIndexedGetter(0);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  Node elementAt(int index) => this[index];
-  // -- end List<Node> mixins.
-
-  @DomName('HTMLAllCollection.__getter__')
-  @DocsEditable()
-  Node __getter__(int index) native "HTMLAllCollection___getter___Callback";
-
-  @DomName('HTMLAllCollection.item')
-  @DocsEditable()
-  Node item(int index) native "HTMLAllCollection_item_Callback";
-
-  @DomName('HTMLAllCollection.namedItem')
-  @DocsEditable()
-  Node namedItem(String name) native "HTMLAllCollection_namedItem_Callback";
-
-  @DomName('HTMLAllCollection.tags')
-  @DocsEditable()
-  List<Node> tags(String name) native "HTMLAllCollection_tags_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19676,22 +19127,6 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
   @DomName('NodeList.item')
   @DocsEditable()
   Node _item(int index) native "NodeList_item_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('Notation')
-// http://dom.spec.whatwg.org/#notation
-@deprecated // deprecated
-class Notation extends Node {
-  // To suppress missing implicit constructor warnings.
-  factory Notation._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -28359,6 +27794,22 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
 
 
 @DocsEditable()
+@DomName('CSSUnknownRule')
+// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
+@deprecated // deprecated
+abstract class _CSSUnknownRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('CSSValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
@@ -29026,6 +28477,71 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
 
 
 @DocsEditable()
+@DomName('HTMLAllCollection')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
+@deprecated // deprecated
+abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
+  // To suppress missing implicit constructor warnings.
+  factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
+
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "HTMLAllCollection_item_Callback";
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  Node get first {
+    if (this.length > 0) {
+      return _nativeIndexedGetter(0);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return _nativeIndexedGetter(len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return _nativeIndexedGetter(0);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
+  // -- end List<Node> mixins.
+
+  @DomName('HTMLAllCollection.item')
+  @DocsEditable()
+  Node _item(int index) native "HTMLAllCollection_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLAppletElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
 @deprecated // deprecated
@@ -29267,6 +28783,22 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable()
   Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('Notation')
+// http://dom.spec.whatwg.org/#notation
+@deprecated // deprecated
+abstract class _Notation extends Node {
+  // To suppress missing implicit constructor warnings.
+  factory _Notation._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29574,6 +29106,82 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
 abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitCSSFilterValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSFilterValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitCSSMatrix')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSMatrix._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
+  @DocsEditable()
+  factory _WebKitCSSMatrix([String cssValue]) {
+    return _WebKitCSSMatrix._create_1(cssValue);
+  }
+
+  @DocsEditable()
+  static _WebKitCSSMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitCSSMixFunctionValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSMixFunctionValue._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitCSSTransformValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSTransformValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

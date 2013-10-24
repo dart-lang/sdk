@@ -67,7 +67,9 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'CDataSection',
   'CSSPrimitiveValue',
+  'CSSUnknownRule',
   'CSSValue',
   'Counter',
   'DOMFileSystemSync', # Workers
@@ -79,6 +81,7 @@ _removed_html_interfaces = [
   'FileEntrySync', # Workers
   'FileReaderSync', # Workers
   'FileWriterSync', # Workers
+  'HTMLAllCollection',
   'HTMLAppletElement',
   'HTMLBaseFontElement',
   'HTMLDirectoryElement',
@@ -87,6 +90,7 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'Notation',
   'PagePopupController',
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
@@ -116,6 +120,10 @@ _removed_html_interfaces = [
   'SVGVKernElement',
   'SharedWorker', # Workers
   'SubtleCrypto',
+  'WebKitCSSFilterValue',
+  'WebKitCSSMatrix',
+  'WebKitCSSMixFunctionValue',
+  'WebKitCSSTransformValue',
   'WebKitMediaSource',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
