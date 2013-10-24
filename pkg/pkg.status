@@ -88,21 +88,21 @@ polymer_expressions/test/globals_test: Fail # Issue 13890
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/example/canonicalization/test/canonicalization_deploy_test: Pass, Timeout
 polymer/example/canonicalization/test/canonicalization_test: Fail, Timeout, OK # tests development only behavior
-polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/attr_mustache_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/bind_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/bind_mdv_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/custom_event_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/noscript_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/prop_attr_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/prop_attr_bind_reflection_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/publish_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/register_test: Pass, Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/take_attributes_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/template_distribute_dynamic_test: Fail, Timeout # Issue 12865, 13197, 13260
-polymer/test/unbind_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
+polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
+polymer/test/bind_test: Pass, Timeout # Issue 13260
+polymer/test/bind_mdv_test: Pass, Timeout # Issue 13260
+polymer/test/custom_event_test: Pass, Timeout # Issue 13260
+polymer/test/event_path_test: Pass, Timeout # Issue 13260
+polymer/test/events_test: Pass, Timeout # Issue 13260
+polymer/test/noscript_test: Pass, Timeout # Issue 13260
+polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
+polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
+polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
+polymer/test/register_test: Pass, Timeout # Issue 13260
+polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
+polymer/test/template_distribute_dynamic_test: Pass, Timeout # Issue 13260
+polymer/test/unbind_test: Pass, Timeout # Issue 13260
 polymer_expressions/test/globals_test: Fail # Issue 13890
 
 # Skip browser-specific tests on VM
