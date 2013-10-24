@@ -47,8 +47,8 @@ io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-typed_array_test: Crash, Fail # Issue 13921, 14400
-typed_array_int64_uint64_test: Crash, Fail # Issue 13921, 14400
+typed_array_test: Fail # Issue 13921
+typed_array_int64_uint64_test: Fail # Issue 13921
 typed_data_isolate_test: Skip # This test uses dart:io
 io/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.

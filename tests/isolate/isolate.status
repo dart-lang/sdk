@@ -109,34 +109,33 @@ nested_spawn_stream2_test: Fail # Issue 13719: Please triage this failure.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
-# Issue 14400: spawnFunction is crashing
-browser/compute_this_script_browser_stream_test: Crash, Fail
-browser/compute_this_script_browser_test: Crash, Fail
+browser/compute_this_script_browser_stream_test: Fail
+browser/compute_this_script_browser_test: Fail
 browser/typed_data_message_test: Skip # 13961
-count_stream_test: Crash, Fail
-count_test: Crash, Fail
-cross_isolate_message_test: Crash, Fail
-global_error_handler2_test: Crash, Fail
-global_error_handler_stream2_test: Crash, Fail
-global_error_handler_stream_test: Crash, Fail
-global_error_handler_test: Crash, Fail
-illegal_msg_stream_test: Crash, Fail
-illegal_msg_test: Crash, Fail
-isolate_complex_messages_stream_test: Crash, Fail
-isolate_complex_messages_test: Crash, Fail
-isolate_stress_test: Crash, Fail
-mandel_isolate_stream_test: Crash, Fail
-mandel_isolate_test: Crash, Fail
-message2_test: Crash, Fail
-message_stream2_test: Crash, Fail
-message_stream_test: Crash, Fail
-message_test: Crash, Fail
-mint_maker_test: Crash, Fail
-nested_spawn2_test: Crash, Fail
-nested_spawn_stream_test: Crash, Fail
-nested_spawn_test: Crash, Fail
-request_reply_test: Crash, Fail
-spawn_function_custom_class_test: Crash, Fail
-spawn_function_test: Crash, Fail
-stacktrace_message_test: Crash, Fail
-unresolved_ports_test: Crash, Fail
+count_stream_test: Fail
+count_test: Fail
+cross_isolate_message_test: Fail
+global_error_handler2_test: Fail
+global_error_handler_stream2_test: Fail
+global_error_handler_stream_test: Fail
+global_error_handler_test: Fail
+illegal_msg_stream_test: Fail
+illegal_msg_test: Fail
+isolate_complex_messages_stream_test: Fail
+isolate_complex_messages_test: Fail
+isolate_stress_test: Fail
+mandel_isolate_stream_test: Fail
+mandel_isolate_test: Fail
+message2_test: Fail
+message_stream2_test: Fail
+message_stream_test: Fail
+message_test: Fail
+mint_maker_test: Fail
+nested_spawn2_test: Fail
+nested_spawn_stream_test: Fail
+nested_spawn_test: Fail
+request_reply_test: Fail
+spawn_function_custom_class_test: Fail
+spawn_function_test: Fail
+stacktrace_message_test: Fail
+unresolved_ports_test: Fail

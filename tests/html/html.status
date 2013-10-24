@@ -30,10 +30,9 @@ postmessage_structured_test/typed_arrays: Fail
 xhr_test: Pass, Fail # Issue 12648
 xhr_test/json: Fail # Issue 13069
 uri_test: Fail Issue 13581
-async_test: Fail, Crash # Issue 14400, Background timers not implemented.
+async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
-isolates_test: Fail, Crash # Issue 13921, Issue 14400
-worker_api_test: Crash # Issue 14400
+isolates_test: Fail # Issue 13921
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
