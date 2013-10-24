@@ -104,32 +104,33 @@ LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: Fail # Issue 13719: Plea
 LibTest/typed_data/Float32x4/clamp_A01_t01: Fail # Issue 13719: Please triage this failure.
 LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # Issue 13719: Please triage this failure.
 
-Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A04_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A04_t02: Fail # Issue 13921
-LibTest/isolate/isolate_api/spawnFunction_A04_t03: Fail # Issue 13921
-LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Fail # Issue 13921
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail # Issue 13921
-LibTest/isolate/IsolateSink/add_A01_t01: Fail # Issue 13921
-LibTest/isolate/IsolateSink/add_A01_t02: Fail # Issue 13921
-LibTest/isolate/IsolateSink/add_A02_t01: Fail # Issue 13921
-LibTest/isolate/IsolateSink/close_A01_t03: Fail # Issue 13921
-LibTest/isolate/IsolateSink/close_A01_t04: Fail # Issue 13921
-LibTest/isolate/IsolateSink/operator_equality_A01_t01: Fail # Issue 13921
-LibTest/isolate/SendPort/send_A02_t01: Fail # Issue 13921
-LibTest/isolate/SendPort/send_A02_t02: Fail # Issue 13921
-LibTest/isolate/SendPort/send_A02_t03: Fail # Issue 13921
-LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
-LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
-LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
+# Issue 14400, spawnFunction crashes on dartium.
+Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t02: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A04_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A04_t02: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/spawnFunction_A04_t03: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Crash, Fail # Issue 13921
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Crash, Fail # Issue 13921
+LibTest/isolate/IsolateSink/add_A01_t01: Crash, Fail # Issue 13921
+LibTest/isolate/IsolateSink/add_A01_t02: Crash, Fail # Issue 13921
+LibTest/isolate/IsolateSink/add_A02_t01: Crash, Fail # Issue 13921
+LibTest/isolate/IsolateSink/close_A01_t03: Crash, Fail # Issue 13921
+LibTest/isolate/IsolateSink/close_A01_t04: Crash, Fail # Issue 13921
+LibTest/isolate/IsolateSink/operator_equality_A01_t01: Crash, Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t01: Crash, Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t02: Crash, Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t03: Crash, Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t04: Crash, Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t05: Crash, Fail # Issue 13921
+LibTest/isolate/SendPort/send_A02_t06: Crash, Fail # Issue 13921
 
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Skip # Issue 13992
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Skip # Issue 13992
