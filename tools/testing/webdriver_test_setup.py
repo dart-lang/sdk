@@ -80,31 +80,97 @@ def find_depot_tools_location(is_buildbot):
         return loc
   raise Exception("Could not find depot_tools in your path.")
 
+class GoogleBasedInstaller(object):
+  """Install a project from a Google source, pulling latest version."""
 
-class GoogleCodeInstaller(object):
-  """Install code that is being hosted on Google Code."""
-
-  def __init__(self, project_name, download_location, download_name_func):
-    """ Create a object that will install code from a Google Code site.
+  def __init__(self, project_name, destination, download_path_func):
+    """Create an object that will install the project.
     Arguments:
-    project_name - The GoogleCode project name such as "selenium" or
+    project_name - Google code name of the project, such as "selenium" or
     "chromedriver."
-    download_location - Where to download the desired file on our filesystem.
-    download_name_func - A function that takes a dictionary (currently with keys
+    destination - Where to download the desired file on our filesystem.
+    download_path_func - A function that takes a dictionary (currently with keys
     "os" and "version", but more can be added) that calculates the string
-    representing the name of the download we want.
-     """
+    representing the path of the download we want.
+    """
     self.project_name = project_name
-    self.download_location = download_location
-    self.download_name_func = download_name_func
-    self.download_regex_str = self.download_name_func({'os': self.get_os_str,
-        'version': '.+'})
+    self.destination = destination
+    self.download_path_func = download_path_func
+
+  @property
+  def get_os_str(self):
+    """The strings to indicate what OS a download is for."""
+    os_str = 'win'
+    if 'darwin' in sys.platform:
+      os_str = 'mac'
+    elif 'linux' in sys.platform:
+      os_str = 'linux32'
+      if '64bit' in platform.architecture()[0]:
+        os_str = 'linux64'
+    if self.project_name == 'chromedriver' and (
+        os_str == 'mac' or os_str == 'win'):
+      os_str = os_str + '32'
+    return os_str
+
+  def run(self):
+    """Download and install the project."""
+    print 'Installing %s' % self.project_name
+    os_str = self.get_os_str
+    version = self.find_latest_version()
+    download_path = self.download_path_func({'os': os_str, 'version': version})
+    download_name = os.path.basename(download_path)
+    urllib.urlretrieve(os.path.join(self.source_path(), download_path),
+        os.path.join(self.destination, download_name))
+    if download_name.endswith('.zip'):
+      if platform.system() != 'Windows':
+        # The Python zip utility does not preserve executable permissions, but
+        # this does not seem to be a problem for Windows, which does not have a
+        # built in zip utility. :-/
+        run_cmd('unzip -u %s -d %s' % (os.path.join(self.destination,
+                download_name), self.destination), stdin='y')
+      else:
+        z = zipfile.ZipFile(os.path.join(self.destination, download_name))
+        z.extractall(self.destination)
+        z.close()
+      os.remove(os.path.join(self.destination, download_name))
+    chrome_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+        'orig-chromedriver')
+    if self.project_name == 'chromedriver' and os.path.exists(chrome_path):
+      # We have one additional location to make sure chromedriver is updated.
+      # TODO(efortuna): Remove this. See move_chrome_driver_if_needed in
+      # perf_testing/run_perf_tests.py
+      driver = 'chromedriver'
+      if platform.system() == 'Windows':
+        driver += '.exe'
+      shutil.copy(os.path.join(self.destination, driver),
+          os.path.join(chrome_path, driver))
+
+class ChromeDriverInstaller(GoogleBasedInstaller):
+  """Install chromedriver from Google Storage."""
+
+  def __init__(self, destination):
+    """Create an object to install ChromeDriver
+    destination - Where to download the desired file on our filesystem.
+    """
+    super(ChromeDriverInstaller, self).__init__('chromedriver', destination,
+        lambda x: '%(version)s/chromedriver_%(os)s.zip' % x)
+
+  def find_latest_version(self):
+    """Find the latest version number of ChromeDriver."""
+    source_page = urllib2.urlopen(self.source_path())
+    source_text = source_page.read()
+    regex = re.compile('(?:<Key>)(\d+\.\d+)')
+    latest = max(regex.findall(source_text))
+    return latest
+
+  def source_path(self):
+    return 'http://chromedriver.storage.googleapis.com'
+
+class GoogleCodeInstaller(GoogleBasedInstaller):
+  """Install a project from Google Code."""
 
   def google_code_downloads_page(self):
     return 'http://code.google.com/p/%s/downloads/list' % self.project_name
-
-  def google_code_download(self):
-    return 'http://%s.googlecode.com/files/' % self.project_name
 
   def find_latest_version(self):
     """Find the latest version number of some code available for download on a
@@ -115,12 +181,16 @@ class GoogleCodeInstaller(object):
     google_code_site = self.google_code_downloads_page()
     f = urllib2.urlopen(google_code_site)
     latest = ''
+
+    download_regex_str = self.download_path_func({'os': self.get_os_str,
+        'version': '.+'})
+
     for line in f.readlines():
-      if re.search(self.download_regex_str, line):
+      if re.search(download_regex_str, line):
         suffix_index = line.find(
-            self.download_regex_str[self.download_regex_str.rfind('.'):])
-        name_end = self.download_regex_str.rfind('.+')
-        name = self.download_name_func({'os': self.get_os_str, 'version': ''})
+            download_regex_str[download_regex_str.rfind('.'):])
+        name_end = download_regex_str.rfind('.+')
+        name = self.download_path_func({'os': self.get_os_str, 'version': ''})
         name = name[:name.rfind('.')]
         version_str = line[line.find(name) + len(name) : suffix_index]
         orig_version_str = version_str
@@ -134,7 +204,7 @@ class GoogleCodeInstaller(object):
         else:
           orig_latest_str = latest
           latest = latest.replace('_', '.')
-	  latest = re.compile(r'[^\d.]+').sub('', latest)
+          latest = re.compile(r'[^\d.]+').sub('', latest)
         nums = version_str.split('.')
         latest_nums = latest.split('.')
         for (num, latest_num) in zip(nums, latest_nums):
@@ -148,53 +218,8 @@ class GoogleCodeInstaller(object):
           ' %s.' % google_code_site)
     return latest
 
-  def run(self):
-    """Download and install the Google Code."""
-    print 'Installing from %s' % self.project_name
-    os_str = self.get_os_str
-    version = self.find_latest_version()
-    download_name = self.download_name_func({'os': os_str, 'version': version})
-    urllib.urlretrieve(self.google_code_download() + '/' + download_name,
-        os.path.join(self.download_location, download_name))
-    if download_name.endswith('.zip'):
-      if platform.system() != 'Windows':
-        # The Python zip utility does not preserve executable permissions, but
-        # this does not seem to be a problem for Windows, which does not have a
-        # built in zip utility. :-/
-        run_cmd('unzip -u %s -d %s' % (os.path.join(self.download_location,
-                download_name), self.download_location), stdin='y')
-      else:
-        z = zipfile.ZipFile(os.path.join(self.download_location, download_name))
-        z.extractall(self.download_location)
-        z.close()
-      os.remove(os.path.join(self.download_location, download_name))
-    chrome_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        'orig-chromedriver')
-    if self.project_name == 'chromedriver' and os.path.exists(chrome_path):
-      # We have one additional location to make sure chromedriver is updated.
-      # TODO(efortuna): Remove this. See move_chrome_driver_if_needed in
-      # perf_testing/run_perf_tests.py
-      driver = 'chromedriver'
-      if platform.system() == 'Windows':
-        driver += '.exe'
-      shutil.copy(os.path.join(self.download_location, driver),
-          os.path.join(chrome_path, driver))
-
-  @property
-  def get_os_str(self):
-    """The strings to indicate what OS a download is for as used on Google Code.
-    """
-    os_str = 'win'
-    if 'darwin' in sys.platform:
-      os_str = 'mac'
-    elif 'linux' in sys.platform:
-      os_str = 'linux32'
-      if '64bit' in platform.architecture()[0]:
-        os_str = 'linux64'
-    if self.project_name == 'chromedriver' and (
-        os_str == 'mac' or os_str == 'win'):
-      os_str = os_str + '32'
-    return os_str
+  def source_path(self):
+    return 'http://%s.googlecode.com/files/' % self.project_name
 
 
 class FirefoxInstaller(object):
@@ -393,9 +418,7 @@ def main():
   if not args.python:
     SeleniumBindingsInstaller(args.buildbot).run()
   if not args.chromedriver:
-    GoogleCodeInstaller('chromedriver',
-        find_depot_tools_location(args.buildbot),
-        lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
+    ChromeDriverInstaller(find_depot_tools_location(args.buildbot)).run()
   if not args.seleniumrc:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),
         lambda x: 'selenium-server-standalone-%(version)s.jar' % x).run()
