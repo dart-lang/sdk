@@ -314,7 +314,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
-  'WebGLRenderingContext.texImage2D',
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
@@ -353,7 +352,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'SVGStopElement.offset': 'gradientOffset',
     'URL.createObjectURL': 'createObjectUrl',
     'URL.revokeObjectURL': 'revokeObjectUrl',
-    'WebGLRenderingContext.texSubImage2D': '_texSubImageImage2D',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })
@@ -368,8 +366,6 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
-  'Document.createElement(DOMString tagName)': None,
-  'Document.createElementNS(DOMString namespaceURI, DOMString qualifiedName)': None,
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
   'IDBDatabase.transaction(DOMStringList storeNames, DOMString mode)':
@@ -378,25 +374,11 @@ renamed_overloads = monitored.Dict('htmldartgenreator.renamed_overloads', {
       'transactionList',
   'IDBDatabase.transaction(DOMString storeName, DOMString mode)':
       'transactionStore',
-  'ImageBitmapFactories.createImageBitmap(HTMLImageElement image)' : 'createImageBitmap0',
-  'ImageBitmapFactories.createImageBitmap(HTMLImageElement image, long sx, long sy, long sw, long sh)' : 'createImageBitmap1',
-  'ImageBitmapFactories.createImageBitmap(HTMLVideoElement video)' : 'createImageBitmap2',
-  'ImageBitmapFactories.createImageBitmap(HTMLVideoElement video, long sx, long sy, long sw, long sh)' : 'createImageBitmap3',
-  'ImageBitmapFactories.createImageBitmap(CanvasRenderingContext2D context)' : 'createImageBitmap4',
-  'ImageBitmapFactories.createImageBitmap(CanvasRenderingContext2D context, long sx, long sy, long sw, long sh)' : 'createImageBitmap5',
-  'ImageBitmapFactories.createImageBitmap(HTMLCanvasElement canvas)' : 'createImageBitmap6',
-  'ImageBitmapFactories.createImageBitmap(HTMLCanvasElement canvas, long sx, long sy, long sw, long sh)' : 'createImageBitmap7',
-  'ImageBitmapFactories.createImageBitmap(ImageData data)' : 'createImageBitmap8',
-  'ImageBitmapFactories.createImageBitmap(ImageData data, long sx, long sy, long sw, long sh)' : 'createImageBitmap9',
-  'ImageBitmapFactories.createImageBitmap(ImageBitmap bitmap)' : 'createImageBitmap10',
-  'ImageBitmapFactories.createImageBitmap(ImageBitmap bitmap, long sx, long sy, long sw, long sh)' : 'createImageBitmap11',
-  'ImageBitmapFactories.createImageBitmap(Blob blob)' : 'createImageBitmap12',
-  'ImageBitmapFactories.createImageBitmap(Blob blob, long sx, long sy, long sw, long sh)' : 'createImageBitmap13',
   'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
   'RTCDataChannel.send(Blob data)': 'sendBlob',
   'RTCDataChannel.send(DOMString data)': 'sendString',
-  'SourceBuffer.appendBuffer(ArrayBufferView data)': 'appendBufferView',
+  'SourceBuffer.appendBuffer(ArrayBufferView data)': 'appendTypedData',
   'URL.createObjectURL(MediaSource source)':
       'createObjectUrlFromSource',
   'URL.createObjectURL(WebKitMediaSource source)':
@@ -449,6 +431,8 @@ keep_overloaded_members = monitored.Set(
   'CanvasRenderingContext2D.putImageData',
   'CanvasRenderingContext2D.webkitPutImageDataHD',
   'DataTransferItemList.add',
+  'Document.createElement',
+  'Document.createElementNS',
   'HTMLInputElement.setRangeText',
   'HTMLTextAreaElement.setRangeText',
   'IDBDatabase.transaction',
@@ -456,6 +440,14 @@ keep_overloaded_members = monitored.Set(
   'URL.createObjectURL',
   'WebSocket.send',
   'XMLHttpRequest.send'
+])
+
+overloaded_and_renamed = monitored.Set(
+    'htmldartgenerator.overloaded_and_renamed', [
+  'WebGLRenderingContext.texImage2D',
+  'WebGLRenderingContext.texSubImage2D',
+  'WebGLRenderingContext.bufferData',
+  'WebGLRenderingContext.bufferSubData',
 ])
 
 for member in convert_to_future_members:

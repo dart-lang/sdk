@@ -21391,16 +21391,16 @@ class SourceBuffer extends EventTarget native "SourceBuffer" {
   @Experimental() // untriaged
   void appendBuffer(ByteBuffer data) native;
 
-  @JSName('appendBuffer')
-  @DomName('SourceBuffer.appendBuffer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void appendBufferView(TypedData data) native;
-
   @DomName('SourceBuffer.appendStream')
   @DocsEditable()
   @Experimental() // untriaged
   void appendStream(FileStream stream, [int maxSize]) native;
+
+  @JSName('appendBuffer')
+  @DomName('SourceBuffer.appendBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void appendTypedData(TypedData data) native;
 
   @DomName('SourceBuffer.remove')
   @DocsEditable()

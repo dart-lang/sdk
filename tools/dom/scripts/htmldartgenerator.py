@@ -12,8 +12,8 @@ from generator import AnalyzeOperation, ConstantOutputOrder, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
-    keep_overloaded_members, private_html_members, renamed_html_members, \
-    renamed_overloads, removed_html_members
+    keep_overloaded_members, overloaded_and_renamed, private_html_members, \
+    renamed_html_members, renamed_overloads, removed_html_members
 import logging
 import monitored
 import sys
@@ -155,25 +155,33 @@ class HtmlDartGenerator(object):
     """The IDL has a number of functions with the same name but that accept
     different types. This is fine for JavaScript, but results in vague type
     signatures for Dart. We rename some of these (by adding a new identical
-    operation with a different DartName), and leave the original version in a
-    few specific instances."""
+    operation with a different DartName), but leave the original version as
+    well in some cases."""
     potential_added_operations = set()
     operations_by_name = self._OperationsByName(interface)
     already_renamed = [operation.ext_attrs['DartName'] if 'DartName' in
         operation.ext_attrs else '' for operation in interface.operations]
 
+    added_operations = []
     for operation in interface.operations:
       full_operation_str = self._GetStringRepresentation(interface, operation)
       if (full_operation_str in renamed_overloads and
           renamed_overloads[full_operation_str] not in already_renamed):
-        dart_name = renamed_overloads[full_operation_str]
-        if not dart_name:
-          continue
+        if '%s.%s' % (interface.id, operation.id) in overloaded_and_renamed:
+          cloned_operation = deepcopy(operation)
+          cloned_operation.ext_attrs['DartName'] = renamed_overloads[
+              full_operation_str]
+          added_operations.append(cloned_operation)
+        else:
+          dart_name = renamed_overloads[full_operation_str]
+          if not dart_name:
+            continue
 
-        operation.ext_attrs['DartName'] = dart_name
-        potential_added_operations.add(operation.id)
+          operation.ext_attrs['DartName'] = dart_name
+          potential_added_operations.add(operation.id)
       self._EnsureNoMultipleTypeSignatures(interface, operation,
           operations_by_name)
+    interface.operations += added_operations
     self._AddDesiredOverloadedOperations(potential_added_operations, interface,
         operations_by_name)
 
@@ -201,17 +209,17 @@ class HtmlDartGenerator(object):
         len(filter(lambda overload: overload.startswith(operation_str),
             renamed_overloads.keys())) == 0 and
         operation_str not in keep_overloaded_members and
+        operation_str not in overloaded_and_renamed and
         operation_str not in renamed_html_members and
         operation_str not in private_html_members and
         operation_str not in removed_html_members and
         operation.id != '__getter__' and
         operation.id != '__setter__' and
         operation.id != '__delete__'):
-      _logger.error('Multiple type signatures for %s.%s' % (
+      _logger.error('Multiple type signatures for %s.%s. Please file a bug with'
+          ' the dart:html team to determine if one of these functions should be'
+          ' renamed.' % (
           interface.id, operation.id))
-      raise Exception('Rename one of the methods in renamed_overloads or add it'
-          ' to  keep_overloaded_members.\n'
-          'Generation UNsuccessful.')
 
   def _GetStringRepresentation(self, interface, operation):
     """Given an IDLOperation, return a object-independent representation of the

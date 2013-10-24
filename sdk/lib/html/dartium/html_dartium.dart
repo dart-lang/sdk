@@ -23000,11 +23000,6 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void appendBuffer(ByteBuffer data) native "SourceBuffer_appendBuffer_Callback";
 
-  @DomName('SourceBuffer.appendBufferView')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void appendBufferView(TypedData data) native "SourceBuffer_appendBufferView_Callback";
-
   void appendStream(FileStream stream, [int maxSize]) {
     if (maxSize != null) {
       _appendStream_1(stream, maxSize);
@@ -23017,6 +23012,11 @@ class SourceBuffer extends EventTarget {
   void _appendStream_1(stream, maxSize) native "SourceBuffer__appendStream_1_Callback";
 
   void _appendStream_2(stream) native "SourceBuffer__appendStream_2_Callback";
+
+  @DomName('SourceBuffer.appendTypedData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void appendTypedData(TypedData data) native "SourceBuffer_appendTypedData_Callback";
 
   @DomName('SourceBuffer.remove')
   @DocsEditable()

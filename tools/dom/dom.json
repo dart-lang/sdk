@@ -10547,7 +10547,13 @@
       "appendBufferView": {
         "support_level": "untriaged"
       },
+      "appendByteBuffer": {
+        "support_level": "untriaged"
+      },
       "appendStream": {
+        "support_level": "untriaged"
+      },
+      "appendTypedData": {
         "support_level": "untriaged"
       },
       "appendWindowEnd": {

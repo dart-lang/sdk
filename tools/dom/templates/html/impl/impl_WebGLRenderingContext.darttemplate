@@ -16,14 +16,13 @@ $!MEMBERS
    * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
    *
    */
-  @DomName('WebGLRenderingContext.texImage2D')
 $if DART2JS
   @JSName('texImage2D')
-  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) native;
+  void texImage2DUntyped(int targetTexture, int levelOfDetail, 
+      int internalFormat, int format, int type, data) native;
 $else
-  void texImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) {
+  void texImage2DUntyped(int targetTexture, int levelOfDetail, 
+      int internalFormat, int format, int type, data) {
     if (data is ImageElement) {
       texImage2DImage(targetTexture, levelOfDetail, internalFormat, format,
           type, data);
@@ -51,7 +50,7 @@ $if DART2JS
 $else
   void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
       int width, int height, int border, int format, int type, TypedData data) {
-    _texImage2D(targetTexture, levelOfDetail, internalFormat,
+    texImage2D(targetTexture, levelOfDetail, internalFormat,
         width, height, border, format, type, data);
   }
 $endif
@@ -65,15 +64,14 @@ $endif
    * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
    *
    */
-  @DomName('WebGLRenderingContext.texSubImage2D')
 $if DART2JS
   @JSName('texSubImage2D')
-  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) native;
+  void texSubImage2DUntyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int format, int type, data) native;
 $else
-  void texSubImage2D(int targetTexture, int levelOfDetail, int internalFormat,
-      int format, int type, data) {
-    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+  void texSubImage2DUntyped(int targetTexture, int levelOfDetail, 
+      int internalFormat, int format, int type, data) {
+    texSubImage2D(targetTexture, levelOfDetail, internalFormat,
         format, type, data);
   }
 $endif
@@ -90,7 +88,7 @@ $else
   void texSubImage2DTyped(int targetTexture, int levelOfDetail,
       int internalFormat, int width, int height, int border, int format,
       int type, TypedData data) {
-    _texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+    texSubImage2D(targetTexture, levelOfDetail, internalFormat,
         width, height, border, format, type, data);
   }
 $endif
