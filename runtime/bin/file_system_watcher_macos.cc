@@ -136,7 +136,9 @@ class FSEventsWatcher {
     if (watcher == NULL) {
       watcher_monitor->Enter();
       watcher = new FSEventsWatcher();
-      watcher_monitor->Wait(Monitor::kNoTimeout);
+      while (watcher->run_loop_ == NULL) {
+        watcher_monitor->Wait(Monitor::kNoTimeout);
+      }
       watcher_monitor->Exit();
     }
     watcher->users_++;
