@@ -29,14 +29,6 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-# TBF 13807, missing support for type promotion
-type_promotion_closure_test/none: Fail # Issue 13807
-type_promotion_functions_test/none: Fail # Issue 13807
-type_promotion_local_test/none: Fail # Issue 13807
-type_promotion_multiple_test/none: Fail # Issue 13807
-type_promotion_parameter_test/none: Fail # Issue 13807
-type_promotion_more_specific_test/08: Fail # Issue 13807
-
 # Invalid constant redirecting factories should cause compile-time error.
 const_types_test/23: Fail # Issue 14306
 const_types_test/24: Fail # Issue 14306
@@ -196,6 +188,19 @@ black_listed_test/none: fail # test issue 14228, warnings are required but not e
 # test issue 14289
 bailout3_test: fail # test issue 14289
 prefix9_test: fail # test issue 14289
+
+# test issue 14358, E does not implement inherited A.+
+type_promotion_closure_test/none: Fail
+
+# test issue 14362, wrong assumption that dynamic << A
+type_promotion_functions_test/none: Fail
+
+# test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
+type_promotion_parameter_test/53: Fail
+
+# test issue 14364, "E<A> << D"
+type_promotion_more_specific_test/08: fail
+
 
 #
 # Please don't add new items here.
