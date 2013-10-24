@@ -13,7 +13,7 @@ BSD-style license that can be found in the LICENSE file.
   <body>
     <x-foo></x-foo>
 
-    <polymer-element name="x-bar" noscript>
+    <polymer-element name="x-bar">
       <template>
         x-bar
       </template>
@@ -27,6 +27,9 @@ BSD-style license that can be found in the LICENSE file.
         <x-bar id="bar" foo="{{foo}}" ></x-bar>
         <x-bar id="barBool" foo?="{{foo}}"></x-bar>
         <x-bar id="barContent">{{foo}}</x-bar>
+        <div id="bindId">
+          <template if="{{$['bar'].testValue}}">bar!</template>
+        </div>
       </template>
     </polymer-element>
 

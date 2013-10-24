@@ -104,8 +104,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   // * should we have an object that implements noSuchMethod?
   // * should the map have a key order (e.g. LinkedHash or SplayTree)?
   // * should this be a live list? Polymer doesn't, maybe due to JS limitations?
-  // For now I picked the most performant choice: non-live HashMap.
-  final Map<String, Element> $ = new HashMap<String, Element>();
+  // Note: this is observable to support $['someId'] being used in templates.
+  // The template is stamped before $ is populated, so we need observation if
+  // we want it to be usable in bindings.
+  @reflectable final Map<String, Element> $ =
+      new ObservableMap<String, Element>();
 
   /**
    * Gets the shadow root associated with the corresponding custom element.
