@@ -61,7 +61,8 @@ class _FileSystemWatcherImpl
           "File system watching is not supported on this system",
           _path);
     }
-    _controller = new StreamController(onListen: _listen, onCancel: _cancel);
+    _controller = new StreamController.broadcast(onListen: _listen,
+                                                 onCancel: _cancel);
   }
 
   void _listen() {

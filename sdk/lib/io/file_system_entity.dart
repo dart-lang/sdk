@@ -355,7 +355,8 @@ abstract class FileSystemEntity {
    * The system will start listening for events once the returned [Stream] is
    * being listened to, not when the call to [watch] is issued.
    *
-   * Note that the returned [Stream] is endless, unless:
+   * The returned value is an endless broadcast [Stream], that only stops when
+   * one of the following happends:
    *
    *   * The [Stream] is canceled, e.g. by calling `cancel` on the
    *      [StreamSubscription].
