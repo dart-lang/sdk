@@ -15,6 +15,8 @@ LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
 Language/05_Variables/05_Variables_A06_t01: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t02: fail, pass, ok # co19 issue 624

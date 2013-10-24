@@ -522,8 +522,6 @@ Language/12_Expressions/06_Lists_A09_t04: fail # co19-roll r546: Please triage t
 Language/12_Expressions/07_Maps_A10_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A07_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A12_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: Fail # co19-roll r559: Please triage this failure
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation_A01_t07: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/19_Conditional_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # co19-roll r546: Please triage this failure

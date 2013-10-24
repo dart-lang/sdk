@@ -2,8 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+
+[ $compiler == none && $runtime == vm && $unchecked]
+Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392, passes in checked mode b/c of type check
+
 [ $compiler == none && $runtime == vm ]
-Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392
 Language/13_Statements/03_Variable_Declaration_A04_t01: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t02: MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t05: MissingCompileTimeError # Issue 7052
