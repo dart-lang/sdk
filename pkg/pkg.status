@@ -90,6 +90,7 @@ polymer/example/canonicalization/test/canonicalization_test: Fail, Timeout, OK #
 polymer/test/attr_deserialize_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/attr_mustache_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/bind_test: Fail, Timeout # Issue 12865, 13197, 13260
+polymer/test/bind_mdv_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/custom_event_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/event_path_test: Fail, Timeout # Issue 12865, 13197, 13260
 polymer/test/events_test: Fail, Timeout # Issue 12865, 13197, 13260
