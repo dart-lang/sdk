@@ -2434,39 +2434,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  js.Expression generateTest(HCheck node) {
-    HInstruction input = node.checkedInput;
+  js.Expression generateTest(HInstruction input, HType checkedType) {
     TypeMask receiver = input.instructionType.computeMask(compiler);
-    TypeMask mask = node.instructionType.computeMask(compiler);
+    TypeMask mask = checkedType.computeMask(compiler);
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool turnIntoNumCheck = input.isIntegerOrNull() && node.isInteger();
+    bool turnIntoNumCheck = input.isIntegerOrNull() && checkedType.isInteger();
     bool turnIntoNullCheck = !turnIntoNumCheck
         && (mask.nullable() == receiver)
-        && (node.isInteger() || node.isIndexablePrimitive(compiler));
+        && (checkedType.isInteger()
+            || checkedType.isIndexablePrimitive(compiler));
     js.Expression test;
     if (turnIntoNullCheck) {
       use(input);
       test = new js.Binary("==", pop(), new js.LiteralNull());
-    } else if (node.isInteger() && !turnIntoNumCheck) {
+    } else if (checkedType.isInteger() && !turnIntoNumCheck) {
       // input is !int
       checkInt(input, '!==');
       test = pop();
-    } else if (node.isNumber() || turnIntoNumCheck) {
+    } else if (checkedType.isNumber() || turnIntoNumCheck) {
       // input is !num
       checkNum(input, '!==');
       test = pop();
-    } else if (node.isBoolean()) {
+    } else if (checkedType.isBoolean()) {
       // input is !bool
       checkBool(input, '!==');
       test = pop();
-    } else if (node.isString(compiler)) {
+    } else if (checkedType.isString(compiler)) {
       // input is !string
       checkString(input, '!==');
       test = pop();
-    } else if (node.isExtendableArray(compiler)) {
+    } else if (checkedType.isExtendableArray(compiler)) {
       // input is !Object || input is !Array || input.isFixed
       checkObject(input, '!==');
       js.Expression objectTest = pop();
@@ -2475,7 +2475,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkFixedArray(input);
       test = new js.Binary('||', objectTest, arrayTest);
       test = new js.Binary('||', test, pop());
-    } else if (node.isMutableArray(compiler)) {
+    } else if (checkedType.isMutableArray(compiler)) {
       // input is !Object
       // || ((input is !Array || input.isImmutable)
       //     && input is !JsIndexingBehavior)
@@ -2490,7 +2490,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           ? new js.Binary('&&', notArrayOrImmutable, pop())
           : notArrayOrImmutable;
       test = new js.Binary('||', objectTest, notIndexing);
-    } else if (node.isReadableArray(compiler)) {
+    } else if (checkedType.isReadableArray(compiler)) {
       // input is !Object
       // || (input is !Array && input is !JsIndexingBehavior)
       checkObject(input, '!==');
@@ -2502,7 +2502,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           ? new js.Binary('&&', arrayTest, pop())
           : arrayTest;
       test = new js.Binary('||', objectTest, notIndexing);
-    } else if (node.isIndexablePrimitive(compiler)) {
+    } else if (checkedType.isIndexablePrimitive(compiler)) {
       // input is !String
       // && (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior))
@@ -2529,8 +2529,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
       // An int check if the input is not int or null, is not
       // sufficient for doing a argument or receiver check.
-      assert(!node.isInteger() || node.checkedInput.isIntegerOrNull());
-      js.Expression test = generateTest(node);
+      assert(!node.checkedType.isInteger() ||
+          node.checkedInput.isIntegerOrNull());
+      js.Expression test = generateTest(node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
       currentContainer = body;

@@ -2251,6 +2251,7 @@ class HTypeConversion extends HCheck {
   final int kind;
   final Selector receiverTypeCheckSelector;
   final bool contextIsTypeArguments;
+  HType checkedType;  // Not final because we refine it.
 
   static const int CHECKED_MODE_CHECK = 0;
   static const int ARGUMENT_TYPE_CHECK = 1;
@@ -2262,6 +2263,7 @@ class HTypeConversion extends HCheck {
                   HType type, HInstruction input,
                   [this.receiverTypeCheckSelector])
       : contextIsTypeArguments = false,
+        checkedType = type,
         super(<HInstruction>[input]) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null ||
@@ -2274,6 +2276,7 @@ class HTypeConversion extends HCheck {
                                          HType type, HInstruction input,
                                          HInstruction typeRepresentation)
       : contextIsTypeArguments = false,
+        checkedType = type,
         super(<HInstruction>[input, typeRepresentation]),
         receiverTypeCheckSelector = null {
     assert(typeExpression.kind != TypeKind.TYPEDEF);
@@ -2286,6 +2289,7 @@ class HTypeConversion extends HCheck {
                               HInstruction context,
                               {bool this.contextIsTypeArguments})
       : super(<HInstruction>[input, context]),
+        checkedType = type,
         receiverTypeCheckSelector = null {
     assert(typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
@@ -2328,7 +2332,7 @@ class HTypeConversion extends HCheck {
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind
         && typeExpression == other.typeExpression
-        && instructionType == other.instructionType;
+        && checkedType == other.checkedType;
   }
 }
 
