@@ -87,7 +87,7 @@ abstract class _RectangleBase<T extends num> {
   /**
    * Tests whether `this` entirely contains [another].
    */
-  bool contains(Rectangle<num> another) {
+  bool containsRectangle(Rectangle<num> another) {
     return left <= another.left &&
            left + width >= another.left + another.width &&
            top <= another.top &&

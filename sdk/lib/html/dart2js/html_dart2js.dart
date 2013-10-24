@@ -26550,7 +26550,7 @@ class _ClientRect extends Interceptor implements Rectangle native "ClientRect" {
   /**
    * Tests whether `this` entirely contains [another].
    */
-  bool contains(Rectangle<num> another) {
+  bool containsRectangle(Rectangle<num> another) {
     return left <= another.left &&
            left + width >= another.left + another.width &&
            top <= another.top &&
