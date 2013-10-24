@@ -26483,7 +26483,7 @@ abstract class _CSSValue extends Interceptor native "CSSValue" {
 
 @DocsEditable()
 @DomName('ClientRect')
-class _ClientRect extends Interceptor implements Rectangle native "ClientRect" {
+class _ClientRect extends Interceptor implements Rectangle native "ClientRect,DOMRect" {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {

@@ -97,6 +97,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
 
+    'ClientRect': 'ClientRect,DOMRect',
+
     'CSSStyleDeclaration':
         #                    IE                   Firefox
         'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
