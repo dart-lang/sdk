@@ -24,7 +24,6 @@ Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with s
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19-roll r576: Please triage this failure
-Language/13_Statements/11_Try_A07_t03: fail # co19-roll r576: Please triage this failure
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: RuntimeError # TODO(kasperl): Please triage this failure.
@@ -435,7 +434,6 @@ Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: 
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/10_Rethrow_A01_t04: fail # co19-roll r559: Please triage this failure
 Language/13_Statements/10_Rethrow_A01_t05: fail # co19-roll r559: Please triage this failure
-Language/13_Statements/11_Try_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
@@ -562,9 +560,6 @@ LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # co19-roll r546: Plea
 LibTest/async/Future/Future.delayed_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/first_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/first_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.fromFuture_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.fromFuture_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.fromIterable_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -573,9 +568,6 @@ LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r5
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/02_Null_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
-
-[ $compiler == dart2js && ($minified || $runtime == ie9) ]
-Language/12_Expressions/08_Throw_A08_t01: RuntimeError # co19 Issue 630
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
@@ -608,9 +600,10 @@ LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please tr
 Language/12_Expressions/07_Maps_A13_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/14_Libraries_and_Scripts/2_Exports_A05_t03: MissingCompileTimeError # co19-roll r623: Please triage this failure
 Language/12_Expressions/06_Symbols_A01_t02: CompileTimeError # co19-roll r623: Please triage this failure
-LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 
 [ $compiler == dart2js ]
+LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
+
 LibTest/json/stringify_A01_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure
@@ -618,3 +611,14 @@ LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A04_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A14_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A16_t01: fail # co19-roll r587: Please triage this failure
+
+LibTest/async/Future/wait_A01_t07: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Stream/handleError_A04_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Stream/listen_A05_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Timer/isActive_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Timer/isActive_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/convert/JsonCodec/encode_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
+

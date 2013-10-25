@@ -70,6 +70,7 @@ LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
 
 # Passing for the wrong reasons:
 LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
@@ -124,5 +125,3 @@ Language/12_Expressions/12_Instance_Creation_A01_t08: CompileTimeError # co19-ro
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
 Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
 
-[ $compiler == none && $unchecked && ($runtime == vm || $runtime == dartium) ]
-LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure

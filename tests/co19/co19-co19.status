@@ -14,6 +14,19 @@ LibTest/core/Match/str_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
+Language/05_Variables/05_Variables_A11_t01: Fail, MissingCompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t03: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t04: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer_A01_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer_A01_t03: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer_A02_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer_A02_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer_A03_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/StreamTransformer_A03_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
+LibTest/StreamTransformer/bind_A01_t01: Fail # co19-roll r641: Please triage this failure
+
 LibTest/json/BuildJsonListener/BuildJsonListener_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/JsonParser_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/constants_A01_t01: Fail, OK # Issue 637
@@ -71,13 +84,20 @@ Language/07_Classes/6_Constructors/2_Factories_A14_t02: Fail, MissingCompileTime
 LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/core/List/removeAt_A02_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
+
+LibTest/async/Stream/handleError_A04_t02: Fail # co19-roll r641: Please triage this failure
+LibTest/async/Stream/listen_A05_t02: Fail # co19-roll r641: Please triage this failure
+LibTest/async/StreamSink/addError_A01_t01: Fail # co19-roll r641: Please triage this failure
+LibTest/async/StreamSink/addStream_A01_t01: Timeout, Fail # co19-roll r641: Please triage this failure
+LibTest/async/StreamSink/addStream_A01_t02: Timeout, Fail # co19-roll r641: Please triage this failure
+LibTest/collection/ListBase/ListBase_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
 
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
@@ -129,7 +149,6 @@ LibTest/async/EventTransformStream/any_A01_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/any_A02_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/asBroadcastStream_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/asBroadcastStream_A02_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/contains_A01_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/contains_A02_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/contains_A03_t01: Fail # co19 issue 626
@@ -192,8 +211,6 @@ LibTest/async/EventTransformStream/toSet_A01_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/transform_A01_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/where_A01_t01: Fail # co19 issue 626
 LibTest/async/EventTransformStream/where_A01_t02: Fail # co19 issue 626
-LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 626
-LibTest/async/Stream/transform_A01_t01: Fail # co19 issue 626
 LibTest/async/StreamEventTransformer/bind_A01_t01: Fail # co19 issue 626
 LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail # co19 issue 626
 LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail # co19 issue 626
@@ -212,6 +229,7 @@ LibTest/collection/ListQueue/ListQueue_class_A01_t01: RuntimeError # co19-roll r
 LibTest/collection/Queue/Queue_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Iterable/Iterable.generate_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r623: Please triage this failure
+LibTest/async/Future/catchError_A03_t05: RuntimeError # co19-roll r641: Please triage this failure
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
 Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560

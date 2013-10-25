@@ -11,6 +11,7 @@ Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Issue 13921
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # Issue 13719: Please triage this failure.
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 13719: Please triage this failure.
+LibTest/async/Future/Future_A01_t03: Fail # co19-roll r641: Please triage this failure
 LibTest/core/int/operator_left_shift_A01_t02: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Issue 13921
 LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Issue 13921
@@ -47,4 +48,4 @@ Language/07_Classes/6_Constructors/2_Factories_A12_t02: Fail # Please triage thi
 Language/13_Statements/09_Switch_A09_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail # Please triage this failure (enabled checked mode tests on dartium)
-
+LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
