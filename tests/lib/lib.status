@@ -171,9 +171,6 @@ async/timer_test: Fail, Pass
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
-mirrors/redirecting_factory_test/none: CompileTimeError # Issue 14472
-mirrors/redirecting_factory_test/01: CompileTimeError # Issue 14472
-mirrors/redirecting_factory_test/02: CompileTimeError # Issue 14472
 
 [ $compiler == none  ]
 async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
@@ -220,7 +217,6 @@ mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 mirrors/typevariable_mirror_metadata_test/none: Fail # Issue 13093
-mirrors/redirecting_factory_test/none: Fail # Issue 14285
 mirrors/type_variable_owner_test/none: Fail # Issue 14356
 
 [ $compiler == dart2analyzer ]
@@ -234,7 +230,6 @@ mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
 mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
 mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
 mirrors/typevariable_mirror_metadata_test/none: Fail # Issue 13093
-mirrors/redirecting_factory_test/none: Fail # Issue 14285
 mirrors/type_variable_owner_test/none: Fail # Issue 14356
 
 [ $compiler == none && $runtime == dartium ]
