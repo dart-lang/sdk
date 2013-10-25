@@ -22,12 +22,3 @@ patch Uri get script => null;
 patch List<String> get executableArguments => new List<String>(0);
 
 patch String get packageRoot => null;
-
-patch bool get isLinux => false;
-
-patch bool get isMacOS => false;
-
-patch bool get isWindows => false;
-
-patch bool get isAndroid => false;
-

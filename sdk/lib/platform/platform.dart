@@ -19,6 +19,10 @@ external int get numberOfProcessors;
 /**
  * The path separator used on the platform to separate
  * components in file paths.
+ *
+ * Returns null if the path separator is unknown or not valid.
+ *
+ * Supported on the standalone Dart executable and on dart2js.
  */
 external String get pathSeparator;
 
@@ -47,28 +51,6 @@ external String get localHostname;
  * Supported on the standalone Dart executable.
  */
 external String get version;
-
-/**
- * True if the operating system is Linux.
- */
-// TODO(6997): Replace with bool get isLinux => operatingSystem == 'linux'
-// when issue with patched top-level functions is fixed.
-external bool get isLinux;
-
-/**
- * True if the operating system is Mac OS.
- */
-external bool get isMacOS;
-
-/**
- * True if the operating system is Windows.
- */
-external bool get isWindows;
-
-/**
- * True if the operating system is Android.
- */
-external bool get isAndroid;
 
 /**
  * The environment for this instance of the platform.

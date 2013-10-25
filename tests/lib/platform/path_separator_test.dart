@@ -7,7 +7,7 @@ import "dart:platform" as platform;
 import "package:unittest/unittest.dart";
 
 main() {
-  if (platform.isWindows) {
+  if (platform.operatingSystem == 'windows') {
     expect(platform.pathSeparator, '\\');
   } else {
     expect(platform.pathSeparator, '/');

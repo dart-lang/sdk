@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "dart:platform" as platform;
 
 main() {
-  if (platform.isWindows) {
+  if (platform.operatingSystem == 'windows') {
     Expect.equals("a\\b", Uri.parse("a/b").toFilePath());
     Expect.equals("a\\b\\", Uri.parse("a/b/").toFilePath());
     Expect.equals("a b", Uri.parse("a%20b").toFilePath());

@@ -11,8 +11,4 @@ main() {
     expect(platform.operatingSystem,
            isIn(['linux', 'macos', 'windows', 'android']));
   }
-  expect(platform.isLinux, platform.operatingSystem == 'linux');
-  expect(platform.isMacOS, platform.operatingSystem == 'macos');
-  expect(platform.isWindows, platform.operatingSystem == 'windows');
-  expect(platform.isAndroid, platform.operatingSystem == 'android');
 }

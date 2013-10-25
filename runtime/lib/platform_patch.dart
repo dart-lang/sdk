@@ -22,14 +22,6 @@ patch List<String> get executableArguments => _platform.executableArguments;
 
 patch String get packageRoot => _platform.packageRoot;
 
-patch bool get isLinux => _platform.operatingSystem == "linux";
-
-patch bool get isMacOS => _platform.operatingSystem == "macos";
-
-patch bool get isWindows => _platform.operatingSystem == "windows";
-
-patch bool get isAndroid => _platform.operatingSystem == "android";
-
 class _Platform {
   int get numberOfProcessors;
   String get pathSeparator;
@@ -52,7 +44,7 @@ class _DefaultPlatform implements _Platform {
   }
 
   String get pathSeparator {
-    return "/";
+    return null;
   }
 
   String get operatingSystem {

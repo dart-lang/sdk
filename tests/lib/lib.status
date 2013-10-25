@@ -130,6 +130,10 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 mirrors/*: Skip # http://dartbug.com/11511
 async/schedule_microtask6_test: Fail             # Issue 10957 - may be related to issue 10910
 async/schedule_microtask3_test: RuntimeError # Issue 13719: Please triage this failure.
+platform/package_root_test: Fail # Issue 14451
+platform/script_test: Fail # Issue 14451
+platform/isolate_test: Fail # Issue 14451
+
 
 [ $compiler == dart2dart && $minified ]
 json/json_test: Fail                            # Issue 10961

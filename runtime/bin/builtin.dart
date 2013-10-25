@@ -313,6 +313,10 @@ String _filePathFromHttpUri(Uri uri) {
 
 
 class _PlatformHook {
+  // TODO(whesse):  Replace uses of Platform with uses of internal _Platform
+  //   class, to prepare for removal of (deprecated) Platform class.
+  //   Also merge _Platform and _PlatformHook class into _Platform class
+  //   at that time, since _PlatformHook is the only user of _Platform.
   int get numberOfProcessors => Platform.numberOfProcessors;
   String get pathSeparator => Platform.pathSeparator;
   String get operatingSystem => Platform.operatingSystem;
