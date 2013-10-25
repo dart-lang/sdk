@@ -215,7 +215,8 @@ class Entrypoint {
   /// Loads the package graph for the application and all of its transitive
   /// dependencies.
   Future<PackageGraph> loadPackageGraph() {
-    return Future.wait(loadLockFile().packages.values.map((id) {
+    var lockFile = loadLockFile();
+    return Future.wait(lockFile.packages.values.map((id) {
       var source = cache.sources[id.source];
       return source.getDirectory(id)
           .then((dir) => new Package.load(id.name, dir, cache.sources));
@@ -225,7 +226,7 @@ class Entrypoint {
         packageMap[package.name] = package;
       }
       packageMap[root.name] = root;
-      return new PackageGraph(this, packageMap);
+      return new PackageGraph(this, lockFile, packageMap);
     });
   }
 

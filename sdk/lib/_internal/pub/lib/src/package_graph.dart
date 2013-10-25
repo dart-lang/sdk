@@ -14,10 +14,16 @@ class PackageGraph {
   /// The entrypoint.
   final Entrypoint entrypoint;
 
+  /// The entrypoint's lockfile.
+  ///
+  /// This describes the sources and resolved descriptions of everything in
+  /// [packages].
+  final LockFile lockFile;
+
   /// All transitive dependencies of the entrypoint (including itself).
   final Map<String, Package> packages;
 
-  PackageGraph(this.entrypoint, this.packages);
+  PackageGraph(this.entrypoint, this.lockFile, this.packages);
 
   /// Returns the set of transitive dependencies of the package named
   /// [packageName].

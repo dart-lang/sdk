@@ -20,9 +20,20 @@ void watchSources(PackageGraph graph, Barback barback) {
     // Add the initial sources.
     barback.updateSources(_listAssets(graph.entrypoint, package));
 
+    // If this package comes from a cached source, its contents won't change so
+    // we don't need to monitor it. `packageId` will be null for the application
+    // package, since that's not locked.
+    var packageId = graph.lockFile.packages[package.name];
+    if (packageId != null &&
+        graph.entrypoint.cache.sources[packageId.source].shouldCache) {
+      continue;
+    }
+
     // Watch the visible package directories for changes.
     for (var name in _getPublicDirectories(graph.entrypoint, package)) {
       var subdirectory = path.join(package.dir, name);
+      if (!dirExists(subdirectory)) continue;
+
       // TODO(nweiz): close these watchers when [barback] is closed.
       var watcher = new DirectoryWatcher(subdirectory);
       watcher.events.listen((event) {
