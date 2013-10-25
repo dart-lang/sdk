@@ -471,6 +471,64 @@ class IE extends Browser {
 }
 
 
+class AndroidBrowserConfig {
+  final String name;
+  final String package;
+  final String activity;
+  final String action;
+  AndroidBrowserConfig(this.name, this.package, this.activity, this.action);
+}
+
+
+final contentShellOnAndroidConfig = new AndroidBrowserConfig(
+    'ContentShellOnAndroid',
+    'org.chromium.content_shell_apk',
+    '.ContentShellActivity',
+    'android.intent.action.VIEW');
+
+
+final dartiumOnAndroidConfig = new AndroidBrowserConfig(
+    'DartiumOnAndroid',
+    'com.google.android.apps.chrome',
+    '.Main',
+    'android.intent.action.VIEW');
+
+
+class AndroidBrowser extends Browser {
+  AdbDevice _adbDevice;
+  AndroidBrowserConfig _config;
+
+  AndroidBrowser(this._adbDevice, this._config);
+
+  Future<bool> start(String url) {
+    var intent = new Intent(
+        _config.action, _config.package, _config.activity, url);
+    return _adbDevice.waitForBootCompleted().then((_) {
+      return _adbDevice.forceStop(_config.package);
+    }).then((_) {
+      return _adbDevice.killAll();
+    }).then((_) {
+      return _adbDevice.adbRoot();
+    }).then((_) {
+      return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
+    }).then((_) {
+      return _adbDevice.startActivity(intent).then((_) => true);
+    });
+  }
+
+  Future<bool> close() {
+    if (_adbDevice != null) {
+      return _adbDevice.forceStop(_config.package).then((_) {
+        return _adbDevice.killAll().then((_) => true);
+      });
+    }
+    return new Future.value(true);
+  }
+
+  String toString() => _config.name;
+}
+
+
 class AndroidChrome extends Browser {
   static const String viewAction = 'android.intent.action.VIEW';
   static const String mainAction = 'android.intent.action.MAIN';
@@ -535,44 +593,6 @@ class AndroidChrome extends Browser {
   }
 
   String toString() => "chromeOnAndroid";
-}
-
-
-class ContentShellOnAndroid extends Browser {
-  static const String viewAction = 'android.intent.action.VIEW';
-  static const String contentShellPackage = 'org.chromium.content_shell_apk';
-
-  AdbDevice _adbDevice;
-
-  ContentShellOnAndroid(this._adbDevice);
-
-  Future<bool> start(String url) {
-    var contentShellIntent = new Intent(
-        viewAction, contentShellPackage, '.ContentShellActivity', url);
-
-    return _adbDevice.waitForBootCompleted().then((_) {
-      return _adbDevice.forceStop(contentShellIntent.package);
-    }).then((_) {
-      return _adbDevice.killAll();
-    }).then((_) {
-      return _adbDevice.adbRoot();
-    }).then((_) {
-      return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
-    }).then((_) {
-      return _adbDevice.startActivity(contentShellIntent).then((_) => true);
-    });
-  }
-
-  Future<bool> close() {
-    if (_adbDevice != null) {
-      return _adbDevice.forceStop(contentShellPackage).then((_) {
-        return _adbDevice.killAll().then((_) => true);
-      });
-    }
-    return new Future.value(true);
-  }
-
-  String toString() => "ContentShellOnAndroid";
 }
 
 
@@ -769,7 +789,9 @@ class BrowserTestRunner {
     var androidBrowserCreationMapping = {
       'chromeOnAndroid' : (AdbDevice device) => new AndroidChrome(device),
       'ContentShellOnAndroid' : (AdbDevice device) =>
-          new ContentShellOnAndroid(device),
+          new AndroidBrowser(device, contentShellOnAndroidConfig),
+      'DartiumOnAndroid' : (AdbDevice device) =>
+          new AndroidBrowser(device, dartiumOnAndroidConfig),
     };
     if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
@@ -893,7 +915,11 @@ class BrowserTestRunner {
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
       } else if (browserName == 'ContentShellOnAndroid') {
-        browser = new ContentShellOnAndroid(adbDeviceMapping[id]);
+        browser = new AndroidBrowser(adbDeviceMapping[id],
+                                     contentShellOnAndroidConfig);
+      } else if (browserName == 'DartiumOnAndroid') {
+        browser = new AndroidBrowser(adbDeviceMapping[id],
+                                     dartiumOnAndroidConfig);
       } else {
         browserStatus.remove(id);
         browser = getInstance();

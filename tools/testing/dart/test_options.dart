@@ -89,6 +89,8 @@ class TestOptionsParser {
     ContentShellOnAndroid: Run Dart or JavaScript in Dartium content shell
                       on Android.
 
+    DartiumOnAndroid: Run Dart or Javascript in Dartium on Android.
+
     [ff | chrome | safari | ie9 | ie10 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
@@ -97,7 +99,7 @@ class TestOptionsParser {
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid',
-               'ContentShellOnAndroid', 'none'],
+               'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -544,7 +546,8 @@ Note: currently only implemented for dart2js.''',
         break;
       case 'none':
       case 'dart2dart':
-        validRuntimes = const ['vm', 'drt', 'dartium', 'ContentShellOnAndroid'];
+        validRuntimes = const ['vm', 'drt', 'dartium',
+                               'ContentShellOnAndroid', 'DartiumOnAndroid'];
         break;
     }
     if (!validRuntimes.contains(config['runtime'])) {
