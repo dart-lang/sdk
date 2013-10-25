@@ -7,6 +7,7 @@
 
 library MessageTest;
 import 'dart:isolate';
+import 'dart:async';
 import '../../pkg/unittest/lib/unittest.dart';
 
 // ---------------------------------------------------------------------------
