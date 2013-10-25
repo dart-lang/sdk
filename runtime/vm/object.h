@@ -785,6 +785,7 @@ class Class : public Object {
   void set_mixin(const Type& value) const;
 
   bool IsMixinApplication() const;
+  bool IsAnonymousMixinApplication() const;
 
   RawClass* patch_class() const {
     return raw_ptr()->patch_class_;
@@ -4284,15 +4285,16 @@ class BoundedType : public AbstractType {
 };
 
 
-// A MixinAppType represents a mixin application clause, e.g.
-// "S<T> with M<U>, N<V>". The class finalizer builds the type
-// parameters and arguments at finalization time.
+// A MixinAppType represents a parsed mixin application clause, e.g.
+// "S<T> with M<U>, N<V>".
 // MixinAppType objects do not survive finalization, so they do not
 // need to be written to and read from snapshots.
+// The class finalizer creates synthesized classes S&M and S&M&N if they do not
+// yet exist in the library declaring the mixin application clause.
 class MixinAppType : public AbstractType {
  public:
-  // A MixinAppType object is replaced at class finalization time with a
-  // finalized Type or BoundedType object.
+  // A MixinAppType object is unfinalized by definition, since it is replaced at
+  // class finalization time with a finalized Type or BoundedType object.
   virtual bool IsFinalized() const { return false; }
   // TODO(regis): Handle malformed and malbounded MixinAppType.
   virtual bool IsMalformed() const { return false; }
@@ -4305,27 +4307,27 @@ class MixinAppType : public AbstractType {
   // Returns the mixin composition depth of this mixin application type.
   intptr_t Depth() const;
 
-  // Returns the declared super type of the mixin application, which is also
-  // the super type of the first synthesized class, e.g. "S&M" refers to
-  // super type "S<T>".
-  RawAbstractType* SuperType() const;
+  // Returns the declared super type of the mixin application, which will also
+  // be the super type of the first synthesized class, e.g. class "S&M" will
+  // refer to super type "S<T>".
+  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
 
-  // Returns the synthesized class representing the mixin application at
-  // the given mixin composition depth, e.g. class "S&M" at depth 0, class
-  // "S&M&N" at depth 1.
-  // Each class refers to its mixin type, e.g. "S&M" refers to mixin type "M<U>"
-  // and "S&M&N" refers to mixin type "N<V>".
-  RawClass* MixinAppAt(intptr_t depth) const;
+  // Returns the mixin type at the given mixin composition depth, e.g. N<V> at
+  // depth 0 and M<U> at depth 1.
+  RawAbstractType* MixinTypeAt(intptr_t depth) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMixinAppType));
   }
 
-  static RawMixinAppType* New(const Array& mixins);
+  static RawMixinAppType* New(const AbstractType& super_type,
+                              const Array& mixin_types);
 
  private:
-  RawArray* mixins() const { return raw_ptr()->mixins_; }
-  void set_mixins(const Array& value) const;
+  void set_super_type(const AbstractType& value) const;
+
+  RawArray* mixin_types() const { return raw_ptr()->mixin_types_; }
+  void set_mixin_types(const Array& value) const;
 
   static RawMixinAppType* New();
 

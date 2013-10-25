@@ -574,14 +574,11 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   ClassMirror get mixin {
     if (_mixin == null) {
       if (_isMixinTypedef) {
-        Type mixinType = isOriginalDeclaration
-            ? _nativeMixin(_trueSuperclass._reflectedType)
-            : _nativeMixinInstantiated(_trueSuperclass._reflectedType, _instantiator);
+        Type mixinType = _nativeMixinInstantiated(_trueSuperclass._reflectedType,
+                                                  _instantiator);
         _mixin = reflectType(mixinType);
       } else {
-        Type mixinType = isOriginalDeclaration
-            ? _nativeMixin(_reflectedType)
-            : _nativeMixinInstantiated(_reflectedType, _instantiator);
+        Type mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
         if (mixinType == null) {
           // The reflectee is not a mixin application.
           _mixin = this;

@@ -483,7 +483,7 @@ class RawClass : public RawObject {
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
-  RawType* mixin_;
+  RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
   RawClass* patch_class_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
@@ -1203,11 +1203,12 @@ class RawMixinAppType : public RawAbstractType {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MixinAppType);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->mixins_);
+    return reinterpret_cast<RawObject**>(&ptr()->super_type_);
   }
-  RawArray* mixins_;  // Array of synthesized mixin application classes.
+  RawAbstractType* super_type_;
+  RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->mixins_);
+    return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
   }
 };
 

@@ -352,7 +352,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   // We do not set the names of anonymous mixin applications because the mirrors
   // use a different naming convention than the VM (lib.S with lib.M and S&M
   // respectively).
-  if (!cls.IsMixinApplication() || cls.is_mixin_typedef()) {
+  if (!cls.IsAnonymousMixinApplication()) {
     args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, is_generic);
@@ -1211,7 +1211,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
       // We filter out function signature classes and dynamic.
       // TODO(12478): Should not need to filter out dynamic.
       if (!klass.IsCanonicalSignatureClass() &&
-          !klass.IsDynamicClass()) {
+          !klass.IsDynamicClass() &&
+          !klass.IsAnonymousMixinApplication()) {
         type = klass.DeclarationType();
         member_mirror = CreateClassMirror(klass,
                                           type,

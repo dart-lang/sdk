@@ -3753,7 +3753,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
     if (CurrentToken() == Token::kWITH) {
-      super_type = ParseMixins(pending_classes, super_type);
+      super_type = ParseMixins(super_type);
     }
     if (is_mixin_declaration) {
       cls.set_is_mixin_typedef();
@@ -3955,7 +3955,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   if (CurrentToken() != Token::kWITH) {
     ErrorMsg("mixin application 'with Type' expected");
   }
-  type = ParseMixins(pending_classes, type);
+  type = ParseMixins(type);
 
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
@@ -4338,62 +4338,30 @@ void Parser::ParseInterfaceList(const Class& cls) {
 }
 
 
-RawAbstractType* Parser::ParseMixins(const GrowableObjectArray& pending_classes,
-                                     const AbstractType& super_type) {
+RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
   ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
-  AbstractType& mixin_super_type = AbstractType::Handle(super_type.raw());
-
-  const GrowableObjectArray& mixin_apps =
+  const GrowableObjectArray& mixin_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
-  Class& mixin_app_class = Class::Handle();
-  String& mixin_app_class_name = String::Handle();
-  String& mixin_type_class_name = String::Handle();
   do {
     ConsumeToken();
-    const intptr_t mixin_pos = TokenPos();
     mixin_type = ParseType(ClassFinalizer::kResolveTypeParameters);
+    if (mixin_type.IsDynamicType()) {
+      // The string 'dynamic' is not resolved yet at this point, but a malformed
+      // type mapped to dynamic can be encountered here.
+      ErrorMsg(mixin_type.token_pos(), "illegal mixin of a malformed type");
+    }
     if (mixin_type.IsTypeParameter()) {
-      ErrorMsg(mixin_pos,
+      ErrorMsg(mixin_type.token_pos(),
                "mixin type '%s' may not be a type parameter",
                String::Handle(mixin_type.UserVisibleName()).ToCString());
     }
-
-    // The name of the mixin application class is a combination of
-    // the super class name and mixin class name.
-    mixin_app_class_name = mixin_super_type.ClassName();
-    mixin_app_class_name = String::Concat(mixin_app_class_name,
-                                          Symbols::Ampersand());
-    mixin_type_class_name = mixin_type.ClassName();
-    mixin_app_class_name = String::Concat(mixin_app_class_name,
-                                          mixin_type_class_name);
-    mixin_app_class_name = Symbols::New(mixin_app_class_name);
-
-    mixin_app_class = Class::New(mixin_app_class_name, script_, mixin_pos);
-    mixin_app_class.set_super_type(mixin_super_type);
-    mixin_app_class.set_mixin(Type::Cast(mixin_type));
-    mixin_app_class.set_library(library_);
-    mixin_app_class.set_is_synthesized_class();
-    pending_classes.Add(mixin_app_class, Heap::kOld);
-
-    // The class finalizer will add the mixin type to the interfaces that the
-    // mixin application class implements. This is necessary so that type tests
-    // work. The mixin class may not be resolved yet, so it is not possible to
-    // add the interface with the correct type arguments here.
-
-    // Add the synthesized class to the list of mixin apps.
-    mixin_apps.Add(mixin_app_class);
-
-    // This mixin application class becomes the type class of the super type of
-    // the next mixin application class. It is however too early to provide the
-    // correct super type arguments. We use the raw type for now.
-    mixin_super_type = Type::New(mixin_app_class,
-                                 Object::null_abstract_type_arguments(),
-                                 mixin_pos);
+    mixin_types.Add(mixin_type);
   } while (CurrentToken() == Token::kCOMMA);
-  return MixinAppType::New(Array::Handle(Array::MakeArray(mixin_apps)));
+  return MixinAppType::New(super_type,
+                           Array::Handle(Array::MakeArray(mixin_types)));
 }
 
 

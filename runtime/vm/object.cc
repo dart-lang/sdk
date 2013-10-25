@@ -2610,7 +2610,6 @@ void Class::set_interfaces(const Array& value) const {
 
 
 void Class::set_mixin(const Type& value) const {
-  // Resolution and application of mixin type occurs in finalizer.
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->mixin_, value.raw());
 }
@@ -2620,6 +2619,9 @@ bool Class::IsMixinApplication() const {
   return mixin() != Type::null();
 }
 
+bool Class::IsAnonymousMixinApplication() const {
+  return IsMixinApplication() && !is_mixin_typedef();
+}
 
 void Class::set_patch_class(const Class& cls) const {
   ASSERT(patch_class() == Class::null());
@@ -12234,13 +12236,12 @@ void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 intptr_t MixinAppType::token_pos() const {
-  return Class::Handle(MixinAppAt(0)).token_pos();
+  return AbstractType::Handle(MixinTypeAt(0)).token_pos();
 }
 
 
 intptr_t MixinAppType::Depth() const {
-  const Array& mixin_apps = Array::Handle(mixins());
-  return mixin_apps.Length();
+  return Array::Handle(mixin_types()).Length();
 }
 
 
@@ -12250,15 +12251,15 @@ RawString* MixinAppType::Name() const {
 
 
 const char* MixinAppType::ToCString() const {
-  const char* format = "MixinAppType: super type: %s; first mixin app: %s";
+  const char* format = "MixinAppType: super type: %s; first mixin type: %s";
   const char* super_type_cstr = String::Handle(AbstractType::Handle(
-      SuperType()).Name()).ToCString();
-  const char* first_mixin_app_cstr = String::Handle(Class::Handle(
-      MixinAppAt(0)).Name()).ToCString();
+      super_type()).Name()).ToCString();
+  const char* first_mixin_type_cstr = String::Handle(AbstractType::Handle(
+      MixinTypeAt(0)).Name()).ToCString();
   intptr_t len = OS::SNPrint(
-      NULL, 0, format, super_type_cstr, first_mixin_app_cstr) + 1;
+      NULL, 0, format, super_type_cstr, first_mixin_type_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_app_cstr);
+  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
   return chars;
 }
 
@@ -12268,18 +12269,18 @@ void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawAbstractType* MixinAppType::SuperType() const {
-  return Class::Handle(MixinAppAt(0)).super_type();
+RawAbstractType* MixinAppType::MixinTypeAt(intptr_t depth) const {
+  return AbstractType::RawCast(Array::Handle(mixin_types()).At(depth));
 }
 
 
-RawClass* MixinAppType::MixinAppAt(intptr_t depth) const {
-  return Class::RawCast(Array::Handle(mixins()).At(depth));
+void MixinAppType::set_super_type(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
 
-void MixinAppType::set_mixins(const Array& value) const {
-  StorePointer(&raw_ptr()->mixins_, value.raw());
+void MixinAppType::set_mixin_types(const Array& value) const {
+  StorePointer(&raw_ptr()->mixin_types_, value.raw());
 }
 
 
@@ -12295,9 +12296,11 @@ RawMixinAppType* MixinAppType::New() {
 }
 
 
-RawMixinAppType* MixinAppType::New(const Array& mixins) {
+RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
+                                   const Array& mixin_types) {
   const MixinAppType& result = MixinAppType::Handle(MixinAppType::New());
-  result.set_mixins(mixins);
+  result.set_super_type(super_type);
+  result.set_mixin_types(mixin_types);
   return result.raw();
 }
 
