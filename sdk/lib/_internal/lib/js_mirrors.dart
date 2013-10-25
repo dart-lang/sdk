@@ -253,6 +253,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   UnmodifiableMapView<Symbol, MethodMirror> _cachedSetters;
   UnmodifiableMapView<Symbol, VariableMirror> _cachedVariables;
   UnmodifiableMapView<Symbol, Mirror> _cachedMembers;
+  UnmodifiableMapView<Symbol, DeclarationMirror> _cachedDeclarations;
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
 
   JsLibraryMirror(Symbol simpleName,
@@ -428,6 +429,17 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     setters.forEach(addToResult);
     variables.forEach(addToResult);
     return _cachedMembers = new UnmodifiableMapView<Symbol, Mirror>(result);
+  }
+
+  Map<Symbol, DeclarationMirror> get declarations {
+    if (_cachedDeclarations != null) return _cachedDeclarations;
+    var result = new Map<Symbol, DeclarationMirror>();
+    addToResult(Symbol key, Mirror value) {
+      result[key] = value;
+    }
+    members.forEach(addToResult);
+    return _cachedDeclarations =
+        new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
   }
 
   List<InstanceMirror> get metadata {
@@ -1063,6 +1075,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   UnmodifiableMapView<Symbol, MethodMirror> _cachedSetters;
   UnmodifiableMapView<Symbol, VariableMirror> _cachedVariables;
   UnmodifiableMapView<Symbol, Mirror> _cachedMembers;
+  UnmodifiableMapView<Symbol, DeclarationMirror> _cachedDeclarations;
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
   UnmodifiableListView<ClassMirror> _cachedSuperinterfaces;
   UnmodifiableListView<TypeVariableMirror> _cachedTypeVariables;
@@ -1224,6 +1237,19 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       result.putIfAbsent(method.simpleName, () => method);
     }
     return _cachedMembers = new UnmodifiableMapView<Symbol, Mirror>(result);
+  }
+
+  Map<Symbol, DeclarationMirror> get declarations {
+    if (_cachedDeclarations != null) return _cachedDeclarations;
+    var result = new Map<Symbol, DeclarationMirror>();
+    addToResult(Symbol key, Mirror value) {
+      result[key] = value;
+    }
+    members.forEach(addToResult);
+    constructors.forEach(addToResult);
+    typeVariables.forEach((tv) => result[tv.simpleName] = tv);
+    return _cachedDeclarations =
+        new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {

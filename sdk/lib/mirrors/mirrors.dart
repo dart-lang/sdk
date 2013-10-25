@@ -676,6 +676,15 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   Uri get uri;
 
   /**
+   * Returns an immutable map of the declarations actually given in the library.
+   * 
+   * This map includes all regular methods, getters, setters, fields, classes
+   * and typedefs actually declared in the library. The map is keyed by the
+   * simple names of the declarations.
+   */
+  Map<Symbol, DeclarationMirror> get declarations;
+
+  /**
    * An immutable map from from names to mirrors for all members in
    * this library.
    *
@@ -732,7 +741,7 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * are
    * the same library in the same isolate.
    */
-   bool operator == (other);
+   bool operator ==(other);
 }
 
 /**
@@ -817,6 +826,17 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * A list of mirrors on the superinterfaces of the reflectee.
    */
   List<ClassMirror> get superinterfaces;
+
+  /** 
+   * Returns an immutable map of the declarations actually given in the class
+   * declaration.
+   *
+   * This map includes all regular methods, getters, setters, fields,
+   * constructors and type variables actually declared in the class. Both
+   * static and instance members are included, but no inherited members are
+   * included. The map is keyed by the simple names of the declarations.
+   */
+  Map<Symbol, DeclarationMirror> get declarations;
 
   /**
    * The mixin of this class.
