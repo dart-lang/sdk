@@ -8,16 +8,20 @@ part of template_binding;
 class _TextExtension extends NodeBindExtension {
   _TextExtension(Text node) : super._(node);
 
-  NodeBinding createBinding(String name, model, String path) {
-    if (name == 'text') return new _TextBinding(_node, model, path);
-    return super.createBinding(name, model, path);
+  NodeBinding bind(String name, model, [String path]) {
+    // Dart note: 'text' instead of 'textContent' to match the DOM property.
+    if (name != 'text') {
+      return super.bind(name, model, path);
+    }
+    unbind(name);
+    return bindings[name] = new _TextBinding(_node, model, path);
   }
 }
 
 class _TextBinding extends NodeBinding {
   _TextBinding(node, model, path) : super(node, 'text', model, path);
 
-  void boundValueChanged(newValue) {
+  void valueChanged(newValue) {
     node.text = sanitizeBoundValue(newValue);
   }
 }

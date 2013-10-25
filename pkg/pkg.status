@@ -267,8 +267,8 @@ unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
 unittest/test/unitttest_group_name_test: Fail # 13921
 template_binding/test/template_element_test: Pass, Fail # Flaky, 14330
+polymer_expressions/test/bindings_test: Pass, Fail # Flaky, 14330
 polymer/test/custom_event_test: Pass, Crash # 14360
-
 polymer/example/canonicalization/test/canonicalization_deploy_test: Fail, OK # tests deploy only behavior
 
 # Skip tests on the VM if the package depends on dart:html

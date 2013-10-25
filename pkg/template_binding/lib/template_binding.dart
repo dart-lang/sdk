@@ -104,6 +104,7 @@ NodeBindExtension nodeBindFallback(Node node) {
   var extension = _expando[node];
   if (extension != null) return extension;
 
+  // TODO(jmesserly): switch on localName?
   if (node is InputElement) {
     extension = new _InputElementExtension(node);
   } else if (node is SelectElement) {

@@ -8,11 +8,20 @@ part of template_binding;
 class _ElementExtension extends NodeBindExtension {
   _ElementExtension(Element node) : super._(node);
 
-  // TODO(jmesserly): should path be optional, and default to empty path?
-  // It is used that way in at least one path in JS TemplateElement tests
-  // (see "BindImperative" test in original JS code).
-  NodeBinding createBinding(String name, model, String path) =>
-      new _AttributeBinding(_node, name, model, path);
+  NodeBinding bind(String name, model, [String path]) {
+    _self.unbind(name);
+
+    var binding;
+    if (_node is OptionElement && name == 'value') {
+      // Note: because <option> can be a semantic template, <option> will be
+      // a TemplateBindExtension sometimes. So we need to handle it here.
+      _node.attributes.remove(name);
+      binding = new _OptionValueBinding(_node, model, path);
+    } else {
+      binding = new _AttributeBinding(_node, name, model, path);
+    }
+    return bindings[name] = binding;
+  }
 }
 
 class _AttributeBinding extends NodeBinding {
@@ -32,7 +41,7 @@ class _AttributeBinding extends NodeBinding {
 
   Element get node => super.node;
 
-  void boundValueChanged(value) {
+  void valueChanged(value) {
     if (conditional) {
       if (_toBoolean(value)) {
         node.attributes[property] = '';
@@ -43,6 +52,32 @@ class _AttributeBinding extends NodeBinding {
       // TODO(jmesserly): escape value if needed to protect against XSS.
       // See https://github.com/polymer-project/mdv/issues/58
       node.attributes[property] = sanitizeBoundValue(value);
+    }
+  }
+}
+
+class _OptionValueBinding extends _ValueBinding {
+  _OptionValueBinding(node, model, path) : super(node, model, path);
+
+  OptionElement get node => super.node;
+
+  void valueChanged(newValue) {
+    var oldValue = null;
+    var selectBinding = null;
+    var select = node.parent;
+    if (select is SelectElement) {
+      var valueBinding = nodeBind(select).bindings['value'];
+      if (valueBinding is _SelectBinding) {
+        selectBinding = valueBinding;
+        oldValue = select.value;
+      }
+    }
+
+    super.valueChanged(newValue);
+
+    if (selectBinding != null && !selectBinding.closed &&
+        select.value != oldValue) {
+      selectBinding.nodeValueChanged(null);
     }
   }
 }

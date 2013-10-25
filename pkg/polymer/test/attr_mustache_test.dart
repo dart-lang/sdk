@@ -17,7 +17,7 @@ class XTarget extends PolymerElement {
   Future get foundSrc => _found.future;
 
   // force an mdv binding
-  bind(name, model, path) =>
+  bind(name, model, [path]) =>
       nodeBindFallback(this).bind(name, model, path);
 
   inserted() {

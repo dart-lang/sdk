@@ -165,18 +165,20 @@ class MyCustomElement extends HtmlElement implements NodeBindExtension {
 
   MyCustomElement.created() : super.created();
 
-  NodeBinding createBinding(String name, model, String path) {
+  NodeBinding bind(String name, model, [String path]) {
     switch (name) {
       case 'my-point':
       case 'scary-monster':
-        return new _MyCustomBinding(this, name, model, path);
+        attributes.remove(name);
+        unbind(name);
+        return bindings[name] = new _MyCustomBinding(this, name, model, path);
     }
-    return nodeBindFallback(this).createBinding(name, model, path);
+    return nodeBindFallback(this).bind(name, model, path);
   }
 
-  bind(name, model, path) => nodeBindFallback(this).bind(name, model, path);
   unbind(name) => nodeBindFallback(this).unbind(name);
   unbindAll() => nodeBindFallback(this).unbindAll();
+  get bindings => nodeBindFallback(this).bindings;
 }
 
 class _MyCustomBinding extends NodeBinding {
@@ -188,7 +190,7 @@ class _MyCustomBinding extends NodeBinding {
 
   MyCustomElement get node => super.node;
 
-  void boundValueChanged(newValue) {
+  void valueChanged(newValue) {
     if (property == 'my-point') node.myPoint = newValue;
     if (property == 'scary-monster') node.scaryMonster = newValue;
   }

@@ -10,12 +10,14 @@ class _SelectElementExtension extends _ElementExtension {
 
   SelectElement get _node => super._node;
 
-  NodeBinding createBinding(String name, model, String path) {
-    if (name.toLowerCase() == 'selectedindex') {
-      // TODO(rafaelw): Maybe template should remove all binding instructions.
-      _node.attributes.remove(name);
-      return new _SelectedIndexBinding(_node, model, path);
+  NodeBinding bind(String name, model, [String path]) {
+    if (name == 'selectedindex') name = 'selectedIndex';
+    if (name != 'selectedIndex' && name != 'value') {
+      return super.bind(name, model, path);
     }
-    return super.createBinding(name, model, path);
+
+    _self.unbind(name);
+    _node.attributes.remove(name);
+    return bindings[name] = new _SelectBinding(_node, name, model, path);
   }
 }

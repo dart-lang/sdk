@@ -110,27 +110,6 @@ class CustomElement implements Element {
   /** Invoked when any attribute of the component is modified. */
   void attributeChanged(String name, String oldValue) {}
 
-  get model => host.model;
-
-  void set model(newModel) {
-    host.model = newModel;
-  }
-
-  get templateInstance => host.templateInstance;
-  get isTemplate => host.isTemplate;
-  get ref => host.ref;
-  get content => host.content;
-  DocumentFragment createInstance(model, [BindingDelegate delegate]) =>
-      host.createInstance(model, delegate);
-  createBinding(String name, model, String path) =>
-      host.createBinding(name, model, path);
-  bind(String name, model, String path) => host.bind(name, model, path);
-  void unbind(String name) => host.unbind(name);
-  void unbindAll() => host.unbindAll();
-  get bindings => host.bindings;
-  BindingDelegate get bindingDelegate => host.bindingDelegate;
-  set bindingDelegate(BindingDelegate value) { host.bindingDelegate = value; }
-
   // TODO(efortuna): Update these when we decide what to do with these
   // properties.
   @deprecated

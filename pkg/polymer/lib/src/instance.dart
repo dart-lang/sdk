@@ -422,10 +422,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   DocumentFragment instanceTemplate(Element template) =>
       templateBind(template).createInstance(this, _polymerSyntax);
 
-  NodeBinding createBinding(String name, model, String path) =>
-      nodeBindFallback(this).createBinding(name, model, path);
-
-  NodeBinding bind(String name, model, String path) {
+  NodeBinding bind(String name, model, [String path]) {
     // note: binding is a prepare signal. This allows us to be sure that any
     // property changes that occur as a result of binding will be observed.
     if (!_elementPrepared) prepareElement();
@@ -636,7 +633,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
    */
   // TODO(jmesserly): replace with something more localized, like:
   // @ComputedField('myModel.path.to.otherProp');
-  NodeBinding bindProperty(Symbol name, Object model, String path) =>
+  NodeBinding bindProperty(Symbol name, Object model, [String path]) =>
       // apply Polymer two-way reference binding
       _bindProperties(this, name, model, path);
 
@@ -1071,7 +1068,7 @@ class _PolymerBinding extends NodeBinding {
     super.close();
   }
 
-  void boundValueChanged(newValue) {
+  void valueChanged(newValue) {
     _lastValue = newValue;
     _target.setField(_property, newValue);
   }

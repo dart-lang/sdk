@@ -21,19 +21,18 @@ class TemplateBindExtension extends _ElementExtension {
 
   Element get _node => super._node;
 
-  NodeBinding createBinding(String name, model, String path) {
+  NodeBinding bind(String name, model, [String path]) {
     switch (name) {
       case 'bind':
       case 'repeat':
       case 'if':
+        _self.unbind(name);
         if (_templateIterator == null) {
           _templateIterator = new _TemplateIterator(_node);
         }
-        // TODO(jmesserly): why do we do this here and nowhere else?
-        if (path == null) path = '';
-        return new _TemplateBinding(this, name, model, path);
+        return bindings[name] = new _TemplateBinding(this, name, model, path);
       default:
-        return super.createBinding(name, model, path);
+        return super.bind(name, model, path);
     }
   }
 
@@ -88,17 +87,8 @@ class TemplateBindExtension extends _ElementExtension {
     Element result = null;
     var refId = _node.attributes['ref'];
     if (refId != null) {
-      var treeScope = _node;
-      while (treeScope.parentNode != null) {
-        treeScope = treeScope.parentNode;
-      }
-
-      // Note: JS code tests that getElementById is present. We can't do that
-      // easily, so instead check for the types known to implement it.
-      if (treeScope is Document ||
-          treeScope is ShadowRoot ||
-          treeScope is SvgSvgElement) {
-
+      var treeScope = _getTreeScope(_node);
+      if (treeScope != null) {
         result = treeScope.getElementById(refId);
       }
     }
@@ -309,12 +299,12 @@ class _TemplateBinding extends NodeBinding {
   // https://github.com/Polymer/mdv/issues/127
   _TemplateBinding(ext, name, model, path)
       : _ext = ext, super(ext._node, name, model, path) {
-    _ext._templateIterator.inputs.bind(property, model, path);
+    _ext._templateIterator.inputs.bind(property, model, this.path);
   }
 
   // These are no-ops because we don't use the underlying PathObserver.
   void _observePath() {}
-  void boundValueChanged(newValue) {}
+  void valueChanged(newValue) {}
 
   void close() {
     if (closed) return;
@@ -322,4 +312,17 @@ class _TemplateBinding extends NodeBinding {
     if (templateIterator != null) templateIterator.inputs.unbind(property);
     super.close();
   }
+}
+
+_getTreeScope(Node node) {
+  while (node.parentNode != null) {
+    node = node.parentNode;
+  }
+
+  // Note: JS code tests that getElementById is present. We can't do that
+  // easily, so instead check for the types known to implement it.
+  if (node is Document || node is ShadowRoot || node is SvgSvgElement) {
+    return node;
+  }
+  return null;
 }
