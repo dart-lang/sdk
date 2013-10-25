@@ -83,7 +83,8 @@ isolate_stress_test: Pass, Slow # Issue 10697
 isolate_stress_test: Timeout # Issue 14461
 
 [ $compiler == none && $runtime == drt ]
-isolate_stress_test: Skip # Issue 12537
+isolate_stress_test: Skip # Issue 14463
+spawn_uri_nested_vm_test: Skip # Issue 14463
 
 [ $csp ]
 spawn_uri_multi_test/none: Fail # http://dartbug.com/13454
