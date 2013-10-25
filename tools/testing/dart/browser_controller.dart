@@ -537,6 +537,45 @@ class AndroidChrome extends Browser {
   String toString() => "chromeOnAndroid";
 }
 
+
+class ContentShellOnAndroid extends Browser {
+  static const String viewAction = 'android.intent.action.VIEW';
+  static const String contentShellPackage = 'org.chromium.content_shell_apk';
+
+  AdbDevice _adbDevice;
+
+  ContentShellOnAndroid(this._adbDevice);
+
+  Future<bool> start(String url) {
+    var contentShellIntent = new Intent(
+        viewAction, contentShellPackage, '.ContentShellActivity', url);
+
+    return _adbDevice.waitForBootCompleted().then((_) {
+      return _adbDevice.forceStop(contentShellIntent.package);
+    }).then((_) {
+      return _adbDevice.killAll();
+    }).then((_) {
+      return _adbDevice.adbRoot();
+    }).then((_) {
+      return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
+    }).then((_) {
+      return _adbDevice.startActivity(contentShellIntent).then((_) => true);
+    });
+  }
+
+  Future<bool> close() {
+    if (_adbDevice != null) {
+      return _adbDevice.forceStop(contentShellPackage).then((_) {
+        return _adbDevice.killAll().then((_) => true);
+      });
+    }
+    return new Future.value(true);
+  }
+
+  String toString() => "ContentShellOnAndroid";
+}
+
+
 class Firefox extends Browser {
   static const String enablePopUp =
       'user_pref("dom.disable_open_during_load", false);';
@@ -698,7 +737,8 @@ class BrowserTestRunner {
     // instead.
     bool useIframe =
         !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
-    testingServer = new BrowserTestingServer(localIp, useIframe);
+    testingServer = new BrowserTestingServer(
+        globalConfiguration, localIp, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.testStartedCallBack = handleStarted;
@@ -726,7 +766,12 @@ class BrowserTestRunner {
     // TODO(kustermann): This is a hackisch way to accomplish it and should
     // be encapsulated
     var browsersCompleter = new Completer();
-    if (browserName == 'chromeOnAndroid') {
+    var androidBrowserCreationMapping = {
+      'chromeOnAndroid' : (AdbDevice device) => new AndroidChrome(device),
+      'ContentShellOnAndroid' : (AdbDevice device) =>
+          new ContentShellOnAndroid(device),
+    };
+    if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
         if (deviceIds.length > 0) {
           var browsers = [];
@@ -734,7 +779,7 @@ class BrowserTestRunner {
             var id = "BROWSER$i";
             var device = new AdbDevice(deviceIds[i]);
             adbDeviceMapping[id] = device;
-            var browser = new AndroidChrome(device);
+            var browser = androidBrowserCreationMapping[browserName](device);
             browsers.add(browser);
             // We store this in case we need to kill the browser.
             browser.id = id;
@@ -847,6 +892,8 @@ class BrowserTestRunner {
       var new_id = id;
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
+      } else if (browserName == 'ContentShellOnAndroid') {
+        browser = new ContentShellOnAndroid(adbDeviceMapping[id]);
       } else {
         browserStatus.remove(id);
         browser = getInstance();
@@ -963,6 +1010,7 @@ class BrowserTestRunner {
 }
 
 class BrowserTestingServer {
+  final Map globalConfiguration;
   /// Interface of the testing server:
   ///
   /// GET /driver/BROWSER_ID -- This will get the driver page to fetch
@@ -994,10 +1042,11 @@ class BrowserTestingServer {
   Function testStartedCallBack;
   Function nextTestCallBack;
 
-  BrowserTestingServer(this.localIp, this.useIframe);
+  BrowserTestingServer(this.globalConfiguration, this.localIp, this.useIframe);
 
   Future start() {
-    return HttpServer.bind(localIp, 0).then((createdServer) {
+    int port = globalConfiguration['test_driver_port'];
+    return HttpServer.bind(localIp, port).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
         // Don't allow caching of resources from the browser controller, i.e.,
@@ -1048,7 +1097,8 @@ class BrowserTestingServer {
 
       // Set up the error reporting server that enables us to send back
       // errors from the browser.
-      return HttpServer.bind(localIp, 0).then((createdReportServer) {
+      port = globalConfiguration['test_driver_error_port'];
+      return HttpServer.bind(localIp, port).then((createdReportServer) {
         errorReportingServer = createdReportServer;
         void errorReportingHandler(HttpRequest request) {
           StringBuffer buffer = new StringBuffer();

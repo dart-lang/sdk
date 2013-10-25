@@ -132,6 +132,10 @@ void testConfigurations(List<Map> configurations) {
   List<Future> serverFutures = [];
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
+  // If the server ports are fixed, then we can only have one configuration.
+  assert(((configurations[0]['test_server_port'] == 0) &&
+          (configurations[0]['test_server_cross_origin_port'] == 0)) ||
+         (configurations.length == 1));
   for (var conf in configurations) {
     Map<String, RegExp> selectors = conf['selectors'];
     var useContentSecurityPolicy = conf['csp'];
@@ -143,7 +147,9 @@ void testConfigurations(List<Map> configurations) {
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
                                        useContentSecurityPolicy,
                                        conf['runtime']);
-      serverFutures.add(servers.startServers(conf['local_ip']));
+      serverFutures.add(servers.startServers(conf['local_ip'],
+          port: conf['test_server_port'],
+          crossOriginPort: conf['test_server_cross_origin_port']));
       conf['_servers_'] = servers;
       if (verbose) {
         serverFutures.last.then((_) {

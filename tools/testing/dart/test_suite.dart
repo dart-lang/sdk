@@ -1522,7 +1522,8 @@ class StandardTestSuite extends TestSuite {
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
     var COMPILERS = const ['none', 'dart2dart'];
-    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium'];
+    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium',
+                          'ContentShellOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
     if (!needsVmOptions) return [[]];
@@ -1908,6 +1909,7 @@ class TestUtils {
       'chrome',
       'ff',
       'chromeOnAndroid',
+      'ContentShellOnAndroid'
     ];
     return BROWSERS.contains(runtime);
   }

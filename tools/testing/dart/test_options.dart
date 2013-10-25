@@ -86,6 +86,9 @@ class TestOptionsParser {
 
     dartium: Run Dart or JavaScript in Dartium.
 
+    ContentShellOnAndroid: Run Dart or JavaScript in Dartium content shell
+                      on Android.
+
     [ff | chrome | safari | ie9 | ie10 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
@@ -94,7 +97,7 @@ class TestOptionsParser {
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid',
-               'none'],
+               'ContentShellOnAndroid', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -301,6 +304,34 @@ Note: currently only implemented for dart2js.''',
               ['--local_ip'],
               [],
               '127.0.0.1'),
+          new _TestOptionSpecification(
+              'test_server_port',
+              'Port for test http server.',
+              ['--test_server_port'],
+              [],
+              0,
+              'int'),
+          new _TestOptionSpecification(
+              'test_server_cross_origin_port',
+              'Port for test http server cross origin.',
+              ['--test_server_cross_origin_port'],
+              [],
+              0,
+              'int'),
+          new _TestOptionSpecification(
+              'test_driver_port',
+              'Port for http test driver server.',
+              ['--test_driver_port'],
+              [],
+              0,
+              'int'),
+          new _TestOptionSpecification(
+              'test_driver_error_port',
+              'Port for http test driver server errors.',
+              ['--test_driver_error_port'],
+              [],
+              0,
+              'int'),
           new _TestOptionSpecification(
               'record_to_file',
               'Records all the commands that need to be executed and writes it '
@@ -513,7 +544,7 @@ Note: currently only implemented for dart2js.''',
         break;
       case 'none':
       case 'dart2dart':
-        validRuntimes = const ['vm', 'drt', 'dartium'];
+        validRuntimes = const ['vm', 'drt', 'dartium', 'ContentShellOnAndroid'];
         break;
     }
     if (!validRuntimes.contains(config['runtime'])) {
