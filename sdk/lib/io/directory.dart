@@ -86,7 +86,7 @@ abstract class Directory implements FileSystemEntity {
    * Returns a [:Future<Directory>:] that completes with the newly
    * created temporary directory.
    */
-  Future<Directory> createTemp([String template]);
+  Future<Directory> createTemp([String prefix]);
 
   /**
    * Synchronously creates a temporary directory in this directory.
@@ -96,7 +96,7 @@ abstract class Directory implements FileSystemEntity {
    *
    * Returns the newly created temporary directory.
    */
-  Directory createTempSync([String template]);
+  Directory createTempSync([String prefix]);
 
   Future<String> resolveSymbolicLinks();
 
