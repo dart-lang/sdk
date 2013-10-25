@@ -568,6 +568,11 @@ LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r5
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/02_Null_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Timer/isActive_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Future/wait_A01_t07: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Timer/isActive_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
@@ -612,13 +617,8 @@ LibTest/math/pow_A04_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A14_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A16_t01: fail # co19-roll r587: Please triage this failure
 
-LibTest/async/Future/wait_A01_t07: RuntimeError # co19-roll r641: Please triage this failure
-LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # co19-roll r641: Please triage this failure
-LibTest/async/Stream/asBroadcastStream_A04_t03: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/async/Stream/handleError_A04_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/async/Stream/listen_A05_t01: RuntimeError # co19-roll r641: Please triage this failure
-LibTest/async/Timer/isActive_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
-LibTest/async/Timer/isActive_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
 

@@ -14,7 +14,6 @@ LibTest/core/Match/str_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
-Language/05_Variables/05_Variables_A11_t01: Fail, MissingCompileTimeError # co19-roll r641: Please triage this failure
 LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
 LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
 LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t03: Fail, CompileTimeError # co19-roll r641: Please triage this failure
@@ -68,6 +67,7 @@ Language/05_Variables/05_Variables_A06_t05: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t06: fail, pass, ok # co19 issue 624
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
+Language/05_Variables/05_Variables_A11_t01: Fail, MissingCompileTimeError # co19-roll r641: Please triage this failure
 
 # Maybe we should wait until isolate library is sealed before triaging these.
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r546: Please triage this failure
