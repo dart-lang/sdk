@@ -575,7 +575,7 @@ class IsolateNatives {
   }
 
   static SendPort spawnUri(Uri uri, List<String> args, message) {
-    return spawn(null, uri.path, args, message, false, true);
+    return spawn(null, uri.toString(), args, message, false, true);
   }
 
   // TODO(sigmund): clean up above, after we make the new API the default:

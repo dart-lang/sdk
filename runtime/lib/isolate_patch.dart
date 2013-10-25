@@ -213,7 +213,7 @@ patch class Isolate {
     Completer completer = new Completer<Isolate>.sync();
     try {
       // The VM will invoke [_startIsolate] and not `main`.
-      SendPort controlPort = _spawnUri(uri.path);
+      SendPort controlPort = _spawnUri(uri.toString());
       RawReceivePort readyPort = new RawReceivePort();
       controlPort.send([readyPort.sendPort, args, message]);
       readyPort.handler = (readyMessage) {
