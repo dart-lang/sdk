@@ -251,6 +251,7 @@ abstract class Enqueuer {
   }
 
   void enableNoSuchMethod(Element element) {}
+  void enableIsolateSupport(LibraryElement element) {}
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {

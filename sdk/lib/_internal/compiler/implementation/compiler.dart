@@ -1145,7 +1145,8 @@ abstract class Compiler implements DiagnosticListener {
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraries.values);
     if (main != null) {
-      if (main.computeSignature(this).parameterCount != 0) {
+      FunctionElement mainMethod = main;
+      if (mainMethod.computeSignature(this).parameterCount != 0) {
         // TODO(ngeoffray, floitsch): we should also ensure that the
         // class IsolateMessage is instantiated. Currently, just enabling
         // isolate support works.

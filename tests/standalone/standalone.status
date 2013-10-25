@@ -129,13 +129,6 @@ oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrac
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
 
-# Suppress tests that use main(List<String> args) until issue 14200 is fixed.
-io/secure_builtin_roots_test: Fail # Issue 14200
-io/test_runner_test: Fail # Issue 14200
-io/http_cross_process_test: Fail # Issue 14200
-io/socket_cross_process_test: Fail # Issue 14200
-io/raw_socket_cross_process_test: Fail # Issue 14200
-
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
 deoptimization_test: RuntimeError, OK # Requires bigint.
