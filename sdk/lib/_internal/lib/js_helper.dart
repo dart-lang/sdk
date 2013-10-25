@@ -715,7 +715,7 @@ class Primitives {
           selectorName,
           JSInvocationMirror.METHOD,
           arguments,
-          namedArguments == null ? null : namedArguments.keys.toList()));
+          namedArguments == null ? [] : namedArguments.keys.toList()));
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
