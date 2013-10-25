@@ -82,6 +82,8 @@ LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 LibTest/async/Stream/Stream.periodic_A03_t01: Fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
+Language/15_Types/4_Interface_Types_A11_t01: Pass, Slow
+LibTest/core/List/List_class_A01_t01: Pass, Slow
 
 [ $compiler == none && $runtime == vm && $arch != x64 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
