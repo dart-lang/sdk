@@ -33,7 +33,7 @@
  */
 library intl_message;
 
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer/analyzer.dart';
 
 /** A default function for the [Message.expanded] method. */
 _nullTransform(msg, chunk) => chunk;

@@ -10,7 +10,7 @@ library export_map;
 
 import 'dart:io';
 
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as pathos;
 
 import 'dartdoc/utils.dart';

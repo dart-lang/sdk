@@ -10,11 +10,11 @@ library observe.transform;
 
 import 'dart:async';
 
-import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
 import 'package:source_maps/span.dart' show SourceFile;
@@ -88,7 +88,7 @@ TextEditTransaction _transformCompilationUnit(
   return code;
 }
 
-/** Parse [code] using analyzer_experimental. */
+/** Parse [code] using analyzer. */
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
   var reader = new CharSequenceReader(new CharSequence(code));
@@ -112,7 +112,7 @@ bool _hasObservable(AnnotatedNode node) =>
 
 // TODO(jmesserly): this isn't correct if the annotation has been imported
 // with a prefix, or cases like that. We should technically be resolving, but
-// that is expensive in analyzer_experimental, so it isn't feasible yet.
+// that is expensive in analyzer, so it isn't feasible yet.
 bool _isObservableAnnotation(Annotation node) =>
     _isAnnotationContant(node, 'observable') ||
     _isAnnotationContant(node, 'published') ||

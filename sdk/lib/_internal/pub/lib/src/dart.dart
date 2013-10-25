@@ -8,7 +8,7 @@ library pub.dart;
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import '../../../compiler/compiler.dart' as compiler;

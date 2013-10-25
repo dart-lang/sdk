@@ -7,11 +7,11 @@ library polymer.src.build.code_extractor;
 
 import 'dart:async';
 
-import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 

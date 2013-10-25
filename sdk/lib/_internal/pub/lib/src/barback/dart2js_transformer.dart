@@ -7,7 +7,7 @@ library pub.dart2js_transformer;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 

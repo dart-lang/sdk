@@ -11,7 +11,7 @@
  * and [parseFile] methods which
  * can extract messages that conform to the expected pattern:
  *       (parameters) => Intl.message("Message $parameters", desc: ...);
- * It uses the analyzer_experimental package to do the parsing, so may
+ * It uses the analyzer package to do the parsing, so may
  * break if there are changes to the API that it provides.
  * An example can be found in test/message_extraction/extract_to_json.dart
  *
@@ -23,7 +23,7 @@ library extract_messages;
 
 import 'dart:io';
 
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer/analyzer.dart';
 import 'package:intl/src/intl_message.dart';
 
 /**

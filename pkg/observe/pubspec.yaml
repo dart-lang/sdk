@@ -8,7 +8,7 @@ description: >
   immediately assigned to the model.
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
-  analyzer_experimental: any
+  analyzer: any
   barback: any
   logging: any
   meta: any

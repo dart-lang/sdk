@@ -6,7 +6,7 @@ description: >
   browsers.
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
-  analyzer_experimental: any
+  analyzer: any
   args: any
   barback: any
   browser: any

@@ -1,0 +1,11 @@
+name: analyzer
+version: 0.9.0
+author: Dart Team <misc@dartlang.org>
+description: Static analyzer for Dart.
+homepage: http://www.dartlang.org
+dependencies:
+  args: ">=0.8.6"
+  logging: ">=0.8.6"
+  path: ">=0.8.6"
+dev_dependencies:
+  unittest: ">=0.8.6"

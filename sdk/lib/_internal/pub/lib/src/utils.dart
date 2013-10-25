@@ -12,7 +12,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
-import "package:analyzer_experimental/analyzer.dart";
+import "package:analyzer/analyzer.dart";
 import "package:crypto/crypto.dart";
 import 'package:path/path.dart' as path;
 

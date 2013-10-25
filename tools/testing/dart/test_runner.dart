@@ -1389,7 +1389,7 @@ class BatchRunnerProcess {
       },
       'dart2analyzer' : {
         // This is a unix shell script, no windows equivalent available
-        'run_executable' : 'editor/tools/analyzer_experimental',
+        'run_executable' : 'editor/tools/analyzer',
         'run_arguments' : ['--batch'],
         'terminate_command' : null,
     },
