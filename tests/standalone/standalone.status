@@ -143,9 +143,6 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 [ $compiler == dart2js && $browser ]
 *: Skip
 
-[ $compiler == dart2js && $checked ]
-io/http_read_test: Skip # Timeout TODO(ngeoffray): investigate
-
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
