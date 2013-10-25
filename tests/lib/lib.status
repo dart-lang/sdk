@@ -171,6 +171,9 @@ async/timer_test: Fail, Pass
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
+mirrors/redirecting_factory_test/none: CompileTimeError # Issue 14472
+mirrors/redirecting_factory_test/01: CompileTimeError # Issue 14472
+mirrors/redirecting_factory_test/02: CompileTimeError # Issue 14472
 
 [ $compiler == none  ]
 async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.

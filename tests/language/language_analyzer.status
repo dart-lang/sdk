@@ -167,6 +167,9 @@ duplicate_export_test: fail # Issue 13787
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
 
+# test issue  , disallow default values in redirecting factories
+redirecting_factory_default_values_test/none: fail # Issue 14471
+
 # test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
 default_factory2_test/none: fail
 

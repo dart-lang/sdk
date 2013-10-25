@@ -82,8 +82,6 @@ LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage
 Language/07_Classes/07_Classes_A13_t01: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t04: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t07: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A14_t01: Fail, MissingCompileTimeError # co19-roll r623: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A14_t02: Fail, MissingCompileTimeError # co19-roll r623: Please triage this failure
 LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure

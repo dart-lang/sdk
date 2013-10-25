@@ -444,6 +444,7 @@ struct ParamList {
     num_optional_parameters = 0;
     has_optional_positional_parameters = false;
     has_optional_named_parameters = false;
+    has_explicit_default_values = false;
     has_field_initializer = false;
     implicitly_final = false;
     skipped = false;
@@ -489,6 +490,7 @@ struct ParamList {
   int num_optional_parameters;
   bool has_optional_positional_parameters;
   bool has_optional_named_parameters;
+  bool has_explicit_default_values;
   bool has_field_initializer;
   bool implicitly_final;
   bool skipped;
@@ -1478,6 +1480,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       ExpectToken(Token::kCOLON);
     }
     params->num_optional_parameters++;
+    params->has_explicit_default_values = true;  // Also if explicitly NULL.
     if (is_top_level_) {
       // Skip default value parsing.
       SkipExpr();
@@ -3023,6 +3026,12 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   String& redirection_identifier = String::Handle();
   bool is_redirecting = false;
   if (method->IsFactory() && (CurrentToken() == Token::kASSIGN)) {
+    // Default parameter values are disallowed in redirecting factories.
+    if (method->params.has_explicit_default_values) {
+      ErrorMsg("redirecting factory '%s' may not specify default values "
+               "for optional parameters",
+               method->name->ToCString());
+    }
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
     is_redirecting = true;
