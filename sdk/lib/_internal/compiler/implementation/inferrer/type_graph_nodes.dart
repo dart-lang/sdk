@@ -246,10 +246,8 @@ class ElementTypeInformation extends TypeInformation {
       // goes in the work queue.
       giveUp(inferrer);
       if (element.isField()) {
-        InterfaceType rawType = element.computeType(inferrer.compiler).asRaw();
-        return rawType.treatAsDynamic
-            ? inferrer.types.dynamicType.type
-            : new TypeMask.subtype(rawType.element);
+        return inferrer.typeOfNativeBehavior(
+            native.NativeBehavior.ofFieldLoad(element, inferrer.compiler)).type;
       } else {
         assert(element.isFunction()
                || element.isGetter()
