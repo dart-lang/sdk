@@ -146,79 +146,79 @@ LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
-# co19 issue TODO(floitsch).
-Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/add_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/add_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/add_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/close_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/close_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/close_A01_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/close_A01_t04: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/operator_equality_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/any_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/contains_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/first_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/first_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/first_A02_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/isBroadcast_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/isBroadcast_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/isEmpty_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/last_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/last_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/length_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/single_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/single_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/close_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/close_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/receive_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/receive_A01_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/call_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/hashCode_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/operator_equality_A01_t01: Fail # Co19 issue TODO(floitsch)
+# co19 issue 639.
+Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail
+LibTest/isolate/IsolateSink/add_A01_t01: Fail
+LibTest/isolate/IsolateSink/add_A01_t02: Fail
+LibTest/isolate/IsolateSink/add_A02_t01: Fail
+LibTest/isolate/IsolateSink/close_A01_t01: Fail
+LibTest/isolate/IsolateSink/close_A01_t02: Fail
+LibTest/isolate/IsolateSink/close_A01_t03: Fail
+LibTest/isolate/IsolateSink/close_A01_t04: Fail
+LibTest/isolate/IsolateSink/operator_equality_A01_t01: Fail
+LibTest/isolate/IsolateStream/any_A01_t01: Fail
+LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail
+LibTest/isolate/IsolateStream/contains_A01_t01: Fail
+LibTest/isolate/IsolateStream/first_A01_t01: Fail
+LibTest/isolate/IsolateStream/first_A02_t01: Fail
+LibTest/isolate/IsolateStream/first_A02_t02: Fail
+LibTest/isolate/IsolateStream/isBroadcast_A01_t01: Fail
+LibTest/isolate/IsolateStream/isBroadcast_A01_t02: Fail
+LibTest/isolate/IsolateStream/isEmpty_A01_t01: Fail
+LibTest/isolate/IsolateStream/last_A01_t01: Fail
+LibTest/isolate/IsolateStream/last_A02_t01: Fail
+LibTest/isolate/IsolateStream/length_A01_t01: Fail
+LibTest/isolate/IsolateStream/single_A01_t01: Fail
+LibTest/isolate/IsolateStream/single_A02_t01: Fail
+LibTest/isolate/ReceivePort/close_A01_t01: Fail
+LibTest/isolate/ReceivePort/close_A02_t01: Fail
+LibTest/isolate/ReceivePort/receive_A01_t01: Fail
+LibTest/isolate/ReceivePort/receive_A01_t03: Fail
+LibTest/isolate/ReceivePort/toSendPort_A01_t01: Fail
+LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail
+LibTest/isolate/SendPort/call_A01_t01: Fail
+LibTest/isolate/SendPort/hashCode_A01_t01: Fail
+LibTest/isolate/SendPort/operator_equality_A01_t01: Fail
 LibTest/isolate/SendPort/send_A01_t01: Pass
-LibTest/isolate/SendPort/send_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A02_t04: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A02_t05: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A02_t06: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A03_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A03_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A04_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A04_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/stream_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/port_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/addError_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateSink/addError_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/any_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/IsolateStream/contains_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A01_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A02_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/SendPort/send_A02_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A02_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnFunction_A04_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Fail # Co19 issue TODO(floitsch)
-LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail # Co19 issue TODO(floitsch)
+LibTest/isolate/SendPort/send_A02_t01: Fail
+LibTest/isolate/SendPort/send_A02_t04: Fail
+LibTest/isolate/SendPort/send_A02_t05: Fail
+LibTest/isolate/SendPort/send_A02_t06: Fail
+LibTest/isolate/SendPort/send_A03_t01: Fail
+LibTest/isolate/SendPort/send_A03_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail
+LibTest/isolate/isolate_api/spawnFunction_A04_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A04_t03: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail
+LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Fail
+LibTest/isolate/isolate_api/stream_A01_t01: Fail
+LibTest/isolate/isolate_api/port_A01_t01: Fail
+LibTest/isolate/IsolateSink/addError_A01_t01: Fail
+LibTest/isolate/IsolateSink/addError_A01_t02: Fail
+LibTest/isolate/IsolateStream/any_A02_t01: Fail
+LibTest/isolate/IsolateStream/contains_A02_t01: Fail
+LibTest/isolate/ReceivePort/receive_A01_t02: Fail
+LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail
+LibTest/isolate/SendPort/send_A01_t01: Fail
+LibTest/isolate/SendPort/send_A02_t02: Fail
+LibTest/isolate/SendPort/send_A02_t03: Fail
+LibTest/isolate/isolate_api/spawnFunction_A02_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A04_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Fail
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail
 
 #co19 issue 631
 Language/12_Expressions/30_Identifier_Reference_A02_t01: Fail
