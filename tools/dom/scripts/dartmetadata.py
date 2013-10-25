@@ -207,6 +207,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('int|String|Null')",
     ],
 
+    'ImageData.data': [
+      "@Creates('Uint8ClampedList')",
+      "@Returns('Uint8ClampedList')",
+    ],
+
     'MediaStream.getAudioTracks': [
       "@Creates('JSExtendableArray')",
       "@Returns('JSExtendableArray')",

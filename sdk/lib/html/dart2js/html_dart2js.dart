@@ -13277,6 +13277,8 @@ class ImageData extends Interceptor native "ImageData" {
 
   @DomName('ImageData.data')
   @DocsEditable()
+  @Creates('Uint8ClampedList')
+  @Returns('Uint8ClampedList')
   final List<int> data;
 
   @DomName('ImageData.height')

@@ -351,11 +351,11 @@ ImageData convertNativeToDart_ImageData(nativeImageData) {
 
   if (nativeImageData is ImageData) return nativeImageData;
 
-  // On Firefox the above test fails because imagedata is a plain object.
-  // So we create a _TypedImageData.
+  // On Firefox the above test fails because [nativeImageData] is a plain
+  // object.  So we create a _TypedImageData.
 
   return new _TypedImageData(
-      JS('var', '#.data', nativeImageData),
+      JS('Uint8ClampedList', '#.data', nativeImageData),
       JS('var', '#.height', nativeImageData),
       JS('var', '#.width', nativeImageData));
 }
