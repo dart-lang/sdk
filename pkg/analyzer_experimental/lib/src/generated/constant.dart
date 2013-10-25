@@ -1453,7 +1453,7 @@ class ValidResult extends EvaluationResultImpl {
     }
     Object leftValue = leftOperand.value;
     if (leftValue is bool) {
-      if (((leftValue as bool))) {
+      if (leftValue as bool) {
         return booleanConversion(node.rightOperand, value);
       }
       return RESULT_FALSE;
@@ -1661,7 +1661,7 @@ class ValidResult extends EvaluationResultImpl {
    */
   EvaluationResultImpl booleanConversion(ASTNode node, Object value) {
     if (value is bool) {
-      if (((value as bool))) {
+      if (value as bool) {
         return RESULT_TRUE;
       } else {
         return RESULT_FALSE;

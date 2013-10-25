@@ -154,9 +154,9 @@ class SourceFactory {
    *
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
-   * @return `true` if the new cached contents are different from the old, else `false`
+   * @return the original cached contents or `null` if none
    */
-  bool setContents(Source source, String contents) => contentCache.setContents(source, contents);
+  String setContents(Source source, String contents) => contentCache.setContents(source, contents);
 
   /**
    * Return the contents of the given source, or `null` if this factory does not override the
@@ -795,16 +795,15 @@ class ContentCache {
    *
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
-   * @return `true` if the new cached contents are different than the old, else `false`
+   * @return the original cached contents or `null` if none
    */
-  bool setContents(Source source, String contents) {
+  String setContents(Source source, String contents) {
     if (contents == null) {
       _stampMap.remove(source);
-      return _contentMap.remove(source) != null;
+      return _contentMap.remove(source);
     } else {
       _stampMap[source] = JavaSystem.currentTimeMillis();
-      String originalContents = javaMapPut(_contentMap, source, contents);
-      return contents != originalContents;
+      return javaMapPut(_contentMap, source, contents);
     }
   }
 }

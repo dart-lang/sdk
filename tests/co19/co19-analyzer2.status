@@ -12,16 +12,8 @@ Language/12_Expressions/01_Constants_A16_t03: fail
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
-# analyzer issue https://code.google.com/p/dart/issues/detail?id=11534
-Language/15_Types/4_Interface_Types_A11_t01: Skip
-Language/15_Types/4_Interface_Types_A11_t02: Skip
-
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
-
-# TBF: typedef self reference
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t08: Fail
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t09: Fail
 
 
 
@@ -154,10 +146,13 @@ LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
 LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
+#co19 issue 631
+Language/12_Expressions/30_Identifier_Reference_A02_t01: Fail
+Language/13_Statements/03_Variable_Declaration_A01_t09: Fail
+Language/13_Statements/03_Variable_Declaration_A01_t16: Fail
+
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
 
-Language/07_Classes/6_Constructors/2_Factories_A14_t01: Fail # co19-roll r623: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A14_t02: Fail # co19-roll r623: Please triage this failure
 Language/12_Expressions/05_Strings_A20_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure

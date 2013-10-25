@@ -7,6 +7,7 @@ import 'java_engine.dart';
 import 'source.dart';
 import 'error.dart';
 import 'instrumentation.dart';
+import 'utilities_collection.dart' show TokenMap;
 /**
  * Instances of the abstract class `KeywordState` represent a state in a state machine used to
  * scan keywords.
@@ -188,6 +189,34 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 }
 /**
+ * Instances of the class `SubSequenceReader` implement a [CharacterReader] that reads
+ * characters from a character sequence, but adds a delta when reporting the current character
+ * offset so that the character sequence can be a subsequence from a larger sequence.
+ */
+class SubSequenceReader extends CharSequenceReader {
+
+  /**
+   * The offset from the beginning of the file to the beginning of the source being scanned.
+   */
+  int _offsetDelta = 0;
+
+  /**
+   * Initialize a newly created reader to read the characters in the given sequence.
+   *
+   * @param sequence the sequence from which characters will be read
+   * @param offsetDelta the offset from the beginning of the file to the beginning of the source
+   *          being scanned
+   */
+  SubSequenceReader(CharSequence sequence, int offsetDelta) : super(sequence) {
+    this._offsetDelta = offsetDelta;
+  }
+  int get offset => _offsetDelta + super.offset;
+  String getString(int start, int endDelta) => super.getString(start - _offsetDelta, endDelta);
+  void set offset(int offset) {
+    super.offset = offset - _offsetDelta;
+  }
+}
+/**
  * Instances of the class `TokenWithComment` represent a string token that is preceded by
  * comments.
  *
@@ -211,7 +240,16 @@ class StringTokenWithComment extends StringToken {
   StringTokenWithComment(TokenType type, String value, int offset, Token precedingComment) : super(type, value, offset) {
     this._precedingComment = precedingComment;
   }
+  Token copy() => new StringTokenWithComment(type, lexeme, offset, copyComments(_precedingComment));
   Token get precedingComments => _precedingComment;
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
 }
 /**
  * The enumeration `Keyword` defines the keywords in the Dart programming language.
@@ -367,8 +405,133 @@ class Keyword extends Enum<Keyword> {
   }
 }
 /**
- * The abstract class `AbstractScanner` implements a scanner for Dart code. Subclasses are
- * required to implement the interface used to access the characters being scanned.
+ * Instances of the class `CharSequenceReader` implement a [CharacterReader] that reads
+ * characters from a character sequence.
+ */
+class CharSequenceReader implements CharacterReader {
+
+  /**
+   * The sequence from which characters will be read.
+   */
+  CharSequence _sequence;
+
+  /**
+   * The number of characters in the string.
+   */
+  int _stringLength = 0;
+
+  /**
+   * The index, relative to the string, of the last character that was read.
+   */
+  int _charOffset = 0;
+
+  /**
+   * Initialize a newly created reader to read the characters in the given sequence.
+   *
+   * @param sequence the sequence from which characters will be read
+   */
+  CharSequenceReader(CharSequence sequence) {
+    this._sequence = sequence;
+    this._stringLength = sequence.length();
+    this._charOffset = -1;
+  }
+  int advance() {
+    if (_charOffset + 1 >= _stringLength) {
+      return -1;
+    }
+    return _sequence.charAt(++_charOffset);
+  }
+  int get offset => _charOffset;
+  String getString(int start, int endDelta) => _sequence.subSequence(start, _charOffset + 1 + endDelta).toString();
+  int peek() {
+    if (_charOffset + 1 >= _sequence.length()) {
+      return -1;
+    }
+    return _sequence.charAt(_charOffset + 1);
+  }
+  void set offset(int offset) {
+    _charOffset = offset;
+  }
+}
+/**
+ * Instances of the class `IncrementalScanner` implement a scanner that scans a subset of a
+ * string and inserts the resulting tokens into the middle of an existing token stream.
+ *
+ * @coverage dart.engine.parser
+ */
+class IncrementalScanner extends Scanner {
+
+  /**
+   * The reader used to access the characters in the source.
+   */
+  CharacterReader _reader;
+
+  /**
+   * A map from tokens that were copied to the copies of the tokens.
+   */
+  TokenMap _tokenMap = new TokenMap();
+
+  /**
+   * Initialize a newly created scanner.
+   *
+   * @param source the source being scanned
+   * @param reader the character reader used to read the characters in the source
+   * @param errorListener the error listener that will be informed of any errors that are found
+   */
+  IncrementalScanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) : super(source, reader, errorListener) {
+    this._reader = reader;
+  }
+
+  /**
+   * Given the stream of tokens scanned from the original source, the modified source (the result of
+   * replacing one contiguous range of characters with another string of characters), and a
+   * specification of the modification that was made, return a stream of tokens scanned from the
+   * modified source. The original stream of tokens will not be modified.
+   *
+   * @param originalStream the stream of tokens scanned from the original source
+   * @param index the index of the first character in both the original and modified source that was
+   *          affected by the modification
+   * @param removedLength the number of characters removed from the original source
+   * @param insertedLength the number of characters added to the modified source
+   */
+  Token rescan(Token originalStream, int index, int removedLength, int insertedLength) {
+    while (originalStream.end < index) {
+      originalStream = copyAndAdvance(originalStream, 0);
+    }
+    int modifiedEnd = index + insertedLength - 1;
+    _reader.offset = Math.min(originalStream.offset, index) - 1;
+    int next = _reader.advance();
+    while (next != -1 && _reader.offset <= modifiedEnd) {
+      next = bigSwitch(next);
+    }
+    int removedEnd = index + removedLength - 1;
+    while (originalStream.offset <= removedEnd) {
+      originalStream = originalStream.next;
+    }
+    int delta = insertedLength - removedLength;
+    while (originalStream.type != TokenType.EOF) {
+      originalStream = copyAndAdvance(originalStream, delta);
+    }
+    copyAndAdvance(originalStream, delta);
+    return firstToken();
+  }
+  Token copyAndAdvance(Token originalToken, int delta) {
+    Token copiedToken = originalToken.copy();
+    _tokenMap.put(originalToken, copiedToken);
+    copiedToken.applyDelta(delta);
+    appendToken(copiedToken);
+    Token originalComment = originalToken.precedingComments;
+    Token copiedComment = originalToken.precedingComments;
+    while (originalComment != null) {
+      _tokenMap.put(originalComment, copiedComment);
+      originalComment = originalComment.next;
+      copiedComment = copiedComment.next;
+    }
+    return originalToken.next;
+  }
+}
+/**
+ * The class `Scanner` implements a scanner for Dart code.
  *
  * The lexical structure of Dart is ambiguous without knowledge of the context in which a token is
  * being scanned. For example, without context we cannot determine whether source of the form "<<"
@@ -378,12 +541,17 @@ class Keyword extends Enum<Keyword> {
  *
  * @coverage dart.engine.parser
  */
-abstract class AbstractScanner {
+class Scanner {
 
   /**
    * The source being scanned.
    */
   Source source;
+
+  /**
+   * The reader used to access the characters in the source.
+   */
+  CharacterReader _reader;
 
   /**
    * The error listener that will be informed of any errors that are found during the scan.
@@ -440,10 +608,12 @@ abstract class AbstractScanner {
    * Initialize a newly created scanner.
    *
    * @param source the source being scanned
+   * @param reader the character reader used to read the characters in the source
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  AbstractScanner(Source source, AnalysisErrorListener errorListener) {
+  Scanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) {
     this.source = source;
+    this._reader = reader;
     this._errorListener = errorListener;
     _tokens = new Token(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
@@ -460,20 +630,33 @@ abstract class AbstractScanner {
   List<int> get lineStarts => _lineStarts;
 
   /**
-   * Return the current offset relative to the beginning of the file. Return the initial offset if
-   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
-   * the source code has been scanned.
-   *
-   * @return the current offset of the scanner in the source
-   */
-  int get offset;
-
-  /**
    * Return `true` if any unmatched groups were found during the parse.
    *
    * @return `true` if any unmatched groups were found during the parse
    */
   bool hasUnmatchedGroups() => _hasUnmatchedGroups2;
+
+  /**
+   * Record that the source begins on the given line and column at the current offset as given by
+   * the reader. The line starts for lines before the given line will not be correct.
+   *
+   * This method must be invoked at most one time and must be invoked before scanning begins. The
+   * values provided must be sensible. The results are undefined if these conditions are violated.
+   *
+   * @param line the one-based index of the line containing the first character of the source
+   * @param column the one-based index of the column in which the first character of the source
+   *          occurs
+   */
+  void setSourceStart(int line, int column) {
+    int offset = _reader.offset;
+    if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
+      return;
+    }
+    for (int i = 2; i < line; i++) {
+      _lineStarts.add(1);
+    }
+    _lineStarts.add(offset - column + 1);
+  }
 
   /**
    * Scan the source code to produce a list of tokens representing the source.
@@ -484,7 +667,7 @@ abstract class AbstractScanner {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.AbstractScanner.tokenize");
     int tokenCounter = 0;
     try {
-      int next = advance();
+      int next = _reader.advance();
       while (next != -1) {
         tokenCounter++;
         next = bigSwitch(next);
@@ -498,36 +681,168 @@ abstract class AbstractScanner {
   }
 
   /**
-   * Advance the current position and return the character at the new current position.
+   * Append the given token to the end of the token stream being scanned. This method is intended to
+   * be used by subclasses that copy existing tokens and should not normally be used because it will
+   * fail to correctly associate any comments with the token being passed in.
    *
-   * @return the character at the new current position
+   * @param token the token to be appended
    */
-  int advance();
+  void appendToken(Token token) {
+    _tail = _tail.setNext(token);
+  }
+  int bigSwitch(int next) {
+    beginToken();
+    if (next == 0xD) {
+      next = _reader.advance();
+      if (next == 0xA) {
+        next = _reader.advance();
+      }
+      recordStartOfLine();
+      return next;
+    } else if (next == 0xA) {
+      next = _reader.advance();
+      recordStartOfLine();
+      return next;
+    } else if (next == 0x9 || next == 0x20) {
+      return _reader.advance();
+    }
+    if (next == 0x72) {
+      int peek = _reader.peek();
+      if (peek == 0x22 || peek == 0x27) {
+        int start = _reader.offset;
+        return tokenizeString(_reader.advance(), start, true);
+      }
+    }
+    if (0x61 <= next && next <= 0x7A) {
+      return tokenizeKeywordOrIdentifier(next, true);
+    }
+    if ((0x41 <= next && next <= 0x5A) || next == 0x5F || next == 0x24) {
+      return tokenizeIdentifier(next, _reader.offset, true);
+    }
+    if (next == 0x3C) {
+      return tokenizeLessThan(next);
+    }
+    if (next == 0x3E) {
+      return tokenizeGreaterThan(next);
+    }
+    if (next == 0x3D) {
+      return tokenizeEquals(next);
+    }
+    if (next == 0x21) {
+      return tokenizeExclamation(next);
+    }
+    if (next == 0x2B) {
+      return tokenizePlus(next);
+    }
+    if (next == 0x2D) {
+      return tokenizeMinus(next);
+    }
+    if (next == 0x2A) {
+      return tokenizeMultiply(next);
+    }
+    if (next == 0x25) {
+      return tokenizePercent(next);
+    }
+    if (next == 0x26) {
+      return tokenizeAmpersand(next);
+    }
+    if (next == 0x7C) {
+      return tokenizeBar(next);
+    }
+    if (next == 0x5E) {
+      return tokenizeCaret(next);
+    }
+    if (next == 0x5B) {
+      return tokenizeOpenSquareBracket(next);
+    }
+    if (next == 0x7E) {
+      return tokenizeTilde(next);
+    }
+    if (next == 0x5C) {
+      appendToken2(TokenType.BACKSLASH);
+      return _reader.advance();
+    }
+    if (next == 0x23) {
+      return tokenizeTag(next);
+    }
+    if (next == 0x28) {
+      appendBeginToken(TokenType.OPEN_PAREN);
+      return _reader.advance();
+    }
+    if (next == 0x29) {
+      appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
+      return _reader.advance();
+    }
+    if (next == 0x2C) {
+      appendToken2(TokenType.COMMA);
+      return _reader.advance();
+    }
+    if (next == 0x3A) {
+      appendToken2(TokenType.COLON);
+      return _reader.advance();
+    }
+    if (next == 0x3B) {
+      appendToken2(TokenType.SEMICOLON);
+      return _reader.advance();
+    }
+    if (next == 0x3F) {
+      appendToken2(TokenType.QUESTION);
+      return _reader.advance();
+    }
+    if (next == 0x5D) {
+      appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
+      return _reader.advance();
+    }
+    if (next == 0x60) {
+      appendToken2(TokenType.BACKPING);
+      return _reader.advance();
+    }
+    if (next == 0x7B) {
+      appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
+      return _reader.advance();
+    }
+    if (next == 0x7D) {
+      appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
+      return _reader.advance();
+    }
+    if (next == 0x2F) {
+      return tokenizeSlashOrComment(next);
+    }
+    if (next == 0x40) {
+      appendToken2(TokenType.AT);
+      return _reader.advance();
+    }
+    if (next == 0x22 || next == 0x27) {
+      return tokenizeString(next, _reader.offset, false);
+    }
+    if (next == 0x2E) {
+      return tokenizeDotOrNumber(next);
+    }
+    if (next == 0x30) {
+      return tokenizeHexOrNumber(next);
+    }
+    if (0x31 <= next && next <= 0x39) {
+      return tokenizeNumber(next);
+    }
+    if (next == -1) {
+      return -1;
+    }
+    reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
+    return _reader.advance();
+  }
 
   /**
-   * Return the substring of the source code between the start offset and the modified current
-   * position. The current position is modified by adding the end delta.
+   * Return the first token in the token stream that was scanned.
    *
-   * @param start the offset to the beginning of the string, relative to the start of the file
-   * @param endDelta the number of character after the current location to be included in the
-   *          string, or the number of characters before the current location to be excluded if the
-   *          offset is negative
-   * @return the specified substring of the source code
+   * @return the first token in the token stream that was scanned
    */
-  String getString(int start, int endDelta);
-
-  /**
-   * Return the character at the current position without changing the current position.
-   *
-   * @return the character at the current position
-   */
-  int peek();
+  Token firstToken() => _tokens.next;
 
   /**
    * Record the fact that we are at the beginning of a new line in the source.
    */
   void recordStartOfLine() {
-    _lineStarts.add(offset);
+    _lineStarts.add(_reader.offset);
   }
   void appendBeginToken(TokenType type) {
     BeginToken token;
@@ -571,9 +886,9 @@ abstract class AbstractScanner {
   void appendEofToken() {
     Token eofToken;
     if (_firstComment == null) {
-      eofToken = new Token(TokenType.EOF, offset + 1);
+      eofToken = new Token(TokenType.EOF, _reader.offset + 1);
     } else {
-      eofToken = new TokenWithComment(TokenType.EOF, offset + 1, _firstComment);
+      eofToken = new TokenWithComment(TokenType.EOF, _reader.offset + 1, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -610,7 +925,7 @@ abstract class AbstractScanner {
       _lastComment = null;
     }
   }
-  void appendToken(TokenType type) {
+  void appendToken2(TokenType type) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, _tokenStart));
     } else {
@@ -619,7 +934,7 @@ abstract class AbstractScanner {
       _lastComment = null;
     }
   }
-  void appendToken2(TokenType type, int offset) {
+  void appendToken3(TokenType type, int offset) {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, offset));
     } else {
@@ -629,147 +944,7 @@ abstract class AbstractScanner {
     }
   }
   void beginToken() {
-    _tokenStart = offset;
-  }
-  int bigSwitch(int next) {
-    beginToken();
-    if (next == 0xD) {
-      next = advance();
-      if (next == 0xA) {
-        next = advance();
-      }
-      recordStartOfLine();
-      return next;
-    } else if (next == 0xA) {
-      next = advance();
-      recordStartOfLine();
-      return next;
-    } else if (next == 0x9 || next == 0x20) {
-      return advance();
-    }
-    if (next == 0x72) {
-      int peek = this.peek();
-      if (peek == 0x22 || peek == 0x27) {
-        int start = offset;
-        return tokenizeString(advance(), start, true);
-      }
-    }
-    if (0x61 <= next && next <= 0x7A) {
-      return tokenizeKeywordOrIdentifier(next, true);
-    }
-    if ((0x41 <= next && next <= 0x5A) || next == 0x5F || next == 0x24) {
-      return tokenizeIdentifier(next, offset, true);
-    }
-    if (next == 0x3C) {
-      return tokenizeLessThan(next);
-    }
-    if (next == 0x3E) {
-      return tokenizeGreaterThan(next);
-    }
-    if (next == 0x3D) {
-      return tokenizeEquals(next);
-    }
-    if (next == 0x21) {
-      return tokenizeExclamation(next);
-    }
-    if (next == 0x2B) {
-      return tokenizePlus(next);
-    }
-    if (next == 0x2D) {
-      return tokenizeMinus(next);
-    }
-    if (next == 0x2A) {
-      return tokenizeMultiply(next);
-    }
-    if (next == 0x25) {
-      return tokenizePercent(next);
-    }
-    if (next == 0x26) {
-      return tokenizeAmpersand(next);
-    }
-    if (next == 0x7C) {
-      return tokenizeBar(next);
-    }
-    if (next == 0x5E) {
-      return tokenizeCaret(next);
-    }
-    if (next == 0x5B) {
-      return tokenizeOpenSquareBracket(next);
-    }
-    if (next == 0x7E) {
-      return tokenizeTilde(next);
-    }
-    if (next == 0x5C) {
-      appendToken(TokenType.BACKSLASH);
-      return advance();
-    }
-    if (next == 0x23) {
-      return tokenizeTag(next);
-    }
-    if (next == 0x28) {
-      appendBeginToken(TokenType.OPEN_PAREN);
-      return advance();
-    }
-    if (next == 0x29) {
-      appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
-      return advance();
-    }
-    if (next == 0x2C) {
-      appendToken(TokenType.COMMA);
-      return advance();
-    }
-    if (next == 0x3A) {
-      appendToken(TokenType.COLON);
-      return advance();
-    }
-    if (next == 0x3B) {
-      appendToken(TokenType.SEMICOLON);
-      return advance();
-    }
-    if (next == 0x3F) {
-      appendToken(TokenType.QUESTION);
-      return advance();
-    }
-    if (next == 0x5D) {
-      appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
-      return advance();
-    }
-    if (next == 0x60) {
-      appendToken(TokenType.BACKPING);
-      return advance();
-    }
-    if (next == 0x7B) {
-      appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
-      return advance();
-    }
-    if (next == 0x7D) {
-      appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
-      return advance();
-    }
-    if (next == 0x2F) {
-      return tokenizeSlashOrComment(next);
-    }
-    if (next == 0x40) {
-      appendToken(TokenType.AT);
-      return advance();
-    }
-    if (next == 0x22 || next == 0x27) {
-      return tokenizeString(next, offset, false);
-    }
-    if (next == 0x2E) {
-      return tokenizeDotOrNumber(next);
-    }
-    if (next == 0x30) {
-      return tokenizeHexOrNumber(next);
-    }
-    if (0x31 <= next && next <= 0x39) {
-      return tokenizeNumber(next);
-    }
-    if (next == -1) {
-      return -1;
-    }
-    reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
-    return advance();
+    _tokenStart = _reader.offset;
   }
 
   /**
@@ -790,7 +965,6 @@ abstract class AbstractScanner {
     }
     return null;
   }
-  Token firstToken() => _tokens.next;
 
   /**
    * Report an error at the current offset.
@@ -799,91 +973,91 @@ abstract class AbstractScanner {
    * @param arguments any arguments needed to complete the error message
    */
   void reportError(ScannerErrorCode errorCode, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(source, offset, 1, errorCode, arguments));
+    _errorListener.onError(new AnalysisError.con2(source, _reader.offset, 1, errorCode, arguments));
   }
   int select(int choice, TokenType yesType, TokenType noType) {
-    int next = advance();
+    int next = _reader.advance();
     if (next == choice) {
-      appendToken(yesType);
-      return advance();
+      appendToken2(yesType);
+      return _reader.advance();
     } else {
-      appendToken(noType);
+      appendToken2(noType);
       return next;
     }
   }
   int select2(int choice, TokenType yesType, TokenType noType, int offset) {
-    int next = advance();
+    int next = _reader.advance();
     if (next == choice) {
-      appendToken2(yesType, offset);
-      return advance();
+      appendToken3(yesType, offset);
+      return _reader.advance();
     } else {
-      appendToken2(noType, offset);
+      appendToken3(noType, offset);
       return next;
     }
   }
   int tokenizeAmpersand(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x26) {
-      appendToken(TokenType.AMPERSAND_AMPERSAND);
-      return advance();
+      appendToken2(TokenType.AMPERSAND_AMPERSAND);
+      return _reader.advance();
     } else if (next == 0x3D) {
-      appendToken(TokenType.AMPERSAND_EQ);
-      return advance();
+      appendToken2(TokenType.AMPERSAND_EQ);
+      return _reader.advance();
     } else {
-      appendToken(TokenType.AMPERSAND);
+      appendToken2(TokenType.AMPERSAND);
       return next;
     }
   }
   int tokenizeBar(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x7C) {
-      appendToken(TokenType.BAR_BAR);
-      return advance();
+      appendToken2(TokenType.BAR_BAR);
+      return _reader.advance();
     } else if (next == 0x3D) {
-      appendToken(TokenType.BAR_EQ);
-      return advance();
+      appendToken2(TokenType.BAR_EQ);
+      return _reader.advance();
     } else {
-      appendToken(TokenType.BAR);
+      appendToken2(TokenType.BAR);
       return next;
     }
   }
   int tokenizeCaret(int next) => select(0x3D, TokenType.CARET_EQ, TokenType.CARET);
   int tokenizeDotOrNumber(int next) {
-    int start = offset;
-    next = advance();
-    if ((0x30 <= next && next <= 0x39)) {
+    int start = _reader.offset;
+    next = _reader.advance();
+    if (0x30 <= next && next <= 0x39) {
       return tokenizeFractionPart(next, start);
     } else if (0x2E == next) {
       return select(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD);
     } else {
-      appendToken(TokenType.PERIOD);
+      appendToken2(TokenType.PERIOD);
       return next;
     }
   }
   int tokenizeEquals(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x3D) {
-      appendToken(TokenType.EQ_EQ);
-      return advance();
+      appendToken2(TokenType.EQ_EQ);
+      return _reader.advance();
     } else if (next == 0x3E) {
-      appendToken(TokenType.FUNCTION);
-      return advance();
+      appendToken2(TokenType.FUNCTION);
+      return _reader.advance();
     }
-    appendToken(TokenType.EQ);
+    appendToken2(TokenType.EQ);
     return next;
   }
   int tokenizeExclamation(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x3D) {
-      appendToken(TokenType.BANG_EQ);
-      return advance();
+      appendToken2(TokenType.BANG_EQ);
+      return _reader.advance();
     }
-    appendToken(TokenType.BANG);
+    appendToken2(TokenType.BANG);
     return next;
   }
   int tokenizeExponent(int next) {
     if (next == 0x2B || next == 0x2D) {
-      next = advance();
+      next = _reader.advance();
     }
     bool hasDigits = false;
     while (true) {
@@ -895,7 +1069,7 @@ abstract class AbstractScanner {
         }
         return next;
       }
-      next = advance();
+      next = _reader.advance();
     }
   }
   int tokenizeFractionPart(int next, int start) {
@@ -906,97 +1080,97 @@ abstract class AbstractScanner {
         hasDigit = true;
       } else if (0x65 == next || 0x45 == next) {
         hasDigit = true;
-        next = tokenizeExponent(advance());
+        next = tokenizeExponent(_reader.advance());
         done = true;
         continue LOOP;
       } else {
         done = true;
         continue LOOP;
       }
-      next = advance();
+      next = _reader.advance();
     }
     if (!hasDigit) {
-      appendStringToken(TokenType.INT, getString(start, -2));
+      appendStringToken(TokenType.INT, _reader.getString(start, -2));
       if (0x2E == next) {
-        return select2(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
+        return select2(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, _reader.offset - 1);
       }
-      appendToken2(TokenType.PERIOD, offset - 1);
+      appendToken3(TokenType.PERIOD, _reader.offset - 1);
       return bigSwitch(next);
     }
-    appendStringToken(TokenType.DOUBLE, getString(start, next < 0 ? 0 : -1));
+    appendStringToken(TokenType.DOUBLE, _reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
   int tokenizeGreaterThan(int next) {
-    next = advance();
+    next = _reader.advance();
     if (0x3D == next) {
-      appendToken(TokenType.GT_EQ);
-      return advance();
+      appendToken2(TokenType.GT_EQ);
+      return _reader.advance();
     } else if (0x3E == next) {
-      next = advance();
+      next = _reader.advance();
       if (0x3D == next) {
-        appendToken(TokenType.GT_GT_EQ);
-        return advance();
+        appendToken2(TokenType.GT_GT_EQ);
+        return _reader.advance();
       } else {
-        appendToken(TokenType.GT_GT);
+        appendToken2(TokenType.GT_GT);
         return next;
       }
     } else {
-      appendToken(TokenType.GT);
+      appendToken2(TokenType.GT);
       return next;
     }
   }
   int tokenizeHex(int next) {
-    int start = offset - 1;
+    int start = _reader.offset - 1;
     bool hasDigits = false;
     while (true) {
-      next = advance();
+      next = _reader.advance();
       if ((0x30 <= next && next <= 0x39) || (0x41 <= next && next <= 0x46) || (0x61 <= next && next <= 0x66)) {
         hasDigits = true;
       } else {
         if (!hasDigits) {
           reportError(ScannerErrorCode.MISSING_HEX_DIGIT, []);
         }
-        appendStringToken(TokenType.HEXADECIMAL, getString(start, next < 0 ? 0 : -1));
+        appendStringToken(TokenType.HEXADECIMAL, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
   }
   int tokenizeHexOrNumber(int next) {
-    int x = peek();
+    int x = _reader.peek();
     if (x == 0x78 || x == 0x58) {
-      advance();
+      _reader.advance();
       return tokenizeHex(x);
     }
     return tokenizeNumber(next);
   }
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
     while ((0x61 <= next && next <= 0x7A) || (0x41 <= next && next <= 0x5A) || (0x30 <= next && next <= 0x39) || next == 0x5F || (next == 0x24 && allowDollar)) {
-      next = advance();
+      next = _reader.advance();
     }
-    appendStringToken(TokenType.IDENTIFIER, getString(start, next < 0 ? 0 : -1));
+    appendStringToken(TokenType.IDENTIFIER, _reader.getString(start, next < 0 ? 0 : -1));
     return next;
   }
   int tokenizeInterpolatedExpression(int next, int start) {
     appendBeginToken(TokenType.STRING_INTERPOLATION_EXPRESSION);
-    next = advance();
+    next = _reader.advance();
     while (next != -1) {
       if (next == 0x7D) {
         BeginToken begin = findTokenMatchingClosingBraceInInterpolationExpression();
         if (begin == null) {
           beginToken();
-          appendToken(TokenType.CLOSE_CURLY_BRACKET);
-          next = advance();
+          appendToken2(TokenType.CLOSE_CURLY_BRACKET);
+          next = _reader.advance();
           beginToken();
           return next;
         } else if (identical(begin.type, TokenType.OPEN_CURLY_BRACKET)) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
-          next = advance();
+          next = _reader.advance();
           beginToken();
         } else if (identical(begin.type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
           beginToken();
           appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.STRING_INTERPOLATION_EXPRESSION);
-          next = advance();
+          next = _reader.advance();
           beginToken();
           return next;
         }
@@ -1007,13 +1181,13 @@ abstract class AbstractScanner {
     if (next == -1) {
       return next;
     }
-    next = advance();
+    next = _reader.advance();
     beginToken();
     return next;
   }
   int tokenizeInterpolatedIdentifier(int next, int start) {
     appendStringToken2(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
-    if (((0x41 <= next && next <= 0x5A) || (0x61 <= next && next <= 0x7A) || next == 0x5F)) {
+    if ((0x41 <= next && next <= 0x5A) || (0x61 <= next && next <= 0x7A) || next == 0x5F) {
       beginToken();
       next = tokenizeKeywordOrIdentifier(next, false);
     }
@@ -1022,10 +1196,10 @@ abstract class AbstractScanner {
   }
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
-    int start = offset;
+    int start = _reader.offset;
     while (state != null && 0x61 <= next && next <= 0x7A) {
       state = state.next(next as int);
-      next = advance();
+      next = _reader.advance();
     }
     if (state == null || state.keyword() == null) {
       return tokenizeIdentifier(next, start, allowDollar);
@@ -1040,183 +1214,183 @@ abstract class AbstractScanner {
     }
   }
   int tokenizeLessThan(int next) {
-    next = advance();
+    next = _reader.advance();
     if (0x3D == next) {
-      appendToken(TokenType.LT_EQ);
-      return advance();
+      appendToken2(TokenType.LT_EQ);
+      return _reader.advance();
     } else if (0x3C == next) {
       return select(0x3D, TokenType.LT_LT_EQ, TokenType.LT_LT);
     } else {
-      appendToken(TokenType.LT);
+      appendToken2(TokenType.LT);
       return next;
     }
   }
   int tokenizeMinus(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x2D) {
-      appendToken(TokenType.MINUS_MINUS);
-      return advance();
+      appendToken2(TokenType.MINUS_MINUS);
+      return _reader.advance();
     } else if (next == 0x3D) {
-      appendToken(TokenType.MINUS_EQ);
-      return advance();
+      appendToken2(TokenType.MINUS_EQ);
+      return _reader.advance();
     } else {
-      appendToken(TokenType.MINUS);
+      appendToken2(TokenType.MINUS);
       return next;
     }
   }
   int tokenizeMultiLineComment(int next) {
     int nesting = 1;
-    next = advance();
+    next = _reader.advance();
     while (true) {
       if (-1 == next) {
         reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, []);
-        appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(_tokenStart, 0));
+        appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0x2A == next) {
-        next = advance();
+        next = _reader.advance();
         if (0x2F == next) {
           --nesting;
           if (0 == nesting) {
-            appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(_tokenStart, 0));
-            return advance();
+            appendCommentToken(TokenType.MULTI_LINE_COMMENT, _reader.getString(_tokenStart, 0));
+            return _reader.advance();
           } else {
-            next = advance();
+            next = _reader.advance();
           }
         }
       } else if (0x2F == next) {
-        next = advance();
+        next = _reader.advance();
         if (0x2A == next) {
-          next = advance();
+          next = _reader.advance();
           ++nesting;
         }
       } else if (next == 0xD) {
-        next = advance();
+        next = _reader.advance();
         if (next == 0xA) {
-          next = advance();
+          next = _reader.advance();
         }
         recordStartOfLine();
       } else if (next == 0xA) {
         recordStartOfLine();
-        next = advance();
+        next = _reader.advance();
       } else {
-        next = advance();
+        next = _reader.advance();
       }
     }
   }
   int tokenizeMultiLineRawString(int quoteChar, int start) {
-    int next = advance();
+    int next = _reader.advance();
     outer: while (next != -1) {
       while (next != quoteChar) {
-        next = advance();
+        next = _reader.advance();
         if (next == -1) {
           break outer;
         } else if (next == 0xD) {
-          next = advance();
+          next = _reader.advance();
           if (next == 0xA) {
-            next = advance();
+            next = _reader.advance();
           }
           recordStartOfLine();
         } else if (next == 0xA) {
           recordStartOfLine();
-          next = advance();
+          next = _reader.advance();
         }
       }
-      next = advance();
+      next = _reader.advance();
       if (next == quoteChar) {
-        next = advance();
+        next = _reader.advance();
         if (next == quoteChar) {
-          appendStringToken(TokenType.STRING, getString(start, 0));
-          return advance();
+          appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+          return _reader.advance();
         }
       }
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    return _reader.advance();
   }
   int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
     if (raw) {
       return tokenizeMultiLineRawString(quoteChar, start);
     }
-    int next = advance();
+    int next = _reader.advance();
     while (next != -1) {
       if (next == 0x24) {
-        appendStringToken(TokenType.STRING, getString(start, -1));
+        appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         beginToken();
         next = tokenizeStringInterpolation(start);
-        start = offset;
+        start = _reader.offset;
         continue;
       }
       if (next == quoteChar) {
-        next = advance();
+        next = _reader.advance();
         if (next == quoteChar) {
-          next = advance();
+          next = _reader.advance();
           if (next == quoteChar) {
-            appendStringToken(TokenType.STRING, getString(start, 0));
-            return advance();
+            appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+            return _reader.advance();
           }
         }
         continue;
       }
       if (next == 0x5C) {
-        next = advance();
+        next = _reader.advance();
         if (next == -1) {
           break;
         }
         bool missingCharacter = false;
         if (next == 0xD) {
           missingCharacter = true;
-          next = advance();
+          next = _reader.advance();
           if (next == 0xA) {
-            next = advance();
+            next = _reader.advance();
           }
           recordStartOfLine();
         } else if (next == 0xA) {
           missingCharacter = true;
           recordStartOfLine();
-          next = advance();
+          next = _reader.advance();
         } else {
-          next = advance();
+          next = _reader.advance();
         }
         if (missingCharacter) {
-          _errorListener.onError(new AnalysisError.con2(source, offset - 1, 1, ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, []));
+          _errorListener.onError(new AnalysisError.con2(source, _reader.offset - 1, 1, ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, []));
         }
       } else if (next == 0xD) {
-        next = advance();
+        next = _reader.advance();
         if (next == 0xA) {
-          next = advance();
+          next = _reader.advance();
         }
         recordStartOfLine();
       } else if (next == 0xA) {
         recordStartOfLine();
-        next = advance();
+        next = _reader.advance();
       } else {
-        next = advance();
+        next = _reader.advance();
       }
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    return _reader.advance();
   }
   int tokenizeMultiply(int next) => select(0x3D, TokenType.STAR_EQ, TokenType.STAR);
   int tokenizeNumber(int next) {
-    int start = offset;
+    int start = _reader.offset;
     while (true) {
-      next = advance();
+      next = _reader.advance();
       if (0x30 <= next && next <= 0x39) {
         continue;
       } else if (next == 0x2E) {
-        return tokenizeFractionPart(advance(), start);
+        return tokenizeFractionPart(_reader.advance(), start);
       } else if (next == 0x65 || next == 0x45) {
         return tokenizeFractionPart(next, start);
       } else {
-        appendStringToken(TokenType.INT, getString(start, next < 0 ? 0 : -1));
+        appendStringToken(TokenType.INT, _reader.getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
   }
   int tokenizeOpenSquareBracket(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x5D) {
       return select(0x3D, TokenType.INDEX_EQ, TokenType.INDEX);
     } else {
@@ -1226,91 +1400,91 @@ abstract class AbstractScanner {
   }
   int tokenizePercent(int next) => select(0x3D, TokenType.PERCENT_EQ, TokenType.PERCENT);
   int tokenizePlus(int next) {
-    next = advance();
+    next = _reader.advance();
     if (0x2B == next) {
-      appendToken(TokenType.PLUS_PLUS);
-      return advance();
+      appendToken2(TokenType.PLUS_PLUS);
+      return _reader.advance();
     } else if (0x3D == next) {
-      appendToken(TokenType.PLUS_EQ);
-      return advance();
+      appendToken2(TokenType.PLUS_EQ);
+      return _reader.advance();
     } else {
-      appendToken(TokenType.PLUS);
+      appendToken2(TokenType.PLUS);
       return next;
     }
   }
   int tokenizeSingleLineComment(int next) {
     while (true) {
-      next = advance();
+      next = _reader.advance();
       if (-1 == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, 0));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, 0));
         return next;
       } else if (0xA == next || 0xD == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(_tokenStart, -1));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, _reader.getString(_tokenStart, -1));
         return next;
       }
     }
   }
   int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
-    next = advance();
+    next = _reader.advance();
     while (next != -1) {
       if (next == quoteChar) {
-        appendStringToken(TokenType.STRING, getString(start, 0));
-        return advance();
+        appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        return _reader.advance();
       } else if (next == 0xD || next == 0xA) {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-        appendStringToken(TokenType.STRING, getString(start, 0));
-        return advance();
+        appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        return _reader.advance();
       }
-      next = advance();
+      next = _reader.advance();
     }
     reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    return _reader.advance();
   }
   int tokenizeSingleLineString(int next, int quoteChar, int start) {
     while (next != quoteChar) {
       if (next == 0x5C) {
-        next = advance();
+        next = _reader.advance();
       } else if (next == 0x24) {
-        appendStringToken(TokenType.STRING, getString(start, -1));
+        appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         beginToken();
         next = tokenizeStringInterpolation(start);
-        start = offset;
+        start = _reader.offset;
         continue;
       }
       if (next <= 0xD && (next == 0xA || next == 0xD || next == -1)) {
         reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, []);
-        appendStringToken(TokenType.STRING, getString(start, 0));
-        return advance();
+        appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+        return _reader.advance();
       }
-      next = advance();
+      next = _reader.advance();
     }
-    appendStringToken(TokenType.STRING, getString(start, 0));
-    return advance();
+    appendStringToken(TokenType.STRING, _reader.getString(start, 0));
+    return _reader.advance();
   }
   int tokenizeSlashOrComment(int next) {
-    next = advance();
+    next = _reader.advance();
     if (0x2A == next) {
       return tokenizeMultiLineComment(next);
     } else if (0x2F == next) {
       return tokenizeSingleLineComment(next);
     } else if (0x3D == next) {
-      appendToken(TokenType.SLASH_EQ);
-      return advance();
+      appendToken2(TokenType.SLASH_EQ);
+      return _reader.advance();
     } else {
-      appendToken(TokenType.SLASH);
+      appendToken2(TokenType.SLASH);
       return next;
     }
   }
   int tokenizeString(int next, int start, bool raw) {
     int quoteChar = next;
-    next = advance();
+    next = _reader.advance();
     if (quoteChar == next) {
-      next = advance();
+      next = _reader.advance();
       if (quoteChar == next) {
         return tokenizeMultiLineString(quoteChar, start, raw);
       } else {
-        appendStringToken(TokenType.STRING, getString(start, -1));
+        appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         return next;
       }
     }
@@ -1322,7 +1496,7 @@ abstract class AbstractScanner {
   }
   int tokenizeStringInterpolation(int start) {
     beginToken();
-    int next = advance();
+    int next = _reader.advance();
     if (next == 0x7B) {
       return tokenizeInterpolatedExpression(next, start);
     } else {
@@ -1330,24 +1504,24 @@ abstract class AbstractScanner {
     }
   }
   int tokenizeTag(int next) {
-    if (offset == 0) {
-      if (peek() == 0x21) {
+    if (_reader.offset == 0) {
+      if (_reader.peek() == 0x21) {
         do {
-          next = advance();
+          next = _reader.advance();
         } while (next != 0xA && next != 0xD && next > 0);
-        appendStringToken(TokenType.SCRIPT_TAG, getString(_tokenStart, 0));
+        appendStringToken(TokenType.SCRIPT_TAG, _reader.getString(_tokenStart, 0));
         return next;
       }
     }
-    appendToken(TokenType.HASH);
-    return advance();
+    appendToken2(TokenType.HASH);
+    return _reader.advance();
   }
   int tokenizeTilde(int next) {
-    next = advance();
+    next = _reader.advance();
     if (next == 0x2F) {
       return select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);
     } else {
-      appendToken(TokenType.TILDE);
+      appendToken2(TokenType.TILDE);
       return next;
     }
   }
@@ -1375,58 +1549,9 @@ class StringToken extends Token {
   StringToken(TokenType type, String value, int offset) : super(type, offset) {
     this._value2 = StringUtilities.intern(value);
   }
+  Token copy() => new StringToken(type, _value2, offset);
   String get lexeme => _value2;
   String value() => _value2;
-}
-/**
- * Instances of the class `CharBufferScanner` implement a scanner that reads from a character
- * buffer. The scanning logic is in the superclass.
- *
- * @coverage dart.engine.parser
- */
-class CharBufferScanner extends AbstractScanner {
-
-  /**
-   * The buffer from which characters will be read.
-   */
-  CharBuffer _buffer;
-
-  /**
-   * The number of characters in the buffer.
-   */
-  int _bufferLength = 0;
-
-  /**
-   * The index of the last character that was read.
-   */
-  int _charOffset = 0;
-
-  /**
-   * Initialize a newly created scanner to scan the characters in the given character buffer.
-   *
-   * @param source the source being scanned
-   * @param buffer the buffer from which characters will be read
-   * @param errorListener the error listener that will be informed of any errors that are found
-   */
-  CharBufferScanner(Source source, CharBuffer buffer, AnalysisErrorListener errorListener) : super(source, errorListener) {
-    this._buffer = buffer;
-    this._bufferLength = buffer.length();
-    this._charOffset = -1;
-  }
-  int get offset => _charOffset;
-  int advance() {
-    if (_charOffset + 1 >= _bufferLength) {
-      return -1;
-    }
-    return _buffer.charAt(++_charOffset);
-  }
-  String getString(int start, int endDelta) => ((_buffer as CharSequence)).subSequence(start, _charOffset + 1 + endDelta).toString();
-  int peek() {
-    if (_charOffset + 1 >= _buffer.length()) {
-      return -1;
-    }
-    return _buffer.charAt(_charOffset + 1);
-  }
 }
 /**
  * Instances of the class `TokenWithComment` represent a normal token that is preceded by
@@ -1452,6 +1577,7 @@ class TokenWithComment extends Token {
   TokenWithComment(TokenType type, int offset, Token precedingComment) : super(type, offset) {
     this._precedingComment = precedingComment;
   }
+  Token copy() => new TokenWithComment(type, offset, _precedingComment);
   Token get precedingComments => _precedingComment;
 }
 /**
@@ -1492,6 +1618,14 @@ class Token {
     this.type = type;
     this.offset = offset;
   }
+
+  /**
+   * Return a newly created token that is a copy of this token but that is not a part of any token
+   * stream.
+   *
+   * @return a newly created token that is a copy of this token
+   */
+  Token copy() => new Token(type, offset);
 
   /**
    * Return the offset from the beginning of the file to the character after last character of the
@@ -1581,88 +1715,82 @@ class Token {
    * @return the value of this token
    */
   Object value() => type.lexeme;
+
+  /**
+   * Apply (add) the given delta to this token's offset.
+   *
+   * @param delta the amount by which the offset is to be adjusted
+   */
+  void applyDelta(int delta) {
+    offset += delta;
+  }
+
+  /**
+   * Copy a linked list of comment tokens identical to the given comment tokens.
+   *
+   * @param token the first token in the list, or `null` if there are no tokens to be copied
+   * @return the tokens that were created
+   */
+  Token copyComments(Token token) {
+    if (token == null) {
+      return null;
+    }
+    Token head = token.copy();
+    Token tail = head;
+    token = token.next;
+    while (token != null) {
+      tail = tail.setNext(token.copy());
+    }
+    return head;
+  }
 }
 /**
- * Instances of the class `StringScanner` implement a scanner that reads from a string. The
- * scanning logic is in the superclass.
- *
- * @coverage dart.engine.parser
+ * The interface `CharacterReader`
  */
-class StringScanner extends AbstractScanner {
+abstract class CharacterReader {
 
   /**
-   * The offset from the beginning of the file to the beginning of the source being scanned.
-   */
-  int _offsetDelta = 0;
-
-  /**
-   * The string from which characters will be read.
-   */
-  String _string;
-
-  /**
-   * The number of characters in the string.
-   */
-  int _stringLength = 0;
-
-  /**
-   * The index, relative to the string, of the last character that was read.
-   */
-  int _charOffset = 0;
-
-  /**
-   * Initialize a newly created scanner to scan the characters in the given string.
+   * Advance the current position and return the character at the new current position.
    *
-   * @param source the source being scanned
-   * @param string the string from which characters will be read
-   * @param errorListener the error listener that will be informed of any errors that are found
+   * @return the character at the new current position
    */
-  StringScanner(Source source, String string, AnalysisErrorListener errorListener) : super(source, errorListener) {
-    this._offsetDelta = 0;
-    this._string = string;
-    this._stringLength = string.length;
-    this._charOffset = -1;
-  }
-  int get offset => _offsetDelta + _charOffset;
+  int advance();
 
   /**
-   * Record that the source begins on the given line and column at the given offset. The line starts
-   * for lines before the given line will not be correct.
+   * Return the current offset relative to the beginning of the source. Return the initial offset if
+   * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
+   * the entire source code has been scanned.
    *
-   * This method must be invoked at most one time and must be invoked before scanning begins. The
-   * values provided must be sensible. The results are undefined if these conditions are violated.
-   *
-   * @param line the one-based index of the line containing the first character of the source
-   * @param column the one-based index of the column in which the first character of the source
-   *          occurs
-   * @param offset the zero-based offset from the beginning of the larger context to the first
-   *          character of the source
+   * @return the current offset of the scanner in the source
    */
-  void setSourceStart(int line, int column, int offset) {
-    if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
-      return;
-    }
-    _offsetDelta = 1;
-    for (int i = 2; i < line; i++) {
-      recordStartOfLine();
-    }
-    _offsetDelta = offset - column + 1;
-    recordStartOfLine();
-    _offsetDelta = offset;
-  }
-  int advance() {
-    if (_charOffset + 1 >= _stringLength) {
-      return -1;
-    }
-    return _string.codeUnitAt(++_charOffset);
-  }
-  String getString(int start, int endDelta) => _string.substring(start - _offsetDelta, _charOffset + 1 + endDelta);
-  int peek() {
-    if (_charOffset + 1 >= _string.length) {
-      return -1;
-    }
-    return _string.codeUnitAt(_charOffset + 1);
-  }
+  int get offset;
+
+  /**
+   * Return the substring of the source code between the start offset and the modified current
+   * position. The current position is modified by adding the end delta.
+   *
+   * @param start the offset to the beginning of the string, relative to the start of the file
+   * @param endDelta the number of characters after the current location to be included in the
+   *          string, or the number of characters before the current location to be excluded if the
+   *          offset is negative
+   * @return the specified substring of the source code
+   */
+  String getString(int start, int endDelta);
+
+  /**
+   * Return the character at the current position without changing the current position.
+   *
+   * @return the character at the current position
+   */
+  int peek();
+
+  /**
+   * Set the current offset relative to the beginning of the source. The new offset must be between
+   * the initial offset and one (1) past the end of the source code.
+   *
+   * @param offset the new offset in the source
+   */
+  void set offset(int offset);
 }
 /**
  * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
@@ -1688,7 +1816,16 @@ class BeginTokenWithComment extends BeginToken {
   BeginTokenWithComment(TokenType type, int offset, Token precedingComment) : super(type, offset) {
     this._precedingComment = precedingComment;
   }
+  Token copy() => new BeginTokenWithComment(type, offset, copyComments(_precedingComment));
   Token get precedingComments => _precedingComment;
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
 }
 /**
  * Instances of the class `KeywordToken` represent a keyword in the language.
@@ -1711,6 +1848,7 @@ class KeywordToken extends Token {
   KeywordToken(Keyword keyword, int offset) : super(TokenType.KEYWORD, offset) {
     this.keyword = keyword;
   }
+  Token copy() => new KeywordToken(keyword, offset);
   String get lexeme => keyword.syntax;
   Keyword value() => keyword;
 }
@@ -1736,6 +1874,7 @@ class BeginToken extends Token {
   BeginToken(TokenType type, int offset) : super(type, offset) {
     assert((identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)));
   }
+  Token copy() => new BeginToken(type, offset);
 }
 /**
  * The enumeration `TokenClass` represents classes (or groups) of tokens with a similar use.
@@ -1875,7 +2014,16 @@ class KeywordTokenWithComment extends KeywordToken {
   KeywordTokenWithComment(Keyword keyword, int offset, Token precedingComment) : super(keyword, offset) {
     this._precedingComment = precedingComment;
   }
+  Token copy() => new KeywordTokenWithComment(keyword, offset, copyComments(_precedingComment));
   Token get precedingComments => _precedingComment;
+  void applyDelta(int delta) {
+    super.applyDelta(delta);
+    Token token = _precedingComment;
+    while (token != null) {
+      token.applyDelta(delta);
+      token = token.next;
+    }
+  }
 }
 /**
  * The enumeration `TokenType` defines the types of tokens that can be returned by the

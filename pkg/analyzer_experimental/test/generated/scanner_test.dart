@@ -49,6 +49,75 @@ class KeywordStateTest extends JUnitTestCase {
     });
   }
 }
+class CharSequenceReaderTest extends JUnitTestCase {
+  void test_advance() {
+    CharSequenceReader reader = new CharSequenceReader(new CharSequence("x"));
+    JUnitTestCase.assertEquals(0x78, reader.advance());
+    JUnitTestCase.assertEquals(-1, reader.advance());
+    JUnitTestCase.assertEquals(-1, reader.advance());
+  }
+  void test_creation() {
+    JUnitTestCase.assertNotNull(new CharSequenceReader(new CharSequence("x")));
+  }
+  void test_getOffset() {
+    CharSequenceReader reader = new CharSequenceReader(new CharSequence("x"));
+    JUnitTestCase.assertEquals(-1, reader.offset);
+    reader.advance();
+    JUnitTestCase.assertEquals(0, reader.offset);
+    reader.advance();
+    JUnitTestCase.assertEquals(0, reader.offset);
+  }
+  void test_getString() {
+    CharSequenceReader reader = new CharSequenceReader(new CharSequence("xyzzy"));
+    reader.offset = 3;
+    JUnitTestCase.assertEquals("yzz", reader.getString(1, 0));
+    JUnitTestCase.assertEquals("zzy", reader.getString(2, 1));
+  }
+  void test_peek() {
+    CharSequenceReader reader = new CharSequenceReader(new CharSequence("xy"));
+    JUnitTestCase.assertEquals(0x78, reader.peek());
+    JUnitTestCase.assertEquals(0x78, reader.peek());
+    reader.advance();
+    JUnitTestCase.assertEquals(0x79, reader.peek());
+    JUnitTestCase.assertEquals(0x79, reader.peek());
+    reader.advance();
+    JUnitTestCase.assertEquals(-1, reader.peek());
+    JUnitTestCase.assertEquals(-1, reader.peek());
+  }
+  void test_setOffset() {
+    CharSequenceReader reader = new CharSequenceReader(new CharSequence("xyz"));
+    reader.offset = 2;
+    JUnitTestCase.assertEquals(2, reader.offset);
+  }
+  static dartSuite() {
+    _ut.group('CharSequenceReaderTest', () {
+      _ut.test('test_advance', () {
+        final __test = new CharSequenceReaderTest();
+        runJUnitTest(__test, __test.test_advance);
+      });
+      _ut.test('test_creation', () {
+        final __test = new CharSequenceReaderTest();
+        runJUnitTest(__test, __test.test_creation);
+      });
+      _ut.test('test_getOffset', () {
+        final __test = new CharSequenceReaderTest();
+        runJUnitTest(__test, __test.test_getOffset);
+      });
+      _ut.test('test_getString', () {
+        final __test = new CharSequenceReaderTest();
+        runJUnitTest(__test, __test.test_getString);
+      });
+      _ut.test('test_peek', () {
+        final __test = new CharSequenceReaderTest();
+        runJUnitTest(__test, __test.test_peek);
+      });
+      _ut.test('test_setOffset', () {
+        final __test = new CharSequenceReaderTest();
+        runJUnitTest(__test, __test.test_setOffset);
+      });
+    });
+  }
+}
 class TokenTypeTest extends EngineTestCase {
   void test_isOperator() {
     JUnitTestCase.assertTrue(TokenType.AMPERSAND.isOperator);
@@ -135,1334 +204,6 @@ class TokenFactory {
   static Token token3(TokenType type) => new Token(type, 0);
   static Token token4(TokenType type, String lexeme) => new StringToken(type, lexeme, 0);
 }
-class CharBufferScannerTest extends AbstractScannerTest {
-  Token scan(String source, GatheringErrorListener listener) {
-    CharBuffer buffer = CharBuffer.wrap(source);
-    CharBufferScanner scanner = new CharBufferScanner(null, buffer, listener);
-    Token result = scanner.tokenize();
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    return result;
-  }
-  static dartSuite() {
-    _ut.group('CharBufferScannerTest', () {
-      _ut.test('test_ampersand', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_ampersand);
-      });
-      _ut.test('test_ampersand_ampersand', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_ampersand_ampersand);
-      });
-      _ut.test('test_ampersand_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_ampersand_eq);
-      });
-      _ut.test('test_at', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_at);
-      });
-      _ut.test('test_backping', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_backping);
-      });
-      _ut.test('test_backslash', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_backslash);
-      });
-      _ut.test('test_bang', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_bang);
-      });
-      _ut.test('test_bang_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_bang_eq);
-      });
-      _ut.test('test_bar', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_bar);
-      });
-      _ut.test('test_bar_bar', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_bar_bar);
-      });
-      _ut.test('test_bar_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_bar_eq);
-      });
-      _ut.test('test_caret', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_caret);
-      });
-      _ut.test('test_caret_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_caret_eq);
-      });
-      _ut.test('test_close_curly_bracket', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_close_curly_bracket);
-      });
-      _ut.test('test_close_paren', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_close_paren);
-      });
-      _ut.test('test_close_quare_bracket', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_close_quare_bracket);
-      });
-      _ut.test('test_colon', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_colon);
-      });
-      _ut.test('test_comma', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_comma);
-      });
-      _ut.test('test_comment_multi', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_comment_multi);
-      });
-      _ut.test('test_comment_multi_unterminated', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_comment_multi_unterminated);
-      });
-      _ut.test('test_comment_nested', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_comment_nested);
-      });
-      _ut.test('test_comment_single', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_comment_single);
-      });
-      _ut.test('test_double_both_E', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_both_E);
-      });
-      _ut.test('test_double_both_e', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_both_e);
-      });
-      _ut.test('test_double_fraction', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction);
-      });
-      _ut.test('test_double_fraction_E', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_E);
-      });
-      _ut.test('test_double_fraction_e', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_e);
-      });
-      _ut.test('test_double_missingDigitInExponent', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_missingDigitInExponent);
-      });
-      _ut.test('test_double_whole_E', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_E);
-      });
-      _ut.test('test_double_whole_e', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_e);
-      });
-      _ut.test('test_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_eq);
-      });
-      _ut.test('test_eq_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_eq_eq);
-      });
-      _ut.test('test_gt', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_gt);
-      });
-      _ut.test('test_gt_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_gt_eq);
-      });
-      _ut.test('test_gt_gt', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_gt_gt);
-      });
-      _ut.test('test_gt_gt_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_gt_gt_eq);
-      });
-      _ut.test('test_hash', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_hash);
-      });
-      _ut.test('test_hexidecimal', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_hexidecimal);
-      });
-      _ut.test('test_hexidecimal_missingDigit', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_hexidecimal_missingDigit);
-      });
-      _ut.test('test_identifier', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_identifier);
-      });
-      _ut.test('test_illegalChar_cyrillicLetter_middle', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_middle);
-      });
-      _ut.test('test_illegalChar_cyrillicLetter_start', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_start);
-      });
-      _ut.test('test_illegalChar_nbsp', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_nbsp);
-      });
-      _ut.test('test_illegalChar_notLetter', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_notLetter);
-      });
-      _ut.test('test_index', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_index);
-      });
-      _ut.test('test_index_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_index_eq);
-      });
-      _ut.test('test_int', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_int);
-      });
-      _ut.test('test_int_initialZero', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_int_initialZero);
-      });
-      _ut.test('test_keyword_abstract', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_abstract);
-      });
-      _ut.test('test_keyword_as', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_as);
-      });
-      _ut.test('test_keyword_assert', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_assert);
-      });
-      _ut.test('test_keyword_break', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_break);
-      });
-      _ut.test('test_keyword_case', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_case);
-      });
-      _ut.test('test_keyword_catch', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_catch);
-      });
-      _ut.test('test_keyword_class', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_class);
-      });
-      _ut.test('test_keyword_const', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_const);
-      });
-      _ut.test('test_keyword_continue', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_continue);
-      });
-      _ut.test('test_keyword_default', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_default);
-      });
-      _ut.test('test_keyword_do', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_do);
-      });
-      _ut.test('test_keyword_dynamic', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_dynamic);
-      });
-      _ut.test('test_keyword_else', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_else);
-      });
-      _ut.test('test_keyword_enum', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_enum);
-      });
-      _ut.test('test_keyword_export', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_export);
-      });
-      _ut.test('test_keyword_extends', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_extends);
-      });
-      _ut.test('test_keyword_factory', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_factory);
-      });
-      _ut.test('test_keyword_false', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_false);
-      });
-      _ut.test('test_keyword_final', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_final);
-      });
-      _ut.test('test_keyword_finally', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_finally);
-      });
-      _ut.test('test_keyword_for', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_for);
-      });
-      _ut.test('test_keyword_get', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_get);
-      });
-      _ut.test('test_keyword_if', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_if);
-      });
-      _ut.test('test_keyword_implements', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_implements);
-      });
-      _ut.test('test_keyword_import', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_import);
-      });
-      _ut.test('test_keyword_in', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_in);
-      });
-      _ut.test('test_keyword_is', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_is);
-      });
-      _ut.test('test_keyword_library', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_library);
-      });
-      _ut.test('test_keyword_new', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_new);
-      });
-      _ut.test('test_keyword_null', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_null);
-      });
-      _ut.test('test_keyword_operator', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_operator);
-      });
-      _ut.test('test_keyword_part', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_part);
-      });
-      _ut.test('test_keyword_rethrow', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_rethrow);
-      });
-      _ut.test('test_keyword_return', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_return);
-      });
-      _ut.test('test_keyword_set', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_set);
-      });
-      _ut.test('test_keyword_static', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_static);
-      });
-      _ut.test('test_keyword_super', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_super);
-      });
-      _ut.test('test_keyword_switch', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_switch);
-      });
-      _ut.test('test_keyword_this', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_this);
-      });
-      _ut.test('test_keyword_throw', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_throw);
-      });
-      _ut.test('test_keyword_true', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_true);
-      });
-      _ut.test('test_keyword_try', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_try);
-      });
-      _ut.test('test_keyword_typedef', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_typedef);
-      });
-      _ut.test('test_keyword_var', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_var);
-      });
-      _ut.test('test_keyword_void', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_void);
-      });
-      _ut.test('test_keyword_while', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_while);
-      });
-      _ut.test('test_keyword_with', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_keyword_with);
-      });
-      _ut.test('test_lineInfo_multilineComment', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_multilineComment);
-      });
-      _ut.test('test_lineInfo_multilineString', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_multilineString);
-      });
-      _ut.test('test_lineInfo_simpleClass', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_simpleClass);
-      });
-      _ut.test('test_lineInfo_slashN', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_slashN);
-      });
-      _ut.test('test_lt', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lt);
-      });
-      _ut.test('test_lt_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lt_eq);
-      });
-      _ut.test('test_lt_lt', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lt_lt);
-      });
-      _ut.test('test_lt_lt_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lt_lt_eq);
-      });
-      _ut.test('test_minus', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_minus);
-      });
-      _ut.test('test_minus_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_minus_eq);
-      });
-      _ut.test('test_minus_minus', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_minus_minus);
-      });
-      _ut.test('test_openSquareBracket', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_openSquareBracket);
-      });
-      _ut.test('test_open_curly_bracket', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_open_curly_bracket);
-      });
-      _ut.test('test_open_paren', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_open_paren);
-      });
-      _ut.test('test_open_square_bracket', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_open_square_bracket);
-      });
-      _ut.test('test_percent', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_percent);
-      });
-      _ut.test('test_percent_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_percent_eq);
-      });
-      _ut.test('test_period', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_period);
-      });
-      _ut.test('test_periodAfterNumberNotIncluded_identifier', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_periodAfterNumberNotIncluded_identifier);
-      });
-      _ut.test('test_periodAfterNumberNotIncluded_period', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_periodAfterNumberNotIncluded_period);
-      });
-      _ut.test('test_period_period', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_period_period);
-      });
-      _ut.test('test_period_period_period', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_period_period_period);
-      });
-      _ut.test('test_plus', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_plus);
-      });
-      _ut.test('test_plus_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_plus_eq);
-      });
-      _ut.test('test_plus_plus', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_plus_plus);
-      });
-      _ut.test('test_question', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_question);
-      });
-      _ut.test('test_scriptTag_withArgs', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_scriptTag_withArgs);
-      });
-      _ut.test('test_scriptTag_withSpace', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_scriptTag_withSpace);
-      });
-      _ut.test('test_scriptTag_withoutSpace', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_scriptTag_withoutSpace);
-      });
-      _ut.test('test_semicolon', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_semicolon);
-      });
-      _ut.test('test_slash', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_slash);
-      });
-      _ut.test('test_slash_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_slash_eq);
-      });
-      _ut.test('test_star', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_star);
-      });
-      _ut.test('test_star_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_star_eq);
-      });
-      _ut.test('test_startAndEnd', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_startAndEnd);
-      });
-      _ut.test('test_string_multi_double', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_double);
-      });
-      _ut.test('test_string_multi_embeddedQuotes', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes);
-      });
-      _ut.test('test_string_multi_embeddedQuotes_escapedChar', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes_escapedChar);
-      });
-      _ut.test('test_string_multi_interpolation_block', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_interpolation_block);
-      });
-      _ut.test('test_string_multi_interpolation_identifier', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_interpolation_identifier);
-      });
-      _ut.test('test_string_multi_single', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_single);
-      });
-      _ut.test('test_string_multi_slashEnter', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_slashEnter);
-      });
-      _ut.test('test_string_multi_unterminated', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_unterminated);
-      });
-      _ut.test('test_string_raw_multi_double', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_multi_double);
-      });
-      _ut.test('test_string_raw_multi_single', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_multi_single);
-      });
-      _ut.test('test_string_raw_multi_unterminated', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_multi_unterminated);
-      });
-      _ut.test('test_string_raw_simple_double', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_double);
-      });
-      _ut.test('test_string_raw_simple_single', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_single);
-      });
-      _ut.test('test_string_raw_simple_unterminated_eof', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_unterminated_eof);
-      });
-      _ut.test('test_string_raw_simple_unterminated_eol', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_unterminated_eol);
-      });
-      _ut.test('test_string_simple_double', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_double);
-      });
-      _ut.test('test_string_simple_escapedDollar', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_escapedDollar);
-      });
-      _ut.test('test_string_simple_interpolation_adjacentIdentifiers', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_adjacentIdentifiers);
-      });
-      _ut.test('test_string_simple_interpolation_block', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_block);
-      });
-      _ut.test('test_string_simple_interpolation_blockWithNestedMap', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_blockWithNestedMap);
-      });
-      _ut.test('test_string_simple_interpolation_firstAndLast', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_firstAndLast);
-      });
-      _ut.test('test_string_simple_interpolation_identifier', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_identifier);
-      });
-      _ut.test('test_string_simple_interpolation_missingIdentifier', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_missingIdentifier);
-      });
-      _ut.test('test_string_simple_interpolation_nonIdentifier', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_nonIdentifier);
-      });
-      _ut.test('test_string_simple_single', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_single);
-      });
-      _ut.test('test_string_simple_unterminated_eof', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_unterminated_eof);
-      });
-      _ut.test('test_string_simple_unterminated_eol', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_unterminated_eol);
-      });
-      _ut.test('test_tilde', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_tilde);
-      });
-      _ut.test('test_tilde_slash', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_tilde_slash);
-      });
-      _ut.test('test_tilde_slash_eq', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_tilde_slash_eq);
-      });
-      _ut.test('test_unclosedPairInInterpolation', () {
-        final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_unclosedPairInInterpolation);
-      });
-    });
-  }
-}
-class StringScannerTest extends AbstractScannerTest {
-  void test_setSourceStart() {
-    int offsetDelta = 42;
-    GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, "a", listener);
-    scanner.setSourceStart(3, 9, offsetDelta);
-    scanner.tokenize();
-    List<int> lineStarts = scanner.lineStarts;
-    JUnitTestCase.assertNotNull(lineStarts);
-    JUnitTestCase.assertEquals(3, lineStarts.length);
-    JUnitTestCase.assertEquals(33, lineStarts[2]);
-  }
-  Token scan(String source, GatheringErrorListener listener) {
-    StringScanner scanner = new StringScanner(null, source, listener);
-    Token result = scanner.tokenize();
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
-    return result;
-  }
-  static dartSuite() {
-    _ut.group('StringScannerTest', () {
-      _ut.test('test_ampersand', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_ampersand);
-      });
-      _ut.test('test_ampersand_ampersand', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_ampersand_ampersand);
-      });
-      _ut.test('test_ampersand_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_ampersand_eq);
-      });
-      _ut.test('test_at', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_at);
-      });
-      _ut.test('test_backping', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_backping);
-      });
-      _ut.test('test_backslash', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_backslash);
-      });
-      _ut.test('test_bang', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_bang);
-      });
-      _ut.test('test_bang_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_bang_eq);
-      });
-      _ut.test('test_bar', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_bar);
-      });
-      _ut.test('test_bar_bar', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_bar_bar);
-      });
-      _ut.test('test_bar_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_bar_eq);
-      });
-      _ut.test('test_caret', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_caret);
-      });
-      _ut.test('test_caret_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_caret_eq);
-      });
-      _ut.test('test_close_curly_bracket', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_close_curly_bracket);
-      });
-      _ut.test('test_close_paren', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_close_paren);
-      });
-      _ut.test('test_close_quare_bracket', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_close_quare_bracket);
-      });
-      _ut.test('test_colon', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_colon);
-      });
-      _ut.test('test_comma', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_comma);
-      });
-      _ut.test('test_comment_multi', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_comment_multi);
-      });
-      _ut.test('test_comment_multi_unterminated', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_comment_multi_unterminated);
-      });
-      _ut.test('test_comment_nested', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_comment_nested);
-      });
-      _ut.test('test_comment_single', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_comment_single);
-      });
-      _ut.test('test_double_both_E', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_both_E);
-      });
-      _ut.test('test_double_both_e', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_both_e);
-      });
-      _ut.test('test_double_fraction', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction);
-      });
-      _ut.test('test_double_fraction_E', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_E);
-      });
-      _ut.test('test_double_fraction_e', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_fraction_e);
-      });
-      _ut.test('test_double_missingDigitInExponent', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_missingDigitInExponent);
-      });
-      _ut.test('test_double_whole_E', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_E);
-      });
-      _ut.test('test_double_whole_e', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_double_whole_e);
-      });
-      _ut.test('test_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_eq);
-      });
-      _ut.test('test_eq_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_eq_eq);
-      });
-      _ut.test('test_gt', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_gt);
-      });
-      _ut.test('test_gt_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_gt_eq);
-      });
-      _ut.test('test_gt_gt', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_gt_gt);
-      });
-      _ut.test('test_gt_gt_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_gt_gt_eq);
-      });
-      _ut.test('test_hash', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_hash);
-      });
-      _ut.test('test_hexidecimal', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_hexidecimal);
-      });
-      _ut.test('test_hexidecimal_missingDigit', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_hexidecimal_missingDigit);
-      });
-      _ut.test('test_identifier', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_identifier);
-      });
-      _ut.test('test_illegalChar_cyrillicLetter_middle', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_middle);
-      });
-      _ut.test('test_illegalChar_cyrillicLetter_start', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_start);
-      });
-      _ut.test('test_illegalChar_nbsp', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_nbsp);
-      });
-      _ut.test('test_illegalChar_notLetter', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_illegalChar_notLetter);
-      });
-      _ut.test('test_index', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_index);
-      });
-      _ut.test('test_index_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_index_eq);
-      });
-      _ut.test('test_int', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_int);
-      });
-      _ut.test('test_int_initialZero', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_int_initialZero);
-      });
-      _ut.test('test_keyword_abstract', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_abstract);
-      });
-      _ut.test('test_keyword_as', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_as);
-      });
-      _ut.test('test_keyword_assert', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_assert);
-      });
-      _ut.test('test_keyword_break', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_break);
-      });
-      _ut.test('test_keyword_case', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_case);
-      });
-      _ut.test('test_keyword_catch', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_catch);
-      });
-      _ut.test('test_keyword_class', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_class);
-      });
-      _ut.test('test_keyword_const', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_const);
-      });
-      _ut.test('test_keyword_continue', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_continue);
-      });
-      _ut.test('test_keyword_default', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_default);
-      });
-      _ut.test('test_keyword_do', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_do);
-      });
-      _ut.test('test_keyword_dynamic', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_dynamic);
-      });
-      _ut.test('test_keyword_else', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_else);
-      });
-      _ut.test('test_keyword_enum', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_enum);
-      });
-      _ut.test('test_keyword_export', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_export);
-      });
-      _ut.test('test_keyword_extends', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_extends);
-      });
-      _ut.test('test_keyword_factory', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_factory);
-      });
-      _ut.test('test_keyword_false', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_false);
-      });
-      _ut.test('test_keyword_final', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_final);
-      });
-      _ut.test('test_keyword_finally', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_finally);
-      });
-      _ut.test('test_keyword_for', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_for);
-      });
-      _ut.test('test_keyword_get', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_get);
-      });
-      _ut.test('test_keyword_if', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_if);
-      });
-      _ut.test('test_keyword_implements', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_implements);
-      });
-      _ut.test('test_keyword_import', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_import);
-      });
-      _ut.test('test_keyword_in', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_in);
-      });
-      _ut.test('test_keyword_is', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_is);
-      });
-      _ut.test('test_keyword_library', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_library);
-      });
-      _ut.test('test_keyword_new', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_new);
-      });
-      _ut.test('test_keyword_null', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_null);
-      });
-      _ut.test('test_keyword_operator', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_operator);
-      });
-      _ut.test('test_keyword_part', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_part);
-      });
-      _ut.test('test_keyword_rethrow', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_rethrow);
-      });
-      _ut.test('test_keyword_return', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_return);
-      });
-      _ut.test('test_keyword_set', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_set);
-      });
-      _ut.test('test_keyword_static', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_static);
-      });
-      _ut.test('test_keyword_super', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_super);
-      });
-      _ut.test('test_keyword_switch', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_switch);
-      });
-      _ut.test('test_keyword_this', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_this);
-      });
-      _ut.test('test_keyword_throw', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_throw);
-      });
-      _ut.test('test_keyword_true', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_true);
-      });
-      _ut.test('test_keyword_try', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_try);
-      });
-      _ut.test('test_keyword_typedef', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_typedef);
-      });
-      _ut.test('test_keyword_var', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_var);
-      });
-      _ut.test('test_keyword_void', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_void);
-      });
-      _ut.test('test_keyword_while', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_while);
-      });
-      _ut.test('test_keyword_with', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_keyword_with);
-      });
-      _ut.test('test_lineInfo_multilineComment', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_multilineComment);
-      });
-      _ut.test('test_lineInfo_multilineString', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_multilineString);
-      });
-      _ut.test('test_lineInfo_simpleClass', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_simpleClass);
-      });
-      _ut.test('test_lineInfo_slashN', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo_slashN);
-      });
-      _ut.test('test_lt', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lt);
-      });
-      _ut.test('test_lt_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lt_eq);
-      });
-      _ut.test('test_lt_lt', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lt_lt);
-      });
-      _ut.test('test_lt_lt_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lt_lt_eq);
-      });
-      _ut.test('test_minus', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_minus);
-      });
-      _ut.test('test_minus_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_minus_eq);
-      });
-      _ut.test('test_minus_minus', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_minus_minus);
-      });
-      _ut.test('test_openSquareBracket', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_openSquareBracket);
-      });
-      _ut.test('test_open_curly_bracket', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_open_curly_bracket);
-      });
-      _ut.test('test_open_paren', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_open_paren);
-      });
-      _ut.test('test_open_square_bracket', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_open_square_bracket);
-      });
-      _ut.test('test_percent', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_percent);
-      });
-      _ut.test('test_percent_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_percent_eq);
-      });
-      _ut.test('test_period', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_period);
-      });
-      _ut.test('test_periodAfterNumberNotIncluded_identifier', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_periodAfterNumberNotIncluded_identifier);
-      });
-      _ut.test('test_periodAfterNumberNotIncluded_period', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_periodAfterNumberNotIncluded_period);
-      });
-      _ut.test('test_period_period', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_period_period);
-      });
-      _ut.test('test_period_period_period', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_period_period_period);
-      });
-      _ut.test('test_plus', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_plus);
-      });
-      _ut.test('test_plus_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_plus_eq);
-      });
-      _ut.test('test_plus_plus', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_plus_plus);
-      });
-      _ut.test('test_question', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_question);
-      });
-      _ut.test('test_scriptTag_withArgs', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_scriptTag_withArgs);
-      });
-      _ut.test('test_scriptTag_withSpace', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_scriptTag_withSpace);
-      });
-      _ut.test('test_scriptTag_withoutSpace', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_scriptTag_withoutSpace);
-      });
-      _ut.test('test_semicolon', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_semicolon);
-      });
-      _ut.test('test_setSourceStart', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_setSourceStart);
-      });
-      _ut.test('test_slash', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_slash);
-      });
-      _ut.test('test_slash_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_slash_eq);
-      });
-      _ut.test('test_star', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_star);
-      });
-      _ut.test('test_star_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_star_eq);
-      });
-      _ut.test('test_startAndEnd', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_startAndEnd);
-      });
-      _ut.test('test_string_multi_double', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_double);
-      });
-      _ut.test('test_string_multi_embeddedQuotes', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes);
-      });
-      _ut.test('test_string_multi_embeddedQuotes_escapedChar', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes_escapedChar);
-      });
-      _ut.test('test_string_multi_interpolation_block', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_interpolation_block);
-      });
-      _ut.test('test_string_multi_interpolation_identifier', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_interpolation_identifier);
-      });
-      _ut.test('test_string_multi_single', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_single);
-      });
-      _ut.test('test_string_multi_slashEnter', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_slashEnter);
-      });
-      _ut.test('test_string_multi_unterminated', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_multi_unterminated);
-      });
-      _ut.test('test_string_raw_multi_double', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_multi_double);
-      });
-      _ut.test('test_string_raw_multi_single', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_multi_single);
-      });
-      _ut.test('test_string_raw_multi_unterminated', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_multi_unterminated);
-      });
-      _ut.test('test_string_raw_simple_double', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_double);
-      });
-      _ut.test('test_string_raw_simple_single', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_single);
-      });
-      _ut.test('test_string_raw_simple_unterminated_eof', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_unterminated_eof);
-      });
-      _ut.test('test_string_raw_simple_unterminated_eol', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_raw_simple_unterminated_eol);
-      });
-      _ut.test('test_string_simple_double', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_double);
-      });
-      _ut.test('test_string_simple_escapedDollar', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_escapedDollar);
-      });
-      _ut.test('test_string_simple_interpolation_adjacentIdentifiers', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_adjacentIdentifiers);
-      });
-      _ut.test('test_string_simple_interpolation_block', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_block);
-      });
-      _ut.test('test_string_simple_interpolation_blockWithNestedMap', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_blockWithNestedMap);
-      });
-      _ut.test('test_string_simple_interpolation_firstAndLast', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_firstAndLast);
-      });
-      _ut.test('test_string_simple_interpolation_identifier', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_identifier);
-      });
-      _ut.test('test_string_simple_interpolation_missingIdentifier', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_missingIdentifier);
-      });
-      _ut.test('test_string_simple_interpolation_nonIdentifier', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_interpolation_nonIdentifier);
-      });
-      _ut.test('test_string_simple_single', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_single);
-      });
-      _ut.test('test_string_simple_unterminated_eof', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_unterminated_eof);
-      });
-      _ut.test('test_string_simple_unterminated_eol', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_string_simple_unterminated_eol);
-      });
-      _ut.test('test_tilde', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_tilde);
-      });
-      _ut.test('test_tilde_slash', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_tilde_slash);
-      });
-      _ut.test('test_tilde_slash_eq', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_tilde_slash_eq);
-      });
-      _ut.test('test_unclosedPairInInterpolation', () {
-        final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_unclosedPairInInterpolation);
-      });
-    });
-  }
-}
 /**
  * Instances of the class `TokenStreamValidator` are used to validate the correct construction
  * of a stream of tokens.
@@ -1525,7 +266,7 @@ class TokenStreamValidator {
     builder.append("]");
   }
 }
-abstract class AbstractScannerTest extends JUnitTestCase {
+class ScannerTest extends JUnitTestCase {
   void test_ampersand() {
     assertToken(TokenType.AMPERSAND, "&");
   }
@@ -1814,29 +555,29 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_lineInfo_multilineComment() {
     String source = "/*\r *\r */";
     assertLineInfo(source, [
-        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
-        new AbstractScannerTest_ExpectedLocation(4, 2, 2),
-        new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
+        new ScannerTest_ExpectedLocation(0, 1, 1),
+        new ScannerTest_ExpectedLocation(4, 2, 2),
+        new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
   }
   void test_lineInfo_multilineString() {
     String source = "'''a\r\nbc\r\nd'''";
     assertLineInfo(source, [
-        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
-        new AbstractScannerTest_ExpectedLocation(7, 2, 2),
-        new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 4)]);
+        new ScannerTest_ExpectedLocation(0, 1, 1),
+        new ScannerTest_ExpectedLocation(7, 2, 2),
+        new ScannerTest_ExpectedLocation(source.length - 1, 3, 4)]);
   }
   void test_lineInfo_simpleClass() {
     String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
     assertLineInfo(source, [
-        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
-        new AbstractScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
-        new AbstractScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
+        new ScannerTest_ExpectedLocation(0, 1, 1),
+        new ScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
+        new ScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
   }
   void test_lineInfo_slashN() {
     String source = "class Test {\n}";
     assertLineInfo(source, [
-        new AbstractScannerTest_ExpectedLocation(0, 1, 1),
-        new AbstractScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
+        new ScannerTest_ExpectedLocation(0, 1, 1),
+        new ScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
   }
   void test_lt() {
     assertToken(TokenType.LT, "<");
@@ -1926,6 +667,17 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_semicolon() {
     assertToken(TokenType.SEMICOLON, ";");
   }
+  void test_setSourceStart() {
+    int offsetDelta = 42;
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner = new Scanner(null, new SubSequenceReader(new CharSequence("a"), offsetDelta), listener);
+    scanner.setSourceStart(3, 9);
+    scanner.tokenize();
+    List<int> lineStarts = scanner.lineStarts;
+    JUnitTestCase.assertNotNull(lineStarts);
+    JUnitTestCase.assertEquals(3, lineStarts.length);
+    JUnitTestCase.assertEquals(33, lineStarts[2]);
+  }
   void test_slash() {
     assertToken(TokenType.SLASH, "/");
   }
@@ -1939,7 +691,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     assertToken(TokenType.STAR_EQ, "*=");
   }
   void test_startAndEnd() {
-    Token token = scan2("a");
+    Token token = scan("a");
     Token previous = token.previous;
     JUnitTestCase.assertEquals(token, previous.next);
     JUnitTestCase.assertEquals(previous, previous.previous);
@@ -2092,11 +844,10 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   void test_unclosedPairInInterpolation() {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan("'\${(}'", listener);
+    scan2("'\${(}'", listener);
   }
-  Token scan(String source, GatheringErrorListener listener);
   void assertComment(TokenType commentType, String source) {
-    Token token = scan2(source);
+    Token token = scan(source);
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
     Token comment = token.precedingComments;
@@ -2105,7 +856,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(0, comment.offset);
     JUnitTestCase.assertEquals(source.length, comment.length);
     JUnitTestCase.assertEquals(source, comment.lexeme);
-    token = scan2("${source}\n");
+    token = scan("${source}\n");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
     comment = token.precedingComments;
@@ -2125,7 +876,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
    */
   void assertError(ScannerErrorCode expectedError, int expectedOffset, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan(source, listener);
+    scan2(source, listener);
     listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [source.codeUnitAt(expectedOffset) as int])]);
   }
 
@@ -2136,7 +887,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
    * @param source the source to be scanned
    */
   void assertKeywordToken(String source) {
-    Token token = scan2(source);
+    Token token = scan(source);
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.KEYWORD, token.type);
     JUnitTestCase.assertEquals(0, token.offset);
@@ -2145,7 +896,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     Object value = token.value();
     JUnitTestCase.assertTrue(value is Keyword);
     JUnitTestCase.assertEquals(source, ((value as Keyword)).syntax);
-    token = scan2(" ${source} ");
+    token = scan(" ${source} ");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.KEYWORD, token.type);
     JUnitTestCase.assertEquals(1, token.offset);
@@ -2156,13 +907,13 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(source, ((value as Keyword)).syntax);
     JUnitTestCase.assertEquals(TokenType.EOF, token.next.type);
   }
-  void assertLineInfo(String source, List<AbstractScannerTest_ExpectedLocation> expectedLocations) {
+  void assertLineInfo(String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    scan(source, listener);
+    scan2(source, listener);
     listener.assertNoErrors();
     LineInfo info = listener.getLineInfo(new TestSource());
     JUnitTestCase.assertNotNull(info);
-    for (AbstractScannerTest_ExpectedLocation expectedLocation in expectedLocations) {
+    for (ScannerTest_ExpectedLocation expectedLocation in expectedLocations) {
       LineInfo_Location location = info.getLocation(expectedLocation._offset);
       JUnitTestCase.assertEquals(expectedLocation._lineNumber, location.lineNumber);
       JUnitTestCase.assertEquals(expectedLocation._columnNumber, location.columnNumber);
@@ -2176,7 +927,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
    * @param source the source to be scanned to produce the actual token
    */
   Token assertToken(TokenType expectedType, String source) {
-    Token originalToken = scan2(source);
+    Token originalToken = scan(source);
     JUnitTestCase.assertNotNull(originalToken);
     JUnitTestCase.assertEquals(expectedType, originalToken.type);
     JUnitTestCase.assertEquals(0, originalToken.offset);
@@ -2185,7 +936,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     if (identical(expectedType, TokenType.SCRIPT_TAG)) {
       return originalToken;
     } else if (identical(expectedType, TokenType.SINGLE_LINE_COMMENT)) {
-      Token tokenWithSpaces = scan2(" ${source}");
+      Token tokenWithSpaces = scan(" ${source}");
       JUnitTestCase.assertNotNull(tokenWithSpaces);
       JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
       JUnitTestCase.assertEquals(1, tokenWithSpaces.offset);
@@ -2193,20 +944,20 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       JUnitTestCase.assertEquals(source, tokenWithSpaces.lexeme);
       return originalToken;
     } else if (identical(expectedType, TokenType.INT) || identical(expectedType, TokenType.DOUBLE)) {
-      Token tokenWithLowerD = scan2("${source}d");
+      Token tokenWithLowerD = scan("${source}d");
       JUnitTestCase.assertNotNull(tokenWithLowerD);
       JUnitTestCase.assertEquals(expectedType, tokenWithLowerD.type);
       JUnitTestCase.assertEquals(0, tokenWithLowerD.offset);
       JUnitTestCase.assertEquals(source.length, tokenWithLowerD.length);
       JUnitTestCase.assertEquals(source, tokenWithLowerD.lexeme);
-      Token tokenWithUpperD = scan2("${source}D");
+      Token tokenWithUpperD = scan("${source}D");
       JUnitTestCase.assertNotNull(tokenWithUpperD);
       JUnitTestCase.assertEquals(expectedType, tokenWithUpperD.type);
       JUnitTestCase.assertEquals(0, tokenWithUpperD.offset);
       JUnitTestCase.assertEquals(source.length, tokenWithUpperD.length);
       JUnitTestCase.assertEquals(source, tokenWithUpperD.lexeme);
     }
-    Token tokenWithSpaces = scan2(" ${source} ");
+    Token tokenWithSpaces = scan(" ${source} ");
     JUnitTestCase.assertNotNull(tokenWithSpaces);
     JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
     JUnitTestCase.assertEquals(1, tokenWithSpaces.offset);
@@ -2224,7 +975,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
    * @param expectedTokens the tokens that are expected to be in the source
    */
   void assertTokens(String source, List<Token> expectedTokens) {
-    Token token = scan2(source);
+    Token token = scan(source);
     JUnitTestCase.assertNotNull(token);
     for (int i = 0; i < expectedTokens.length; i++) {
       Token expectedToken = expectedTokens[i];
@@ -2237,30 +988,753 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     }
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
   }
-  Token scan2(String source) {
+  Token scan(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = scan(source, listener);
+    Token token = scan2(source, listener);
     listener.assertNoErrors();
     return token;
+  }
+  Token scan2(String source, GatheringErrorListener listener) {
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Token result = scanner.tokenize();
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    return result;
+  }
+  static dartSuite() {
+    _ut.group('ScannerTest', () {
+      _ut.test('test_ampersand', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_ampersand);
+      });
+      _ut.test('test_ampersand_ampersand', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_ampersand_ampersand);
+      });
+      _ut.test('test_ampersand_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_ampersand_eq);
+      });
+      _ut.test('test_at', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_at);
+      });
+      _ut.test('test_backping', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_backping);
+      });
+      _ut.test('test_backslash', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_backslash);
+      });
+      _ut.test('test_bang', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_bang);
+      });
+      _ut.test('test_bang_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_bang_eq);
+      });
+      _ut.test('test_bar', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_bar);
+      });
+      _ut.test('test_bar_bar', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_bar_bar);
+      });
+      _ut.test('test_bar_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_bar_eq);
+      });
+      _ut.test('test_caret', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_caret);
+      });
+      _ut.test('test_caret_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_caret_eq);
+      });
+      _ut.test('test_close_curly_bracket', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_close_curly_bracket);
+      });
+      _ut.test('test_close_paren', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_close_paren);
+      });
+      _ut.test('test_close_quare_bracket', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_close_quare_bracket);
+      });
+      _ut.test('test_colon', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_colon);
+      });
+      _ut.test('test_comma', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_comma);
+      });
+      _ut.test('test_comment_multi', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_comment_multi);
+      });
+      _ut.test('test_comment_multi_unterminated', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_comment_multi_unterminated);
+      });
+      _ut.test('test_comment_nested', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_comment_nested);
+      });
+      _ut.test('test_comment_single', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_comment_single);
+      });
+      _ut.test('test_double_both_E', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_both_E);
+      });
+      _ut.test('test_double_both_e', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_both_e);
+      });
+      _ut.test('test_double_fraction', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_fraction);
+      });
+      _ut.test('test_double_fraction_E', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_fraction_E);
+      });
+      _ut.test('test_double_fraction_e', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_fraction_e);
+      });
+      _ut.test('test_double_missingDigitInExponent', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_missingDigitInExponent);
+      });
+      _ut.test('test_double_whole_E', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_whole_E);
+      });
+      _ut.test('test_double_whole_e', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_double_whole_e);
+      });
+      _ut.test('test_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_eq);
+      });
+      _ut.test('test_eq_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_eq_eq);
+      });
+      _ut.test('test_gt', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_gt);
+      });
+      _ut.test('test_gt_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_gt_eq);
+      });
+      _ut.test('test_gt_gt', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_gt_gt);
+      });
+      _ut.test('test_gt_gt_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_gt_gt_eq);
+      });
+      _ut.test('test_hash', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_hash);
+      });
+      _ut.test('test_hexidecimal', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_hexidecimal);
+      });
+      _ut.test('test_hexidecimal_missingDigit', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_hexidecimal_missingDigit);
+      });
+      _ut.test('test_identifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_identifier);
+      });
+      _ut.test('test_illegalChar_cyrillicLetter_middle', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_middle);
+      });
+      _ut.test('test_illegalChar_cyrillicLetter_start', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_cyrillicLetter_start);
+      });
+      _ut.test('test_illegalChar_nbsp', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_nbsp);
+      });
+      _ut.test('test_illegalChar_notLetter', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_illegalChar_notLetter);
+      });
+      _ut.test('test_index', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_index);
+      });
+      _ut.test('test_index_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_index_eq);
+      });
+      _ut.test('test_int', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_int);
+      });
+      _ut.test('test_int_initialZero', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_int_initialZero);
+      });
+      _ut.test('test_keyword_abstract', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_abstract);
+      });
+      _ut.test('test_keyword_as', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_as);
+      });
+      _ut.test('test_keyword_assert', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_assert);
+      });
+      _ut.test('test_keyword_break', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_break);
+      });
+      _ut.test('test_keyword_case', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_case);
+      });
+      _ut.test('test_keyword_catch', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_catch);
+      });
+      _ut.test('test_keyword_class', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_class);
+      });
+      _ut.test('test_keyword_const', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_const);
+      });
+      _ut.test('test_keyword_continue', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_continue);
+      });
+      _ut.test('test_keyword_default', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_default);
+      });
+      _ut.test('test_keyword_do', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_do);
+      });
+      _ut.test('test_keyword_dynamic', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_dynamic);
+      });
+      _ut.test('test_keyword_else', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_else);
+      });
+      _ut.test('test_keyword_enum', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_enum);
+      });
+      _ut.test('test_keyword_export', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_export);
+      });
+      _ut.test('test_keyword_extends', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_extends);
+      });
+      _ut.test('test_keyword_factory', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_factory);
+      });
+      _ut.test('test_keyword_false', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_false);
+      });
+      _ut.test('test_keyword_final', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_final);
+      });
+      _ut.test('test_keyword_finally', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_finally);
+      });
+      _ut.test('test_keyword_for', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_for);
+      });
+      _ut.test('test_keyword_get', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_get);
+      });
+      _ut.test('test_keyword_if', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_if);
+      });
+      _ut.test('test_keyword_implements', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_implements);
+      });
+      _ut.test('test_keyword_import', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_import);
+      });
+      _ut.test('test_keyword_in', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_in);
+      });
+      _ut.test('test_keyword_is', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_is);
+      });
+      _ut.test('test_keyword_library', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_library);
+      });
+      _ut.test('test_keyword_new', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_new);
+      });
+      _ut.test('test_keyword_null', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_null);
+      });
+      _ut.test('test_keyword_operator', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_operator);
+      });
+      _ut.test('test_keyword_part', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_part);
+      });
+      _ut.test('test_keyword_rethrow', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_rethrow);
+      });
+      _ut.test('test_keyword_return', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_return);
+      });
+      _ut.test('test_keyword_set', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_set);
+      });
+      _ut.test('test_keyword_static', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_static);
+      });
+      _ut.test('test_keyword_super', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_super);
+      });
+      _ut.test('test_keyword_switch', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_switch);
+      });
+      _ut.test('test_keyword_this', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_this);
+      });
+      _ut.test('test_keyword_throw', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_throw);
+      });
+      _ut.test('test_keyword_true', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_true);
+      });
+      _ut.test('test_keyword_try', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_try);
+      });
+      _ut.test('test_keyword_typedef', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_typedef);
+      });
+      _ut.test('test_keyword_var', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_var);
+      });
+      _ut.test('test_keyword_void', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_void);
+      });
+      _ut.test('test_keyword_while', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_while);
+      });
+      _ut.test('test_keyword_with', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_keyword_with);
+      });
+      _ut.test('test_lineInfo_multilineComment', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_multilineComment);
+      });
+      _ut.test('test_lineInfo_multilineString', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_multilineString);
+      });
+      _ut.test('test_lineInfo_simpleClass', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_simpleClass);
+      });
+      _ut.test('test_lineInfo_slashN', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_slashN);
+      });
+      _ut.test('test_lt', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lt);
+      });
+      _ut.test('test_lt_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lt_eq);
+      });
+      _ut.test('test_lt_lt', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lt_lt);
+      });
+      _ut.test('test_lt_lt_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_lt_lt_eq);
+      });
+      _ut.test('test_minus', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_minus);
+      });
+      _ut.test('test_minus_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_minus_eq);
+      });
+      _ut.test('test_minus_minus', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_minus_minus);
+      });
+      _ut.test('test_openSquareBracket', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_openSquareBracket);
+      });
+      _ut.test('test_open_curly_bracket', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_open_curly_bracket);
+      });
+      _ut.test('test_open_paren', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_open_paren);
+      });
+      _ut.test('test_open_square_bracket', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_open_square_bracket);
+      });
+      _ut.test('test_percent', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_percent);
+      });
+      _ut.test('test_percent_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_percent_eq);
+      });
+      _ut.test('test_period', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_period);
+      });
+      _ut.test('test_periodAfterNumberNotIncluded_identifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_periodAfterNumberNotIncluded_identifier);
+      });
+      _ut.test('test_periodAfterNumberNotIncluded_period', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_periodAfterNumberNotIncluded_period);
+      });
+      _ut.test('test_period_period', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_period_period);
+      });
+      _ut.test('test_period_period_period', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_period_period_period);
+      });
+      _ut.test('test_plus', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_plus);
+      });
+      _ut.test('test_plus_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_plus_eq);
+      });
+      _ut.test('test_plus_plus', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_plus_plus);
+      });
+      _ut.test('test_question', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_question);
+      });
+      _ut.test('test_scriptTag_withArgs', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_scriptTag_withArgs);
+      });
+      _ut.test('test_scriptTag_withSpace', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_scriptTag_withSpace);
+      });
+      _ut.test('test_scriptTag_withoutSpace', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_scriptTag_withoutSpace);
+      });
+      _ut.test('test_semicolon', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_semicolon);
+      });
+      _ut.test('test_setSourceStart', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_setSourceStart);
+      });
+      _ut.test('test_slash', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_slash);
+      });
+      _ut.test('test_slash_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_slash_eq);
+      });
+      _ut.test('test_star', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_star);
+      });
+      _ut.test('test_star_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_star_eq);
+      });
+      _ut.test('test_startAndEnd', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_startAndEnd);
+      });
+      _ut.test('test_string_multi_double', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_double);
+      });
+      _ut.test('test_string_multi_embeddedQuotes', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes);
+      });
+      _ut.test('test_string_multi_embeddedQuotes_escapedChar', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_embeddedQuotes_escapedChar);
+      });
+      _ut.test('test_string_multi_interpolation_block', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_interpolation_block);
+      });
+      _ut.test('test_string_multi_interpolation_identifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_interpolation_identifier);
+      });
+      _ut.test('test_string_multi_single', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_single);
+      });
+      _ut.test('test_string_multi_slashEnter', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_slashEnter);
+      });
+      _ut.test('test_string_multi_unterminated', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_multi_unterminated);
+      });
+      _ut.test('test_string_raw_multi_double', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_multi_double);
+      });
+      _ut.test('test_string_raw_multi_single', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_multi_single);
+      });
+      _ut.test('test_string_raw_multi_unterminated', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_multi_unterminated);
+      });
+      _ut.test('test_string_raw_simple_double', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_simple_double);
+      });
+      _ut.test('test_string_raw_simple_single', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_simple_single);
+      });
+      _ut.test('test_string_raw_simple_unterminated_eof', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_simple_unterminated_eof);
+      });
+      _ut.test('test_string_raw_simple_unterminated_eol', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_raw_simple_unterminated_eol);
+      });
+      _ut.test('test_string_simple_double', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_double);
+      });
+      _ut.test('test_string_simple_escapedDollar', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_escapedDollar);
+      });
+      _ut.test('test_string_simple_interpolation_adjacentIdentifiers', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_adjacentIdentifiers);
+      });
+      _ut.test('test_string_simple_interpolation_block', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_block);
+      });
+      _ut.test('test_string_simple_interpolation_blockWithNestedMap', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_blockWithNestedMap);
+      });
+      _ut.test('test_string_simple_interpolation_firstAndLast', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_firstAndLast);
+      });
+      _ut.test('test_string_simple_interpolation_identifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_identifier);
+      });
+      _ut.test('test_string_simple_interpolation_missingIdentifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_missingIdentifier);
+      });
+      _ut.test('test_string_simple_interpolation_nonIdentifier', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_nonIdentifier);
+      });
+      _ut.test('test_string_simple_single', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_single);
+      });
+      _ut.test('test_string_simple_unterminated_eof', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_unterminated_eof);
+      });
+      _ut.test('test_string_simple_unterminated_eol', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_unterminated_eol);
+      });
+      _ut.test('test_tilde', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_tilde);
+      });
+      _ut.test('test_tilde_slash', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_tilde_slash);
+      });
+      _ut.test('test_tilde_slash_eq', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_tilde_slash_eq);
+      });
+      _ut.test('test_unclosedPairInInterpolation', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_unclosedPairInInterpolation);
+      });
+    });
   }
 }
 /**
  * Instances of the class `ExpectedLocation` encode information about the expected location
  * of a given offset in source code.
  */
-class AbstractScannerTest_ExpectedLocation {
+class ScannerTest_ExpectedLocation {
   int _offset = 0;
   int _lineNumber = 0;
   int _columnNumber = 0;
-  AbstractScannerTest_ExpectedLocation(int offset, int lineNumber, int columnNumber) {
+  ScannerTest_ExpectedLocation(int offset, int lineNumber, int columnNumber) {
     this._offset = offset;
     this._lineNumber = lineNumber;
     this._columnNumber = columnNumber;
   }
 }
+class IncrementalScannerTest extends JUnitTestCase {
+  void test_rescan_addedToIdentifier() {
+    assertTokens("a + b;", "abs + b;");
+  }
+  void test_rescan_insertedPeriod() {
+    assertTokens("a + b;", "a + b.;");
+  }
+  void test_rescan_oneFunctionToTwo() {
+    assertTokens("f() {}", "f() => 0; g() {}");
+  }
+  void assertTokens(String originalContents, String modifiedContents) {
+    int originalLength = originalContents.length;
+    int modifiedLength = modifiedContents.length;
+    int replaceStart = 0;
+    while (replaceStart < originalLength && replaceStart < modifiedLength && originalContents.codeUnitAt(replaceStart) == modifiedContents.codeUnitAt(replaceStart)) {
+      replaceStart++;
+    }
+    int originalEnd = originalLength - 1;
+    int modifiedEnd = modifiedLength - 1;
+    while (originalEnd >= replaceStart && modifiedEnd >= replaceStart && originalContents.codeUnitAt(originalEnd) == modifiedContents.codeUnitAt(modifiedEnd)) {
+      originalEnd--;
+      modifiedEnd--;
+    }
+    Source source = new TestSource();
+    GatheringErrorListener originalListener = new GatheringErrorListener();
+    Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
+    Token originalToken = originalScanner.tokenize();
+    JUnitTestCase.assertNotNull(originalToken);
+    GatheringErrorListener modifiedListener = new GatheringErrorListener();
+    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
+    Token modifiedToken = modifiedScanner.tokenize();
+    JUnitTestCase.assertNotNull(modifiedToken);
+    GatheringErrorListener incrementalListener = new GatheringErrorListener();
+    IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
+    Token incrementalToken = incrementalScanner.rescan(originalToken, replaceStart, originalEnd - replaceStart + 1, modifiedEnd - replaceStart + 1);
+    JUnitTestCase.assertNotNull(incrementalToken);
+    while (incrementalToken.type != TokenType.EOF && modifiedToken.type != TokenType.EOF) {
+      JUnitTestCase.assertSameMsg("Wrong type for token", modifiedToken.type, incrementalToken.type);
+      JUnitTestCase.assertEqualsMsg("Wrong offset for token", modifiedToken.offset, incrementalToken.offset);
+      JUnitTestCase.assertEqualsMsg("Wrong length for token", modifiedToken.length, incrementalToken.length);
+      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token", modifiedToken.lexeme, incrementalToken.lexeme);
+      incrementalToken = incrementalToken.next;
+      modifiedToken = modifiedToken.next;
+    }
+    JUnitTestCase.assertSameMsg("Too many tokens", TokenType.EOF, incrementalToken.type);
+    JUnitTestCase.assertSameMsg("Not enough tokens", TokenType.EOF, modifiedToken.type);
+  }
+  static dartSuite() {
+    _ut.group('IncrementalScannerTest', () {
+      _ut.test('test_rescan_addedToIdentifier', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_addedToIdentifier);
+      });
+      _ut.test('test_rescan_insertedPeriod', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertedPeriod);
+      });
+      _ut.test('test_rescan_oneFunctionToTwo', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_oneFunctionToTwo);
+      });
+    });
+  }
+}
 main() {
-  CharBufferScannerTest.dartSuite();
+  CharSequenceReaderTest.dartSuite();
+  IncrementalScannerTest.dartSuite();
   KeywordStateTest.dartSuite();
-  StringScannerTest.dartSuite();
+  ScannerTest.dartSuite();
   TokenTypeTest.dartSuite();
 }

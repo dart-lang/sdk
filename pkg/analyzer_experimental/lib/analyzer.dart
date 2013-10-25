@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
+import 'src/generated/java_core.dart' show CharSequence;
 import 'src/error.dart';
 import 'src/generated/ast.dart';
 import 'src/generated/error.dart';
@@ -23,7 +24,7 @@ export 'src/generated/utilities_dart.dart';
 
 /// Parses a Dart file into an AST.
 CompilationUnit parseDartFile(String path) {
-  var contents = new File(path).readAsStringSync();
+  String contents = new File(path).readAsStringSync();
   var errorCollector = new _ErrorCollector();
   var sourceFactory = new SourceFactory.con2([new FileUriResolver()]);
 
@@ -36,7 +37,8 @@ CompilationUnit parseDartFile(String path) {
     throw new ArgumentError("Source $source doesn't exist");
   }
 
-  var scanner = new StringScanner(source, contents, errorCollector);
+  var reader = new CharSequenceReader(new CharSequence(contents));
+  var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
   var unit = parser.parseCompilationUnit(token);
@@ -55,7 +57,8 @@ CompilationUnit parseCompilationUnit(String contents, {String name}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
-  var scanner = new StringScanner(source, contents, errorCollector);
+  var reader = new CharSequenceReader(new CharSequence(contents));
+  var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
   var unit = parser.parseCompilationUnit(token);

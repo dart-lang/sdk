@@ -3788,7 +3788,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_23();
+    AnalysisErrorListener listener = new AnalysisErrorListener_24();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -3842,7 +3842,7 @@ class SimpleParserTest extends ParserTestCase {
    */
   bool isFunctionExpression(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     Token tokenStream = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "isFunctionExpression", <Object> [tokenStream], tokenStream) as bool;
@@ -3886,7 +3886,7 @@ class SimpleParserTest extends ParserTestCase {
    */
   Token skip(String methodName, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     Token tokenStream = scanner.tokenize();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, methodName, <Object> [tokenStream], tokenStream) as Token;
@@ -6020,7 +6020,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_23 implements AnalysisErrorListener {
+class AnalysisErrorListener_24 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -6614,7 +6614,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static CompilationUnit parseCompilationUnit(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -6635,7 +6635,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static Expression parseExpression(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -6656,7 +6656,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static Statement parseStatement(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -6679,7 +6679,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static List<Statement> parseStatements(String source, int expectedCount, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -6706,7 +6706,7 @@ class ParserTestCase extends EngineTestCase {
    *           scanning and parsing the source do not match the expected errors
    */
   static Object invokeParserMethod(String methodName, List<Object> objects, String source, GatheringErrorListener listener) {
-    StringScanner scanner = new StringScanner(null, source, listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Parser parser = new Parser(null, listener);
@@ -7599,12 +7599,6 @@ class RecoveryParserTest extends ParserTestCase {
  * that errors are correctly reported, and in some cases, not reported.
  */
 class ErrorParserTest extends ParserTestCase {
-  void fail_deprecatedClassTypeAlias() {
-    ParserTestCase.parseCompilationUnit("typedef C = abstract S with M;", [ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS]);
-  }
-  void fail_deprecatedClassTypeAlias_withGeneric() {
-    ParserTestCase.parseCompilationUnit("typedef C<T> = abstract S<T> with M;", [ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS]);
-  }
   void fail_expectedListOrMapLiteral() {
     TypedLiteral literal = ParserTestCase.parse4("parseListOrMapLiteral", <Object> [null], "1", [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
     JUnitTestCase.assertTrue(literal.isSynthetic);
@@ -7765,6 +7759,12 @@ class ErrorParserTest extends ParserTestCase {
   }
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
     ParserTestCase.parse5("parseWhileStatement", "while (a) { switch (b) {default: continue;}}", []);
+  }
+  void test_deprecatedClassTypeAlias() {
+    ParserTestCase.parseCompilationUnit("typedef C = abstract S with M;", [ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS]);
+  }
+  void test_deprecatedClassTypeAlias_withGeneric() {
+    ParserTestCase.parseCompilationUnit("typedef C<T> = abstract S<T> with M;", [ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS]);
   }
   void test_directiveAfterDeclaration_classBeforeDirective() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("class Foo{} library l;", [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION]);
@@ -8548,6 +8548,14 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_continueWithoutLabelInCase_noError_switchInLoop', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_continueWithoutLabelInCase_noError_switchInLoop);
+      });
+      _ut.test('test_deprecatedClassTypeAlias', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_deprecatedClassTypeAlias);
+      });
+      _ut.test('test_deprecatedClassTypeAlias_withGeneric', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_deprecatedClassTypeAlias_withGeneric);
       });
       _ut.test('test_directiveAfterDeclaration_classBeforeDirective', () {
         final __test = new ErrorParserTest();

@@ -8,7 +8,7 @@ import 'utilities_general.dart';
 import 'instrumentation.dart';
 import 'error.dart';
 import 'source.dart';
-import 'scanner.dart' show Token, CharBufferScanner, StringScanner;
+import 'scanner.dart' show Token, Scanner, CharSequenceReader;
 import 'ast.dart';
 import 'parser.dart' show Parser;
 import 'sdk.dart' show DartSdk;
@@ -1479,6 +1479,21 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   SourceKind get kind => _sourceKind;
 
   /**
+   * Answer an array of library sources containing the receiver's source.
+   */
+  List<Source> get librariesContaining {
+    DartEntryImpl_ResolutionState state = _resolutionState;
+    List<Source> result = new List<Source>();
+    while (state != null) {
+      if (state._librarySource != null) {
+        result.add(state._librarySource);
+      }
+      state = state._nextState;
+    }
+    return new List.from(result);
+  }
+
+  /**
    * Return a compilation unit that has not been accessed by any other client and can therefore
    * safely be modified by the reconciler.
    *
@@ -1664,27 +1679,26 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _parsedUnit = null;
     _parsedUnitAccessed = false;
     _parsedUnitState = CacheState.INVALID;
-    invalidateAllResolutionInformation();
+    discardCachedResolutionInformation();
   }
 
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
    */
   void invalidateAllResolutionInformation() {
-    _element = null;
-    _elementState = CacheState.INVALID;
-    _includedParts = Source.EMPTY_ARRAY;
-    _includedPartsState = CacheState.INVALID;
-    _exportedLibraries = Source.EMPTY_ARRAY;
-    _exportedLibrariesState = CacheState.INVALID;
-    _importedLibraries = Source.EMPTY_ARRAY;
-    _importedLibrariesState = CacheState.INVALID;
-    _bitmask = 0;
-    _clientServerState = CacheState.INVALID;
-    _launchableState = CacheState.INVALID;
-    _publicNamespace = null;
-    _publicNamespaceState = CacheState.INVALID;
-    _resolutionState.invalidateAllResolutionInformation();
+    if (identical(_parsedUnitState, CacheState.FLUSHED)) {
+      DartEntryImpl_ResolutionState state = _resolutionState;
+      while (state != null) {
+        if (identical(state._resolvedUnitState, CacheState.VALID)) {
+          _parsedUnit = state._resolvedUnit;
+          _parsedUnitAccessed = true;
+          _parsedUnitState = CacheState.VALID;
+          break;
+        }
+        state = state._nextState;
+      }
+    }
+    discardCachedResolutionInformation();
   }
   bool get isRefactoringSafe {
     DartEntryImpl_ResolutionState state = _resolutionState;
@@ -2046,6 +2060,26 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append("; launchable = ");
     builder.append(_launchableState);
     _resolutionState.writeOn(builder);
+  }
+
+  /**
+   * Invalidate all of the resolution information associated with the compilation unit.
+   */
+  void discardCachedResolutionInformation() {
+    _element = null;
+    _elementState = CacheState.INVALID;
+    _includedParts = Source.EMPTY_ARRAY;
+    _includedPartsState = CacheState.INVALID;
+    _exportedLibraries = Source.EMPTY_ARRAY;
+    _exportedLibrariesState = CacheState.INVALID;
+    _importedLibraries = Source.EMPTY_ARRAY;
+    _importedLibrariesState = CacheState.INVALID;
+    _bitmask = 0;
+    _clientServerState = CacheState.INVALID;
+    _launchableState = CacheState.INVALID;
+    _publicNamespace = null;
+    _publicNamespaceState = CacheState.INVALID;
+    _resolutionState.invalidateAllResolutionInformation();
   }
 
   /**
@@ -2903,6 +2937,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisContextImpl_AnalysisTaskResultRecorder _resultRecorder;
 
   /**
+   * Cached information used in incremental analysis or `null` if none. Synchronize against
+   * [cacheLock] before accessing this field.
+   */
+  IncrementalAnalysisCache _incrementalAnalysisCache;
+
+  /**
    * Initialize a newly created analysis context.
    */
   AnalysisContextImpl() : super() {
@@ -3509,16 +3549,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
   void setChangedContents(Source source, String contents, int offset, int oldLength, int newLength) {
     {
-      if (_sourceFactory.setContents(source, contents)) {
+      String originalContents = _sourceFactory.setContents(source, contents);
+      if (originalContents == null) {
+        if (contents != null) {
+          _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, getReadableSourceEntry(source));
+          sourceChanged(source);
+        }
+      } else if (originalContents != contents) {
+        _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, getReadableSourceEntry(source));
         sourceChanged(source);
+      } else if (contents == null) {
+        _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       }
     }
   }
   void setContents(Source source, String contents) {
     {
-      if (_sourceFactory.setContents(source, contents)) {
+      String originalContents = _sourceFactory.setContents(source, contents);
+      if (originalContents == null) {
+        if (contents != null) {
+          sourceChanged(source);
+        }
+      } else if (originalContents != contents) {
         sourceChanged(source);
       }
+      _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
     }
   }
   void set sourceFactory(SourceFactory factory) {
@@ -4864,6 +4919,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (thrownException == null) {
           htmlCopy.setValue(HtmlEntry.ELEMENT, task.element);
           htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
         } else {
           htmlCopy.recordResolutionError();
         }
@@ -5239,6 +5296,9 @@ class ChangeNoticeImpl implements ChangeNotice {
   void setErrors(List<AnalysisError> errors, LineInfo lineInfo) {
     this._errors = errors;
     this._lineInfo = lineInfo;
+    if (lineInfo == null) {
+      AnalysisEngine.instance.logger.logError2("No line info: ${_source}", new JavaException());
+    }
   }
   String toString() => "Changes for ${_source.fullName}";
 }
@@ -5494,6 +5554,95 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     } else {
       throw new IllegalStateException("SourceFactorys provided to DelegatingAnalysisContextImpls must have a DartSdk associated with the provided SourceFactory.");
     }
+  }
+}
+/**
+ * Instances of the class `IncrementalAnalysisCache` hold information used to perform
+ * incremental analysis.
+ *
+ * @see AnalysisContextImpl#setChangedContents(Source, String, int, int, int)
+ */
+class IncrementalAnalysisCache {
+
+  /**
+   * Determine if the cache should be cleared.
+   *
+   * @param cache the prior cache or `null` if none
+   * @param source the source being updated (not `null`)
+   * @return the cache used for incremental analysis or `null` if incremental analysis cannot
+   *         be performed
+   */
+  static IncrementalAnalysisCache clear(IncrementalAnalysisCache cache, Source source) {
+    if (cache == null || cache.source == source) {
+      return null;
+    }
+    return cache;
+  }
+
+  /**
+   * Determine if incremental analysis can be performed from the given information.
+   *
+   * @param cache the prior cache or `null` if none
+   * @param source the source being updated (not `null`)
+   * @param oldContents the original source contents prior to this update (not `null`)
+   * @param newContents the new contents after this incremental change (not `null`)
+   * @param offset the offset at which the change occurred
+   * @param oldLength the length of the text being replaced
+   * @param newLength the length of the replacement text
+   * @param sourceEntry the cached entry for the given source or `null` if none
+   * @return the cache used for incremental analysis or `null` if incremental analysis cannot
+   *         be performed
+   */
+  static IncrementalAnalysisCache update(IncrementalAnalysisCache cache, Source source, String oldContents, String newContents, int offset, int oldLength, int newLength, SourceEntry sourceEntry) {
+    if (cache == null || cache.source != source) {
+      if (sourceEntry is! DartEntryImpl) {
+        return null;
+      }
+      DartEntryImpl dartEntry = sourceEntry as DartEntryImpl;
+      List<Source> librarySources = dartEntry.librariesContaining;
+      if (librarySources.length != 1) {
+        return null;
+      }
+      Source librarySource = librarySources[0];
+      if (librarySource == null) {
+        return null;
+      }
+      CompilationUnit unit = dartEntry.getValue2(DartEntry.RESOLVED_UNIT, librarySource);
+      if (unit == null) {
+        return null;
+      }
+      if (oldContents == null) {
+        if (oldLength != 0) {
+          return null;
+        }
+        oldContents = "${newContents.substring(0, offset)}${newContents.substring(offset + newLength)}";
+      }
+      return new IncrementalAnalysisCache(librarySource, source, unit, oldContents, newContents, offset, oldLength, newLength);
+    }
+    if (cache.offset > offset || offset > cache.offset + cache.newLength) {
+      return null;
+    }
+    cache.newContents = newContents;
+    cache.newLength += newLength - oldLength;
+    return cache;
+  }
+  Source librarySource;
+  Source source;
+  String oldContents;
+  CompilationUnit resolvedUnit;
+  String newContents;
+  int offset = 0;
+  int oldLength = 0;
+  int newLength = 0;
+  IncrementalAnalysisCache(Source librarySource, Source source, CompilationUnit resolvedUnit, String oldContents, String newContents, int offset, int oldLength, int newLength) {
+    this.librarySource = librarySource;
+    this.source = source;
+    this.resolvedUnit = resolvedUnit;
+    this.oldContents = oldContents;
+    this.newContents = newContents;
+    this.offset = offset;
+    this.oldLength = oldLength;
+    this.newLength = newLength;
   }
 }
 /**
@@ -6156,7 +6305,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   /**
    * A HashMap of lists containing the errors that were collected, keyed by each [Source].
    */
-  Map<Source, List<AnalysisError>> _errors = new Map<Source, List<AnalysisError>>();
+  Map<Source, Set<AnalysisError>> _errors = new Map<Source, Set<AnalysisError>>();
 
   /**
    * Add all of the errors recorded by the given listener to this listener.
@@ -6175,13 +6324,13 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
-    Iterable<MapEntry<Source, List<AnalysisError>>> entrySet = getMapEntrySet(_errors);
+    Iterable<MapEntry<Source, Set<AnalysisError>>> entrySet = getMapEntrySet(_errors);
     int numEntries = entrySet.length;
     if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (MapEntry<Source, List<AnalysisError>> entry in entrySet) {
+    for (MapEntry<Source, Set<AnalysisError>> entry in entrySet) {
       resultList.addAll(entry.getValue());
     }
     return new List.from(resultList);
@@ -6195,21 +6344,21 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return the errors collected by the listener for the passed [Source]
    */
   List<AnalysisError> getErrors2(Source source) {
-    List<AnalysisError> errorsForSource = _errors[source];
+    Set<AnalysisError> errorsForSource = _errors[source];
     if (errorsForSource == null) {
       return AnalysisError.NO_ERRORS;
     } else {
       return new List.from(errorsForSource);
     }
   }
-  void onError(AnalysisError event) {
-    Source source = event.source;
-    List<AnalysisError> errorsForSource = _errors[source];
+  void onError(AnalysisError error) {
+    Source source = error.source;
+    Set<AnalysisError> errorsForSource = _errors[source];
     if (_errors[source] == null) {
-      errorsForSource = new List<AnalysisError>();
+      errorsForSource = new Set<AnalysisError>();
       _errors[source] = errorsForSource;
     }
-    errorsForSource.add(event);
+    javaSetAdd(errorsForSource, error);
   }
 }
 /**
@@ -6768,7 +6917,7 @@ class ParseDartTask extends AnalysisTask {
     List<Token> token = [null];
     TimeCounter_TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     try {
-      Source_ContentReceiver receiver = new Source_ContentReceiver_9(this, errorListener, token);
+      Source_ContentReceiver receiver = new Source_ContentReceiver_11(this, errorListener, token);
       try {
         source.getContents(receiver);
       } on JavaException catch (exception) {
@@ -6851,20 +7000,20 @@ class ParseDartTask extends AnalysisTask {
     return new List.from(sources);
   }
 }
-class Source_ContentReceiver_9 implements Source_ContentReceiver {
+class Source_ContentReceiver_11 implements Source_ContentReceiver {
   final ParseDartTask ParseDartTask_this;
   RecordingErrorListener errorListener;
   List<Token> token;
-  Source_ContentReceiver_9(this.ParseDartTask_this, this.errorListener, this.token);
+  Source_ContentReceiver_11(this.ParseDartTask_this, this.errorListener, this.token);
   void accept(CharBuffer contents, int modificationTime) {
     ParseDartTask_this.modificationTime = modificationTime;
-    CharBufferScanner scanner = new CharBufferScanner(ParseDartTask_this.source, contents, errorListener);
+    Scanner scanner = new Scanner(ParseDartTask_this.source, new CharSequenceReader(contents), errorListener);
     token[0] = scanner.tokenize();
     ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
   }
   void accept2(String contents, int modificationTime) {
     ParseDartTask_this.modificationTime = modificationTime;
-    StringScanner scanner = new StringScanner(ParseDartTask_this.source, contents, errorListener);
+    Scanner scanner = new Scanner(ParseDartTask_this.source, new CharSequenceReader(new CharSequence(contents)), errorListener);
     token[0] = scanner.tokenize();
     ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
   }
@@ -6958,17 +7107,17 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    htmlUnit.accept(new RecursiveXmlVisitor_10(this, libraries));
+    htmlUnit.accept(new RecursiveXmlVisitor_12(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
     return new List.from(libraries);
   }
 }
-class RecursiveXmlVisitor_10 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_12 extends RecursiveXmlVisitor<Object> {
   final ParseHtmlTask ParseHtmlTask_this;
   List<Source> libraries;
-  RecursiveXmlVisitor_10(this.ParseHtmlTask_this, this.libraries) : super();
+  RecursiveXmlVisitor_12(this.ParseHtmlTask_this, this.libraries) : super();
   Object visitXmlTagNode(XmlTagNode node) {
     if (javaStringEqualsIgnoreCase(node.tag.lexeme, ParseHtmlTask._TAG_SCRIPT)) {
       bool isDartScript = false;

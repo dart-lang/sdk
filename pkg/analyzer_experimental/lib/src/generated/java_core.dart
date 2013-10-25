@@ -422,6 +422,16 @@ bool javaStringEqualsIgnoreCase(String a, String b) {
   return a.toLowerCase() == b.toLowerCase();
 }
 
+bool javaStringRegionMatches(String t, int toffset, String o, int ooffset, int len) {
+  if (toffset < 0) return false;
+  if (ooffset < 0) return false;
+  var tend = toffset + len;
+  var oend = ooffset + len;
+  if (tend > t.length) return false;
+  if (oend > o.length) return false;
+  return t.substring(toffset, tend) == o.substring(ooffset, oend);
+}
+
 bool javaBooleanOr(bool a, bool b) {
   return a || b;
 }

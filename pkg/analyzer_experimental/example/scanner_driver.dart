@@ -4,9 +4,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_experimental/src/generated/scanner.dart';
-
 import 'dart:io';
+
+import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
 
 main() {
 
@@ -26,7 +27,8 @@ main() {
 
 _scan(File file) {
   var src = file.readAsStringSync();
-  var scanner = new StringScanner(null, src, null);
+  var reader = new CharSequenceReader(new CharSequence(src));
+  var scanner = new Scanner(null, reader, null);
   var token = scanner.tokenize();
   while (token.type != TokenType.EOF) {
     print(token);

@@ -465,9 +465,9 @@ class SdkLibrariesReader {
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_8(foundError);
+    AnalysisErrorListener errorListener = new AnalysisErrorListener_10(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
-    StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
+    Scanner scanner = new Scanner(source, new CharSequenceReader(new CharSequence(libraryFileContents)), errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder();
@@ -557,9 +557,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-class AnalysisErrorListener_8 implements AnalysisErrorListener {
+class AnalysisErrorListener_10 implements AnalysisErrorListener {
   List<bool> foundError;
-  AnalysisErrorListener_8(this.foundError);
+  AnalysisErrorListener_10(this.foundError);
   void onError(AnalysisError error) {
     foundError[0] = true;
   }

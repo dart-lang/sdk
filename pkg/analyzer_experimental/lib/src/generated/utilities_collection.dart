@@ -2,6 +2,7 @@
 // significant change. Please see the README file for more information.
 library engine.utilities.collection;
 import 'java_core.dart';
+import 'scanner.dart' show Token;
 /**
  * The class `BooleanArray` defines methods for operating on integers as if they were arrays
  * of booleans. These arrays can be indexed by either integers or by enumeration constants.
@@ -70,6 +71,37 @@ class BooleanArray {
     if (index < 0 || index > 30) {
       throw new RangeError("Index not between 0 and 30: ${index}");
     }
+  }
+}
+/**
+ * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
+ */
+class TokenMap {
+
+  /**
+   * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
+   * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
+   * cursor indicating where to start searching.
+   */
+  Map<Token, Token> _map = new Map<Token, Token>();
+
+  /**
+   * Return the token that is mapped to the given token, or `null` if there is no token
+   * corresponding to the given token.
+   *
+   * @param key the token being mapped to another token
+   * @return the token that is mapped to the given token
+   */
+  Token get(Token key) => _map[key];
+
+  /**
+   * Map the key to the value.
+   *
+   * @param key the token being mapped to the value
+   * @param value the token to which the key will be mapped
+   */
+  void put(Token key, Token value) {
+    _map[key] = value;
   }
 }
 /**

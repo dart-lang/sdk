@@ -11,7 +11,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
-import 'package:analyzer_experimental/src/generated/scanner.dart' show StringScanner;
+import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
+import 'package:analyzer_experimental/src/generated/scanner.dart' show CharSequenceReader, Scanner;
 import 'package:analyzer_experimental/src/generated/parser.dart' show Parser;
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart' show RecordingErrorListener;
@@ -246,7 +247,8 @@ class CoverageServer extends RewriteServer {
     var source = null;
     var errorListener = new RecordingErrorListener();
     var parser = new Parser(source, errorListener);
-    var scanner = new StringScanner(source, code, errorListener);
+    var reader = new CharSequenceReader(new CharSequence(code));
+    var scanner = new Scanner(null, reader, errorListener);
     var token = scanner.tokenize();
     return parser.parseCompilationUnit(token);
   }

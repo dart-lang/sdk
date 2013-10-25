@@ -1319,13 +1319,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   bool get isAbstract;
 
   /**
-   * Return `true` if this setter for final variable, so it causes warning when used.
-   *
-   * @return `true` if this accessor is excluded setter
-   */
-  bool get isExcludedSetter;
-
-  /**
    * Return `true` if this accessor represents a getter.
    *
    * @return `true` if this accessor represents a getter
@@ -2336,7 +2329,6 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
   List<FunctionElement> get functions => _functions;
   List<FunctionTypeAliasElement> get functionTypeAliases => _typeAliases;
-  String get identifier => source.encoding;
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
   Source get source => _source;
   List<TopLevelVariableElement> get topLevelVariables => _variables;
@@ -2445,6 +2437,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
       builder.append(_source.fullName);
     }
   }
+  String get identifier => source.encoding;
 }
 /**
  * Instances of the class `ConstFieldElementImpl` implement a `FieldElement` for a
@@ -2766,7 +2759,15 @@ abstract class ElementImpl implements Element {
     }
     return context.computeDocumentationComment(this);
   }
-  bool operator ==(Object object) => object != null && object.runtimeType == runtimeType && ((object as Element)).location == location;
+  bool operator ==(Object object) {
+    if (identical(this, object)) {
+      return true;
+    }
+    if (object == null || hashCode != object.hashCode) {
+      return false;
+    }
+    return object.runtimeType == runtimeType && ((object as Element)).location == location;
+  }
   Element getAncestor(Type elementClass) {
     Element ancestor = _enclosingElement;
     while (ancestor != null && !isInstanceOf(ancestor, elementClass)) {
@@ -2914,8 +2915,8 @@ abstract class ElementImpl implements Element {
    *
    * @param element the enclosing element of this element
    */
-  void set enclosingElement(ElementImpl element) {
-    _enclosingElement = element;
+  void set enclosingElement(Element element) {
+    _enclosingElement = element as ElementImpl;
   }
 
   /**
@@ -2970,6 +2971,9 @@ class ElementLocationImpl implements ElementLocation {
     this.components = decode(encoding);
   }
   bool operator ==(Object object) {
+    if (identical(this, object)) {
+      return true;
+    }
     if (object is! ElementLocationImpl) {
       return false;
     }
@@ -2979,16 +2983,16 @@ class ElementLocationImpl implements ElementLocation {
     if (otherComponents.length != length) {
       return false;
     }
-    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
-      return false;
+    for (int i = length - 1; i >= 2; i--) {
+      if (components[i] != otherComponents[i]) {
+        return false;
+      }
     }
     if (length > 1 && !equalSourceComponents(components[1], otherComponents[1])) {
       return false;
     }
-    for (int i = 2; i < length; i++) {
-      if (components[i] != otherComponents[i]) {
-        return false;
-      }
+    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
+      return false;
     }
     return true;
   }
@@ -3083,10 +3087,14 @@ class ElementLocationImpl implements ElementLocation {
     } else if (right == null) {
       return false;
     }
-    if (left.length <= 1 || right.length <= 1) {
+    int leftLength = left.length;
+    int rightLength = right.length;
+    if (leftLength != rightLength) {
+      return false;
+    } else if (leftLength <= 1 || rightLength <= 1) {
       return left == right;
     }
-    return left.substring(1) == right.substring(1);
+    return javaStringRegionMatches(left, 1, right, 1, leftLength - 1);
   }
 
   /**
@@ -3532,7 +3540,6 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    */
   FunctionElementImpl.con2(int nameOffset) : super.con2("", nameOffset);
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
-  String get identifier => "${name}@${nameOffset}";
   ElementKind get kind => ElementKind.FUNCTION;
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
@@ -3561,6 +3568,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     }
     super.appendTo(builder);
   }
+  String get identifier => "${name}@${nameOffset}";
 }
 /**
  * Instances of the class `FunctionTypeAliasElementImpl` implement a
@@ -4145,7 +4153,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return new List.from(libraries);
   }
   List<ExportElement> get exports => _exports;
-  String get identifier => _definingCompilationUnit.source.encoding;
   List<LibraryElement> get importedLibraries {
     Set<LibraryElement> libraries = new Set<LibraryElement>();
     for (ImportElement element in _imports) {
@@ -4264,6 +4271,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(_imports, visitor);
     safelyVisitChildren(_parts, visitor);
   }
+  String get identifier => _definingCompilationUnit.source.encoding;
 
   /**
    * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
@@ -4302,6 +4310,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
 
   /**
+   * Is `true` if this variable is potentially mutated somewhere in its scope.
+   */
+  bool _isPotentiallyMutated2 = false;
+
+  /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
@@ -4330,6 +4343,14 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
       return null;
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
+  }
+  bool get isPotentiallyMutated => _isPotentiallyMutated2;
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in its scope.
+   */
+  void markPotentiallyMutated() {
+    _isPotentiallyMutated2 = true;
   }
 
   /**
@@ -4590,6 +4611,11 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
 
   /**
+   * Is `true` if this variable is potentially mutated somewhere in its scope.
+   */
+  bool _isPotentiallyMutated3 = false;
+
+  /**
    * An array containing all of the parameters defined by this parameter element. There will only be
    * parameters if this parameter is a function typed parameter.
    */
@@ -4659,6 +4685,14 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
   bool get isInitializingFormal => false;
+  bool get isPotentiallyMutated => _isPotentiallyMutated3;
+
+  /**
+   * Specifies that this variable is potentially mutated somewhere in its scope.
+   */
+  void markPotentiallyMutated() {
+    _isPotentiallyMutated3 = true;
+  }
 
   /**
    * Set the range of the default value for this parameter to the range starting at the given offset
@@ -4838,7 +4872,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   }
   PropertyInducingElement get variable => _variable;
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
-  bool get isExcludedSetter => isSetter && _variable.isFinal;
   bool get isGetter => hasModifier(Modifier.GETTER);
   bool get isSetter => hasModifier(Modifier.SETTER);
   bool get isStatic => hasModifier(Modifier.STATIC);
@@ -5156,6 +5189,14 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   Type2 get type => _type;
   bool get isConst => hasModifier(Modifier.CONST);
   bool get isFinal => hasModifier(Modifier.FINAL);
+
+  /**
+   * Return `true` if this variable is potentially mutated somewhere in its scope. This
+   * information is only available for local variables (including parameters).
+   *
+   * @return `true` if this variable is potentially mutated somewhere in its scope
+   */
+  bool get isPotentiallyMutated => false;
 
   /**
    * Set whether this variable is const to correspond to the given value.
@@ -5717,7 +5758,6 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     return variable;
   }
   bool get isAbstract => baseElement.isAbstract;
-  bool get isExcludedSetter => baseElement.isExcludedSetter;
   bool get isGetter => baseElement.isGetter;
   bool get isSetter => baseElement.isSetter;
   String toString() {
@@ -5820,7 +5860,12 @@ class DynamicTypeImpl extends TypeImpl {
   }
   bool operator ==(Object object) => object is DynamicTypeImpl;
   bool get isDynamic => true;
-  bool isMoreSpecificThan(Type2 type) => false;
+  bool isMoreSpecificThan(Type2 type) {
+    if (identical(this, type)) {
+      return true;
+    }
+    return false;
+  }
   bool isSubtypeOf(Type2 type) => true;
   bool isSupertypeOf(Type2 type) => true;
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) {
@@ -5892,7 +5937,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
     FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    return element == otherType.element && JavaArrays.equals(normalParameterTypes, otherType.normalParameterTypes) && JavaArrays.equals(optionalParameterTypes, otherType.optionalParameterTypes) && equals2(namedParameterTypes, otherType.namedParameterTypes) && returnType == otherType.returnType;
+    return (element == otherType.element) && JavaArrays.equals(normalParameterTypes, otherType.normalParameterTypes) && JavaArrays.equals(optionalParameterTypes, otherType.optionalParameterTypes) && equals2(namedParameterTypes, otherType.namedParameterTypes) && (returnType == otherType.returnType);
   }
   String get displayName {
     String name = this.name;
@@ -6041,6 +6086,91 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return element.hashCode;
   }
   bool isAssignableTo(Type2 type) => this.isSubtypeOf(type);
+  bool isMoreSpecificThan(Type2 type) {
+    if (type == null) {
+      return false;
+    } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
+      return true;
+    } else if (type is! FunctionType) {
+      return false;
+    } else if (this == type) {
+      return true;
+    }
+    FunctionType t = this;
+    FunctionType s = type as FunctionType;
+    List<Type2> tTypes = t.normalParameterTypes;
+    List<Type2> tOpTypes = t.optionalParameterTypes;
+    List<Type2> sTypes = s.normalParameterTypes;
+    List<Type2> sOpTypes = s.optionalParameterTypes;
+    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
+      return false;
+    }
+    if (t.namedParameterTypes.length > 0) {
+      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+        return false;
+      } else if (t.normalParameterTypes.length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!tTypes[i].isMoreSpecificThan(sTypes[i])) {
+            return false;
+          }
+        }
+      }
+      Map<String, Type2> namedTypesT = t.namedParameterTypes;
+      Map<String, Type2> namedTypesS = s.namedParameterTypes;
+      if (namedTypesT.length < namedTypesS.length) {
+        return false;
+      }
+      JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
+      while (iteratorS.hasNext) {
+        MapEntry<String, Type2> entryS = iteratorS.next();
+        Type2 typeT = namedTypesT[entryS.getKey()];
+        if (typeT == null) {
+          return false;
+        }
+        if (!typeT.isMoreSpecificThan(entryS.getValue())) {
+          return false;
+        }
+      }
+    } else if (s.namedParameterTypes.length > 0) {
+      return false;
+    } else {
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+        return false;
+      }
+      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        for (int i = 0; i < sTypes.length; i++) {
+          if (!tTypes[i].isMoreSpecificThan(sTypes[i])) {
+            return false;
+          }
+        }
+      } else {
+        List<Type2> tAllTypes = new List<Type2>(sArgLength);
+        for (int i = 0; i < tTypes.length; i++) {
+          tAllTypes[i] = tTypes[i];
+        }
+        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+          tAllTypes[i] = tOpTypes[j];
+        }
+        List<Type2> sAllTypes = new List<Type2>(sArgLength);
+        for (int i = 0; i < sTypes.length; i++) {
+          sAllTypes[i] = sTypes[i];
+        }
+        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+          sAllTypes[i] = sOpTypes[j];
+        }
+        for (int i = 0; i < sAllTypes.length; i++) {
+          if (!tAllTypes[i].isMoreSpecificThan(sAllTypes[i])) {
+            return false;
+          }
+        }
+      }
+    }
+    Type2 tRetType = t.returnType;
+    Type2 sRetType = s.returnType;
+    return sRetType.isVoid || tRetType.isMoreSpecificThan(sRetType);
+  }
   bool isSubtypeOf(Type2 type) {
     if (type == null) {
       return false;
@@ -6082,7 +6212,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!entryS.getValue().isAssignableTo(typeT)) {
+        if (!typeT.isAssignableTo(entryS.getValue())) {
           return false;
         }
       }
@@ -6096,7 +6226,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         for (int i = 0; i < sTypes.length; i++) {
-          if (!sTypes[i].isAssignableTo(tTypes[i])) {
+          if (!tTypes[i].isAssignableTo(sTypes[i])) {
             return false;
           }
         }
@@ -6116,13 +6246,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!sAllTypes[i].isAssignableTo(tAllTypes[i])) {
+          if (!tAllTypes[i].isAssignableTo(sAllTypes[i])) {
             return false;
           }
         }
       }
     }
-    return s.returnType == VoidTypeImpl.instance || t.returnType.isAssignableTo(s.returnType);
+    Type2 tRetType = t.returnType;
+    Type2 sRetType = s.returnType;
+    return sRetType.isVoid || tRetType.isAssignableTo(sRetType);
   }
 
   /**
@@ -6422,7 +6554,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return false;
     }
     InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
-    return element == otherType.element && JavaArrays.equals(_typeArguments, otherType._typeArguments);
+    return (element == otherType.element) && JavaArrays.equals(_typeArguments, otherType._typeArguments);
   }
   List<PropertyAccessorElement> get accessors {
     List<PropertyAccessorElement> accessors = element.accessors;
@@ -6983,7 +7115,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    * @param element the element representing the declaration of the type parameter
    */
   TypeParameterTypeImpl(TypeParameterElement element) : super(element, element.name);
-  bool operator ==(Object object) => object is TypeParameterTypeImpl && element == ((object as TypeParameterTypeImpl)).element;
+  bool operator ==(Object object) => object is TypeParameterTypeImpl && (element == ((object as TypeParameterTypeImpl)).element);
   TypeParameterElement get element => super.element as TypeParameterElement;
   int get hashCode => element.hashCode;
   bool isMoreSpecificThan(Type2 s) {

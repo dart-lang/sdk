@@ -399,7 +399,7 @@ class Parser {
    *
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken(Keyword keyword) => new KeywordToken_13(keyword, _currentToken.offset);
+  Token createSyntheticToken(Keyword keyword) => new Parser_SyntheticKeywordToken(keyword, _currentToken.offset);
 
   /**
    * Create a synthetic token with the given type.
@@ -1729,9 +1729,9 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_14(errorFound);
-      StringScanner scanner = new StringScanner(null, referenceSource, listener);
-      scanner.setSourceStart(1, 1, sourceOffset);
+      AnalysisErrorListener listener = new AnalysisErrorListener_15(errorFound);
+      Scanner scanner = new Scanner(null, new SubSequenceReader(new CharSequence(referenceSource), sourceOffset), listener);
+      scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
       if (errorFound[0]) {
         return null;
@@ -4502,10 +4502,12 @@ class Parser {
         next = skipTypeParameterList(next);
         if (next != null && matches4(next, TokenType.EQ)) {
           TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+          reportError9(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
           return typeAlias;
         }
       } else if (matches4(next, TokenType.EQ)) {
         TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+        reportError9(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
         return typeAlias;
       }
     }
@@ -5652,13 +5654,24 @@ class Parser {
     }
   }
 }
-class KeywordToken_13 extends KeywordToken {
-  KeywordToken_13(Keyword arg0, int arg1) : super(arg0, arg1);
+/**
+ * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
+ */
+class Parser_SyntheticKeywordToken extends KeywordToken {
+
+  /**
+   * Initialize a newly created token to represent the given keyword.
+   *
+   * @param keyword the keyword being represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  Parser_SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+  Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
   int get length => 0;
 }
-class AnalysisErrorListener_14 implements AnalysisErrorListener {
+class AnalysisErrorListener_15 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_14(this.errorFound);
+  AnalysisErrorListener_15(this.errorFound);
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }

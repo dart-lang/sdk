@@ -8,6 +8,7 @@ import 'source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
+import 'utilities_collection.dart' show TokenMap;
 import 'element.dart';
 /**
  * The abstract class `ASTNode` defines the behavior common to all nodes in the AST structure
@@ -14622,6 +14623,418 @@ class ASTCloner implements ASTVisitor<ASTNode> {
       clonedNodes.add(node.accept(this) as ASTNode);
     }
     return clonedNodes;
+  }
+}
+/**
+ * Instances of the class `IncrementalASTCloner` implement an object that will clone any AST
+ * structure that it visits. The cloner will clone the structure, replacing the specified ASTNode
+ * with a new ASTNode, mapping the old token stream to a new token stream, and preserving resolution
+ * results.
+ */
+class IncrementalASTCloner implements ASTVisitor<ASTNode> {
+
+  /**
+   * The node to be replaced during the cloning process.
+   */
+  ASTNode _oldNode;
+
+  /**
+   * The replacement node used during the cloning process.
+   */
+  ASTNode _newNode;
+
+  /**
+   * A mapping of old tokens to new tokens used during the cloning process.
+   */
+  TokenMap _tokenMap;
+
+  /**
+   * Construct a new instance that will replace `oldNode` with `newNode` in the process
+   * of cloning an existing AST structure.
+   *
+   * @param oldNode the node to be replaced
+   * @param newNode the replacement node
+   * @param tokenMap a mapping of old tokens to new tokens (not `null`)
+   */
+  IncrementalASTCloner(ASTNode oldNode, ASTNode newNode, TokenMap tokenMap) {
+    this._oldNode = oldNode;
+    this._newNode = newNode;
+    this._tokenMap = tokenMap;
+  }
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone5(node.strings));
+  Annotation visitAnnotation(Annotation node) {
+    Annotation copy = new Annotation.full(map(node.atSign), clone4(node.name), map(node.period), clone4(node.constructorName), clone4(node.arguments));
+    copy.element = node.element;
+    return copy;
+  }
+  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+    ArgumentDefinitionTest copy = new ArgumentDefinitionTest.full(map(node.question), clone4(node.identifier));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(map(node.leftParenthesis), clone5(node.arguments), map(node.rightParenthesis));
+  AsExpression visitAsExpression(AsExpression node) {
+    AsExpression copy = new AsExpression.full(clone4(node.expression), map(node.asOperator), clone4(node.type));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
+    AssignmentExpression copy = new AssignmentExpression.full(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
+    copy.propagatedElement = node.propagatedElement;
+    copy.staticElement = node.staticElement;
+    return copy;
+  }
+  BinaryExpression visitBinaryExpression(BinaryExpression node) {
+    BinaryExpression copy = new BinaryExpression.full(clone4(node.leftOperand), map(node.operator), clone4(node.rightOperand));
+    copy.propagatedElement = node.propagatedElement;
+    copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  Block visitBlock(Block node) => new Block.full(map(node.leftBracket), clone5(node.statements), map(node.rightBracket));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone4(node.block));
+  BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
+    BooleanLiteral copy = new BooleanLiteral.full(map(node.literal), node.value);
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(map(node.keyword), clone4(node.label), map(node.semicolon));
+  CascadeExpression visitCascadeExpression(CascadeExpression node) {
+    CascadeExpression copy = new CascadeExpression.full(clone4(node.target), clone5(node.cascadeSections));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(map(node.onKeyword), clone4(node.exceptionType), map(node.catchKeyword), map(node.leftParenthesis), clone4(node.exceptionParameter), map(node.comma), clone4(node.stackTraceParameter), map(node.rightParenthesis), clone4(node.body));
+  ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
+    ClassDeclaration copy = new ClassDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.abstractKeyword), map(node.classKeyword), clone4(node.name), clone4(node.typeParameters), clone4(node.extendsClause), clone4(node.withClause), clone4(node.implementsClause), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
+    copy.nativeClause = clone4(node.nativeClause);
+    return copy;
+  }
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.name), clone4(node.typeParameters), map(node.equals), map(node.abstractKeyword), clone4(node.superclass), clone4(node.withClause), clone4(node.implementsClause), map(node.semicolon));
+  Comment visitComment(Comment node) {
+    if (node.isDocumentation) {
+      return Comment.createDocumentationComment2(map2(node.tokens), clone5(node.references));
+    } else if (node.isBlock) {
+      return Comment.createBlockComment(map2(node.tokens));
+    }
+    return Comment.createEndOfLineComment(map2(node.tokens));
+  }
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(map(node.newKeyword), clone4(node.identifier));
+  CompilationUnit visitCompilationUnit(CompilationUnit node) {
+    CompilationUnit copy = new CompilationUnit.full(map(node.beginToken), clone4(node.scriptTag), clone5(node.directives), clone5(node.declarations), map(node.endToken));
+    copy.lineInfo = node.lineInfo;
+    copy.element = node.element;
+    return copy;
+  }
+  ConditionalExpression visitConditionalExpression(ConditionalExpression node) {
+    ConditionalExpression copy = new ConditionalExpression.full(clone4(node.condition), map(node.question), clone4(node.thenExpression), map(node.colon), clone4(node.elseExpression));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorDeclaration copy = new ConstructorDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.constKeyword), map(node.factoryKeyword), clone4(node.returnType), map(node.period), clone4(node.name), clone4(node.parameters), map(node.separator), clone5(node.initializers), clone4(node.redirectedConstructor), clone4(node.body));
+    copy.element = node.element;
+    return copy;
+  }
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(map(node.keyword), map(node.period), clone4(node.fieldName), map(node.equals), clone4(node.expression));
+  ConstructorName visitConstructorName(ConstructorName node) {
+    ConstructorName copy = new ConstructorName.full(clone4(node.type), map(node.period), clone4(node.name));
+    copy.staticElement = node.staticElement;
+    return copy;
+  }
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(map(node.keyword), clone4(node.label), map(node.semicolon));
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone4(node.parameter), node.kind, map(node.separator), clone4(node.defaultValue));
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(map(node.doKeyword), clone4(node.body), map(node.whileKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
+    DoubleLiteral copy = new DoubleLiteral.full(map(node.literal), node.value);
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody.full(map(node.semicolon));
+  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement.full(map(node.semicolon));
+  ExportDirective visitExportDirective(ExportDirective node) {
+    ExportDirective copy = new ExportDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), clone5(node.combinators), map(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(map(node.functionDefinition), clone4(node.expression), map(node.semicolon));
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone4(node.expression), map(node.semicolon));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(map(node.keyword), clone4(node.superclass));
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.staticKeyword), clone4(node.fields), map(node.semicolon));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), map(node.thisToken), map(node.period), clone4(node.identifier), clone4(node.parameters));
+  ForEachStatement visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable == null) {
+      return new ForEachStatement.con2_full(map(node.forKeyword), map(node.leftParenthesis), clone4(node.identifier), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
+    }
+    return new ForEachStatement.con1_full(map(node.forKeyword), map(node.leftParenthesis), clone4(loopVariable), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
+  }
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(map(node.leftParenthesis), clone5(node.parameters), map(node.leftDelimiter), map(node.rightDelimiter), map(node.rightParenthesis));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement.full(map(node.forKeyword), map(node.leftParenthesis), clone4(node.variables), clone4(node.initialization), map(node.leftSeparator), clone4(node.condition), map(node.rightSeparator), clone5(node.updaters), map(node.rightParenthesis), clone4(node.body));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), clone4(node.returnType), map(node.propertyKeyword), clone4(node.name), clone4(node.functionExpression));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone4(node.functionDeclaration));
+  FunctionExpression visitFunctionExpression(FunctionExpression node) {
+    FunctionExpression copy = new FunctionExpression.full(clone4(node.parameters), clone4(node.body));
+    copy.element = node.element;
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    FunctionExpressionInvocation copy = new FunctionExpressionInvocation.full(clone4(node.function), clone4(node.argumentList));
+    copy.propagatedElement = node.propagatedElement;
+    copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.returnType), clone4(node.name), clone4(node.typeParameters), clone4(node.parameters), map(node.semicolon));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.returnType), clone4(node.identifier), clone4(node.parameters));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(map(node.keyword), clone5(node.hiddenNames));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(map(node.ifKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.thenStatement), map(node.elseKeyword), clone4(node.elseStatement));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(map(node.keyword), clone5(node.interfaces));
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), map(node.asToken), clone4(node.prefix), clone5(node.combinators), map(node.semicolon));
+  IndexExpression visitIndexExpression(IndexExpression node) {
+    Token period = map(node.period);
+    IndexExpression copy;
+    if (period == null) {
+      copy = new IndexExpression.forTarget_full(clone4(node.target), map(node.leftBracket), clone4(node.index), map(node.rightBracket));
+    } else {
+      copy = new IndexExpression.forCascade_full(period, map(node.leftBracket), clone4(node.index), map(node.rightBracket));
+    }
+    copy.auxiliaryElements = node.auxiliaryElements;
+    copy.propagatedElement = node.propagatedElement;
+    copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
+    InstanceCreationExpression copy = new InstanceCreationExpression.full(map(node.keyword), clone4(node.constructorName), clone4(node.argumentList));
+    copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
+    IntegerLiteral copy = new IntegerLiteral.full(map(node.literal), node.value);
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(map(node.leftBracket), clone4(node.expression), map(node.rightBracket));
+  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString.full(map(node.contents), node.value);
+  IsExpression visitIsExpression(IsExpression node) {
+    IsExpression copy = new IsExpression.full(clone4(node.expression), map(node.isOperator), map(node.notOperator), clone4(node.type));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  Label visitLabel(Label node) => new Label.full(clone4(node.label), map(node.colon));
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone5(node.labels), clone4(node.statement));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.libraryToken), clone4(node.name), map(node.semicolon));
+  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
+    LibraryIdentifier copy = new LibraryIdentifier.full(clone5(node.components));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ListLiteral visitListLiteral(ListLiteral node) {
+    ListLiteral copy = new ListLiteral.full(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.elements), map(node.rightBracket));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  MapLiteral visitMapLiteral(MapLiteral node) {
+    MapLiteral copy = new MapLiteral.full(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.entries), map(node.rightBracket));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone4(node.key), map(node.separator), clone4(node.value));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.modifierKeyword), clone4(node.returnType), map(node.propertyKeyword), map(node.operatorKeyword), clone4(node.name), clone4(node.parameters), clone4(node.body));
+  MethodInvocation visitMethodInvocation(MethodInvocation node) {
+    MethodInvocation copy = new MethodInvocation.full(clone4(node.target), map(node.period), clone4(node.methodName), clone4(node.argumentList));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  NamedExpression visitNamedExpression(NamedExpression node) {
+    NamedExpression copy = new NamedExpression.full(clone4(node.name), clone4(node.expression));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ASTNode visitNativeClause(NativeClause node) => new NativeClause.full(map(node.keyword), clone4(node.name));
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(map(node.nativeToken), clone4(node.stringLiteral), map(node.semicolon));
+  NullLiteral visitNullLiteral(NullLiteral node) {
+    NullLiteral copy = new NullLiteral.full(map(node.literal));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) {
+    ParenthesizedExpression copy = new ParenthesizedExpression.full(map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  PartDirective visitPartDirective(PartDirective node) {
+    PartDirective copy = new PartDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), clone4(node.uri), map(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
+  PartOfDirective visitPartOfDirective(PartOfDirective node) {
+    PartOfDirective copy = new PartOfDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), map(node.ofToken), clone4(node.libraryName), map(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
+  PostfixExpression visitPostfixExpression(PostfixExpression node) {
+    PostfixExpression copy = new PostfixExpression.full(clone4(node.operand), map(node.operator));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
+    PrefixedIdentifier copy = new PrefixedIdentifier.full(clone4(node.prefix), map(node.period), clone4(node.identifier));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  PrefixExpression visitPrefixExpression(PrefixExpression node) {
+    PrefixExpression copy = new PrefixExpression.full(map(node.operator), clone4(node.operand));
+    copy.propagatedElement = node.propagatedElement;
+    copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  PropertyAccess visitPropertyAccess(PropertyAccess node) {
+    PropertyAccess copy = new PropertyAccess.full(clone4(node.target), map(node.operator), clone4(node.propertyName));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation.full(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
+    copy.staticElement = node.staticElement;
+    return copy;
+  }
+  RethrowExpression visitRethrowExpression(RethrowExpression node) {
+    RethrowExpression copy = new RethrowExpression.full(map(node.keyword));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(map(node.keyword), clone4(node.expression), map(node.semicolon));
+  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag.full(map(node.scriptTag));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(map(node.keyword), clone5(node.shownNames));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
+    SimpleIdentifier copy = new SimpleIdentifier.full(map(node.token));
+    copy.auxiliaryElements = node.auxiliaryElements;
+    copy.propagatedElement = node.propagatedElement;
+    copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) {
+    SimpleStringLiteral copy = new SimpleStringLiteral.full(map(node.literal), node.value);
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  StringInterpolation visitStringInterpolation(StringInterpolation node) {
+    StringInterpolation copy = new StringInterpolation.full(clone5(node.elements));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SuperConstructorInvocation copy = new SuperConstructorInvocation.full(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
+    copy.staticElement = node.staticElement;
+    return copy;
+  }
+  SuperExpression visitSuperExpression(SuperExpression node) {
+    SuperExpression copy = new SuperExpression.full(map(node.keyword));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone5(node.labels), map(node.keyword), clone4(node.expression), map(node.colon), clone5(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone5(node.labels), map(node.keyword), map(node.colon), clone5(node.statements));
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
+  ASTNode visitSymbolLiteral(SymbolLiteral node) {
+    SymbolLiteral copy = new SymbolLiteral.full(map(node.poundSign), map2(node.components));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ThisExpression visitThisExpression(ThisExpression node) {
+    ThisExpression copy = new ThisExpression.full(map(node.keyword));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  ThrowExpression visitThrowExpression(ThrowExpression node) {
+    ThrowExpression copy = new ThrowExpression.full(map(node.keyword), clone4(node.expression));
+    copy.propagatedType = node.propagatedType;
+    copy.staticType = node.staticType;
+    return copy;
+  }
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.variables), map(node.semicolon));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(map(node.tryKeyword), clone4(node.body), clone5(node.catchClauses), map(node.finallyKeyword), clone4(node.finallyBlock));
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(map(node.leftBracket), clone5(node.arguments), map(node.rightBracket));
+  TypeName visitTypeName(TypeName node) {
+    TypeName copy = new TypeName.full(clone4(node.name), clone4(node.typeArguments));
+    copy.type = node.type;
+    return copy;
+  }
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.name), map(node.keyword), clone4(node.bound));
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(map(node.leftBracket), clone5(node.typeParameters), map(node.rightBracket));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(null, clone5(node.metadata), clone4(node.name), map(node.equals), clone4(node.initializer));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(null, clone5(node.metadata), map(node.keyword), clone4(node.type), clone5(node.variables));
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone4(node.variables), map(node.semicolon));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.body));
+  WithClause visitWithClause(WithClause node) => new WithClause.full(map(node.withKeyword), clone5(node.mixinTypes));
+  ASTNode clone4(ASTNode node) {
+    if (node == null) {
+      return null;
+    }
+    if (identical(node, _oldNode)) {
+      return _newNode as ASTNode;
+    }
+    return node.accept(this) as ASTNode;
+  }
+  List clone5(NodeList nodes) {
+    List clonedNodes = new List();
+    for (ASTNode node in nodes) {
+      clonedNodes.add(clone4(node));
+    }
+    return clonedNodes;
+  }
+  Token map(Token oldToken) {
+    if (oldToken == null) {
+      return null;
+    }
+    return _tokenMap.get(oldToken);
+  }
+  List<Token> map2(List<Token> oldTokens) {
+    List<Token> newTokens = new List<Token>(oldTokens.length);
+    for (int index = 0; index < newTokens.length; index++) {
+      newTokens[index] = map(oldTokens[index]);
+    }
+    return newTokens;
   }
 }
 /**

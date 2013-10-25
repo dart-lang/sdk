@@ -40,6 +40,9 @@ class JUnitTestCase {
   static void assertSame(expected, actual) {
     expect(actual, same(expected));
   }
+  static void assertSameMsg(String msg, expected, actual) {
+    expect(actual, sameMsg(msg, expected));
+  }
 }
 
 runJUnitTest(testInstance, Function testFunction) {
@@ -75,6 +78,15 @@ class _EqualsWithMessage extends Matcher {
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
+}
+
+Matcher sameMsg(String msg, expected) => new _IsSameAsWithMessage(msg, expected);
+class _IsSameAsWithMessage extends Matcher {
+  final String msg;
+  final _expected;
+  const _IsSameAsWithMessage(this.msg, this._expected);
+  bool matches(item, Map matchState) => identical(item, _expected);
+  Description describe(Description description) => description.add(msg).addDescriptionOf(_expected);
 }
 
 Matcher isTrueMsg(String msg) => new _IsTrueWithMessage(msg);

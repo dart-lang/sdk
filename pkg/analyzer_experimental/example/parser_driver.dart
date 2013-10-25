@@ -4,12 +4,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
-
-import 'dart:io';
 
 
 main() {
@@ -31,7 +32,8 @@ main() {
 _parse(File file) {
   var src = file.readAsStringSync();
   var errorListener = new _ErrorCollector();
-  var scanner = new StringScanner(null, src, errorListener);
+  var reader = new CharSequenceReader(new CharSequence(src));
+  var scanner = new Scanner(null, reader, errorListener);
   var token = scanner.tokenize();
   var parser = new Parser(null, errorListener);
   var unit = parser.parseCompilationUnit(token);

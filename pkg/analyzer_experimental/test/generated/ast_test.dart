@@ -775,7 +775,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_17(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_18(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -793,9 +793,9 @@ class BreadthFirstVisitorTest extends ParserTestCase {
     });
   }
 }
-class BreadthFirstVisitor_17 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_18 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
-  BreadthFirstVisitor_17(this.nodes) : super();
+  BreadthFirstVisitor_18(this.nodes) : super();
   Object visitNode(ASTNode node) {
     nodes.add(node);
     return super.visitNode(node);
@@ -920,6 +920,24 @@ class NodeListTest extends EngineTestCase {
     list.add(node);
     JUnitTestCase.assertSame(node.endToken, list.endToken);
   }
+  void test_indexOf() {
+    List<ASTNode> nodes = new List<ASTNode>();
+    ASTNode firstNode = ASTFactory.booleanLiteral(true);
+    ASTNode secondNode = ASTFactory.booleanLiteral(false);
+    ASTNode thirdNode = ASTFactory.booleanLiteral(true);
+    ASTNode fourthNode = ASTFactory.booleanLiteral(false);
+    nodes.add(firstNode);
+    nodes.add(secondNode);
+    nodes.add(thirdNode);
+    NodeList<ASTNode> list = new NodeList<ASTNode>(ASTFactory.argumentList([]));
+    list.addAll(nodes);
+    EngineTestCase.assertSize(3, list);
+    JUnitTestCase.assertEquals(0, list.indexOf(firstNode));
+    JUnitTestCase.assertEquals(1, list.indexOf(secondNode));
+    JUnitTestCase.assertEquals(2, list.indexOf(thirdNode));
+    JUnitTestCase.assertEquals(-1, list.indexOf(fourthNode));
+    JUnitTestCase.assertEquals(-1, list.indexOf(null));
+  }
   void test_remove() {
     List<ASTNode> nodes = new List<ASTNode>();
     ASTNode firstNode = ASTFactory.booleanLiteral(true);
@@ -1037,6 +1055,10 @@ class NodeListTest extends EngineTestCase {
       _ut.test('test_get_tooBig', () {
         final __test = new NodeListTest();
         runJUnitTest(__test, __test.test_get_tooBig);
+      });
+      _ut.test('test_indexOf', () {
+        final __test = new NodeListTest();
+        runJUnitTest(__test, __test.test_indexOf);
       });
       _ut.test('test_remove', () {
         final __test = new NodeListTest();

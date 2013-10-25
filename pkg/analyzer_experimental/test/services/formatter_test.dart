@@ -4,6 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 import 'package:analyzer_experimental/src/services/writer.dart';
@@ -720,7 +721,7 @@ main() {
         '    ..toString();'
       );
     });
-    
+
     test('stmt (generics)', () {
       expectStmtFormatsTo(
         'var numbers = <int>[1, 2, (3 + 4)];',
@@ -1038,7 +1039,10 @@ FormattedSource formatCU(src, {options: const FormatterOptions(), selection}) =>
 String formatStatement(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.STATEMENT, src).source;
 
-Token tokenize(String str) => new StringScanner(null, str, null).tokenize();
+Token tokenize(String str) {
+  var reader = new CharSequenceReader(new CharSequence(str));
+  return new Scanner(null, reader, null).tokenize();
+}
 
 expectSelectedPostFormat(src, token) {
   var preOffset = src.indexOf(token);
