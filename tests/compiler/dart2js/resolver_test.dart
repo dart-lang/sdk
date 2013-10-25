@@ -205,8 +205,7 @@ testThis() {
   compiler.parseScript("class Foo { foo() { return this; } }");
   compiler.resolveStatement("Foo foo;");
   ClassElement fooElement = compiler.mainApp.find("Foo");
-  FunctionElement funElement =
-      fooElement.lookupLocalMember("foo");
+  FunctionElement funElement = fooElement.lookupLocalMember("foo");
   ResolverVisitor visitor =
       new ResolverVisitor(compiler, funElement,
                           new CollectingTreeElements(funElement));
@@ -228,8 +227,7 @@ testThis() {
   compiler.parseScript("class Foo { static foo() { return this; } }");
   compiler.resolveStatement("Foo foo;");
   fooElement = compiler.mainApp.find("Foo");
-  funElement =
-      fooElement.lookupLocalMember("foo");
+  funElement = fooElement.lookupLocalMember("foo");
   visitor = new ResolverVisitor(compiler, funElement,
                                 new CollectingTreeElements(funElement));
   function = funElement.parseNode(compiler);
@@ -621,13 +619,11 @@ resolveConstructor(String script, String statement, String className,
   MockCompiler compiler = new MockCompiler(coreSource: corelib);
   compiler.parseScript(script);
   compiler.resolveStatement(statement);
-  ClassElement classElement =
-      compiler.mainApp.find(className);
+  ClassElement classElement = compiler.mainApp.find(className);
   Element element;
   if (constructor != '') {
     element = classElement.lookupConstructor(
-        new Selector.callConstructor(constructor,
-                                     classElement.getLibrary()));
+        new Selector.callConstructor(constructor, classElement.getLibrary()));
   } else {
     element = classElement.lookupConstructor(
         new Selector.callDefaultConstructor(classElement.getLibrary()));

@@ -42,14 +42,13 @@ class StringScanner extends ArrayBasedScanner {
 
   void handleUnicode(int startScanOffset) { }
 
-
   Token firstToken() => tokens.next;
   Token previousToken() => tail;
 
   void appendSubstringToken(PrecedenceInfo info, int start,
                             bool asciiOnly, [int extraOffset = 0]) {
     tail.next = new StringToken.fromSubstring(info, string, start,
-        scanOffset + extraOffset, tokenStart, true);
+        scanOffset + extraOffset, tokenStart, canonicalize: true);
     tail = tail.next;
   }
 }

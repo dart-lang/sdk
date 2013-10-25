@@ -40,8 +40,8 @@ class ScannerTask extends CompilerTask {
    * Returns the tokens for the [source].
    *
    * The [StringScanner] implementation works on strings that end with a '0'
-   * value ('\x00'). If [source] does not with '0', the string is copied before
-   * scanning.
+   * value ('\x00'). If [source] does not end with '0', the string is copied
+   * before scanning.
    */
   Token tokenize(String source) {
     return measure(() {

@@ -470,8 +470,7 @@ void testMethodInvocations() {
 testMethodInvocationsInClass() {
   LibraryElement library = mockLibrary(compiler, CLASS_WITH_METHODS);
   compiler.parseScript(CLASS_WITH_METHODS, library);
-  ClassElement ClassWithMethods =
-      library.find("ClassWithMethods");
+  ClassElement ClassWithMethods = library.find("ClassWithMethods");
   ClassWithMethods.ensureResolved(compiler);
   Element c = ClassWithMethods.lookupLocalMember('method');
   assert(c != null);
@@ -1096,8 +1095,7 @@ class Test<S extends Foo, T> {
   compiler.parseScript(script, library);
   ClassElement classTest = library.find("Test");
   classTest.ensureResolved(compiler);
-  FunctionElement methodTest =
-    classTest.lookupLocalMember("test");
+  FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
     analyzeIn(methodTest, "{ $expression; }", message);
@@ -1138,8 +1136,7 @@ class Test<S extends T, T extends Foo> {
   compiler.parseScript(script, library);
   ClassElement classTest = library.find("Test");
   classTest.ensureResolved(compiler);
-  FunctionElement methodTest =
-    classTest.lookupLocalMember("test");
+  FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
     analyzeIn(methodTest, "{ $expression; }", message);
@@ -1162,8 +1159,7 @@ class Test<S extends T, T extends S> {
   compiler.parseScript(script, library);
   ClassElement classTest = library.find("Test");
   classTest.ensureResolved(compiler);
-  FunctionElement methodTest =
-    classTest.lookupLocalMember("test");
+  FunctionElement methodTest = classTest.lookupLocalMember("test");
 
   test(String expression, [message]) {
     analyzeIn(methodTest, "{ $expression; }", message);

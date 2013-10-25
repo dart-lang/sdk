@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,7 +13,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   List<int> bytes;
 
   /**
-   * Points to the offset of the byte last returned by [advance].
+   * Points to the offset of the last byte returned by [advance].
    *
    * After invoking [currentAsUnicode], the [byteOffset] points to the last
    * byte that is part of the (unicode or ASCII) character. That way, [advance]
@@ -183,7 +183,6 @@ class Utf8BytesScanner extends ArrayBasedScanner {
 
   Token firstToken() => tokens.next;
   Token previousToken() => tail;
-
 
   void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
                             [int extraOffset = 0]) {

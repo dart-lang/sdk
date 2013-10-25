@@ -626,8 +626,7 @@ class JavaScriptBackend extends Backend {
     extendableArrayType = new HBoundedType(
         new TypeMask.nonNullExact(jsExtendableArrayClass));
 
-    typeVariableClass =
-        compiler.findHelper('TypeVariable');
+    typeVariableClass = compiler.findHelper('TypeVariable');
   }
 
   void validateInterceptorImplementsAllObjectMethods(

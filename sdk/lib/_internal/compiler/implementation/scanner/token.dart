@@ -103,13 +103,12 @@ abstract class Token implements Spannable {
   /**
    * The string represented by this token, a substring of the source code.
    *
-   * For [StringToken]s the value includes the quotes, explicit escapes, etc.
-   *
+   * For [StringToken]s the [value] includes the quotes, explicit escapes, etc.
    */
   String get value;
 
   /**
-   * For symbol and keyword tokens, returns the string value reprenseted by this
+   * For symbol and keyword tokens, returns the string value represented by this
    * token. For [StringToken]s this method returns [:null:].
    *
    * For [SymbolToken]s and [KeywordToken]s, the string value is a compile-time
@@ -140,7 +139,7 @@ abstract class Token implements Spannable {
 
   /**
    * True if this token is an identifier. Some keywords allowed as identifiers,
-   * see implementaiton in [KeywordToken].
+   * see implementation in [KeywordToken].
    */
   bool isIdentifier();
 
@@ -171,7 +170,7 @@ abstract class Token implements Spannable {
 }
 
 /**
- * A symbol token represents the symbol in its precendence info.
+ * A [SymbolToken] represents the symbol in its precendence info.
  * Also used for end of file with EOF_INFO.
  */
 class SymbolToken extends Token {
@@ -190,7 +189,7 @@ class SymbolToken extends Token {
 }
 
 /**
- * A [BeginGroupToken] reprsents a symbol that may be the beginning of
+ * A [BeginGroupToken] represents a symbol that may be the beginning of
  * a pair of brackets, i.e., ( { [ < or ${
  * The [endGroup] token points to the matching closing bracked in case
  * it can be identified during scanning.
@@ -199,7 +198,7 @@ class BeginGroupToken extends SymbolToken {
   Token endGroup;
 
   BeginGroupToken(PrecedenceInfo info, int charOffset)
-    : super(info, charOffset);
+      : super(info, charOffset);
 }
 
 /**
@@ -223,7 +222,7 @@ class KeywordToken extends Token {
 
 /**
  * A String-valued token. Represents identifiers, string literals,
- * number literals, comments and error tokens, using the corresponding
+ * number literals, comments, and error tokens, using the corresponding
  * precedence info.
  */
 class StringToken extends Token {
@@ -237,7 +236,7 @@ class StringToken extends Token {
    */
   static const int LAZY_THRESHOLD = 4;
 
-  var valueOrLazySubstring;
+  var /* String | LazySubtring */ valueOrLazySubstring;
 
   final PrecedenceInfo info;
 
@@ -246,7 +245,7 @@ class StringToken extends Token {
    * is canonicalized before the token is created.
    */
   StringToken.fromString(this.info, String value, int charOffset,
-                         [bool canonicalize = false])
+                         {bool canonicalize : false})
       : valueOrLazySubstring = canonicalizedString(value, canonicalize),
         super(charOffset);
 
@@ -255,12 +254,12 @@ class StringToken extends Token {
    * is canonicalized before the token is created.
    */
   StringToken.fromSubstring(this.info, String data, int start, int end,
-                            int charOffset, [bool canonicalize = false])
+                            int charOffset, {bool canonicalize : false})
       : super(charOffset) {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
       valueOrLazySubstring = canonicalizedString(data.substring(start, end),
-                                            canonicalize);
+                                                 canonicalize);
     } else {
       valueOrLazySubstring =
           new LazySubstring(data, start, length, canonicalize);
@@ -308,7 +307,7 @@ class StringToken extends Token {
   String toString() => "StringToken($value)";
 
   static final HashSet<String> canonicalizedSubstrings =
-      new HashSet();
+      new HashSet<String>();
 
   static String canonicalizedString(String s, bool canonicalize) {
     if (!canonicalize) return s;
@@ -334,8 +333,8 @@ class StringToken extends Token {
 
 /**
  * This class represents the necessary information to compute a substring
- * lazily. The substring can either originate in a string or in a [:List<int>:]
- * of UTF-8 bytes.
+ * lazily. The substring can either originate from a string or from
+ * a [:List<int>:] of UTF-8 bytes.
  */
 abstract class LazySubstring {
   /** The original data, either a string or a List<int> */
@@ -345,10 +344,10 @@ abstract class LazySubstring {
   int get length;
 
   /**
-   * If this substring is based on a String, the boolean indicates wheter the
-   * resulting substring should be canonicalized.
+   * If this substring is based on a String, the [boolValue] indicates wheter
+   * the resulting substring should be canonicalized.
    *
-   * For substrings based on a byte array, the boolean value is true if the
+   * For substrings based on a byte array, the [boolValue] is true if the
    * array only holds ASCII characters. The resulting substring will be
    * canonicalized after decoding.
    */
@@ -373,9 +372,9 @@ abstract class LazySubstring {
 /**
  * This class encodes [start], [length] and [boolValue] in a single
  * 30 bit integer. It uses 20 bits for [start], which covers source files
- * of 1M. [length] has 9 bits, which covers 512 characters.
+ * of 1MB. [length] has 9 bits, which covers 512 characters.
  *
- * The file html_dart2js.dart is currently around 1M.
+ * The file html_dart2js.dart is currently around 1MB.
  */
 class CompactLazySubstring extends LazySubstring {
   final data;
