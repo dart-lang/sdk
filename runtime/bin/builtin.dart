@@ -310,3 +310,23 @@ String _filePathFromHttpUri(Uri uri) {
   _logResolution('# Path: $uri -> $uri');
   return uri.toString();
 }
+
+
+class _PlatformHook {
+  int get numberOfProcessors => Platform.numberOfProcessors;
+  String get pathSeparator => Platform.pathSeparator;
+  String get operatingSystem => Platform.operatingSystem;
+  String get localHostname => Platform.localHostname;
+  String get version => Platform.version;
+  Map<String, String> get environment => Platform.environment;
+  Uri get script => new Uri.file(Platform.script);
+  String get executable => Platform.executable;
+  List<String>  get executableArguments => Platform.executableArguments;
+  String get packageRoot => Platform.packageRoot;
+}
+
+
+_getPlatform() => new _PlatformHook();
+
+
+

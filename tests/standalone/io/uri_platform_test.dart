@@ -4,39 +4,9 @@
 
 import "package:expect/expect.dart";
 import "dart:io";
+import "dart:platform" as platform;
 
 main() {
-  if (Platform.isWindows) {
-    Expect.equals("a\\b", Uri.parse("a/b").toFilePath());
-    Expect.equals("a\\b\\", Uri.parse("a/b/").toFilePath());
-    Expect.equals("a b", Uri.parse("a%20b").toFilePath());
-    Expect.equals("\\a b", Uri.parse("file:///a%20b").toFilePath());
-    Expect.equals("\\a\\b", Uri.parse("file:///a/b").toFilePath());
-    Expect.equals("C:\\", Uri.parse("file:///C:").toFilePath());
-    Expect.equals("C:\\", Uri.parse("file:///C:/").toFilePath());
-    Expect.equals("\\\\host\\a\\b", Uri.parse("file://host/a/b").toFilePath());
-
-    Expect.equals("a\\b", new Uri.file("a/b").toFilePath());
-    Expect.equals("a\\b", new Uri.file("a\\b").toFilePath());
-    Expect.equals("\\a\\b", new Uri.file("/a/b").toFilePath());
-    Expect.equals("\\a\\b", new Uri.file("\\a\\b").toFilePath());
-    Expect.equals("\\a\\b", new Uri.file("\\a/b").toFilePath());
-    Expect.equals("\\a\\b", new Uri.file("/a\\b").toFilePath());
-  } else {
-    Expect.equals("a/b", Uri.parse("a/b").toFilePath());
-    Expect.equals("a/b/", Uri.parse("a/b/").toFilePath());
-    Expect.equals("a b", Uri.parse("a%20b").toFilePath());
-    Expect.equals("/a b", Uri.parse("file:///a%20b").toFilePath());
-    Expect.equals("/a/b", Uri.parse("file:///a/b").toFilePath());
-    Expect.equals("/C:", Uri.parse("file:///C:").toFilePath());
-    Expect.equals("/C:/", Uri.parse("file:///C:/").toFilePath());
-    Expect.throws(() => Uri.parse("file://host/a/b").toFilePath(),
-                  (e) => e is UnsupportedError);
-
-    Expect.equals("a/b", new Uri.file("a/b").toFilePath());
-    Expect.equals("a\\b", new Uri.file("a\\b").toFilePath());
-  }
-
   Expect.equals(Uri.base,
-                new Uri.file(Directory.current.path + Platform.pathSeparator));
+                new Uri.file(Directory.current.path + platform.pathSeparator));
 }
