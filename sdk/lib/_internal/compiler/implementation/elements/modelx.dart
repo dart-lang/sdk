@@ -934,6 +934,15 @@ class LibraryElementX extends ElementX implements LibraryElement {
   bool hasLibraryName() => libraryTag != null;
 
   /**
+   * Returns the library name, which is either the name given in the library tag
+   * or the empty string if there is no library tag.
+   */
+  String getLibraryName() {
+    if (libraryTag == null) return '';
+    return libraryTag.name.toString();
+  }
+
+  /**
    * Returns the library name (as defined by the library tag) or for script
    * (which have no library tag) the script file name. The latter case is used
    * to private 'library name' for scripts to use for instance in dartdoc.

@@ -71,7 +71,6 @@ mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
-mirrors/unnamed_library_test: RuntimeError # Issue 10580
 mirrors/generic_type_mirror_test/01: RuntimeError # 6490
 
 [ $compiler == dart2js && $unchecked ]

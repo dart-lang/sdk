@@ -1937,7 +1937,6 @@ TypeMirror computeTypeMirror(DeclarationMirror owner, var type) {
 Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
   if (owner == null) return simpleName;
   String ownerName = n(owner.qualifiedName);
-  if (ownerName == '') return simpleName;
   return s('$ownerName.${n(simpleName)}');
 }
 

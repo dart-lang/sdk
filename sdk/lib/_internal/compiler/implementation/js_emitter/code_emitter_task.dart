@@ -1318,7 +1318,7 @@ mainBuffer.add(r'''
           if (buffer != null) {
             var metadata = metadataEmitter.buildMetadataFunction(library);
             mainBuffer
-                ..write('["${library.getLibraryOrScriptName()}",$_')
+                ..write('["${library.getLibraryName()}",$_')
                 ..write('"${uri}",$_')
                 ..write(metadata == null
                         ? "" : jsAst.prettyPrint(metadata, compiler))
@@ -1336,7 +1336,7 @@ mainBuffer.add(r'''
           buffer = buffers[1];
           if (buffer != null) {
             deferredLibraries
-                ..write('["${library.getLibraryOrScriptName()}",$_')
+                ..write('["${library.getLibraryName()}",$_')
                 ..write('"${uri}",$_')
                 ..write('[],$_')
                 ..write(namer.globalObjectFor(library))
