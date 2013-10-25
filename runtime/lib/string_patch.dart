@@ -89,8 +89,15 @@ class _StringBase {
       // TODO(5413632): Compare hash codes when both are present.
       return false;
     }
-    return this.compareTo(other) == 0;
+    final len = this.length;
+    for (int i = 0; i < len; i++) {
+      if (this.codeUnitAt(i) != other.codeUnitAt(i)) {
+        return false;
+      }
+    }
+    return true;
   }
+
 
   int compareTo(String other) {
     int thisLength = this.length;
@@ -523,6 +530,10 @@ class _OneByteString extends _StringBase implements String {
     return _StringBase._isOneByteWhitespace(codePoint);
   }
 
+  bool operator ==(Object other) {
+    return super == other;
+  }
+
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
 
@@ -575,6 +586,10 @@ class _TwoByteString extends _StringBase implements String {
   bool _isWhitespace(int codePoint) {
     return _StringBase._isTwoByteWhitespace(codePoint);
   }
+
+  bool operator ==(Object other) {
+    return super == other;
+  }
 }
 
 
@@ -587,6 +602,10 @@ class _ExternalOneByteString extends _StringBase implements String {
   bool _isWhitespace(int codePoint) {
     return _StringBase._isOneByteWhitespace(codePoint);
   }
+
+  bool operator ==(Object other) {
+    return super == other;
+  }
 }
 
 
@@ -598,6 +617,10 @@ class _ExternalTwoByteString extends _StringBase implements String {
 
   bool _isWhitespace(int codePoint) {
     return _StringBase._isTwoByteWhitespace(codePoint);
+  }
+
+  bool operator ==(Object other) {
+    return super == other;
   }
 }
 

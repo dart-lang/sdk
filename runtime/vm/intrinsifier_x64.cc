@@ -1647,6 +1647,72 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
 }
 
 
+// TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
+void StringEquality(Assembler* assembler, intptr_t string_cid) {
+  Label fall_through, is_true, is_false, loop;
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // This.
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Other.
+
+  // Are identical?
+  __ cmpq(RAX, RCX);
+  __ j(EQUAL, &is_true, Assembler::kNearJump);
+
+  // Is other OneByteString?
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(ZERO, &is_false);  // Smi
+  __ CompareClassId(RCX, string_cid);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  // Have same length?
+  __ movq(RDI, FieldAddress(RAX, String::length_offset()));
+  __ cmpq(RDI, FieldAddress(RCX, String::length_offset()));
+  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
+
+  // Check contents, no fall-through possible.
+  // TODO(srdjan): write a faster check.
+  __ SmiUntag(RDI);
+  __ Bind(&loop);
+  __ decq(RDI);
+  __ cmpq(RDI, Immediate(0));
+  __ j(LESS, &is_true, Assembler::kNearJump);
+  if (string_cid == kOneByteStringCid) {
+    __ movzxb(RBX,
+        FieldAddress(RAX, RDI, TIMES_1, OneByteString::data_offset()));
+    __ movzxb(RDX,
+        FieldAddress(RCX, RDI, TIMES_1, OneByteString::data_offset()));
+  } else if (string_cid == kTwoByteStringCid) {
+    __ movzxw(RBX,
+        FieldAddress(RAX, RDI, TIMES_2, TwoByteString::data_offset()));
+    __ movzxw(RDX,
+        FieldAddress(RCX, RDI, TIMES_2, TwoByteString::data_offset()));
+  } else {
+    UNIMPLEMENTED();
+  }
+  __ cmpq(RBX, RDX);
+  __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
+  __ jmp(&loop, Assembler::kNearJump);
+
+  __ Bind(&is_true);
+  __ LoadObject(RAX, Bool::True(), PP);
+  __ ret();
+
+  __ Bind(&is_false);
+  __ LoadObject(RAX, Bool::False(), PP);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::OneByteString_equality(Assembler* assembler) {
+  StringEquality(assembler, kOneByteStringCid);
+}
+
+
+void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
+  StringEquality(assembler, kTwoByteStringCid);
+}
+
 #undef __
 
 }  // namespace dart

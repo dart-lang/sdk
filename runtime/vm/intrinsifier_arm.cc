@@ -1422,7 +1422,7 @@ void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ CompareClassId(R0, kTwoByteStringCid, R3);
   __ b(&fall_through, NE);
   ASSERT(kSmiTagShift == 1);
-  __ AddImmediate(R0, OneByteString::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R0, TwoByteString::data_offset() - kHeapObjectTag);
   __ ldrh(R0, Address(R0, R1));
   __ SmiTag(R0);
   __ Ret();
@@ -1653,6 +1653,81 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
 
   __ Bind(&fall_through);
 }
+
+
+// TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
+void StringEquality(Assembler* assembler, intptr_t string_cid) {
+  Label fall_through, is_true, is_false, loop;
+  __ ldr(R0, Address(SP, 1 * kWordSize));  // This.
+  __ ldr(R1, Address(SP, 0 * kWordSize));  // Other.
+
+  // Are identical?
+  __ cmp(R0, ShifterOperand(R1));
+  __ b(&is_true, EQ);
+
+  // Is other OneByteString?
+  __ tst(R1, ShifterOperand(kSmiTagMask));
+  __ b(&fall_through, EQ);
+  __ CompareClassId(R1, string_cid, R2);
+  __ b(&fall_through, NE);
+
+  // Have same length?
+  __ ldr(R2, FieldAddress(R0, String::length_offset()));
+  __ ldr(R3, FieldAddress(R1, String::length_offset()));
+  __ cmp(R2, ShifterOperand(R3));
+  __ b(&is_false, NE);
+
+  // Check contents, no fall-through possible.
+  // TODO(zra): try out other sequences.
+  ASSERT((string_cid == kOneByteStringCid) ||
+         (string_cid == kTwoByteStringCid));
+  const intptr_t offset = (string_cid == kOneByteStringCid) ?
+      OneByteString::data_offset() : TwoByteString::data_offset();
+  __ AddImmediate(R0, offset - kHeapObjectTag);
+  __ AddImmediate(R1, offset - kHeapObjectTag);
+  __ SmiUntag(R2);
+  __ Bind(&loop);
+  __ AddImmediate(R2, -1);
+  __ cmp(R2, ShifterOperand(0));
+  __ b(&is_true, LT);
+  if (string_cid == kOneByteStringCid) {
+    __ ldrb(R3, Address(R0));
+    __ ldrb(R4, Address(R1));
+    __ AddImmediate(R0, 1);
+    __ AddImmediate(R1, 1);
+  } else if (string_cid == kTwoByteStringCid) {
+    __ ldrh(R3, Address(R0));
+    __ ldrh(R4, Address(R1));
+    __ AddImmediate(R0, 2);
+    __ AddImmediate(R1, 2);
+  } else {
+    UNIMPLEMENTED();
+  }
+  __ cmp(R3, ShifterOperand(R4));
+  __ b(&is_false, NE);
+  __ b(&loop);
+
+  __ Bind(&is_true);
+  __ LoadObject(R0, Bool::True());
+  __ Ret();
+
+  __ Bind(&is_false);
+  __ LoadObject(R0, Bool::False());
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::OneByteString_equality(Assembler* assembler) {
+  StringEquality(assembler, kOneByteStringCid);
+}
+
+
+void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
+  StringEquality(assembler, kTwoByteStringCid);
+}
+
 
 }  // namespace dart
 

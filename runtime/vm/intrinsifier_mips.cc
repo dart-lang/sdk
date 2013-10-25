@@ -1737,6 +1737,70 @@ void Intrinsifier::OneByteString_allocate(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
+
+// TODO(srdjan): Add combinations (one-byte/two-byte/external strings).
+void StringEquality(Assembler* assembler, intptr_t string_cid) {
+  Label fall_through, is_true, is_false, loop;
+  __ lw(T0, Address(SP, 1 * kWordSize));  // This.
+  __ lw(T1, Address(SP, 0 * kWordSize));  // Other.
+
+  // Are identical?
+  __ beq(T0, T1, &is_true);
+
+  // Is other OneByteString?
+  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
+  __ beq(CMPRES, ZR, &fall_through);  // Other is Smi.
+  __ LoadClassId(CMPRES1, T1);  // Class ID check.
+  __ BranchNotEqual(CMPRES1, string_cid, &fall_through);
+
+  // Have same length?
+  __ lw(T2, FieldAddress(T0, String::length_offset()));
+  __ lw(T3, FieldAddress(T1, String::length_offset()));
+  __ bne(T2, T3, &is_false);
+
+  // Check contents, no fall-through possible.
+  ASSERT((string_cid == kOneByteStringCid) ||
+         (string_cid == kTwoByteStringCid));
+  __ SmiUntag(T2);
+  __ Bind(&loop);
+  __ AddImmediate(T2, -1);
+  __ BranchSignedLess(T2, 0, &is_true);
+  if (string_cid == kOneByteStringCid) {
+    __ lbu(V0, FieldAddress(T0, OneByteString::data_offset()));
+    __ lbu(V1, FieldAddress(T1, OneByteString::data_offset()));
+    __ AddImmediate(T0, 1);
+    __ AddImmediate(T1, 1);
+  } else if (string_cid == kTwoByteStringCid) {
+    __ lhu(V0, FieldAddress(T0, OneByteString::data_offset()));
+    __ lhu(V1, FieldAddress(T1, OneByteString::data_offset()));
+    __ AddImmediate(T0, 2);
+    __ AddImmediate(T1, 2);
+  } else {
+    UNIMPLEMENTED();
+  }
+  __ bne(V0, V1, &is_false);
+  __ b(&loop);
+
+  __ Bind(&is_false);
+  __ LoadObject(V0, Bool::False());
+  __ Ret();
+  __ Bind(&is_true);
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::OneByteString_equality(Assembler* assembler) {
+  StringEquality(assembler, kOneByteStringCid);
+}
+
+
+void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
+  StringEquality(assembler, kTwoByteStringCid);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

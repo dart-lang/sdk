@@ -55,6 +55,8 @@ namespace dart {
       OneByteString_substringUnchecked, 25652388)                              \
   V(_OneByteString, _setAt, OneByteString_setAt, 308408714)                    \
   V(_OneByteString, _allocate, OneByteString_allocate, 1744068081)             \
+  V(_OneByteString, ==, OneByteString_equality, 1064139944)                    \
+  V(_TwoByteString, ==, TwoByteString_equality, 1616855207)                    \
 
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \

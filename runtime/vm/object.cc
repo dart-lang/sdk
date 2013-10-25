@@ -4063,7 +4063,7 @@ void Function::SwitchToUnoptimizedCode() const {
   // Optimized code object might have been actually fully produced by the
   // intrinsifier in this case nothing has to be done. In fact an attempt to
   // patch such code will cause crash.
-  // TODO(vegorov): if intrisifier can fully intrisify the function then we
+  // TODO(vegorov): if intrisifier can fully intrinsify the function then we
   // should not later try to optimize it.
   if (PcDescriptors::Handle(current_code.pc_descriptors()).Length() == 0) {
     return;
