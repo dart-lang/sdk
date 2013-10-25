@@ -540,11 +540,13 @@ abstract class Enqueuer {
         // TODO(johnniwinther): Find an optimal process order.
         f(queue.removeLast());
       }
-      compiler.backend.onQueueEmpty(this);
+      onQueueEmpty();
     } while (!queue.isEmpty);
   }
 
-  void forEachPostProcessTask(f(PostProcessTask work)) {}
+  void onQueueEmpty() {
+    compiler.backend.onQueueEmpty(this);
+  }
 
   void logSummary(log(message)) {
     _logSpecificSummary(log);
@@ -570,17 +572,17 @@ class ResolutionEnqueuer extends Enqueuer {
   final Queue<ResolutionWorkItem> queue;
 
   /**
-   * A post-processing queue for the resolution phase which is processed
-   * immediately after the resolution queue has been closed.
+   * A deferred task queue for the resolution phase which is processed
+   * when the resolution queue has been emptied.
    */
-  final Queue<PostProcessTask> postQueue;
+  final Queue<DeferredTask> deferredTaskQueue;
 
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
         resolvedElements = new Map<Element, TreeElements>(),
         queue = new Queue<ResolutionWorkItem>(),
-        postQueue = new Queue<PostProcessTask>();
+        deferredTaskQueue = new Queue<DeferredTask>();
 
   bool get isResolutionQueue => true;
 
@@ -673,26 +675,31 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   /**
-   * Adds an action to the post-processing queue.
+   * Adds an action to the deferred task queue.
    *
-   * The action is performed as part of the post-processing immediately after
-   * the resolution queue has been closed. As a consequence, [action] must not
-   * add elements to the resolution queue.
+   * The action is performed the next time the resolution queue has been
+   * emptied.
    *
    * The queue is processed in FIFO order.
    */
-  void addPostProcessAction(Element element, PostProcessAction action) {
+  void addDeferredAction(Element element, DeferredAction action) {
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
           "Resolution work list is closed. "
-          "Trying to add post process action for $element");
+          "Trying to add deferred action for $element");
     }
-    postQueue.add(new PostProcessTask(element, action));
+    deferredTaskQueue.add(new DeferredTask(element, action));
   }
 
-  void forEachPostProcessTask(f(PostProcessTask work)) {
-    while (!postQueue.isEmpty) {
-      f(postQueue.removeFirst());
+  void onQueueEmpty() {
+    emptyDeferredTaskQueue();
+    super.onQueueEmpty();
+  }
+
+  void emptyDeferredTaskQueue() {
+    while (!deferredTaskQueue.isEmpty) {
+      DeferredTask task = deferredTaskQueue.removeFirst();
+      compiler.withCurrentElement(task.element, task.action);
     }
   }
 

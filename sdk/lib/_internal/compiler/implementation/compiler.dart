@@ -68,13 +68,13 @@ class CodegenWorkItem extends WorkItem {
   }
 }
 
-typedef void PostProcessAction();
+typedef void DeferredAction();
 
-class PostProcessTask {
+class DeferredTask {
   final Element element;
-  final PostProcessAction action;
+  final DeferredAction action;
 
-  PostProcessTask(this.element, this.action);
+  DeferredTask(this.element, this.action);
 }
 
 abstract class Backend {
@@ -1161,9 +1161,6 @@ abstract class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
-    world.forEachPostProcessTask((PostProcessTask work) {
-      withCurrentElement(work.element, () => work.action());
-    });
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
