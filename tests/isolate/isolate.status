@@ -95,6 +95,7 @@ spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
 [ $compiler == none && $runtime == dartium ]
 global_error_handler2_test: Fail # Issue 13719: Please triage this failure.
+spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
