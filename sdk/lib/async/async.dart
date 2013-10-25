@@ -6,14 +6,28 @@
  * Support for asynchronous programming,
  * with classes such as Future and Stream.
  *
- * For an introduction to using dart:async, see the
+ * For an introduction to asynchronous programming in Dart, see the
  * [dart:async section of the language tour]
  * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-asynchronous-programming).
- * Also see
- * [articles](https://www.dartlang.org/articles/)
- * such as
- * [Using Future Based APIs]
- * (https://www.dartlang.org/articles/using-future-based-apis/).
+ *
+ * ## Other Resources
+ *
+ * * [Using Future Based APIs]
+ * (https://www.dartlang.org/articles/using-future-based-apis/): A first look at
+ * Futures and how to use them to write asynchronous Dart code.
+ *
+ * * [Futures and Error Handling]
+ * (https://www.dartlang.org/articles/futures-and-error-handling/): Everything
+ * you wanted to know about handling errors and exceptions when working with
+ * Futures (but were afraid to ask).
+ *
+ * * [The Event Loop and Dart](https://www.dartlang.org/articles/event-loop/):
+ * Learn how Dart handles the event queue and microtask queue, so you can write
+ * better asynchronous code with fewer surprises.
+ *
+ * * [Asynchronous Unit Testing with Dart]
+ * (https://www.dartlang.org/articles/dart-unit-tests/#asynchronous-tests): How
+ * to test asynchronous code.
  */
 library dart.async;
 
