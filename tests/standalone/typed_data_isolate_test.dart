@@ -9,23 +9,25 @@ library TypedDataIsolateTest;
 
 import 'dart:io';
 import 'dart:isolate';
+import 'package:async_helper/async_helper.dart';
 
-second() {
- print('spawned');
- port.receive((data, replyTo) {
-   print('got data');
-   print(data);
-   print('printed data');
-   replyTo.send('OK');
-   port.close();
- });
+second(message) {
+  var data = message[0];
+  var replyTo = message[1];
+  print('got data');
+  print(data);
+  print('printed data');
+  replyTo.send('OK');
 }
 
 main() {
+ asyncStart();
  new File(Platform.script).readAsBytes().then((List<int> data) {
-   spawnFunction(second).call(data).then((reply) {
+   var response = new ReceivePort();
+   var remote = Isolate.spawn(second, [data, response.sendPort]);
+   response.first.then((reply) {
      print('got reply');
-     port.close();
+     asyncEnd();
    });
  });
 }

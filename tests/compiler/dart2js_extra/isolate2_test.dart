@@ -10,11 +10,13 @@
 library isolate2_negative_test;
 import 'dart:isolate';
 
-void entry() {
-  throw "foo";
+void entry(SendPort replyTo) {
+  throw "foo";  /// 01: runtime error
+  replyTo.send("done");
 }
 
 main() {
-  SendPort port = spawnFunction(entry);
-  port.receive((msg) {});
+  var port = new ReceivePort();
+  Isolate.spawn(entry, port.sendPort);
+  port.first;
 }

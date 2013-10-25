@@ -14,39 +14,42 @@ import "dart:io";
 class IsolatedHttpServer {
   IsolatedHttpServer()
       : _statusPort = new ReceivePort(),
-        _serverPort = null {
-    _serverPort = spawnFunction(startIsolatedHttpServer);
-  }
+        _serverPort = null;
 
   void setServerStartedHandler(void startedCallback(int port)) {
     _startedCallback = startedCallback;
   }
 
-  void start() {
+  void start([bool chunkedEncoding = false]) {
+    ReceivePort receivePort = new ReceivePort();
+    var remote = Isolate.spawn(startIsolatedHttpServer, receivePort.sendPort);
+    receivePort.first.then((port) {
+      _serverPort = port;
+
+      if (chunkedEncoding) {
+        // Send chunked encoding message to the server.
+        port.send([new IsolatedHttpServerCommand.chunkedEncoding(),
+                   _statusPort.sendPort]);
+      }
+
+      // Send server start message to the server.
+      var command = new IsolatedHttpServerCommand.start();
+      port.send([command, _statusPort.sendPort]);
+    });
+
     // Handle status messages from the server.
-    _statusPort.receive((var status, SendPort replyTo) {
+    _statusPort.listen((var status) {
       if (status.isStarted) {
         _startedCallback(status.port);
       }
     });
-
-    // Send server start message to the server.
-    var command = new IsolatedHttpServerCommand.start();
-    _serverPort.send(command, _statusPort.toSendPort());
   }
 
   void shutdown() {
     // Send server stop message to the server.
-    _serverPort.send(new IsolatedHttpServerCommand.stop(),
-                     _statusPort.toSendPort());
+    _serverPort.send([new IsolatedHttpServerCommand.stop(),
+                     _statusPort.sendPort]);
     _statusPort.close();
-  }
-
-  void chunkedEncoding() {
-    // Send chunked encoding message to the server.
-    _serverPort.send(
-        new IsolatedHttpServerCommand.chunkedEncoding(),
-        _statusPort.toSendPort());
   }
 
   ReceivePort _statusPort;  // Port for receiving messages from the server.
@@ -92,10 +95,10 @@ class IsolatedHttpServerStatus {
 }
 
 
-void startIsolatedHttpServer() {
+void startIsolatedHttpServer(SendPort replyTo) {
   var server = new TestServer();
   server.init();
-  port.receive(server.dispatch);
+  replyTo.send(server.dispatchSendPort);
 }
 
 class TestServer {
@@ -121,10 +124,16 @@ class TestServer {
     // Setup request handlers.
     _requestHandlers = new Map();
     _requestHandlers["/echo"] = _echoHandler;
+    _dispatchPort = new ReceivePort();
+    _dispatchPort.listen(dispatch);
   }
 
-  void dispatch(message, SendPort replyTo) {
-    if (message.isStart) {
+  SendPort get dispatchSendPort => _dispatchPort.sendPort;
+
+  void dispatch(message) {
+    IsolatedHttpServerCommand command = message[0];
+    SendPort replyTo = message[1];
+    if (command.isStart) {
       try {
         HttpServer.bind("127.0.0.1", 0).then((server) {
           _server = server;
@@ -135,11 +144,11 @@ class TestServer {
       } catch (e) {
         replyTo.send(new IsolatedHttpServerStatus.error(), null);
       }
-    } else if (message.isStop) {
+    } else if (command.isStop) {
       _server.close();
-      port.close();
+      _dispatchPort.close();
       replyTo.send(new IsolatedHttpServerStatus.stopped(), null);
-    } else if (message.isChunkedEncoding) {
+    } else if (command.isChunkedEncoding) {
       _chunkedEncoding = true;
     }
   }
@@ -154,6 +163,7 @@ class TestServer {
   }
 
   HttpServer _server;  // HTTP server instance.
+  ReceivePort _dispatchPort;
   Map _requestHandlers;
   bool _chunkedEncoding = false;
 }
@@ -200,10 +210,7 @@ void testRead(bool chunkedEncoding) {
   }
 
   server.setServerStartedHandler(runTest);
-  if (chunkedEncoding) {
-    server.chunkedEncoding();
-  }
-  server.start();
+  server.start(chunkedEncoding);
 }
 
 void main() {

@@ -701,16 +701,18 @@ class _CustomizedZone extends _BaseZone {
 
 void _rootHandleUncaughtError(
     Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) {
-  _scheduleAsyncCallback(() {
-    print("Uncaught Error: ${error}");
-    var trace = stackTrace;
-    if (trace == null) trace = getAttachedStackTrace(error);
-    // Clear the attached stack trace (if any).
-    _attachStackTrace(error, null);
-    if (trace != null) {
-      print("Stack Trace: \n$trace\n");
-    }
-    throw error;
+  self.run(() {
+    _scheduleAsyncCallback(() {
+      print("Uncaught Error: ${error}");
+      var trace = stackTrace;
+      if (trace == null) trace = getAttachedStackTrace(error);
+      // Clear the attached stack trace (if any).
+      _attachStackTrace(error, null);
+      if (trace != null) {
+        print("Stack Trace: \n$trace\n");
+      }
+      throw error;
+    });
   });
 }
 

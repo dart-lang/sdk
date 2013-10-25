@@ -512,7 +512,7 @@ class SwitchIsolateScope {
 
 class IsolateSpawnState {
  public:
-  IsolateSpawnState(const Function& func, const Function& callback_func);
+  explicit IsolateSpawnState(const Function& func);
   explicit IsolateSpawnState(const char* script_url);
   ~IsolateSpawnState();
 
@@ -522,6 +522,7 @@ class IsolateSpawnState {
   char* library_url() const { return library_url_; }
   char* function_name() const { return function_name_; }
   char* exception_callback_name() const { return exception_callback_name_; }
+  bool is_spawn_uri() const { return library_url_ == NULL; }
 
   RawObject* ResolveFunction();
   void Cleanup();

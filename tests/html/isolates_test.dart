@@ -7,7 +7,10 @@ import 'dart:isolate' as isolate;
 
 String responseFor(message) => 'response for $message';
 
-void isolateEntry() {
+void isolateEntry(isolate.SendPort initialReplyTo) {
+  var port = new isolate.ReceivePort();
+  initialReplyTo.send(port.sendPort);
+
   bool wasThrown = false;
   try {
     window.alert('Test');
@@ -22,28 +25,41 @@ void isolateEntry() {
   // Check that convert library was loaded to isolate.
   JSON.encode([1, 2, 3]);
 
-  isolate.port.receive((message, replyTo) {
-    replyTo.send(responseFor(message), null);
+  port.listen((message) {
+    var data = message[0];
+    var replyTo = message[1];
+    replyTo.send(responseFor(data));
   });
+}
+
+Future sendReceive(isolate.SendPort port, msg) {
+  var response = new isolate.ReceivePort();
+  port.send([msg, response.sendPort]);
+  return response.first;
 }
 
 main() {
   useHtmlConfiguration();
   test('IsolateSpawn', () {
-    isolate.spawnFunction(isolateEntry);
+    var port = new isolate.ReceivePort();
+    isolate.Isolate.spawn(isolateEntry, port.sendPort);
+    port.close();
   });
   test('NonDOMIsolates', () {
     var callback = expectAsync0((){});
-    var port = isolate.spawnFunction(isolateEntry);
-    final msg1 = 'foo';
-    final msg2 = 'bar';
-    port.call(msg1).then((response) {
-      guardAsync(() {
-        expect(response, equals(responseFor(msg1)));
-        port.call(msg2).then((response) {
-          guardAsync(() {
-            expect(response, equals(responseFor(msg2)));
-            callback();
+    var response = new isolate.ReceivePort();
+    var remote = isolate.Isolate.spawn(isolateEntry, response.sendPort);
+    response.first.then((port) {
+      final msg1 = 'foo';
+      final msg2 = 'bar';
+      sendReceive(port, msg1).then((response) {
+        guardAsync(() {
+          expect(response, equals(responseFor(msg1)));
+          sendReceive(port, msg2).then((response) {
+            guardAsync(() {
+              expect(response, equals(responseFor(msg2)));
+              callback();
+            });
           });
         });
       });

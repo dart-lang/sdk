@@ -6,47 +6,53 @@ library CountTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import 'dart:isolate';
 
-void countMessages() {
+void countMessages(replyTo) {
   int count = 0;
-  port.receive((int message, SendPort replyTo) {
+  var port = new ReceivePort();
+  replyTo.send(["init", port.sendPort]);
+  port.listen((int message) {
     if (message == -1) {
       expect(count, 10);
-      replyTo.send(-1, null);
+      replyTo.send(["done"]);
       port.close();
       return;
     }
-    expect(message, count);
     count++;
-    replyTo.send(message * 2, null);
+    expect(message, count);
+    replyTo.send(["count", message * 2]);
   });
 }
 
 void main() {
   test("count 10 consecutive messages", () {
-    int count = 0;
-    SendPort remote = spawnFunction(countMessages);
     ReceivePort local = new ReceivePort();
-    SendPort reply = local.toSendPort();
-
-    local.receive(expectAsync2((int message, SendPort replyTo) {
-      if (message == -1) {
-        // [count] is '11' because when we sent '9' to [remote],
-        // the other isolate will send another message '18', that this
-        // isolate will receive. Then this isolate will send '10' to
-        // [remote] and increment [count]. Note that this last '10'
-        // message will not be received by the other isolate, since it
-        // received '-1' before.
-        expect(count, 11);
-        local.close();
-        return;
+    Isolate.spawn(countMessages, local.sendPort);
+    SendPort remote;
+    int count = 0;
+    var done = expectAsync0((){});
+    local.listen((msg) {
+      switch (msg[0]) {
+        case "init":
+          expect(remote, null);
+          remote = msg[1];
+          remote.send(++count);
+          break;
+        case "count":
+          expect(msg[1], count * 2);
+          if (count == 10) {
+            remote.send(-1);
+          } else {
+            remote.send(++count);
+          }
+          break;
+        case "done":
+          expect(count, 10);
+          local.close();
+          done();
+          break;
+        default:
+          fail("unreachable: ${msg[0]}");
       }
-
-      expect(message, (count - 1) * 2);
-      remote.send(count++, reply);
-      if (count == 10) {
-        remote.send(-1, reply);
-      }
-    }, count: 11));
-    remote.send(count++, reply);
+    });
   });
 }

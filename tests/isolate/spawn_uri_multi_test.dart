@@ -17,15 +17,14 @@ import 'spawn_uri_child_isolate.dart';
 main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
+    port.first.then(expectAsync1((msg) {
       String expectedMessage = 're: hi';
       // Should be hi, not hello.
       expectedMessage = 're: hello'; /// 01: runtime error
       expect(msg, equals(expectedMessage));
-      port.close();
     }));
 
-    SendPort s = spawnUri('spawn_uri_child_isolate.dart');
-    s.send('hi', port.toSendPort());
+    Isolate.spawnUri(Uri.parse('spawn_uri_child_isolate.dart'),
+                     ['hi'], port.sendPort);
   });
 }

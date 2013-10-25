@@ -13,16 +13,18 @@ import 'dart:isolate';
 import "package:expect/expect.dart";
 
 /*
-test() {
-  port.receive((msg, reply) => reply.send(msg));
+test(SendPort replyTo) {
+  replyTo.send("from Isolate");
 }
 
 main() {
+  asyncStart();
   ReceivePort port = new ReceivePort();
-  port.receive((msg, reply) => port.close());
-
-  SendPort s = spawnFunction(test);
-  s.send('hi', port.toSendPort());
+  Isolate.spawn(test, port.sendPort);
+  port.first.then((msg) {
+    Expect.equals("from Isolate", msg);
+    asyncEnd();
+  });
 }
 */
 

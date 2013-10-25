@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js && $runtime == jsshell ]
-LibTest/isolate/isolate_api/spawnUri_A02_t01: Crash # TODO(ahe): Please triage this crash.
 LibTest/core/List/sort_A01_t04: Fail, Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 
@@ -139,7 +138,6 @@ LibTest/core/int/isEven_A01_t01: RuntimeError, OK # co19 issue 277
 LibTest/isolate/IsolateSink/add_A01_t01: CompileTimeError # Issue 13683
 LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
 
-LibTest/isolate/isolate_api/spawnUri_A02_t01: RuntimeError # Runtime error: Expect.throws() fails
 LibTest/isolate/isolate_api/spawnUri_A01_t01: RuntimeError # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t02: RuntimeError # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.
 LibTest/isolate/isolate_api/spawnUri_A01_t03: RuntimeError # Runtime error: UnsupportedError: Currently spawnUri is not supported without web workers.

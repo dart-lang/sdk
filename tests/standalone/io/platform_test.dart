@@ -34,44 +34,29 @@ test() {
       (arg) => arg.contains(Platform.packageRoot)));
 }
 
-void f() {
-  port.receive((msg, reply) {
-    if (msg == "Platform.executable") {
-      reply.send(Platform.executable);
-    }
-    if (msg == "Platform.script") {
-      reply.send(Platform.script);
-    }
-    if (msg == "Platform.packageRoot") {
-      reply.send(Platform.packageRoot);
-    }
-    if (msg == "Platform.executableArguments") {
-      reply.send(Platform.executableArguments);
-    }
-    if (msg == "close") {
-      reply.send("closed");
-      port.close();
-    }
-  });
+void f(reply) {
+  reply.send({"Platform.executable": Platform.executable,
+              "Platform.script": Platform.script,
+              "Platform.packageRoot": Platform.packageRoot,
+              "Platform.executableArguments": Platform.executableArguments});
 }
 
 testIsolate() {
   asyncStart();
-  var sendPort = spawnFunction(f);
-  Future.wait([sendPort.call("Platform.executable"),
-               sendPort.call("Platform.script"),
-               sendPort.call("Platform.packageRoot"),
-               sendPort.call("Platform.executableArguments")])
-  .then((results) {
-    Expect.equals(Platform.executable, results[0]);
-    Uri uri = Uri.parse(results[1]);
+  ReceivePort port = new ReceivePort();
+  var remote = Isolate.spawn(f, port.sendPort);
+  port.first.then((results) {
+    Expect.equals(Platform.executable, results["Platform.executable"]);
+
+    Uri uri = Uri.parse(results["Platform.script"]);
     // SpawnFunction retains the script url of the parent which in this
     // case was a relative path.
     Expect.equals("", uri.scheme);
     Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
-    Expect.equals(Platform.packageRoot, results[2]);
-    Expect.listEquals(Platform.executableArguments, results[3]);
-    sendPort.call("close").then((_) => asyncEnd());
+    Expect.equals(Platform.packageRoot, results["Platform.packageRoot"]);
+    Expect.listEquals(Platform.executableArguments,
+                      results["Platform.executableArguments"]);
+    asyncEnd();
   });
 }
 

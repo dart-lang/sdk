@@ -29269,6 +29269,8 @@ class _JsDeserializer extends _Deserializer {
   }
 }
 
+class SendPortSync {}
+
 // The receiver is JS.
 class _JsSendPortSync implements SendPortSync {
 

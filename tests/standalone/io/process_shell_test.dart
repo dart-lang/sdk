@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:path/path.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:io";
+import "dart:async";
 import "dart:isolate";
 
 void testRunShell() {
   test(args) {
+    asyncStart();
     var path = join(dirname(Platform.script), "process_echo_util.dart");
     Process.run(Platform.executable,
                 [path]..addAll(args),
@@ -26,6 +29,7 @@ void testRunShell() {
               throw "bad result at $i: '${args[i]}' vs '${result[i]}'";
             }
           }
+          asyncEnd();
         });
   }
   test(["\""]);
@@ -43,12 +47,13 @@ void testRunShell() {
 
 void testBadRunShell() {
   test(exe, [args = const []]) {
+    asyncStart();
     Process.run(exe, args, runInShell: true)
         .then((result) {
-          port.close();
           if (result.exitCode == 0) {
             throw "error expected";
           }
+          asyncEnd();
         });
   }
   test("'\"'");

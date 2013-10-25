@@ -5,21 +5,23 @@
 import 'dart:isolate';
 
 main() {
-  spawnFunction(runTest).call(null);
+  ReceivePort reply = new ReceivePort();
+  Isolate.spawn(runTest, reply.sendPort);
+  reply.first.then((StackTrace stack) {
+    print(stack);
+  });
 }
 
-runTest() {
-  port.receive((param, sendport) {
+runTest(SendPort sendport) {
+  try {
+    throw 'sorry';
+  } catch (e, stack) {
     try {
-      throw 'sorry';
-    } catch (e, stack) {
-      try {
-        sendport.send(stack);
-        print("Stacktrace sent");
-      } catch (e) {
-        print("Stacktrace not sent");
-        sendport.send(null);
-      }
+      sendport.send(stack);
+      print("Stacktrace sent");
+    } catch (e) {
+      print("Stacktrace not sent");
+      sendport.send(null);
     }
-  });
+  }
 }

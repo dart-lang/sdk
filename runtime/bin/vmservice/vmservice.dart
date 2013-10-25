@@ -31,14 +31,14 @@ class VMService {
     }
   }
 
-  void messageHandler(message, SendPort replyTo) {
+  void messageHandler(message) {
     if (message is List && message.length == 3) {
       controlMessageHandler(message[0], message[1], message[2]);
     }
   }
 
   VMService._internal() {
-    port.receive(messageHandler);
+    port.listen(messageHandler);
   }
 
   factory VMService() {

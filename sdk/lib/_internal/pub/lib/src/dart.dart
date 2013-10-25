@@ -92,14 +92,18 @@ Future<SendPort> runInIsolate(String code) {
   return withTempDir((dir) {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
-    var bufferPort = spawnFunction(_isolateBuffer);
-    return bufferPort.call(path.toUri(dartPath).toString()).then((response) {
-      if (response.first == 'error') {
-        return new Future.error(
-            new CrossIsolateException.deserialize(response.last));
-      }
+    var port = new ReceivePort();
+    var initialMessage =  [path.toUri(dartPath).toString(), port.sendPort];
+    var isolate = Isolate.spawn(_isolateBuffer, initialMessage);
+    return isolate.then((_) {
+      return port.first.then((response) {
+        if (response.first == 'error') {
+          return new Future.error(
+              new CrossIsolateException.deserialize(response.last));
+        }
 
-      return response.last;
+        return response.last;
+      });
     });
   });
 }
@@ -110,14 +114,18 @@ Future<SendPort> runInIsolate(String code) {
 /// [spawnUri] synchronously loads the file and its imports, which can deadlock
 /// the host isolate if there's an HTTP import pointing at a server in the host.
 /// Adding an additional isolate in the middle works around this.
-void _isolateBuffer() {
-  port.receive((uri, replyTo) {
-    try {
-      replyTo.send(['success', spawnUri(uri)]);
-    } catch (e, stack) {
+void _isolateBuffer(initialMessage) {
+  var uri = initialMessage[0];
+  var replyTo = initialMessage[1];
+  try {
+    // TODO(floitsch): If we do it right we shouldn't need to have a try/catch
+    // and a catchError.
+    Isolate.spawnUri(Uri.parse(uri), [], replyTo).catchError((e, stack) {
       replyTo.send(['error', CrossIsolateException.serialize(e, stack)]);
-    }
-  });
+    });
+  } catch (e, stack) {
+    replyTo.send(['error', CrossIsolateException.serialize(e, stack)]);
+  }
 }
 
 /// An exception that was originally raised in another isolate.

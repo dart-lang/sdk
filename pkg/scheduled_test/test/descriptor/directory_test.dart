@@ -12,7 +12,9 @@ import 'package:scheduled_test/scheduled_test.dart';
 import '../metatest.dart';
 import 'utils.dart';
 
-void main() {
+void main(List<String> args, message) {
+  metaTestInit(message);
+
   setUpTimeout();
 
   expectTestsPass("directory().create() creates a directory and its contents",

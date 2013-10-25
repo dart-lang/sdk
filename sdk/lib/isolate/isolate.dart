@@ -15,62 +15,67 @@
 library dart.isolate;
 
 import "dart:async";
+import "dart:collection" show HashMap;
 
-part "isolate_stream.dart";
-
+/**
+ * Thrown when an isolate cannot be created.
+ */
 class IsolateSpawnException implements Exception {
+  // TODO(floitsch): clean up spawn exception.
   const IsolateSpawnException(String this._s);
   String toString() => "IsolateSpawnException: '$_s'";
   final String _s;
 }
 
-/**
- * The initial ReceivePort available by default for this isolate.
- *
- * This ReceivePort is created automatically
- * and is commonly used to establish
- * the first communication between isolates.
- * (See [spawnFunction] and [spawnUri].)
- */
-ReceivePort get port => _Isolate.port;
+class Isolate {
+
+  final SendPort _controlPort;
+
+  Isolate._fromControlPort(SendPort controlPort)
+      : this._controlPort = controlPort;
+
+  /**
+   * Creates and spawns an isolate that shares the same code as the current
+   * isolate.
+   *
+   * The argument [entryPoint] specifies the entry point of the spawned
+   * isolate. It must be a static top-level function or a static method that
+   * takes no arguments. It is not allowed to pass a function closure.
+   *
+   * The entry-point function is invoked with the initial [message].
+   * Usually the initial [message] contains a [SendPort] so
+   * that the spawner and spawnee can communicate with each other.
+   *
+   * Returns a future that will complete with an [Isolate] instance. The
+   * isolate instance can be used to control the spawned isolate.
+   */
+  external static Future<Isolate> spawn(void entryPoint(message), var message);
+
+  /**
+   * Creates and spawns an isolate that runs the code from the library with
+   * the specified URI.
+   *
+   * The isolate starts executing the top-level `main` function of the library
+   * with the given URI.
+   *
+   * The target `main` may have one of the four following signatures:
+   *
+   * * `main()`
+   * * `main(args)`
+   * * `main(args, message)`
+   *
+   * When present, the argument `message` is set to the initial [message].
+   * When present, the argument `args` is set to the provided [args] list.
+   *
+   * Returns a future that will complete with an [Isolate] instance. The
+   * isolate instance can be used to control the spawned isolate.
+   */
+  external static Future<Isolate> spawnUri(
+      Uri uri, List<String> args, var message);
+}
 
 /**
- * Creates and spawns an isolate
- * that shares the same code as the current isolate,
- * but that starts from the specified function.
- *
- * The [topLevelFunction] argument must be
- * a static top-level function or a static method that takes no
- * arguments. It is illegal to pass a function closure.
- *
- * When any isolate starts (even the main script of the application), a default
- * [ReceivePort] is created for it. This port is available from the top-level
- * getter [port] defined in this library.
- *
- * This function returns a [SendPort] derived from
- * the child isolate's default port.
- *
- * The optional [unhandledExceptionCallback] argument is invoked whenever an
- * exception inside the isolate is unhandled. It can be seen as a big
- * `try/catch` around everything that is executed inside the isolate. The
- * callback should return `true` if it was able to handle the exception.
- */
-SendPort spawnFunction(void topLevelFunction(),
-    [bool unhandledExceptionCallback(IsolateUnhandledException e)])
-    => _Isolate.spawnFunction(topLevelFunction, unhandledExceptionCallback);
-
-/**
- * Creates and spawns an isolate that runs the code from the specified URI.
- *
- * As with [spawnFunction],
- * the child isolate has a default [ReceivePort],
- * and this function returns a [SendPort] derived from it.
- */
-SendPort spawnUri(String uri) => _Isolate.spawnUri(uri);
-
-/**
- * Together with [ReceivePort],
- * the only means of communication between isolates.
+ * Sends messages to its [ReceivePort]s.
  *
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
  * a [SendPort] is delivered to its respective [ReceivePort]. There might be
@@ -82,8 +87,7 @@ abstract class SendPort {
 
   /**
    * Sends an asynchronous [message] to this send port. The message is copied to
-   * the receiving isolate. If specified, the [replyTo] port will be provided to
-   * the receiver to facilitate exchanging sequences of messages.
+   * the receiving isolate.
    *
    * The content of [message] can be: primitive values (null, num, bool, double,
    * String), instances of [SendPort], and lists and maps whose elements are any
@@ -95,20 +99,9 @@ abstract class SendPort {
    * process). This is currently only supported by the dartvm.  For now, the
    * dart2js compiler only supports the restricted messages described above.
    *
-   * Deprecation note: it is no longer valid to transmit a [ReceivePort] in a
-   * message. Previously they were translated to the corresponding send port
-   * before being transmitted.
+   * The second argument [replyTo] is deprecated and its value is ignored.
    */
   void send(var message, [SendPort replyTo]);
-
-  /**
-   * Sends a message to this send port and returns a [Future] of the reply.
-   * Basically, this internally creates a new receive port, sends a
-   * message to this send port with replyTo set to such receive port, and, when
-   * a reply is received, it closes the receive port and completes the returned
-   * future.
-   */
-  Future call(var message);
 
   /**
    * Tests whether [other] is a [SendPort] pointing to the same
@@ -121,49 +114,95 @@ abstract class SendPort {
    * consistent with the == operator.
    */
   int get hashCode;
-
 }
 
 /**
- * Together with [SendPort], the only means of
- * communication between isolates.
+ * Together with [SendPort], the only means of communication between isolates.
  *
- * [ReceivePort]s have a [:toSendPort:] method
- * which returns a [SendPort]. Any message that is sent through this [SendPort]
- * is delivered to the [ReceivePort] it has been created from. There, they are
- * dispatched to the callback that has been registered on the receive port.
+ * [ReceivePort]s have a `sendport` getter which returns a [SendPort].
+ * Any message that is sent through this [SendPort]
+ * is delivered to the [ReceivePort] it has been created from. There, the
+ * message is dispatched to its listener.
+ *
+ * A [ReceivePort] is a non-broadcast stream. This means that it buffers
+ * incoming messages until a listener is registered. Only one listener can
+ * receive messages. See [Stream.asBroadcastStream] for transforming the port
+ * to a broadcast stream.
  *
  * A [ReceivePort] may have many [SendPort]s.
  */
-abstract class ReceivePort {
+abstract class ReceivePort implements Stream {
 
   /**
-   * Opens a long-lived port for receiving messages. The returned port
-   * must be explicitly closed through [ReceivePort.close].
+   * Opens a long-lived port for receiving messages.
+   *
+   * A [ReceivePort] is a non-broadcast stream. This means that it buffers
+   * incoming messages until a listener is registered. Only one listener can
+   * receive messages. See [Stream.asBroadcastStream] for transforming the port
+   * to a broadcast stream.
+   *
+   * A receive port is closed by canceling its subscription.
    */
   external factory ReceivePort();
 
   /**
-   * Sets up a callback function for receiving pending or future
-   * messages on this receive port.
+   * Creates a [ReceivePort] from a [RawReceivePort].
+   *
+   * The handler of the given [rawPort] is overwritten during the construction
+   * of the result.
    */
-  void receive(void callback(var message, SendPort replyTo));
+  external factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort);
 
   /**
-   * Closes this receive port immediately. Pending messages will not
-   * be processed and it is impossible to re-open the port. Single-shot
-   * reply ports, such as those created through [SendPort.call], are
-   * automatically closed when the reply has been received. Multiple
-   * invocations of [close] are allowed but ignored.
+   * Inherited from [Stream].
+   *
+   * Note that all named arguments are ignored since a ReceivePort will never
+   * receive an error, or done message.
+   */
+  StreamSubscription listen(void onData(var message),
+                            { Function onError,
+                              void onDone(),
+                              bool cancelOnError });
+
+  /**
+   * Closes `this`.
+   *
+   * If the stream has not been canceled yet, adds a close-event to the event
+   * queue and discards any further incoming messages.
+   *
+   * If the stream has already been canceled this method has no effect.
    */
   void close();
 
   /**
-   * Creates a new send port that sends to this receive port. It is legal to
-   * create several [SendPort]s from the same [ReceivePort].
+   * Returns a send port that sends to this receive port.
    */
-  SendPort toSendPort();
+  SendPort get sendPort;
+}
 
+abstract class RawReceivePort {
+  /**
+   * Opens a long-lived port for receiving messages.
+   *
+   * A [RawReceivePort] is low level and does not work with [Zone]s. It
+   * can not be paused. The data-handler must be set before the first
+   * event is received.
+   */
+  external factory RawReceivePort([void handler(event)]);
+
+  /**
+   * Sets the handler that is invoked for every incoming message.
+   *
+   * The handler is invoked in the root-zone ([Zone.ROOT]).
+   */
+  void set handler(Function newHandler);
+
+  /**
+   * Closes the port.
+   *
+   * After a call to this method any incoming message is silently dropped.
+   */
+  void close();
 }
 
 /**
@@ -172,7 +211,10 @@ abstract class ReceivePort {
  * might be many [SendPortSync]s for the same [ReceivePortSync].
  *
  * [SendPortSync]s can be transmitted to other isolates.
+ *
+ * *DEPRECATED*.
  */
+@deprecated
 abstract class SendPortSync {
   /**
    * Sends a synchronous message to this send port and returns the result.
@@ -192,22 +234,13 @@ abstract class SendPortSync {
   int get hashCode;
 }
 
-// The VM doesn't support accessing external globals in the same library. We
-// therefore create this wrapper class.
-// TODO(6997): Don't go through static class for external variables.
-abstract class _Isolate {
-  external static ReceivePort get port;
-  external static SendPort spawnFunction(void topLevelFunction(),
-    [bool unhandledExceptionCallback(IsolateUnhandledException e)]);
-  external static SendPort spawnUri(String uri);
-}
-
 /**
  * Wraps unhandled exceptions thrown during isolate execution. It is
  * used to show both the error message and the stack trace for unhandled
  * exceptions.
  */
-class IsolateUnhandledException implements Exception {
+// TODO(floitsch): probably going to remove and replace with something else.
+class _IsolateUnhandledException implements Exception {
   /** Message being handled when exception occurred. */
   final message;
 
@@ -217,7 +250,7 @@ class IsolateUnhandledException implements Exception {
   /** Trace for the wrapped exception. */
   final Object stackTrace;
 
-  const IsolateUnhandledException(this.message, this.source, this.stackTrace);
+  const _IsolateUnhandledException(this.message, this.source, this.stackTrace);
 
   String toString() {
     return 'IsolateUnhandledException: exception while handling message: '

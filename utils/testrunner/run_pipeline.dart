@@ -60,9 +60,12 @@ List stderr;
 /** Directory where test wrappers are created. */
 String tmpDir;
 
-void main() {
-  port.receive((cfg, replyPort) {
-    config = cfg;
+void main(List<String> args, SendPort replyTo) {
+  var port = new ReceivePort();
+  replyTo.send(port);
+  port.first.then((message) {
+    config = message[0];
+    var replyPort = message[1];
     stdout = new List();
     stderr = new List();
     initPipeline(replyPort);

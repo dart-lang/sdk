@@ -256,8 +256,6 @@ void spawnTasks(Map config, List testFiles) {
         // We could later print a summary report here.
       }
     });
-    SendPort s = spawnUri(config['pipeline']);
-
     // Get the names of the source and target test files and containing
     // directories.
     var testPath = new Path(testfile);
@@ -279,14 +277,12 @@ void spawnTasks(Map config, List testFiles) {
           config['pub'], config['runtime']);
       _testDir = targetDir;
     }
-    if (f == null) {
-      s.send(config, port.toSendPort());
-    } else {
-      f.then((_) {
-        s.send(config, port.toSendPort());
-      });
-      break; // Don't do any more until pub is done.
-    }
+    var response = new ReceivePort();
+    spawnUri(config['pipeline'], [], response)
+        .then((_) => f)
+        .then((_) => response.first)
+        .then((s) { s.send([config, port.sendPort]); });
+    if (f != null) break; // Don't do any more until pub is done.
   }
 }
 

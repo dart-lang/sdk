@@ -20,17 +20,21 @@ const SERVERSHUTDOWN = -1;
 const ITERATIONS = 10;
 
 
+Future sendReceive(SendPort port, message) {
+  ReceivePort receivePort = new ReceivePort();
+  port.send([message, receivePort.sendPort]);
+  return receivePort.first;
+}
+
 class SocketClose {
 
   SocketClose.start(this._mode, this._done)
-      : _receivePort = new ReceivePort(),
-        _sendPort = null,
+      : _sendPort = null,
         _readBytes = 0,
         _dataEvents = 0,
         _closeEvents = 0,
         _errorEvents = 0,
         _iterations = 0 {
-    _sendPort = spawnFunction(startSocketCloseServer);
     initialize();
   }
 
@@ -142,19 +146,20 @@ class SocketClose {
   }
 
   void initialize() {
-    _receivePort.receive((var message, SendPort replyTo) {
-      _port = message;
-      proceed();
+    ReceivePort receivePort = new ReceivePort();
+    var remote = Isolate.spawn(startSocketCloseServer, receivePort.sendPort);
+
+    receivePort.first.then((message) {
+      this._sendPort = message;
+      sendReceive(_sendPort, _mode).then((int port) {
+        this._port = port;
+        proceed();
+      });
     });
-    _sendPort.send(_mode, _receivePort.toSendPort());
   }
 
   void shutdown() {
-    _sendPort.send(SERVERSHUTDOWN, _receivePort.toSendPort());
-    _receivePort.receive((message, ignore) {
-      _done();
-      _receivePort.close();
-    });
+    sendReceive(_sendPort, SERVERSHUTDOWN).then((_) { _done(); });
 
     switch (_mode) {
       case 0:
@@ -184,7 +189,6 @@ class SocketClose {
   }
 
   int _port;
-  ReceivePort _receivePort;
   SendPort _sendPort;
   List<int> _buffer;
   int _readBytes;
@@ -204,16 +208,18 @@ class ConnectionData {
 }
 
 
-void startSocketCloseServer() {
+void startSocketCloseServer(SendPort replyTo) {
   var server = new SocketCloseServer();
-  port.receive(server.dispatch);
+  replyTo.send(server.dispatchSendPort);
 }
 
 class SocketCloseServer {
 
   static const HOST = "127.0.0.1";
 
-  SocketCloseServer() : super() {}
+  SocketCloseServer() : _dispatchPort = new ReceivePort() {
+    _dispatchPort.listen(dispatch);
+  }
 
   void connectionHandler(ConnectionData data) {
     var connection = data.connection;
@@ -325,22 +331,26 @@ class SocketCloseServer {
       }
       Expect.equals(0, _errorEvents);
       _server.close();
-      port.close();
+      _dispatchPort.close();
       _donePort.send(null);
     } else {
       new Timer(new Duration(milliseconds: 100), waitForResult);
     }
   }
 
-  void dispatch(message, SendPort replyTo) {
+  SendPort get dispatchSendPort => _dispatchPort.sendPort;
+
+  void dispatch(message) {
+    var command = message[0];
+    SendPort replyTo = message[1];
     _donePort = replyTo;
-    if (message != SERVERSHUTDOWN) {
+    if (command != SERVERSHUTDOWN) {
       _readBytes = 0;
       _errorEvents = 0;
       _dataEvents = 0;
       _closeEvents = 0;
       _iterations = 0;
-      _mode = message;
+      _mode = command;
       ServerSocket.bind("127.0.0.1", 0).then((server) {
         _server = server;
         _server.listen(
@@ -358,6 +368,7 @@ class SocketCloseServer {
   }
 
   ServerSocket _server;
+  final ReceivePort _dispatchPort;
   SendPort _donePort;
   int _readBytes;
   int _errorEvents;

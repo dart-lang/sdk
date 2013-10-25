@@ -107,40 +107,47 @@ SendPort _replyTo;
 /// The cached [Future] for [_inChildIsolate].
 Future<bool> _inChildIsolateFuture;
 
+/// The initial message received by the isolate.
+var _initialMessage;
+
+void metaTestInit(message) {
+  _initialMessage = message;
+}
+
 /// Returns whether or not we're running in a child isolate that's supposed to
 /// run a test.
 Future<bool> get _inChildIsolate {
   if (_inChildIsolateFuture != null) return _inChildIsolateFuture;
 
-  var completer = new Completer();
-  port.receive((message, replyTo) {
-    _testToRun = message['testToRun'];
-    _executable = message['executable'];
-    _replyTo = replyTo;
-    port.close();
-    completer.complete(true);
-  });
-
-  // TODO(nweiz): don't use a timeout here once issue 8416 is fixed.
-  _inChildIsolateFuture = timeout(completer.future, 500, () {
-    port.close();
-    return false;
-  });
+  if (_initialMessage == null) {
+    _inChildIsolateFuture = new Future.value(false);
+  } else {
+    _testToRun = _initialMessage['testToRun'];
+    _executable = _initialMessage['executable'];
+    _replyTo = _initialMessage['replyTo'];
+    _inChildIsolateFuture = new Future.value(true);
+  }
   return _inChildIsolateFuture;
 }
 
 /// Runs the test described by [description] in its own isolate. Returns a map
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
+  var replyPort = new ReceivePort();
   // TODO(nweiz): Don't use path here once issue 8440 is fixed.
-  var future = spawnUri(path.join(path.current, Platform.script)).call({
+  return Isolate.spawnUri(Uri.parse(path.join(path.current, Platform.script)),
+      [], {
     'testToRun': description,
-    'executable': Platform.executable
-  });
-  // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
-  // capture top-level exceptions.
-  return timeout(future, 30 * 1000, () {
-    throw 'Timed out waiting for test to complete.';
+    'executable': Platform.executable,
+    'replyTo': replyPort.sendPort
+  }).then((_) {
+    var future = replyPort.first;
+
+    // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
+    // capture top-level exceptions.
+    return timeout(future, 30 * 1000, () {
+      throw 'Timed out waiting for test to complete.';
+    });
   });
 }
 

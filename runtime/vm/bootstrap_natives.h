@@ -39,8 +39,8 @@ namespace dart {
   V(Integer_equalToInteger, 2)                                                 \
   V(Integer_parse, 1)                                                          \
   V(Integer_leftShiftWithMask32, 3)                                            \
-  V(ReceivePortImpl_factory, 1)                                                \
-  V(ReceivePortImpl_closeInternal, 1)                                          \
+  V(RawReceivePortImpl_factory, 1)                                             \
+  V(RawReceivePortImpl_closeInternal, 1)                                       \
   V(SendPortImpl_sendInternal_, 3)                                             \
   V(Smi_shlFromInt, 2)                                                         \
   V(Smi_shrFromInt, 2)                                                         \
@@ -249,7 +249,7 @@ namespace dart {
   V(Uint32x4_setFlagW, 2)                                                      \
   V(Uint32x4_select, 3)                                                        \
   V(isolate_getPortInternal, 0)                                                \
-  V(isolate_spawnFunction, 2)                                                  \
+  V(isolate_spawnFunction, 1)                                                  \
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \

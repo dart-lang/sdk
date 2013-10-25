@@ -1069,7 +1069,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
   const String& class_name = String::Handle(
-      isolate, isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+      isolate, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
   // TODO(asiva): Symbols should contain private keys.
   const String& function_name =
       String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));

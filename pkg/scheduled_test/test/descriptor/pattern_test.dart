@@ -10,7 +10,9 @@ import 'utils.dart';
 
 String sandbox;
 
-void main() {
+void main(List<String> args, message) {
+  metaTestInit(message);
+
   setUpTimeout();
 
   expectTestsPass("pattern().validate() succeeds if there's a file matching "

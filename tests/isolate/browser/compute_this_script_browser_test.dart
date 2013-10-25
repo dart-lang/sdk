@@ -12,11 +12,10 @@ import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-child() {
-  port.receive((msg, reply) {
-    reply.send('re: $msg');
-    port.close();
-  });
+child(var message) {
+  var data = message[0];
+  var reply = message[1];
+  reply.send('re: $data');
 }
 
 main() {
@@ -25,12 +24,11 @@ main() {
   document.body.append(script);
   test('spawn with other script tags in page', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
+    port.listen(expectAsync1((msg) {
       expect(msg, equals('re: hi'));
       port.close();
     }));
 
-    SendPort s = spawnFunction(child);
-    s.send('hi', port.toSendPort());
+    Isolate.spawn(child, ['hi', port.sendPort]);
   });
 }

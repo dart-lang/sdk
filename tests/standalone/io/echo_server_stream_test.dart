@@ -12,6 +12,7 @@
 library ServerTest;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -24,14 +25,11 @@ class EchoServerGame {
   static const FIRSTCHAR = 65;
 
   EchoServerGame.start()
-      : _receivePort = new ReceivePort(),
-        _sendPort = null,
-        _buffer = new List<int>(MSGSIZE),
+      : _buffer = new List<int>(MSGSIZE),
         _messages = 0 {
     for (int i = 0; i < MSGSIZE; i++) {
       _buffer[i] = FIRSTCHAR + i;
     }
-    _sendPort = spawnFunction(startEchoServer);
     initialize();
   }
 
@@ -80,30 +78,33 @@ class EchoServerGame {
   }
 
   void initialize() {
-    _receivePort.receive((var message, SendPort replyTo) {
-      _port = message;
+    var receivePort = new ReceivePort();
+    var remote = Isolate.spawn(startEchoServer, receivePort.sendPort);
+    receivePort.first.then((msg) {
+      this._port = msg[0];
+      this._closeSendPort = msg[1];
       sendData();
     });
-    _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
   }
 
   void shutdown() {
-    _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
-    _receivePort.close();
+    _closeSendPort.send(null);
+    asyncEnd();
   }
 
   int _port;
-  ReceivePort _receivePort;
-  SendPort _sendPort;
+  SendPort _closeSendPort;
   Socket _socket;
   List<int> _buffer;
   int _messages;
 }
 
 
-void startEchoServer() {
+void startEchoServer(SendPort replyPort) {
   var server = new EchoServer();
-  port.receive(server.dispatch);
+  server.init().then((port) {
+    replyPort.send([port, server.closeSendPort]);
+  });
 }
 
 
@@ -143,5 +144,6 @@ class EchoServer extends TestingServer {
 }
 
 main() {
+  asyncStart();
   EchoServerGame echoServerGame = new EchoServerGame.start();
 }

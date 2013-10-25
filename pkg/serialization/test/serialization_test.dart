@@ -549,8 +549,9 @@ void main() {
       n3.parent = n1;
       var s = nodeSerializerReflective(n1);
       var output = s.write(n2);
-      var port = spawnFunction(echo);
-      return port.call(output).then(verify);
+      ReceivePort port = new ReceivePort();
+      var remote = Isolate.spawn(echo, [output, port.sendPort]);
+      port.first.then(verify);
   });
 }
 
@@ -808,8 +809,8 @@ class PersonRuleReturningMapWithNonStringKey extends CustomRule {
  * Function used in an isolate to make sure that the output passes through
  * isolate serialization properly.
  */
-void echo() {
-  port.receive((msg, reply) {
-    reply.send(msg);
-  });
+void echo(initialMessage) {
+  var msg = initialMessage[0];
+  var reply = initialMessage[1];
+  reply.send(msg);
 }

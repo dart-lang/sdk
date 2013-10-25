@@ -7,19 +7,19 @@ library spawn_tests;
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 
-child() {
-  port.receive((msg, reply) => reply.send('re: $msg'));
+child(args) {
+  var msg = args[0];
+  var reply = args[1];
+  reply.send('re: $msg');
 }
 
 main() {
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
+    Isolate.spawn(child, ['hi', port.sendPort]);
+    port.listen(expectAsync1((msg) {
       port.close();
       expect(msg, equals('re: hi'));
     }));
-
-    SendPort s = spawnFunction(child);
-    s.send('hi', port.toSendPort());
   });
 }

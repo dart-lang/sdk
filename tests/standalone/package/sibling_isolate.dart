@@ -9,9 +9,7 @@ import 'package:shared.dart'as shared;
 import 'dart:isolate';
 
 // This file is spawned from package_isolate_test.dart
-main() {
+main(List<String args>, SendPort reply) {
   shared.output = 'isolate';
-  port.receive((msg, replyTo) {
-    replyTo.send(shared.output);
-  });
+  reply.send(shared.output);
 }

@@ -216,7 +216,7 @@ class ObjectPointerVisitor;
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(toString, "toString")                                                      \
-  V(_ReceivePortImpl, "_ReceivePortImpl")                                      \
+  V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_lookupReceivePort, "_lookupReceivePort")                                  \
   V(_handleMessage, "_handleMessage")                                          \
   V(_SendPortImpl, "_SendPortImpl")                                            \
@@ -234,7 +234,7 @@ class ObjectPointerVisitor;
   V(InternalError, "InternalError")                                            \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(IsolateUnhandledException, "IsolateUnhandledException")                    \
+  V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
   V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(MirroredCompilationError, "MirroredCompilationError")                      \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \

@@ -56,42 +56,55 @@ void VerifyObject(int index, var actual) {
   expect(actual.length, expected.length);
 }
 
-pingPong() {
+pingPong(SendPort initialReplyTo) {
+  var port = new ReceivePort();
+  initialReplyTo.send(port.sendPort);
   initializeList();
   int count = 0;
-  port.receive((var message, SendPort replyTo) {
-    if (message == -1) {
+  port.listen((var message) {
+    var data = message[0];
+    SendPort replyTo = message[1];
+    if (data == -1) {
       port.close();
       replyTo.send(count, null);
     } else {
       // Check if the received object is correct.
       if (count < elements.length) {
-        VerifyObject(count, message);
+        VerifyObject(count, data);
       }
       // Bounce the received object back so that the sender
       // can make sure that the object matches.
-      replyTo.send(message, null);
+      replyTo.send(data, null);
       count++;
     }
   });
 }
 
+Future sendReceive(SendPort port, msg) {
+  ReceivePort response = new ReceivePort();
+  port.send([msg, response.sendPort]);
+  return response.first;
+}
+
 main() {
   initializeList();
   test("send objects and receive them back", () {
-    SendPort remote = spawnFunction(pingPong);
-    // Send objects and receive them back.
-    for (int i = 0; i < elements.length; i++) {
-      var sentObject = elements[i];
-      var idx = i;
-      remote.call(sentObject).then(expectAsync1((var receivedObject) {
-        VerifyObject(idx, receivedObject);
-      }));
-    }
+    ReceivePort response = new ReceivePort();
+    Isolate.spawn(pingPong, response.sendPort);
+    response.first.then((SendPort remote) {
+      // Send objects and receive them back.
+      for (int i = 0; i < elements.length; i++) {
+        var sentObject = elements[i];
+        var idx = i;
+        sendReceive(remote, sentObject).then(expectAsync1((var receivedObject) {
+          VerifyObject(idx, receivedObject);
+        }));
+      }
 
-    // Shutdown the MessageServer.
-    remote.call(-1).then(expectAsync1((int message) {
-        expect(message, elements.length);
-      }));
+      // Shutdown the MessageServer.
+      sendReceive(remote, -1).then(expectAsync1((int message) {
+          expect(message, elements.length);
+        }));
+    });
   });
 }

@@ -206,7 +206,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   // Handlers and receive port for socket events from the event handler.
   int eventMask = 0;
   List eventHandlers;
-  ReceivePort eventPort;
+  RawReceivePort eventPort;
 
   // Indicates if native interrupts can be activated.
   bool canActivateEvents = true;
@@ -588,8 +588,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   void connectToEventHandler() {
     if (eventPort == null) {
-      eventPort = new ReceivePort();
-      eventPort.receive ((var message, _) => multiplex(message));
+      eventPort = new RawReceivePort(multiplex);
     }
   }
 

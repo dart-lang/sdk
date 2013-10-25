@@ -41,29 +41,36 @@ class MessageTest {
   }
 }
 
-void pingPong() {
-  port.receive((var message, SendPort replyTo) {
-    if (message == -1) {
+void pingPong(replyPort) {
+  ReceivePort port = new ReceivePort();
+  port.listen((message) {
+    if (message == null) {
       port.close();
     } else {
       // Bounce the received object back so that the sender
       // can make sure that the object matches.
-      replyTo.send(message, null);
+      message[1].send(message[0]);
     }
   });
+  replyPort.send(port.sendPort);
 }
 
 main() {
   test("map is equal after it is sent back and forth", () {
-    SendPort remote = spawnFunction(pingPong);
-    Map m = new Map();
-    m[1] = "eins";
-    m[2] = "deux";
-    m[3] = "tre";
-    m[4] = "four";
-    remote.call(m).then(expectAsync1((var received) {
-      MessageTest.mapEqualsDeep(m, received);
-      remote.send(-1, null);
+    ReceivePort port = new ReceivePort();
+    Isolate.spawn(pingPong, port.sendPort);
+    port.first.then(expectAsync1((remote) {
+      Map m = new Map();
+      m[1] = "eins";
+      m[2] = "deux";
+      m[3] = "tre";
+      m[4] = "four";
+      ReceivePort replyPort = new ReceivePort();
+      remote.send([m, replyPort.sendPort]);
+      replyPort.first.then(expectAsync1((var received) {
+        MessageTest.mapEqualsDeep(m, received);
+        remote.send(null);
+      }));
     }));
   });
 }

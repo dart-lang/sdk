@@ -12,16 +12,16 @@ class RunningIsolate implements ServiceRequestRouter {
 
   Future sendMessage(List request) {
     final completer = new Completer.sync();
-    final receivePort = new ReceivePort();
+    final receivePort = new RawReceivePort();
     sendServiceMessage(sendPort, receivePort, request);
-    receivePort.receive((value, ignoreReplyTo) {
+    receivePort.handler = (value) {
       receivePort.close();
       if (value is Exception) {
         completer.completeError(value);
       } else {
         completer.complete(value);
       }
-    });
+    };
     return completer.future;
   }
 

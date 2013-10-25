@@ -13,12 +13,12 @@ import '../../pkg/unittest/lib/unittest.dart';
 main() {
   test('isolate fromUri - send and reply', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
+    port.listen(expectAsync1((msg) {
       expect(msg, equals('re: hi'));
       port.close();
     }));
 
-    SendPort s = spawnUri('spawn_uri_child_isolate.dart');
-    s.send('hi', port.toSendPort());
+    Isolate.spawnUri(Uri.parse('spawn_uri_child_isolate.dart'),
+                     ['hi'], port.sendPort);
   });
 }

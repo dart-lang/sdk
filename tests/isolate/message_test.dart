@@ -63,12 +63,15 @@ class MessageTest {
   }
 }
 
-pingPong() {
+pingPong(replyTo) {
+  ReceivePort port = new ReceivePort();
   int count = 0;
-  port.receive((var message, SendPort replyTo) {
+  port.listen((pair) {
+    var message = pair[0];
+    var replyTo = pair[1];
     if (message == -1) {
       port.close();
-      replyTo.send(count, null);
+      replyTo.send(count);
     } else {
       // Check if the received object is correct.
       if (count < MessageTest.elms.length) {
@@ -76,53 +79,60 @@ pingPong() {
       }
       // Bounce the received object back so that the sender
       // can make sure that the object matches.
-      replyTo.send(message, null);
+      replyTo.send(message);
       count++;
     }
   });
+  replyTo.send(port.sendPort);
+}
+
+Future remoteCall(SendPort port, message) {
+  ReceivePort receivePort = new ReceivePort();
+  port.send([message, receivePort.sendPort]);
+  return receivePort.first;
 }
 
 main() {
   test("send objects and receive them back", () {
-    SendPort remote = spawnFunction(pingPong);
-    // Send objects and receive them back.
-    for (int i = 0; i < MessageTest.elms.length; i++) {
-      var sentObject = MessageTest.elms[i];
-      // TODO(asiva): remove this local var idx once thew new for-loop
-      // semantics for closures is implemented.
-      var idx = i;
-      remote.call(sentObject).then(expectAsync1((var receivedObject) {
-        MessageTest.VerifyObject(idx, receivedObject);
-      }));
-    }
+    ReceivePort port = new ReceivePort();
+    Isolate.spawn(pingPong, port.sendPort);
+    port.first.then(expectAsync1((remote) {
+      // Send objects and receive them back.
+      for (int i = 0; i < MessageTest.elms.length; i++) {
+        var sentObject = MessageTest.elms[i];
+        remoteCall(remote, sentObject).then(expectAsync1((var receivedObject) {
+          MessageTest.VerifyObject(i, receivedObject);
+        }));
+      }
 
-    // Send recursive objects and receive them back.
-    List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
-    List local_list2 = [null, local_list1, local_list1 ];
-    List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
-    List sendObject = new List(5);
-    sendObject[0] = local_list1;
-    sendObject[1] = sendObject;
-    sendObject[2] = local_list2;
-    sendObject[3] = sendObject;
-    sendObject[4] = local_list3;
-    remote.call(sendObject).then((var replyObject) {
-      expect(sendObject, isList);
-      expect(replyObject, isList);
-      expect(sendObject.length, equals(replyObject.length));
-      expect(replyObject[1], same(replyObject));
-      expect(replyObject[3], same(replyObject));
-      expect(replyObject[0], same(replyObject[2][1]));
-      expect(replyObject[0], same(replyObject[2][2]));
-      expect(replyObject[2], same(replyObject[4][0]));
-      expect(replyObject[0][0], same(replyObject[0][2]));
-      // Bigint literals are not canonicalized so do a == check.
-      expect(replyObject[0][3], equals(replyObject[4][4]));
-    });
+      // Send recursive objects and receive them back.
+      List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
+      List local_list2 = [null, local_list1, local_list1 ];
+      List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
+      List sendObject = new List(5);
+      sendObject[0] = local_list1;
+      sendObject[1] = sendObject;
+      sendObject[2] = local_list2;
+      sendObject[3] = sendObject;
+      sendObject[4] = local_list3;
+      remoteCall(remote, sendObject).then((var replyObject) {
+        expect(sendObject, isList);
+        expect(replyObject, isList);
+        expect(sendObject.length, equals(replyObject.length));
+        expect(replyObject[1], same(replyObject));
+        expect(replyObject[3], same(replyObject));
+        expect(replyObject[0], same(replyObject[2][1]));
+        expect(replyObject[0], same(replyObject[2][2]));
+        expect(replyObject[2], same(replyObject[4][0]));
+        expect(replyObject[0][0], same(replyObject[0][2]));
+        // Bigint literals are not canonicalized so do a == check.
+        expect(replyObject[0][3], equals(replyObject[4][4]));
+      });
 
-    // Shutdown the MessageServer.
-    remote.call(-1).then(expectAsync1((int message) {
-        expect(message, MessageTest.elms.length + 1);
+      // Shutdown the MessageServer.
+      remoteCall(remote, -1).then(expectAsync1((int message) {
+          expect(message, MessageTest.elms.length + 1);
       }));
+    }));
   });
 }

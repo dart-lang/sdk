@@ -12,8 +12,9 @@ import '../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test('isolate fromUri - nested send and reply', () {
-    var port = spawnUri('spawn_uri_nested_child1_vm_isolate.dart');
-
-    port.call([1, 2]).then((result) => print(result));
+    ReceivePort port = new ReceivePort();
+    Isolate.spawnUri(Uri.parse('spawn_uri_nested_child1_vm_isolate.dart'),
+                     [], [[1, 2], port.sendPort]);
+    port.first.then(expectAsync1((result) => print(result)));
   });
 }

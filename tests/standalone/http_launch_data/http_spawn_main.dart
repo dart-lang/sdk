@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library http_lanuch_main;
+library http_launch_main;
 
 import 'dart:isolate';
 import 'dart:io';
 
 main(List<String> arguments) {
   int port = int.parse(arguments[0]);
-  SendPort spawnedPort =
-      spawnUri('http://127.0.0.1:$port/http_isolate_main.dart');
-  spawnedPort.call('hello').then((response) {
+  ReceivePort receivePort = new ReceivePort();
+  Isolate.spawnUri(Uri.parse('http://127.0.0.1:$port/http_isolate_main.dart'),
+                   ['hello'], receivePort.sendPort);
+  receivePort.first.then((response) {
     print(response);
   });
 }
-

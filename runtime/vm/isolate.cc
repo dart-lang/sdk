@@ -510,6 +510,7 @@ static bool RunIsolate(uword parameter) {
 
     Object& result = Object::Handle();
     result = state->ResolveFunction();
+    bool is_spawn_uri = state->is_spawn_uri();
     delete state;
     state = NULL;
     if (result.IsError()) {
@@ -519,7 +520,27 @@ static bool RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
     func ^= result.raw();
-    result = DartEntry::InvokeFunction(func, Object::empty_array());
+    func = func.ImplicitClosureFunction();
+
+    // Instead of directly invoking the entry point we call '_startIsolate' with
+    // the entry point as argument. The '_startIsolate' function will
+    // communicate with the spawner to receive the initial message before it
+    // executes the real entry point.
+    // Since this function ("RunIsolate") is used for both Isolate.spawn and
+    // Isolate.spawnUri we also send a boolean flag as argument so that the
+    // "_startIsolate" function can act corresponding to how the isolate was
+    // created.
+    const Array& args = Array::Handle(Array::New(2));
+    args.SetAt(0, Instance::Handle(func.ImplicitStaticClosure()));
+    args.SetAt(1, is_spawn_uri ? Bool::True() : Bool::False());
+
+    const Library& lib = Library::Handle(Library::IsolateLibrary());
+    const String& entry_name = String::Handle(String::New("_startIsolate"));
+    const Function& entry_point =
+        Function::Handle(lib.LookupLocalFunction(entry_name));
+    ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
+
+    result = DartEntry::InvokeFunction(entry_point, args);
     if (result.IsError()) {
       StoreError(isolate, result);
       return false;
@@ -968,8 +989,7 @@ T* Isolate::AllocateReusableHandle() {
 }
 
 
-IsolateSpawnState::IsolateSpawnState(const Function& func,
-                                     const Function& callback_func)
+IsolateSpawnState::IsolateSpawnState(const Function& func)
     : isolate_(NULL),
       script_url_(NULL),
       library_url_(NULL),
@@ -984,12 +1004,7 @@ IsolateSpawnState::IsolateSpawnState(const Function& func,
 
   const String& func_name = String::Handle(func.name());
   function_name_ = strdup(func_name.ToCString());
-  if (!callback_func.IsNull()) {
-    const String& callback_name = String::Handle(callback_func.name());
-    exception_callback_name_ = strdup(callback_name.ToCString());
-  } else {
-    exception_callback_name_ = strdup("_unhandledExceptionCallback");
-  }
+  exception_callback_name_ = strdup("_unhandledExceptionCallback");
 }
 
 

@@ -18,21 +18,19 @@ class MyClass {
   }
 }
 
-child() {
-  port.receive((msg, reply) {
-    reply.send('re: ${new MyClass().myFunc(msg)}');
-  });
+child(args) {
+  var reply = args[1];
+  var msg = args[0];
+  reply.send('re: ${new MyClass().myFunc(msg)}');
 }
 
 main() {
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
-    port.receive((msg, _) {
+    Isolate.spawn(child, ['hi', port.sendPort]);
+    port.listen((msg) {
       port.close();
       expect(msg, equals('re: hi there'));
     });
-
-    SendPort s = spawnFunction(child);
-    s.send('hi', port.toSendPort());
   });
 }

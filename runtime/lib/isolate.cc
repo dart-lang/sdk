@@ -53,7 +53,7 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+        String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
     const String& function_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
     func = Resolver::ResolveStatic(isolate_lib,
@@ -76,7 +76,7 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());
   intptr_t port_id =
@@ -89,7 +89,7 @@ DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ReceivePortImpl_closeInternal, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, id, arguments->NativeArgAt(0));
   PortMap::ClosePort(id.Value());
   return Object::null();
@@ -215,7 +215,7 @@ static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
 }
 
 
-DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
+DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   bool throw_exception = false;
   Function& func = Function::Handle();
@@ -230,27 +230,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
   }
   if (throw_exception) {
     const String& msg = String::Handle(String::New(
-        "spawnFunction expects to be passed a closure to a top-level static "
-        "function"));
-    Exceptions::ThrowArgumentError(msg);
-  }
-
-  GET_NATIVE_ARGUMENT(Instance, callback, arguments->NativeArgAt(1));
-  Function& callback_func = Function::Handle();
-  if (callback.IsClosure()) {
-    callback_func = Closure::function(callback);
-    const Class& cls = Class::Handle(callback_func.Owner());
-    if (!callback_func.IsClosureFunction() || !callback_func.is_static() ||
-        !cls.IsTopLevel()) {
-      throw_exception = true;
-    }
-  } else if (!callback.IsNull()) {
-    throw_exception = true;
-  }
-  if (throw_exception) {
-    const String& msg = String::Handle(String::New(
-        "spawnFunction expects to be passed either a unhandled exception "
-        "callback to a top-level static function, or null"));
+        "Isolate.spawn expects to be passed a top-level function"));
     Exceptions::ThrowArgumentError(msg);
   }
 
@@ -258,13 +238,9 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
   Context& ctx = Context::Handle();
   ctx = Closure::context(closure);
   ASSERT(ctx.num_variables() == 0);
-  if (!callback.IsNull()) {
-    ctx = Closure::context(callback);
-    ASSERT(ctx.num_variables() == 0);
-  }
 #endif
 
-  return Spawn(arguments, new IsolateSpawnState(func, callback_func));
+  return Spawn(arguments, new IsolateSpawnState(func));
 }
 
 
