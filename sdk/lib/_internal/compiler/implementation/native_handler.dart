@@ -69,6 +69,11 @@ class NativeEnqueuer {
 
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
+
+  // Do not use annotations in dart2dart.
+  ClassElement get annotationCreatesClass => null;
+  ClassElement get annotationReturnsClass => null;
+  ClassElement get annotationJsNameClass => null;
 }
 
 
@@ -851,7 +856,7 @@ class NativeBehavior {
       return cls.computeType(compiler);
     }
 
-    NativeEnqueuerBase enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
+    NativeEnqueuer enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
     var creates = _collect(element, compiler, enqueuer.annotationCreatesClass,
                            lookup);
     var returns = _collect(element, compiler, enqueuer.annotationReturnsClass,
