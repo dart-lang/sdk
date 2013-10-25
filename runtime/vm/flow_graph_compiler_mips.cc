@@ -604,7 +604,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ sw(A1, Address(SP, 1 * kWordSize));  // Push type arguments.
     __ LoadObject(A0, test_cache);
     __ sw(A0, Address(SP, 0 * kWordSize));
-    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ lw(T0, Address(SP, 5 * kWordSize));
@@ -692,7 +692,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ LoadObject(TMP1, error_message);
     __ sw(TMP1, Address(SP, 0 * kWordSize));
 
-    GenerateCallRuntime(token_pos,
+    GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
                         3,
@@ -731,7 +731,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ LoadObject(T0, test_cache);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
-  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ lw(A0, Address(SP, 6 * kWordSize));
@@ -1273,7 +1273,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
+void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             intptr_t argument_count,
@@ -1562,10 +1562,12 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
+// FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   __ TraceSimMsg("SaveLiveRegisters");
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_regs_count= locs->live_registers()->fpu_regs_count();
+  const intptr_t fpu_regs_count= locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     __ AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
     // Store fpu registers with the lowest register number at the lowest
@@ -1617,7 +1619,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   }
   __ addiu(SP, SP, Immediate(register_count * kWordSize));
 
-  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;

@@ -12,6 +12,17 @@
 
 namespace dart {
 
+intptr_t RegisterSet::RegisterCount(intptr_t registers) {
+  // Brian Kernighan's algorithm for counting the bits set.
+  intptr_t count = 0;
+  while (registers != 0) {
+    ++count;
+    registers &= (registers - 1);  // Clear the least significant bit set.
+  }
+  return count;
+}
+
+
 LocationSummary::LocationSummary(intptr_t input_count,
                                  intptr_t temp_count,
                                  LocationSummary::ContainsCall contains_call)
