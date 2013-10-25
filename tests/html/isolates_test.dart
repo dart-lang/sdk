@@ -2,7 +2,7 @@ library IsolatesTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:json';
+import 'dart:convert';
 import 'dart:isolate' as isolate;
 
 String responseFor(message) => 'response for $message';
@@ -19,8 +19,8 @@ void isolateEntry() {
     return;
   }
 
-  // Check that JSON library was loaded to isolate.
-  stringify([1, 2, 3]);
+  // Check that convert library was loaded to isolate.
+  JSON.encode([1, 2, 3]);
 
   isolate.port.receive((message, replyTo) {
     replyTo.send(responseFor(message), null);

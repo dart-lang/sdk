@@ -4,66 +4,66 @@
 
 library json_tests;
 import 'package:unittest/unittest.dart';
-import 'dart:json' as json;
+import 'dart:convert';
 
 main() {
   test('Parse', () {
     // Scalars.
-    expect(json.parse(' 5 '), equals(5));
-    expect(json.parse(' -42 '), equals(-42));
-    expect(json.parse(' 3e0 '), equals(3));
-    expect(json.parse(' 3.14 '), equals(3.14));
-    expect(json.parse('true '), isTrue);
-    expect(json.parse(' false'), isFalse);
-    expect(json.parse(' null '), isNull);
-    expect(json.parse('\n\rnull\t'), isNull);
-    expect(json.parse(' "hi there\\" bob" '), equals('hi there" bob'));
-    expect(json.parse(' "" '), isEmpty);
+    expect(JSON.decode(' 5 '), equals(5));
+    expect(JSON.decode(' -42 '), equals(-42));
+    expect(JSON.decode(' 3e0 '), equals(3));
+    expect(JSON.decode(' 3.14 '), equals(3.14));
+    expect(JSON.decode('true '), isTrue);
+    expect(JSON.decode(' false'), isFalse);
+    expect(JSON.decode(' null '), isNull);
+    expect(JSON.decode('\n\rnull\t'), isNull);
+    expect(JSON.decode(' "hi there\\" bob" '), equals('hi there" bob'));
+    expect(JSON.decode(' "" '), isEmpty);
 
     // Lists.
-    expect(json.parse(' [] '), isEmpty);
-    expect(json.parse('[ ]'), isEmpty);
-    expect(json.parse(' [3, -4.5, true, "hi", false] '),
+    expect(JSON.decode(' [] '), isEmpty);
+    expect(JSON.decode('[ ]'), isEmpty);
+    expect(JSON.decode(' [3, -4.5, true, "hi", false] '),
       equals([3, -4.5, true, 'hi', false]));
     // Nulls are tricky.
-    expect(json.parse('[null]'), orderedEquals([null]));
-    expect(json.parse(' [3, -4.5, null, true, "hi", false] '),
+    expect(JSON.decode('[null]'), orderedEquals([null]));
+    expect(JSON.decode(' [3, -4.5, null, true, "hi", false] '),
       equals([3, -4.5, null, true, 'hi', false]));
-    expect(json.parse('[[null]]'), equals([[null]]));
-    expect(json.parse(' [ [3], [], [null], ["hi", true]] '),
+    expect(JSON.decode('[[null]]'), equals([[null]]));
+    expect(JSON.decode(' [ [3], [], [null], ["hi", true]] '),
       equals([[3], [], [null], ['hi', true]]));
 
     // Maps.
-    expect(json.parse(' {} '), isEmpty);
-    expect(json.parse('{ }'), isEmpty);
+    expect(JSON.decode(' {} '), isEmpty);
+    expect(JSON.decode('{ }'), isEmpty);
 
-    expect(json.parse(
+    expect(JSON.decode(
         ' {"x":3, "y": -4.5,  "z" : "hi","u" : true, "v": false } '),
         equals({"x":3, "y": -4.5,  "z" : "hi", "u" : true, "v": false }));
 
-    expect(json.parse(' {"x":3, "y": -4.5,  "z" : "hi" } '),
+    expect(JSON.decode(' {"x":3, "y": -4.5,  "z" : "hi" } '),
         equals({"x":3, "y": -4.5,  "z" : "hi" }));
 
-    expect(json.parse(' {"y": -4.5,  "z" : "hi" ,"x":3 } '),
+    expect(JSON.decode(' {"y": -4.5,  "z" : "hi" ,"x":3 } '),
         equals({"y": -4.5,  "z" : "hi" ,"x":3 }));
 
-    expect(json.parse('{ " hi bob " :3, "": 4.5}'),
+    expect(JSON.decode('{ " hi bob " :3, "": 4.5}'),
         equals({ " hi bob " :3, "": 4.5}));
 
-    expect(json.parse(' { "x" : { } } '), equals({ 'x' : {}}));
-    expect(json.parse('{"x":{}}'), equals({ 'x' : {}}));
+    expect(JSON.decode(' { "x" : { } } '), equals({ 'x' : {}}));
+    expect(JSON.decode('{"x":{}}'), equals({ 'x' : {}}));
 
     // Nulls are tricky.
-    expect(json.parse('{"w":null}'), equals({ 'w' : null}));
+    expect(JSON.decode('{"w":null}'), equals({ 'w' : null}));
 
-    expect(json.parse('{"x":{"w":null}}'), equals({"x":{"w":null}}));
+    expect(JSON.decode('{"x":{"w":null}}'), equals({"x":{"w":null}}));
 
-    expect(json.parse(' {"x":3, "y": -4.5,  "z" : "hi",'
+    expect(JSON.decode(' {"x":3, "y": -4.5,  "z" : "hi",'
                    '"w":null, "u" : true, "v": false } '),
         equals({"x":3, "y": -4.5,  "z" : "hi",
                    "w":null, "u" : true, "v": false }));
 
-    expect(json.parse('{"x": {"a":3, "b": -4.5}, "y":[{}], '
+    expect(JSON.decode('{"x": {"a":3, "b": -4.5}, "y":[{}], '
                    '"z":"hi","w":{"c":null,"d":true}, "v":null}'),
         equals({"x": {"a":3, "b": -4.5}, "y":[{}],
                    "z":"hi","w":{"c":null,"d":true}, "v":null}));
@@ -71,34 +71,34 @@ main() {
 
   test('stringify', () {
     // Scalars.
-    expect(json.stringify(5), equals('5'));
-    expect(json.stringify(-42), equals('-42'));
+    expect(JSON.encode(5), equals('5'));
+    expect(JSON.encode(-42), equals('-42'));
     // Dart does not guarantee a formatting for doubles,
     // so reparse and compare to the original.
     validateRoundTrip(3.14);
-    expect(json.stringify(true), equals('true'));
-    expect(json.stringify(false), equals('false'));
-    expect(json.stringify(null), equals('null'));
-    expect(json.stringify(' hi there" bob '), equals('" hi there\\" bob "'));
-    expect(json.stringify('hi\\there'), equals('"hi\\\\there"'));
+    expect(JSON.encode(true), equals('true'));
+    expect(JSON.encode(false), equals('false'));
+    expect(JSON.encode(null), equals('null'));
+    expect(JSON.encode(' hi there" bob '), equals('" hi there\\" bob "'));
+    expect(JSON.encode('hi\\there'), equals('"hi\\\\there"'));
     // TODO(devoncarew): these tests break the dartium build
-    //expect(json.stringify('hi\nthere'), equals('"hi\\nthere"'));
-    //expect(json.stringify('hi\r\nthere'), equals('"hi\\r\\nthere"'));
-    expect(json.stringify(''), equals('""'));
+    //expect(JSON.encode('hi\nthere'), equals('"hi\\nthere"'));
+    //expect(JSON.encode('hi\r\nthere'), equals('"hi\\r\\nthere"'));
+    expect(JSON.encode(''), equals('""'));
 
     // Lists.
-    expect(json.stringify([]), equals('[]'));
-    expect(json.stringify(new List(0)), equals('[]'));
-    expect(json.stringify(new List(3)), equals('[null,null,null]'));
+    expect(JSON.encode([]), equals('[]'));
+    expect(JSON.encode(new List(0)), equals('[]'));
+    expect(JSON.encode(new List(3)), equals('[null,null,null]'));
     validateRoundTrip([3, -4.5, null, true, 'hi', false]);
-    expect(json.stringify([[3], [], [null], ['hi', true]]),
+    expect(JSON.encode([[3], [], [null], ['hi', true]]),
       equals('[[3],[],[null],["hi",true]]'));
 
     // Maps.
-    expect(json.stringify({}), equals('{}'));
-    expect(json.stringify(new Map()), equals('{}'));
-    expect(json.stringify({'x':{}}), equals('{"x":{}}'));
-    expect(json.stringify({'x':{'a':3}}), equals('{"x":{"a":3}}'));
+    expect(JSON.encode({}), equals('{}'));
+    expect(JSON.encode(new Map()), equals('{}'));
+    expect(JSON.encode({'x':{}}), equals('{"x":{}}'));
+    expect(JSON.encode({'x':{'a':3}}), equals('{"x":{"a":3}}'));
 
     // Dart does not guarantee an order on the keys
     // of a map literal, so reparse and compare to the original Map.
@@ -110,17 +110,17 @@ main() {
         {'x':{'a':3, 'b':-4.5}, 'y':[{}], 'z':'hi', 'w':{'c':null, 'd':true},
                   'v':null});
 
-    expect(json.stringify(new ToJson(4)), "4");
-    expect(json.stringify(new ToJson([4, "a"])), '[4,"a"]');
-    expect(json.stringify(new ToJson([4, new ToJson({"x":42})])),
+    expect(JSON.encode(new ToJson(4)), "4");
+    expect(JSON.encode(new ToJson([4, "a"])), '[4,"a"]');
+    expect(JSON.encode(new ToJson([4, new ToJson({"x":42})])),
            '[4,{"x":42}]');
 
     expect(() {
-      json.stringify([new ToJson(new ToJson(4))]);
+      JSON.encode([new ToJson(new ToJson(4))]);
     }, throwsJsonError);
 
     expect(() {
-      json.stringify([new Object()]);
+      JSON.encode([new Object()]);
     }, throwsJsonError);
 
   });
@@ -130,16 +130,16 @@ main() {
      * Checks that we get an exception (rather than silently returning null) if
      * we try to stringify something that cannot be converted to json.
      */
-    expect(() => json.stringify(new TestClass()), throwsJsonError);
+    expect(() => JSON.encode(new TestClass()), throwsJsonError);
   });
 
   test('stringify throws if toJson throws', () {
-    expect(() => json.stringify(new ToJsoner("bad", throws: true)),
+    expect(() => JSON.encode(new ToJsoner("bad", throws: true)),
            throwsJsonError);
   });
 
   test('stringify throws if toJson returns non-serializable value', () {
-    expect(() => json.stringify(new ToJsoner(new TestClass())),
+    expect(() => JSON.encode(new ToJsoner(new TestClass())),
            throwsJsonError);
   });
 
@@ -150,7 +150,7 @@ main() {
       b = [b];
     }
     a.add(b);
-    expect(() => json.stringify(a), throwsJsonError);
+    expect(() => JSON.encode(a), throwsJsonError);
   });
 }
 
@@ -178,12 +178,12 @@ class ToJson {
 }
 
 var throwsJsonError =
-    throwsA(new isInstanceOf<json.JsonUnsupportedObjectError>());
+    throwsA(new isInstanceOf<JsonUnsupportedObjectError>());
 
 /**
  * Checks that the argument can be converted to a JSON string and
  * back, and produce something equivalent to the argument.
  */
 validateRoundTrip(expected) {
-  expect(json.parse(json.stringify(expected)), equals(expected));
+  expect(JSON.decode(JSON.encode(expected)), equals(expected));
 }

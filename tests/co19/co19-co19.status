@@ -14,6 +14,34 @@ LibTest/core/Match/str_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
+LibTest/json/BuildJsonListener/BuildJsonListener_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/JsonParser_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/constants_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/fail_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/parseFalse_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/parseNull_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/parseNumber_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/parseString_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/parseTrue_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/parse_A01_t01: Fail, OK # Issue 637
+LibTest/json/JsonParser/properties_A01_t01: Fail, OK # Issue 637
+LibTest/json/ReviverJsonListener/ReviverJsonListener_A01_t01: Fail, OK # Issue 637
+LibTest/json/parse_A01_t01: Fail, OK # Issue 637
+LibTest/json/parse_A02_t01: Fail, OK # Issue 637
+LibTest/json/parse_A03_t01: Fail, OK # Issue 637
+LibTest/json/printOn_A01_t01: Fail, OK # Issue 637
+LibTest/json/printOn_A02_t01: Fail, OK # Issue 637
+LibTest/json/printOn_A03_t01: Fail, OK # Issue 637
+LibTest/json/printOn_A03_t02: Fail, OK # Issue 637
+LibTest/json/printOn_A03_t03: Fail, OK # Issue 637
+LibTest/json/printOn_A04_t01: Fail, OK # Issue 637
+LibTest/json/stringify_A01_t01: Fail, OK # Issue 637
+LibTest/json/stringify_A02_t01: Fail, OK # Issue 637
+LibTest/json/stringify_A03_t01: Fail, OK # Issue 637
+LibTest/json/stringify_A03_t02: Fail, OK # Issue 637
+LibTest/json/stringify_A03_t03: Fail, OK # Issue 637
+LibTest/json/stringify_A04_t01: Fail, OK # Issue 637
+
 [ $runtime == vm || $compiler == dart2dart || $compiler == dart2js ]
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok

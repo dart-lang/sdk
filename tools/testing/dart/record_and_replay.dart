@@ -5,7 +5,7 @@
 library record_and_replay;
 
 import 'dart:io';
-import 'dart:json' as json;
+import 'dart:convert';
 import 'dart:utf';
 
 import 'test_runner.dart';
@@ -76,7 +76,7 @@ class TestCaseRecorder {
 
   void finish() {
     var file = new File(_outputPath.toNativePath());
-    var jsonString = json.stringify(_recordedCommandInvocations);
+    var jsonString = JSON.encode(_recordedCommandInvocations);
     file.writeAsStringSync(jsonString);
     print("TestCaseRecorder: written all TestCases to ${_outputPath}");
   }
@@ -92,7 +92,7 @@ class TestCaseOutputArchive {
 
   void loadFromPath(Path recordingPath) {
     var file = new File(recordingPath.toNativePath());
-    var commandRecordings = json.parse(file.readAsStringSync());
+    var commandRecordings = JSON.decode(file.readAsStringSync());
     _commandOutputRecordings = {};
     for (var commandRecording in commandRecordings) {
       var key = _indexKey(commandRecording['command']['executable'],

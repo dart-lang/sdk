@@ -23,7 +23,6 @@
     'mirrors_patch_cc_file': '<(gen_source_dir)/mirrors_patch_gen.cc',
     'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
     'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
-    'json_cc_file': '<(gen_source_dir)/json_gen.cc',
     'platform_cc_file': '<(gen_source_dir)/platform_gen.cc',
     'platform_patch_cc_file': '<(gen_source_dir)/platform_patch_gen.cc',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
@@ -110,7 +109,6 @@
         'generate_math_patch_cc_file#host',
         'generate_isolate_cc_file#host',
         'generate_isolate_patch_cc_file#host',
-        'generate_json_cc_file#host',
         'generate_mirrors_cc_file#host',
         'generate_mirrors_patch_cc_file#host',
         'generate_platform_cc_file#host',
@@ -146,7 +144,6 @@
         '<(math_patch_cc_file)',
         '<(isolate_cc_file)',
         '<(isolate_patch_cc_file)',
-        '<(json_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
         '<(platform_cc_file)',
@@ -816,39 +813,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(isolate_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_json_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the shared json sources.
-        '../../sdk/lib/json/json_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_json_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(json_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(json_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::json_source_paths_',
-            '--library_name', 'dart:json',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(json_cc_file)'' file.'
         },
       ]
     },

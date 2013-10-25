@@ -265,7 +265,6 @@ class ObjectPointerVisitor;
   V(DartCollectionDev, "dart:_collection-dev")                                 \
   V(DartConvert, "dart:convert")                                               \
   V(DartIsolate, "dart:isolate")                                               \
-  V(DartJson, "dart:json")                                                     \
   V(DartMath, "dart:math")                                                     \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \

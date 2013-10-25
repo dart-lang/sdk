@@ -2539,7 +2539,6 @@ class Library : public Object {
   static RawLibrary* CollectionLibrary();
   static RawLibrary* CollectionDevLibrary();
   static RawLibrary* IsolateLibrary();
-  static RawLibrary* JsonLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();

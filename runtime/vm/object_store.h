@@ -27,7 +27,6 @@ class ObjectStore {
     kCollectionDev,
     kConvert,
     kIsolate,
-    kJson,
     kMath,
     kMirrors,
     kPlatform,
@@ -278,7 +277,6 @@ class ObjectStore {
   }
   RawLibrary* convert_library() const { return convert_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
-  RawLibrary* json_library() const { return json_library_; }
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
   RawLibrary* platform_library() const { return platform_library_; }
@@ -303,9 +301,6 @@ class ObjectStore {
         break;
       case kIsolate:
         isolate_library_ = value.raw();
-        break;
-      case kJson:
-        json_library_ = value.raw();
         break;
       case kMath:
         math_library_ = value.raw();
@@ -485,7 +480,6 @@ class ObjectStore {
   RawLibrary* collection_dev_library_;
   RawLibrary* convert_library_;
   RawLibrary* isolate_library_;
-  RawLibrary* json_library_;
   RawLibrary* math_library_;
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;

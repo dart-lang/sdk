@@ -7910,11 +7910,6 @@ RawLibrary* Library::IsolateLibrary() {
 }
 
 
-RawLibrary* Library::JsonLibrary() {
-  return Isolate::Current()->object_store()->json_library();
-}
-
-
 RawLibrary* Library::MathLibrary() {
   return Isolate::Current()->object_store()->math_library();
 }

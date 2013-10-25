@@ -9,7 +9,7 @@
 library dart.convert;
 
 import 'dart:async';
-import 'dart:json' as OLD_JSON_LIB;
+import "dart:collection" show HashSet;
 
 part 'ascii.dart';
 part 'byte_conversion.dart';

@@ -803,7 +803,6 @@ class Dartdoc {
     writeString(new File(filePath),
         '''library client;
         import 'dart:html';
-        import 'dart:json';
         import r'${path.toUri(path.join(clientDir, 'client-shared.dart'))}';
         import r'${path.toUri(path.join(clientDir, 'dropdown.dart'))}';
 

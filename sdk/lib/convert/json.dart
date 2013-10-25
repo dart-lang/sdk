@@ -17,16 +17,16 @@ part of dart.convert;
 class JsonUnsupportedObjectError extends Error {
   /** The object that could not be serialized. */
   final unsupportedObject;
-  /** The exception thrown by object's [:toJson:] method, if any. */
+  /** The exception thrown when trying to convert the object. */
   final cause;
 
   JsonUnsupportedObjectError(this.unsupportedObject, { this.cause });
 
   String toString() {
     if (cause != null) {
-      return "Calling toJson method on object failed.";
+      return "Converting object to an encodable object failed.";
     } else {
-      return "Object toJson method returns non-serializable value.";
+      return "Converting object did not return an encodable object.";
     }
   }
 }
@@ -86,8 +86,9 @@ class JsonCodec extends Codec<Object, String> {
    *
    * The default [reviver] (when not provided) is the identity function.
    */
-  Object decode(String str, {reviver(var key, var value)}) {
-    return new JsonDecoder(reviver).convert(str);
+  Object decode(String source, {reviver(var key, var value)}) {
+    if (reviver == null) return decoder.convert(source);
+    return new JsonDecoder(reviver).convert(source);
   }
 
   /**
@@ -102,11 +103,12 @@ class JsonCodec extends Codec<Object, String> {
    * unencodable object.
    */
   Object encode(Object value, {toEncodable(var object)}) {
+    if (toEncodable == null) return encoder.convert(value);
     return new JsonEncoder(toEncodable).convert(value);
   }
 
-  JsonEncoder get encoder => new JsonEncoder();
-  JsonDecoder get decoder => new JsonDecoder(null);
+  JsonEncoder get encoder => const JsonEncoder();
+  JsonDecoder get decoder => const JsonDecoder(null);
 }
 
 typedef _Reviver(var key, var value);
@@ -115,9 +117,9 @@ class _ReviverJsonCodec extends JsonCodec {
   final _Reviver _reviver;
   _ReviverJsonCodec(this._reviver);
 
-  Object decode(String str, {reviver(var key, var value)}) {
+  Object decode(String source, {reviver(var key, var value)}) {
     if (reviver == null) reviver = _reviver;
-    return new JsonDecoder(reviver).convert(str);
+    return new JsonDecoder(reviver).convert(source);
   }
 
   JsonDecoder get decoder => new JsonDecoder(_reviver);
@@ -141,7 +143,7 @@ class JsonEncoder extends Converter<Object, String> {
    * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
    * the object.
    */
-  JsonEncoder([Object toEncodable(Object nonSerializable)])
+  const JsonEncoder([Object toEncodable(Object nonSerializable)])
       : this._toEncodableFunction = toEncodable;
 
   /**
@@ -171,7 +173,8 @@ class JsonEncoder extends Converter<Object, String> {
    * the JSON text for it. I.e., if an object changes after it is first
    * serialized, the new values may or may not be reflected in the result.
    */
-  String convert(Object o) => OLD_JSON_LIB.stringify(o, _toEncodableFunction);
+  String convert(Object o) =>
+      _JsonStringifier.stringify(o, _toEncodableFunction);
 
   /**
    * Starts a chunked conversion.
@@ -219,7 +222,7 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object> {
     }
     _isDone = true;
     ClosableStringSink stringSink = _sink.asStringSink();
-    OLD_JSON_LIB.printOn(o, stringSink, _toEncodableFunction);
+    _JsonStringifier.printOn(o, stringSink, _toEncodableFunction);
     stringSink.close();
   }
 
@@ -236,7 +239,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * The [reviver] may be `null`.
    */
-  JsonDecoder(reviver(var key, var value)) : this._reviver = reviver;
+  const JsonDecoder(reviver(var key, var value)) : this._reviver = reviver;
 
   /**
    * Converts the given JSON-string [input] to its corresponding object.
@@ -297,3 +300,185 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
 
 // Internal optimized JSON parsing implementation.
 external _parseJson(String source, reviver(key, value));
+
+
+// Implementation of encoder/stringifier.
+
+Object _defaultToEncodable(object) => object.toJson();
+
+class _JsonStringifier {
+  // Character code constants.
+  static const int BACKSPACE       = 0x08;
+  static const int TAB             = 0x09;
+  static const int NEWLINE         = 0x0a;
+  static const int CARRIAGE_RETURN = 0x0d;
+  static const int FORM_FEED       = 0x0c;
+  static const int QUOTE           = 0x22;
+  static const int BACKSLASH       = 0x5c;
+  static const int CHAR_b          = 0x62;
+  static const int CHAR_f          = 0x66;
+  static const int CHAR_n          = 0x6e;
+  static const int CHAR_r          = 0x72;
+  static const int CHAR_t          = 0x74;
+  static const int CHAR_u          = 0x75;
+
+  final Function toEncodable;
+  final StringSink sink;
+  final Set<Object> seen;
+
+  _JsonStringifier(this.sink, this.toEncodable)
+      : this.seen = new HashSet.identity();
+
+  static String stringify(final object, toEncodable(object)) {
+    if (toEncodable == null) toEncodable = _defaultToEncodable;
+    StringBuffer output = new StringBuffer();
+    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
+    stringifier.stringifyValue(object);
+    return output.toString();
+  }
+
+  static void printOn(final object, StringSink output, toEncodable(object)) {
+    _JsonStringifier stringifier = new _JsonStringifier(output, toEncodable);
+    stringifier.stringifyValue(object);
+  }
+
+  static String numberToString(num x) {
+    return x.toString();
+  }
+
+  // ('0' + x) or ('a' + x - 10)
+  static int hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
+
+  static void escape(StringSink sb, String s) {
+    final int length = s.length;
+    bool needsEscape = false;
+    final charCodes = new List<int>();
+    for (int i = 0; i < length; i++) {
+      int charCode = s.codeUnitAt(i);
+      if (charCode < 32) {
+        needsEscape = true;
+        charCodes.add(BACKSLASH);
+        switch (charCode) {
+        case BACKSPACE:
+          charCodes.add(CHAR_b);
+          break;
+        case TAB:
+          charCodes.add(CHAR_t);
+          break;
+        case NEWLINE:
+          charCodes.add(CHAR_n);
+          break;
+        case FORM_FEED:
+          charCodes.add(CHAR_f);
+          break;
+        case CARRIAGE_RETURN:
+          charCodes.add(CHAR_r);
+          break;
+        default:
+          charCodes.add(CHAR_u);
+          charCodes.add(hexDigit((charCode >> 12) & 0xf));
+          charCodes.add(hexDigit((charCode >> 8) & 0xf));
+          charCodes.add(hexDigit((charCode >> 4) & 0xf));
+          charCodes.add(hexDigit(charCode & 0xf));
+          break;
+        }
+      } else if (charCode == QUOTE || charCode == BACKSLASH) {
+        needsEscape = true;
+        charCodes.add(BACKSLASH);
+        charCodes.add(charCode);
+      } else {
+        charCodes.add(charCode);
+      }
+    }
+    sb.write(needsEscape ? new String.fromCharCodes(charCodes) : s);
+  }
+
+  void checkCycle(final object) {
+    if (seen.contains(object)) {
+      throw new JsonCyclicError(object);
+    }
+    seen.add(object);
+  }
+
+  void stringifyValue(final object) {
+    // Tries stringifying object directly. If it's not a simple value, List or
+    // Map, call toJson() to get a custom representation and try serializing
+    // that.
+    if (!stringifyJsonValue(object)) {
+      checkCycle(object);
+      try {
+        var customJson = toEncodable(object);
+        if (!stringifyJsonValue(customJson)) {
+          throw new JsonUnsupportedObjectError(object);
+        }
+        seen.remove(object);
+      } catch (e) {
+        throw new JsonUnsupportedObjectError(object, cause: e);
+      }
+    }
+  }
+
+  /**
+   * Serializes a [num], [String], [bool], [Null], [List] or [Map] value.
+   *
+   * Returns true if the value is one of these types, and false if not.
+   * If a value is both a [List] and a [Map], it's serialized as a [List].
+   */
+  bool stringifyJsonValue(final object) {
+    if (object is num) {
+      // TODO: use writeOn.
+      sink.write(numberToString(object));
+      return true;
+    } else if (identical(object, true)) {
+      sink.write('true');
+      return true;
+    } else if (identical(object, false)) {
+      sink.write('false');
+       return true;
+    } else if (object == null) {
+      sink.write('null');
+      return true;
+    } else if (object is String) {
+      sink.write('"');
+      escape(sink, object);
+      sink.write('"');
+      return true;
+    } else if (object is List) {
+      checkCycle(object);
+      List a = object;
+      sink.write('[');
+      if (a.length > 0) {
+        stringifyValue(a[0]);
+        // TODO: switch to Iterables.
+        for (int i = 1; i < a.length; i++) {
+          sink.write(',');
+          stringifyValue(a[i]);
+        }
+      }
+      sink.write(']');
+      seen.remove(object);
+      return true;
+    } else if (object is Map) {
+      checkCycle(object);
+      Map<String, Object> m = object;
+      sink.write('{');
+      bool first = true;
+      m.forEach((String key, Object value) {
+        if (!first) {
+          sink.write(',"');
+        } else {
+          sink.write('"');
+        }
+        escape(sink, key);
+        sink.write('":');
+        stringifyValue(value);
+        first = false;
+      });
+      sink.write('}');
+      seen.remove(object);
+      return true;
+    } else {
+      return false;
+    }
+  }
+}

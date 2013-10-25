@@ -84,10 +84,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.STABLE,
       dart2jsPath: "js/dart2js/js_dart2js.dart"),
 
-  "json": const LibraryInfo(
-      "json/json.dart",
-      maturity: Maturity.DEPRECATED),
-
   "math": const LibraryInfo(
       "math/math.dart",
       maturity: Maturity.STABLE,
@@ -95,7 +91,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "mirrors": const LibraryInfo(
       "mirrors/mirrors.dart",
-      maturity: Maturity.UNSTABLE, 
+      maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/lib/mirrors_patch.dart"),
 
   "nativewrappers": const LibraryInfo(
@@ -271,23 +267,23 @@ class Maturity {
   final int level;
   final String name;
   final String description;
-  
+
   const Maturity(this.level, this.name, this.description);
-  
+
   String toString() => "$name: $level\n$description\n";
 
   static const Maturity DEPRECATED = const Maturity(0, "Deprecated",
     "This library will be remove before next major release.");
-  
+
   static const Maturity EXPERIMENTAL = const Maturity(1, "Experimental",
     "This library is experimental and will likely change or be removed\n"
     "in future versions.");
-  
+
   static const Maturity UNSTABLE = const Maturity(2, "Unstable",
     "This library is in still changing and have not yet endured\n"
     "sufficient real-world testing.\n"
     "Backwards-compatibility is NOT guaranteed.");
-  
+
   static const Maturity WEB_STABLE = const Maturity(3, "Web Stable",
     "This library is tracking the DOM evolution as defined by WC3.\n"
     "Backwards-compatibility is NOT guaranteed.");
@@ -295,7 +291,7 @@ class Maturity {
   static const Maturity STABLE = const Maturity(4, "Stable",
     "The library is stable. API backwards-compatibility is guaranteed.\n"
     "However implementation details might change.");
-  
+
   static const Maturity LOCKED = const Maturity(5, "Locked",
     "This library will not change except when serious bugs are encountered.");
 

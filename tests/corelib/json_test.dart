@@ -5,12 +5,12 @@
 library json_test;
 
 import "package:expect/expect.dart";
-import "dart:json";
+import "dart:convert";
 
 bool badFormat(e) => e is FormatException;
 
 void testJson(json, expected) {
-  var value = parse(json);
+  var value = JSON.decode(json);
   compare(expected, actual, path) {
     if (expected is List) {
       Expect.isTrue(actual is List);
@@ -53,7 +53,7 @@ String escape(String s) {
 }
 
 void testThrows(json) {
-  Expect.throws(() => parse(json), badFormat, "json = '${escape(json)}'");
+  Expect.throws(() => JSON.decode(json), badFormat, "json = '${escape(json)}'");
 }
 
 testNumbers() {

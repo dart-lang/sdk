@@ -10,13 +10,13 @@ stream of documents. For example:
     }
 
 This library currently doesn't support dumping to YAML. You should use
-`stringify` from `dart:json` instead:
+`JSON.encode` from `dart:convert` instead:
 
-    import 'dart:json' as json;
+    import 'dart:convert';
     import 'package:yaml/yaml.dart';
     main() {
       var doc = loadYaml("YAML: YAML Ain't Markup Language");
-      print(json.stringify(doc));
+      print(JSON.encode(doc));
     }
 
 The source code for this package is at <http://code.google.com/p/dart>.
