@@ -164,13 +164,12 @@ Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: Runtim
 LibTest/core/Function/Function_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 
 [ $compiler == dart2dart && $minified ]
-Language/12_Expressions/08_Throw_A08_t01: RuntimeError # co19 Issue 630
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please triage this failure
-Language/13_Statements/11_Try_A06_t01: fail # co19-roll r546: Please triage this failure
-LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/stringify_A03_t02: fail # co19-roll r587: Please triage this failure
+LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A03_t02: fail # co19-roll r587: Please triage this failure
+LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
+LibTest/json/stringify_A03_t02: fail # co19-roll r587: Please triage this failure
