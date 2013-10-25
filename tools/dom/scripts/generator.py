@@ -1129,7 +1129,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'GLenum': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
-    'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
     'HTMLCollection': TypeData(clazz='Interface', item_type='Node'),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
     'NodeList': TypeData(clazz='Interface', item_type='Node',

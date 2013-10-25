@@ -25599,13 +25599,13 @@ class Url extends NativeFieldWrapperClass2 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -28480,54 +28480,9 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List {
+abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
-
-  Node operator[](int index) {
-    if (index < 0 || index >= length)
-      throw new RangeError.range(index, 0, length);
-    return _nativeIndexedGetter(index);
-  }
-  Node _nativeIndexedGetter(int index) native "HTMLAllCollection_item_Callback";
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  Node get first {
-    if (this.length > 0) {
-      return _nativeIndexedGetter(0);
-    }
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    int len = this.length;
-    if (len > 0) {
-      return _nativeIndexedGetter(len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    int len = this.length;
-    if (len == 1) {
-      return _nativeIndexedGetter(0);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  Node elementAt(int index) => this[index];
-  // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
   @DocsEditable()

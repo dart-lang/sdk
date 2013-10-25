@@ -26633,53 +26633,9 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-abstract class _HTMLAllCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements List native "HTMLAllCollection" {
+abstract class _HTMLAllCollection extends Interceptor native "HTMLAllCollection" {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
-
-  Node operator[](int index) {
-    if (JS("bool", "# >>> 0 !== # || # >= #", index,
-        index, index, length))
-      throw new RangeError.range(index, 0, length);
-    return this.item(index);
-  }
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  Node get first {
-    if (this.length > 0) {
-      return JS('Node', '#[0]', this);
-    }
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    int len = this.length;
-    if (len > 0) {
-      return JS('Node', '#[#]', this, len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    int len = this.length;
-    if (len == 1) {
-      return JS('Node', '#[0]', this);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  Node elementAt(int index) => this[index];
-  // -- end List<Node> mixins.
 
   @JSName('item')
   @DomName('HTMLAllCollection.item')
