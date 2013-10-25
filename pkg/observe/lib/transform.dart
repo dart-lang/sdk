@@ -10,6 +10,7 @@ library observe.transform;
 
 import 'dart:async';
 
+import 'package:analyzer_experimental/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
@@ -90,7 +91,8 @@ TextEditTransaction _transformCompilationUnit(
 /** Parse [code] using analyzer_experimental. */
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
-  var scanner = new StringScanner(null, code, errorListener);
+  var reader = new CharSequenceReader(new CharSequence(code));
+  var scanner = new Scanner(null, reader, errorListener);
   var token = scanner.tokenize();
   var parser = new Parser(null, errorListener);
   return parser.parseCompilationUnit(token);
