@@ -17954,67 +17954,6 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DomName('MutationEvent')
-// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
-@deprecated
-class MutationEvent extends Event {
-  factory MutationEvent(String type,
-      {bool canBubble: false, bool cancelable: false, Node relatedNode,
-      String prevValue, String newValue, String attrName, int attrChange: 0}) {
-
-    var event = document._createEvent('MutationEvent');
-    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
-        prevValue, newValue, attrName, attrChange);
-    return event;
-  }
-  // To suppress missing implicit constructor warnings.
-  factory MutationEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('MutationEvent.ADDITION')
-  @DocsEditable()
-  static const int ADDITION = 2;
-
-  @DomName('MutationEvent.MODIFICATION')
-  @DocsEditable()
-  static const int MODIFICATION = 1;
-
-  @DomName('MutationEvent.REMOVAL')
-  @DocsEditable()
-  static const int REMOVAL = 3;
-
-  @DomName('MutationEvent.attrChange')
-  @DocsEditable()
-  int get attrChange native "MutationEvent_attrChange_Getter";
-
-  @DomName('MutationEvent.attrName')
-  @DocsEditable()
-  String get attrName native "MutationEvent_attrName_Getter";
-
-  @DomName('MutationEvent.newValue')
-  @DocsEditable()
-  String get newValue native "MutationEvent_newValue_Getter";
-
-  @DomName('MutationEvent.prevValue')
-  @DocsEditable()
-  String get prevValue native "MutationEvent_prevValue_Getter";
-
-  @DomName('MutationEvent.relatedNode')
-  @DocsEditable()
-  Node get relatedNode native "MutationEvent_relatedNode_Getter";
-
-  @DomName('MutationEvent.initMutationEvent')
-  @DocsEditable()
-  void _initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
-
-}
-
-
-
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DomName('MutationObserver')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -18788,13 +18727,6 @@ class Node extends EventTarget {
    * Print out a String representation of this Node.
    */
   String toString() => nodeValue == null ? super.toString() : nodeValue;
-
-  /**
-   * Use ownerDocument instead.
-   */
-  @deprecated
-  Document get document => ownerDocument;
-
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -19275,47 +19207,6 @@ class Notification extends EventTarget {
   @DomName('Notification.onshow')
   @DocsEditable()
   Stream<Event> get onShow => showEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('NotificationCenter')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/notifications/#showing-a-notification
-@deprecated // deprecated
-class NotificationCenter extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory NotificationCenter._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('NotificationCenter.checkPermission')
-  @DocsEditable()
-  int checkPermission() native "NotificationCenter_checkPermission_Callback";
-
-  @DomName('NotificationCenter.createNotification')
-  @DocsEditable()
-  Notification createNotification(String iconUrl, String title, String body) native "NotificationCenter_createNotification_Callback";
-
-  @DomName('NotificationCenter.requestPermission')
-  @DocsEditable()
-  void _requestPermission([VoidCallback callback]) native "NotificationCenter_requestPermission_Callback";
-
-  Future requestPermission() {
-    var completer = new Completer();
-    _requestPermission(
-        () { completer.complete(); });
-    return completer.future;
-  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27232,7 +27123,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  NotificationCenter get notifications native "WorkerGlobalScope_webkitNotifications_Getter";
+  _NotificationCenter get _webkitNotifications native "WorkerGlobalScope_webkitNotifications_Getter";
 
   @DomName('WorkerGlobalScope.close')
   @DocsEditable()
@@ -28647,6 +28538,31 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+@DomName('MutationEvent')
+// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
+@deprecated
+abstract class _MutationEvent extends Event {
+  factory _MutationEvent(String type,
+      {bool canBubble: false, bool cancelable: false, Node relatedNode,
+      String prevValue, String newValue, String attrName, int attrChange: 0}) {
+
+    var event = document._createEvent('MutationEvent');
+    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
+        prevValue, newValue, attrName, attrChange);
+    return event;
+  }
+  // To suppress missing implicit constructor warnings.
+  factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
+
+}
+
+
+
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 
@@ -28754,6 +28670,28 @@ class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, Immut
 abstract class _Notation extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Notation._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('NotificationCenter')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
+// http://www.w3.org/TR/notifications/#showing-a-notification
+@deprecated // deprecated
+abstract class _NotificationCenter extends NativeFieldWrapperClass2 {
+  // To suppress missing implicit constructor warnings.
+  factory _NotificationCenter._() { throw new UnsupportedError("Not supported"); }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

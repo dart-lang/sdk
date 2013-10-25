@@ -90,7 +90,9 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'MutationEvent',
   'Notation',
+  'NotificationCenter',
   'PagePopupController',
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
@@ -325,6 +327,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
+  'WorkerGlobalScope.webkitNotifications',
   'Window.getComputedStyle',
   'Window.clearInterval',
   'Window.clearTimeout',
