@@ -189,6 +189,9 @@ async/schedule_microtask6_test: Fail # Issue 10910
 async/schedule_microtask4_test: Fail # Issue 13921
 platform/isolate_test: Skip # Issue 14444
 
+[ $compiler == none && $runtime == drt && $mode == debug ]
+mirrors/hierarchy_invariants_test: Pass, Slow # Issue 14449
+
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
