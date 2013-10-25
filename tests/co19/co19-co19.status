@@ -57,6 +57,9 @@ LibTest/json/stringify_A04_t01: Fail, OK # Issue 637
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok # co19 issue 634
+Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok # co19 issue 634
+
 Language/05_Variables/05_Variables_A06_t01: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t02: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t03: fail, pass, ok # co19 issue 624
@@ -87,8 +90,6 @@ LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co1
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 
 LibTest/async/Stream/handleError_A04_t02: Fail # co19-roll r641: Please triage this failure
