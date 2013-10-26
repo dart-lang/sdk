@@ -534,10 +534,6 @@ static bool RunIsolate(uword parameter) {
     args.SetAt(0, Instance::Handle(func.ImplicitStaticClosure()));
     args.SetAt(1, is_spawn_uri ? Bool::True() : Bool::False());
 
-    // Dispatching through _startIsolate will open a control port as a live
-    // port. Account for this by increasing the number of open control ports.
-    isolate->message_handler()->increment_control_ports();
-
     const Library& lib = Library::Handle(Library::IsolateLibrary());
     const String& entry_name = String::Handle(String::New("_startIsolate"));
     const Function& entry_point =
