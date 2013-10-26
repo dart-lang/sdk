@@ -248,9 +248,9 @@ namespace dart {
   V(Uint32x4_setFlagZ, 2)                                                      \
   V(Uint32x4_setFlagW, 2)                                                      \
   V(Uint32x4_select, 3)                                                        \
-  V(isolate_getPortInternal, 0)                                                \
-  V(isolate_spawnFunction, 1)                                                  \
-  V(isolate_spawnUri, 1)                                                       \
+  V(Isolate_mainPort, 0)                                                       \
+  V(Isolate_spawnFunction, 1)                                                  \
+  V(Isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \

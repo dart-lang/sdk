@@ -32,6 +32,7 @@ class MessageHandlerTask : public ThreadPool::Task {
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
+      control_ports_(0),
       live_ports_(0),
       pool_(NULL),
       task_(NULL),
@@ -267,6 +268,24 @@ void MessageHandler::decrement_live_ports() {
   CheckAccess();
 #endif
   live_ports_--;
+}
+
+
+void MessageHandler::increment_control_ports() {
+  MonitorLocker ml(&monitor_);
+#if defined(DEBUG)
+  CheckAccess();
+#endif
+  control_ports_++;
+}
+
+
+void MessageHandler::decrement_control_ports() {
+  MonitorLocker ml(&monitor_);
+#if defined(DEBUG)
+  CheckAccess();
+#endif
+  control_ports_--;
 }
 
 }  // namespace dart

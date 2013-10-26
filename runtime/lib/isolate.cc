@@ -215,7 +215,7 @@ static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
 }
 
 
-DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   bool throw_exception = false;
   Function& func = Function::Handle();
@@ -244,7 +244,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
 
   // Canonicalize the uri with respect to the current isolate.
@@ -262,7 +262,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(isolate_getPortInternal, 0) {
+DEFINE_NATIVE_ENTRY(Isolate_mainPort, 0) {
   const Object& port = Object::Handle(ReceivePortCreate(isolate->main_port()));
   if (port.IsError()) {
     Exceptions::PropagateError(Error::Cast(port));
