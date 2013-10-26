@@ -4,6 +4,7 @@
 
 #include "bin/builtin.h"
 #include "include/dart_api.h"
+#include "include/dart_debugger_api.h"
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
@@ -4834,6 +4835,42 @@ TEST_CASE(LibraryName) {
 
   result = Dart_LibraryName(lib);
   EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  const char* cstr = NULL;
+  EXPECT_VALID(Dart_StringToCString(result, &cstr));
+  EXPECT_STREQ("library1_name", cstr);
+}
+
+TEST_CASE(LibraryId) {
+  const char* kLibrary1Chars =
+      "library library1_name;";
+  Dart_Handle url = NewString("library1_url");
+  Dart_Handle source = NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  Dart_Handle error = Dart_NewApiError("incoming error");
+  EXPECT_VALID(lib);
+  intptr_t libraryId = -1;
+
+  Dart_Handle result = Dart_LibraryId(Dart_Null(), &libraryId);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_LibraryId expects argument 'library' to be non-null.",
+               Dart_GetError(result));
+
+  result = Dart_LibraryId(Dart_True(), &libraryId);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ(
+      "Dart_LibraryId expects argument 'library' to be of type Library.",
+      Dart_GetError(result));
+
+  result = Dart_LibraryId(error, &libraryId);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("incoming error", Dart_GetError(result));
+
+  result = Dart_LibraryId(lib, &libraryId);
+  EXPECT_VALID(result);
+  Dart_Handle libFromId = Dart_GetLibraryFromId(libraryId);
+  EXPECT(Dart_IsLibrary(libFromId));
+  result = Dart_LibraryName(libFromId);
   EXPECT(Dart_IsString(result));
   const char* cstr = NULL;
   EXPECT_VALID(Dart_StringToCString(result, &cstr));

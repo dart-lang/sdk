@@ -323,6 +323,19 @@ DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library) {
   return Api::NewHandle(isolate, name.raw());
 }
 
+DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
+                                       intptr_t* library_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+  if (library_id != NULL) {
+    *library_id = lib.index();
+  }
+  return Api::Success();
+}
 
 DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
   Isolate* isolate = Isolate::Current();
