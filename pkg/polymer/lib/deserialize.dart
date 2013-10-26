@@ -12,13 +12,13 @@ final _typeHandlers = () {
   var m = new Map();
   m[#dart.core.String] = (x, _) => x;
   m[#dart.core.Null] = (x, _) => x;
-  m[#dart.core.DateTime] = (x, _) {
+  m[#dart.core.DateTime] = (x, def) {
     // TODO(jmesserly): shouldn't need to try-catch here
     // See: https://code.google.com/p/dart/issues/detail?id=1878
     try {
       return DateTime.parse(x);
     } catch (e) {
-      return new DateTime.now();
+      return def;
     }
   };
   m[#dart.core.bool] = (x, _) => x != 'false';

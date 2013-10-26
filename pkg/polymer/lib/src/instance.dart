@@ -83,7 +83,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
   Map<String, StreamSubscription> _observers;
   bool _unbound; // lazy-initialized
-  Job _unbindAllJob;
+  _Job _unbindAllJob;
 
   StreamSubscription _propertyObserver;
 
@@ -123,17 +123,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
    */
   // TODO(jmesserly): Polymer does not have this feature. Reconcile.
   ShadowRoot getShadowRoot(String customTagName) => _shadowRoots[customTagName];
-
-  /**
-   * Invoke [callback] in [wait], unless the job is re-registered,
-   * which resets the timer. For example:
-   *
-   *     _myJob = job(_myJob, callback, const Duration(milliseconds: 100));
-   *
-   * Returns a job handle which can be used to re-register a job.
-   */
-  Job job(Job job, void callback(), Duration wait) =>
-      runJob(job, callback, wait);
 
   void polymerCreated() {
     if (this.ownerDocument.window != null || alwaysPrepare ||
@@ -454,7 +443,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   void asyncUnbindAll() {
     if (_unbound == true) return;
     _unbindLog.fine('[$localName] asyncUnbindAll');
-    _unbindAllJob = job(_unbindAllJob, unbindAll, const Duration(seconds: 0));
+    _unbindAllJob = _runJob(_unbindAllJob, unbindAll, Duration.ZERO);
   }
 
   void unbindAll() {
@@ -827,7 +816,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   Timer asyncTimer(void method(), Duration timeout) {
     // when polyfilling Object.observe, ensure changes
     // propagate before executing the async method
-    platform.flush();
+    scheduleMicrotask(Observable.dirtyCheck);
     return new Timer(timeout, method);
   }
 
@@ -843,7 +832,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   int async(RequestAnimationFrameCallback method) {
     // when polyfilling Object.observe, ensure changes
     // propagate before executing the async method
-    platform.flush();
+    scheduleMicrotask(Observable.dirtyCheck);
     return window.requestAnimationFrame(method);
   }
 

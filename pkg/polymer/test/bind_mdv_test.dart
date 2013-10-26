@@ -9,8 +9,6 @@ import 'dart:html';
 import 'package:custom_element/polyfill.dart';
 import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart';
-import 'package:observe/src/microtask.dart' show runMicrotask;
-import 'package:polymer/platform.dart' as Platform;
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
@@ -67,9 +65,9 @@ bindModelTests() {
     // TODO(sorvell): fix this when observe-js lets us explicitly listen for
     // a change on input.value
     Observable.dirtyCheck();
-    Platform.endOfMicrotask(expectAsync0(() {
+    return new Future.microtask(() {
       expect(a.value, 'hello');
-    }));
+    });
   });
 }
 
@@ -90,6 +88,6 @@ Future onAttributeChange(Element node) {
     observer.disconnect();
     completer.complete();
   })..observe(node, attributes: true);
-  Platform.flush();
+  scheduleMicrotask(Observable.dirtyCheck);
   return completer.future;
 }

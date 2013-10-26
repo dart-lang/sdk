@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
-import 'package:polymer/platform.dart' as Platform;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
@@ -30,9 +29,7 @@ class XTest extends PolymerElement {
       {'name': 'foo'},
       {'name': 'bar'}
     ];
-
-    Platform.flush();
-    Platform.endOfMicrotask(expectAsync0(() {
+    return new Future(() {
       // tickle SD polyfill
       offsetHeight;
       var children = this.$['echo'].children;
@@ -51,7 +48,7 @@ class XTest extends PolymerElement {
           'shadowDOMPolyfill distributes expected number of actual children.');
       }
       */
-    }));
+    });
   }
 }
 

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-import 'package:polymer/platform.dart' as Platform;
 import 'package:polymer/polymer.dart';
 
 class XFoo extends PolymerElement {
@@ -37,7 +36,7 @@ Future onAttributeChange(Element node) {
     observer.disconnect();
     completer.complete();
   })..observe(node, attributes: true);
-  Platform.flush();
+  scheduleMicrotask(Observable.dirtyCheck);
   return completer.future;
 }
 

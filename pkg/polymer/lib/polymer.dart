@@ -60,8 +60,6 @@ import 'package:polymer_expressions/polymer_expressions.dart'
 import 'package:template_binding/template_binding.dart';
 
 import 'deserialize.dart' as deserialize;
-import 'job.dart';
-import 'platform.dart' as platform;
 import 'src/reflected_type.dart';
 
 export 'package:observe/observe.dart';
@@ -70,4 +68,5 @@ export 'package:observe/html.dart';
 part 'src/boot.dart';
 part 'src/declaration.dart';
 part 'src/instance.dart';
+part 'src/job.dart';
 part 'src/loader.dart';
