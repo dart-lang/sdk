@@ -11,7 +11,6 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
 import 'package:template_binding/template_binding.dart';
-import 'package:polymer/platform.dart' as Platform;
 
 @CustomTag('x-test')
 class XTest extends PolymerElement {
