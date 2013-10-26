@@ -19,7 +19,7 @@
   </head>
   <body>
 
-  <polymer-element name="test-a" on-click="clickHandler">
+  <polymer-element name="test-a" on-click="{{clickHandler}}">
     <template></template>
   </polymer-element>
 
@@ -27,7 +27,7 @@
     <template>
       <div>
         <span id="b-1">1</span>
-        <span id="b-2" on-click="clickHandler">2</span>
+        <span id="b-2" on-click="{{clickHandler}}">2</span>
       </div>
     </template>
   </polymer-element>

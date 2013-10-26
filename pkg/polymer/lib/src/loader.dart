@@ -107,7 +107,7 @@ List<String> _discoverScripts(Document doc, String baseUri,
   if (scripts == null) scripts = <String>[];
   if (doc == null) {
     print('warning: $baseUri not found.');
-    return;
+    return scripts;
   }
   if (seen.contains(doc)) return scripts;
   seen.add(doc);

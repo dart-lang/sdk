@@ -16,7 +16,7 @@ class PolymerDeclaration extends HtmlElement {
 
   factory PolymerDeclaration() => new Element.tag(_TAG);
   // Fully ported from revision:
-  // https://github.com/Polymer/polymer/blob/00e2982c78fcd396adaebff3118e94029a2b9fb0
+  // https://github.com/Polymer/polymer/blob/b7200854b2441a22ce89f6563963f36c50f5150d
   //
   //   src/declaration/attributes.js
   //   src/declaration/events.js
@@ -206,8 +206,6 @@ class PolymerDeclaration extends HtmlElement {
     accumulateInstanceAttributes();
     // parse on-* delegates declared on `this` element
     parseHostEvents();
-    // parse on-* delegates declared in templates
-    parseLocalEvents();
     // install external stylesheets as if they are inline
     installSheets();
 
@@ -313,57 +311,14 @@ class PolymerDeclaration extends HtmlElement {
   void addAttributeDelegates(Map<String, String> delegates) {
     attributes.forEach((name, value) {
       if (_hasEventPrefix(name)) {
-        delegates[_removeEventPrefix(name)] = value;
+        var start = value.indexOf('{{');
+        var end = value.lastIndexOf('}}');
+        if (start >= 0 && end >= 0) {
+          delegates[_removeEventPrefix(name)] =
+              value.substring(start + 2, end).trim();
+        }
       }
     });
-  }
-
-  /** Extracts events under the element's <template>. */
-  void parseLocalEvents() {
-    for (var t in this.queryAll('template')) {
-      final events = new Set<String>();
-      // acquire delegates from entire subtree at t
-      accumulateTemplatedEvents(t, events);
-      if (events.isNotEmpty) {
-        // store delegate information directly on template
-        if (_templateDelegates == null) {
-          _templateDelegates = new Expando<Set<String>>();
-        }
-        _templateDelegates[t] = events;
-      }
-    }
-  }
-
-  void accumulateTemplatedEvents(Element node, Set<String> events) {
-    if (node.localName == 'template') {
-      accumulateChildEvents(templateBind(node).content, events);
-    }
-  }
-
-  void accumulateChildEvents(node, Set<String> events) {
-    assert(node is Element || node is DocumentFragment);
-    for (var n in node.children) {
-      accumulateEvents(n, events);
-    }
-  }
-
-  void accumulateEvents(Element node, Set<String> events) {
-    accumulateAttributeEvents(node, events);
-    accumulateChildEvents(node, events);
-    accumulateTemplatedEvents(node, events);
-  }
-
-  void accumulateAttributeEvents(Element node, Set<String> events) {
-    for (var name in node.attributes.keys) {
-      if (_hasEventPrefix(name)) {
-        accumulateEvent(_removeEventPrefix(name), events);
-      }
-    }
-  }
-
-  void accumulateEvent(String name, Set<String> events) {
-    var translated = _eventTranslations[name];
-    events.add(translated != null ? translated : name);
   }
 
   String urlToPath(String url) {
