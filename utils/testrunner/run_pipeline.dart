@@ -181,7 +181,6 @@ part '${normalizePath('${config["runnerDir"]}/standard_test_runner.dart')}';
   excludeFilters = ${config["exclude"]};
   tprint = (msg) => print('###\$msg');
   notifyDone = (e) { exit(e); };
-  testState["port"] = $serverPort;
     ''';
   } else {
     directives = '''
@@ -197,7 +196,6 @@ part '${normalizePath('${config["runnerDir"]}/standard_test_runner.dart')}';
   excludeFilters = ${config["exclude"]};
   tprint = (msg) => query('#console').appendText('###\$msg\\n');
   notifyDone = (e) => window.postMessage('done', '*');
-  testState["port"] = $serverPort;
     ''';
   }
 
@@ -250,7 +248,6 @@ part '${normalizePath('${config["runnerDir"]}/layout_test_runner.dart')}';
 main() {
   includeFilters = ${config["include"]};
   excludeFilters = ${config["exclude"]};
-  unittest.testState["port"] = $serverPort;
   runTests(test.main);
 }
     ''');

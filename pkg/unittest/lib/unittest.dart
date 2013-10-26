@@ -305,15 +305,6 @@ const FAIL  = 'fail';
 const ERROR = 'error';
 
 /**
- * A map that can be used to communicate state between a test driver
- * or main() function and the tests, particularly when these two
- * are otherwise independent. For example, a test driver that starts
- * an HTTP server and then runs tests that access that server could use
- * this as a way of communicating the server port to the tests.
- */
-Map testState = {};
-
-/**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
