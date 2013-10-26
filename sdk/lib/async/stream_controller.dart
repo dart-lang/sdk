@@ -166,7 +166,7 @@ abstract class StreamController<T> implements StreamSink<T> {
    * Also allows an objection stack trace object, on top of what [EventSink]
    * allows.
    */
-  void addError(Object error, [Object stackTrace]);
+  void addError(Object error, [StackTrace stackTrace]);
 }
 
 
@@ -375,7 +375,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   /**
    * Send or enqueue an error event.
    */
-  void addError(Object error, [Object stackTrace]) {
+  void addError(Object error, [StackTrace stackTrace]) {
     if (!_mayAddEvent) throw _badEventState();
     if (stackTrace != null) {
       // Force stack trace overwrite. Even if the error already contained

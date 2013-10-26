@@ -8,7 +8,7 @@ part of dart.async;
  * Utility function to attach a stack trace to an [error]  if it doesn't have
  * one already.
  */
-_asyncError(Object error, Object stackTrace) {
+_asyncError(Object error, StackTrace stackTrace) {
   if (stackTrace == null) return error;
   if (getAttachedStackTrace(error) != null) return error;
   _attachStackTrace(error, stackTrace);

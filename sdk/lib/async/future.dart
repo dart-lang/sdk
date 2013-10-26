@@ -174,7 +174,7 @@ abstract class Future<T> {
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.error(var error, [Object stackTrace]) {
+  factory Future.error(Object error, [StackTrace stackTrace]) {
     return new _Future<T>.immediateError(error, stackTrace);
   }
 
@@ -497,9 +497,9 @@ abstract class Completer<T> {
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
-   * The argument [exception] must not be `null`.
+   * The argument [error] must not be `null`.
    */
-  void completeError(Object exception, [Object stackTrace]);
+  void completeError(Object error, [StackTrace stackTrace]);
 
   /**
    * Whether the future has been completed.

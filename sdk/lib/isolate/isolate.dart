@@ -248,7 +248,7 @@ class _IsolateUnhandledException implements Exception {
   final source;
 
   /** Trace for the wrapped exception. */
-  final Object stackTrace;
+  final StackTrace stackTrace;
 
   const _IsolateUnhandledException(this.message, this.source, this.stackTrace);
 

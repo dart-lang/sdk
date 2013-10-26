@@ -16,7 +16,7 @@ abstract class _Completer<T> implements Completer<T> {
 
   void complete([T value]);
 
-  void completeError(Object error, [Object stackTrace = null]);
+  void completeError(Object error, [StackTrace stackTrace]);
 
   // The future's _isComplete doesn't take into account pending completions.
   // We therefore use _mayComplete.
@@ -30,7 +30,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
     future._asyncComplete(value);
   }
 
-  void completeError(Object error, [Object stackTrace = null]) {
+  void completeError(Object error, [StackTrace stackTrace]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._asyncCompleteError(error, stackTrace);
   }
@@ -43,7 +43,7 @@ class _SyncCompleter<T> extends _Completer<T> {
     future._complete(value);
   }
 
-  void completeError(Object error, [Object stackTrace = null]) {
+  void completeError(Object error, [StackTrace stackTrace]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._completeError(error, stackTrace);
   }
@@ -151,7 +151,7 @@ class _Future<T> implements Future<T> {
     _asyncComplete(value);
   }
 
-  _Future.immediateError(var error, [Object stackTrace])
+  _Future.immediateError(var error, [StackTrace stackTrace])
       : _zone = Zone.current,
         _onValueCallback = null, _errorTestCallback = null,
         _onErrorCallback = null, _whenCompleteActionCallback = null {
@@ -359,7 +359,7 @@ class _Future<T> implements Future<T> {
     });
   }
 
-  void _asyncCompleteError(error, [StackTrace stackTrace]) {
+  void _asyncCompleteError(error, StackTrace stackTrace) {
     assert(!_isComplete);
     assert(_onValue == null);
     assert(_onError == null);
