@@ -272,7 +272,6 @@ input_element_test/supported_month: Fail, Crash
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 webgl_1_test: Pass, Fail # Issue 8219
-wheelevent_test: Fail # Issue: 12798
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 audiocontext_test/functional: Fail # Issue 14354
