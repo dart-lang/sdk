@@ -11,7 +11,7 @@
  * elements are created, then, instead of creating your own `main`, you can
  * simply include a script tag loading this library:
  *
- *    <script type="application/dart" src="packages/polymer/init.dart">
+ *    <script type="application/dart">import "package:polymer/init.dart";
  *    </script>
  *
  * This script tag should be placed after all HTML imports on your page.

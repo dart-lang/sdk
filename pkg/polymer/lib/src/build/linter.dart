@@ -544,7 +544,7 @@ const String _NO_COLOR = '\u001b[0m';
 const String USE_INIT_DART = 
     'To run a polymer applications, you need to call "initPolymer". You can '
     'either include a generic script tag that does this for you:'
-    '\'<script type="application/dart" src="packages/polymer/init.dart">'
+    '\'<script type="application/dart">import "package:polymer/init.dart";'
     '</script>\' or add your own script tag and call that function. '
     'Make sure the script tag is placed after all HTML imports.';
 
@@ -556,7 +556,7 @@ const String BOOT_JS_DEPRECATED =
     '"boot.js" is now deprecated. Instead, you can initialize your polymer '
     'application by calling "initPolymer()" in your main. If you don\'t have a '
     'main, then you can include our generic main by adding the following '
-    'script tag to your page: \'<script type="application/dart" '
-    'src="packages/polymer/init.dart"> </script>\'. Additionally you need to '
+    'script tag to your page: \'<script type="application/dart">import '
+    '"package:polymer/init.dart";</script>\'. Additionally you need to '
     'include: \'<script src="packages/browser/dart.js"></script>\' in the page '
     'too. Make sure these script tags come after all HTML imports.';
