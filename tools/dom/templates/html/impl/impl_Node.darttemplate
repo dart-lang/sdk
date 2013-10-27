@@ -9,7 +9,7 @@ part of $LIBRARYNAME;
  * the actual child nodes of an element until strictly necessary greatly
  * improving performance for the typical cases where it is not required.
  */
-class _ChildNodeListLazy extends ListBase<Node> {
+class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   final Node _this;
 
   _ChildNodeListLazy(this._this);
@@ -180,6 +180,8 @@ $endif
   }
 
   Node operator[](int index) => _this.childNodes[index];
+
+  List<Node> get rawList => _this.childNodes;
 }
 
 

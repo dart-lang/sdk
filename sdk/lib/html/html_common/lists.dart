@@ -66,3 +66,10 @@ class Lists {
     return accumulator;
   }
 }
+
+/**
+ * For accessing underlying node lists, for dart:js interop.
+ */
+class NodeListWrapper {
+  List<Node> get rawList;
+}

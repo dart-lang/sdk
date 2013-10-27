@@ -8283,7 +8283,8 @@ class DomTokenList extends NativeFieldWrapperClass2 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _ChildrenElementList extends ListBase<Element> {
+class _ChildrenElementList extends ListBase<Element>
+    implements NodeListWrapper {
   // Raw Element.
   final Element _element;
   final HtmlCollection _childElements;
@@ -8436,6 +8437,8 @@ class _ChildrenElementList extends ListBase<Element> {
     if (length > 1) throw new StateError("More than one element");
     return first;
   }
+
+  List<Node> get rawList => _childElements;
 }
 
 /**
@@ -8761,7 +8764,8 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
+class _FrozenElementList<T extends Element> extends ListBase<T>
+    implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
   // The subset of _nodeList that are Elements.
   List<Element> _elementList;
@@ -8812,6 +8816,9 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   CssRect get borderEdge => _elementList.first.borderEdge;
 
   CssRect get marginEdge => _elementList.first.marginEdge;
+
+  List<Node> get rawList => _nodeList;
+
 
   @DomName('Element.onabort')
   @DocsEditable()
@@ -18496,7 +18503,7 @@ typedef void _NavigatorUserMediaSuccessCallback(MediaStream stream);
  * the actual child nodes of an element until strictly necessary greatly
  * improving performance for the typical cases where it is not required.
  */
-class _ChildNodeListLazy extends ListBase<Node> {
+class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   final Node _this;
 
   _ChildNodeListLazy(this._this);
@@ -18648,6 +18655,8 @@ class _ChildNodeListLazy extends ListBase<Node> {
   }
 
   Node operator[](int index) => _this.childNodes[index];
+
+  List<Node> get rawList => _this.childNodes;
 }
 
 
@@ -31147,8 +31156,6 @@ class _JsDeserializer extends _Deserializer {
   }
 }
 
-class SendPortSync {}
-
 // The receiver is JS.
 class _JsSendPortSync implements SendPortSync {
 
@@ -33449,7 +33456,8 @@ class _WrappedEvent implements Event {
  * A list which just wraps another list, for either intercepting list calls or
  * retyping the list (for example, from List<A> to List<B> where B extends A).
  */
-class _WrappedList<E> extends ListBase<E> {
+class _WrappedList<E extends Node> extends ListBase<E>
+    implements NodeListWrapper {
   final List _list;
 
   _WrappedList(this._list);
@@ -33499,6 +33507,8 @@ class _WrappedList<E> extends ListBase<E> {
   void fillRange(int start, int end, [E fillValue]) {
     _list.fillRange(start, end, fillValue);
   }
+
+  List<Node> get rawList => _list;
 }
 
 /**

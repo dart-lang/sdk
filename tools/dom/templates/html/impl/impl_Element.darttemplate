@@ -4,7 +4,8 @@
 
 part of $LIBRARYNAME;
 
-class _ChildrenElementList extends ListBase<Element> {
+class _ChildrenElementList extends ListBase<Element>
+    implements NodeListWrapper {
   // Raw Element.
   final Element _element;
   final HtmlCollection _childElements;
@@ -157,6 +158,8 @@ class _ChildrenElementList extends ListBase<Element> {
     if (length > 1) throw new StateError("More than one element");
     return first;
   }
+
+  List<Node> get rawList => _childElements;
 }
 
 /**
@@ -255,7 +258,8 @@ $!STREAM_GETTER_SIGNATURES
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
+class _FrozenElementList<T extends Element> extends ListBase<T>
+    implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
   // The subset of _nodeList that are Elements.
   List<Element> _elementList;
@@ -306,6 +310,9 @@ class _FrozenElementList<T extends Element> extends ListBase<T> implements Eleme
   CssRect get borderEdge => _elementList.first.borderEdge;
 
   CssRect get marginEdge => _elementList.first.marginEdge;
+
+  List<Node> get rawList => _nodeList;
+
 $!ELEMENT_STREAM_GETTERS
 }
 
