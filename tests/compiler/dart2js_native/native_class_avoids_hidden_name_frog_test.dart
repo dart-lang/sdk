@@ -11,32 +11,32 @@ class AA native "BB" {
   static AA create() => makeA();
 }
 
-class BB native "C" {
+class BB native "CC" {
   get name => 'BB';
   static BB create() => makeB();
 }
 
-class C {  // Ordinary class with name clashing with native class.
-  get name => 'C';
-  static C create() => new C();
+class CC {  // Ordinary class with name clashing with native class.
+  get name => 'CC';
+  static CC create() => new CC();
 }
 
 makeA() native;
 makeB() native;
 
 void setup1() native """
-// Poison hidden native names 'BB' and 'C' to prove the compiler didn't place
+// Poison hidden native names 'BB' and 'CC' to prove the compiler didn't place
 // anthing on the hidden native class.
 BB = null;
-C = null;
+CC = null;
 """;
 
 void setup2() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
 function BB(){}
-function C(){}
-makeA = function(){return new BB};  // AA is "*BB"
-makeB = function(){return new C};  // BB is "*C"
+function CC(){}
+makeA = function(){return new BB};  // AA is native "BB"
+makeB = function(){return new CC};  // BB is native "CC"
 """;
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
@@ -45,12 +45,12 @@ main() {
   setup1();
   setup2();
 
-  var things = [AA.create(), BB.create(), C.create()];
+  var things = [AA.create(), BB.create(), CC.create()];
   var a = things[inscrutable(0)];
   var b = things[inscrutable(1)];
   var c = things[inscrutable(2)];
 
   Expect.equals('AA', a.name);
   Expect.equals('BB', b.name);
-  Expect.equals('C', c.name);
+  Expect.equals('CC', c.name);
 }
