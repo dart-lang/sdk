@@ -151,8 +151,6 @@ class _SendPortImpl implements SendPort {
   final int _id;
 }
 
-_getPortInternal() native "isolate_getPortInternal";
-
 typedef _MainFunction();
 typedef _MainFunctionArgs(args);
 typedef _MainFunctionArgsMessage(args, message);
@@ -161,10 +159,24 @@ typedef _MainFunctionArgsMessage(args, message);
  * Takes the real entry point as argument and invokes it with the initial
  * message.
  *
- * The initial message is (currently) received through the global port variable.
+ * The initial startup message is received through the control port.
  */
 void _startIsolate(Function entryPoint, bool isSpawnUri) {
-  Isolate._port.first.then((message) {
+  // This port keeps the isolate alive until the initial startup message has
+  // been received.
+  var keepAlivePort = new RawReceivePort();
+
+  ignoreHandler(message) {
+    // Messages on the current Isolate's control port are dropped after the
+    // initial startup message has been received.
+  }
+
+  isolateStartHandler(message) {
+    // We received the initial startup message. Ignore all further messages and
+    // close the port which kept this isolate alive.
+    Isolate._self.handler = ignoreHandler;
+    keepAlivePort.close();
+
     SendPort replyTo = message[0];
     // TODO(floitsch): don't send ok-message if we can't find the entry point.
     replyTo.send("started");
@@ -184,7 +196,9 @@ void _startIsolate(Function entryPoint, bool isSpawnUri) {
       var entryMessage = message[1];
       entryPoint(entryMessage);
     }
-  });
+  }
+
+  Isolate._self.handler = isolateStartHandler;
 }
 
 patch class Isolate {
@@ -228,11 +242,11 @@ patch class Isolate {
     return completer.future;
   }
 
-  static final ReceivePort _port =
-      new ReceivePort.fromRawReceivePort(_getPortInternal());
+  static final RawReceivePort _self = _mainPort;
+  static RawReceivePort get _mainPort native "Isolate_mainPort";
 
   static SendPort _spawnFunction(Function topLevelFunction)
-      native "isolate_spawnFunction";
+      native "Isolate_spawnFunction";
 
-  static SendPort _spawnUri(String uri) native "isolate_spawnUri";
+  static SendPort _spawnUri(String uri) native "Isolate_spawnUri";
 }

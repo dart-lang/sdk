@@ -82,6 +82,12 @@ void PortMap::SetLive(Dart_Port port) {
   ASSERT(index >= 0);
   map_[index].live = true;
   map_[index].handler->increment_live_ports();
+  if (FLAG_trace_isolates) {
+    OS::Print("[^] Live port: \n"
+              "\thandler:    %s\n"
+              "\tport:       %" Pd64 "\n",
+              map_[index].handler->name(), port);
+  }
 }
 
 
@@ -136,6 +142,13 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   // Increment number of used slots and grow if necessary.
   used_++;
   MaintainInvariants();
+
+  if (FLAG_trace_isolates) {
+    OS::Print("[+] Opening port: \n"
+              "\thandler:    %s\n"
+              "\tport:       %" Pd64 "\n",
+              handler->name(), entry.port);
+  }
 
   return entry.port;
 }

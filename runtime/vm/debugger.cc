@@ -864,7 +864,6 @@ Debugger::Debugger()
 
 
 Debugger::~Debugger() {
-  PortMap::ClosePort(isolate_id_);
   isolate_id_ = ILLEGAL_ISOLATE_ID;
   ASSERT(!in_event_notification_);
   ASSERT(src_breakpoints_ == NULL);
@@ -1920,11 +1919,10 @@ void Debugger::Initialize(Isolate* isolate) {
     return;
   }
   isolate_ = isolate;
-  // Create a port here, we don't expect to receive any messages on this port.
+  // Use the isolate's control port as the isolate_id for debugging.
   // This port will be used as a unique ID to represet the isolate in the
   // debugger wire protocol messages.
-  // NOTE: SetLive is never called on this port.
-  isolate_id_ = PortMap::CreatePort(isolate->message_handler());
+  isolate_id_ = isolate->main_port();
   initialized_ = true;
 
   // Signal isolate creation event.
