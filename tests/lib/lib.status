@@ -240,6 +240,9 @@ async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failur
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isolate_test: Fail
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows ]
+platform/uri_test: Fail # Issue 14504
+
 [ ($compiler != none && $runtime != none) || ($compiler == none && ($runtime != dartium && $runtime != drt)) ]
 async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
 
