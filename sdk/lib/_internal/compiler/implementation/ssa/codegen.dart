@@ -608,6 +608,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       visitExpression(argument);
     } else if (argument is HCheck && !variableNames.hasName(argument)) {
       HCheck check = argument;
+      // This can only happen if the checked node does not have a name.
+      assert(!variableNames.hasName(check.checkedInput));
       use(check.checkedInput);
     } else {
       assert(variableNames.hasName(argument));

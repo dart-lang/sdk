@@ -263,6 +263,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
+    if (node.isNullCheck) {
+      return 'null check on ${temporaryId(node.receiver)}';
+    }
     String fieldName = node.element.name;
     return 'field get ${temporaryId(node.receiver)}.$fieldName';
   }

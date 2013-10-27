@@ -23,7 +23,6 @@ third_party/html5lib/test/dom_compat_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
 [ $compiler == dart2js ]
-analyzer/test/generated/ast_test: RuntimeError #Issue 12341
 collection_helpers/test/equality_test/01: Fail # Issue 1533
 collection_helpers/test/equality_test/02: Fail # Issue 1533
 collection_helpers/test/equality_test/03: Fail # Issue 1533
