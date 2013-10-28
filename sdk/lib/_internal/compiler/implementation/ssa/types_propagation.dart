@@ -15,26 +15,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   SsaTypePropagator(this.compiler);
 
-  // Compute the (shared) type of the inputs if any. If all inputs
-  // have the same known type return it. If any two inputs have
-  // different known types, we'll return a conflict -- otherwise we'll
-  // simply return an unknown type.
-  HType computeInputsType(HPhi phi, bool ignoreUnknowns) {
-    HType candidateType = HType.CONFLICTING;
-    for (int i = 0, length = phi.inputs.length; i < length; i++) {
-      HType inputType = phi.inputs[i].instructionType;
-      if (inputType.isConflicting()) return HType.CONFLICTING;
-      if (ignoreUnknowns && inputType.isUnknown()) continue;
-      // Phis need to combine the incoming types using the union operation.
-      // For example, if one incoming edge has type integer and the other has
-      // type double, then the phi is either an integer or double and thus has
-      // type number.
-      candidateType = candidateType.union(inputType, compiler);
-      if (candidateType.isUnknown()) return HType.UNKNOWN;
-    }
-    return candidateType;
-  }
-
   HType computeType(HInstruction instruction) {
     return instruction.accept(this);
   }
@@ -134,9 +114,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   HType visitPhi(HPhi phi) {
-    HType inputsType = computeInputsType(phi, false);
-    if (inputsType.isConflicting()) return HType.UNKNOWN;
-    return inputsType;
+    HType candidateType = HType.CONFLICTING;
+    for (int i = 0, length = phi.inputs.length; i < length; i++) {
+      HType inputType = phi.inputs[i].instructionType;
+      candidateType = candidateType.union(inputType, compiler);
+    }
+    return candidateType;
   }
 
   HType visitTypeConversion(HTypeConversion instruction) {
@@ -319,12 +302,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         HType newType = new HType.fromMask(newMask, compiler);
         var next = instruction.next;
         if (next is HTypeKnown && next.checkedInput == receiver) {
-          // We already have refined [receiver]. Check if [newHType]
-          // is actually better than the type of [next].
+          // We already have refined [receiver].
           HType nextType = next.instructionType;
-          if (nextType != newType
-              && nextType.intersection(newType, compiler) == newType) {
-            next.instructionType = newType;
+          if (nextType != newType) {
+            next.knownType = next.instructionType = newType;
             addDependentInstructionsToWorkList(next);
           }
         } else {
