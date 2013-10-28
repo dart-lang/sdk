@@ -13171,7 +13171,7 @@ class HtmlOptionsCollection extends HtmlCollection {
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
 @DomName('XMLHttpRequest')
-class HttpRequest extends XmlHttpRequestEventTarget {
+class HttpRequest extends HttpRequestEventTarget {
 
   /**
    * Creates a URL get request for the specified [url].
@@ -13707,10 +13707,118 @@ class HttpRequest extends XmlHttpRequestEventTarget {
 
 
 @DocsEditable()
+@DomName('XMLHttpRequestEventTarget')
+@Experimental() // untriaged
+class HttpRequestEventTarget extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory HttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('XMLHttpRequestEventTarget.abortEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  @DomName('XMLHttpRequestEventTarget.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  @DomName('XMLHttpRequestEventTarget.loadEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  @DomName('XMLHttpRequestEventTarget.loadendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  @DomName('XMLHttpRequestEventTarget.loadstartEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  @DomName('XMLHttpRequestEventTarget.progressEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
+
+  @DomName('XMLHttpRequestEventTarget.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_addEventListener_Callback";
+
+  @DomName('XMLHttpRequestEventTarget.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native "XMLHttpRequestEventTarget_dispatchEvent_Callback";
+
+  @DomName('XMLHttpRequestEventTarget.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_removeEventListener_Callback";
+
+  @DomName('XMLHttpRequestEventTarget.onabort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadend')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadstart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onprogress')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.ontimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends XmlHttpRequestEventTarget {
+class HttpRequestUpload extends HttpRequestEventTarget {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 
@@ -27429,114 +27537,6 @@ class XPathResult extends NativeFieldWrapperClass2 {
   @DomName('XPathResult.snapshotItem')
   @DocsEditable()
   Node snapshotItem(int index) native "XPathResult_snapshotItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('XMLHttpRequestEventTarget')
-@Experimental() // untriaged
-class XmlHttpRequestEventTarget extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory XmlHttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('XMLHttpRequestEventTarget.abortEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
-
-  @DomName('XMLHttpRequestEventTarget.errorEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
-
-  @DomName('XMLHttpRequestEventTarget.loadEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
-
-  @DomName('XMLHttpRequestEventTarget.loadendEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
-
-  @DomName('XMLHttpRequestEventTarget.loadstartEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
-
-  @DomName('XMLHttpRequestEventTarget.progressEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
-
-  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
-
-  @DomName('XMLHttpRequestEventTarget.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_addEventListener_Callback";
-
-  @DomName('XMLHttpRequestEventTarget.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "XMLHttpRequestEventTarget_dispatchEvent_Callback";
-
-  @DomName('XMLHttpRequestEventTarget.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestEventTarget_removeEventListener_Callback";
-
-  @DomName('XMLHttpRequestEventTarget.onabort')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onerror')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onload')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onloadend')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onloadstart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onprogress')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.ontimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
