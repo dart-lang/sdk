@@ -70,10 +70,10 @@ class _FileSystemWatcherImpl
     try {
       socketId = _watchPath(_path, _events, identical(true, _recursive));
     } catch (e) {
-      throw new FileSystemException(
-          "Failed to watch path",
-          _path,
-          e);
+      _controller.addError(new FileSystemException(
+          "Failed to watch path", _path, e));
+      _controller.close();
+      return;
     }
     var socket = new _RawSocket(new _NativeSocket.watch(socketId));
     _subscription = socket.expand((event) {

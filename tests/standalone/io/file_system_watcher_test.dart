@@ -256,6 +256,18 @@ void testWatchNonRecursive() {
 }
 
 
+void testWatchNonExisting() {
+  asyncStart();
+  new Directory('__some_none_existing_dir__').watch()
+    .listen((_) {
+      Expect.fail('unexpected error');
+    }, onError: (e) {
+      asyncEnd();
+      Expect.isTrue(e is FileSystemException);
+    });
+}
+
+
 void main() {
   if (!FileSystemEntity.isWatchSupported) return;
   testWatchCreateFile();
@@ -266,4 +278,5 @@ void main() {
   testWatchOnlyModifyFile();
   testMultipleEvents();
   testWatchNonRecursive();
+  testWatchNonExisting();
 }
