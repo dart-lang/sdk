@@ -1164,13 +1164,23 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   FlowGraphOptimizer optimizer(owner_->caller_graph());
   TargetEntryInstr* entry;
   Definition* last;
+  // Replace the receiver argument with a redefinition to prevent code from
+  // the inlined body from being hoisted above the inlined entry.
+  GrowableArray<Definition*> arguments(call_->ArgumentCount());
+  Definition* receiver = call_->ArgumentAt(0);
+    RedefinitionInstr* redefinition =
+        new RedefinitionInstr(new Value(receiver));
+    redefinition->set_ssa_temp_index(
+        owner_->caller_graph()->alloc_ssa_temp_index());
   if (optimizer.TryInlineRecognizedMethod(receiver_cid,
                                           target,
                                           call_,
+                                          redefinition,
                                           call_->instance_call()->token_pos(),
                                           *call_->instance_call()->ic_data(),
                                           &entry, &last)) {
     // Create a graph fragment.
+    redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
         new InlineExitCollector(owner_->caller_graph(), call_);
 
