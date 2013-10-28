@@ -15,6 +15,7 @@ lib/convert/chunked_conversion: CompileTimeError
 lib/convert/codec: CompileTimeError
 lib/html/dart2js/html_dart2js: CompileTimeError
 lib/html/dartium/html_dartium: CompileTimeError
+lib/html/html_common/lists: Pass, CompileTimeError
 lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError
 lib/js/dartium/js_dartium: CompileTimeError
