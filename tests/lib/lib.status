@@ -246,3 +246,51 @@ platform/uri_test: Fail # Issue 14504
 [ ($compiler != none && $runtime != none) || ($compiler == none && ($runtime != dartium && $runtime != drt)) ]
 async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
 
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+async/future_test: StaticWarning
+async/future_value_chain4_test: StaticWarning
+async/schedule_microtask3_test: StaticWarning
+async/stream_controller_async_test: StaticWarning
+async/stream_controller_test: StaticWarning
+async/stream_event_transformed_test: StaticWarning
+async/stream_first_where_test: StaticWarning
+async/stream_from_iterable_test: StaticWarning
+async/stream_join_test: StaticWarning
+async/stream_last_where_test: StaticWarning
+async/stream_single_test: StaticWarning
+async/stream_single_to_multi_subscriber_test: StaticWarning
+async/stream_transform_test: StaticWarning
+async/stream_transformer_from_handlers_test: StaticWarning
+async/stream_transformer_test: StaticWarning
+async/zone_debug_test: StaticWarning
+convert/chunked_conversion1_test: StaticWarning
+convert/chunked_conversion_json_decode1_test: StaticWarning
+math/min_max_test: StaticWarning
+mirrors/closure_mirror_find_in_context_test: StaticWarning
+mirrors/equality_test/02: StaticWarning
+mirrors/find_in_context_fake_function_test: StaticWarning
+mirrors/function_type_mirror_test: StaticWarning
+mirrors/generic_f_bounded_test/01: StaticWarning
+mirrors/generic_function_typedef_test: StaticWarning
+mirrors/generic_interface_test/01: StaticWarning
+mirrors/generic_mixin_applications_test: StaticWarning
+mirrors/generic_mixin_test: StaticWarning
+mirrors/generics_test/01: StaticWarning
+mirrors/immutable_collections_test: StaticWarning
+mirrors/inference_and_no_such_method_test: StaticWarning
+mirrors/invoke_named_test/01: StaticWarning
+mirrors/library_metadata2_test/01: StaticWarning
+mirrors/method_mirror_properties_test: StaticWarning
+mirrors/method_mirror_returntype_test: StaticWarning
+mirrors/method_mirror_source_test: StaticWarning
+mirrors/mirrors_test: StaticWarning
+mirrors/mixin_members_test: StaticWarning
+mirrors/parameter_metadata_test: StaticWarning
+mirrors/private_symbol_test: StaticWarning
+mirrors/reflect_class_test: StaticWarning
+mirrors/reflected_type_test: StaticWarning
+mirrors/type_argument_is_type_variable_test: StaticWarning
+mirrors/type_variable_owner_test/01: StaticWarning
+mirrors/typedef_metadata_test: StaticWarning
+mirrors/typedef_test/01: StaticWarning
+mirrors/typevariable_mirror_metadata_test: StaticWarning

@@ -4,9 +4,6 @@
 
 import "package:expect/expect.dart";
 
-// Dart test program for testing basic boolean properties.
-// @static-clean
-
 class BoolTest {
   static void testEquality() {
     Expect.equals(true, true);

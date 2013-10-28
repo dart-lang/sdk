@@ -912,9 +912,6 @@ class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
 }
 
 
-// The static analyzer does not actually execute code, so
-// the criteria for success now depend on the text sent
-// to stderr.
 class AnalysisCommandOutputImpl extends CommandOutputImpl {
   // An error line has 8 fields that look like:
   // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
@@ -922,10 +919,6 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   final int ERROR_TYPE = 1;
   final int FORMATTED_ERROR = 7;
 
-  bool alreadyComputed = false;
-  bool failResult;
-
-  // TODO(kustermann): Remove testCase from this class
   AnalysisCommandOutputImpl(command,
                             exitCode,
                             timedOut,
@@ -941,153 +934,83 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
           time,
           compilationSkipped);
 
-  bool didFail(TestCase testCase) {
-    if (!alreadyComputed) {
-      failResult = _didFail(testCase);
-      alreadyComputed = true;
+  Expectation result(TestCase testCase) {
+    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
+    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
+    // no errors)
+
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+
+    // Get the errors/warnings from the analyzer
+    List<String> errors = [];
+    List<String> warnings = [];
+    parseAnalyzerOutput(errors, warnings);
+
+    // Handle errors / missing errors
+    if (testCase.info.hasCompileError) {
+      if (errors.length > 0) {
+        return Expectation.PASS;
+      }
+      return Expectation.MISSING_COMPILETIME_ERROR;
     }
-    return failResult;
+    if (errors.length > 0) {
+      return Expectation.COMPILETIME_ERROR;
+    }
+
+    // Handle static warnings / missing static warnings
+    if (testCase.info.hasStaticWarning) {
+      if (warnings.length > 0) {
+        return Expectation.PASS;
+      }
+      return Expectation.MISSING_STATIC_WARNING;
+    }
+    if (warnings.length > 0) {
+      return Expectation.STATIC_WARNING;
+    }
+
+    assert (errors.length == 0 && warnings.length == 0);
+    assert (!testCase.info.hasCompileError &&
+            !testCase.info.hasStaticWarning);
+    return Expectation.PASS;
   }
 
-  bool _didFail(TestCase testCase) {
-    if (hasCrashed) return false;
+  void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
+    // Parse a line delimited by the | character using \ as an escape charager
+    // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
+    List<String> splitMachineError(String line) {
+      StringBuffer field = new StringBuffer();
+      List<String> result = [];
+      bool escaped = false;
+      for (var i = 0 ; i < line.length; i++) {
+        var c = line[i];
+        if (!escaped && c == '\\') {
+          escaped = true;
+          continue;
+        }
+        escaped = false;
+        if (c == '|') {
+          result.add(field.toString());
+          field = new StringBuffer();
+          continue;
+        }
+        field.write(c);
+      }
+      result.add(field.toString());
+      return result;
+    }
 
-    List<String> errors = [];
-    List<String> staticWarnings = [];
-
-    // Read the returned list of errors and stuff them away.
-    var stderrLines = decodeUtf8(super.stderr).split("\n");
-    for (String line in stderrLines) {
+    for (String line in decodeUtf8(super.stderr).split("\n")) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
       if (fields[ERROR_LEVEL] == 'ERROR') {
-        errors.add(fields[FORMATTED_ERROR]);
+        outErrors.add(fields[FORMATTED_ERROR]);
       } else if (fields[ERROR_LEVEL] == 'WARNING') {
-        staticWarnings.add(fields[FORMATTED_ERROR]);
+        outWarnings.add(fields[FORMATTED_ERROR]);
       }
       // OK to Skip error output that doesn't match the machine format
     }
-    // FIXME(kustermann): This is wrong, we should give the expectations
-    // to Command
-    if (testCase.info != null
-        && testCase.info.optionsFromFile['isMultitest']) {
-      return _didMultitestFail(testCase, errors, staticWarnings);
-    }
-    return _didStandardTestFail(testCase, errors, staticWarnings);
-  }
-
-  bool _didMultitestFail(TestCase testCase, List errors, List staticWarnings) {
-    Set<String> outcome = testCase.info.multitestOutcome;
-    if (outcome == null) throw "outcome must not be null";
-    if (outcome.contains('compile-time error') && errors.length > 0) {
-      return true;
-    } else if (outcome.contains('static type warning')
-        && staticWarnings.length > 0) {
-      return true;
-    } else if (outcome.isEmpty
-        && (errors.length > 0 || staticWarnings.length > 0)) {
-      return true;
-    }
-    return false;
-  }
-
-  bool _didStandardTestFail(TestCase testCase, List errors, List staticWarnings) {
-    bool hasFatalTypeErrors = false;
-    int numStaticTypeAnnotations = 0;
-    int numCompileTimeAnnotations = 0;
-    var isStaticClean = false;
-    if (testCase.info != null) {
-      var optionsFromFile = testCase.info.optionsFromFile;
-      hasFatalTypeErrors = testCase.info.hasFatalTypeErrors;
-      for (Command c in testCase.commands) {
-        for (String arg in c.arguments) {
-          if (arg == '--fatal-type-errors') {
-            hasFatalTypeErrors = true;
-            break;
-          }
-        }
-      }
-      numStaticTypeAnnotations = optionsFromFile['numStaticTypeAnnotations'];
-      numCompileTimeAnnotations = optionsFromFile['numCompileTimeAnnotations'];
-      isStaticClean = optionsFromFile['isStaticClean'];
-    }
-
-    if (errors.length == 0) {
-      // If the analyzer has warnings it will exit 1.
-      // We should reconsider how we do this once we have landed a dart
-      // only version of the analyzer for stable use (as in not run in batch
-      // mode).
-      if (!hasFatalTypeErrors && exitCode != 0 && staticWarnings.length == 0) {
-        diagnostics.add("EXIT CODE MISMATCH: Expected error message:");
-        diagnostics.add("  command[0]:${testCase.commands[0]}");
-        diagnostics.add("  exitCode:${exitCode}");
-        return true;
-      }
-    } else if (exitCode == 0) {
-      diagnostics.add("EXIT CODE MISMATCH: Unexpected error message:");
-      diagnostics.add("  errors[0]:${errors[0]}");
-      diagnostics.add("  command[0]:${testCase.commands[0]}");
-      diagnostics.add("  exitCode:${exitCode}");
-      return true;
-    }
-    if (numStaticTypeAnnotations > 0 && isStaticClean) {
-      diagnostics.add("Cannot have both @static-clean and /// static "
-                      "type warning annotations.");
-      return true;
-    }
-
-    if (isStaticClean && (errors.isNotEmpty || staticWarnings.isNotEmpty)) {
-      diagnostics.add(
-          "@static-clean annotation found but analyzer returned problems.");
-      return true;
-    }
-
-    if (numCompileTimeAnnotations > 0
-        && numCompileTimeAnnotations < errors.length) {
-      // Expected compile-time errors were not returned.
-      // The test did not 'fail' in the way intended so don't return failed.
-      diagnostics.add("Fewer compile time errors than annotated: "
-          "$numCompileTimeAnnotations");
-      return false;
-    }
-
-    if (numStaticTypeAnnotations > 0 || hasFatalTypeErrors) {
-      // TODO(zundel): match up the annotation line numbers
-      // with the reported error line numbers
-      if (staticWarnings.length < numStaticTypeAnnotations) {
-        diagnostics.add("Fewer static type warnings than annotated: "
-            "$numStaticTypeAnnotations");
-        return true;
-      }
-      return false;
-    } else if (errors.length != 0) {
-      return true;
-    }
-    return false;
-  }
-
-  // Parse a line delimited by the | character using \ as an escape charager
-  // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
-  List<String> splitMachineError(String line) {
-    StringBuffer field = new StringBuffer();
-    List<String> result = [];
-    bool escaped = false;
-    for (var i = 0 ; i < line.length; i++) {
-      var c = line[i];
-      if (!escaped && c == '\\') {
-        escaped = true;
-        continue;
-      }
-      escaped = false;
-      if (c == '|') {
-        result.add(field.toString());
-        field = new StringBuffer();
-        continue;
-      }
-      field.write(c);
-    }
-    result.add(field.toString());
-    return result;
   }
 }
 

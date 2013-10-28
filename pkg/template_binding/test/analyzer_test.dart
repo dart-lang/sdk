@@ -7,8 +7,6 @@ library template_binding.test.analyzer_test;
 import 'dart:html';
 import 'package:template_binding/template_binding.dart';
 
-// @static-clean
-
 // This test ensures template_binding compiles without errors.
 void main() {
   // To make analyzer happy about unused imports.

@@ -37,7 +37,7 @@ typedef void CreateTest(Path filePath,
                         bool hasCompileError,
                         bool hasRuntimeError,
                         {bool isNegativeIfChecked,
-                         bool hasFatalTypeErrors,
+                         bool hasStaticWarning,
                          Set<String> multitestOutcome,
                          String multitestKey,
                          Path originTestPath});
@@ -468,13 +468,13 @@ class TestInformation {
   bool hasCompileError;
   bool hasRuntimeError;
   bool isNegativeIfChecked;
-  bool hasFatalTypeErrors;
+  bool hasStaticWarning;
   Set<String> multitestOutcome;
   String multitestKey;
 
   TestInformation(this.filePath, this.optionsFromFile,
                   this.hasCompileError, this.hasRuntimeError,
-                  this.isNegativeIfChecked, this.hasFatalTypeErrors,
+                  this.isNegativeIfChecked, this.hasStaticWarning,
                   this.multitestOutcome,
                   {this.multitestKey, this.originTestPath}) {
     assert(filePath.isAbsolute);
@@ -693,7 +693,8 @@ class StandardTestSuite extends TestSuite {
     } else {
       createTestCase(filePath,
                      optionsFromFile['hasCompileError'],
-                     optionsFromFile['hasRuntimeError']);
+                     optionsFromFile['hasRuntimeError'],
+                     hasStaticWarning: optionsFromFile['hasStaticWarning']);
     }
   }
 
@@ -760,13 +761,6 @@ class StandardTestSuite extends TestSuite {
         (configuration['checked'] && info.isNegativeIfChecked);
     if (info.hasRuntimeError && hasRuntime) {
       negative = true;
-    }
-    if (configuration['analyzer']) {
-      // An analyzer can detect static type warnings by the
-      // format of the error line
-      if (info.hasFatalTypeErrors) {
-        negative = true;
-      }
     }
     return negative;
   }
@@ -843,7 +837,7 @@ class StandardTestSuite extends TestSuite {
             bool hasCompileError,
             bool hasRuntimeError,
             {bool isNegativeIfChecked: false,
-             bool hasFatalTypeErrors: false,
+             bool hasStaticWarning: false,
              Set<String> multitestOutcome: null,
              String multitestKey,
              Path originTestPath}) {
@@ -853,7 +847,7 @@ class StandardTestSuite extends TestSuite {
                                      hasCompileError,
                                      hasRuntimeError,
                                      isNegativeIfChecked,
-                                     hasFatalTypeErrors,
+                                     hasStaticWarning,
                                      multitestOutcome,
                                      multitestKey: multitestKey,
                                      originTestPath: originTestPath);
@@ -1412,11 +1406,6 @@ class StandardTestSuite extends TestSuite {
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp multiHtmlTestRegExp =
         new RegExp(r"useHtmlIndividualConfiguration()");
-    RegExp staticTypeRegExp =
-        new RegExp(r"/// ([0-9][0-9]:){0,1}\s*static type warning");
-    RegExp compileTimeRegExp =
-        new RegExp(r"/// ([0-9][0-9]:){0,1}\s*compile-time error");
-    RegExp staticCleanRegExp = new RegExp(r"// @static-clean");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
@@ -1431,7 +1420,6 @@ class StandardTestSuite extends TestSuite {
     List<List> result = new List<List>();
     List<String> dartOptions;
     String packageRoot;
-    bool isStaticClean = false;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1461,15 +1449,6 @@ class StandardTestSuite extends TestSuite {
       }
     }
 
-    matches = staticCleanRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (isStaticClean) {
-        throw new Exception(
-            'More than one "// @static-clean=" line in test $filePath');
-      }
-      isStaticClean = true;
-    }
-
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1481,14 +1460,6 @@ class StandardTestSuite extends TestSuite {
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
     bool containsDomImport = domImportRegExp.hasMatch(contents);
-    int numStaticTypeAnnotations = 0;
-    for (var i in staticTypeRegExp.allMatches(contents)) {
-      numStaticTypeAnnotations++;
-    }
-    int numCompileTimeAnnotations = 0;
-    for (var i in compileTimeRegExp.allMatches(contents)) {
-      numCompileTimeAnnotations++;
-    }
 
     // Note: This is brittle. It's the age-old problem of having a context free
     // language but the means to easily identify the construct is a regular
@@ -1509,15 +1480,13 @@ class StandardTestSuite extends TestSuite {
              "packageRoot": packageRoot,
              "hasCompileError": false,
              "hasRuntimeError": false,
-             "isStaticClean" : isStaticClean,
+             "hasStaticWarning" : false,
              "otherScripts": otherScripts,
              "isMultitest": isMultitest,
              "isMultiHtmlTest": isMultiHtmlTest,
              "subtestNames": subtestNames,
              "isolateStubs": isolateStubs,
-             "containsDomImport": containsDomImport,
-             "numStaticTypeAnnotations": numStaticTypeAnnotations,
-             "numCompileTimeAnnotations": numCompileTimeAnnotations };
+             "containsDomImport": containsDomImport };
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
@@ -1579,15 +1548,13 @@ class StandardTestSuite extends TestSuite {
       "packageRoot": null,
       "hasCompileError": hasCompileError,
       "hasRuntimeError": hasRuntimeError,
-      "isStaticClean" : !hasCompileError && !hasStaticWarning,
+      "hasStaticWarning" : hasStaticWarning,
       "otherScripts": <String>[],
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,
       "subtestNames": <String>[],
       "isolateStubs": '',
       "containsDomImport": false,
-      "numStaticTypeAnnotations": 0,
-      "numCompileTimeAnnotations": 0,
     };
   }
 }
@@ -1597,20 +1564,14 @@ class StandardTestSuite extends TestSuite {
 ///
 /// Usually, the result of a dartc run is determined by the output of
 /// dartc in connection with annotations in the test file.
-///
-/// If you want each file that you are running as a test to have no
-/// static warnings or errors you can create a DartcCompilationTestSuite
-/// with the optional allStaticClean constructor parameter set to true.
 class DartcCompilationTestSuite extends StandardTestSuite {
   List<String> _testDirs;
-  bool allStaticClean;
 
   DartcCompilationTestSuite(Map configuration,
                             String suiteName,
                             String directoryPath,
                             List<String> this._testDirs,
-                            List<String> expectations,
-                            {bool this.allStaticClean: false})
+                            List<String> expectations)
       : super(configuration,
               suiteName,
               new Path(directoryPath),
@@ -1631,14 +1592,6 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     }
 
     return group.future;
-  }
-
-  Map readOptionsFromFile(Path p) {
-    Map options = super.readOptionsFromFile(p);
-    if (allStaticClean) {
-      options['isStaticClean'] = true;
-    }
-    return options;
   }
 }
 

@@ -93,7 +93,6 @@ io/process_exit_negative_test: Skip
 
 [ $compiler == dart2analyzer ]
 javascript_int_overflow_literal_test/01: fail, ok
-package/package_isolate_test: fail # issue 11647
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
@@ -184,3 +183,17 @@ assert_test: Fail # Issue 13719: Please triage this failure.
 [ $compiler == none && $runtime == dartium ]
 javascript_int_overflow_literal_test/01: Fail # Issue 13719: Please triage this failure.
 javascript_int_overflow_test: Fail # Issue 13719: Please triage this failure.
+
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+io/directory_invalid_arguments_test: StaticWarning
+io/process_invalid_arguments_test: StaticWarning
+io/raw_secure_server_socket_argument_test: StaticWarning
+io/secure_socket_argument_test: StaticWarning
+io/skipping_dart2js_compilations_test: CompileTimeError, StaticWarning
+io/stdout_bad_argument_test: StaticWarning
+io/test_runner_test: CompileTimeError, StaticWarning
+package/package1_test: StaticWarning
+package/package_test: StaticWarning
+typed_data_test: StaticWarning
+typed_data_view_test: StaticWarning
+

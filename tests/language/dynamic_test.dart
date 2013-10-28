@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Dart test program testing the use of 'dynamic' in generic types.
-// @static-clean
 
 import "package:expect/expect.dart";
 

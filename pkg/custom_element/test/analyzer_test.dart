@@ -6,8 +6,6 @@ library custom_element.test.analyzer_test;
 
 import 'package:custom_element/custom_element.dart';
 
-// @static-clean
-
 // This test ensures CustomElement compiles without errors.
 void main() {
 }

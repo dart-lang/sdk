@@ -68,3 +68,8 @@ dart/isolate_mirror_local_test: Fail # Issue 13719: Please triage this failure.
 dart/isolate_mirror_remote_test: Fail # Issue 13921
 dart/isolate_unhandled_exception_test: Fail # Issue 13921
 dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag
+
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+dart/isolate_mirror_local_test: StaticWarning
+dart/mirrored_compilation_error_test: CompileTimeError
+dart/optimized_stacktrace_test: StaticWarning

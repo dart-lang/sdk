@@ -5,8 +5,6 @@
 
 import "package:expect/expect.dart";
 
-// @static-clean
-
 abstract class Point {
   factory Point(int x, int y) = PointImplementation;
 

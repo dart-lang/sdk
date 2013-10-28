@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Getters and setters can have different types, and it is not a warning if the
 // two types are assignable.
-// @static-clean
 
 import "package:expect/expect.dart";
 

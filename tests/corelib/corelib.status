@@ -113,3 +113,14 @@ collection_length_test: Pass, Timeout
 
 [ $arch == simmips && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207
+
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+collection_to_string_test: StaticWarning
+error_stack_trace_test: StaticWarning
+iterable_element_at_test: StaticWarning
+iterable_test: StaticWarning
+list_map_test: StaticWarning
+num_clamp_test: StaticWarning
+queue_test: StaticWarning
+string_codeunits_test: StaticWarning
+string_test: StaticWarning
