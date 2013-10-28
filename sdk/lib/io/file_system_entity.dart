@@ -349,6 +349,8 @@ abstract class FileSystemEntity {
    *     supports watching directories. Recursive watching is supported.
    *   * `Linux`: Uses `inotify`. The implementation supports watching both
    *     files and directories. Recursive watching is not supported.
+   *     Note: When watching files directly, delete events might not happen
+   *     as expected.
    *   * `Mac OS`: Uses `FSEvents`. The implementation supports watching both
    *     files and directories. Recursive watching is supported.
    *     Note: events happened slightly before calling [watch], may be part of
