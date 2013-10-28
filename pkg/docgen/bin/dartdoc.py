@@ -51,7 +51,7 @@ def GetOptions():
 def main():
   options = GetOptions()
   docgen = [DART, '--checked', '--package-root=' + PACKAGE_ROOT,
-    join(DIRECTORY, 'docgen.dart')]
+    join(DIRECTORY, 'docgen.dart'), '--json',  '--package-root=' + PACKAGE_ROOT]
   docgen.extend(options.options.split())
   ExecuteCommand(docgen)
   ExecuteCommand(['git', 'clone', '-b', 'master',
@@ -59,9 +59,7 @@ def main():
   ExecuteCommand(['mv', 'docs', 'dartdoc-viewer/client/local'])
   os.chdir('dartdoc-viewer/client/')
   subprocess.call([PUB, 'install'])
-  subprocess.call([DART, 'build.dart'])
-  subprocess.call([DART2JS, '-o', 'web/out/index.html_bootstrap.dart.js', 
-    './web/out/index.html_bootstrap.dart'])
+  subprocess.call([DART, 'deploy.dart'])
   server = subprocess.Popen(['python', 
     join(abspath(join(dirname(__file__), options.gae_sdk)), 'dev_appserver.py'),
     '..'])
