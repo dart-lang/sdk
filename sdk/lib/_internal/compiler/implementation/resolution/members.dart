@@ -461,7 +461,7 @@ class ResolverTask extends CompilerTask {
         FunctionExpression tree = element.parseNode(compiler);
         if (tree.modifiers.isExternal()) {
           error(tree, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
-          return;
+          return null;
         }
         if (isConstructor || element.isFactoryConstructor()) {
           if (tree.returnType != null) {
@@ -2602,7 +2602,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     // If the selector is null, it means that we will not be generating
     // code for this as a send.
     Selector selector = mapping.getSelector(node);
-    if (selector == null) return;
+    if (selector == null) return null;
 
     if (node.isCall) {
       if (Elements.isUnresolved(target) ||

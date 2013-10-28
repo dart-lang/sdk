@@ -178,7 +178,7 @@ class PatchParserTask extends leg.CompilerTask {
     // of calling its [parseNode] method.
     if (element.cachedNode != null) return;
 
-    return measure(() => compiler.withCurrentElement(element, () {
+    measure(() => compiler.withCurrentElement(element, () {
       PatchMemberListener listener = new PatchMemberListener(compiler, element);
       Parser parser = new PatchClassElementParser(listener);
       Token token = parser.parseTopLevelDeclaration(element.beginToken);

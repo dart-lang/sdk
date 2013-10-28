@@ -278,9 +278,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return jsNode;
   }
 
-  beginGraph(HGraph graph);
-  endGraph(HGraph graph);
-
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(

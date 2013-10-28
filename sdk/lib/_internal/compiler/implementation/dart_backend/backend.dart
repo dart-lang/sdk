@@ -595,14 +595,17 @@ class ReferencedElementCollector extends Visitor {
   final newTypedefElementCallback;
   final newClassElementCallback;
 
-  ReferencedElementCollector(
-      this.compiler,
-      Element rootElement, this.treeElements,
-      this.newTypedefElementCallback, this.newClassElementCallback)
-      : this.rootElement = (rootElement is VariableElement)
-          ? (rootElement as VariableElement).variables : rootElement;
+  ReferencedElementCollector(this.compiler,
+                             Element rootElement,
+                             this.treeElements,
+                             this.newTypedefElementCallback,
+                             this.newClassElementCallback)
+      : this.rootElement =
+          rootElement is VariableElement ? rootElement.variables : rootElement;
 
-  visitNode(Node node) { node.visitChildren(this); }
+  visitNode(Node node) {
+    node.visitChildren(this);
+  }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
     // We call [resolveReturnType] to allow having 'void'.
