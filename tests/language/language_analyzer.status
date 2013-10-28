@@ -30,10 +30,6 @@ built_in_identifier_test/none: Fail # Issue 13023
 #
 
 
-# test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
-block_scope_test: fail
-lazy_static3_test: fail
-
 # test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
@@ -189,7 +185,6 @@ abstract_runtime_error_test: StaticWarning
 application_negative_test: CompileTimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: CompileTimeError
-bad_initializer2_negative_test: CompileTimeError
 bad_named_constructor_negative_test: CompileTimeError
 bad_named_parameters2_test: StaticWarning
 bad_named_parameters_test: StaticWarning
