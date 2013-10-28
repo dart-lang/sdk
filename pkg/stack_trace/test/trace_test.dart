@@ -130,7 +130,7 @@ void main() {
           equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
     });
 
-    test('.parseSafari', () {
+    test('parses a Safari 6.0 stack trace correctly', () {
       var trace = new Trace.parse(
           'Foo._bar@http://pub.dartlang.org/stuff.js:42\n'
           'zip/<@http://pub.dartlang.org/stuff.js:0\n'
@@ -144,6 +144,20 @@ void main() {
       expect(trace.frames[2].uri,
           equals(Uri.parse("http://pub.dartlang.org/thing.js")));
       expect(trace.frames.length, equals(3));
+    });
+
+    test('parses a Safari 6.1 stack trace correctly', () {
+      var trace = new Trace.parse(
+          'http://pub.dartlang.org/stuff.js:42:43\n'
+          'zip@http://pub.dartlang.org/stuff.js:0:1\n'
+          'zip\$zap@http://pub.dartlang.org/thing.js:1:2');
+
+      expect(trace.frames[0].uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
+      expect(trace.frames[1].uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
+      expect(trace.frames[2].uri,
+          equals(Uri.parse("http://pub.dartlang.org/thing.js")));
     });
 
     test('parses a package:stack_trace stack trace correctly', () {

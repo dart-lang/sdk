@@ -19,6 +19,10 @@ final _v8Frame = new RegExp(
     r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? '
     r'\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
 
+/// foo$bar$0@http://pub.dartlang.org/stuff.dart.js:560:28
+/// http://pub.dartlang.org/stuff.dart.js:560:28
+final _safariFrame = new RegExp(r"^(?:([0-9A-Za-z_$]*)@)?(.*):(\d*):(\d*)$");
+
 // .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0("arg")@http://pub.dartlang.org/stuff.dart.js:560
 // .VW.call$0/name<@http://pub.dartlang.org/stuff.dart.js:560
@@ -169,11 +173,27 @@ class Frame {
     return new Frame(uri, int.parse(match[4]), null, member);
   }
 
-  /// Parses a string representation of a Safari stack frame.
+  /// Parses a string representation of a Safari 6.0 stack frame.
   ///
-  /// Safari 6+ frames look just like Firefox frames. Prior to Safari 6, stack
-  /// traces can't be retrieved.
-  factory Frame.parseSafari(String frame) => new Frame.parseFirefox(frame);
+  /// Safari 6.0 frames look just like Firefox frames. Prior to Safari 6.0,
+  /// stack traces can't be retrieved.
+  factory Frame.parseSafari6_0(String frame) => new Frame.parseFirefox(frame);
+
+  /// Parses a string representation of a Safari 6.1+ stack frame.
+  factory Frame.parseSafari6_1(String frame) {
+    var match = _safariFrame.firstMatch(frame);
+    if (match == null) {
+      throw new FormatException(
+          "Couldn't parse Safari stack trace line '$frame'.");
+    }
+
+    var uri = Uri.parse(match[2]);
+    var member = match[1];
+    if (member == null) member = '<fn>';
+    var line = match[3] == '' ? null : int.parse(match[3]);
+    var column = match[4] == '' ? null : int.parse(match[4]);
+    return new Frame(uri, line, column, member);
+  }
 
   /// Parses this package's string representation of a stack frame.
   factory Frame.parseFriendly(String frame) {
