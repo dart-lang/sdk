@@ -697,7 +697,7 @@ class _BufferTransformer implements StreamTransformer<List<int>, List<int>> {
 
 class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     implements HttpResponse {
-  int statusCode = 200;
+  int _statusCode = 200;
   String _reasonPhrase;
   List<Cookie> _cookies;
   _HttpRequest _httpRequest;
@@ -715,6 +715,12 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
     return _cookies;
+  }
+
+  int get statusCode => _statusCode;
+  void set statusCode(int statusCode) {
+    if (_headersWritten) throw new StateError("Header already sent");
+    _statusCode = statusCode;
   }
 
   String get reasonPhrase => _findReasonPhrase(statusCode);
