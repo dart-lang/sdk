@@ -149,7 +149,9 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-analyzer/test/generated/ast_test: Fail # Issue 12336
+
+ # Issue 9217: Uses unspecified Type.toString.
+analyzer/test/generated/ast_test: Fail
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
