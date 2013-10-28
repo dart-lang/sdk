@@ -2557,6 +2557,18 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors(source);
     verify([source]);
   }
+  void test_nonBoolNegationExpression() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f(bool pb, pd) {",
+        "  !true;",
+        "  !false;",
+        "  !pb;",
+        "  !pd;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
   void test_nonConstantDefaultValue_function_named() {
     Source source = addSource(EngineTestCase.createSource(["f({x : 2 + 3}) {}"]));
     resolve(source);
@@ -4367,6 +4379,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonBoolExpression_interfaceType);
       });
+      _ut.test('test_nonBoolNegationExpression', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolNegationExpression);
+      });
       _ut.test('test_nonConstCaseExpression', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_nonConstCaseExpression);
@@ -5201,6 +5217,12 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
     verify([source]);
   }
+  void test_nonBoolNegationExpression() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  !42;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION]);
+    verify([source]);
+  }
   void test_nonTypeAsTypeArgument_notAType() {
     Source source = addSource(EngineTestCase.createSource(["int A;", "class B<E> {}", "f(B<A> b) {}"]));
     resolve(source);
@@ -5874,6 +5896,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_nonBoolExpression_interfaceType', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_nonBoolExpression_interfaceType);
+      });
+      _ut.test('test_nonBoolNegationExpression', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonBoolNegationExpression);
       });
       _ut.test('test_nonTypeAsTypeArgument_notAType', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -10493,6 +10519,40 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS]);
     verify([source]);
   }
+  void test_redirectToMissingConstructor_named() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A implements B{",
+        "  A() {}",
+        "}",
+        "class B {",
+        "  const factory B() = A.name;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+  }
+  void test_redirectToMissingConstructor_unnamed() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A implements B{",
+        "  A.name() {}",
+        "}",
+        "class B {",
+        "  const factory B() = A;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+  }
+  void test_redirectToNonClass_notAType() {
+    Source source = addSource(EngineTestCase.createSource(["int A;", "class B {", "  const factory B() = A;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_NON_CLASS]);
+    verify([source]);
+  }
+  void test_redirectToNonClass_undefinedIdentifier() {
+    Source source = addSource(EngineTestCase.createSource(["class B {", "  const factory B() = A;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.REDIRECT_TO_NON_CLASS]);
+    verify([source]);
+  }
   void test_redirectToNonConstConstructor() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -12037,6 +12097,22 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_recursiveInterfaceInheritance_tail3', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_recursiveInterfaceInheritance_tail3);
+      });
+      _ut.test('test_redirectToMissingConstructor_named', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_redirectToMissingConstructor_named);
+      });
+      _ut.test('test_redirectToMissingConstructor_unnamed', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_redirectToMissingConstructor_unnamed);
+      });
+      _ut.test('test_redirectToNonClass_notAType', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_redirectToNonClass_notAType);
+      });
+      _ut.test('test_redirectToNonClass_undefinedIdentifier', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_redirectToNonClass_undefinedIdentifier);
       });
       _ut.test('test_redirectToNonConstConstructor', () {
         final __test = new CompileTimeErrorCodeTest();

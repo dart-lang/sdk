@@ -3400,7 +3400,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           statistics.putCacheItem(dartEntry, DartEntry.PARSE_ERRORS);
           statistics.putCacheItem(dartEntry, DartEntry.PARSED_UNIT);
           statistics.putCacheItem(dartEntry, DartEntry.SOURCE_KIND);
-          statistics.putCacheItem(dartEntry, DartEntry.LINE_INFO);
+          statistics.putCacheItem(dartEntry, SourceEntry.LINE_INFO);
           if (identical(kind, SourceKind.LIBRARY)) {
             statistics.putCacheItem(dartEntry, DartEntry.ELEMENT);
             statistics.putCacheItem(dartEntry, DartEntry.EXPORTED_LIBRARIES);
@@ -4054,6 +4054,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisTask get nextTaskAnalysisTask {
     {
       bool hintsEnabled = _options.hint;
+      if (_incrementalAnalysisCache != null) {
+        AnalysisTask task = new IncrementalAnalysisTask(this, _incrementalAnalysisCache);
+        _incrementalAnalysisCache = null;
+      }
       for (Source source in _priorityOrder) {
         AnalysisTask task = getNextTaskAnalysisTask2(source, _cache.get(source), true, hintsEnabled);
         if (task != null) {
@@ -4580,6 +4584,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a [IncrementalAnalysisTask].
+   *
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  DartEntry recordIncrementalAnalysisTaskResults(IncrementalAnalysisTask task) {
+    {
+      CompilationUnit unit = task.compilationUnit;
+      if (unit != null) {
+        ChangeNoticeImpl notice = getNotice(task.source);
+        notice.compilationUnit = unit;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Record the results produced by performing a [ParseDartTask]. If the results were computed
    * from data that is now out-of-date, then the results will not be recorded.
    *
@@ -5033,6 +5055,7 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisi
   AnalysisContextImpl_AnalysisTaskResultRecorder(this.AnalysisContextImpl_this);
   SourceEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task) => AnalysisContextImpl_this.recordGenerateDartErrorsTask(task);
   SourceEntry visitGenerateDartHintsTask(GenerateDartHintsTask task) => AnalysisContextImpl_this.recordGenerateDartHintsTask(task);
+  SourceEntry visitIncrementalAnalysisTask(IncrementalAnalysisTask task) => AnalysisContextImpl_this.recordIncrementalAnalysisTaskResults(task);
   DartEntry visitParseDartTask(ParseDartTask task) => AnalysisContextImpl_this.recordParseDartTaskResults(task);
   HtmlEntry visitParseHtmlTask(ParseHtmlTask task) => AnalysisContextImpl_this.recordParseHtmlTaskResults(task);
   DartEntry visitResolveDartLibraryTask(ResolveDartLibraryTask task) => AnalysisContextImpl_this.recordResolveDartLibraryTaskResults(task);
@@ -6619,6 +6642,15 @@ abstract class AnalysisTaskVisitor<E> {
   E visitGenerateDartHintsTask(GenerateDartHintsTask task);
 
   /**
+   * Visit an [IncrementalAnalysisTask].
+   *
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  E visitIncrementalAnalysisTask(IncrementalAnalysisTask incrementalAnalysisTask);
+
+  /**
    * Visit a [ParseDartTask].
    *
    * @param task the task to be visited
@@ -6800,6 +6832,46 @@ class GenerateDartHintsTask extends AnalysisTask {
    * @throws AnalysisException if the resolved compilation unit could not be computed
    */
   TimestampedData<CompilationUnit> getCompilationUnit(Source unitSource) => context.internalResolveCompilationUnit(unitSource, libraryElement);
+}
+/**
+ * Instances of the class `IncrementalAnalysisTask` incrementally update existing analysis.
+ */
+class IncrementalAnalysisTask extends AnalysisTask {
+
+  /**
+   * The information used to perform incremental analysis.
+   */
+  IncrementalAnalysisCache _cache;
+
+  /**
+   * The compilation unit that was produced by incrementally updating the existing unit.
+   */
+  CompilationUnit compilationUnit;
+
+  /**
+   * Initialize a newly created task to perform analysis within the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param cache the incremental analysis cache used to perform the analysis
+   */
+  IncrementalAnalysisTask(InternalAnalysisContext context, IncrementalAnalysisCache cache) : super(context) {
+    this._cache = cache;
+  }
+  accept(AnalysisTaskVisitor visitor) => visitor.visitIncrementalAnalysisTask(this);
+
+  /**
+   * Return the source that is to be incrementally analyzed.
+   *
+   * @return the source
+   */
+  Source get source => _cache != null ? _cache.source : null;
+  String get taskDescription => "incremental analysis ${(_cache != null ? _cache.source : "null")}";
+  void internalPerform() {
+    if (_cache == null) {
+      return;
+    }
+    compilationUnit = _cache.resolvedUnit;
+  }
 }
 /**
  * Instances of the class `ParseDartTask` parse a specific source as a Dart file.
