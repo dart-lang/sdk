@@ -7,6 +7,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -3543,6 +3544,45 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_NE(a_test4.SourceFingerprint(), a_test5.SourceFingerprint());
   EXPECT_EQ(a_test5.SourceFingerprint(), b_test5.SourceFingerprint());
   EXPECT_NE(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
+}
+
+
+TEST_CASE(FunctionWithBreakpointNotInlined) {
+  const char* kScriptChars =
+      "class A {\n"
+      "  a() {\n"
+      "  }\n"
+      "  b() {\n"
+      "    a();\n"  // This is line 5.
+      "  }\n"
+      "}\n"
+      "test() {\n"
+      "  new A().b();\n"
+      "}";
+  const int kBreakpointLine = 5;
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  // Run function A.b one time.
+  Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // With no breakpoint, function A.b is inlineable.
+  const String& name = String::Handle(String::New(TestCase::url()));
+  const Library& vmlib = Library::Handle(Library::LookupLibrary(name));
+  EXPECT(!vmlib.IsNull());
+  const Class& class_a = Class::Handle(
+      vmlib.LookupClass(String::Handle(Symbols::New("A"))));
+  const Function& func_b =
+      Function::Handle(GetFunction(class_a, "b"));
+  EXPECT(func_b.IsInlineable());
+
+  // After setting a breakpoint in a function A.b, it is no longer inlineable.
+  SourceBreakpoint* bpt =
+      Isolate::Current()->debugger()->SetBreakpointAtLine(name,
+                                                          kBreakpointLine);
+  ASSERT(bpt != NULL);
+  EXPECT(!func_b.IsInlineable());
 }
 
 

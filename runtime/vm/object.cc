@@ -4510,7 +4510,9 @@ void Function::set_is_inlinable(bool value) const {
 
 
 bool Function::IsInlineable() const {
-  return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
+  return (InlinableBit::decode(raw_ptr()->kind_tag_) &&
+          HasCode() &&
+          !Isolate::Current()->debugger()->HasBreakpoint(*this));
 }
 
 
