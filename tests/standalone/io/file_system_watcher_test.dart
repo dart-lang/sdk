@@ -257,6 +257,8 @@ void testWatchNonRecursive() {
 
 
 void testWatchNonExisting() {
+  // MacOS allows listening on non-existing paths.
+  if (Platform.isMacOS) return;
   asyncStart();
   new Directory('__some_none_existing_dir__').watch()
     .listen((_) {
