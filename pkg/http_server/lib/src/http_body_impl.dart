@@ -21,17 +21,27 @@ class _HttpBodyHandlerTransformer
 class _HttpBodyHandlerTransformerSink implements EventSink<HttpRequest> {
   final Encoding _defaultEncoding;
   final EventSink<HttpRequestBody> _outSink;
+  int _pending = 0;
+  bool _closed = false;
 
   _HttpBodyHandlerTransformerSink(this._defaultEncoding, this._outSink);
 
   void add(HttpRequest request) {
+    _pending++;
     _HttpBodyHandler.processRequest(request, _defaultEncoding)
-        .then(_outSink.add, onError: _outSink.addError);
+        .then(_outSink.add, onError: _outSink.addError)
+        .whenComplete(() {
+          _pending--;
+          if (_closed && _pending == 0) _outSink.close();
+        });
   }
   void addError(Object error, [StackTrace stackTrace]) {
     _outSink.addError(error, stackTrace);
   }
-  void close() => _outSink.close();
+  void close() {
+    _closed = true;
+    if (_pending == 0) _outSink.close();
+  }
 }
 
 class _HttpBodyHandler {
@@ -44,7 +54,6 @@ class _HttpBodyHandler {
                 // Try to send BAD_REQUEST response.
                 request.response.statusCode = HttpStatus.BAD_REQUEST;
                 request.response.close();
-                request.response.done.catchError((_) {});
                 throw error;
               });
   }

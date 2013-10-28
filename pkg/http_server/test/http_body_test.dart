@@ -90,6 +90,7 @@ void testHttpServerRequestBody() {
     HttpServer.bind("127.0.0.1", 0).then((server) {
       server.transform(new HttpBodyHandler(defaultEncoding: defaultEncoding))
           .listen((body) {
+            if (shouldFail) return;
             expect(shouldFail, isFalse);
             expect(body.type, equals(type));
             switch (type) {
@@ -157,9 +158,12 @@ void testHttpServerRequestBody() {
             }
             return response.drain();
           })
-          .then((_) {
+          .whenComplete(() {
             client.close();
             server.close();
+          })
+          .catchError((e) {
+            if (!shouldFail) throw e;
           });
     });
   }
