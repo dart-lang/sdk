@@ -31,8 +31,6 @@ Language/07_Classes/6_Constructors_A03_t03: Fail # Calling unresolved class cons
 
 Language/03_Overview/1_Scoping_A02_t05: Fail # Inherited from dart2js
 Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Inherited from VM (circular initialization?).
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Inherited from dart2js
 Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM

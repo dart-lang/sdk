@@ -40,6 +40,7 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughError")                                      \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
+  V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \

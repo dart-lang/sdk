@@ -968,13 +968,13 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
             ident_pos,
             field,
             new LiteralNode(ident_pos, Instance::ZoneHandle())));
-    // TODO(regis, 5802): Exception to throw is not specified by spec.
-    const String& circular_error = String::ZoneHandle(
-        Symbols::New("circular dependency in field initialization"));
+    // Call CyclicInitializationError._throwNew(field_name).
+    ArgumentListNode* error_arguments = new ArgumentListNode(ident_pos);
+    error_arguments->Add(new LiteralNode(ident_pos, field_name));
     report_circular->Add(
-        new ThrowNode(ident_pos,
-                      new LiteralNode(ident_pos, circular_error),
-                      NULL));
+        MakeStaticCall(Symbols::CyclicInitializationError(),
+                       Library::PrivateCoreLibName(Symbols::ThrowNew()),
+                       error_arguments));
     AstNode* circular_check =
         new IfNode(ident_pos, compare_circular, report_circular, NULL);
     current_block_->statements->Add(circular_check);

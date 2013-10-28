@@ -12,7 +12,6 @@ symbol_test/03: Fail, Pass # bug 11669
 
 [ $compiler == none || $compiler == dart2dart ]
 symbol_test/none: Fail # bug 11669
-error_stack_trace2_test: Fail  # Bug 5802
 
 [ $compiler == none && $runtime == drt ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
