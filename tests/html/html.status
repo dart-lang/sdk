@@ -73,6 +73,7 @@ worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 [ $compiler == dart2js && $runtime == safari ]
 audiobuffersourcenode_test/supported: Pass, Timeout # Issue 12772
 
+
 [ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
@@ -276,6 +277,7 @@ webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
 audiocontext_test/functional: Fail # Issue 14354
+websql_test/functional: Pass, Fail # Issue 14523
 
 
 # Safari Feature support statuses-
