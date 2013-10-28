@@ -20,14 +20,13 @@ class EventHandler;
 // when the isolate shuts down.
 class IsolateData {
  public:
-  IsolateData()
-      : object_array_class(NULL),
-        growable_object_array_class(NULL), immutable_array_class(NULL) {
+  explicit IsolateData(const char* url) : script_url(strdup(url)) {
+  }
+  ~IsolateData() {
+    free(script_url);
   }
 
-  Dart_PersistentHandle object_array_class;
-  Dart_PersistentHandle growable_object_array_class;
-  Dart_PersistentHandle immutable_array_class;
+  char* script_url;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateData);

@@ -136,7 +136,9 @@ class FSEventsWatcher {
     if (watcher == NULL) {
       watcher_monitor->Enter();
       watcher = new FSEventsWatcher();
-      watcher_monitor->Wait(Monitor::kNoTimeout);
+      while (watcher->run_loop_ == NULL) {
+        watcher_monitor->Wait(Monitor::kNoTimeout);
+      }
       watcher_monitor->Exit();
     }
     watcher->users_++;
@@ -199,7 +201,9 @@ class FSEventsWatcher {
     Node* node = reinterpret_cast<Node*>(client);
     for (size_t i = 0; i < num_events; i++) {
       char *path = reinterpret_cast<char**>(event_paths)[i];
-      path += node->base_path_length() + 1;
+      path += node->base_path_length();
+      // If path is longer the base, skip next character ('/').
+      if (path[0] != '\0') path += 1;
       if (!node->recursive() && strstr(path, "/") != NULL) continue;
       FSEvent event;
       event.data.flags = event_flags[i];
@@ -259,6 +263,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     if (bytes < 0) {
       return DartUtils::NewDartOSError();
     }
+    size_t path_len = strlen(e.data.path);
     Dart_Handle event = Dart_NewList(3);
     int flags = e.data.flags;
     int mask = 0;
@@ -266,11 +271,18 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     if (flags & kFSEventStreamEventFlagItemRenamed) mask |= kMove;
     if (flags & kFSEventStreamEventFlagItemXattrMod) mask |= kModefyAttribute;
     if (flags & kFSEventStreamEventFlagItemCreated) mask |= kCreate;
-    if (flags & kFSEventStreamEventFlagItemRemoved) mask |= kDelete;
+    if (flags & kFSEventStreamEventFlagItemRemoved) {
+      if (path_len == 0) {
+        // The removed path is the path being watched.
+        mask |= kDeleteSelf;
+      } else {
+        mask |= kDelete;
+      }
+    }
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
     Dart_ListSetAt(event, 2, Dart_NewStringFromUTF8(
-        reinterpret_cast<uint8_t*>(e.data.path), strlen(e.data.path)));
+        reinterpret_cast<uint8_t*>(e.data.path), path_len));
     Dart_ListSetAt(events, i, event);
   }
   return events;

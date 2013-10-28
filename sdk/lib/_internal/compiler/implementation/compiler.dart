@@ -68,13 +68,13 @@ class CodegenWorkItem extends WorkItem {
   }
 }
 
-typedef void PostProcessAction();
+typedef void DeferredAction();
 
-class PostProcessTask {
+class DeferredTask {
   final Element element;
-  final PostProcessAction action;
+  final DeferredAction action;
 
-  PostProcessTask(this.element, this.action);
+  DeferredTask(this.element, this.action);
 }
 
 abstract class Backend {
@@ -1028,13 +1028,17 @@ abstract class Compiler implements DiagnosticListener {
         }
         FunctionElement mainMethod = main;
         FunctionSignature parameters = mainMethod.computeSignature(this);
-        parameters.forEachParameter((Element parameter) {
-          reportError(
-              parameter,
-              MessageKind.GENERIC,
-              {'text':
-                "Error: '$MAIN' cannot have parameters."});
-        });
+        if (parameters.parameterCount > 2) {
+          int index = 0;
+          parameters.forEachParameter((Element parameter) {
+            if (index++ < 2) return;
+            reportError(
+                parameter,
+                MessageKind.GENERIC,
+                {'text':
+                  "Error: '$MAIN' cannot have more than two parameters."});
+          });
+        }
       }
 
       mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
@@ -1141,6 +1145,15 @@ abstract class Compiler implements DiagnosticListener {
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraries.values);
     if (main != null) {
+      FunctionElement mainMethod = main;
+      if (mainMethod.computeSignature(this).parameterCount != 0) {
+        // TODO(ngeoffray, floitsch): we should also ensure that the
+        // class IsolateMessage is instantiated. Currently, just enabling
+        // isolate support works.
+        world.enableIsolateSupport(main.getLibrary());
+        world.registerInstantiatedClass(listClass, globalDependencies);
+        world.registerInstantiatedClass(stringClass, globalDependencies);
+      }
       world.addToWorkList(main);
     }
     progress.reset();
@@ -1148,9 +1161,6 @@ abstract class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
-    world.forEachPostProcessTask((PostProcessTask work) {
-      withCurrentElement(work.element, () => work.action());
-    });
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {

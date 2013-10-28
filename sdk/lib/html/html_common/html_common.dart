@@ -14,7 +14,3 @@ part 'css_class_set.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';
 part 'lists.dart';
-
-// For annotating deprecated APIs.
-// TODO: remove once @deprecated is added to dart core.
-const deprecated = 0;

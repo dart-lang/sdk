@@ -574,14 +574,11 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   ClassMirror get mixin {
     if (_mixin == null) {
       if (_isMixinTypedef) {
-        Type mixinType = isOriginalDeclaration
-            ? _nativeMixin(_trueSuperclass._reflectedType)
-            : _nativeMixinInstantiated(_trueSuperclass._reflectedType, _instantiator);
+        Type mixinType = _nativeMixinInstantiated(_trueSuperclass._reflectedType,
+                                                  _instantiator);
         _mixin = reflectType(mixinType);
       } else {
-        Type mixinType = isOriginalDeclaration
-            ? _nativeMixin(_reflectedType)
-            : _nativeMixinInstantiated(_reflectedType, _instantiator);
+        Type mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
         if (mixinType == null) {
           // The reflectee is not a mixin application.
           _mixin = this;
@@ -591,6 +588,17 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       }
     }
     return _mixin;
+  }
+
+  Map<Symbol, DeclarationMirror> _declarations;
+  Map<Symbol, DeclarationMirror> get declarations {
+    if (_declarations != null) return _declarations;
+    var decls = new Map<Symbol, DeclarationMirror>();
+    decls.addAll(members);
+    decls.addAll(constructors);
+    typeVariables.forEach((tv) => decls[tv.simpleName] = tv);
+    return _declarations =
+        new _UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
   }
 
   Map<Symbol, Mirror> _members;
@@ -913,6 +921,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
   }
 
   bool get isPrivate => false;
+  bool get isStatic => false;
 
   final bool isTopLevel = false;
 
@@ -1100,6 +1109,13 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 
   final Uri uri;
 
+  Map<Symbol, DeclarationMirror> _declarations;
+  Map<Symbol, DeclarationMirror> get declarations {
+    if (_declarations != null) return _declarations;
+    return _declarations =
+        new _UnmodifiableMapView<Symbol, DeclarationMirror>(members);
+  }
+
   Map<Symbol, Mirror> _members;
   Map<Symbol, Mirror> get members {
     if (_members == null) {
@@ -1265,7 +1281,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
       if (!isConstructor) {
         _constructorName = _s('');
       } else {
-        var parts = _n(simpleName).split('.');
+        var parts = MirrorSystem.getName(simpleName).split('.');
         if (parts.length > 2) {
           throw new MirrorException(
               'Internal error in MethodMirror.constructorName: '
@@ -1415,8 +1431,13 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   final DeclarationMirror owner = null;
   final Symbol simpleName;
   final bool isTopLevel = true;
-  // Fixed length 0, therefore immutable.
   final List<InstanceMirror> metadata = emptyList;
+
+  List<TypeVariableMirror> get typeVariables => emptyList;
+  List<TypeMirror> get typeArguments => emptyList;
+
+  bool get isOriginalDeclaration => true;
+  TypeMirror get originalDeclaration => this;
 
   SourceLocation get location {
     throw new UnimplementedError('TypeMirror.location is not implemented');

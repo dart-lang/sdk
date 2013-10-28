@@ -187,7 +187,7 @@ abstract class TestSuite {
       case 'dartanalyzer':
         return 'sdk/bin/dartanalyzer_developer$suffix';
       case 'dart2analyzer':
-        return 'editor/tools/analyzer_experimental';
+        return 'editor/tools/analyzer';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -1097,8 +1097,8 @@ class StandardTestSuite extends TestSuite {
                   runtime,
                   fullHtmlPath];
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath,
-              TestUtils.dartTestExecutable.toString(), args, configurationDir));
+              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
+              args, configurationDir, checkedMode: configuration['checked']));
         } else if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
@@ -1522,7 +1522,8 @@ class StandardTestSuite extends TestSuite {
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
     var COMPILERS = const ['none', 'dart2dart'];
-    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium'];
+    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium',
+                          'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
     if (!needsVmOptions) return [[]];
@@ -1908,6 +1909,8 @@ class TestUtils {
       'chrome',
       'ff',
       'chromeOnAndroid',
+      'ContentShellOnAndroid',
+      'DartiumOnAndroid'
     ];
     return BROWSERS.contains(runtime);
   }

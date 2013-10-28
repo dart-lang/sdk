@@ -2610,7 +2610,6 @@ void Class::set_interfaces(const Array& value) const {
 
 
 void Class::set_mixin(const Type& value) const {
-  // Resolution and application of mixin type occurs in finalizer.
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->mixin_, value.raw());
 }
@@ -2620,6 +2619,9 @@ bool Class::IsMixinApplication() const {
   return mixin() != Type::null();
 }
 
+bool Class::IsAnonymousMixinApplication() const {
+  return IsMixinApplication() && !is_mixin_typedef();
+}
 
 void Class::set_patch_class(const Class& cls) const {
   ASSERT(patch_class() == Class::null());
@@ -4039,6 +4041,22 @@ void Function::SetCode(const Code& value) const {
 }
 
 
+void Function::DetachCode() const {
+  // Set unoptimized code as non-entrant, and set code and unoptimized code
+  // to null.
+  CodePatcher::PatchEntry(Code::Handle(unoptimized_code()));
+  StorePointer(&raw_ptr()->code_, Code::null());
+  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
+}
+
+
+void Function::ReattachCode(const Code& code) const {
+  set_unoptimized_code(code);
+  SetCode(code);
+  CodePatcher::RestoreEntry(code);
+}
+
+
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
 
@@ -4047,7 +4065,7 @@ void Function::SwitchToUnoptimizedCode() const {
   // Optimized code object might have been actually fully produced by the
   // intrinsifier in this case nothing has to be done. In fact an attempt to
   // patch such code will cause crash.
-  // TODO(vegorov): if intrisifier can fully intrisify the function then we
+  // TODO(vegorov): if intrisifier can fully intrinsify the function then we
   // should not later try to optimize it.
   if (PcDescriptors::Handle(current_code.pc_descriptors()).Length() == 0) {
     return;
@@ -4067,6 +4085,7 @@ void Function::SwitchToUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+  ASSERT(!value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
 
@@ -7893,11 +7912,6 @@ RawLibrary* Library::IsolateLibrary() {
 }
 
 
-RawLibrary* Library::JsonLibrary() {
-  return Isolate::Current()->object_store()->json_library();
-}
-
-
 RawLibrary* Library::MathLibrary() {
   return Isolate::Current()->object_store()->math_library();
 }
@@ -7910,6 +7924,10 @@ RawLibrary* Library::MirrorsLibrary() {
 
 RawLibrary* Library::NativeWrappersLibrary() {
   return Isolate::Current()->object_store()->native_wrappers_library();
+}
+
+RawLibrary* Library::PlatformLibrary() {
+  return Isolate::Current()->object_store()->platform_library();
 }
 
 
@@ -9257,6 +9275,19 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   Function& function = Function::Handle();
   function ^= array.At(i + kSCallTableFunctionEntry);
   return function.raw();
+}
+
+
+RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
+  const intptr_t i = BinarySearchInSCallTable(pc);
+  if (i < 0) {
+    return Code::null();
+  }
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  Code& code = Code::Handle();
+  code ^= array.At(i + kSCallTableCodeEntry);
+  return code.raw();
 }
 
 
@@ -12205,13 +12236,12 @@ void BoundedType::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 intptr_t MixinAppType::token_pos() const {
-  return Class::Handle(MixinAppAt(0)).token_pos();
+  return AbstractType::Handle(MixinTypeAt(0)).token_pos();
 }
 
 
 intptr_t MixinAppType::Depth() const {
-  const Array& mixin_apps = Array::Handle(mixins());
-  return mixin_apps.Length();
+  return Array::Handle(mixin_types()).Length();
 }
 
 
@@ -12221,15 +12251,15 @@ RawString* MixinAppType::Name() const {
 
 
 const char* MixinAppType::ToCString() const {
-  const char* format = "MixinAppType: super type: %s; first mixin app: %s";
+  const char* format = "MixinAppType: super type: %s; first mixin type: %s";
   const char* super_type_cstr = String::Handle(AbstractType::Handle(
-      SuperType()).Name()).ToCString();
-  const char* first_mixin_app_cstr = String::Handle(Class::Handle(
-      MixinAppAt(0)).Name()).ToCString();
+      super_type()).Name()).ToCString();
+  const char* first_mixin_type_cstr = String::Handle(AbstractType::Handle(
+      MixinTypeAt(0)).Name()).ToCString();
   intptr_t len = OS::SNPrint(
-      NULL, 0, format, super_type_cstr, first_mixin_app_cstr) + 1;
+      NULL, 0, format, super_type_cstr, first_mixin_type_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_app_cstr);
+  OS::SNPrint(chars, len, format, super_type_cstr, first_mixin_type_cstr);
   return chars;
 }
 
@@ -12239,18 +12269,18 @@ void MixinAppType::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawAbstractType* MixinAppType::SuperType() const {
-  return Class::Handle(MixinAppAt(0)).super_type();
+RawAbstractType* MixinAppType::MixinTypeAt(intptr_t depth) const {
+  return AbstractType::RawCast(Array::Handle(mixin_types()).At(depth));
 }
 
 
-RawClass* MixinAppType::MixinAppAt(intptr_t depth) const {
-  return Class::RawCast(Array::Handle(mixins()).At(depth));
+void MixinAppType::set_super_type(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->super_type_, value.raw());
 }
 
 
-void MixinAppType::set_mixins(const Array& value) const {
-  StorePointer(&raw_ptr()->mixins_, value.raw());
+void MixinAppType::set_mixin_types(const Array& value) const {
+  StorePointer(&raw_ptr()->mixin_types_, value.raw());
 }
 
 
@@ -12266,9 +12296,11 @@ RawMixinAppType* MixinAppType::New() {
 }
 
 
-RawMixinAppType* MixinAppType::New(const Array& mixins) {
+RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
+                                   const Array& mixin_types) {
   const MixinAppType& result = MixinAppType::Handle(MixinAppType::New());
-  result.set_mixins(mixins);
+  result.set_super_type(super_type);
+  result.set_mixin_types(mixin_types);
   return result.raw();
 }
 
@@ -15241,19 +15273,19 @@ void Stacktrace::SetCatchStacktrace(const Array& code_array,
 
 RawString* Stacktrace::FullStacktrace() const {
   const Array& code_array = Array::Handle(raw_ptr()->catch_code_array_);
+  intptr_t idx = 0;
   if (!code_array.IsNull() && (code_array.Length() > 0)) {
     const Array& pc_offset_array =
         Array::Handle(raw_ptr()->catch_pc_offset_array_);
     const Stacktrace& catch_trace = Stacktrace::Handle(
         Stacktrace::New(code_array, pc_offset_array));
-    intptr_t idx = Length();
-    const String& trace =
-        String::Handle(String::New(catch_trace.ToCStringInternal(idx)));
-    const String& throw_trace =
-        String::Handle(String::New(ToCStringInternal(0)));
-    return String::Concat(throw_trace, trace);
+    const String& throw_string =
+        String::Handle(String::New(ToCStringInternal(&idx)));
+    const String& catch_string =
+        String::Handle(String::New(catch_trace.ToCStringInternal(&idx)));
+    return String::Concat(throw_string, catch_string);
   }
-  return String::New(ToCStringInternal(0));
+  return String::New(ToCStringInternal(&idx));
 }
 
 
@@ -15315,7 +15347,7 @@ static intptr_t PrintOneStacktrace(Isolate* isolate,
 }
 
 
-const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
+const char* Stacktrace::ToCStringInternal(intptr_t* frame_index) const {
   Isolate* isolate = Isolate::Current();
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -15323,7 +15355,6 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
   // for each frame.
   intptr_t total_len = 0;
   GrowableArray<char*> frame_strings;
-  intptr_t current_frame_index = frame_index;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
@@ -15351,13 +15382,13 @@ const char* Stacktrace::ToCStringInternal(intptr_t frame_index) const {
           ASSERT(code.EntryPoint() <= pc);
           ASSERT(pc < (code.EntryPoint() + code.Size()));
           total_len += PrintOneStacktrace(
-              isolate, &frame_strings, pc, function, code, current_frame_index);
-          current_frame_index++;  // To account for inlined frames.
+              isolate, &frame_strings, pc, function, code, *frame_index);
+          (*frame_index)++;  // To account for inlined frames.
         }
       } else {
         total_len += PrintOneStacktrace(
-            isolate, &frame_strings, pc, function, code, current_frame_index);
-        current_frame_index++;
+            isolate, &frame_strings, pc, function, code, *frame_index);
+        (*frame_index)++;
       }
     }
   }

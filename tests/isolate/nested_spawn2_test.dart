@@ -10,12 +10,13 @@ library NestedSpawn2Test;
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 
-void isolateA() {
-  port.receive((msg, replyTo) {
-    expect(msg, "launch nested!");
-    SendPort p = spawnFunction(isolateB);
-    p.send(replyTo, null);
-    port.close();
+void isolateA(SendPort init) {
+  ReceivePort port = new ReceivePort();
+  init.send(port.sendPort);
+  port.first.then((message) {
+    expect(message[0], "launch nested!");
+    SendPort replyTo = message[1];
+    Isolate.spawn(isolateB, replyTo);
   });
 }
 
@@ -29,42 +30,41 @@ String msg6 = "6 Great. Bye";
 
 void _call(SendPort p, msg, void onreceive(m, replyTo)) {
   final replyTo = new ReceivePort();
-  p.send(msg, replyTo.toSendPort());
-  replyTo.receive((m, r) {
-    replyTo.close();
-    onreceive(m, r);
+  p.send([msg, replyTo.sendPort]);
+  replyTo.first.then((m) {
+    onreceive(m[0], m[1]);
   });
 }
 
-void isolateB() {
-  port.receive((mainPort, replyTo) {
-    port.close();
-    // Do a little ping-pong dance to give the intermediate isolate
-    // time to die.
-    _call(mainPort, msg0, ((msg, replyTo) {
-      expect(msg[0], "1");
-      _call(replyTo, msg2, ((msg, replyTo) {
-        expect(msg[0], "3");
-        _call(replyTo, msg4, ((msg, replyTo) {
-          expect(msg[0], "5");
-          replyTo.send(msg6, null);
-        }));
+void isolateB(SendPort mainPort) {
+  // Do a little ping-pong dance to give the intermediate isolate
+  // time to die.
+  _call(mainPort, msg0, ((msg, replyTo) {
+    expect(msg[0], "1");
+    _call(replyTo, msg2, ((msg, replyTo) {
+      expect(msg[0], "3");
+      _call(replyTo, msg4, ((msg, replyTo) {
+        expect(msg[0], "5");
+        replyTo.send([msg6, null]);
       }));
     }));
-  });
+  }));
 }
 
 main() {
   test("spawned isolate can spawn other isolates", () {
-    SendPort port = spawnFunction(isolateA);
-    _call(port, "launch nested!", expectAsync2((msg, replyTo) {
-      expect(msg[0], "0");
-      _call(replyTo, msg1, expectAsync2((msg, replyTo) {
-        expect(msg[0], "2");
-        _call(replyTo, msg3, expectAsync2((msg, replyTo) {
-          expect(msg[0], "4");
-          _call(replyTo, msg5, expectAsync2((msg, replyTo) {
-            expect(msg[0], "6");
+    ReceivePort init = new ReceivePort();
+    Isolate.spawn(isolateA, init.sendPort);
+    init.first.then(expectAsync1((port) {
+      _call(port, "launch nested!", expectAsync2((msg, replyTo) {
+        expect(msg[0], "0");
+        _call(replyTo, msg1, expectAsync2((msg, replyTo) {
+          expect(msg[0], "2");
+          _call(replyTo, msg3, expectAsync2((msg, replyTo) {
+            expect(msg[0], "4");
+            _call(replyTo, msg5, expectAsync2((msg, _) {
+              expect(msg[0], "6");
+            }));
           }));
         }));
       }));

@@ -97,6 +97,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
 
+    'ClientRect': 'ClientRect,DOMRect',
+
     'CSSStyleDeclaration':
         #                    IE                   Firefox
         'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
@@ -533,6 +535,10 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'EventTarget set':
       Conversion('_convertDartToNative_EventTarget', 'EventTarget',
                  'dynamic'),
+
+    'WebGLContextAttributes get':
+      Conversion('convertNativeToDart_ContextAttributes', 'dynamic',
+                 'ContextAttributes'),
 
     'ImageData get':
       Conversion('convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
@@ -1123,7 +1129,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'GLenum': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
-    'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
     'HTMLCollection': TypeData(clazz='Interface', item_type='Node'),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
     'NodeList': TypeData(clazz='Interface', item_type='Node',

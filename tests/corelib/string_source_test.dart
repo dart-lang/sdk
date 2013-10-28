@@ -4,7 +4,7 @@
 
 // Test that different representations of the same string are all equal.
 
-import "dart:json" as json;
+import "dart:convert";
 
 import "package:expect/expect.dart";
 
@@ -23,8 +23,8 @@ main() {
     (new StringBuffer()..writeCharCode(0xd801)
                        ..writeCharCode(0xdc12)).toString(),
     (new StringBuffer()..writeCharCode(0x10412)).toString(),
-    json.parse('"\u{10412}"'),
-    json.parse('{"\u{10412}":[]}').keys.first
+    JSON.decode('"\u{10412}"'),
+    JSON.decode('{"\u{10412}":[]}').keys.first
   ];
   for (String string in strings) {
     Expect.equals(base.length, string.length);

@@ -613,16 +613,21 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * caller of this function (the vm) will make sure that the buffer is
  * freed.
  *
- * \param script_uri The uri of the script to load.  This uri has been
- *   canonicalized by the library tag handler from the parent isolate.
+ * \param script_uri The uri of the script to load.
+ *   This uri is non NULL if the isolate is being created using the
+ *   spawnUri isolate API. This uri has been canonicalized by the
+ *   library tag handler from the parent isolate.
  *   The callback is responsible for loading this script by a call to
  *   Dart_LoadScript or Dart_LoadScriptFromSnapshot.
+ *   This uri will be NULL if the isolate is being created using the
+ *   spawnFunction isolate API.
+ *   The callback is responsible for loading the script used in the
+ *   parent isolate by a call to Dart_LoadScript or
+ *   Dart_LoadScriptFromSnapshot.
  * \param main The name of the main entry point this isolate will
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
- * \param unhandled_exc The name of the function to this isolate will
- *   call when an unhandled exception is encountered.
  * \param callback_data The callback data which was passed to the
  *   parent isolate when it was created by calling Dart_CreateIsolate().
  * \param error A structure into which the embedder can place a

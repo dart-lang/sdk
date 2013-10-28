@@ -27,9 +27,9 @@ class ObjectStore {
     kCollectionDev,
     kConvert,
     kIsolate,
-    kJson,
     kMath,
     kMirrors,
+    kPlatform,
     kTypedData,
     kUtf,
   };
@@ -277,9 +277,9 @@ class ObjectStore {
   }
   RawLibrary* convert_library() const { return convert_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
-  RawLibrary* json_library() const { return json_library_; }
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
+  RawLibrary* platform_library() const { return platform_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
   RawLibrary* utf_library() const { return utf_library_; }
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
@@ -302,14 +302,14 @@ class ObjectStore {
       case kIsolate:
         isolate_library_ = value.raw();
         break;
-      case kJson:
-        json_library_ = value.raw();
-        break;
       case kMath:
         math_library_ = value.raw();
         break;
       case kMirrors:
         mirrors_library_ = value.raw();
+        break;
+      case kPlatform:
+        platform_library_ = value.raw();
         break;
       case kTypedData:
         typed_data_library_ = value.raw();
@@ -480,10 +480,10 @@ class ObjectStore {
   RawLibrary* collection_dev_library_;
   RawLibrary* convert_library_;
   RawLibrary* isolate_library_;
-  RawLibrary* json_library_;
   RawLibrary* math_library_;
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;
+  RawLibrary* platform_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
   RawLibrary* utf_library_;

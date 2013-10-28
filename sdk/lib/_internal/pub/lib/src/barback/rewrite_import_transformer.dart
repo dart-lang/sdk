@@ -7,7 +7,7 @@ library pub.rewrite_import_transformer;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer/analyzer.dart';
 
 /// A transformer used internally to rewrite "package:" imports so they point to
 /// the barback server rather than to pub's package root.

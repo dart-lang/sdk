@@ -2026,8 +2026,16 @@ Environment* Environment::DeepCopy(intptr_t length) const {
                       deopt_id_,
                       function_,
                       (outer_ == NULL) ? NULL : outer_->DeepCopy());
+  if (locations_ != NULL) {
+    Location* new_locations =
+        Isolate::Current()->current_zone()->Alloc<Location>(length);
+    copy->set_locations(new_locations);
+  }
   for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->Copy());
+    if (locations_ != NULL) {
+      copy->locations_[i] = locations_[i];
+    }
   }
   return copy;
 }

@@ -383,7 +383,7 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+        String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
     const String& function_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_lookupReceivePort()));
     function = Resolver::ResolveStatic(isolate_lib,
@@ -415,7 +415,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+        String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
     const String& function_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_handleMessage()));
     function = Resolver::ResolveStatic(isolate_lib,

@@ -12,13 +12,13 @@ final _typeHandlers = () {
   var m = new Map();
   m[#dart.core.String] = (x, _) => x;
   m[#dart.core.Null] = (x, _) => x;
-  m[#dart.core.DateTime] = (x, _) {
+  m[#dart.core.DateTime] = (x, def) {
     // TODO(jmesserly): shouldn't need to try-catch here
     // See: https://code.google.com/p/dart/issues/detail?id=1878
     try {
       return DateTime.parse(x);
     } catch (e) {
-      return new DateTime.now();
+      return def;
     }
   };
   m[#dart.core.bool] = (x, _) => x != 'false';
@@ -30,11 +30,11 @@ final _typeHandlers = () {
 }();
 
 /**
- * Convert representation of [value] based on type of [defaultValue].
+ * Convert representation of [value] based on type of [currentValue].
  */
-Object deserializeValue(String value, Object defaultValue, TypeMirror type) {
+Object deserializeValue(String value, Object currentValue, TypeMirror type) {
   var handler = _typeHandlers[type.qualifiedName];
-  if (handler != null) return handler(value, defaultValue);
+  if (handler != null) return handler(value, currentValue);
 
   try {
     // If the string is an object, we can parse is with the JSON library.

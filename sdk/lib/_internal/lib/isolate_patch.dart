@@ -10,31 +10,26 @@ import 'dart:_isolate_helper' show IsolateNatives,
                                    CloseToken,
                                    JsIsolateSink;
 
-patch class _Isolate {
-  patch static ReceivePort get port {
-    if (lazyPort == null) {
-      lazyPort = new ReceivePort();
+patch class Isolate {
+  patch static Future<Isolate> spawn(void entryPoint(message), var message) {
+    SendPort controlPort = IsolateNatives.spawnFunction(entryPoint, message);
+    return new Future<Isolate>.value(new Isolate._fromControlPort(controlPort));
+  }
+
+  patch static Future<Isolate> spawnUri(
+      Uri uri, List<String> args, var message) {
+    if (args is List<String>) {
+      for (int i = 0; i < args.length; i++) {
+        if (args[i] is! String) {
+          throw new ArgumentError("Args must be a list of Strings $args");
+        }
+      }
+    } else if (args != null) {
+      throw new ArgumentError("Args must be a list of Strings $args");
     }
-    return lazyPort;
+    SendPort controlPort = IsolateNatives.spawnUri(uri, args, message);
+    return new Future<Isolate>.value(new Isolate._fromControlPort(controlPort));
   }
-
-  patch static SendPort spawnFunction(void topLevelFunction(),
-      [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
-    if (unhandledExceptionCallback != null) {
-      // TODO(9012): Implement the UnhandledExceptionCallback.
-      throw new UnimplementedError(
-          "spawnFunction with unhandledExceptionCallback");
-    }
-    return IsolateNatives.spawnFunction(topLevelFunction);
-  }
-
-  patch static SendPort spawnUri(String uri) {
-    return IsolateNatives.spawn(null, uri, false);
-  }
-}
-
-patch bool _isCloseToken(var object) {
-  return identical(object, const CloseToken());
 }
 
 /** Default factory for receive ports. */
@@ -42,24 +37,14 @@ patch class ReceivePort {
   patch factory ReceivePort() {
     return new ReceivePortImpl();
   }
+
+  patch factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
+    throw new UnimplementedError("ReceivePort.fromRawReceivePort");
+  }
 }
 
-patch class MessageBox {
-  patch MessageBox.oneShot() : this._oneShot(new ReceivePort());
-  MessageBox._oneShot(ReceivePort receivePort)
-      : stream = new IsolateStream._fromOriginalReceivePortOneShot(receivePort),
-        sink = new JsIsolateSink.fromPort(receivePort.toSendPort());
-
-  patch MessageBox() : this._(new ReceivePort());
-  MessageBox._(ReceivePort receivePort)
-      : stream = new IsolateStream._fromOriginalReceivePort(receivePort),
-        sink = new JsIsolateSink.fromPort(receivePort.toSendPort());
-}
-
-patch IsolateSink streamSpawnFunction(
-    void topLevelFunction(),
-    [bool unhandledExceptionCallback(IsolateUnhandledException e)]) {
-  SendPort sendPort = spawnFunction(topLevelFunction,
-                                    unhandledExceptionCallback);
-  return new JsIsolateSink.fromPort(sendPort);
+patch class RawReceivePort {
+  patch factory RawReceivePort([void handler(event)]) {
+    throw new UnimplementedError("RawReceivePort");
+  }
 }

@@ -5,9 +5,21 @@
 part of dart.io;
 
 /**
- * The [Platform] class exposes details of the machine and operating
+ * Deprecated: the [Platform] class exposes details of the machine and operating
  * system.
+ *
+ * This class has been replaced by adding the dart:platform library to Dart.
+ * dart:platform is available on all browser and standalone platforms,
+ * including Dart code that has been compiled to javascript.
+ *
+ * The dart:platform class has
+ * the same top-level getters as the members of [Platform], except that the
+ * [isWindows], [isLinux], [isAndroid], and [isMacOS] getters
+ * have been removed. On platforms supporting dart:io, the getters of
+ * dart:platform have the same values as the Platform class members, except
+ * that [script] has been changed from a [String] to a file [Uri].
  */
+@deprecated
 class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
   static final _pathSeparator = _Platform.pathSeparator;

@@ -1,0 +1,75 @@
+<!doctype html>
+<!--
+   Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head><title>event path declarative test</title>
+    <script src="packages/unittest/test_controller.js"></script>
+    <!--
+    Test ported from:
+    https://github.com/Polymer/polymer/blob/7936ff8/test/html/event-path-declarative.html
+    -->
+  </head>
+  <body>
+    <x-bar><div id="target">Test</div></x-bar>
+    <polymer-element name="x-zug" on-test-event="{{testEventHandler}}">
+      <template>
+        x-zug:
+        <div id="xZugDiv" on-test-event="{{divTestEventHandler}}">
+          <content id="xZugContent" on-test-event="{{contentTestEventHandler}}">
+          </content>
+        </div>
+      </template>
+    </polymer-element>
+
+
+    <polymer-element name="x-foo" on-test-event="{{testEventHandler}}">
+      <template>
+        <style>
+          @host {
+              display: block;
+              border: 1px solid green;
+              padding: 10px;
+            }
+        </style>
+        x-foo:
+        <div id="xFooDiv" on-test-event="{{divTestEventHandler}}">
+          <x-zug><content id="xFooContent"
+                          on-test-event="{{contentTestEventHandler}}"></content>
+          </x-zug>
+        </div>
+      </template>
+    </polymer-element>
+
+
+    <polymer-element name="x-bar" on-test-event="{{testEventHandler}}">
+      <template>
+        <style>
+          @host {
+            display: block;
+            border: 1px solid red;
+            padding: 10px;
+          }
+
+          .clicky {
+            border: 1px solid black;
+          }
+
+        </style>
+        x-bar:
+        <x-foo>
+          <div class="clicky" id="xBarDiv"
+               on-test-event="{{divTestEventHandler}}">
+          <content id="xBarContent" on-test-event="{{contentTestEventHandler}}">
+          </content>
+          </div>
+        </x-foo>
+      </template>
+    </polymer-element>
+
+  <script type="application/dart" src="event_path_declarative_test.dart"></script>
+  </body>
+</html>

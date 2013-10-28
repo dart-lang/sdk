@@ -37,8 +37,10 @@ class MandelbrotState {
 
   void startClient(int id) {
     assert(_sent < N);
-    final client = new LineProcessorClient(this, id);
-    client.processLine(_sent++);
+    int line = _sent++;
+    LineProcessorClient.create(this, id).then((final client) {
+      client.processLine(line);
+    });
   }
 
   void notifyProcessedLine(LineProcessorClient client, int y, List<int> line) {
@@ -86,24 +88,32 @@ class MandelbrotState {
 
 
 class LineProcessorClient {
+  MandelbrotState _state;
+  int _id;
+  SendPort _port;
 
-  LineProcessorClient(MandelbrotState this._state, int this._id) {
-    _port = spawnFunction(processLines);
+  LineProcessorClient(this._state, this._id, this._port);
+
+  static Future<LineProcessorClient> create(MandelbrotState state, int id) {
+    ReceivePort reply = new ReceivePort();
+    return Isolate.spawn(processLines, reply.sendPort).then((_) {
+      return reply.first.then((port) {
+        return new LineProcessorClient(state, id, port);
+      });
+    });
   }
 
   void processLine(int y) {
-    _port.call(y).then((List<int> message) {
+    ReceivePort reply = new ReceivePort();
+    _port.send([y, reply.sendPort]);
+    reply.first.then((List<int> message) {
       _state.notifyProcessedLine(this, y, message);
     });
   }
 
   void shutdown() {
-    _port.send(TERMINATION_MESSAGE, null);
+    _port.send(TERMINATION_MESSAGE);
   }
-
-  MandelbrotState _state;
-  int _id;
-  SendPort _port;
 }
 
 List<int> processLine(int y) {
@@ -133,13 +143,16 @@ List<int> processLine(int y) {
   return result;
 }
 
-void processLines() {
-  port.receive((message, SendPort replyTo) {
-    if (message == TERMINATION_MESSAGE) {
-      assert(replyTo == null);
-      port.close();
+void processLines(SendPort replyPort) {
+  ReceivePort port = new ReceivePort();
+  port.listen((message) {
+    if (message != TERMINATION_MESSAGE) {
+      int line = message[0];
+      SendPort replyTo = message[1];
+      replyTo.send(processLine(line));
     } else {
-      replyTo.send(processLine(message), null);
+      port.close();
     }
   });
+  replyPort.send(port.sendPort);
 }

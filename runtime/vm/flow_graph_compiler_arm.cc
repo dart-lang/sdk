@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -599,7 +600,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ PushList((1 << R1) | (1 << R2));
     __ LoadObject(R0, test_cache);
     __ Push(R0);
-    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -678,7 +679,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ Push(R0);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
-    GenerateCallRuntime(token_pos,
+    GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
                         3,
@@ -708,7 +709,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(R0, test_cache);
   __ Push(R0);
-  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -1228,7 +1229,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
+void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             intptr_t argument_count,
@@ -1368,8 +1369,18 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // be invoked as a normal Dart function.
   __ add(IP, R2, ShifterOperand(R3, LSL, 2));
   __ ldr(R0, FieldAddress(IP, base + kWordSize));
-  __ ldr(R0, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ b(&is_compiled, NE);
+    __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
+    // R0: target function.
+    __ ldr(R1, FieldAddress(R0, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ ldr(R0, FieldAddress(R1, Code::instructions_offset()));
   __ LoadObject(R5, ic_data);
   __ LoadObject(R4, arguments_descriptor);
   __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
@@ -1495,9 +1506,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
+// FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     __ AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
     // Store fpu registers with the lowest register number at the lowest
@@ -1536,7 +1549,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     __ PopList(cpu_registers);
   }
 
-  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;

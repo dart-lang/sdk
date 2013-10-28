@@ -1,0 +1,28 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+    <title>register test</title>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+  <polymer-element name="x-a" noscript><template>a</template></polymer-element>
+  <polymer-element name="x-b" noscript><template>b</template></polymer-element>
+  <polymer-element name="x-c" noscript><template>c</template></polymer-element>
+  <polymer-element name="x-d" noscript><template>d</template></polymer-element>
+
+  <x-a></x-a>
+  <template id="a" bind>
+    <x-b></x-b>
+    <x-c></x-c>
+  </template>
+  <x-d></x-d>
+
+  <script type="application/dart" src="noscript_test.dart"></script>
+  </body>
+</html>

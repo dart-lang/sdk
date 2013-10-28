@@ -1812,8 +1812,26 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // T3: Target function.
-  __ lw(T3, FieldAddress(T3, Function::code_offset()));
-  __ lw(T3, FieldAddress(T3, Code::instructions_offset()));
+  Label is_compiled;
+  __ lw(T4, FieldAddress(T3, Function::code_offset()));
+  if (FLAG_collect_code) {
+    __ BranchNotEqual(T4, reinterpret_cast<int32_t>(Object::null()),
+                      &is_compiled);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-3 * kWordSize));
+    __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data.
+    __ sw(S4, Address(SP, 1 * kWordSize));  // Preserve arg desc.
+    __ sw(T3, Address(SP, 0 * kWordSize));  // Function argument.
+    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+    __ lw(T3, Address(SP, 0 * kWordSize));  // Restore Function.
+    __ lw(S4, Address(SP, 1 * kWordSize));  // Restore arg desc.
+    __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data.
+    __ addiu(SP, SP, Immediate(3 * kWordSize));
+    __ LeaveStubFrame();
+    __ lw(T4, FieldAddress(T3, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ lw(T3, FieldAddress(T4, Code::instructions_offset()));
   __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T3);
 
@@ -1990,6 +2008,24 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, T0);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
+}
+
+
+// Stub for calling the CompileFunction runtime call.
+// S5: IC-Data.
+// S4: Arguments descriptor.
+// T0: Function.
+void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(S5, Address(SP, 2 * kWordSize));  // Preserve IC data object.
+  __ sw(S4, Address(SP, 1 * kWordSize));  // Preserve args descriptor array.
+  __ sw(T0, Address(SP, 0 * kWordSize));  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+  __ lw(T0, Address(SP, 0 * kWordSize));  // Restore function.
+  __ lw(S4, Address(SP, 1 * kWordSize));  // Restore args descriptor array.
+  __ lw(S5, Address(SP, 2 * kWordSize));  // Restore IC data array.
+  __ LeaveStubFrameAndReturn();
 }
 
 

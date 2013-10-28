@@ -122,7 +122,7 @@ class ClassFinalizer : public AllStatic {
                                    const Type& type,
                                    const GrowableObjectArray& collected_args);
   static RawType* ResolveMixinAppType(const Class& cls,
-                                      const MixinAppType& mixin_app);
+                                      const MixinAppType& mixin_app_type);
   static void ResolveSuperTypeAndInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls);

@@ -285,7 +285,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void TryIntrinsify();
 
-  void GenerateCallRuntime(intptr_t token_pos,
+  void GenerateRuntimeCall(intptr_t token_pos,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
                            intptr_t argument_count,
@@ -433,6 +433,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void SaveLiveRegisters(LocationSummary* locs);
   void RestoreLiveRegisters(LocationSummary* locs);
+
+  Environment* SlowPathEnvironmentFor(Instruction* instruction);
 
   // Returns true if the compiled function has a finally clause.
   bool HasFinally() const;

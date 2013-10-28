@@ -86,14 +86,6 @@ abstract class Match {
   String get input;
 
   /**
-   * Deprecated alias for [input].
-   *
-   * Will be removed soon.
-   */
-  @deprecated
-  String get str;
-
-  /**
    * The pattern used to search in [input].
    */
   Pattern get pattern;

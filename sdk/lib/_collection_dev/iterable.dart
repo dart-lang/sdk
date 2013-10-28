@@ -18,35 +18,6 @@ abstract class EfficientLength {
   int get length;
 }
 
-// This is a hack to make @deprecated work in dart:io. Don't remove or use this,
-// unless coordinated with either me or the core library team. Thanks!
-// TODO(ajohnsen): Remove at the 11th of August 2013.
-// TODO(ajohnsen): Remove hide in:
-//    tools/dom/templates/html/dart2js/html_dart2js.darttemplate
-//    tools/dom/templates/html/dart2js/svg_dart2js.darttemplate
-//    tools/dom/templates/html/dart2js/web_audio_dart2js.darttemplate
-//    tools/dom/templates/html/dart2js/web_gl_dart2js.darttemplate
-//    tools/dom/templates/html/dart2js/web_sql_dart2js.darttemplate
-//    tools/dom/templates/html/dartium/html_dartium.darttemplate
-//    tools/dom/templates/html/dartium/svg_dartium.darttemplate
-//    tools/dom/templates/html/dartium/web_audio_dartium.darttemplate
-//    tools/dom/templates/html/dartium/web_gl_dartium.darttemplate
-//    tools/dom/templates/html/dartium/web_sql_dartium.darttemplate
-//    sdk/lib/core/regexp.dart
-// TODO(floitsch): also used in dart:async until end of September for
-//    deprecation of runZonedExperimental.
-// TODO(floitsch): also used in dart:json and dart:utf until middle of October
-//    for deprecation of json and utf libraries.
-// TODO(floitsch): and dart:async until middle of October for deprecation of
-//    getAttachedStackTrace.
-// TODO(floitsch): and dart:async until end of October for deprecation of
-//    runAsync.
-
-// We use a random string constant to avoid it clashing with other constants.
-// This is, because we have a test that verifies that no metadata is included
-// in the output, when no mirrors need them.
-const deprecated = "qB2n4PYM";
-
 /**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
  *

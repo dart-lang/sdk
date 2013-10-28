@@ -20,10 +20,10 @@ void main() {
       'a|lib/test.html.messages': ''
     });
 
-  group('must use init.dart, dart.js, not boot.js', () {
+  group('must have Dart code to invoke initPolymer, dart.js, not boot.js', () {
     _testLinter('nothing to report', {
         'a|web/test.html': '<!DOCTYPE html><html>'
-            '<script type="application/dart" src="packages/polymer/init.dart">'
+            '<script type="application/dart" src="foo.dart">'
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
@@ -31,7 +31,7 @@ void main() {
         'a|web/test.html.messages': '',
       });
 
-    _testLinter('missing init.dart and dart.js', {
+    _testLinter('missing Dart code and dart.js', {
         'a|web/test.html': '<!DOCTYPE html><html></html>',
       }, {
         'a|web/test.html.messages': 'error: $USE_INIT_DART\n'
@@ -41,7 +41,7 @@ void main() {
     _testLinter('using deprecated boot.js', {
         'a|web/test.html': '<!DOCTYPE html><html>\n'
             '<script src="packages/polymer/boot.js"></script>'
-            '<script type="application/dart" src="packages/polymer/init.dart">'
+            '<script type="application/dart" src="foo.dart">'
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
             '</html>',

@@ -31,9 +31,9 @@ _exceptionFromResponse(response, String message, String path) {
     case _OSERROR_RESPONSE:
       var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                             response[_OSERROR_RESPONSE_ERROR_CODE]);
-      return new FileException(message, path, err);
+      return new FileSystemException(message, path, err);
     case _FILE_CLOSED_RESPONSE:
-      return new FileException("File closed", path);
+      return new FileSystemException("File closed", path);
     default:
       return new Exception("Unknown error");
   }

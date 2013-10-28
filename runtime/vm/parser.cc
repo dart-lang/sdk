@@ -97,22 +97,6 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 }
 
 
-static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
-  const UnhandledException& excp = UnhandledException::Cast(obj);
-  Instance& exception = Instance::ZoneHandle(excp.exception());
-  if (exception.IsNew()) {
-    exception ^= Object::Clone(exception, Heap::kOld);
-  }
-  Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
-  if (stack_trace.IsNew()) {
-    stack_trace ^= Object::Clone(stack_trace, Heap::kOld);
-  }
-  return new ThrowNode(token_pos,
-                       new LiteralNode(token_pos, exception),
-                       new LiteralNode(token_pos, stack_trace));
-}
-
-
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   if (!has_expression_temp_var()) {
     LocalVariable* temp =
@@ -460,6 +444,7 @@ struct ParamList {
     num_optional_parameters = 0;
     has_optional_positional_parameters = false;
     has_optional_named_parameters = false;
+    has_explicit_default_values = false;
     has_field_initializer = false;
     implicitly_final = false;
     skipped = false;
@@ -505,6 +490,7 @@ struct ParamList {
   int num_optional_parameters;
   bool has_optional_positional_parameters;
   bool has_optional_named_parameters;
+  bool has_explicit_default_values;
   bool has_field_initializer;
   bool implicitly_final;
   bool skipped;
@@ -897,7 +883,7 @@ RawArray* Parser::EvaluateMetadata() {
     if (expr->EvalConstExpr() == NULL) {
       ErrorMsg(expr_pos, "expression must be a compile-time constant");
     }
-    const Instance& val = EvaluateConstExpr(expr);
+    const Instance& val = EvaluateConstExpr(expr_pos, expr);
     meta_values.Add(val);
   }
   return Array::MakeArray(meta_values);
@@ -1494,6 +1480,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       ExpectToken(Token::kCOLON);
     }
     params->num_optional_parameters++;
+    params->has_explicit_default_values = true;  // Also if explicitly NULL.
     if (is_top_level_) {
       // Skip default value parsing.
       SkipExpr();
@@ -2128,13 +2115,15 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   ConsumeToken();
   ExpectToken(Token::kASSIGN);
   AstNode* init_expr = NULL;
+  intptr_t expr_pos = TokenPos();
   if (field.is_const()) {
     init_expr = ParseConstExpr();
   } else {
     init_expr = ParseExpr(kAllowConst, kConsumeCascades);
     if (init_expr->EvalConstExpr() != NULL) {
       init_expr =
-          new LiteralNode(field.token_pos(), EvaluateConstExpr(init_expr));
+          new LiteralNode(field.token_pos(),
+                          EvaluateConstExpr(expr_pos, init_expr));
     }
   }
   set_current_class(saved_class);
@@ -2173,10 +2162,11 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         if (field.is_const()) {
           init_expr = ParseConstExpr();
         } else {
+          intptr_t expr_pos = TokenPos();
           init_expr = ParseExpr(kAllowConst, kConsumeCascades);
           if (init_expr->EvalConstExpr() != NULL) {
             init_expr = new LiteralNode(field.token_pos(),
-                                        EvaluateConstExpr(init_expr));
+                                        EvaluateConstExpr(expr_pos, init_expr));
           }
         }
       }
@@ -3036,6 +3026,12 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   String& redirection_identifier = String::Handle();
   bool is_redirecting = false;
   if (method->IsFactory() && (CurrentToken() == Token::kASSIGN)) {
+    // Default parameter values are disallowed in redirecting factories.
+    if (method->params.has_explicit_default_values) {
+      ErrorMsg("redirecting factory '%s' may not specify default values "
+               "for optional parameters",
+               method->name->ToCString());
+    }
     ConsumeToken();
     const intptr_t type_pos = TokenPos();
     is_redirecting = true;
@@ -3766,7 +3762,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
     if (CurrentToken() == Token::kWITH) {
-      super_type = ParseMixins(pending_classes, super_type);
+      super_type = ParseMixins(super_type);
     }
     if (is_mixin_declaration) {
       cls.set_is_mixin_typedef();
@@ -3968,7 +3964,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   if (CurrentToken() != Token::kWITH) {
     ErrorMsg("mixin application 'with Type' expected");
   }
-  type = ParseMixins(pending_classes, type);
+  type = ParseMixins(type);
 
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
@@ -4351,62 +4347,30 @@ void Parser::ParseInterfaceList(const Class& cls) {
 }
 
 
-RawAbstractType* Parser::ParseMixins(const GrowableObjectArray& pending_classes,
-                                     const AbstractType& super_type) {
+RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
   ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
-  AbstractType& mixin_super_type = AbstractType::Handle(super_type.raw());
-
-  const GrowableObjectArray& mixin_apps =
+  const GrowableObjectArray& mixin_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
-  Class& mixin_app_class = Class::Handle();
-  String& mixin_app_class_name = String::Handle();
-  String& mixin_type_class_name = String::Handle();
   do {
     ConsumeToken();
-    const intptr_t mixin_pos = TokenPos();
     mixin_type = ParseType(ClassFinalizer::kResolveTypeParameters);
+    if (mixin_type.IsDynamicType()) {
+      // The string 'dynamic' is not resolved yet at this point, but a malformed
+      // type mapped to dynamic can be encountered here.
+      ErrorMsg(mixin_type.token_pos(), "illegal mixin of a malformed type");
+    }
     if (mixin_type.IsTypeParameter()) {
-      ErrorMsg(mixin_pos,
+      ErrorMsg(mixin_type.token_pos(),
                "mixin type '%s' may not be a type parameter",
                String::Handle(mixin_type.UserVisibleName()).ToCString());
     }
-
-    // The name of the mixin application class is a combination of
-    // the super class name and mixin class name.
-    mixin_app_class_name = mixin_super_type.ClassName();
-    mixin_app_class_name = String::Concat(mixin_app_class_name,
-                                          Symbols::Ampersand());
-    mixin_type_class_name = mixin_type.ClassName();
-    mixin_app_class_name = String::Concat(mixin_app_class_name,
-                                          mixin_type_class_name);
-    mixin_app_class_name = Symbols::New(mixin_app_class_name);
-
-    mixin_app_class = Class::New(mixin_app_class_name, script_, mixin_pos);
-    mixin_app_class.set_super_type(mixin_super_type);
-    mixin_app_class.set_mixin(Type::Cast(mixin_type));
-    mixin_app_class.set_library(library_);
-    mixin_app_class.set_is_synthesized_class();
-    pending_classes.Add(mixin_app_class, Heap::kOld);
-
-    // The class finalizer will add the mixin type to the interfaces that the
-    // mixin application class implements. This is necessary so that type tests
-    // work. The mixin class may not be resolved yet, so it is not possible to
-    // add the interface with the correct type arguments here.
-
-    // Add the synthesized class to the list of mixin apps.
-    mixin_apps.Add(mixin_app_class);
-
-    // This mixin application class becomes the type class of the super type of
-    // the next mixin application class. It is however too early to provide the
-    // correct super type arguments. We use the raw type for now.
-    mixin_super_type = Type::New(mixin_app_class,
-                                 Object::null_abstract_type_arguments(),
-                                 mixin_pos);
+    mixin_types.Add(mixin_type);
   } while (CurrentToken() == Token::kCOMMA);
-  return MixinAppType::New(Array::Handle(Array::MakeArray(mixin_apps)));
+  return MixinAppType::New(super_type,
+                           Array::Handle(Array::MakeArray(mixin_types)));
 }
 
 
@@ -7649,7 +7613,7 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
   if (expr->EvalConstExpr() == NULL) {
     ErrorMsg(expr_pos, "expression is not a valid compile-time constant");
   }
-  return new LiteralNode(expr_pos, EvaluateConstExpr(expr));
+  return new LiteralNode(expr_pos, EvaluateConstExpr(expr_pos, expr));
 }
 
 
@@ -7862,8 +7826,11 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
 
 LiteralNode* Parser::ParseConstExpr() {
   TRACE_PARSER("ParseConstExpr");
+  intptr_t expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kRequireConst, kNoCascades);
-  ASSERT(expr->IsLiteralNode());
+  if (!expr->IsLiteralNode()) {
+    ErrorMsg(expr_pos, "expression must be a compile-time constant");
+  }
   return expr->AsLiteralNode();
 }
 
@@ -9572,7 +9539,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                      map_constr,
                                      constr_args));
     if (constructor_result.IsUnhandledException()) {
-      return GenerateRethrow(literal_pos, constructor_result);
+      AppendErrorMsg(Error::Cast(constructor_result),
+                     literal_pos,
+                     "error executing const Map constructor");
     } else {
       const Instance& const_instance = Instance::Cast(constructor_result);
       return new LiteralNode(literal_pos,
@@ -9620,6 +9589,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                      factory_method,
                                      factory_param);
   }
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -9685,7 +9656,9 @@ AstNode* Parser::ParseSymbolLiteral() {
                                    constr,
                                    constr_args));
   if (result.IsUnhandledException()) {
-    return GenerateRethrow(symbol_pos, result);
+    AppendErrorMsg(Error::Cast(result),
+                   symbol_pos,
+                   "error executing const Symbol constructor");
   }
   const Instance& instance = Instance::Cast(result);
   return new LiteralNode(symbol_pos, Instance::ZoneHandle(instance.raw()));
@@ -9923,7 +9896,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                      constructor,
                                      arguments));
     if (constructor_result.IsUnhandledException()) {
-      new_object = GenerateRethrow(new_pos, constructor_result);
+      // It's a compile-time error if invocation of a const constructor
+      // call fails.
+      AppendErrorMsg(Error::Cast(constructor_result),
+                     new_pos,
+                     "error while evaluating const constructor");
     } else {
       const Instance& const_instance = Instance::Cast(constructor_result);
       new_object = new LiteralNode(new_pos,
@@ -10060,7 +10037,7 @@ AstNode* Parser::ParseStringLiteral(bool allow_interpolation) {
             const_expr->IsBool() ||
             const_expr->IsNull())) {
           // Change expr into a literal.
-          expr = new LiteralNode(expr_pos, EvaluateConstExpr(expr));
+          expr = new LiteralNode(expr_pos, EvaluateConstExpr(expr_pos, expr));
         } else {
           is_compiletime_const = false;
         }
@@ -10258,7 +10235,7 @@ AstNode* Parser::ParsePrimary() {
 
 // Evaluate expression in expr and return the value. The expression must
 // be a compile time constant.
-const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
+const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
   if (expr->IsLiteralNode()) {
     return expr->AsLiteralNode()->literal();
   } else if (expr->IsLoadLocalNode() &&
@@ -10275,9 +10252,9 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
 
     Object& result = Object::Handle(Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
-      // Propagate the compilation error.
-      isolate()->long_jump_base()->Jump(1, Error::Cast(result));
-      UNREACHABLE();
+      AppendErrorMsg(Error::Cast(result),
+                     expr_pos,
+                     "error evaluating constant expression");
     }
     ASSERT(result.IsInstance());
     Instance& value = Instance::ZoneHandle();

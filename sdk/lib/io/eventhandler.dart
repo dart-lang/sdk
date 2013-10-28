@@ -6,6 +6,6 @@ part of dart.io;
 
 class _EventHandler {
   external static void _sendData(Object sender,
-                                 ReceivePort receivePort,
+                                 RawReceivePort receivePort,
                                  int data);
 }

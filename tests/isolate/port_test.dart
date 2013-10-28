@@ -20,8 +20,8 @@ main() {
 void testHashCode() {
   ReceivePort rp0 = new ReceivePort();
   ReceivePort rp1 = new ReceivePort();
-  Expect.equals(rp0.toSendPort().hashCode, rp0.toSendPort().hashCode);
-  Expect.equals(rp1.toSendPort().hashCode, rp1.toSendPort().hashCode);
+  Expect.equals(rp0.sendPort.hashCode, rp0.sendPort.hashCode);
+  Expect.equals(rp1.sendPort.hashCode, rp1.sendPort.hashCode);
   rp0.close();
   rp1.close();
 }
@@ -29,9 +29,9 @@ void testHashCode() {
 void testEquals() {
   ReceivePort rp0 = new ReceivePort();
   ReceivePort rp1 = new ReceivePort();
-  Expect.equals(rp0.toSendPort(), rp0.toSendPort());
-  Expect.equals(rp1.toSendPort(), rp1.toSendPort());
-  Expect.isFalse(rp0.toSendPort() == rp1.toSendPort());
+  Expect.equals(rp0.sendPort, rp0.sendPort);
+  Expect.equals(rp1.sendPort, rp1.sendPort);
+  Expect.isFalse(rp0.sendPort == rp1.sendPort);
   rp0.close();
   rp1.close();
 }
@@ -40,22 +40,22 @@ void testMap() {
   ReceivePort rp0 = new ReceivePort();
   ReceivePort rp1 = new ReceivePort();
   final map = new Map<SendPort, int>();
-  map[rp0.toSendPort()] = 42;
-  map[rp1.toSendPort()] = 87;
-  Expect.equals(map[rp0.toSendPort()], 42);
-  Expect.equals(map[rp1.toSendPort()], 87);
+  map[rp0.sendPort] = 42;
+  map[rp1.sendPort] = 87;
+  Expect.equals(map[rp0.sendPort], 42);
+  Expect.equals(map[rp1.sendPort], 87);
 
-  map[rp0.toSendPort()] = 99;
-  Expect.equals(map[rp0.toSendPort()], 99);
-  Expect.equals(map[rp1.toSendPort()], 87);
+  map[rp0.sendPort] = 99;
+  Expect.equals(map[rp0.sendPort], 99);
+  Expect.equals(map[rp1.sendPort], 87);
 
-  map.remove(rp0.toSendPort());
-  Expect.isFalse(map.containsKey(rp0.toSendPort()));
-  Expect.equals(map[rp1.toSendPort()], 87);
+  map.remove(rp0.sendPort);
+  Expect.isFalse(map.containsKey(rp0.sendPort));
+  Expect.equals(map[rp1.sendPort], 87);
 
-  map.remove(rp1.toSendPort());
-  Expect.isFalse(map.containsKey(rp0.toSendPort()));
-  Expect.isFalse(map.containsKey(rp1.toSendPort()));
+  map.remove(rp1.sendPort);
+  Expect.isFalse(map.containsKey(rp0.sendPort));
+  Expect.isFalse(map.containsKey(rp1.sendPort));
 
   rp0.close();
   rp1.close();

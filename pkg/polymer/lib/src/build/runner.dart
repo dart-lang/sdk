@@ -104,7 +104,7 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
 // TODO(sigmund): consider computing this list by recursively parsing
 // pubspec.yaml files in the `Options.packageDirs`.
 final Set<String> _polymerPackageDependencies = [
-    'analyzer_experimental', 'args', 'barback', 'browser', 'csslib',
+    'analyzer', 'args', 'barback', 'browser', 'csslib',
     'custom_element', 'fancy_syntax', 'html5lib', 'html_import', 'js',
     'logging', 'meta', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'shadow_dom', 'source_maps',

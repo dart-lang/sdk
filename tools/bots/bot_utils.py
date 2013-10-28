@@ -111,6 +111,10 @@ class GCSNamer(object):
     return '/'.join([self.dartium_directory(revision),
       self.dartium_variant_zipfilename(name, system, arch, mode)])
 
+  def apidocs_zipfilepath(self, revision):
+    return '/'.join([self.apidocs_directory(revision),
+      self.apidocs_zipfilename()])
+
   # Functions for querying gs:// directories
 
   def dartium_directory(self, revision):

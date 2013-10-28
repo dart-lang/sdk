@@ -24,8 +24,8 @@ main() {
     expect(level2 > level1, isTrue);
 
     var level3 = const Level('NOT_REAL3', 253);
-    expect(!identical(level1, level3), isTrue); // different instances
-    expect(level1 == level3, isTrue); // same value.
+    expect(level1, isNot(same(level3))); // different instances
+    expect(level1, equals(level3)); // same value.
   });
 
   test('default levels are in order', () {
@@ -60,8 +60,8 @@ main() {
     var map = new Map<Level, String>();
     map[Level.INFO] = 'info';
     map[Level.SHOUT] = 'shout';
-    expect(map[Level.INFO], equals('info'));
-    expect(map[Level.SHOUT], equals('shout'));
+    expect(map[Level.INFO], same('info'));
+    expect(map[Level.SHOUT], same('shout'));
   });
 
   test('logger name cannot start with a "." ', () {
@@ -90,10 +90,10 @@ main() {
     Logger a = new Logger('a');
     Logger b = new Logger('a.b');
     Logger c = new Logger('a.c');
-    expect(a == b.parent, isTrue);
-    expect(a == c.parent, isTrue);
-    expect(a.children['b'] == b, isTrue);
-    expect(a.children['c'] == c, isTrue);
+    expect(a, same(b.parent));
+    expect(a, same(c.parent));
+    expect(a.children['b'], same(b));
+    expect(a.children['c'], same(c));
   });
 
   test('loggers are singletons', () {
@@ -101,10 +101,57 @@ main() {
     Logger a2 = new Logger('a');
     Logger b = new Logger('a.b');
     Logger root = Logger.root;
-    expect(identical(a1, a2), isTrue);
-    expect(identical(a1, b.parent), isTrue);
-    expect(identical(root, a1.parent), isTrue);
-    expect(identical(root, new Logger('')), isTrue);
+    expect(a1, same(a2));
+    expect(a1, same(b.parent));
+    expect(root, same(a1.parent));
+    expect(root, same(new Logger('')));
+  });
+
+  test('cannot directly manipulate Logger.children', () {
+    var loggerAB = new Logger('a.b');
+    var loggerA = loggerAB.parent;
+
+    expect(loggerA.children['b'], same(loggerAB), reason: 'can read Children');
+
+    expect(() {
+        loggerAB.children['test'] = null;
+    }, throwsUnsupportedError, reason: 'Children is read-only');
+  });
+
+  test('stackTrace gets throw to LogRecord', () {
+    Logger.root.level = Level.INFO;
+
+    var records = new List<LogRecord>();
+
+    var sub = Logger.root.onRecord.listen(records.add);
+
+    try {
+      throw new UnsupportedError('test exception');
+    } catch(error, stack) {
+      Logger.root.log(Level.SEVERE, 'severe', error, stack);
+      Logger.root.warning('warning', error, stack);
+    }
+
+    Logger.root.log(Level.SHOUT, 'shout');
+
+    sub.cancel();
+
+    expect(records, hasLength(3));
+
+    var severe = records[0];
+    expect(severe.message, 'severe');
+    expect(severe.error is UnsupportedError, isTrue);
+    expect(severe.stackTrace is StackTrace, isTrue);
+
+    var warning = records[1];
+    expect(warning.message, 'warning');
+    expect(warning.error is UnsupportedError, isTrue);
+    expect(warning.stackTrace is StackTrace, isTrue);
+
+    var shout = records[2];
+    expect(shout.message, 'shout');
+    expect(shout.error, isNull);
+    expect(shout.stackTrace, isNull);
   });
 
   group('mutating levels', () {
@@ -134,7 +181,7 @@ main() {
     });
 
     test('cannot set level if hierarchy is disabled', () {
-      expect(() {a.level = Level.FINE;}, throws);
+      expect(() {a.level = Level.FINE;}, throwsUnsupportedError);
     });
 
     test('loggers effective level - no hierarchy', () {
@@ -176,7 +223,7 @@ main() {
       expect(root.isLoggable(Level.WARNING), isFalse);
       expect(c.isLoggable(Level.FINEST), isTrue);
       expect(c.isLoggable(Level.FINE), isTrue);
-      expect(!e.isLoggable(Level.SHOUT), isTrue);
+      expect(e.isLoggable(Level.SHOUT), isFalse);
     });
 
     test('add/remove handlers - no hierarchy', () {

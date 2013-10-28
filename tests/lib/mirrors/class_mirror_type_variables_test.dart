@@ -66,16 +66,16 @@ void testBAndC() {
 
   Expect.equals(b, bZ.owner);
   Expect.equals(c, cZ.owner);
-  Expect.equals(b, bZBoundTypeVariable.owner); /// 01: ok
-  Expect.equals(b, cZBoundTypeVariable.owner); /// 01: ok
+  Expect.equals(b, bZBoundTypeVariable.owner);
+  Expect.equals(b, cZBoundTypeVariable.owner);
   Expect.equals(b, bZBoundTypeArgument.owner);
   Expect.equals(c, cZBoundTypeArgument.owner);
 
   Expect.notEquals(bZ, cZ);
   Expect.equals(bZ, bZBoundTypeArgument);
   Expect.equals(cZ, cZBoundTypeArgument);
-  Expect.equals(bZ, bZBoundTypeVariable); /// 01: ok
-  Expect.equals(bZ, cZBoundTypeVariable); /// 01: ok
+  Expect.equals(bZ, bZBoundTypeVariable);
+  Expect.equals(bZ, cZBoundTypeVariable);
 }
 
 testD() {

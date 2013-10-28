@@ -86,6 +86,11 @@ class TestOptionsParser {
 
     dartium: Run Dart or JavaScript in Dartium.
 
+    ContentShellOnAndroid: Run Dart or JavaScript in Dartium content shell
+                      on Android.
+
+    DartiumOnAndroid: Run Dart or Javascript in Dartium on Android.
+
     [ff | chrome | safari | ie9 | ie10 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
@@ -94,7 +99,7 @@ class TestOptionsParser {
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid',
-               'none'],
+               'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -301,6 +306,34 @@ Note: currently only implemented for dart2js.''',
               ['--local_ip'],
               [],
               '127.0.0.1'),
+          new _TestOptionSpecification(
+              'test_server_port',
+              'Port for test http server.',
+              ['--test_server_port'],
+              [],
+              0,
+              'int'),
+          new _TestOptionSpecification(
+              'test_server_cross_origin_port',
+              'Port for test http server cross origin.',
+              ['--test_server_cross_origin_port'],
+              [],
+              0,
+              'int'),
+          new _TestOptionSpecification(
+              'test_driver_port',
+              'Port for http test driver server.',
+              ['--test_driver_port'],
+              [],
+              0,
+              'int'),
+          new _TestOptionSpecification(
+              'test_driver_error_port',
+              'Port for http test driver server errors.',
+              ['--test_driver_error_port'],
+              [],
+              0,
+              'int'),
           new _TestOptionSpecification(
               'record_to_file',
               'Records all the commands that need to be executed and writes it '
@@ -513,7 +546,8 @@ Note: currently only implemented for dart2js.''',
         break;
       case 'none':
       case 'dart2dart':
-        validRuntimes = const ['vm', 'drt', 'dartium'];
+        validRuntimes = const ['vm', 'drt', 'dartium',
+                               'ContentShellOnAndroid', 'DartiumOnAndroid'];
         break;
     }
     if (!validRuntimes.contains(config['runtime'])) {
@@ -532,15 +566,6 @@ Note: currently only implemented for dart2js.''',
       isValid = false;
       print("Error: shard index is ${config['shard']} out of "
             "${config['shards']} shards");
-    }
-    if (config['runtime'] == 'dartium' &&
-        const ['none', 'dart2dart'].contains(config['compiler']) &&
-        config['checked']) {
-      // TODO(vsm): Set the DART_FLAGS environment appropriately when
-      // invoking Selenium to support checked mode.  It's not clear
-      // the current selenium API supports this.
-      isValid = false;
-      print("Warning: checked mode is not yet supported for dartium tests.");
     }
     return isValid;
   }

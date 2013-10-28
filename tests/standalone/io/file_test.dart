@@ -707,7 +707,7 @@ class FileTest {
     openedFile.closeSync();
     try {
       openedFile.readByteSync();
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -717,7 +717,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.writeByteSync(1);
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -727,7 +727,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.writeStringSync("Test");
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -738,7 +738,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(100);
       openedFile.readIntoSync(buffer, 0, 10);
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -749,7 +749,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(100);
       openedFile.writeFromSync(buffer, 0, 10);
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -759,7 +759,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.positionSync();
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -769,7 +769,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.lengthSync();
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -779,7 +779,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.flushSync();
-    } on FileException catch (ex) {
+    } on FileSystemException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -916,7 +916,7 @@ class FileTest {
       f.openSync();
       Expect.fail("Expected exception opening directory as file");
     } catch (e) {
-      Expect.isTrue(e is FileException);
+      Expect.isTrue(e is FileSystemException);
     }
   }
 
@@ -1005,7 +1005,7 @@ class FileTest {
     Expect.listEquals(expected, text.codeUnits);
     // First character is not ASCII. The default ASCII decoder will throw.
     Expect.throws(() => new File(name).readAsStringSync(encoding: ASCII),
-                  (e) => e is FileException);
+                  (e) => e is FileSystemException);
     // We can use an ASCII decoder that inserts the replacement character.
     var lenientAscii = const AsciiCodec(allowInvalid: true);
     text = new File(name).readAsStringSync(encoding: lenientAscii);
@@ -1055,9 +1055,9 @@ class FileTest {
   static void testReadAsErrors() {
     asyncTestStarted();
     var f = new File('.');
-    Expect.throws(f.readAsBytesSync, (e) => e is FileException);
-    Expect.throws(f.readAsStringSync, (e) => e is FileException);
-    Expect.throws(f.readAsLinesSync, (e) => e is FileException);
+    Expect.throws(f.readAsBytesSync, (e) => e is FileSystemException);
+    Expect.throws(f.readAsStringSync, (e) => e is FileSystemException);
+    Expect.throws(f.readAsLinesSync, (e) => e is FileSystemException);
     var readAsBytesFuture = f.readAsBytes();
     readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"))
     .catchError((e) {
@@ -1232,7 +1232,7 @@ class FileTest {
             .then((_) => file.rename("xxx"))
             .then((_) { throw "Rename of broken link succeeded"; })
             .catchError((e) {
-              Expect.isTrue(e is FileException);
+              Expect.isTrue(e is FileSystemException);
               asyncTestDone("testRename$targetExists");
             });
         } else {

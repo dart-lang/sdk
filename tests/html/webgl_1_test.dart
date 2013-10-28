@@ -88,7 +88,24 @@ main() {
         context.texSubImage2DCanvas(1, 1, 1, 1, 1, 10, new CanvasElement());
         context.texSubImage2DVideo(1, 1, 1, 1, 1, 10, new VideoElement());
       });
+
+      test('getContextAttributes', () {
+        var canvas = new CanvasElement();
+        var context = canvas.getContext3d();
+        var attributes = context.getContextAttributes();
+
+        expect(attributes, isNotNull);
+        expect(attributes, new isInstanceOf<gl.ContextAttributes>());
+
+        expect(attributes.alpha, isBoolean);
+        expect(attributes.antialias, isBoolean);
+        expect(attributes.depth, isBoolean);
+        expect(attributes.premultipliedAlpha, isBoolean);
+        expect(attributes.preserveDrawingBuffer, isBoolean);
+        expect(attributes.stencil, isBoolean);
+      });
     }
   });
 }
 
+Matcher isBoolean = anyOf(isTrue, isFalse);

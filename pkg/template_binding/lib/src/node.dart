@@ -12,34 +12,13 @@ class NodeBindExtension {
   NodeBindExtension._(this._node);
 
   /**
-   * Creates a binding to the attribute [name] to the [path] of the [model].
-   *
-   * This can be overridden by custom elements to provide the binding used in
-   * [bind]. This will only create the binding; it will not add
-   * it to [bindings].
-   *
-   * You should not need to call this directly except from [bind].
-   */
-  NodeBinding createBinding(String name, model, String path) => null;
-
-  /**
    * Binds the attribute [name] to the [path] of the [model].
    * Path is a String of accessors such as `foo.bar.baz`.
    * Returns the `NodeBinding` instance.
    */
-  NodeBinding bind(String name, model, String path) {
-    var binding = bindings[name];
-    if (binding != null) binding.close();
-
-    // Note: dispatch through the node so it can override this.
-    binding = nodeBind(_node).createBinding(name, model, path);
-
-    bindings[name] = binding;
-    if (binding == null) {
-      window.console.error('Unhandled binding to Node: '
-          '$this $name $model $path');
-    }
-    return binding;
+  NodeBinding bind(String name, model, [String path]) {
+    window.console.error('Unhandled binding to Node: '
+        '$this $name $model $path');
   }
 
   /** Unbinds the attribute [name]. */
@@ -64,6 +43,13 @@ class NodeBindExtension {
     if (_bindings == null) _bindings = new LinkedHashMap<String, NodeBinding>();
     return _bindings;
   }
+
+  /**
+   * Dispatch support so custom HtmlElement's can override these methods.
+   * A public method like [this.bind] should not call another public method such
+   * as [this.unbind]. Instead it should dispatch through [_self.unbind].
+   */
+  NodeBindExtension get _self => _node is NodeBindExtension ? _node : this;
 
   TemplateInstance _templateInstance;
 
@@ -199,7 +185,7 @@ abstract class NodeBinding {
   get model => _model;
 
   /** True if this binding has been [closed]. */
-  bool get closed => _observer == null;
+  bool get closed => _node == null;
 
   /** The value at the [path] on [model]. */
   get value => _observer.value;
@@ -208,21 +194,27 @@ abstract class NodeBinding {
     _observer.value = newValue;
   }
 
-  NodeBinding(this._node, this.property, this._model, this.path) {
-    // Create the path observer
-    _observer = new PathObserver(model, path);
+  NodeBinding(this._node, this.property, this._model, [String path])
+      : path = path != null ? path : '' {
     _observePath();
   }
 
-  void _observePath() {
-    _pathSub = _observer.bindSync(boundValueChanged);
+  _observePath() {
+    // Fast path if we're observing PathObserver.value
+    if (model is PathObserver && path == 'value') {
+      _observer = model;
+    } else {
+      // Create the path observer
+      _observer = new PathObserver(model, path);
+    }
+    _pathSub = _observer.bindSync(valueChanged);
   }
 
   /** Called when [value] changes to update the [node]. */
-  // TODO(jmesserly): the impl in MDV uses mirrors to set the property,
-  // but that isn't used except for specific known fields like "textContent",
-  // so I'm overridding this in the subclasses instead.
-  void boundValueChanged(newValue);
+  // TODO(jmesserly): the impl in template_binding uses reflection to set the
+  // property, but that isn't used except for specific known fields like
+  // "textContent", so I'm overridding this in the subclasses instead.
+  void valueChanged(newValue);
 
   /** Called to sanitize the value before it is assigned into the property. */
   sanitizeBoundValue(value) => value == null ? '' : '$value';

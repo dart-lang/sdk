@@ -109,7 +109,7 @@ class BarbackServer {
             new BarbackServerResult._failure(request.uri, id, error));
 
         // If we couldn't read the asset, handle the error gracefully.
-        if (error is FileException) {
+        if (error is FileSystemException) {
           // Assume this means the asset was a file-backed source asset
           // and we couldn't read it, so treat it like a missing asset.
           _notFound(request, error);

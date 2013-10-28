@@ -7,23 +7,19 @@ library multiple_isolate_list_script;
 import 'dart:io';
 import 'dart:isolate';
 
-void isolateMain1() {
+void isolateMain1(_) {
   // Spawn another isolate.
-  spawnFunction(myIsolateName);
-  // Kill this isolate.
-  port.close();
+  Isolate.spawn(myIsolateName, null);
 }
 
-void myIsolateName() {
+void myIsolateName(_) {
   // Stay running.
-  port.receive((a, b) {
-    port.close();
-  });
+  new ReceivePort().first.then((a) { });
   print(''); // Print blank line to signal that we are ready.
 }
 
 main() {
-  spawnFunction(isolateMain1);
+  Isolate.spawn(isolateMain1, null);
   // Wait until signaled from spawning test.
   stdin.first.then((_) => exit(0));
 }

@@ -368,15 +368,10 @@ class RegisterSet : public ValueObject {
     return (fpu_registers_ & (1 << fpu_reg)) != 0;
   }
 
-  intptr_t fpu_regs_count() const {
-    intptr_t count = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; reg_idx++) {
-      if (ContainsFpuRegister(static_cast<FpuRegister>(reg_idx))) {
-        count++;
-      }
-    }
-    return count;
-  }
+  intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers_); }
+  intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers_); }
+
+  static intptr_t RegisterCount(intptr_t registers);
 
   intptr_t cpu_registers() const { return cpu_registers_; }
   intptr_t fpu_registers() const { return fpu_registers_; }

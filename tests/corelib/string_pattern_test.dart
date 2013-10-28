@@ -34,7 +34,7 @@ testOneMatch() {
   Expect.equals(str.indexOf('with', 0), match.start);
   Expect.equals(str.indexOf('with', 0) + helloPattern.length, match.end);
   Expect.equals(helloPattern, match.pattern);
-  Expect.equals(str, match.str);
+  Expect.equals(str, match.input);
   Expect.equals(helloPattern, match[0]);
   Expect.equals(0, match.groupCount);
 }
@@ -51,7 +51,7 @@ testTwoMatches() {
     Expect.equals(
         str.indexOf('hello', start) + helloPattern.length, match.end);
     Expect.equals(helloPattern, match.pattern);
-    Expect.equals(str, match.str);
+    Expect.equals(str, match.input);
     Expect.equals(helloPattern, match[0]);
     Expect.equals(0, match.groupCount);
     start = match.end;

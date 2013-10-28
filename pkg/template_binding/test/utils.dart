@@ -94,3 +94,10 @@ createShadowTestHtml(s) {
 class NullTreeSanitizer implements NodeTreeSanitizer {
   void sanitizeTree(Node node) {}
 }
+
+unbindAll(node) {
+  nodeBind(node).unbindAll();
+  for (var child = node.firstChild; child != null; child = child.nextNode) {
+    unbindAll(child);
+  }
+}

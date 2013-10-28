@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-library http_lanuch_main;
+library http_launch_main;
 
 import 'package:simple/simple.dart';
 
 main() {
   print(getSimpleString());
 }
-

@@ -9,29 +9,37 @@ import "package:async_helper/async_helper.dart";
 
 funcFoo(x) => x + 2;
 
-echo() {
-  port.receive((msg, reply) {
-    reply.send("echoing ${msg(1)}}");
+echo(sendPort) {
+  var port = new ReceivePort();
+  sendPort.send(port.sendPort);
+  port.listen((msg) {
+    sendPort.send("echoing ${msg(1)}}");
   });
 }
 
 main() {
-  var snd = spawnFunction(echo);
+  ReceivePort port = new ReceivePort();
+  Future spawn = Isolate.spawn(echo, port.sendPort);
   var caught_exception = false;
-  try {
-    snd.send(funcFoo, port.toSendPort());
-  } catch (e) {
-    caught_exception = true;
-  }
+  var stream = port.asBroadcastStream();
+  asyncStart();
+  stream.first.then((snd) {
+    try {
+      snd.send(funcFoo);
+    } catch (e) {
+      caught_exception = true;
+    }
 
-  if (caught_exception) {
-    port.close();
-  } else {
-    asyncStart();
-    port.receive((msg, reply) {
-      print("from worker ${msg}");
-      asyncEnd();
-    });
-  }
-  Expect.isTrue(caught_exception);
+    if (caught_exception) {
+      port.close();
+    } else {
+      asyncStart();
+      stream.first.then((msg) {
+        print("from worker ${msg}");
+        asyncEnd();
+      });
+    }
+    Expect.isTrue(caught_exception);
+    asyncEnd();
+  });
 }

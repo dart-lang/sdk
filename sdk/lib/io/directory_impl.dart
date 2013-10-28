@@ -27,7 +27,7 @@ class _Directory extends FileSystemEntity implements Directory {
   static Directory get current {
     var result = _current();
     if (result is OSError) {
-      throw new DirectoryException(
+      throw new FileSystemException(
           "Getting current working directory failed", "", result);
     }
     return new _Directory(result);
@@ -38,7 +38,7 @@ class _Directory extends FileSystemEntity implements Directory {
     var result = _setCurrent(path);
     if (result is ArgumentError) throw result;
     if (result is OSError) {
-      throw new DirectoryException(
+      throw new FileSystemException(
           "Setting current working directory failed", path, result);
     }
   }
@@ -55,7 +55,7 @@ class _Directory extends FileSystemEntity implements Directory {
   bool existsSync() {
     var result = _exists(path);
     if (result is OSError) {
-      throw new DirectoryException("Exists failed", path, result);
+      throw new FileSystemException("Exists failed", path, result);
     }
     return (result == 1);
   }
@@ -143,7 +143,7 @@ class _Directory extends FileSystemEntity implements Directory {
     if (recursive) return createRecursivelySync();
     var result = _create(path);
     if (result is OSError) {
-      throw new DirectoryException("Creation failed", path, result);
+      throw new FileSystemException("Creation failed", path, result);
     }
   }
 
@@ -187,7 +187,7 @@ class _Directory extends FileSystemEntity implements Directory {
     }
     var result = _createTemp(fullPrefix);
     if (result is OSError) {
-      throw new DirectoryException("Creation of temporary directory failed",
+      throw new FileSystemException("Creation of temporary directory failed",
                                    fullPrefix,
                                    result);
     }
@@ -207,7 +207,7 @@ class _Directory extends FileSystemEntity implements Directory {
   void _deleteSync({bool recursive: false}) {
     var result = _deleteNative(path, recursive);
     if (result is OSError) {
-      throw new DirectoryException("Deletion failed", path, result);
+      throw new FileSystemException("Deletion failed", path, result);
     }
   }
 
@@ -227,7 +227,7 @@ class _Directory extends FileSystemEntity implements Directory {
     }
     var result = _rename(path, newPath);
     if (result is OSError) {
-      throw new DirectoryException("Rename failed", path, result);
+      throw new FileSystemException("Rename failed", path, result);
     }
     return new Directory(newPath);
   }
@@ -264,7 +264,7 @@ class _Directory extends FileSystemEntity implements Directory {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new DirectoryException(message, path, err);
+        return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");
     }
@@ -362,7 +362,7 @@ class _AsyncDirectoryLister {
           }
         }
       } else {
-        controller.addError(new DirectoryException("Internal error"));
+        controller.addError(new FileSystemException("Internal error"));
       }
       nextRunning = false;
       next();
@@ -391,12 +391,12 @@ class _AsyncDirectoryLister {
       var errorPath = message[RESPONSE_PATH];
       if (errorPath == null) errorPath = path;
       controller.addError(
-          new DirectoryException("Directory listing failed",
+          new FileSystemException("Directory listing failed",
                                  errorPath,
                                  err));
     } else {
       controller.addError(
-          new DirectoryException("Internal error"));
+          new FileSystemException("Internal error"));
     }
   }
 }

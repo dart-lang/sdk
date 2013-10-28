@@ -9,17 +9,24 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/matcher.dart';
 
+@CustomTag('x-bar')
+class XBar extends PolymerElement {
+  XBar.created() : super.created();
+
+  get testValue => true;
+}
+
 @CustomTag('x-foo')
 class XFoo extends PolymerElement {
   @observable var foo = 'foo!';
-  final _ready = new Completer();
-  Future onTestDone;
+  final _testDone = new Completer();
+  Future get onTestDone => _testDone.future;
 
-  XFoo.created() : super.created() {
-    onTestDone = _ready.future.then(_runTest);
-  }
+  XFoo.created() : super.created();
 
   _runTest(_) {
+    expect($['bindId'].text.trim(), 'bar!');
+
     expect(foo, $['foo'].attributes['foo']);
     expect($['bool'].attributes['foo'], '');
     expect($['bool'].attributes, isNot(contains('foo?')));
@@ -29,9 +36,12 @@ class XFoo extends PolymerElement {
     expect($['barBool'].attributes['foo'], '');
     expect($['barBool'].attributes, isNot(contains('foo?')));
     expect($['barContent'].innerHtml, foo);
+    _testDone.complete();
   }
 
-  ready() => _ready.complete();
+  ready() {
+    onMutation($['bindId']).then(_runTest);
+  }
 }
 
 main() {

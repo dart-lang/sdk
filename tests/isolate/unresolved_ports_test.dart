@@ -14,28 +14,45 @@ import '../../pkg/unittest/lib/unittest.dart';
 //       main -> beth -> tim -> bob -> main
 //    by giving 'beth' a send-port to 'tim'.
 
-bethIsolate() {
+bethIsolate(init) {
+  ReceivePort port = initIsolate(init);
   // TODO(sigmund): use expectAsync2 when it is OK to use it within an isolate
   // (issue #6856)
-  port.receive((msg, reply) => msg[1].send(
-        '${msg[0]}\nBeth says: Tim are you coming? And Bob?', reply));
+  port.first.then((msg) => msg[1].send([
+        '${msg[0]}\nBeth says: Tim are you coming? And Bob?', msg[2]]));
 }
 
-timIsolate() {
-  SendPort bob = spawnFunction(bobIsolate);
-  port.receive((msg, reply) => bob.send(
-        '$msg\nTim says: Can you tell "main" that we are all coming?', reply));
+timIsolate(init) {
+  ReceivePort port = initIsolate(init);
+  spawnFunction(bobIsolate).then((bob) {
+    port.first.then((msg) => bob.send([
+        '${msg[0]}\nTim says: Can you tell "main" that we are all coming?',
+        msg[1]]));
+  });
 }
 
-bobIsolate() {
-  port.receive((msg, reply) => reply.send(
-        '$msg\nBob says: we are all coming!'));
+bobIsolate(init) {
+  ReceivePort port = initIsolate(init);
+  port.first.then((msg) => msg[1].send(
+        '${msg[0]}\nBob says: we are all coming!'));
+}
+
+Future<SendPort> spawnFunction(function) {
+  ReceivePort init = new ReceivePort();
+  Isolate.spawn(function, init.sendPort);
+  return init.first;
+}
+
+ReceivePort initIsolate(SendPort starter) {
+  ReceivePort port = new ReceivePort();
+  starter.send(port.sendPort);
+  return port;
 }
 
 baseTest({bool failForNegativeTest: false}) {
   test('Message chain with unresolved ports', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
+    port.listen(expectAsync1((msg) {
       expect(msg, equals('main says: Beth, find out if Tim is coming.'
         '\nBeth says: Tim are you coming? And Bob?'
         '\nTim says: Can you tell "main" that we are all coming?'
@@ -44,14 +61,13 @@ baseTest({bool failForNegativeTest: false}) {
       port.close();
     }));
 
-    SendPort tim = spawnFunction(timIsolate);
-    SendPort beth = spawnFunction(bethIsolate);
+    spawnFunction(timIsolate).then((tim) {
+      spawnFunction(bethIsolate).then((beth) {
+        beth.send(['main says: Beth, find out if Tim is coming.',
+                  tim, port.sendPort]);
+      });
+    });
 
-    beth.send(
-        // because tim is created asynchronously, here we are sending an
-        // unresolved port:
-        ['main says: Beth, find out if Tim is coming.', tim],
-        port.toSendPort());
   });
 }
 

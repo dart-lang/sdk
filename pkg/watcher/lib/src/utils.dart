@@ -6,9 +6,10 @@ library watcher.utils;
 
 import 'dart:io';
 
-/// Returns `true` if [error] is a [DirectoryException] for a missing directory.
+/// Returns `true` if [error] is a [FileSystemException] for a missing
+/// directory.
 bool isDirectoryNotFoundException(error) {
-  if (error is! DirectoryException) return false;
+  if (error is! FileSystemException) return false;
 
   // See dartbug.com/12461 and tests/standalone/io/directory_error_test.dart.
   var notFoundCode = Platform.operatingSystem == "windows" ? 3 : 2;

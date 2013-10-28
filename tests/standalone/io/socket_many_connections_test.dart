@@ -6,6 +6,7 @@
 library ServerTest;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -16,11 +17,8 @@ const CONNECTIONS = 200;
 class SocketManyConnectionsTest {
 
   SocketManyConnectionsTest.start()
-      : _receivePort = new ReceivePort(),
-        _sendPort = null,
-        _connections = 0,
+      : _connections = 0,
         _sockets = new List<Socket>(CONNECTIONS) {
-    _sendPort = spawnFunction(startTestServer);
     initialize();
   }
 
@@ -46,29 +44,32 @@ class SocketManyConnectionsTest {
   }
 
   void initialize() {
-    _receivePort.receive((var message, SendPort replyTo) {
-      _port = message;
+    var receivePort = new ReceivePort();
+    var remote = Isolate.spawn(startTestServer, receivePort.sendPort);
+    receivePort.first.then((msg) {
+      this._port = msg[0];
+      this._closeSendPort = msg[1];
       run();
     });
-    _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
   }
 
   void close() {
-    _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
-    _receivePort.close();
+    _closeSendPort.send(null);
+    asyncEnd();
   }
 
   int _port;
-  ReceivePort _receivePort;
-  SendPort _sendPort;
+  SendPort _closeSendPort;
   List<Socket> _sockets;
   int _connections;
 }
 
 
-void startTestServer() {
+void startTestServer(SendPort replyPort) {
   var server = new TestServer();
-  port.receive(server.dispatch);
+  server.init().then((port) {
+    replyPort.send([port, server.closeSendPort]);
+  });
 }
 
 class TestServer extends TestingServer {
@@ -99,5 +100,6 @@ class TestServer extends TestingServer {
 }
 
 main() {
+  asyncStart();
   SocketManyConnectionsTest test = new SocketManyConnectionsTest.start();
 }

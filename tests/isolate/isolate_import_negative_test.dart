@@ -6,9 +6,9 @@ library IsolateImportNegativeTest;
 // Omitting the following import is an error:
 // import 'dart:isolate';
 
-void entry() {}
+void entry(msg) {}
 
 main() {
-  spawnFunction(entry);
+  Isolate.spawn(entry);
 }
 

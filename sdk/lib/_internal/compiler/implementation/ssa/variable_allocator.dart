@@ -682,6 +682,10 @@ class SsaVariableAllocator extends HBaseVisitor {
     for (int i = 0; i < phi.inputs.length; i++) {
       HInstruction input = phi.inputs[i];
       HBasicBlock predecessor = phi.block.predecessors[i];
+      // A [HTypeKnown] instruction never has a name, but its checked
+      // input might, therefore we need to do a copy instead of an
+      // assignment.
+      while (input is HTypeKnown) input = input.inputs[0];
       if (!needsName(input)) {
         names.addAssignment(predecessor, input, phi);
       } else {

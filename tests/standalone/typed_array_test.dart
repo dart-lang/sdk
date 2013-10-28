@@ -33,8 +33,9 @@ Int8List initInt8() {
 Int8List int8 = initInt8();
 
 void int8_receiver() {
-  var sp = spawnFunction(int8_sender);
-  sp.call(int8.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(int8_sender, [int8.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(int8.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int8[i], a[i]);
@@ -43,15 +44,15 @@ void int8_receiver() {
   });
 }
 
-int8_sender() {
-  port.receive((len, r) {
-    Expect.equals(int8.length, len);
-    var a = new Int8List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = int8[i];
-    }
-    r.send(a);
-  });
+int8_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(int8.length, len);
+  var a = new Int8List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = int8[i];
+  }
+  r.send(a);
 }
 
 
@@ -65,8 +66,9 @@ Uint8List initUint8() {
 Uint8List uint8 = initUint8();
 
 void uint8_receiver() {
-  var sp = spawnFunction(uint8_sender);
-  sp.call(uint8.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(uint8_sender, [uint8.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(uint8.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint8[i], a[i]);
@@ -75,15 +77,15 @@ void uint8_receiver() {
   });
 }
 
-uint8_sender() {
-  port.receive((len, r) {
-    Expect.equals(uint8.length, len);
-    var a = new Uint8List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = uint8[i];
-    }
-    r.send(a);
-  });
+uint8_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(uint8.length, len);
+  var a = new Uint8List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = uint8[i];
+  }
+  r.send(a);
 }
 
 
@@ -97,8 +99,9 @@ Int16List initInt16() {
 Int16List int16 = initInt16();
 
 void int16_receiver() {
-  var sp = spawnFunction(int16_sender);
-  sp.call(int16.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(int16_sender, [int16.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(int16.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int16[i], a[i]);
@@ -107,15 +110,15 @@ void int16_receiver() {
   });
 }
 
-int16_sender() {
-  port.receive((len, r) {
-    Expect.equals(int16.length, len);
-    var a = new Int16List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = int16[i];
-    }
-    r.send(a);
-  });
+int16_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(int16.length, len);
+  var a = new Int16List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = int16[i];
+  }
+  r.send(a);
 }
 
 
@@ -129,8 +132,9 @@ Uint16List initUint16() {
 Uint16List uint16 = initUint16();
 
 void uint16_receiver() {
-  var sp = spawnFunction(uint16_sender);
-  sp.call(uint16.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(uint16_sender, [uint16.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(uint16.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint16[i], a[i]);
@@ -139,15 +143,15 @@ void uint16_receiver() {
   });
 }
 
-uint16_sender() {
-  port.receive((len, r) {
-    Expect.equals(uint16.length, len);
-    var a = new Uint16List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = uint16[i];
-    }
-    r.send(a);
-  });
+uint16_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(uint16.length, len);
+  var a = new Uint16List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = uint16[i];
+  }
+  r.send(a);
 }
 
 
@@ -161,8 +165,9 @@ Int32List initInt32() {
 Int32List int32 = initInt32();
 
 void int32_receiver() {
-  var sp = spawnFunction(int32_sender);
-  sp.call(int32.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(int32_sender, [int32.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(int32.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int32[i], a[i]);
@@ -171,15 +176,15 @@ void int32_receiver() {
   });
 }
 
-int32_sender() {
-  port.receive((len, r) {
-    Expect.equals(int32.length, len);
-    var a = new Int32List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = int32[i];
-    }
-    r.send(a);
-  });
+int32_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(int32.length, len);
+  var a = new Int32List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = int32[i];
+  }
+  r.send(a);
 }
 
 
@@ -193,8 +198,9 @@ Uint32List initUint32() {
 Uint32List uint32 = initUint32();
 
 void uint32_receiver() {
-  var sp = spawnFunction(uint32_sender);
-  sp.call(uint32.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(uint32_sender, [uint32.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(uint32.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint32[i], a[i]);
@@ -203,15 +209,15 @@ void uint32_receiver() {
   });
 }
 
-uint32_sender() {
-  port.receive((len, r) {
-    Expect.equals(uint32.length, len);
-    var a = new Uint32List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = uint32[i];
-    }
-    r.send(a);
-  });
+uint32_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(uint32.length, len);
+  var a = new Uint32List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = uint32[i];
+  }
+  r.send(a);
 }
 
 
@@ -225,8 +231,10 @@ Float32List initFloat32() {
 Float32List float32 = initFloat32();
 
 void float32_receiver() {
-  var sp = spawnFunction(float32_sender);
-  sp.call(float32.length).then((a) {
+  var response = new ReceivePort();
+  var remote =
+      Isolate.spawn(float32_sender, [float32.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(float32.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(float32[i], a[i]);
@@ -235,15 +243,15 @@ void float32_receiver() {
   });
 }
 
-float32_sender() {
-  port.receive((len, r) {
-    Expect.equals(float32.length, len);
-    var a = new Float32List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = float32[i];
-    }
-    r.send(a);
-  });
+float32_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(float32.length, len);
+  var a = new Float32List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = float32[i];
+  }
+  r.send(a);
 }
 
 
@@ -257,8 +265,10 @@ Float64List initFloat64() {
 Float64List float64 = initFloat64();
 
 void float64_receiver() {
-  var sp = spawnFunction(float64_sender);
-  sp.call(float64.length).then((a) {
+  var response = new ReceivePort();
+  var remote =
+      Isolate.spawn(float64_sender, [float64.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(float64.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(float64[i], a[i]);
@@ -267,13 +277,13 @@ void float64_receiver() {
   });
 }
 
-float64_sender() {
-  port.receive((len, r) {
-    Expect.equals(float64.length, len);
-    var a = new Float64List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = float64[i];
-    }
-    r.send(a);
-  });
+float64_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(float64.length, len);
+  var a = new Float64List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = float64[i];
+  }
+  r.send(a);
 }

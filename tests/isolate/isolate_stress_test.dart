@@ -12,11 +12,8 @@ import 'dart:isolate';
 // TODO(12588): Remove this import when we have wrapper-less testing.
 import 'dart:html';
 
-worker() {
-  port.receive((String uri, SendPort replyTo) {
-    replyTo.send('Hello from Worker');
-    port.close();
-  });
+worker(SendPort replyTo) {
+  replyTo.send('Hello from Worker');
 }
 
 main() {
@@ -33,11 +30,12 @@ main() {
       throw new Exception('Unexpected reply from worker: $reply');
     }
     if (++isolateCount > 200) {
-      port.close();
       window.postMessage('unittest-suite-success', '*');
       return;
     }
-    spawnFunction(worker).call('').then(spawnMany);
+    ReceivePort response = new ReceivePort();
+    var remote = Isolate.spawn(worker, response.sendPort);
+    remote.then((_) => response.first).then(spawnMany);
     print('isolateCount = $isolateCount');
   }
 

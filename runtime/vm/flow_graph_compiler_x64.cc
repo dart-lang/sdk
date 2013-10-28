@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -599,7 +600,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ pushq(RDX);  // Instantiator type arguments.
     __ LoadObject(RAX, test_cache, PP);
     __ pushq(RAX);
-    GenerateCallRuntime(token_pos,
+    GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kInstanceofRuntimeEntry,
                         5,
@@ -682,7 +683,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name, PP);  // Push the name of the destination.
     __ PushObject(error_message, PP);
-    GenerateCallRuntime(token_pos,
+    GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
                         3,
@@ -712,7 +713,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ PushObject(dst_name, PP);  // Push the name of the destination.
   __ LoadObject(RAX, test_cache, PP);
   __ pushq(RAX);
-  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -1272,7 +1273,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
+void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             intptr_t argument_count,
@@ -1447,8 +1448,19 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
-  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(RBX, raw_null);
+    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
+    __ call(&StubCode::CompileFunctionRuntimeCallLabel());
+    __ movq(RBX, FieldAddress(RAX, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ movq(RAX, FieldAddress(RBX, Code::instructions_offset()));
   __ LoadObject(RBX, ic_data, PP);
   __ LoadObject(R10, arguments_descriptor, PP);
   __ AddImmediate(
@@ -1541,10 +1553,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
-// This function must be in sync with FlowGraphCompiler::RecordSafepoint.
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
+// FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
+  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
   if (xmm_regs_count > 0) {
     __ AddImmediate(RSP, Immediate(-xmm_regs_count * kFpuRegisterSize), PP);
     // Store XMM registers with the lowest register number at the lowest
@@ -1581,7 +1594,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     }
   }
 
-  const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
+  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
   if (xmm_regs_count > 0) {
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;

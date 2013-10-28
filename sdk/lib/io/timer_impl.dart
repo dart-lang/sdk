@@ -11,7 +11,7 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
   // Timers are ordered by wakeup time.
   static LinkedList<_Timer> _timers = new LinkedList<_Timer>();
 
-  static ReceivePort _receivePort;
+  static RawReceivePort _receivePort;
   static bool _handling_callbacks = false;
 
   Function _callback;
@@ -163,10 +163,7 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
     }
 
     if(_receivePort == null) {
-      _receivePort = new ReceivePort();
-      _receivePort.receive((var message, ignored) {
-        _handleTimeout();
-      });
+      _receivePort = new RawReceivePort((_) { _handleTimeout(); });
     }
   }
 

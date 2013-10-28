@@ -6,6 +6,7 @@
 library SpawnUriChildIsolate;
 import 'dart:isolate';
 
-void main() {
-  port.receive((msg, reply) => reply.send('re: $msg'));
+void main(List<String> args, SendPort replyTo) {
+  var data = args[0];
+  replyTo.send('re: $data');
 }

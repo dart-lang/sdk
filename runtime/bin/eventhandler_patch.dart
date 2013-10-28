@@ -6,7 +6,7 @@ import 'dart:nativewrappers';
 
 patch class _EventHandler {
   /* patch */ static void _sendData(Object sender,
-                                    ReceivePort receivePort,
+                                    RawReceivePort receivePort,
                                     int data)
       native "EventHandler_SendData";
 }

@@ -265,6 +265,13 @@ class AdbDevice {
   }
 
   /**
+   * Set system property name to value.
+   */
+  Future setProp(String name, String value) {
+    return _adbCommand(['shell', 'setprop', name, value]);
+  }
+
+  /**
    * Kill all background processes.
    */
   Future killAll() {

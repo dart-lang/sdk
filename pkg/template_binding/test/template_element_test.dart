@@ -155,20 +155,20 @@ templateElementTests() {
     var model = toObservable({'b': 'B'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
     model['b'] = 'b';
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'abc');
 
     model['b'] = null;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'ac');
 
     model = null;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     // setting model isn't observable.
     expect(div.nodes.last.text, 'ac');
   });
@@ -179,20 +179,20 @@ templateElementTests() {
     var model = toObservable({ 'data': {'b': 'B'} });
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
     model['data']['b'] = 'b';
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'abc');
 
     model['data'] = toObservable({'b': 'X'});
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'aXc');
 
     model['data'] = null;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'ac');
   });
 
@@ -202,25 +202,25 @@ templateElementTests() {
     var model = toObservable({'b': 'B', 'd': 1});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
     model['b'] = 'b';
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'abc');
 
     // TODO(jmesserly): MDV set this to empty string and relies on JS conversion
     // rules. Is that intended?
     // See https://github.com/toolkitchen/mdv/issues/59
     model['d'] = null;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
     model['d'] = 'here';
     model['b'] = 'd';
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'adc');
   });
@@ -232,12 +232,12 @@ templateElementTests() {
     var model = toObservable({'b': {'value': 'B'}});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'aBc');
 
     model['b'] = toObservable({'value': 'b'});
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'abc');
   });
 
@@ -249,16 +249,16 @@ templateElementTests() {
     var model = toObservable({'b': 'B'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.attributes['foo'], 'aBc');
 
     model['b'] = 'b';
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.attributes['foo'], 'abc');
 
     model['b'] = 'X';
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.attributes['foo'], 'aXc');
   });
 
@@ -270,13 +270,13 @@ templateElementTests() {
     var model = toObservable({'b': 'b'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.attributes['foo'], '');
     expect(div.nodes.last.attributes, isNot(contains('foo?')));
 
     model['b'] = null;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.attributes, isNot(contains('foo')));
   });
 
@@ -287,19 +287,19 @@ templateElementTests() {
     var model = toObservable([0, 1, 2]);
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
 
     model.length = 1;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
 
     model.addAll(toObservable([3, 4]));
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
 
     model.removeRange(1, 2);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 3);
   });
 
@@ -315,7 +315,7 @@ templateElementTests() {
     ]);
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 6);
     var template = div.firstChild;
 
@@ -323,19 +323,19 @@ templateElementTests() {
     checkExpandos(template.nextNode);
 
     model.sort((a, b) => a['val'] - b['val']);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     checkExpandos(template.nextNode);
 
     model = toObservable(model.reversed);
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     checkExpandos(template.nextNode);
 
     for (var item in model) {
       item['val'] += 1;
     }
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, "11");
     expect(div.nodes[2].text, "9");
     expect(div.nodes[3].text, "6");
@@ -350,7 +350,7 @@ templateElementTests() {
     var model = toObservable({ 'foo': { 'bar': 5 }});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     var template = div.firstChild;
 
@@ -359,7 +359,7 @@ templateElementTests() {
 
     model = toObservable({'foo': model['foo']});
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     checkExpandos(template.nextNode);
   });
 
@@ -370,19 +370,19 @@ templateElementTests() {
     var model = toObservable([0, 1, 2]);
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
 
     model.length = 1;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
 
     model.addAll(toObservable([3, 4]));
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
 
     model.removeRange(1, 2);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 3);
   });
 
@@ -392,7 +392,7 @@ templateElementTests() {
     var model = toObservable([{'v': 0}, {'v': 1}, {'v': 2}, {'v': 3},
         {'v': 4}]);
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     var nodes = div.nodes.skip(1).toList();
     var vs = model.toList();
@@ -402,14 +402,14 @@ templateElementTests() {
     }
 
     model.length = 3;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     for (var i = 0; i < 5; i++) {
       expect(nodes[i].text, '$i');
     }
 
     vs[3]['v'] = 33;
     vs[4]['v'] = 44;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     for (var i = 0; i < 5; i++) {
       expect(nodes[i].text, '$i');
     }
@@ -421,7 +421,7 @@ templateElementTests() {
     var model = toObservable([1, 2, 3, 4, 5]);
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     // Note: the node at index 0 is the <template>.
     var nodes = div.nodes.toList();
@@ -430,7 +430,7 @@ templateElementTests() {
     model.removeAt(0);
     model.removeLast();
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4, reason: 'list has 3 items');
     expect(identical(div.nodes[1], nodes[2]), true, reason: '2 not removed');
     expect(identical(div.nodes[2], nodes[3]), true, reason: '3 not removed');
@@ -440,7 +440,7 @@ templateElementTests() {
     model[2] = 6;
     model.add(7);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 6, reason: 'list has 5 items');
     expect(nodes.contains(div.nodes[1]), false, reason: '5 is a new node');
@@ -453,7 +453,7 @@ templateElementTests() {
 
     model.insert(2, 8);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 7, reason: 'list has 6 items');
     expect(identical(div.nodes[1], nodes[1]), true);
@@ -476,21 +476,21 @@ templateElementTests() {
     ]);
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '0');
     expect(div.nodes[2].text, '1');
     expect(div.nodes[3].text, '2');
 
     model[1]['value'] = 'One';
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '0');
     expect(div.nodes[2].text, 'One');
     expect(div.nodes[3].text, '2');
 
     model.replaceRange(0, 1, toObservable([{'value': 'Zero'}]));
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, 'Zero');
     expect(div.nodes[2].text, 'One');
@@ -505,19 +505,19 @@ templateElementTests() {
     var model = toObservable({'x': 'hi'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.value, 'hi');
 
     model['x'] = 'bye';
     expect(div.nodes.last.value, 'hi');
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.value, 'bye');
 
     div.nodes.last.value = 'hello';
     dispatchEvent('input', div.nodes.last);
     expect(model['x'], 'hello');
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.last.value, 'hello');
   });
 
@@ -537,7 +537,7 @@ templateElementTests() {
     });
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     var t1 = document.getElementById('t1');
     var instance = t1.nextElementSibling;
@@ -570,7 +570,7 @@ templateElementTests() {
     var model = toObservable({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
@@ -584,7 +584,7 @@ templateElementTests() {
     var model = toObservable({'name': 'Leela'});
     nodeBind(t).bind('bind', model, '');
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
@@ -594,7 +594,7 @@ templateElementTests() {
     var model = toObservable({'name': 'Leela'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, 'Hi Leela');
   });
 
@@ -614,7 +614,7 @@ templateElementTests() {
     var model = toObservable({'name': 'Fry'});
     recursivelySetTemplateModel(div, model);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(t2.nextNode.text, 'Hi Fry');
   });
 
@@ -631,13 +631,13 @@ templateElementTests() {
     recursivelySetTemplateModel(div, model);
 
     var t = div.nodes.first;
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 2);
     expect(t.nextNode.text, 'Hi Leela');
 
     nodeBind(t).bind('bind', model, 'XZ');
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 2);
     expect(t.nextNode.text, 'Hi Zoidberg');
@@ -667,40 +667,40 @@ templateElementTests() {
     });
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
 
     m['contacts'].add(toObservable({'name': 'Alex'}));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal', 'Hi Alex']);
 
     m['contacts'].replaceRange(0, 2,
         toObservable([{'name': 'Rafael'}, {'name': 'Erik'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Neal', 'Hi Alex']);
 
     m['contacts'].removeRange(1, 3);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Rafael', 'Hi Alex']);
 
     m['contacts'].insertAll(1,
         toObservable([{'name': 'Erik'}, {'name': 'Dimitri'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
     m['contacts'].replaceRange(0, 1,
         toObservable([{'name': 'Tab'}, {'name': 'Neal'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri',
         'Hi Alex']);
 
     m['contacts'] = toObservable([{'name': 'Alex'}]);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Alex']);
 
     m['contacts'].length = 0;
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, []);
   });
 
@@ -718,7 +718,7 @@ templateElementTests() {
     });
     recursivelySetTemplateModel(div, m);
 
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     var t = div.nodes.first;
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
@@ -736,34 +736,34 @@ templateElementTests() {
     ]);
     recursivelySetTemplateModel(div, m);
 
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
 
     m.add(toObservable({'name': 'Alex'}));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal', 'Hi Alex']);
 
     m.replaceRange(0, 2, toObservable([{'name': 'Rafael'}, {'name': 'Erik'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Neal', 'Hi Alex']);
 
     m.removeRange(1, 3);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Rafael', 'Hi Alex']);
 
     m.insertAll(1, toObservable([{'name': 'Erik'}, {'name': 'Dimitri'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Rafael', 'Hi Erik', 'Hi Dimitri', 'Hi Alex']);
 
     m.replaceRange(0, 1, toObservable([{'name': 'Tab'}, {'name': 'Neal'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Tab', 'Hi Neal', 'Hi Erik', 'Hi Dimitri',
         'Hi Alex']);
 
     m.length = 0;
     m.add(toObservable({'name': 'Alex'}));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Alex']);
   });
 
@@ -781,7 +781,7 @@ templateElementTests() {
     m = toObservable({});
     recursivelySetTemplateModel(div, m);
 
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
   });
 
@@ -796,7 +796,7 @@ templateElementTests() {
       {'name': 'Neal'}
     ]);
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     assertNodesAre(div, ['Hi Raf', 'Hi Arv', 'Hi Neal']);
     var node1 = div.nodes[1];
@@ -804,7 +804,7 @@ templateElementTests() {
     var node3 = div.nodes[3];
 
     m.replaceRange(1, 2, toObservable([{'name': 'Erik'}]));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Raf', 'Hi Erik', 'Hi Neal']);
     expect(div.nodes[1], node1,
         reason: 'model[0] did not change so the node should not have changed');
@@ -815,7 +815,7 @@ templateElementTests() {
 
     node2 = div.nodes[2];
     m.insert(0, toObservable({'name': 'Alex'}));
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     assertNodesAre(div, ['Hi Alex', 'Hi Raf', 'Hi Erik', 'Hi Neal']);
   });
 
@@ -825,7 +825,7 @@ templateElementTests() {
 
     var model = toObservable({'foo': 'bar'});
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes[1].nodes[0].nodes[0].text, 'bar');
   });
@@ -840,7 +840,7 @@ templateElementTests() {
       'a': true
     });
     nodeBind(t).bind('bind', m, '');
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var instanceInput = t.nextNode;
     expect(instanceInput.checked, true);
@@ -863,7 +863,7 @@ templateElementTests() {
     });
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var i = start;
     expect(div.nodes[i++].text, '1');
@@ -871,11 +871,11 @@ templateElementTests() {
     expect(div.nodes[i++].text, '2');
 
     m['a']['b'] = 11;
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes[start].text, '11');
 
     m['a']['c'] = toObservable({'d': 22});
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes[start + 2].text, '22');
   }
 
@@ -915,7 +915,7 @@ templateElementTests() {
     });
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var i = start;
     expect(div.nodes[i++].text, '1');
@@ -930,7 +930,7 @@ templateElementTests() {
       'c': {'d': 33}
     });
 
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes[start + 3].text, '3');
     expect(div.nodes[start + 5].text, '33');
   }
@@ -973,7 +973,7 @@ templateElementTests() {
     });
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var i = start;
     expect(div.nodes[i++].text, '1');
@@ -991,7 +991,7 @@ templateElementTests() {
     });
 
     i = start + 4;
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes[start + 4].text, '3');
     expect(div.nodes[start + 6].text, '31');
     expect(div.nodes[start + 7].text, '32');
@@ -1051,7 +1051,7 @@ templateElementTests() {
     ]);
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var i = 1;
     expect(div.nodes[i++].text, 'Item 1');
@@ -1067,7 +1067,7 @@ templateElementTests() {
     m[0] = toObservable({'name': 'Item 1 changed'});
 
     i = 1;
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes[i++].text, 'Item 1 changed');
     expect(div.nodes[i++].tagName, 'TEMPLATE');
     expect(div.nodes[i++].text, 'Item 2');
@@ -1091,7 +1091,7 @@ templateElementTests() {
     });
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var select = div.nodes[0].nextNode;
     expect(select.nodes.length, 2);
@@ -1132,7 +1132,7 @@ templateElementTests() {
     ]);
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var tbody = div.nodes[0].nodes[0];
 
@@ -1169,7 +1169,7 @@ templateElementTests() {
     ]);
 
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     var i = 1;
     var tbody = div.nodes[0].nodes[0];
@@ -1217,9 +1217,9 @@ templateElementTests() {
 
     recursivelySetTemplateModel(div, m);
 
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     m.removeAt(0);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
   });
 
   observeTest('DeepNested', () {
@@ -1240,7 +1240,7 @@ templateElementTests() {
       }
     });
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes[1].tagName, 'P');
     expect(div.nodes[1].nodes.first.tagName, 'TEMPLATE');
@@ -1252,7 +1252,7 @@ templateElementTests() {
     var model = 42;
 
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, '42');
     expect(div.nodes[0].text, '');
   });
@@ -1262,7 +1262,7 @@ templateElementTests() {
     var model = toObservable([]);
 
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
     expect(div.nodes[0].text, '');
   });
@@ -1281,7 +1281,7 @@ templateElementTests() {
       'b': 2
     });
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes[0].text, '');
     expect(div.nodes[1].text, '1');
@@ -1295,17 +1295,17 @@ templateElementTests() {
 
     var model = toObservable({'a': 42});
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, '42');
 
     model = null;
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
     model = toObservable({'a': 42});
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(div.nodes[1].text, '42');
   });
 
@@ -1328,19 +1328,19 @@ templateElementTests() {
       }
     });
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 5);
     expect(div.nodes[1].text, 'Name: Hermes');
     expect(div.nodes[3].text, 'Wife: LaBarbara');
 
     m['child'] = toObservable({'name': 'Dwight'});
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 6);
     expect(div.nodes[5].text, 'Child: Dwight');
 
     m.remove('wife');
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 5);
     expect(div.nodes[4].text, 'Child: Dwight');
   });
@@ -1359,19 +1359,19 @@ templateElementTests() {
       }
     });
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 5);
     expect(div.nodes[1].text, 'Name: Fry');
     expect(div.nodes[3].text, 'Name: Bender');
 
     m['friend']['friend'] = toObservable({'name': 'Leela'});
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 7);
     expect(div.nodes[5].text, 'Name: Leela');
 
     m['friend'] = toObservable({'name': 'Leela'});
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 5);
     expect(div.nodes[3].text, 'Name: Leela');
   });
@@ -1448,7 +1448,7 @@ templateElementTests() {
       ]
     });
     recursivelySetTemplateModel(div, m);
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 2);
     expect(div.nodes[1].text, '3');
@@ -1456,7 +1456,7 @@ templateElementTests() {
     nodeBind(template)
         ..unbind('bind')
         ..bind('repeat', m, 'a');
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 4);
     expect(div.nodes[1].text, '0');
     expect(div.nodes[2].text, '1');
@@ -1465,7 +1465,7 @@ templateElementTests() {
     nodeBind(template).unbind('repeat');
     nodeBind(template).bind('bind', m, 'a.1.b');
 
-    deliverChanges(m);
+    performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes[1].text, '4');
   });
@@ -1479,7 +1479,7 @@ templateElementTests() {
         '</template>');
     var model = toObservable([]);
     recursivelySetTemplateModel(div, model);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 3);
 
@@ -1487,7 +1487,7 @@ templateElementTests() {
     document.getElementById('b').id = 'a';
 
     model..add(1)..add(2);
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
 
     expect(div.nodes.length, 7);
     expect(div.nodes[4].text, 'b:1');
@@ -1543,7 +1543,7 @@ templateElementTests() {
           '<template bind="{{}}">Hi {{ name }}</template>');
       var model = toObservable({'name': 'Leela'});
       recursivelySetTemplateModel(root, model);
-      deliverChanges(model);
+      performMicrotaskCheckpoint();
       expect(root.nodes[1].text, 'Hi Leela');
     }
   });
@@ -1594,19 +1594,19 @@ templateElementTests() {
 
     recursivelySetTemplateModel(div, model, syntax);
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(syntax.count, 1);
 
     var inner = model['outer']['inner'];
     model['outer'] = null;
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(syntax.count, 1);
 
     model['outer'] = toObservable({'inner': {'age': 2}});
     syntax.expectedAge = 2;
 
-    deliverChanges(model);
+    performMicrotaskCheckpoint();
     expect(syntax.count, 2);
   });
 
@@ -1694,48 +1694,4 @@ class UnbindingInNestedBindSyntax extends BindingDelegate {
     expect(model['age'], expectedAge);
     count++;
   }
-}
-
-/**
- * Verifies that the model is Observable, then calls
- * [performMicrotaskCheckpoint].
- */
-void deliverChanges(model) {
-  expectObservable(model);
-  performMicrotaskCheckpoint();
-}
-
-void expectObservable(model) {
-  if (model is! Observable) {
-    // This is here to eagerly catch a bug in the test; it means the test
-    // forgot a toObservable somewhere.
-    expect(identical(toObservable(model), model), true,
-        reason: 'model type "${model.runtimeType}" should be observable');
-    return;
-  }
-  if (model is ObservableList) {
-    for (var item in model) {
-      expectObservable(item);
-    }
-  } else if (model is ObservableMap) {
-    model.forEach((k, v) {
-      expectObservable(k);
-      expectObservable(v);
-    });
-  }
-}
-
-_deepToSymbol(value) {
-  if (value is Map) {
-    var result = new LinkedHashMap();
-    value.forEach((k, v) {
-      k = k is String ? new Symbol(k) : _deepToSymbol(k);
-      result[k] = _deepToSymbol(v);
-    });
-    return result;
-  }
-  if (value is Iterable) {
-    return value.map(_deepToSymbol).toList();
-  }
-  return value;
 }

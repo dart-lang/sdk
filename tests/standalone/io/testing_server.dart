@@ -19,48 +19,24 @@ abstract class TestingServer {
     Expect.fail(msg);
   }
 
-  void dispatch(message, SendPort replyTo) {
-    if (message == INIT) {
-      ServerSocket.bind(HOST, 0).then((server) {
-        _server = server;
-        _server.listen(
-            onConnection,
-            onError: errorHandlerServer);
-        replyTo.send(_server.port, null);
-      });
-    } else if (message == SHUTDOWN) {
-      _server.close();
-      port.close();
-    }
+  SendPort get closeSendPort => _closePort.sendPort;
+
+  Future<int> init() {
+    _closePort = new ReceivePort();
+    _closePort.first.then((_) { close(); });
+    return ServerSocket.bind(HOST, 0).then((server) {
+      _server = server;
+      _server.listen(
+          onConnection,
+          onError: errorHandlerServer);
+      return _server.port;
+    });
+  }
+
+  void close() {
+    _server.close();
   }
 
   ServerSocket _server;
-}
-
-abstract class TestingServerTest {
-
-  TestingServerTest.start(SendPort port)
-      : _receivePort = new ReceivePort(),
-        _sendPort = port {
-    initialize();
-  }
-
-  void run();  // Abstract.
-
-  void initialize() {
-    _receivePort.receive((var message, SendPort replyTo) {
-      _port = message;
-      run();
-    });
-    _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
-  }
-
-  void shutdown() {
-    _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
-    _receivePort.close();
-  }
-
-  int _port;
-  ReceivePort _receivePort;
-  SendPort _sendPort;
+  ReceivePort _closePort;
 }

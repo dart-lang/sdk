@@ -2,6 +2,85 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Support for interoperating with JavaScript.
+ * 
+ * This library provides access to JavaScript objects from Dart, allowing
+ * Dart code to get and set properties, and call methods of JavaScript objects
+ * and invoke JavaScript functions. The library takes care of converting
+ * between Dart and JavaScript objects where possible, or providing proxies if
+ * conversion isn't possible.
+ *
+ * This library does not yet make Dart objects usable from JavaScript, their
+ * methods and proeprties are not accessible, though it does allow Dart
+ * functions to be passed into and called from JavaScript.
+ *
+ * [JsObject] is the core type and represents a proxy of a JavaScript object.
+ * JsObject gives access to the underlying JavaScript objects properties and
+ * methods. `JsObject`s can be acquired by calls to JavaScript, or they can be
+ * created from proxies to JavaScript constructors.
+ *
+ * The top-level getter [context] provides a [JsObject] that represents the
+ * global object in JavaScript, usually `window`.
+ *
+ * The following example shows an alert dialog via a JavaScript call to the
+ * global function `alert()`:
+ *
+ *     import 'dart:js';
+ *     
+ *     main() => context.callMethod('alert', ['Hello from Dart!']);
+ *
+ * This example shows how to create a [JsObject] from a JavaScript constructor
+ * and access its properties:
+ *
+ *     import 'dart:js';
+ *     
+ *     main() {
+ *       var object = new JsObject(context['Object']);
+ *       object['greeting'] = 'Hello';
+ *       object['greet'] = (name) => "${object['greeting']} $name";
+ *       var message = object.callMethod('greet', ['JavaScript']);
+ *       context['console'].callMethod('log', [message]);
+ *     }
+ *
+ * ## Proxying and Automatic Conversion
+ * 
+ * When setting properties on a JsObject or passing arguments to a Javascript
+ * method or function, Dart objects are automatically converted or proxied to
+ * JavaScript objects. When accessing JavaScript properties, or when a Dart
+ * closure is invoked from JavaScript, the JavaScript objects are also
+ * converted to Dart.
+ *
+ * Functions and closures are proxied in such a way that they are callable. A
+ * Dart closure assigned to a JavaScript property is proxied by a function in
+ * JavaScript. A JavaScript function accessed from Dart is proxied by a
+ * [JsFunction], which has a [apply] method to invoke it.
+ *
+ * The following types are transferred directly and not proxied:
+ *
+ * * "Basic" types: `null`, `bool`, `num`, `String`, `DateTime`
+ * * `Blob`
+ * * `KeyRange`
+ * * `ImageData`
+ * * `TypedData`, including its subclasses like `Int32List`, but _not_
+ *   `ByteBuffer`
+ * * `Node`
+ *
+ * ## Converting collections with JsObject.jsify()
+ *
+ * To create a JavaScript collection from a Dart collection use the
+ * [JsObject.jsify] constructor, which converts Dart [Map]s and [Iterable]s
+ * into JavaScript Objects and Arrays.
+ *
+ * The following expression creats a new JavaScript object with the properties
+ * `a` and `b` defined:
+ *
+ *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
+ * 
+ * This expression creates a JavaScript array:
+ *
+ *     var jsArray = new JsObject.jsify([1, 2, 3]);
+ */
 library dart.js;
 
 import 'dart:nativewrappers';
@@ -17,27 +96,35 @@ JsObject get context {
   return _cachedContext;
 }
 
+/**
+ * Proxies a JavaScript object to Dart.
+ *
+ * The properties of the JavaScript object are accessible via the `[]` and
+ * `[]=` operators. Methods are callable via [callMethod].
+ */
 class JsObject extends NativeFieldWrapperClass2 {
   JsObject.internal();
 
+  /**
+   * Constructs a new JavaScript object from [constructor] and returns a proxy
+   * to it.
+   */
   factory JsObject(JsFunction constructor, [List arguments]) => _create(constructor, arguments);
 
   static JsObject _create(JsFunction constructor, arguments) native "JsObject_constructorCallback";
 
-   /**
-    * Expert users only:
-    * Use this constructor only if you want to gain access to JS expandos
-    * attached to a browser native object such as a Node.
-    * Not all native browser objects can be converted using fromBrowserObject.
-    * Currently the following types are supported:
-    * * Node
-    * * ArrayBuffer
-    * * Blob
-    * * ImageData
-    * * IDBKeyRange
-    * TODO(jacobr): support Event, Window and NodeList as well.
-    */
-  factory JsObject.fromBrowserObject(var object) {
+  /**
+   * Constructs a [JsObject] that proxies a native Dart object; _for expert use
+   * only_.
+   *
+   * Use this constructor only if you wish to get access to JavaScript
+   * properties attached to a browser host object, such as a Node or Blob, that
+   * is normally automatically converted into a native Dart object.
+   * 
+   * An exception will be thrown if [object] either is `null` or has the type
+   * `bool`, `num`, or `String`.
+   */
+  factory JsObject.fromBrowserObject(object) {
     if (object is num || object is String || object is bool || object == null) {
       throw new ArgumentError(
         "object cannot be a num, string, bool, or null");
@@ -46,8 +133,13 @@ class JsObject extends NativeFieldWrapperClass2 {
   }
 
   /**
-   * Converts a json-like [object] to a JavaScript map or array and return a
-   * [JsObject] to it.
+   * Recursively converts a JSON-like collection of Dart objects to a
+   * collection of JavaScript objects and returns a [JsObject] proxy to it.
+   *
+   * [object] must be a [Map] or [Iterable], the contents of which are also
+   * converted. Maps and Iterables are copied to a new JavaScript object.
+   * Primitives and other transferrable values are directly converted to their
+   * JavaScript type, and all other objects are proxied.
    */
   factory JsObject.jsify(object) {
     if ((object is! Map) && (object is! Iterable)) {
@@ -60,8 +152,21 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   static JsObject _fromBrowserObject(object) native "JsObject_fromBrowserObject";
 
-  operator[](key) native "JsObject_[]";
-  operator[]=(key, value) native "JsObject_[]=";
+  /**
+   * Returns the value associated with [property] from the proxied JavaScript
+   * object.
+   *
+   * The type of [property] must be either [String] or [num].
+   */
+  operator[](property) native "JsObject_[]";
+
+  /**
+   * Sets the value associated with [property] on the proxied JavaScript
+   * object.
+   *
+   * The type of [property] must be either [String] or [num].
+   */
+  operator[]=(property, value) native "JsObject_[]=";
 
   int get hashCode native "JsObject_hashCode";
 
@@ -69,12 +174,31 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   static bool _identityEquality(JsObject a, JsObject b) native "JsObject_identityEquality";
 
+  /**
+   * Returns `true` if the JavaScript object contains the specified property
+   * either directly or though its prototype chain.
+   *
+   * This is the equivalent of the `in` operator in JavaScript.
+   */
   bool hasProperty(String property) native "JsObject_hasProperty";
 
-  void deleteProperty(String name) native "JsObject_deleteProperty";
+  /**
+   * Removes [property] from the JavaScript object.
+   *
+   * This is the equivalent of the `delete` operator in JavaScript.
+   */
+  void deleteProperty(String property) native "JsObject_deleteProperty";
 
+  /**
+   * Returns `true` if the JavaScript object has [type] in its prototype chain.
+   *
+   * This is the equivalent of the `instanceof` operator in JavaScript.
+   */
   bool instanceof(JsFunction type) native "JsObject_instanceof";
 
+  /**
+   * Returns the result of the JavaScript objects `toString` method.
+   */
   String toString() {
     try {
       return _toString();
@@ -85,14 +209,20 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   String _toString() native "JsObject_toString";
 
-  callMethod(String name, [List args]) {
+  /**
+   * Calls [method] on the JavaScript object with the arguments [args] and
+   * returns the result.
+   *
+   * The type of [method] must be either [String] or [num].
+   */
+  callMethod(String method, [List args]) {
     try {
-      return _callMethod(name, args);
+      return _callMethod(method, args);
     } catch(e) {
-      if (hasProperty(name)) {
+      if (hasProperty(method)) {
         rethrow;
       } else {
-        throw new NoSuchMethodError(this, new Symbol(name), args, null);
+        throw new NoSuchMethodError(this, new Symbol(method), args, null);
       }
     }
   }
@@ -100,6 +230,9 @@ class JsObject extends NativeFieldWrapperClass2 {
   _callMethod(String name, List args) native "JsObject_callMethod";
 }
 
+/**
+ * Proxies a JavaScript Function object.
+ */
 class JsFunction extends JsObject {
   JsFunction.internal();
 
@@ -109,7 +242,11 @@ class JsFunction extends JsObject {
    */
   factory JsFunction.withThis(Function f) => _withThis(f);
 
-  apply(List args, {thisArg}) native "JsFunction_apply";
+  /**
+   * Invokes the JavaScript function with arguments [args]. If [thisArg] is
+   * supplied it is the value of `this` for the invocation.
+   */
+  dynamic apply(List args, {thisArg}) native "JsFunction_apply";
 
   /**
    * Internal only version of apply which uses debugger proxies of Dart objects

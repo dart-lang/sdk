@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+   Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <!-- Test ported from:
+  https://github.com/Polymer/polymer/blob/b720085/test/html/event-handlers.html
+  -->
+  <head>
+    <title>event handlers</title>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+
+  <x-test>
+    <div>...light...</div>
+  </x-test>
+ 
+  <polymer-element name="x-test" on-tap="{{hostTapAction}}">
+    <template>
+      <style>
+        @host {
+          * {
+            display: block;
+          }
+        }
+        .gradient {
+          background: -webkit-gradient(linear, left top, left bottom,
+            color-stop(0%,#b4e391), color-stop(50%,#61c419),
+            color-stop(100%,#b4e391));
+        }
+      </style>
+
+      <div id="div" on-tap="{{divTapAction}}">Tap me!
+        <content></content>
+      </div>
+      <input id="input" on-focus="{{focusAction}}"
+                        on-blur="{{blurAction}}">focusy</input>
+      <div id="list"
+           style="height: 200px; overflow: auto; border: 1px solid black;"
+           on-scroll="{{scrollAction}}">
+        <div class="gradient">
+          <template repeat="{{list1}}">
+            <div class="list1" on-tap="{{itemTapAction}}">a {{index}}</div>
+          </template>
+          <template repeat="{{item in list2}}">
+            <div class="list2"
+                on-tap="{{@item.itemTapAction}}">b {{item.index}}</div>
+          </template>
+        </div>
+      </div>
+    </template>
+    <script type="application/dart" src="event_handlers_test.dart"></script>
+  </polymer-element>
+  </body>
+</html>

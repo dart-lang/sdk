@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -603,7 +604,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ sw(A1, Address(SP, 1 * kWordSize));  // Push type arguments.
     __ LoadObject(A0, test_cache);
     __ sw(A0, Address(SP, 0 * kWordSize));
-    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ lw(T0, Address(SP, 5 * kWordSize));
@@ -691,7 +692,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ LoadObject(TMP1, error_message);
     __ sw(TMP1, Address(SP, 0 * kWordSize));
 
-    GenerateCallRuntime(token_pos,
+    GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
                         3,
@@ -730,7 +731,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ LoadObject(T0, test_cache);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
-  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ lw(A0, Address(SP, 6 * kWordSize));
@@ -1272,7 +1273,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 }
 
 
-void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
+void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             intptr_t argument_count,
@@ -1412,11 +1413,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  __ sll(TMP1, T3, 2);
-  __ addu(TMP1, T2, TMP1);
-  __ lw(T0, FieldAddress(TMP, base + kWordSize));
-  __ lw(T0, FieldAddress(T0, Function::code_offset()));
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ sll(T1, T3, 2);
+  __ addu(T1, T2, T1);
+  __ lw(T0, FieldAddress(T1, base + kWordSize));
+  __ lw(T1, FieldAddress(T0, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
+                      &is_compiled);
+    __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
+    __ lw(T1, FieldAddress(T0, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ lw(T0, FieldAddress(T1, Code::instructions_offset()));
   __ LoadObject(S5, ic_data);
   __ LoadObject(S4, arguments_descriptor);
   __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
@@ -1552,10 +1562,12 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
+// FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   __ TraceSimMsg("SaveLiveRegisters");
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_regs_count= locs->live_registers()->fpu_regs_count();
+  const intptr_t fpu_regs_count= locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     __ AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
     // Store fpu registers with the lowest register number at the lowest
@@ -1607,7 +1619,7 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   }
   __ addiu(SP, SP, Immediate(register_count * kWordSize));
 
-  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;

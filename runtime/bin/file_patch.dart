@@ -57,11 +57,12 @@ class _FileSystemWatcherImpl
 
   _FileSystemWatcherImpl(this._path, this._events, this._recursive) {
     if (!isSupported) {
-      throw new FileException(
+      throw new FileSystemException(
           "File system watching is not supported on this system",
           _path);
     }
-    _controller = new StreamController(onListen: _listen, onCancel: _cancel);
+    _controller = new StreamController.broadcast(onListen: _listen,
+                                                 onCancel: _cancel);
   }
 
   void _listen() {
@@ -69,13 +70,14 @@ class _FileSystemWatcherImpl
     try {
       socketId = _watchPath(_path, _events, identical(true, _recursive));
     } catch (e) {
-      throw new FileException(
+      throw new FileSystemException(
           "Failed to watch path",
           _path,
           e);
     }
     var socket = new _RawSocket(new _NativeSocket.watch(socketId));
     _subscription = socket.expand((event) {
+      bool stop = false;
       var events = [];
       var pair = {};
       if (event == RawSocketEvent.READ) {
@@ -87,18 +89,22 @@ class _FileSystemWatcherImpl
           }
           return path;
         }
+        void add(event) {
+          if ((event.type & _events) == 0) return;
+          events.add(event);
+        }
         while (socket.available() > 0) {
           for (var event in _readEvents()) {
             if (event == null) continue;
             var path = getPath(event);
             if ((event[0] & FileSystemEvent.CREATE) != 0) {
-              events.add(new FileSystemCreateEvent._(path));
+              add(new FileSystemCreateEvent._(path));
             }
             if ((event[0] & FileSystemEvent.MODIFY) != 0) {
-              events.add(new FileSystemModifyEvent._(path, true));
+              add(new FileSystemModifyEvent._(path, true));
             }
             if ((event[0] & FileSystemEvent._MODIFY_ATTRIBUTES) != 0) {
-              events.add(new FileSystemModifyEvent._(path, false));
+              add(new FileSystemModifyEvent._(path, false));
             }
             if ((event[0] & FileSystemEvent.MOVE) != 0) {
               int link = event[1];
@@ -111,11 +117,15 @@ class _FileSystemWatcherImpl
                   pair[link] = event;
                 }
               } else {
-                events.add(new FileSystemMoveEvent._(path, null));
+                add(new FileSystemMoveEvent._(path, null));
               }
             }
             if ((event[0] & FileSystemEvent.DELETE) != 0) {
-              events.add(new FileSystemDeleteEvent._(path));
+              add(new FileSystemDeleteEvent._(path));
+            }
+            if ((event[0] & FileSystemEvent._DELETE_SELF) != 0) {
+              add(new FileSystemDeleteEvent._(path));
+              stop = true;
             }
           }
         }
@@ -127,17 +137,19 @@ class _FileSystemWatcherImpl
       } else {
         assert(false);
       }
+      if (stop) socket.close();
       return events;
     })
-    .where((event) => (event.type & _events) != 0)
     .listen(_controller.add, onDone: _cancel);
   }
 
   void _cancel() {
-    _unwatchPath();
     if (_subscription != null) {
+      _unwatchPath();
       _subscription.cancel();
+      _subscription = null;
     }
+    _controller.close();
   }
 
   Stream<FileSystemEvent> get stream => _controller.stream;

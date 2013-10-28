@@ -8,17 +8,17 @@
 library NestedSpawnUriChild1Library;
 import 'dart:isolate';
 
-main() {
+main(List<String> args, message) {
   ReceivePort port2 = new ReceivePort();
-  port2.receive((msg, SendPort replyTo) {
+  port2.listen((msg) {
+    if (msg != "re: hi") throw "Bad response: $msg";
     port2.close();
   });
 
-  SendPort s = spawnUri('spawn_uri_nested_child2_vm_isolate.dart');
-  s.send('hi', port2.toSendPort());
+  Isolate.spawnUri(Uri.parse('spawn_uri_nested_child2_vm_isolate.dart'),
+                   ['hi'], port2.sendPort);
 
-  port.receive((message, SendPort replyTo) {
-    var result = message;
-    replyTo.send(result);
-  });
+  var data = message[0];
+  var replyTo = message[1];
+  replyTo.send(data);
 }

@@ -556,7 +556,7 @@ class ResolverTask extends CompilerTask {
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
-      visitor.addPostProcessAction(element, () {
+      visitor.addDeferredAction(element, () {
         compiler.constantHandler.compileVariable(
             element, isConst: element.modifiers.isConst());
       });
@@ -1517,8 +1517,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.unimplemented(message, node: node);
   }
 
-  void addPostProcessAction(Element element, PostProcessAction action) {
-    compiler.enqueuer.resolution.addPostProcessAction(element, action);
+  void addDeferredAction(Element element, DeferredAction action) {
+    compiler.enqueuer.resolution.addDeferredAction(element, action);
   }
 }
 
@@ -1777,7 +1777,7 @@ class TypeResolver {
       // Remove the guarded when this is fixed.
       if (!compiler.enqueuer.resolution.queueIsClosed &&
           addTypeVariableBoundsCheck) {
-        visitor.addPostProcessAction(
+        visitor.addDeferredAction(
             visitor.enclosingElement,
             () => checkTypeVariableBounds(node, type));
       }
@@ -2175,7 +2175,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       parameterNodes = parameterNodes.tail;
     });
-    addPostProcessAction(enclosingElement, () {
+    addDeferredAction(enclosingElement, () {
       functionParameters.forEachOptionalParameter((Element parameter) {
         compiler.constantHandler.compileConstant(parameter);
       });
@@ -2896,7 +2896,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
     // Register a post process to check for cycles in the redirection chain and
     // set the actual generative constructor at the end of the chain.
-    addPostProcessAction(constructor, () {
+    addDeferredAction(constructor, () {
       compiler.resolver.resolveRedirectionChain(constructor, node);
     });
 
@@ -3041,7 +3041,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   void analyzeConstant(Node node, {bool isConst: true}) {
-    addPostProcessAction(enclosingElement, () {
+    addDeferredAction(enclosingElement, () {
        compiler.constantHandler.compileNodeWithDefinitions(
            node, mapping, isConst: isConst);
     });
@@ -3586,7 +3586,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
             bound = element.bound;
           }
         }
-        addPostProcessAction(element, checkTypeVariableBound);
+        addDeferredAction(element, checkTypeVariableBound);
       } else {
         variableElement.bound = compiler.objectClass.computeType(compiler);
       }
@@ -3625,7 +3625,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     void checkCyclicReference() {
       element.checkCyclicReference(compiler);
     }
-    addPostProcessAction(element, checkCyclicReference);
+    addDeferredAction(element, checkCyclicReference);
   }
 }
 
@@ -4233,7 +4233,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<String> {
           new VariableElementX(name, variables, kind, link.head);
       resolver.defineElement(link.head, element);
       if (definitions.modifiers.isConst()) {
-        compiler.enqueuer.resolution.addPostProcessAction(element, () {
+        compiler.enqueuer.resolution.addDeferredAction(element, () {
           compiler.constantHandler.compileVariable(element, isConst: true);
         });
       }

@@ -29,18 +29,6 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-# test issue 13807, missing support for type promotion
-type_promotion_closure_test/none: Fail # Issue 13807
-type_promotion_functions_test/none: Fail # Issue 13807
-type_promotion_local_test/none: Fail # Issue 13807
-type_promotion_logical_and_test/none: Fail # Issue 13807
-type_promotion_multiple_test/none: Fail # Issue 13807
-type_promotion_parameter_test/none: Fail # Issue 13807
-
-# Missing checks for cyclic typedefs (through bounds)
-cyclic_typedef_test/10: Fail # Issue 13906
-cyclic_typedef_test/11: Fail # Issue 13906
-
 # Invalid constant redirecting factories should cause compile-time error.
 const_types_test/23: Fail # Issue 14306
 const_types_test/24: Fail # Issue 14306
@@ -56,8 +44,6 @@ const_types_test/41: Fail # Issue 14306
 # Section below is for invalid tests.
 #
 #
-
-
 
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
@@ -166,8 +152,6 @@ type_error_test: fail # Issue 12289
 issue11724_test: fail # Issue 12381
 call_nonexistent_static_test/08: fail # Issue 12381
 
-scope_variable_test/01: fail # Issue 12397
-
 # test issue 12539, rules for finals were loosened, contradiction in spec was fixed
 const_syntax_test/09: fail # Issue 12539
 
@@ -198,6 +182,29 @@ malformed_test/06: fail # test issue 14079, it is not error, but warning to use 
 
 # test issue 14228
 black_listed_test/none: fail # test issue 14228, warnings are required but not expected
+
+# test issue 14289
+bailout3_test: fail # test issue 14289
+prefix9_test: fail # test issue 14289
+
+# test issue 14358, E does not implement inherited A.+
+type_promotion_closure_test/none: Fail
+
+# test issue 14362, wrong assumption that dynamic << A
+type_promotion_functions_test/none: Fail
+
+# test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
+type_promotion_parameter_test/53: Fail
+
+# test issue 14364, "E<A> << D"
+type_promotion_more_specific_test/08: fail
+
+# test issue 14406, setter for final field was removed from spec
+implicit_setter_test/01: fail
+implicit_setter_test/02: fail
+
+# test issue 14410, "typedef C = " is now really illegal syntax
+mixin_illegal_syntax_test/none: fail
 
 #
 # Please don't add new items here.

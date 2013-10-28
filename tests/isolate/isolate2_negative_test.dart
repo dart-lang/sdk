@@ -9,7 +9,7 @@ library isolate2_negative_test;
 import 'dart:isolate';
 import "package:async_helper/async_helper.dart";
 
-void entry() {
+void entry(msg) {
   throw "foo";
 }
 
@@ -18,5 +18,5 @@ main() {
   // anything back except an exception there is no asyncEnd().
   // If the exception is not thrown this test will timeout.
   asyncStart();
-  SendPort port = spawnFunction(entry);
+  Isolate.spawn(entry);
 }

@@ -225,7 +225,7 @@ abstract class FileSystemEntity {
    * to resolve the path, using the realpath function on linux and
    * Mac OS, and the GetFinalPathNameByHandle function on Windows.
    * If the path does not point to an existing file system object,
-   * [resolveSymbolicLinks] completes the returned Future with an FileException.
+   * [resolveSymbolicLinks] completes the returned Future with an FileSystemException.
    *
    * On Windows, symbolic links are resolved to their target before applying
    * a '..' that follows, and on other platforms, the '..' is applied to the
@@ -256,7 +256,7 @@ abstract class FileSystemEntity {
    * filesystem api to resolve the path, using the realpath function
    * on linux and Mac OS, and the GetFinalPathNameByHandle function on Windows.
    * If the path does not point to an existing file system object,
-   * [resolveSymbolicLinksSync] throws a FileException.
+   * [resolveSymbolicLinksSync] throws a FileSystemException.
    *
    * On Windows, symbolic links are resolved to their target before applying
    * a '..' that follows, and on other platforms, the '..' is applied to the
@@ -340,24 +340,33 @@ abstract class FileSystemEntity {
 
 
   /**
-   * Start watch the [FileSystemEntity] for changes.
+   * Start watching the [FileSystemEntity] for changes.
    *
-   * The implementation uses platform-depending event-based APIs for receiving
-   * file-system notifixations, thus behvaiour depends on the platform.
+   * The implementation uses platform-dependent event-based APIs for receiving
+   * file-system notifications, thus behavior depends on the platform.
    *
-   *   * `Windows`: Uses `ReadDirectoryChangesW`. The implementation supports
-   *     only watching dirctories but supports recursive watching.
+   *   * `Windows`: Uses `ReadDirectoryChangesW`. The implementation only
+   *     supports watching directories. Recursive watching is supported.
    *   * `Linux`: Uses `inotify`. The implementation supports watching both
-   *     files and dirctories, but doesn't support recursive watching.
+   *     files and directories. Recursive watching is not supported.
    *   * `Mac OS`: Uses `FSEvents`. The implementation supports watching both
-   *     files and dirctories, and also recursive watching. Note that FSEvents
-   *     always use recursion internally, so when disabled, some events are
-   *     ignored.
+   *     files and directories. Recursive watching is supported.
+   *     Note: events happened slightly before calling [watch], may be part of
+   *     the returned stream, on Mac OS.
    *
-   * The system will start listen for events once the returned [Stream] is
-   * being listened to, not when the call to [watch] is issued. Note that the
-   * returned [Stream] is endless. To stop the [Stream], simply cancel the
-   * subscription.
+   * The system will start listening for events once the returned [Stream] is
+   * being listened to, not when the call to [watch] is issued.
+   *
+   * The returned value is an endless broadcast [Stream], that only stops when
+   * one of the following happends:
+   *
+   *   * The [Stream] is canceled, e.g. by calling `cancel` on the
+   *      [StreamSubscription].
+   *   * The [FileSystemEntity] being watches, is deleted.
+   *
+   * Use `events` to specify what events to listen for. The constants in
+   * [FileSystemEvent] can be or'ed together to mix events. Default is
+   * [FileSystemEvent.ALL].
    */
   Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
                                  bool recursive: false})
@@ -590,7 +599,7 @@ abstract class FileSystemEntity {
 
   static _throwIfError(Object result, String msg, [String path]) {
     if (result is OSError) {
-      throw new FileException(msg, path, result);
+      throw new FileSystemException(msg, path, result);
     } else if (result is ArgumentError) {
       throw result;
     }
@@ -616,16 +625,37 @@ abstract class FileSystemEntity {
 
 
 /**
- * Base event class emitted by FileSystemWatcher.
+ * Base event class emitted by [FileSystemEntity.watch].
  */
 class FileSystemEvent {
+  /**
+   * Bitfield for [FileSystemEntity.watch], to enable [FileSystemCreateEvent]s.
+   */
   static const int CREATE = 1 << 0;
+
+  /**
+   * Bitfield for [FileSystemEntity.watch], to enable [FileSystemModifyEvent]s.
+   */
   static const int MODIFY = 1 << 1;
+
+  /**
+   * Bitfield for [FileSystemEntity.watch], to enable [FileSystemDeleteEvent]s.
+   */
   static const int DELETE = 1 << 2;
+
+  /**
+   * Bitfield for [FileSystemEntity.watch], to enable [FileSystemMoveEvent]s.
+   */
   static const int MOVE = 1 << 3;
+
+  /**
+   * Bitfield for [FileSystemEntity.watch], for enabling all of [CREATE],
+   * [MODIFY], [DELETE] and [MOVE].
+   */
   static const int ALL = CREATE | MODIFY | DELETE | MOVE;
 
   static const int _MODIFY_ATTRIBUTES = 1 << 4;
+  static const int _DELETE_SELF = 1 << 5;
 
   /**
    * The type of event. See [FileSystemEvent] for a list of events.

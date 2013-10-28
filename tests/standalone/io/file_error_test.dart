@@ -15,8 +15,8 @@ Directory tempDir() {
 }
 
 
-bool checkNonExistentFileException(e, str) {
-  Expect.isTrue(e is FileException);
+bool checkNonExistentFileSystemException(e, str) {
+  Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
   // File not not found has error code 2 on all supported platforms.
@@ -25,18 +25,18 @@ bool checkNonExistentFileException(e, str) {
 }
 
 
-bool checkOpenNonExistentFileException(e) {
-  return checkNonExistentFileException(e, "Cannot open file");
+bool checkOpenNonExistentFileSystemException(e) {
+  return checkNonExistentFileSystemException(e, "Cannot open file");
 }
 
 
-bool checkDeleteNonExistentFileException(e) {
-  return checkNonExistentFileException(e, "Cannot delete file");
+bool checkDeleteNonExistentFileSystemException(e) {
+  return checkNonExistentFileSystemException(e, "Cannot delete file");
 }
 
 
-bool checkLengthNonExistentFileException(e) {
-  return checkNonExistentFileException(e, "Cannot retrieve length of file");
+bool checkLengthNonExistentFileSystemException(e) {
+  return checkNonExistentFileSystemException(e, "Cannot retrieve length of file");
 }
 
 
@@ -47,12 +47,12 @@ void testOpenNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.openSync(),
-                (e) => checkOpenNonExistentFileException(e));
+                (e) => checkOpenNonExistentFileSystemException(e));
 
   var openFuture = file.open(mode: FileMode.READ);
   openFuture.then((raf) => Expect.fail("Unreachable code"))
             .catchError((error) {
-              checkOpenNonExistentFileException(error);
+              checkOpenNonExistentFileSystemException(error);
               temp.deleteSync(recursive: true);
               asyncEnd();
             });
@@ -66,12 +66,12 @@ void testDeleteNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.deleteSync(),
-                (e) => checkDeleteNonExistentFileException(e));
+                (e) => checkDeleteNonExistentFileSystemException(e));
 
   var delete = file.delete();
   delete.then((ignore) => Expect.fail("Unreachable code"))
         .catchError((error) {
-          checkDeleteNonExistentFileException(error);
+          checkDeleteNonExistentFileSystemException(error);
           temp.deleteSync(recursive: true);
           asyncEnd();
         });
@@ -85,20 +85,20 @@ void testLengthNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.lengthSync(),
-                (e) => checkLengthNonExistentFileException(e));
+                (e) => checkLengthNonExistentFileSystemException(e));
 
   var lenFuture = file.length();
   lenFuture.then((len) => Expect.fail("Unreachable code"))
            .catchError((error) {
-             checkLengthNonExistentFileException(error);
+             checkLengthNonExistentFileSystemException(error);
              temp.deleteSync(recursive: true);
              asyncEnd();
            });
 }
 
 
-bool checkCreateInNonExistentDirectoryException(e) {
-  Expect.isTrue(e is FileException);
+bool checkCreateInNonExistentFileSystemException(e) {
+  Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot create file") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -119,19 +119,19 @@ void testCreateInNonExistentDirectory() {
 
   // Create in non-existent directory should throw exception.
   Expect.throws(() => file.createSync(),
-                (e) => checkCreateInNonExistentDirectoryException(e));
+                (e) => checkCreateInNonExistentFileSystemException(e));
 
   var create = file.create();
   create.then((ignore) => Expect.fail("Unreachable code"))
   .catchError((error) {
-    checkCreateInNonExistentDirectoryException(error);
+    checkCreateInNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
   });
 }
 
-bool checkResolveSymbolicLinksOnNonExistentDirectoryException(e) {
-  Expect.isTrue(e is FileException);
+bool checkResolveSymbolicLinksOnNonExistentFileSystemException(e) {
+  Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot resolve symbolic links") != -1);
   // File not not found has error code 2 on all supported platforms.
@@ -147,12 +147,12 @@ void testResolveSymbolicLinksOnNonExistentDirectory() {
 
   // Full path non-existent directory should throw exception.
   Expect.throws(() => file.resolveSymbolicLinksSync(),
-      (e) => checkResolveSymbolicLinksOnNonExistentDirectoryException(e));
+      (e) => checkResolveSymbolicLinksOnNonExistentFileSystemException(e));
 
   var resolvedFuture = file.resolveSymbolicLinks();
   resolvedFuture.then((path) => Expect.fail("Unreachable code $path"))
   .catchError((error) {
-    checkResolveSymbolicLinksOnNonExistentDirectoryException(error);
+    checkResolveSymbolicLinksOnNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
   });
@@ -165,12 +165,12 @@ void testReadAsBytesNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.readAsBytesSync(),
-                (e) => checkOpenNonExistentFileException(e));
+                (e) => checkOpenNonExistentFileSystemException(e));
 
   var readAsBytesFuture = file.readAsBytes();
   readAsBytesFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
-    checkOpenNonExistentFileException(error);
+    checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
   });
@@ -183,12 +183,12 @@ void testReadAsTextNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.readAsStringSync(),
-                (e) => checkOpenNonExistentFileException(e));
+                (e) => checkOpenNonExistentFileSystemException(e));
 
   var readAsStringFuture = file.readAsString(encoding: ASCII);
   readAsStringFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
-    checkOpenNonExistentFileException(error);
+    checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
   });
@@ -201,19 +201,19 @@ testReadAsLinesNonExistent() {
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.readAsLinesSync(),
-                (e) => checkOpenNonExistentFileException(e));
+                (e) => checkOpenNonExistentFileSystemException(e));
 
   var readAsLinesFuture = file.readAsLines(encoding: ASCII);
   readAsLinesFuture.then((data) => Expect.fail("Unreachable code"))
   .catchError((error) {
-    checkOpenNonExistentFileException(error);
+    checkOpenNonExistentFileSystemException(error);
     temp.deleteSync(recursive: true);
     asyncEnd();
   });
 }
 
-bool checkWriteReadOnlyFileException(e) {
-  Expect.isTrue(e is FileException);
+bool checkWriteReadOnlyFileSystemException(e) {
+  Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.osError.errorCode != OSError.noErrorCode);
   return true;
@@ -241,11 +241,11 @@ testWriteByteToReadOnlyFile() {
 
     // Writing to read only file should throw an exception.
     Expect.throws(() => openedFile.writeByteSync(0),
-                  (e) => checkWriteReadOnlyFileException(e));
+                  (e) => checkWriteReadOnlyFileSystemException(e));
 
     var writeByteFuture = openedFile.writeByte(0);
     writeByteFuture.catchError((error) {
-      checkWriteReadOnlyFileException(error);
+      checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
     });
   });
@@ -258,11 +258,11 @@ testWriteFromToReadOnlyFile() {
     List data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
     Expect.throws(() => openedFile.writeFromSync(data, 0, data.length),
-                  (e) => checkWriteReadOnlyFileException(e));
+                  (e) => checkWriteReadOnlyFileSystemException(e));
 
     var writeFromFuture = openedFile.writeFrom(data, 0, data.length);
     writeFromFuture.catchError((error) {
-      checkWriteReadOnlyFileException(error);
+      checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
     });
   });
@@ -277,19 +277,19 @@ testTruncateReadOnlyFile() {
 
     // Truncating read only file should throw an exception.
     Expect.throws(() => openedFile.truncateSync(0),
-                  (e) => checkWriteReadOnlyFileException(e));
+                  (e) => checkWriteReadOnlyFileSystemException(e));
 
     var truncateFuture = openedFile.truncate(0);
     truncateFuture.then((ignore) => Expect.fail("Unreachable code"))
     .catchError((error) {
-      checkWriteReadOnlyFileException(error);
+      checkWriteReadOnlyFileSystemException(error);
       openedFile.close().then((_) => done());
     });
   });
 }
 
 bool checkFileClosedException(e) {
-  Expect.isTrue(e is FileException);
+  Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.toString().indexOf("File closed") != -1);
   Expect.isTrue(e.osError == null);
   return true;
@@ -381,7 +381,7 @@ testRepeatedlyCloseFile() {
       var closeFuture = openedFile.close();
       closeFuture.then((ignore) => null)
       .catchError((error) {
-        Expect.isTrue(error is FileException);
+        Expect.isTrue(error is FileSystemException);
         done();
       });
     });
@@ -393,7 +393,7 @@ testRepeatedlyCloseFileSync() {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(openedFile.closeSync,
-                  (e) => e is FileException);
+                  (e) => e is FileSystemException);
     done();
   });
 }
@@ -403,7 +403,7 @@ testReadSyncBigInt() {
     var bigint = 100000000000000000000000000000000000000000;
     var openedFile = file.openSync();
     Expect.throws(() => openedFile.readSync(bigint),
-                  (e) => e is FileException);
+                  (e) => e is FileSystemException);
     openedFile.closeSync();
     done();
   });
@@ -414,7 +414,7 @@ testReadSyncClosedFile() {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(() => openedFile.readSync(1),
-                  (e) => e is FileException);
+                  (e) => e is FileSystemException);
     done();
   });
 }

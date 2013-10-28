@@ -600,7 +600,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return node;
       }
     }
-    return removeIfCheckAlwaysSucceeds(node, node.instructionType);
+    return removeIfCheckAlwaysSucceeds(node, node.checkedType);
   }
 
   HInstruction visitTypeKnown(HTypeKnown node) {

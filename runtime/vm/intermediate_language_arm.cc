@@ -246,7 +246,7 @@ static void EmitAssertBoolean(Register reg,
   __ b(&done, EQ);
 
   __ Push(reg);  // Push the source object.
-  compiler->GenerateCallRuntime(token_pos,
+  compiler->GenerateRuntimeCall(token_pos,
                                 deopt_id,
                                 kConditionTypeErrorRuntimeEntry,
                                 1,
@@ -1876,7 +1876,7 @@ AllocateObjectWithBoundsCheckInstr::MakeLocationSummary() const {
 
 void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(token_pos(),
+  compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
                                 3,
@@ -1924,7 +1924,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ PushObject(type());
   __ Push(instantiator_reg);  // Push instantiator type arguments.
-  compiler->GenerateCallRuntime(token_pos(),
+  compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeRuntimeEntry,
                                 2,
@@ -1971,7 +1971,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ PushObject(type_arguments());
   __ Push(instantiator_reg);  // Push instantiator type arguments.
-  compiler->GenerateCallRuntime(token_pos(),
+  compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
                                 2,
@@ -2107,7 +2107,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ Push(context_value);
-  compiler->GenerateCallRuntime(token_pos(),
+  compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
                                 kCloneContextRuntimeEntry,
                                 1,
@@ -2178,8 +2178,9 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
-    compiler->pending_deoptimization_env_ = instruction_->env();
-    compiler->GenerateCallRuntime(instruction_->token_pos(),
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    compiler->pending_deoptimization_env_ = env;
+    compiler->GenerateRuntimeCall(instruction_->token_pos(),
                                   instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
                                   0,
@@ -4374,7 +4375,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(token_pos(),
+  compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
                                 kThrowRuntimeEntry,
                                 1,
@@ -4390,7 +4391,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->SetNeedsStacktrace(catch_try_index());
-  compiler->GenerateCallRuntime(token_pos(),
+  compiler->GenerateRuntimeCall(token_pos(),
                                 deopt_id(),
                                 kReThrowRuntimeEntry,
                                 2,

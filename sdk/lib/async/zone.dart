@@ -64,29 +64,29 @@ abstract class ZoneSpecification {
    */
   const factory ZoneSpecification({
     dynamic handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone,
-                                error, StackTrace stackTrace): null,
-    dynamic run(Zone self, ZoneDelegate parent, Zone zone, f()): null,
+                                error, StackTrace stackTrace),
+    dynamic run(Zone self, ZoneDelegate parent, Zone zone, f()),
     dynamic runUnary(
-        Zone self, ZoneDelegate parent, Zone zone, f(arg), arg): null,
+        Zone self, ZoneDelegate parent, Zone zone, f(arg), arg),
     dynamic runBinary(Zone self, ZoneDelegate parent, Zone zone,
-                      f(arg1, arg2), arg1, arg2): null,
+                      f(arg1, arg2), arg1, arg2),
     ZoneCallback registerCallback(
-        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+        Zone self, ZoneDelegate parent, Zone zone, f()),
     ZoneUnaryCallback registerUnaryCallback(
-        Zone self, ZoneDelegate parent, Zone zone, f(arg)): null,
+        Zone self, ZoneDelegate parent, Zone zone, f(arg)),
     ZoneBinaryCallback registerBinaryCallback(
-        Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)): null,
+        Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)),
     void scheduleMicrotask(
-        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+        Zone self, ZoneDelegate parent, Zone zone, f()),
     void runAsync(
-        Zone self, ZoneDelegate parent, Zone zone, f()): null,
+        Zone self, ZoneDelegate parent, Zone zone, f()),
     Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
-                      Duration duration, void f()): null,
+                      Duration duration, void f()),
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
-                              Duration period, void f(Timer timer)): null,
-    void print(Zone self, ZoneDelegate parent, Zone zone, String line): null,
+                              Duration period, void f(Timer timer)),
+    void print(Zone self, ZoneDelegate parent, Zone zone, String line),
     Zone fork(Zone self, ZoneDelegate parent, Zone zone,
-              ZoneSpecification specification, Map zoneValues): null
+              ZoneSpecification specification, Map zoneValues)
   }) = _ZoneSpecification;
 
   /**
@@ -701,16 +701,18 @@ class _CustomizedZone extends _BaseZone {
 
 void _rootHandleUncaughtError(
     Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) {
-  _scheduleAsyncCallback(() {
-    print("Uncaught Error: ${error}");
-    var trace = stackTrace;
-    if (trace == null) trace = getAttachedStackTrace(error);
-    // Clear the attached stack trace (if any).
-    _attachStackTrace(error, null);
-    if (trace != null) {
-      print("Stack Trace: \n$trace\n");
-    }
-    throw error;
+  self.run(() {
+    _scheduleAsyncCallback(() {
+      print("Uncaught Error: ${error}");
+      var trace = stackTrace;
+      if (trace == null) trace = getAttachedStackTrace(error);
+      // Clear the attached stack trace (if any).
+      _attachStackTrace(error, null);
+      if (trace != null) {
+        print("Stack Trace: \n$trace\n");
+      }
+      throw error;
+    });
   });
 }
 

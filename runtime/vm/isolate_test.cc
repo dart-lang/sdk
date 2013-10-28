@@ -23,10 +23,10 @@ UNIT_TEST_CASE(IsolateCurrent) {
 TEST_CASE(IsolateSpawn) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
-      "void entry() {}\n"
+      "void entry(message) {}\n"
       "int testMain() {\n"
       "  try {\n"
-      "    spawnFunction(entry);\n"
+      "    Isolate.spawn(entry, null);\n"
       "  } catch (e) {\n"
       "    rethrow;\n"
       "  }\n"

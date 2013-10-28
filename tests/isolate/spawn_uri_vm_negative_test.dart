@@ -13,12 +13,11 @@ import '../../pkg/unittest/lib/unittest.dart';
 main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
-      port.close();
+    port.first.then(expectAsync1((msg) {
       expect(msg, equals('re: hello')); // should be hi, not hello
     }));
 
-    SendPort s = spawnUri('spawn_uri_child_isolate.dart');
-    s.send('hi', port.toSendPort());
+    Isolate.spawnUri(Uri.parse('spawn_uri_child_isolate.dart'),
+                     ['hi'], port.sendPort);
   });
 }

@@ -6,7 +6,7 @@ patch class _IOService {
   // Lazy initialize service ports, 32 per isolate.
   static const int _SERVICE_PORT_COUNT = 32;
   static List<SendPort> _servicePort = new List(_SERVICE_PORT_COUNT);
-  static ReceivePort _receivePort;
+  static RawReceivePort _receivePort;
   static SendPort _replyToPort;
   static Map<int, Completer> _messageMap = {};
   static int _id = 0;
@@ -29,9 +29,9 @@ patch class _IOService {
       _servicePort[index] = _newServicePort();
     }
     if (_receivePort == null) {
-      _receivePort = new ReceivePort();
-      _replyToPort = _receivePort.toSendPort();
-      _receivePort.receive((data, _) {
+      _receivePort = new RawReceivePort();
+      _replyToPort = _receivePort.sendPort;
+      _receivePort.handler = (data) {
         assert(data is List && data.length == 2);
         _messageMap.remove(data[0]).complete(data[1]);
         if (_messageMap.length == 0) {
@@ -39,7 +39,7 @@ patch class _IOService {
           _receivePort.close();
           _receivePort = null;
         }
-      });
+      };
     }
   }
 

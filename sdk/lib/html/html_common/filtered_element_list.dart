@@ -8,7 +8,8 @@ part of html_common;
  * An indexable collection of a node's descendants in the document tree,
  * filtered so that only elements are in the collection.
  */
-class FilteredElementList<T extends Element> extends ListBase<T> {
+class FilteredElementList<T extends Element> extends ListBase<T>
+    implements NodeListWrapper{
   final Node _node;
   final List<Node> _childNodes;
 
@@ -131,4 +132,6 @@ class FilteredElementList<T extends Element> extends ListBase<T> {
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> get iterator => _filtered.iterator;
+
+  List<Node> get rawList => _node.childNodes;
 }

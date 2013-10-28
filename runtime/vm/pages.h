@@ -11,6 +11,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, collect_code);
+DECLARE_FLAG(bool, log_code_drop);
+
 // Forward declarations.
 class Heap;
 class ObjectPointerVisitor;
@@ -121,6 +124,11 @@ class PageSpaceController {
   void EvaluateGarbageCollection(intptr_t in_use_before, intptr_t in_use_after,
                                  int64_t start, int64_t end);
 
+  int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
+  void set_last_code_collection_in_us(int64_t t) {
+    last_code_collection_in_us_ = t;
+  }
+
   void set_is_enabled(bool state) {
     is_enabled_ = state;
   }
@@ -148,6 +156,10 @@ class PageSpaceController {
   // If the relative GC time stays below garbage_collection_time_ratio_
   // garbage collection can be performed.
   int garbage_collection_time_ratio_;
+
+  // The time in microseconds of the last time we tried to collect unused
+  // code.
+  int64_t last_code_collection_in_us_;
 
   PageSpaceGarbageCollectionHistory history_;
 
@@ -187,6 +199,10 @@ class PageSpace {
 
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;
+
+  // Runs a visitor that attempts to drop references to code that has not
+  // been run in awhile.
+  void TryDetachingCode();
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep(bool invoke_api_callbacks);

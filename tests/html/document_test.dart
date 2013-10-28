@@ -66,7 +66,7 @@ main() {
       var div = new Element.html('<div><div id="foo">bar</div></div>');
       var doc = document.implementation.createHtmlDocument('');
       expect(doc.adoptNode(div), div);
-      expect(div.document, doc);
+      expect(div.ownerDocument, doc);
       doc.body.nodes.add(div);
       expect(doc.query('#foo').text, 'bar');
     });
@@ -76,7 +76,7 @@ main() {
       var doc = document.implementation.createHtmlDocument('');
       var div2 = doc.importNode(div, true);
       expect(div2, isNot(equals(div)));
-      expect(div2.document, doc);
+      expect(div2.ownerDocument, doc);
       doc.body.nodes.add(div2);
       expect(doc.query('#foo').text, 'bar');
     });

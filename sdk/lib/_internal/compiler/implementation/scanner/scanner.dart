@@ -49,12 +49,11 @@ abstract class AbstractScanner implements Scanner {
    */
   final SourceFile file;
 
-  final List<int> lineStarts = [0];
+  final List<int> lineStarts = <int>[0];
 
   AbstractScanner(this.file, this.includeComments) {
     this.tail = this.tokens;
   }
-
 
   /**
    * Advances and returns the next character.
@@ -76,7 +75,7 @@ abstract class AbstractScanner implements Scanner {
    *
    * The [Utf8BytesScanner] decodes the next unicode code point starting at the
    * current position. Note that every unicode character is returned as a single
-   * code point, i.e., for '\u{1d11e}' it returns 119070, and the following
+   * code point, that is, for '\u{1d11e}' it returns 119070, and the following
    * [advance] returns the next character.
    *
    * The [StringScanner] returns the current character unchanged, which might
@@ -855,7 +854,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   /**
-   * [next] is the first character after the qoute.
+   * [next] is the first character after the quote.
    * [start] is the scanOffset of the quote.
    *
    * The token contains a substring of the source file, including the
@@ -929,7 +928,7 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
     bool asciiOnly = true;
-    next = advance(); // Advance past the quote
+    next = advance(); // Advance past the quote.
     while (next != $EOF) {
       if (identical(next, quoteChar)) {
         if (!asciiOnly) handleUnicode(start);
@@ -952,7 +951,7 @@ abstract class AbstractScanner implements Scanner {
     bool asciiOnlyString = true;
     bool asciiOnlyLine = true;
     int unicodeStart = start;
-    int next = advance(); // Advance past the (last) quote (of three)
+    int next = advance(); // Advance past the (last) quote (of three).
     outer: while (!identical(next, $EOF)) {
       while (!identical(next, quoteChar)) {
         if (identical(next, $LF)) {
@@ -1045,10 +1044,10 @@ abstract class AbstractScanner implements Scanner {
     String error = 'unmatched "${begin.stringValue}"';
     Token close =
         new StringToken.fromString(
-            BAD_INPUT_INFO, error, begin.charOffset, true);
+            BAD_INPUT_INFO, error, begin.charOffset, canonicalize: true);
 
     // We want to ensure that unmatched BeginGroupTokens are reported
-    // as errors. However, the rest of the parser assume the groups
+    // as errors. However, the rest of the parser assumes the groups
     // are well-balanced and will never look at the endGroup
     // token. This is a nice property that allows us to skip quickly
     // over correct code. By inserting an additional error token in
@@ -1062,7 +1061,7 @@ abstract class AbstractScanner implements Scanner {
     // reported when parsing the [next] token.
 
     Token next = new StringToken.fromString(
-        BAD_INPUT_INFO, error, begin.charOffset, true);
+        BAD_INPUT_INFO, error, begin.charOffset, canonicalize: true);
     begin.endGroup = close;
     close.next = next;
     next.next = begin.next;

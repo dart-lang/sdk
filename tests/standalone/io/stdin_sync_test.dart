@@ -4,7 +4,6 @@
 
 import "dart:convert";
 import "dart:io";
-import "dart:json";
 
 import "package:path/path.dart";
 
@@ -13,7 +12,7 @@ void testReadByte() {
     var script = join(dirname(Platform.script), "stdin_sync_script.dart");
     Process.start(Platform.executable,
                   ["--checked", script]..addAll(
-                      expected.map(stringify))).then((process) {
+                      expected.map(JSON.encode))).then((process) {
       process.stdin.write(line);
       process.stdin.close();
       process.stderr

@@ -10,12 +10,11 @@ class _TextAreaElementExtension extends _ElementExtension {
 
   TextAreaElement get _node => super._node;
 
-  NodeBinding createBinding(String name, model, String path) {
-    if (name == 'value') {
-      // TODO(rafaelw): Maybe template should remove all binding instructions.
-      _node.attributes.remove(name);
-      return new _ValueBinding(_node, model, path);
-    }
-    return super.createBinding(name, model, path);
+  NodeBinding bind(String name, model, [String path]) {
+    if (name != 'value') return super.bind(name, model, path);
+
+    _self.unbind(name);
+    _node.attributes.remove(name);
+    return bindings[name] = new _ValueBinding(_node, model, path);
   }
 }

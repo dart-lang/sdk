@@ -4,14 +4,13 @@
 
 library polymer.test.unbind_test;
 
-import 'dart:async' show Future;
+import 'dart:async' show Future, scheduleMicrotask;
 import 'dart:html';
 
 @MirrorsUsed(targets: const [Polymer], override: 'polymer.test.unbind_test')
 import 'dart:mirrors' show reflect, reflectClass, MirrorSystem, MirrorsUsed;
 
 import 'package:polymer/polymer.dart';
-import 'package:polymer/platform.dart' as Platform;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
@@ -72,7 +71,7 @@ _unbound(node) => reflect(node).getField(unboundSymbol).reflectee;
 unbindTests() {
   var xTest = document.query('x-test');
   xTest.foo = 'bar';
-  Platform.flush();
+  scheduleMicrotask(Observable.dirtyCheck);
 
   return delay(null).then((_) {
     expect(_unbound(xTest), null, reason:
@@ -88,7 +87,7 @@ unbindTests() {
     expect(_unbound(node), null, reason:
         'element is bound when not inserted');
     node.foo = 'bar';
-    Platform.flush();
+    scheduleMicrotask(Observable.dirtyCheck);
     return node;
   }).then(delay).then((node) {
     expect(node.fooWasChanged, true, reason: 'node is actually bound');

@@ -1176,7 +1176,7 @@ if (useNative) {
     // HTMLElement.prototype, so we add a test
     // the idea is to avoid mixing in native prototypes, so adding
     // the second test is WLOG
-    while (p !== inNative && p !== HTMLUnknownElement.prototype) {
+    while (p && p !== inNative && p !== HTMLUnknownElement.prototype) {
       var keys = Object.getOwnPropertyNames(p);
       for (var i=0, k; k=keys[i]; i++) {
         if (!used[k]) {

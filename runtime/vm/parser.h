@@ -337,7 +337,7 @@ class Parser : public ValueObject {
 
   void CheckRecursiveInvocation();
 
-  const Instance& EvaluateConstExpr(AstNode* expr);
+  const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
   AstNode* RunStaticFieldInitializer(const Field& field);
   RawObject* EvaluateConstConstructorCall(
       const Class& type_class,
@@ -420,8 +420,7 @@ class Parser : public ValueObject {
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   void ParseInterfaceList(const Class& cls);
-  RawAbstractType* ParseMixins(const GrowableObjectArray& pending_classes,
-                               const AbstractType& super_type);
+  RawAbstractType* ParseMixins(const AbstractType& super_type);
   static StaticCallNode* BuildInvocationMirrorAllocation(
       intptr_t call_pos,
       const String& function_name,

@@ -86,7 +86,7 @@ abstract class Directory implements FileSystemEntity {
    * Returns a [:Future<Directory>:] that completes with the newly
    * created temporary directory.
    */
-  Future<Directory> createTemp([String template]);
+  Future<Directory> createTemp([String prefix]);
 
   /**
    * Synchronously creates a temporary directory in this directory.
@@ -96,7 +96,7 @@ abstract class Directory implements FileSystemEntity {
    *
    * Returns the newly created temporary directory.
    */
-  Directory createTempSync([String template]);
+  Directory createTempSync([String prefix]);
 
   Future<String> resolveSymbolicLinks();
 
@@ -186,33 +186,4 @@ abstract class Directory implements FileSystemEntity {
    * Gets the path of this directory.
    */
   final String path;
-}
-
-
-class DirectoryException implements IOException {
-  const DirectoryException([String this.message = "",
-                            String this.path = "",
-                            OSError this.osError = null]);
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write("DirectoryException");
-    if (!message.isEmpty) {
-      sb.write(": $message");
-      if (path != null) {
-        sb.write(", path = $path");
-      }
-      if (osError != null) {
-        sb.write(" ($osError)");
-      }
-    } else if (osError != null) {
-      sb.write(": $osError");
-      if (path != null) {
-        sb.write(", path = $path");
-      }
-    }
-    return sb.toString();
-  }
-  final String message;
-  final String path;
-  final OSError osError;
 }

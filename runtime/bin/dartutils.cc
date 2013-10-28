@@ -29,6 +29,7 @@ const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* DartUtils::kUriLibURL = "dart:uri";
+const char* DartUtils::kPlatformLibURL = "dart:platform";
 const char* DartUtils::kHttpScheme = "http:";
 
 const char* DartUtils::kIdFieldName = "_id";
@@ -711,17 +712,29 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
 
   // Set up package root if specified.
   if (package_root != NULL) {
-    result = NewString(package_root);
-    if (!Dart_IsError(result)) {
-      const int kNumArgs = 1;
-      Dart_Handle dart_args[kNumArgs];
-      dart_args[0] = result;
-      return Dart_Invoke(builtin_lib,
+    Dart_Handle package_root_string = NewString(package_root);
+    if (Dart_IsError(package_root_string)) {
+      return package_root_string;
+    }
+    const int kNumArgs = 1;
+    Dart_Handle dart_args[kNumArgs];
+    dart_args[0] = package_root_string;
+    result = Dart_Invoke(builtin_lib,
                          NewString("_setPackageRoot"),
                          kNumArgs,
                          dart_args);
+    if (Dart_IsError(result)) {
+      return result;
     }
   }
+
+  // Setup the platform library's _platform object.
+  internal_lib = Dart_LookupLibrary(NewString(kPlatformLibURL));
+  DART_CHECK_VALID(internal_lib);
+  Dart_Handle platform =
+      Dart_Invoke(builtin_lib, NewString("_getPlatform"), 0, NULL);
+  result = Dart_SetField(internal_lib, NewString("_platform"), platform);
+  DART_CHECK_VALID(result);
   return result;
 }
 

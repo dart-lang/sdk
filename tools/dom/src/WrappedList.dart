@@ -8,7 +8,8 @@ part of dart.dom.html;
  * A list which just wraps another list, for either intercepting list calls or
  * retyping the list (for example, from List<A> to List<B> where B extends A).
  */
-class _WrappedList<E> extends ListBase<E> {
+class _WrappedList<E extends Node> extends ListBase<E>
+    implements NodeListWrapper {
   final List _list;
 
   _WrappedList(this._list);
@@ -58,6 +59,8 @@ class _WrappedList<E> extends ListBase<E> {
   void fillRange(int start, int end, [E fillValue]) {
     _list.fillRange(start, end, fillValue);
   }
+
+  List<Node> get rawList => _list;
 }
 
 /**

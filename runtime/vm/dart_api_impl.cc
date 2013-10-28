@@ -1069,7 +1069,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
   const String& class_name = String::Handle(
-      isolate, isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+      isolate, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
   // TODO(asiva): Symbols should contain private keys.
   const String& function_name =
       String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
@@ -4014,6 +4014,8 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   }
   CHECK_CALLBACK_STATE(isolate);
 
+  NoHeapGrowthControlScope no_growth_control;
+
   library = Library::New(url_str);
   library.set_debuggable(true);
   library.Register();
@@ -4227,6 +4229,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   CHECK_CALLBACK_STATE(isolate);
 
+  NoHeapGrowthControlScope no_growth_control;
+
   Library& library = Library::Handle(isolate, Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
@@ -4321,6 +4325,8 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   }
   CHECK_CALLBACK_STATE(isolate);
 
+  NoHeapGrowthControlScope no_growth_control;
+
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kSourceTag));
   Dart_Handle result;
@@ -4348,6 +4354,8 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
     RETURN_TYPE_ERROR(isolate, patch_source, String);
   }
   CHECK_CALLBACK_STATE(isolate);
+
+  NoHeapGrowthControlScope no_growth_control;
 
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kPatchTag));

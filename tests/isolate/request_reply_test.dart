@@ -7,28 +7,28 @@ library RequestReplyTest;
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 
-void entry() {
-  port.receive((message, SendPort replyTo) {
+void entry(initPort) {
+  ReceivePort port = new ReceivePort();
+  initPort.send(port.sendPort);
+  port.listen((pair) {
+    var message = pair[0];
+    SendPort replyTo = pair[1];
     replyTo.send(message + 87);
     port.close();
   });
 }
 
 void main() {
-  test("call", () {
-    SendPort port = spawnFunction(entry);
-    port.call(42).then(expectAsync1((message) {
-      expect(message, 42 + 87);
-    }));
-  });
-
   test("send", () {
-    SendPort port = spawnFunction(entry);
-    ReceivePort reply = new ReceivePort();
-    port.send(99, reply.toSendPort());
-    reply.receive(expectAsync2((message, replyTo) {
-      expect(message, 99 + 87);
-      reply.close();
+    ReceivePort init = new ReceivePort();
+    Isolate.spawn(entry, init.sendPort);
+    init.first.then(expectAsync1((port) {
+      ReceivePort reply = new ReceivePort();
+      port.send([99, reply.sendPort]);
+      reply.listen(expectAsync1((message) {
+        expect(message, 99 + 87);
+        reply.close();
+      }));
     }));
   });
 }

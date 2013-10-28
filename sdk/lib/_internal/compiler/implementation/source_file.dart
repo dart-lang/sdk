@@ -34,7 +34,7 @@ abstract class SourceFile {
    * Sets the string length of this source file. For source files based on UTF-8
    * byte arrays, the string length is computed and assigned by the scanner.
    */
-  set length(v);
+  set length(int v);
 
   /**
    * A map from line numbers to offsets in the string text representation of
@@ -57,7 +57,7 @@ abstract class SourceFile {
    * source file had one more empty line at the end. This simplifies the binary
    * search in [getLine].
    */
-  set lineStarts(v) => lineStartsCache = v;
+  set lineStarts(List<int> v) => lineStartsCache = v;
 
   List<int> lineStartsCache;
 
@@ -173,7 +173,7 @@ class Utf8BytesSourceFile extends SourceFile {
     }
     return lengthCache;
   }
-  set length(v) => lengthCache = v;
+  set length(int v) => lengthCache = v;
   int lengthCache = -1;
 }
 
@@ -184,7 +184,7 @@ class StringSourceFile extends SourceFile {
   StringSourceFile(String filename, this.text) : super(filename);
 
   int get length => text.length;
-  set length(v) { }
+  set length(int v) { }
 
   String slowText() => text;
 

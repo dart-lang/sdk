@@ -23,7 +23,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * etc.
    */
   void appendStringToken(PrecedenceInfo info, String value) {
-    tail.next = new StringToken.fromString(info, value, tokenStart, true);
+    tail.next = new StringToken.fromString(info, value, tokenStart,
+                                           canonicalize: true);
     tail = tail.next;
   }
 
@@ -96,7 +97,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * Notifies on [$LF] characters in multi-line commends or strings.
+   * Notifies on [$LF] characters in multi-line comments or strings.
    *
    * This method is used by the scanners to track line breaks and create the
    * [lineStarts] map.
@@ -122,7 +123,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * Appends a token that begins a ends group, represented by [value].
+   * Appends a token that begins an end group, represented by [value].
    * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
    * '>>' are handled separately bo [appendGt] and [appendGtGt].
    */
@@ -194,16 +195,15 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   }
 
   /**
-   * We call this method to discard '<' from the "grouping" stack
-   * (maintained by subclasses).
+   * This method is called to discard '<' from the "grouping" stack.
    *
    * [PartialParser.skipExpression] relies on the fact that we do not
    * create groups for stuff like:
    * [:a = b < c, d = e > f:].
    *
    * In other words, this method is called when the scanner recognizes
-   * something which cannot possibly be part of a type
-   * parameter/argument list.
+   * something which cannot possibly be part of a type parameter/argument
+   * list, like the '=' in the above example.
    */
   void discardOpenLt() {
     while (!groupingStack.isEmpty

@@ -397,6 +397,8 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
 }
 
 
+// This function must be in sync with FlowGraphCompiler::SaveLiveRegisters
+// and FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
   if (is_optimizing()) {
     BitmapBuilder* bitmap = locs->stack_bitmap();
@@ -411,7 +413,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
     // Slow path code can have registers at the safepoint.
     if (!locs->always_calls()) {
       RegisterSet* regs = locs->live_registers();
-      if (regs->fpu_regs_count() > 0) {
+      if (regs->FpuRegisterCount() > 0) {
         // Denote FPU registers with 0 bits in the stackmap.  Based on the
         // assumption that there are normally few live FPU registers, this
         // encoding is simpler and roughly as compact as storing a separate
@@ -445,6 +447,75 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
                                       bitmap,
                                       register_bit_count);
   }
+}
+
+
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint and
+// FlowGraphCompiler::SaveLiveRegisters.
+Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
+    Instruction* instruction) {
+  if (instruction->env() == NULL) return NULL;
+
+  Environment* env = instruction->env()->DeepCopy();
+  // 1. Iterate the registers in the order they will be spilled to compute
+  //    the slots they will be spilled to.
+  intptr_t next_slot = StackSize();
+  RegisterSet* regs = instruction->locs()->live_registers();
+  intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
+  intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
+  const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+  // FPU registers are spilled first from highest to lowest register number.
+  for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+    FpuRegister reg = static_cast<FpuRegister>(i);
+    if (regs->ContainsFpuRegister(reg)) {
+      // We use the lowest address (thus highest index) to identify a
+      // multi-word spill slot.
+      next_slot += kFpuRegisterSpillFactor;
+      fpu_reg_slots[i] = (next_slot - 1);
+    } else {
+      fpu_reg_slots[i] = -1;
+    }
+  }
+  // General purpose registers are spilled from lowest to highest register
+  // number.
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
+    if (regs->ContainsRegister(reg)) {
+      cpu_reg_slots[i] = next_slot++;
+    } else {
+      cpu_reg_slots[i] = -1;
+    }
+  }
+
+  // 2. Iterate the environment and replace register locations with the
+  //    corresponding spill slot locations.
+  for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
+    Location loc = it.CurrentLocation();
+    if (loc.IsRegister()) {
+      intptr_t index = cpu_reg_slots[loc.reg()];
+      ASSERT(index >= 0);
+      it.SetCurrentLocation(Location::StackSlot(index));
+    } else if (loc.IsFpuRegister()) {
+      assembler()->Comment("You betcha!");
+      intptr_t index = fpu_reg_slots[loc.fpu_reg()];
+      ASSERT(index >= 0);
+      Value* value = it.CurrentValue();
+      switch (value->definition()->representation()) {
+        case kUnboxedDouble:
+        case kUnboxedMint:
+          it.SetCurrentLocation(Location::DoubleStackSlot(index));
+          break;
+        case kUnboxedFloat32x4:
+        case kUnboxedUint32x4:
+          it.SetCurrentLocation(Location::QuadStackSlot(index));
+          break;
+        default:
+          UNREACHABLE();
+      }
+    }
+  }
+
+  return env;
 }
 
 

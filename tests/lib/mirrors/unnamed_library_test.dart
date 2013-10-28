@@ -8,8 +8,14 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-class C {}
+class Class {}
 
 main() {
-  Expect.equals(const Symbol(""), reflectClass(C).owner.simpleName);
+  ClassMirror cm = reflectClass(Class);
+  LibraryMirror lm = cm.owner;
+
+  Expect.equals('Class', MirrorSystem.getName(cm.simpleName));
+  Expect.equals('.Class', MirrorSystem.getName(cm.qualifiedName));
+  Expect.equals('', MirrorSystem.getName(lm.simpleName));
+  Expect.equals('', MirrorSystem.getName(lm.qualifiedName));
 }

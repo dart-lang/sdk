@@ -1600,8 +1600,25 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // RAX: Target function.
-  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  Label is_compiled;
+  __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If code might be GC'd, then EBX might be null. If it is, recompile.
+    __ CompareObject(RCX, Object::null_object(), PP);
+    __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
+    __ EnterStubFrame();
+    __ pushq(R10);  // Preserve arguments descriptor array.
+    __ pushq(RBX);  // Preserve IC data object.
+    __ pushq(RAX);  // Pass function.
+    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+    __ popq(RAX);  // Restore function.
+    __ popq(RBX);  // Restore IC data array.
+    __ popq(R10);  // Restore arguments descriptor array.
+    __ LeaveFrame();
+    __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ movq(RAX, FieldAddress(RCX, Code::instructions_offset()));
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RAX);
 
@@ -1779,6 +1796,24 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
+}
+
+
+// Stub for calling the CompileFunction runtime call.
+// RCX: IC-Data.
+// RDX: Arguments descriptor.
+// RAX: Function.
+void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushq(RDX);  // Preserve arguments descriptor array.
+  __ pushq(RCX);  // Preserve IC data object.
+  __ pushq(RAX);  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+  __ popq(RAX);  // Restore function.
+  __ popq(RCX);  // Restore IC data array.
+  __ popq(RDX);  // Restore arguments descriptor array.
+  __ LeaveFrame();
+  __ ret();
 }
 
 

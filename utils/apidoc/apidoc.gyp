@@ -84,7 +84,7 @@
             '--version=<!@(["python", "../../tools/print_version.py"])',
             '--package-root=<(PRODUCT_DIR)/packages',
             '--mode=static',
-            '--exclude-lib=analyzer_experimental',
+            '--exclude-lib=analyzer',
             '--exclude-lib=async_helper',
             '--exclude-lib=barback',
             '--exclude-lib=browser',

@@ -55,9 +55,6 @@ class _JSRegExpMatch implements Match {
 
   Pattern get pattern => _regexp;
 
-  // TODO(12843): Remove when grace period is over.
-  String get str => input;
-
   final RegExp _regexp;
   final String input;
   final List<int> _match;

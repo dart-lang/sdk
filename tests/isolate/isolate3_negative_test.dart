@@ -17,11 +17,9 @@ class TestClass {
   num fld2;
 }
 
-void entry() {
-  port.receive((ignored, replyTo) {
-    var tmp = new TestClass.named(10);
-    replyTo.send(tmp, null);
-  });
+void entry(SendPort replyTo) {
+  var tmp = new TestClass.named(10);
+  replyTo.send(tmp);
 }
 
 main() {
@@ -29,7 +27,8 @@ main() {
     void msg_callback(var message) {
       // This test is a negative test and should not complete successfully.
     }
-    SendPort port = spawnFunction(entry);
-    port.call("foo").then(expectAsync1(msg_callback));
+    ReceivePort response = new ReceivePort();
+    Isolate.spawn(entry, response.sendPort);
+    response.first.then(expectAsync1(msg_callback));
   });
 }

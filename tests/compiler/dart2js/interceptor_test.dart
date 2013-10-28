@@ -37,5 +37,5 @@ main() {
   Expect.isFalse(generated.contains(r'a.get$length()'));
   Expect.isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
   Expect.isTrue(
-      generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$a\(a\)')));
+      generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')));
 }

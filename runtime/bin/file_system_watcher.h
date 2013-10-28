@@ -24,7 +24,8 @@ class FileSystemWatcher {
     kModifyContent = 1 << 1,
     kDelete = 1 << 2,
     kMove = 1 << 3,
-    kModefyAttribute = 1 << 4
+    kModefyAttribute = 1 << 4,
+    kDeleteSelf = 1 << 5
   };
 
   struct Event {

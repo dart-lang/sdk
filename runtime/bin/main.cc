@@ -460,7 +460,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
   CHECK_RESULT(result);
 
-  Dart_Handle library = DartUtils::LoadScript(script_uri, builtin_lib);
+  IsolateData* isolate_data = reinterpret_cast<IsolateData*>(data);
+  ASSERT(isolate_data != NULL);
+  ASSERT(isolate_data->script_url != NULL);
+  Dart_Handle library = DartUtils::LoadScript(isolate_data->script_url,
+                                              builtin_lib);
   CHECK_RESULT(library);
   if (!Dart_IsLibrary(library)) {
     char errbuf[256];
@@ -514,9 +518,22 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           void* data, char** error) {
   bool is_compile_error = false;
+  if (script_uri == NULL) {
+    if (data == NULL) {
+      *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
+      return NULL;
+    }
+    IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
+    script_uri = parent_isolate_data->script_url;
+    if (script_uri == NULL) {
+      *error = strdup("Invalid 'callback_data' - Unable to spawn new isolate");
+      return NULL;
+    }
+  }
+  IsolateData* isolate_data = new IsolateData(script_uri);
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
-                                     new IsolateData(),
+                                     isolate_data,
                                      error,
                                      &is_compile_error);
 }
@@ -781,9 +798,10 @@ int main(int argc, char** argv) {
   char* error = NULL;
   bool is_compile_error = false;
   char* isolate_name = BuildIsolateName(script_name, "main");
+  IsolateData* isolate_data = new IsolateData(script_name);
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
-                                                     new IsolateData(),
+                                                     isolate_data,
                                                      &error,
                                                      &is_compile_error);
   if (isolate == NULL) {
@@ -863,16 +881,32 @@ int main(int argc, char** argv) {
       }
     } else {
       // Lookup and invoke the top level main function.
-      Dart_Handle main_args[1];
+      // The top-level function may accept up to two arguments:
+      //   main(List<String> args, var message).
+      // However most commonly it either accepts one (the args list) or
+      // none.
+      // If the message is optional, main(args, [message]), it is invoked with
+      // one argument only.
+      Dart_Handle main_args[2];
       main_args[0] = CreateRuntimeOptions(&dart_options);
+      main_args[1] = Dart_Null();
+      // First try with 1 argument.
       result = Dart_Invoke(library, DartUtils::NewString("main"), 1, main_args);
       // TODO(iposva): Return a special error type for mismatched argument
       // counts from Dart_Invoke to avoid the string comparison.
       const char* expected_error = "Dart_Invoke: wrong argument count for "
-          "function 'main': 1 passed, 0 expected.";
+          "function 'main': ";
+      intptr_t length = strlen(expected_error);
       if (Dart_IsError(result) &&
-          strcmp(expected_error, Dart_GetError(result)) == 0) {
-        result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
+          strncmp(expected_error, Dart_GetError(result), length) == 0) {
+        // Try with two arguments.
+        result =
+            Dart_Invoke(library, DartUtils::NewString("main"), 2, main_args);
+        if (Dart_IsError(result) &&
+            strncmp(expected_error, Dart_GetError(result), length) == 0) {
+          // Finally try with 0 arguments.
+          result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
+        }
       }
       if (Dart_IsError(result)) {
         return DartErrorExit(result);

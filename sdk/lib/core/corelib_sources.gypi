@@ -6,6 +6,7 @@
   'sources': [
     'core.dart',
     # The above file needs to be first as it lists the parts below.
+    'annotations.dart',
     'bool.dart',
     'comparable.dart',
     'date_time.dart',

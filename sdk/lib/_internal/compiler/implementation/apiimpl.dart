@@ -173,10 +173,9 @@ class Compiler extends leg.Compiler {
 
     Uri resourceUri = translateUri(readableUri, node);
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
-    // [Future] to ensure that we never execute an asynchronous action without setting
-    // up the current element of the compiler.
-    return new Future.sync(() => callUserProvider(resourceUri))
-        .then((data) {
+    // [Future] to ensure that we never execute an asynchronous action without
+    // setting up the current element of the compiler.
+    return new Future.sync(() => callUserProvider(resourceUri)).then((data) {
       SourceFile sourceFile;
       String resourceUriString = resourceUri.toString();
       if (data is List<int>) {

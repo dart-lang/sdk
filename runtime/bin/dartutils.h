@@ -204,6 +204,7 @@ class DartUtils {
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;
   static const char* kUriLibURL;
+  static const char* kPlatformLibURL;
   static const char* kHttpScheme;
 
   static const char* kIdFieldName;

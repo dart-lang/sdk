@@ -5,9 +5,8 @@
 /**
  * Support for debugging and error logging.
  *
- * This library introduces abstractions similar to
- * those used in other languages, such as the Closure JS
- * Logger and java.util.logging.Logger.
+ * This library introduces abstractions similar to those used in other
+ * languages, such as the Closure JS Logger and java.util.logging.Logger.
  *
  * For information on installing and importing this library, see the
  * [logging package on pub.dartlang.org]
@@ -16,6 +15,8 @@
 library logging;
 
 import 'dart:async';
+import 'package:meta/meta.dart';
+import 'package:unmodifiable_collection/unmodifiable_collection.dart';
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
@@ -48,26 +49,26 @@ class Logger {
   /** Logging [Level] used for entries generated on this logger. */
   Level _level;
 
+  final Map<String, Logger> _children;
+
   /** Children in the hierarchy of loggers, indexed by their simple names. */
-  Map<String, Logger> children;
+  final Map<String, Logger> children;
 
   /** Controller used to notify when log entries are added to this logger. */
   StreamController<LogRecord> _controller;
-
-  /** The broadcast stream associated with the controller. */
-  Stream _stream;
 
   /**
    * Singleton constructor. Calling `new Logger(name)` will return the same
    * actual instance whenever it is called with the same string name.
    */
   factory Logger(String name) {
+    return _loggers.putIfAbsent(name, () => new Logger._named(name));
+  }
+
+  factory Logger._named(String name) {
     if (name.startsWith('.')) {
       throw new ArgumentError("name shouldn't start with a '.'");
     }
-    if (_loggers == null) _loggers = <String, Logger>{};
-    if (_loggers.containsKey(name)) return _loggers[name];
-
     // Split hierarchical names (separated with '.').
     int dot = name.lastIndexOf('.');
     Logger parent = null;
@@ -79,14 +80,13 @@ class Logger {
       parent = new Logger(name.substring(0, dot));
       thisName = name.substring(dot + 1);
     }
-    final res = new Logger._internal(thisName, parent);
-    _loggers[name] = res;
-    return res;
+    return new Logger._internal(thisName, parent, new Map<String, Logger>());
   }
 
-  Logger._internal(this.name, this.parent)
-      : children = new Map<String, Logger>() {
-    if (parent != null) parent.children[name] = this;
+  Logger._internal(this.name, this.parent, Map<String, Logger> children) :
+    this._children = children,
+    this.children = new UnmodifiableMapView(children) {
+    if (parent != null) parent._children[name] = this;
   }
 
   /**
@@ -102,7 +102,7 @@ class Logger {
   }
 
   /** Override the level for this particular [Logger] and its children. */
-  set level(Level value) {
+  void set level(Level value) {
     if (hierarchicalLoggingEnabled && parent != null) {
       _level = value;
     } else {
@@ -138,14 +138,18 @@ class Logger {
 
   /**
    * Adds a log record for a [message] at a particular [logLevel] if
-   * `isLoggable(logLevel)` is true. Use this method to create log entries for
-   * user-defined levels. To record a message at a predefined level (e.g.
-   * [Level.INFO], [Level.WARNING], etc) you can use their specialized methods
-   * instead (e.g. [info], [warning], etc).
+   * `isLoggable(logLevel)` is true.
+   *
+   * Use this method to create log entries for user-defined levels. To record a
+   * message at a predefined level (e.g. [Level.INFO], [Level.WARNING], etc) you
+   * can use their specialized methods instead (e.g. [info], [warning], etc).
    */
-  void log(Level logLevel, String message, [exception]) {
+  void log(Level logLevel, String message, [Object error,
+                                            StackTrace stackTrace]) {
     if (isLoggable(logLevel)) {
-      var record = new LogRecord(logLevel, message, fullName, exception);
+      var record = new LogRecord(logLevel, message, fullName, error,
+          stackTrace);
+
       if (hierarchicalLoggingEnabled) {
         var target = this;
         while (target != null) {
@@ -159,44 +163,43 @@ class Logger {
   }
 
   /** Log message at level [Level.FINEST]. */
-  void finest(String message, [exception]) =>
-      log(Level.FINEST, message, exception);
+  void finest(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.FINEST, message, error, stackTrace);
 
   /** Log message at level [Level.FINER]. */
-  void finer(String message, [exception]) =>
-      log(Level.FINER, message, exception);
+  void finer(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.FINER, message, error, stackTrace);
 
   /** Log message at level [Level.FINE]. */
-  void fine(String message, [exception]) =>
-      log(Level.FINE, message, exception);
+  void fine(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.FINE, message, error, stackTrace);
 
   /** Log message at level [Level.CONFIG]. */
-  void config(String message, [exception]) =>
-      log(Level.CONFIG, message, exception);
+  void config(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.CONFIG, message, error, stackTrace);
 
   /** Log message at level [Level.INFO]. */
-  void info(String message, [exception]) =>
-      log(Level.INFO, message, exception);
+  void info(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.INFO, message, error, stackTrace);
 
   /** Log message at level [Level.WARNING]. */
-  void warning(String message, [exception]) =>
-      log(Level.WARNING, message, exception);
+  void warning(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.WARNING, message, error, stackTrace);
 
   /** Log message at level [Level.SEVERE]. */
-  void severe(String message, [exception]) =>
-      log(Level.SEVERE, message, exception);
+  void severe(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.SEVERE, message, error, stackTrace);
 
   /** Log message at level [Level.SHOUT]. */
-  void shout(String message, [exception]) =>
-      log(Level.SHOUT, message, exception);
+  void shout(String message, [Object error, StackTrace stackTrace]) =>
+      log(Level.SHOUT, message, error, stackTrace);
 
   Stream<LogRecord> _getStream() {
     if (hierarchicalLoggingEnabled || parent == null) {
       if (_controller == null) {
         _controller = new StreamController<LogRecord>.broadcast(sync: true);
-        _stream = _controller.stream;
       }
-      return _stream;
+      return _controller.stream;
     } else {
       return root._getStream();
     }
@@ -212,7 +215,7 @@ class Logger {
   static Logger get root => new Logger('');
 
   /** All [Logger]s in the system. */
-  static Map<String, Logger> _loggers;
+  static final Map<String, Logger> _loggers = <String, Logger>{};
 }
 
 
@@ -233,7 +236,6 @@ typedef void LoggerHandler(LogRecord);
  */
 class Level implements Comparable<Level> {
 
-  // TODO(sigmund): mark name/value as 'const' when the language supports it.
   final String name;
 
   /**
@@ -274,7 +276,7 @@ class Level implements Comparable<Level> {
   /** Key for extra debugging loudness ([value] = 1200). */
   static const Level SHOUT = const Level('SHOUT', 1200);
 
-  bool operator ==(Level other) => other != null && value == other.value;
+  bool operator ==(Object other) => other is Level && value == other.value;
   bool operator <(Level other) => value < other.value;
   bool operator <=(Level other) => value <= other.value;
   bool operator >(Level other) => value > other.value;
@@ -304,10 +306,21 @@ class LogRecord {
 
   static int _nextNumber = 0;
 
-  /** Associated exception (if any) when recording errors messages. */
-  var exception;
+  /** Associated error (if any) when recording errors messages. */
+  final Object error;
 
-  LogRecord(this.level, this.message, this.loggerName, [this.exception])
+  // TODO(kevmoo) - remove before V1
+  /**
+   * DEPRECATED. Use [error] instead.
+   */
+  @deprecated
+  Object get exception => error;
+
+  /** Associated stackTrace (if any) when recording errors messages. */
+  final StackTrace stackTrace;
+
+  LogRecord(this.level, this.message, this.loggerName, [this.error,
+                                                        this.stackTrace])
       : time = new DateTime.now(),
         sequenceNumber = LogRecord._nextNumber++;
 

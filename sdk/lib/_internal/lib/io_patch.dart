@@ -34,7 +34,7 @@ patch class _Directory {
 
 patch class _EventHandler {
   patch static void _sendData(Object sender,
-                              ReceivePort receivePort,
+                              RawReceivePort receivePort,
                               int data) {
     throw new UnsupportedError("EventHandler._sendData");
   }

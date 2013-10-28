@@ -204,6 +204,9 @@ const String DEFAULT_CORELIB = r'''
   bool identical(Object a, Object b) { return true; }''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
+  var startRootIsolate;
+  var _currentIsolate;
+  var _callInIsolate;
   class _WorkerBase {}''';
 
 class MockCompiler extends Compiler {
@@ -385,8 +388,7 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new ElementX('', ElementKind.FUNCTION,
-            mainApp.entryCompilationUnit);
+        new ElementX('', ElementKind.FUNCTION, mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
                             new CollectingTreeElements(mockElement));

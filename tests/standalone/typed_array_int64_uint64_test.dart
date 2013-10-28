@@ -25,8 +25,9 @@ Int64List initInt64() {
 Int64List int64 = initInt64();
 
 void int64_receiver() {
-  var sp = spawnFunction(int64_sender);
-  sp.call(int64.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(int64_sender, [int64.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(int64.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int64[i], a[i]);
@@ -35,15 +36,15 @@ void int64_receiver() {
   });
 }
 
-int64_sender() {
-  port.receive((len, r) {
-    Expect.equals(int64.length, len);
-    var a = new Int64List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = int64[i];
-    }
-    r.send(a);
-  });
+int64_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(int64.length, len);
+  var a = new Int64List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = int64[i];
+  }
+  r.send(a);
 }
 
 
@@ -57,8 +58,9 @@ Uint64List initUint64() {
 Uint64List uint64 = initUint64();
 
 void uint64_receiver() {
-  var sp = spawnFunction(uint64_sender);
-  sp.call(uint64.length).then((a) {
+  var response = new ReceivePort();
+  var remote = Isolate.spawn(uint64_sender, [uint64.length, response.sendPort]);
+  response.first.then((a) {
     Expect.equals(uint64.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint64[i], a[i]);
@@ -67,13 +69,13 @@ void uint64_receiver() {
   });
 }
 
-uint64_sender() {
-  port.receive((len, r) {
-    Expect.equals(uint64.length, len);
-    var a = new Uint64List(len);
-    for (int i = 0; i < len; i++) {
-      a[i] = uint64[i];
-    }
-    r.send(a);
-  });
+uint64_sender(message) {
+  var len = message[0];
+  var r = message[1];
+  Expect.equals(uint64.length, len);
+  var a = new Uint64List(len);
+  for (int i = 0; i < len; i++) {
+    a[i] = uint64[i];
+  }
+  r.send(a);
 }

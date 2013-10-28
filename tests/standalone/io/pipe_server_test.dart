@@ -10,6 +10,7 @@
 library ServerTest;
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -38,10 +39,7 @@ class PipeServerGame {
   int count = 0;
 
   PipeServerGame.start()
-      : _receivePort = new ReceivePort(),
-        _sendPort = null,
-        _messages = 0 {
-    _sendPort = spawnFunction(startPipeServer);
+      : _messages = 0 {
     initialize();
   }
 
@@ -83,29 +81,32 @@ class PipeServerGame {
   }
 
   void initialize() {
-    _receivePort.receive((var message, SendPort replyTo) {
-      _port = message;
+    var receivePort = new ReceivePort();
+    var remote = Isolate.spawn(startPipeServer, receivePort.sendPort);
+    receivePort.first.then((msg) {
+      this._port = msg[0];
+      this._closeSendPort = msg[1];
       runTest();
     });
-    _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
   }
 
   void shutdown() {
-    _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
-    _receivePort.close();
+    _closeSendPort.send(null);
+    asyncEnd();
   }
 
   int _port;
-  ReceivePort _receivePort;
-  SendPort _sendPort;
+  SendPort _closeSendPort;
   Socket _socket;
   int _messages;
 }
 
 
-void startPipeServer() {
+void startPipeServer(SendPort replyPort) {
   var server = new PipeServer();
-  port.receive(server.dispatch);
+  server.init().then((port) {
+    replyPort.send([port, server.closeSendPort]);
+  });
 }
 
 
@@ -119,5 +120,6 @@ class PipeServer extends TestingServer {
 
 
 main() {
+  asyncStart();
   PipeServerGame echoServerGame = new PipeServerGame.start();
 }

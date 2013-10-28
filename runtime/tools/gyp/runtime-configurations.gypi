@@ -99,6 +99,13 @@
         },
       },
 
+      'Dart_simmips_Base': {
+        'abstract': 1,
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+        },
+      },
+
       'Dart_Release': {
         'abstract': 1,
         'xcode_settings': {

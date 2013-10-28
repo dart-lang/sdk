@@ -29,23 +29,11 @@ prefix10_negative_test: fail
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-# Invalid constant redirecting factories should cause compile-time error.
-const_types_test/23: Fail # Issue 14306
-const_types_test/24: Fail # Issue 14306
-const_types_test/25: Fail # Issue 14306
-const_types_test/26: Fail # Issue 14306
-const_types_test/27: Fail # Issue 14306
-const_types_test/28: Fail # Issue 14306
-const_types_test/29: Fail # Issue 14306
-const_types_test/30: Fail # Issue 14306
-const_types_test/41: Fail # Issue 14306
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
 #
-
-
 
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
@@ -169,6 +157,9 @@ duplicate_export_test: fail # Issue 13787
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
 
+# test issue  , disallow default values in redirecting factories
+redirecting_factory_default_values_test/none: fail # Issue 14471
+
 # test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
 default_factory2_test/none: fail
 
@@ -201,6 +192,12 @@ type_promotion_parameter_test/53: Fail
 # test issue 14364, "E<A> << D"
 type_promotion_more_specific_test/08: fail
 
+# test issue 14406, setter for final field was removed from spec
+implicit_setter_test/01: fail
+implicit_setter_test/02: fail
+
+# test issue 14410, "typedef C = " is now really illegal syntax
+mixin_illegal_syntax_test/none: fail
 
 #
 # Please don't add new items here.

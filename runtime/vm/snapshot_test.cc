@@ -2604,8 +2604,8 @@ UNIT_TEST_CASE(PostCObject) {
       "main() {\n"
       "  var messageCount = 0;\n"
       "  var exception = '';\n"
-      "  var port = new ReceivePort();\n"
-      "  port.receive((message, replyTo) {\n"
+      "  var port = new RawReceivePort();\n"
+      "  port.handler = (message) {\n"
       "    if (messageCount < 8) {\n"
       "      exception = '$exception${message}';\n"
       "    } else {\n"
@@ -2616,8 +2616,8 @@ UNIT_TEST_CASE(PostCObject) {
       "    }\n"
       "    messageCount++;\n"
       "    if (messageCount == 9) throw new Exception(exception);\n"
-      "  });\n"
-      "  return port.toSendPort();\n"
+      "  };\n"
+      "  return port.sendPort;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();

@@ -15,7 +15,9 @@ import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 import 'metatest.dart';
 import 'utils.dart';
 
-void main() {
+void main(List<String> args, message) {
+  metaTestInit(message);
+
   setUpTimeout();
 
   expectTestsPass("a server with no handlers does nothing", () {

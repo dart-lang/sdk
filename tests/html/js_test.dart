@@ -210,6 +210,10 @@ class Color {
 
 class TestDartObject {}
 
+class Callable {
+  call() => 'called';
+}
+
 main() {
   _injectJs();
   useHtmlConfiguration();
@@ -470,7 +474,7 @@ main() {
 
   });
 
-  group('Dart callback', () {
+  group('Dart functions', () {
     test('invoke Dart callback from JS', () {
       expect(() => context.callMethod('invokeCallback'), throws);
 
@@ -506,6 +510,13 @@ main() {
     test('return a JS proxy to JavaScript', () {
       var result = context.callMethod('testJsMap', [() => new JsObject.jsify({'value': 42})]);
       expect(result, 42);
+    });
+
+    test('emulated functions should be callable in JS', () {
+      context['callable'] = new Callable();
+      var result = context.callMethod('callable');
+      expect(result, 'called');
+      context.deleteProperty('callable');
     });
 
   });

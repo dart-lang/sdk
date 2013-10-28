@@ -16,9 +16,9 @@ void testListNonExistent() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_directory_list_nonexistent').then((d) {
     d.delete().then((ignore) {
-      Expect.throws(() => d.listSync(), (e) => e is DirectoryException);
+      Expect.throws(() => d.listSync(), (e) => e is FileSystemException);
       Expect.throws(() => d.listSync(recursive: true),
-                    (e) => e is DirectoryException);
+                    (e) => e is FileSystemException);
       asyncEnd();
     });
   });
@@ -39,9 +39,9 @@ void testListTooLongName() {
       }
       var long = new Directory("${buffer.toString()}");
       Expect.throws(() => long.listSync(),
-                    (e) => e is DirectoryException);
+                    (e) => e is FileSystemException);
       Expect.throws(() => long.listSync(recursive: true),
-                    (e) => e is DirectoryException);
+                    (e) => e is FileSystemException);
       d.deleteSync(recursive: true);
       asyncEnd();
     });

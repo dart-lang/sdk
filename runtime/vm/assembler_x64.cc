@@ -2807,9 +2807,9 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
     pushq(new_pc);
     pushq(PP);
     movq(PP, new_pp);
-  }
-  if (frame_size != 0) {
-    subq(RSP, Immediate(frame_size));
+    if (frame_size != 0) {
+      subq(RSP, Immediate(frame_size));
+    }
   }
 }
 

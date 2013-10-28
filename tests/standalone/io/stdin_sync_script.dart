@@ -4,13 +4,14 @@
 
 import "dart:convert";
 import "dart:io";
-import "dart:json";
 
 void main(List<String> arguments) {
   int i = 0;
   String line;
   while ((line = stdin.readLineSync(encoding: UTF8)) != null) {
-    if (parse(arguments[i]) != line) throw "bad line at $i: ${line.codeUnits}";
+    if (JSON.decode(arguments[i]) != line) {
+      throw "bad line at $i: ${line.codeUnits}";
+    }
     i++;
   }
   if (i != arguments.length) throw "expect ${arguments.length} lines";

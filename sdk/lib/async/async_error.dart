@@ -6,7 +6,7 @@ part of dart.async;
 
 final Expando _stackTraceExpando = new Expando("asynchronous error");
 
-void _attachStackTrace(o, st) {
+void _attachStackTrace(o, StackTrace st) {
   if (o == null || o is bool || o is num || o is String) return;
   _stackTraceExpando[o] = st;
 }

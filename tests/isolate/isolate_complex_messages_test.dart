@@ -11,28 +11,40 @@ import '../../pkg/unittest/lib/unittest.dart';
 
 main() {
   test("complex messages are serialized correctly", () {
-    SendPort remote = spawnFunction(logMessages);
-    remote.send(1, null);
-    remote.send("Hello", null);
-    remote.send("World", null);
-    remote.send(const [null, 1, 2, 3, 4], null);
-    remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
-    remote.send(const ["Hello", "World", 0xffffffffff], null);
-    // Shutdown the LogRunner.
-    remote.call(-1).then(expectAsync1((int message) {
-      expect(message, 6);
-    }));
+    ReceivePort local = new ReceivePort();
+    Isolate.spawn(logMessages, local.sendPort);
+    var done = expectAsync0((){});
+    local.listen(expectAsync1((msg) {
+      switch (msg[0]) {
+        case "init":
+          var remote = msg[1];
+          remote.send(1, null);
+          remote.send("Hello", null);
+          remote.send("World", null);
+          remote.send(const [null, 1, 2, 3, 4], null);
+          remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
+          remote.send(const ["Hello", "World", 0xffffffffff], null);
+          // Shutdown the LogRunner.
+          remote.send(-1);
+          break;
+        case "done":
+          local.close();
+          expect(msg[1], 6);
+          done();
+      }
+    }, count: 2));
   });
 }
 
 
-void logMessages() {
+void logMessages(mainPort) {
   int count = 0;
-
-  port.receive((var message, SendPort replyTo) {
+  ReceivePort port = new ReceivePort();
+  mainPort.send(["init", port.sendPort]);
+  port.listen((var message) {
     if (message == -1) {
       port.close();
-      replyTo.send(count, null);
+      mainPort.send(["done", count]);
     } else {
       switch (count) {
         case 0:

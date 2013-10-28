@@ -1589,8 +1589,25 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&call_target_function);
   // R0: target function.
-  __ ldr(R0, FieldAddress(R0, Function::code_offset()));
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::code_offset()));
+  if (FLAG_collect_code) {
+    // If we are collecting code, the code object may be null.
+    Label is_compiled;
+    __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ b(&is_compiled, NE);
+    __ EnterStubFrame();
+    // Preserve arg desc. and IC data object.
+    __ PushList((1 << R4) | (1 << R5));
+    __ Push(R0);  // Pass function.
+    __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+    __ Pop(R0);  // Discard argument.
+    __ PopList((1 << R4) | (1 << R5));  // Restore arg desc. and IC data.
+    __ LeaveStubFrame();
+    // R0: target function.
+    __ ldr(R1, FieldAddress(R0, Function::code_offset()));
+    __ Bind(&is_compiled);
+  }
+  __ ldr(R0, FieldAddress(R1, Code::instructions_offset()));
   __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R0);
 
@@ -1755,6 +1772,23 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
+}
+
+
+// Stub for calling the CompileFunction runtime call.
+// R5: IC-Data.
+// R4: Arguments descriptor.
+// R0: Function.
+void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
+  // Preserve arg desc. and IC data object.
+  __ EnterStubFrame();
+  __ PushList((1 << R4) | (1 << R5));
+  __ Push(R0);  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
+  __ Pop(R0);  // Restore argument.
+  __ PopList((1 << R4) | (1 << R5));  // Restore arg desc. and IC data.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 

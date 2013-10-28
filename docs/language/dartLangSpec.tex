@@ -1367,7 +1367,9 @@ This implies that a getter can never override a method, and a method can never o
 }
 
 It is a static warning if a getter $m_1$ overrides  (\ref{inheritanceAndOverriding}) a getter 
-$m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.   It is a static warning if a class  declares a static getter named $v$ and also has a non-static setter named $v=$. It is a static warning if a class $C$ declares an instance getter named $v$ and an accessible static member named $v$ or $v=$ is declared in a superclass of $C$.
+$m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.   
+
+It is a static warning if a class  declares a static getter named $v$ and also has a non-static setter named $v=$. It is a static warning if a class $C$ declares an instance getter named $v$ and an accessible static member named $v$ or $v=$ is declared in a superclass of $C$. These warnings must be issued regardless of whether the getters or setters are declared explicitly or implicitly.
 
 \subsection{Setters}
 \label{setters}
@@ -1395,7 +1397,11 @@ It is a compile-time error if a setter's formal parameter list does not consist 
 %It is a compile-time error if a class has both a setter and a method with the same name. This restriction holds regardless of whether the setter is defined explicitly or implicitly, or whether the setter or the method are inherited or not.
 
 It is a static warning if a setter declares a return type other than \VOID{}.
-It is a static warning if a setter $m_1$ overrides  (\ref{inheritanceAndOverriding}) a setter $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$. It is a static warning if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$, and $T$ may not be assigned to $S$. It is a static warning if a class  declares a static setter named $v=$ and also has a non-static member named $v$. It is a static warning if a class $C$ declares an instance setter named $v=$ and an accessible static member named $v=$ or $v$ is declared in a superclass of $C$.
+It is a static warning if a setter $m_1$ overrides  (\ref{inheritanceAndOverriding}) a setter $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$. It is a static warning if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$, and $T$ may not be assigned to $S$. 
+
+It is a static warning if a class  declares a static setter named $v=$ and also has a non-static member named $v$. It is a static warning if a class $C$ declares an instance setter named $v=$ and an accessible static member named $v=$ or $v$ is declared in a superclass of $C$.
+
+These warnings must be issued regardless of whether the getters or setters are declared explicitly or implicitly.
 
 \subsection{Abstract Instance Members}
 \label{abstractInstanceMembers}
@@ -5588,7 +5594,7 @@ The static type system ascribes a static type to every expression.  In some case
 
 We say that a variable $v$ is known to have type $T$ whenever we allow the type of $v$ to be promoted. The exact circumstances when type promotion is allowed are given in the relevant sections of the specification (\ref{logicalBooleanExpressions}, \ref{conditional} and \ref{if}).
 
-Type promotion for a variable v is allowed only when we can deduce that such promotion is valid based on an analysis of certain boolean expressions. In such cases, we say that the boolean expression b shows that v has type T. As a rule, for all variables v and types T, a boolean expression does not show that v has type T. Those situations where an expression does show that a variable has a type are mentioned explicitly in the relevant sections of this specification (\ref{typeTest} and \ref{logicalBooleanExpressions}).
+Type promotion for a variable $v$ is allowed only when we can deduce that such promotion is valid based on an analysis of certain boolean expressions. In such cases, we say that the boolean expression $b$ shows that $v$ has type $T$. As a rule, for all variables $v$ and types $T$, a boolean expression does not show that $v$ has type $T$. Those situations where an expression does show that a variable has a type are mentioned explicitly in the relevant sections of this specification (\ref{typeTest} and \ref{logicalBooleanExpressions}).
 
 
 \subsection{Dynamic Type System}

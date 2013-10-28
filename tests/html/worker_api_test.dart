@@ -8,24 +8,25 @@ import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-worker() {
-  port.receive((String uri, SendPort replyTo) {
-    try {
-      var url = Url.createObjectUrl(new Blob([''], 'application/javascript'));
-      Url.revokeObjectUrl(url);
-      replyTo.send('Hello from Worker');
-    } catch (e) {
-      replyTo.send('Error: $e');
-    }
-    port.close();
-  });
+worker(message) {
+  var uri = message[0];
+  var replyTo = message[1];
+  try {
+    var url = Url.createObjectUrl(new Blob([''], 'application/javascript'));
+    Url.revokeObjectUrl(url);
+    replyTo.send('Hello from Worker');
+  } catch (e) {
+    replyTo.send('Error: $e');
+  }
 }
 
 main() {
   useHtmlConfiguration();
 
   test('Use Worker API in Worker', () {
-    spawnFunction(worker).call('').then(
-        expectAsync1((reply) => expect(reply, equals('Hello from Worker'))));
+    var response = new ReceivePort();
+    var remote = Isolate.spawn(worker, ['', response.sendPort]);
+    remote.then((_) => response.first)
+        .then(expectAsync1((reply) => expect(reply, equals('Hello from Worker'))));
   });
 }

@@ -4,8 +4,7 @@
 
 import 'dart:isolate';
 
-main() {
-  port.receive((message, replyTo) {
-    replyTo.call(message);
-  });
+main(List<String> args, SendPort replyTo) {
+  var data = args[0];
+  replyTo.send(data);
 }

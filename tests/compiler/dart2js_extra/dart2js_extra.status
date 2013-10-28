@@ -32,6 +32,9 @@ no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 to_string_test: Fail # Issue 7179.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == chrome) ]
+isolate2_test/01: Fail # Issue 14458.
+
 [ $jscl ]
 timer_test: Fail # Issue 7728.
 
@@ -42,6 +45,3 @@ bailout8_test: Fail, OK # Mismatch in thrown exception.
 [ $csp ]
 deferred/deferred_class_test: Fail # http://dartbug.com/3940
 deferred/deferred_constant_test: Fail # http://dartbug.com/3940
-
-[ $compiler == dart2js && $browser ]
-mirror_printer_test: Fail # Issue 14304

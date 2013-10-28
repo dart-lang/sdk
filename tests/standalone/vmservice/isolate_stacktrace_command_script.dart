@@ -25,12 +25,12 @@ class C {
   }
 }
 
-void myIsolateName() {
+void myIsolateName(_) {
   new C().c();
 }
 
 main() {
-  spawnFunction(myIsolateName);
+  Isolate.spawn(myIsolateName, null);
   // Wait until signaled from spawning test.
   stdin.first.then((_) => exit(0));
 }

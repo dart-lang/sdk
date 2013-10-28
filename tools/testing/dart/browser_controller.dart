@@ -54,13 +54,15 @@ abstract class Browser {
 
   Browser();
 
-  factory Browser.byName(String name, [Map globalConfiguration = const {}]) {
+  factory Browser.byName(String name,
+                         [Map globalConfiguration = const {},
+                          bool checkedMode = false]) {
     if (name == 'ff' || name == 'firefox') {
       return new Firefox();
     } else if (name == 'chrome') {
       return new Chrome();
     } else if (name == 'dartium') {
-      return new Dartium(globalConfiguration);
+      return new Dartium(globalConfiguration, checkedMode);
     } else if (name == 'safari') {
       return new Safari();
     } else if (name.startsWith('ie')) {
@@ -410,8 +412,9 @@ class Chrome extends Browser {
 
 class Dartium extends Chrome {
   final Map globalConfiguration;
+  final bool checkedMode;
 
-  Dartium(this.globalConfiguration);
+  Dartium(this.globalConfiguration, this.checkedMode);
 
   String _getBinary() {
     return Locations.getDartiumLocation(globalConfiguration);
@@ -423,6 +426,9 @@ class Dartium extends Chrome {
     // calls in dart to the top-level javascript function "dartPrint()" if
     // available.
     environment['DART_FORWARDING_PRINT'] = '1';
+    if (checkedMode) {
+      environment['DART_FLAGS'] = '--checked';
+    }
     return environment;
   }
 
@@ -462,6 +468,64 @@ class IE extends Browser {
     });
   }
   String toString() => "IE";
+}
+
+
+class AndroidBrowserConfig {
+  final String name;
+  final String package;
+  final String activity;
+  final String action;
+  AndroidBrowserConfig(this.name, this.package, this.activity, this.action);
+}
+
+
+final contentShellOnAndroidConfig = new AndroidBrowserConfig(
+    'ContentShellOnAndroid',
+    'org.chromium.content_shell_apk',
+    '.ContentShellActivity',
+    'android.intent.action.VIEW');
+
+
+final dartiumOnAndroidConfig = new AndroidBrowserConfig(
+    'DartiumOnAndroid',
+    'com.google.android.apps.chrome',
+    '.Main',
+    'android.intent.action.VIEW');
+
+
+class AndroidBrowser extends Browser {
+  AdbDevice _adbDevice;
+  AndroidBrowserConfig _config;
+
+  AndroidBrowser(this._adbDevice, this._config);
+
+  Future<bool> start(String url) {
+    var intent = new Intent(
+        _config.action, _config.package, _config.activity, url);
+    return _adbDevice.waitForBootCompleted().then((_) {
+      return _adbDevice.forceStop(_config.package);
+    }).then((_) {
+      return _adbDevice.killAll();
+    }).then((_) {
+      return _adbDevice.adbRoot();
+    }).then((_) {
+      return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
+    }).then((_) {
+      return _adbDevice.startActivity(intent).then((_) => true);
+    });
+  }
+
+  Future<bool> close() {
+    if (_adbDevice != null) {
+      return _adbDevice.forceStop(_config.package).then((_) {
+        return _adbDevice.killAll().then((_) => true);
+      });
+    }
+    return new Future.value(true);
+  }
+
+  String toString() => _config.name;
 }
 
 
@@ -530,6 +594,7 @@ class AndroidChrome extends Browser {
 
   String toString() => "chromeOnAndroid";
 }
+
 
 class Firefox extends Browser {
   static const String enablePopUp =
@@ -657,6 +722,7 @@ class BrowserTestOutput {
  */
 class BrowserTestRunner {
   final Map globalConfiguration;
+  final bool checkedMode; // needed for dartium
 
   String localIp;
   String browserName;
@@ -683,14 +749,16 @@ class BrowserTestRunner {
   BrowserTestRunner(this.globalConfiguration,
                     this.localIp,
                     this.browserName,
-                    this.maxNumBrowsers);
+                    this.maxNumBrowsers,
+                    {bool this.checkedMode: false});
 
   Future<bool> start() {
     // If [browserName] doesn't support opening new windows, we use new iframes
     // instead.
     bool useIframe =
         !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
-    testingServer = new BrowserTestingServer(localIp, useIframe);
+    testingServer = new BrowserTestingServer(
+        globalConfiguration, localIp, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.testStartedCallBack = handleStarted;
@@ -718,7 +786,14 @@ class BrowserTestRunner {
     // TODO(kustermann): This is a hackisch way to accomplish it and should
     // be encapsulated
     var browsersCompleter = new Completer();
-    if (browserName == 'chromeOnAndroid') {
+    var androidBrowserCreationMapping = {
+      'chromeOnAndroid' : (AdbDevice device) => new AndroidChrome(device),
+      'ContentShellOnAndroid' : (AdbDevice device) =>
+          new AndroidBrowser(device, contentShellOnAndroidConfig),
+      'DartiumOnAndroid' : (AdbDevice device) =>
+          new AndroidBrowser(device, dartiumOnAndroidConfig),
+    };
+    if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
         if (deviceIds.length > 0) {
           var browsers = [];
@@ -726,7 +801,7 @@ class BrowserTestRunner {
             var id = "BROWSER$i";
             var device = new AdbDevice(deviceIds[i]);
             adbDeviceMapping[id] = device;
-            var browser = new AndroidChrome(device);
+            var browser = androidBrowserCreationMapping[browserName](device);
             browsers.add(browser);
             // We store this in case we need to kill the browser.
             browser.id = id;
@@ -839,6 +914,12 @@ class BrowserTestRunner {
       var new_id = id;
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
+      } else if (browserName == 'ContentShellOnAndroid') {
+        browser = new AndroidBrowser(adbDeviceMapping[id],
+                                     contentShellOnAndroidConfig);
+      } else if (browserName == 'DartiumOnAndroid') {
+        browser = new AndroidBrowser(adbDeviceMapping[id],
+                                     dartiumOnAndroidConfig);
       } else {
         browserStatus.remove(id);
         browser = getInstance();
@@ -947,13 +1028,15 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
-    var browser = new Browser.byName(browserName, globalConfiguration);
+    var browser =
+        new Browser.byName(browserName, globalConfiguration, checkedMode);
     browser.logger = logger;
     return browser;
   }
 }
 
 class BrowserTestingServer {
+  final Map globalConfiguration;
   /// Interface of the testing server:
   ///
   /// GET /driver/BROWSER_ID -- This will get the driver page to fetch
@@ -985,10 +1068,11 @@ class BrowserTestingServer {
   Function testStartedCallBack;
   Function nextTestCallBack;
 
-  BrowserTestingServer(this.localIp, this.useIframe);
+  BrowserTestingServer(this.globalConfiguration, this.localIp, this.useIframe);
 
   Future start() {
-    return HttpServer.bind(localIp, 0).then((createdServer) {
+    int port = globalConfiguration['test_driver_port'];
+    return HttpServer.bind(localIp, port).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
         // Don't allow caching of resources from the browser controller, i.e.,
@@ -1039,7 +1123,8 @@ class BrowserTestingServer {
 
       // Set up the error reporting server that enables us to send back
       // errors from the browser.
-      return HttpServer.bind(localIp, 0).then((createdReportServer) {
+      port = globalConfiguration['test_driver_error_port'];
+      return HttpServer.bind(localIp, port).then((createdReportServer) {
         errorReportingServer = createdReportServer;
         void errorReportingHandler(HttpRequest request) {
           StringBuffer buffer = new StringBuffer();

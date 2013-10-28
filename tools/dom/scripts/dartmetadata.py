@@ -207,6 +207,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('int|String|Null')",
     ],
 
+    'ImageData.data': [
+      "@Creates('Uint8ClampedList')",
+      "@Returns('Uint8ClampedList')",
+    ],
+
     'MediaStream.getAudioTracks': [
       "@Creates('JSExtendableArray')",
       "@Returns('JSExtendableArray')",
@@ -313,6 +318,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
                 "|Uint32List|Framebuffer|Renderbuffer|Texture')",
       "@Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
                 "|Uint32List|Framebuffer|Renderbuffer|Texture')",
+    ],
+
+    'WebGLRenderingContext.getContextAttributes': [
+      "@Creates('ContextAttributes|=Object')",
     ],
 
     'XMLHttpRequest.response': [

@@ -9,16 +9,15 @@ import "package:expect/expect.dart";
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 
-void entry() {
-  port.receive((ignored, replyTo) {
-    replyTo.send("foo", null);
-  });
+void entry(SendPort replyTo) {
+  replyTo.send("foo");
 }
 
 main() {
   test("ensure isolate code is executed", () {
-    SendPort port = spawnFunction(entry);
-    port.call("foo").then(expectAsync1((message) {
+    ReceivePort response = new ReceivePort();
+    Isolate.spawn(entry, response.sendPort);
+    response.first.then(expectAsync1((message) {
       expect("Expected fail", isTrue);   // <=-------- Should fail here.
     }));
   });

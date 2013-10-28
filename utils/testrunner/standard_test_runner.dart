@@ -204,21 +204,21 @@ class TestRunnerChildConfiguration extends SimpleConfiguration {
 }
 
 var parentPort;
-runChildTest() {
-  port.receive((testName, sendport) {
-    parentPort = sendport;
-    unittestConfiguration = new TestRunnerChildConfiguration();
-    groupSep = marker;
-    group('', test.main);
-    filterTests(testName);
-    runTests();
-  });
+runChildTest(message) {
+  var testName = message[0];
+  parentPort = message[1];
+  unittestConfiguration = new TestRunnerChildConfiguration();
+  groupSep = marker;
+  group('', test.main);
+  filterTests(testName);
+  runTests();
 }
 
 isolatedTestParentWrapper(testCase) => () {
-  SendPort childPort = spawnFunction(runChildTest);
-  var f = childPort.call(testCase.description);
-  f.then((results) {
+  ReceivePort response = new ReceivePort();
+  return Isolate.spawn(runChildTest, [testCase.description, response.sendPort])
+      .then((_) => response.first)
+      .then((results) {
     var result = results[0];
     var duration = new Duration(milliseconds: results[1]);
     var message = results[2];
@@ -229,7 +229,6 @@ isolatedTestParentWrapper(testCase) => () {
       testCase.error(message, stack);
     }
   });
-  return f;
 };
 
 runIsolateTests() {

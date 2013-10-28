@@ -28,9 +28,6 @@ class StringMatch implements Match {
     return result;
   }
 
-  // TODO(12843): Remove when grace period is over.
-  String get str => input;
-
   final int start;
   final String input;
   final String pattern;

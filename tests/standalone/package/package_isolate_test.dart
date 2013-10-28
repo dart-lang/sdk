@@ -7,44 +7,44 @@
 library package_isolate_test;
 import 'package:shared.dart' as shared;
 import 'dart:isolate';
-import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/async_helper/lib/async_helper.dart';
+import '../../../pkg/expect/lib/expect.dart';
 
 expectResponse() {
+  asyncStart();
   var receivePort = new ReceivePort();
-  receivePort.receive(expectAsync2((msg, r) {
-    expect('isolate', msg);
-    expect('main', shared.output);
-    receivePort.close();
-  }));
+  receivePort.first.then((msg) {
+    Expect.equals('isolate', msg);
+    Expect.equals('main', shared.output);
+    asyncEnd();
+  });
   return receivePort;
 }
 
 void main() {
-  test("package in spawnFunction()", () {
-    var replyPort = expectResponse().toSendPort();
+  {
+    var replyPort = expectResponse().sendPort;
     shared.output = 'main';
-    var sendPort = spawnFunction(isolate_main);
-    sendPort.send("sendPort", replyPort);
-  });
-  
-  test("package in spawnUri() of sibling file", () {
-    var replyPort = expectResponse().toSendPort();
-    shared.output = 'main';
-    var sendPort = spawnUri('sibling_isolate.dart');
-    sendPort.send('sendPort', replyPort);
-  });
+    Isolate.spawn(isolate_main, replyPort);
+  }
 
-  test("package in spawnUri() of file in folder", () {
-    var replyPort = expectResponse().toSendPort();
+  {
+    // Package in spawnUri() of sibling file.
+    var replyPort = expectResponse().sendPort;
     shared.output = 'main';
-    var sendPort = spawnUri('test_folder/folder_isolate.dart');
-    sendPort.send('sendPort', replyPort);
-  });
+    Isolate.spawnUri(Uri.parse('sibling_isolate.dart'), [], replyPort);
+  }
+
+  {
+    // Package in spawnUri() of file in folder.
+    var replyPort = expectResponse().sendPort;
+    shared.output = 'main';
+    Isolate.spawnUri(Uri.parse('test_folder/folder_isolate.dart'),
+                     [], replyPort);
+  }
 }
 
-void isolate_main() {
+void isolate_main(SendPort replyTo) {
   shared.output = 'isolate';
-  port.receive((msg, replyTo) {
-    replyTo.send(shared.output);
-  });
+  replyTo.send(shared.output);
 }

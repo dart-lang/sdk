@@ -80,7 +80,6 @@ def compile_dart2js(dart_file, checked):
     dart2js_path,
     dart_file,
     '--library-root=sdk/',
-    '--disallow-unsafe-eval',
     '-o%s' % out_file
   ]
   if checked:

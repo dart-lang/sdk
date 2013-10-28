@@ -7,10 +7,11 @@ library polymer.src.build.code_extractor;
 
 import 'dart:async';
 
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
@@ -72,7 +73,9 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
 /** Parse [code] and determine whether it has a library directive. */
 bool _hasLibraryDirective(String code) {
   var errorListener = new _ErrorCollector();
-  var token = new StringScanner(null, code, errorListener).tokenize();
+  var reader = new CharSequenceReader(new CharSequence(code));
+  var scanner = new Scanner(null, reader, errorListener);
+  var token = scanner.tokenize();
   var unit = new Parser(null, errorListener).parseCompilationUnit(token);
   return unit.directives.any((d) => d is LibraryDirective);
 }

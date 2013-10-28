@@ -11,7 +11,7 @@ abstract class _InputBinding extends NodeBinding {
     _eventSub = _getStreamForInputType(node).listen(nodeValueChanged);
   }
 
-  void boundValueChanged(newValue);
+  void valueChanged(newValue);
 
   void nodeValueChanged(e);
 
@@ -41,6 +41,7 @@ abstract class _InputBinding extends NodeBinding {
   }();
 
   static Stream<Event> _getStreamForInputType(element) {
+    if (element is OptionElement) return element.onInput;
     switch (element.type) {
       case 'checkbox':
         return _checkboxEventType.forTarget(element);
@@ -59,13 +60,14 @@ class _ValueBinding extends _InputBinding {
 
   get node => super.node;
 
-  void boundValueChanged(newValue) {
+  void valueChanged(newValue) {
     // Note: node can be an InputElement or TextAreaElement. Both have "value".
-    (node as dynamic).value = sanitizeBoundValue(newValue);
+    node.value = sanitizeBoundValue(newValue);
   }
 
   void nodeValueChanged(e) {
-    value = (node as dynamic).value;
+    value = node.value;
+    Observable.dirtyCheck();
   }
 }
 
@@ -74,7 +76,7 @@ class _CheckedBinding extends _InputBinding {
 
   InputElement get node => super.node;
 
-  void boundValueChanged(newValue) {
+  void valueChanged(newValue) {
     node.checked = _toBoolean(newValue);
   }
 
@@ -93,6 +95,8 @@ class _CheckedBinding extends _InputBinding {
         }
       }
     }
+
+    Observable.dirtyCheck();
   }
 
   // |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
@@ -105,7 +109,6 @@ class _CheckedBinding extends _InputBinding {
   //   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
   //
   static Iterable _getAssociatedRadioButtons(element) {
-    if (!_isNodeInDocument(element)) return [];
     if (element.form != null) {
       return element.form.nodes.where((el) {
         return el != element &&
@@ -114,41 +117,32 @@ class _CheckedBinding extends _InputBinding {
             el.name == element.name;
       });
     } else {
-      var radios = element.ownerDocument.queryAll(
+      var treeScope = _getTreeScope(element);
+      if (treeScope == null) return const [];
+
+      var radios = treeScope.querySelectorAll(
           'input[type="radio"][name="${element.name}"]');
       return radios.where((el) => el != element && el.form == null);
     }
   }
-
-  // TODO(jmesserly): polyfill document.contains API instead of doing it here
-  static bool _isNodeInDocument(Node node) {
-    // On non-IE this works:
-    // return node.ownerDocument.contains(node);
-    var document = node.ownerDocument;
-    if (node == document || node.parentNode == document) return true;
-    return document.documentElement.contains(node);
-  }
 }
 
-class _SelectedIndexBinding extends _InputBinding {
-  _SelectedIndexBinding(node, model, path)
-      : super(node, 'selectedIndex', model, path);
+class _SelectBinding extends _InputBinding {
+  _SelectBinding(node, property, model, path)
+      : super(node, property, model, path);
 
   SelectElement get node => super.node;
 
-  void boundValueChanged(value) {
-    var newValue = _toInt(value);
-    if (newValue <= node.length) {
-      node.selectedIndex = newValue;
-      return;
-    }
+  void valueChanged(newValue) {
+    if (_tryUpdateValue(newValue)) return;
 
     // The binding may wish to bind to an <option> which has not yet been
     // produced by a child <template>. Furthermore, we may need to wait for
     // <optgroup> iterating and then for <option>.
     //
-    // Unlike the JavaScript MDV, we don't have a special "Object.observe" event
-    // loop to schedule on. (See the the "ensureScheduled" function:
+    // Unlike the JavaScript implemenation, we don't have a special
+    // "Object.observe" event loop to schedule on.
+    // (See the the "ensureScheduled" function:
     // https://github.com/Polymer/mdv/commit/9a51ad7ed74a292bf71662cea28acbd151ff65c8)
     //
     // Instead we use scheduleMicrotask. Each <template repeat> needs a delay of
@@ -159,20 +153,35 @@ class _SelectedIndexBinding extends _InputBinding {
     //   * once for OPTGROUP
     //   * once for OPTION.
     // The resulting 2 * 2 is our maxRetries.
+    // TODO(jmesserly): a much better approach would be to find the nested
+    // <template> and wait on some future that completes when it has expanded.
     var maxRetries = 4;
     delaySetSelectedIndex() {
-      if (newValue > node.length && --maxRetries >= 0) {
+      if (!_tryUpdateValue(newValue) && maxRetries-- > 0) {
         scheduleMicrotask(delaySetSelectedIndex);
-      } else {
-        node.selectedIndex = newValue;
       }
     }
 
     scheduleMicrotask(delaySetSelectedIndex);
   }
 
+  bool _tryUpdateValue(newValue) {
+    if (property == 'selectedIndex') {
+      var intValue = _toInt(newValue);
+      node.selectedIndex = intValue;
+      return node.selectedIndex == intValue;
+    } else if (property == 'value') {
+      node.value = sanitizeBoundValue(newValue);
+      return node.value == newValue;
+    }
+  }
+
   void nodeValueChanged(e) {
-    value = node.selectedIndex;
+    if (property == 'selectedIndex') {
+      value = node.selectedIndex;
+    } else if (property == 'value') {
+      value = node.value;
+    }
   }
 
   // TODO(jmesserly,sigmund): I wonder how many bindings typically convert from
@@ -180,7 +189,7 @@ class _SelectedIndexBinding extends _InputBinding {
   // have something like a int/num binding converter (either as a base class or
   // a wrapper).
   static int _toInt(value) {
-    if (value is String) return int.parse(value, onError: (_) => null);
-    return value is int ? value : null;
+    if (value is String) return int.parse(value, onError: (_) => 0);
+    return value is int ? value : 0;
   }
 }

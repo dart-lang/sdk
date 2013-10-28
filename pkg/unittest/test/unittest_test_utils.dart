@@ -78,18 +78,16 @@ makeImmediateTeardown(index, s) => () {
   s.write('l$index D ');
 };
 
-runTestInIsolate() {
-  port.receive((_, sendport) {
-    var testConfig = new TestConfiguration(sendport);
-    unittestConfiguration = testConfig;
-    testFunction(testConfig);
-  });
+runTestInIsolate(sendport) {
+  var testConfig = new TestConfiguration(sendport);
+  unittestConfiguration = testConfig;
+  testFunction(testConfig);
 }
 
 main() {
-  spawnFunction(runTestInIsolate)
-      .call('')
-      .then((String msg) {
-        expect(msg.trim(), equals(expected));
-      });
+  var replyPort = new ReceivePort();
+  Isolate.spawn(runTestInIsolate, replyPort.sendPort);
+  replyPort.first.then((String msg) {
+    expect(msg.trim(), equals(expected));
+  });
 }

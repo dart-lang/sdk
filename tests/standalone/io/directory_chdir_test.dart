@@ -31,7 +31,7 @@ testChangeDirectory() {
     Expect.throws(() {
       temp.deleteSync(recursive: true);
       Directory.current;
-    }, (e) => e is DirectoryException);
+    }, (e) => e is FileSystemException);
     Directory.current = initialCurrent;
     Directory.current;
     if (temp.existsSync()) temp.deleteSync(recursive: true);

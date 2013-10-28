@@ -495,7 +495,7 @@ void main() {
                                         'testCustomInstanceMirror']);
 
   // Test that an isolate can reflect on itself.
-  mirrorSystemOf(exit_port.toSendPort()).then(testMirrorSystem);
+  mirrorSystemOf(exit_port.sendPort).then(testMirrorSystem);
 
   testIntegerInstanceMirror(reflect(1001));
   testStringInstanceMirror(reflect('This\nis\na\nString'));

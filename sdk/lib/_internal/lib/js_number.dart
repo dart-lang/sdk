@@ -58,8 +58,14 @@ class JSNumber extends Interceptor implements num {
   }
 
   num abs() => JS('num', r'Math.abs(#)', this);
+  
+  static const int _MIN_INT32 = -0x80000000;
+  static const int _MAX_INT32 = 0x7FFFFFFF;
 
   int toInt() {
+    if (this >= _MIN_INT32 && this <= _MAX_INT32) {
+      return JS('int', '# | 0', this);
+    }
     if (JS('bool', r'isFinite(#)', this)) {
       return JS('int', r'# + 0', truncateToDouble());  // Converts -0.0 to +0.0.
     }
