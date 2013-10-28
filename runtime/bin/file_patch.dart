@@ -92,7 +92,7 @@ class _FileSystemWatcherImpl
         bool getIsDir(event) {
           if (Platform.isWindows) {
             // Windows does not get 'isDir' as part of the event.
-            return FileSystemEntity.isDirectorySync(path);
+            return FileSystemEntity.isDirectorySync(getPath(event));
           }
           return (event[0] & FileSystemEvent._IS_DIR) != 0;
         }

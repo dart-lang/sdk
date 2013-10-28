@@ -139,6 +139,9 @@ void testWatchDeleteFile() {
 
 
 void testWatchDeleteDir() {
+  // Windows keeps the directory handle open, even though it's deleted. It'll
+  // be flushed completely, once the watcher is closed as well.
+  if (Platform.isWindows) return;
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var watcher = dir.watch(events: 0);
 
