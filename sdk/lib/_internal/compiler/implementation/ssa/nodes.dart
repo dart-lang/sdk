@@ -1238,7 +1238,7 @@ abstract class HInvoke extends HInstruction {
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
-  final Selector selector;
+  Selector selector;
   Element element;
 
   HInvokeDynamic(Selector selector,

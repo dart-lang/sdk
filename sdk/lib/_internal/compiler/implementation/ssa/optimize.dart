@@ -39,13 +39,13 @@ class SsaOptimizerTask extends CompilerTask {
           // some patterns useful for type conversion.
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaTypeConversionInserter(compiler),
+          new SsaRedundantPhiEliminator(),
+          new SsaDeadPhiEliminator(),
           new SsaTypePropagator(compiler),
           // After type propagation, more instructions can be
           // simplified.
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaCheckInserter(backend, work, context.boundsChecked),
-          new SsaRedundantPhiEliminator(),
-          new SsaDeadPhiEliminator(),
           new SsaInstructionSimplifier(constantSystem, backend, work),
           new SsaCheckInserter(backend, work, context.boundsChecked),
           new SsaTypePropagator(compiler),
@@ -53,6 +53,9 @@ class SsaOptimizerTask extends CompilerTask {
           // interceptors are often in the way of LICM'able instructions.
           new SsaDeadCodeEliminator(compiler),
           new SsaGlobalValueNumberer(compiler),
+          // After GVN, some instructions might need their type to be
+          // updated because they now have different inputs.
+          new SsaTypePropagator(compiler),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new

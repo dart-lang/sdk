@@ -225,8 +225,8 @@ class FullFunctionSetQuery extends FunctionSetQuery {
             return const TypeMask.empty();
           }
           return compiler.world.hasSubclasses(cls)
-              ? new TypeMask.nonNullSubclass(cls)
-              : new TypeMask.nonNullExact(cls);
+              ? new TypeMask.nonNullSubclass(cls.declaration)
+              : new TypeMask.nonNullExact(cls.declaration);
         }),
         compiler);
   }

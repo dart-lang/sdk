@@ -292,8 +292,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // of [instruction] might move from number to dynamic.
       pendingOptimizations.putIfAbsent(instruction, () => () {
         Selector selector = instruction.selector;
-        if (selector.isOperator()
-            && selector.name != '==') {
+        if (selector.isOperator() && selector.name != '==') {
           if (checkReceiver(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[1]);
           }
@@ -303,6 +302,43 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         }
       });
     }
+
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HType receiverType = receiver.instructionType;
+    Selector selector = receiverType.refine(instruction.selector, compiler);
+    instruction.selector = selector;
+
+    // Try to specialize the receiver after this call.
+    if (receiver.dominatedUsers(instruction).length != 1
+        && !selector.isClosureCall()) {
+      TypeMask oldMask = receiverType.computeMask(compiler);
+      TypeMask newMask = compiler.world.allFunctions.receiverType(selector);
+      newMask = newMask.intersection(oldMask, compiler);
+
+      if (newMask != oldMask) {
+        HType newType = new HType.fromMask(newMask, compiler);
+        var next = instruction.next;
+        if (next is HTypeKnown && next.checkedInput == receiver) {
+          // We already have refined [receiver]. Check if [newHType]
+          // is actually better than the type of [next].
+          HType nextType = next.instructionType;
+          if (nextType != newType
+              && nextType.intersection(newType, compiler) == newType) {
+            next.instructionType = newType;
+            addDependentInstructionsToWorkList(next);
+          }
+        } else {
+          // Insert a refinement node after the call and update all
+          // users dominated by the call to use that node instead of
+          // [receiver].
+          HTypeKnown converted = new HTypeKnown(newType, receiver);
+          instruction.block.addBefore(instruction.next, converted);
+          receiver.replaceAllUsersDominatedBy(converted.next, converted);
+          addDependentInstructionsToWorkList(converted);
+        }
+      }
+    }
+
     return instruction.specializer.computeTypeFromInputTypes(
         instruction, compiler);
   }

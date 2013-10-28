@@ -15,16 +15,15 @@ class InvokeDynamicSpecializer {
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
-    HType receiverType = instruction.getDartReceiver(compiler).instructionType;
-    Selector refined = receiverType.refine(instruction.selector, compiler);
-    HType type = new HType.inferredTypeForSelector(refined, compiler);
+    Selector selector = instruction.selector;
+    HType type = new HType.inferredTypeForSelector(selector, compiler);
     // TODO(ngeoffray): Because we don't know yet the side effects of
     // a JS call, we sometimes know more in the compiler about the
     // side effects of an element (for example operator% on the int
     // class). We should remove this check once we analyze JS calls.
     if (!instruction.useGvn()) {
       instruction.sideEffects =
-          compiler.world.getSideEffectsOfSelector(refined);
+          compiler.world.getSideEffectsOfSelector(selector);
     }
     return type;
   }

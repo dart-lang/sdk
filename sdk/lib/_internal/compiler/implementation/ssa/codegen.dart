@@ -80,9 +80,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
-      compiler.tracer.traceGraph("codegen", graph);
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
+      compiler.tracer.traceGraph("codegen", graph);
       FunctionElement element = work.element;
       return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
@@ -279,6 +279,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void preGenerateMethod(HGraph graph) {
+    new SsaTypeKnownRemover().visitGraph(graph);
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
         generateAtUseSite, controlFlowOperators).visitGraph(graph);
@@ -1542,11 +1543,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     // If [JSInvocationMirror._invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
-    if (backend.compiler.enabledInvokeOn) {
-      return selector.asUntyped;
-    }
-    HType receiverType = node.getDartReceiver(compiler).instructionType;
-    return receiverType.refine(selector, compiler);
+    return backend.compiler.enabledInvokeOn ? selector.asUntyped : selector;
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
@@ -2574,7 +2571,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeKnown(HTypeKnown node) {
-    use(node.checkedInput);
+    // [HTypeKnown] instructions are removed before generating code.
+    assert(false);
   }
 }
 
