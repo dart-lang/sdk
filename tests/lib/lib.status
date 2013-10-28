@@ -19,7 +19,8 @@ mirrors/closures_test/none: RuntimeError # Issue 6490
 mirrors/closure_mirror_find_in_context_test: Fail # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/equality_test/02: RuntimeError # Issue 12333
-mirrors/fake_function_test: RuntimeError # Issue 11612
+mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
+mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
 mirrors/find_in_context_fake_function_test: Fail # Issue 6490
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generics_test/01: RuntimeError # Issue 12087
@@ -268,6 +269,7 @@ convert/chunked_conversion_json_decode1_test: StaticWarning
 math/min_max_test: StaticWarning
 mirrors/closure_mirror_find_in_context_test: StaticWarning
 mirrors/equality_test/02: StaticWarning
+mirrors/fake_function_without_call_test: StaticWarning
 mirrors/find_in_context_fake_function_test: StaticWarning
 mirrors/function_type_mirror_test: StaticWarning
 mirrors/generic_f_bounded_test/01: StaticWarning
