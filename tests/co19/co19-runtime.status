@@ -61,7 +61,7 @@ LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r6
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # Issue 13106 
+LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # co19 issue 636
 
 [ $compiler == none && $runtime == vm ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13398
