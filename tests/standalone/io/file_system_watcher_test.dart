@@ -7,11 +7,12 @@ import "dart:io";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
+import "package:path/path.dart";
 
 
 void testWatchCreateFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var file = new File(dir.path + '/file');
+  var file = new File(join(dir.path, 'file'));
 
   var watcher = dir.watch();
 
@@ -20,6 +21,7 @@ void testWatchCreateFile() {
   sub = watcher.listen((event) {
     if (event is FileSystemCreateEvent &&
         event.path.endsWith('file')) {
+      Expect.isFalse(event.isDirectory);
       asyncEnd();
       sub.cancel();
       dir.deleteSync(recursive: true);
@@ -33,9 +35,34 @@ void testWatchCreateFile() {
 }
 
 
+void testWatchCreateDir() {
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
+  var subdir = new Directory(join(dir.path, 'dir'));
+
+  var watcher = dir.watch();
+
+  asyncStart();
+  var sub;
+  sub = watcher.listen((event) {
+    if (event is FileSystemCreateEvent &&
+        event.path.endsWith('dir')) {
+      Expect.isTrue(event.isDirectory);
+      asyncEnd();
+      sub.cancel();
+      dir.deleteSync(recursive: true);
+    }
+  }, onError: (e) {
+    dir.deleteSync(recursive: true);
+    throw e;
+  });
+
+  subdir.createSync();
+}
+
+
 void testWatchModifyFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var file = new File(dir.path + '/file');
+  var file = new File(join(dir.path, 'file'));
   file.createSync();
 
   var watcher = dir.watch();
@@ -60,7 +87,7 @@ void testWatchModifyFile() {
 
 void testWatchMoveFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var file = new File(dir.path + '/file');
+  var file = new File(join(dir.path, 'file'));
   file.createSync();
 
   var watcher = dir.watch();
@@ -82,13 +109,13 @@ void testWatchMoveFile() {
     throw e;
   });
 
-  file.renameSync(dir.path + '/file2');
+  file.renameSync(join(dir.path, 'file2'));
 }
 
 
 void testWatchDeleteFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var file = new File(dir.path + '/file');
+  var file = new File(join(dir.path, 'file'));
   file.createSync();
 
   var watcher = dir.watch();
@@ -131,7 +158,7 @@ void testWatchDeleteDir() {
 
 void testWatchOnlyModifyFile() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var file = new File(dir.path + '/file');
+  var file = new File(join(dir.path, 'file'));
 
   var watcher = dir.watch(events: FileSystemEvent.MODIFY);
 
@@ -155,8 +182,8 @@ void testWatchOnlyModifyFile() {
 
 void testMultipleEvents() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var file = new File(dir.path + '/file');
-  var file2 = new File(dir.path + '/file2');
+  var file = new File(join(dir.path, 'file'));
+  var file2 = new File(join(dir.path, 'file2'));
 
   var watcher = dir.watch();
 
@@ -204,9 +231,9 @@ void testWatchRecursive() {
     Expect.throws(() => dir.watch(recursive: true));
     return;
   }
-  var dir2 = new Directory(dir.path + '/dir');
+  var dir2 = new Directory(join(dir.path, 'dir'));
   dir2.createSync();
-  var file = new File(dir.path + '/dir/file');
+  var file = new File(join(dir.path, 'dir/file'));
 
   var watcher = dir.watch(recursive: true);
 
@@ -229,9 +256,9 @@ void testWatchRecursive() {
 
 void testWatchNonRecursive() {
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
-  var dir2 = new Directory(dir.path + '/dir');
+  var dir2 = new Directory(join(dir.path, 'dir'));
   dir2.createSync();
-  var file = new File(dir.path + '/dir/file');
+  var file = new File(join(dir.path, 'dir/file'));
 
   var watcher = dir.watch(recursive: false);
 
@@ -273,6 +300,7 @@ void testWatchNonExisting() {
 void main() {
   if (!FileSystemEntity.isWatchSupported) return;
   testWatchCreateFile();
+  testWatchCreateDir();
   testWatchModifyFile();
   testWatchMoveFile();
   testWatchDeleteFile();

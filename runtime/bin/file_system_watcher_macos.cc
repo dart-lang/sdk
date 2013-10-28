@@ -271,6 +271,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     if (flags & kFSEventStreamEventFlagItemRenamed) mask |= kMove;
     if (flags & kFSEventStreamEventFlagItemXattrMod) mask |= kModefyAttribute;
     if (flags & kFSEventStreamEventFlagItemCreated) mask |= kCreate;
+    if (flags & kFSEventStreamEventFlagItemIsDir) mask |= kIsDir;
     if (flags & kFSEventStreamEventFlagItemRemoved) {
       if (path_len == 0) {
         // The removed path is the path being watched.

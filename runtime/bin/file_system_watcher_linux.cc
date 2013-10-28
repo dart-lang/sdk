@@ -71,6 +71,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     if (e->mask & IN_MOVE) mask |= kMove;
     if (e->mask & IN_DELETE) mask |= kDelete;
     if (e->mask & IN_DELETE_SELF) mask |= kDeleteSelf;
+    if (e->mask & IN_ISDIR) mask |= kIsDir;
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));
     if (e->len > 0) {

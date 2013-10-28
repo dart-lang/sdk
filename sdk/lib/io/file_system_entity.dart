@@ -658,6 +658,7 @@ class FileSystemEvent {
 
   static const int _MODIFY_ATTRIBUTES = 1 << 4;
   static const int _DELETE_SELF = 1 << 5;
+  static const int _IS_DIR = 1 << 6;
 
   /**
    * The type of event. See [FileSystemEvent] for a list of events.
@@ -670,7 +671,12 @@ class FileSystemEvent {
    */
   final String path;
 
-  FileSystemEvent._(this.type, this.path);
+  /**
+   * Is `true` if the event target was a directory.
+   */
+  final bool isDirectory;
+
+  FileSystemEvent._(this.type, this.path, this.isDirectory);
 }
 
 
@@ -678,8 +684,8 @@ class FileSystemEvent {
  * File system event for newly created file system objects.
  */
 class FileSystemCreateEvent extends FileSystemEvent {
-  FileSystemCreateEvent._(path)
-      : super._(FileSystemEvent.CREATE, path);
+  FileSystemCreateEvent._(path, isDirectory)
+      : super._(FileSystemEvent.CREATE, path, isDirectory);
 
   String toString() => "FileSystemCreateEvent('$path')";
 }
@@ -695,8 +701,8 @@ class FileSystemModifyEvent extends FileSystemEvent {
    */
   final bool contentChanged;
 
-  FileSystemModifyEvent._(path, this.contentChanged)
-      : super._(FileSystemEvent.MODIFY, path);
+  FileSystemModifyEvent._(path, isDirectory, this.contentChanged)
+      : super._(FileSystemEvent.MODIFY, path, isDirectory);
 
   String toString() =>
       "FileSystemModifyEvent('$path', contentChanged=$contentChanged)";
@@ -707,8 +713,8 @@ class FileSystemModifyEvent extends FileSystemEvent {
  * File system event for deletion of file system objects.
  */
 class FileSystemDeleteEvent extends FileSystemEvent {
-  FileSystemDeleteEvent._(path)
-      : super._(FileSystemEvent.DELETE, path);
+  FileSystemDeleteEvent._(path, isDirectory)
+      : super._(FileSystemEvent.DELETE, path, isDirectory);
 
   String toString() => "FileSystemDeleteEvent('$path')";
 }
@@ -724,8 +730,8 @@ class FileSystemMoveEvent extends FileSystemEvent {
    */
   final String destination;
 
-  FileSystemMoveEvent._(path, this.destination)
-      : super._(FileSystemEvent.MOVE, path);
+  FileSystemMoveEvent._(path, isDirectory, this.destination)
+      : super._(FileSystemEvent.MOVE, path, isDirectory);
 
   String toString() {
     var buffer = new StringBuffer();

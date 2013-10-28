@@ -89,55 +89,63 @@ class _FileSystemWatcherImpl
           }
           return path;
         }
+        bool getIsDir(event) {
+          if (Platform.isWindows) {
+            // Windows does not get 'isDir' as part of the event.
+            return FileSystemEntity.isDirectorySync(path);
+          }
+          return (event[0] & FileSystemEvent._IS_DIR) != 0;
+        }
         void add(event) {
           if ((event.type & _events) == 0) return;
           events.add(event);
         }
-        void rewriteMove(event) {
+        void rewriteMove(event, isDir) {
           if (event[3]) {
-            add(new FileSystemCreateEvent._(getPath(event)));
+            add(new FileSystemCreateEvent._(getPath(event), isDir));
           } else {
-            add(new FileSystemDeleteEvent._(getPath(event)));
+            add(new FileSystemDeleteEvent._(getPath(event), isDir));
           }
         }
         while (socket.available() > 0) {
           for (var event in _readEvents()) {
             if (event == null) continue;
+            bool isDir = getIsDir(event);
             var path = getPath(event);
             if ((event[0] & FileSystemEvent.CREATE) != 0) {
-              add(new FileSystemCreateEvent._(path));
+              add(new FileSystemCreateEvent._(path, isDir));
             }
             if ((event[0] & FileSystemEvent.MODIFY) != 0) {
-              add(new FileSystemModifyEvent._(path, true));
+              add(new FileSystemModifyEvent._(path, isDir, true));
             }
             if ((event[0] & FileSystemEvent._MODIFY_ATTRIBUTES) != 0) {
-              add(new FileSystemModifyEvent._(path, false));
+              add(new FileSystemModifyEvent._(path, isDir, false));
             }
             if ((event[0] & FileSystemEvent.MOVE) != 0) {
               int link = event[1];
               if (link > 0) {
                 if (pair.containsKey(link)) {
-                  events.add(
-                      new FileSystemMoveEvent._(getPath(pair[link]), path));
+                  events.add(new FileSystemMoveEvent._(
+                      getPath(pair[link]), isDir, path));
                   pair.remove(link);
                 } else {
                   pair[link] = event;
                 }
               } else {
-                rewriteMove(event);
+                rewriteMove(event, isDir);
               }
             }
             if ((event[0] & FileSystemEvent.DELETE) != 0) {
-              add(new FileSystemDeleteEvent._(path));
+              add(new FileSystemDeleteEvent._(path, isDir));
             }
             if ((event[0] & FileSystemEvent._DELETE_SELF) != 0) {
-              add(new FileSystemDeleteEvent._(path));
+              add(new FileSystemDeleteEvent._(path, isDir));
               stop = true;
             }
           }
         }
         for (var event in pair.values) {
-          rewriteMove(event);
+          rewriteMove(event, getIsDir(event));
         }
       } else if (event == RawSocketEvent.CLOSED) {
       } else if (event == RawSocketEvent.READ_CLOSED) {
