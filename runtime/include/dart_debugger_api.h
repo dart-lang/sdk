@@ -600,6 +600,15 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id);
 
 
 /**
+ * Returns in \library_id the library id of the given \library.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
+                                       intptr_t* library_id);
+
+
+/**
  * Returns an array containing all variable names and values of
  * the given library \library_id.
  *
