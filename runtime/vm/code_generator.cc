@@ -1383,6 +1383,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.IsNull());
+  ASSERT(function.HasCode());
 
   if (CanOptimizeFunction(function, isolate)) {
     const Error& error =
@@ -1441,6 +1442,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
         target_code.EntryPoint());
   }
   arguments.SetReturn(target_code);
+  ASSERT(target_function.HasCode());
 }
 
 

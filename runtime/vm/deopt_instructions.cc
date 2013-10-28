@@ -1168,7 +1168,11 @@ void DeoptInfoBuilder::AddReturnAddress(const Function& function,
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
   const Code& code = Code::Handle(function.unoptimized_code());
-  ASSERT(Isolate::IsDeoptAfter(deopt_id) ||
+  // The inlined function's code pointer may be null if there is a GC during
+  // compilation.
+  // TODO(zra): See if we can avoid this check by ensuring that code is not
+  //            removed during inlining.
+  ASSERT(code.IsNull() || Isolate::IsDeoptAfter(deopt_id) ||
       (code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt) != 0));
 #endif
   const intptr_t object_table_index = FindOrAddObjectInTable(function);

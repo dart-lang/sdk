@@ -4051,8 +4051,8 @@ void Function::DetachCode() const {
 
 
 void Function::ReattachCode(const Code& code) const {
-  set_unoptimized_code(code);
-  SetCode(code);
+  StorePointer(&raw_ptr()->code_, code.raw());
+  StorePointer(&raw_ptr()->unoptimized_code_, code.raw());
   CodePatcher::RestoreEntry(code);
 }
 
