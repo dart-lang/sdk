@@ -118,7 +118,7 @@ emitTagsForCompilationUnit(compilationUnit) {
     var lineStart = file.lineStarts[line_number - 1];
     // TODO(ahe): Most often an empty string.  Try to see if we can
     // get the position of the name token instead.
-    var tag_definition_text = file.text.substring(lineStart, byte_offset);
+    var tag_definition_text = file.slowText().substring(lineStart, byte_offset);
 
     // One definition.
     buffer.write('${tag_definition_text}\x7f${tagname}'
