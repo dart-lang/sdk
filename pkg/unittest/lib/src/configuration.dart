@@ -30,7 +30,7 @@ abstract class Configuration {
 
   /// How long a [TestCase] can run before it is considered an error.
   /// A [timeout] value of [:null:] means that the limit is infinite.
-  Duration get timeout => const Duration(seconds: 20);
+  Duration get timeout => const Duration(minutes: 2);
 
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
