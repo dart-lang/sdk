@@ -26,7 +26,7 @@ intptr_t FileSystemWatcher::WatchPath(const char* path,
   if (fd < 0) return -1;
   int list_events = IN_DELETE_SELF;
   if (events & kCreate) list_events |= IN_CREATE;
-  if (events & kModifyContent) list_events |= IN_MODIFY | IN_ATTRIB;
+  if (events & kModifyContent) list_events |= IN_CLOSE_WRITE | IN_ATTRIB;
   if (events & kDelete) list_events |= IN_DELETE;
   if (events & kMove) list_events |= IN_MOVE;
   int path_fd = TEMP_FAILURE_RETRY(inotify_add_watch(fd, path, list_events));
@@ -65,7 +65,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
         reinterpret_cast<struct inotify_event*>(buffer + offset);
     Dart_Handle event = Dart_NewList(4);
     int mask = 0;
-    if (e->mask & IN_MODIFY) mask |= kModifyContent;
+    if (e->mask & IN_CLOSE_WRITE) mask |= kModifyContent;
     if (e->mask & IN_ATTRIB) mask |= kModefyAttribute;
     if (e->mask & IN_CREATE) mask |= kCreate;
     if (e->mask & IN_MOVE) mask |= kMove;
