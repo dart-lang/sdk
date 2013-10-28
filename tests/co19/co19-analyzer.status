@@ -227,7 +227,6 @@ Language/13_Statements/03_Variable_Declaration_A01_t16: Fail
 
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
 
-Language/12_Expressions/05_Strings_A20_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/collection/Queue/Queue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
