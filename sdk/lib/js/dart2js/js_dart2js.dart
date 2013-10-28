@@ -84,7 +84,7 @@
 library dart.js;
 
 import 'dart:html' show Blob, ImageData, Node;
-import 'dart:collection' show HashMap;
+import 'dart:collection' show HashMap, ListMixin;
 import 'dart:indexed_db' show KeyRange;
 import 'dart:typed_data' show TypedData;
 
@@ -92,7 +92,7 @@ import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show JavaScriptObject, UnknownJavaScriptObject;
 import 'dart:_js_helper' show Primitives, convertDartClosureToJS;
 
-final JsObject context = new JsObject._fromJs(Primitives.computeGlobalThis());
+final JsObject context = _wrapToDart(Primitives.computeGlobalThis());
 
 _convertDartFunction(Function f, {bool captureThis: false}) {
   return JS('',
@@ -108,7 +108,7 @@ _callDartFunction(callback, bool captureThis, self, List arguments) {
   if (captureThis) {
     arguments = [self]..addAll(arguments);
   }
-  var dartArgs = arguments.map(_convertToDart).toList();
+  var dartArgs = new List.from(arguments.map(_convertToDart));
   return _convertToJS(Function.apply(callback, dartArgs));
 }
 
@@ -122,10 +122,9 @@ class JsObject {
   // The wrapped JS object.
   final dynamic _jsObject;
 
+  // This shoud only be called from _wrapToDart
   JsObject._fromJs(this._jsObject) {
     assert(_jsObject != null);
-    // Remember this proxy for the JS object
-    _getDartProxy(_jsObject, _DART_OBJECT_PROPERTY_NAME, (o) => this);
   }
 
   /**
@@ -135,7 +134,7 @@ class JsObject {
   factory JsObject(JsFunction constructor, [List arguments]) {
     var constr = _convertToJS(constructor);
     if (arguments == null) {
-      return new JsObject._fromJs(JS('', 'new #()', constr));
+      return _wrapToDart(JS('', 'new #()', constr));
     }
     // The following code solves the problem of invoking a JavaScript
     // constructor with an unknown number arguments.
@@ -151,7 +150,8 @@ class JsObject {
     // This could return an UnknownJavaScriptObject, or a native
     // object for which there is an interceptor
     var jsObj = JS('JavaScriptObject', 'new #()', factoryFunction);
-    return new JsObject._fromJs(jsObj);
+
+    return _wrapToDart(jsObj);
   }
 
   /**
@@ -170,7 +170,7 @@ class JsObject {
       throw new ArgumentError(
         "object cannot be a num, string, bool, or null");
     }
-    return new JsObject._fromJs(_convertToJS(object));
+    return _wrapToDart(_convertToJS(object));
   }
 
   /**
@@ -186,7 +186,7 @@ class JsObject {
     if ((object is! Map) && (object is! Iterable)) {
       throw new ArgumentError("object must be a Map or Iterable");
     }
-    return new JsObject._fromJs(_convertDataTree(object));
+    return _wrapToDart(_convertDataTree(object));
   }
 
   static _convertDataTree(data) {
@@ -304,7 +304,7 @@ class JsObject {
     }
     return _convertToDart(JS('', '#[#].apply(#, #)', _jsObject, method,
         _jsObject,
-        args == null ? null : args.map(_convertToJS).toList()));
+        args == null ? null : new List.from(args.map(_convertToJS))));
   }
 }
 
@@ -331,7 +331,111 @@ class JsFunction extends JsObject {
   dynamic apply(List args, { thisArg }) =>
       _convertToDart(JS('', '#.apply(#, #)', _jsObject,
           _convertToJS(thisArg),
-          args == null ? null : args.map(_convertToJS).toList()));
+          args == null ? null : new List.from(args.map(_convertToJS))));
+}
+
+/**
+ * A [List] that proxies a JavaScript array.
+ */
+class JsArray<E> extends JsObject with ListMixin<E> {
+
+  /**
+   * Creates a new JavaScript array.
+   */
+  JsArray() : super._fromJs([]);
+
+  /**
+   * Creates a new JavaScript array and initializes it to the contents of
+   * [other].
+   */
+  JsArray.from(Iterable<E> other)
+      : super._fromJs([]..addAll(other.map(_convertToJS)));
+
+  JsArray._fromJs(jsObject) : super._fromJs(jsObject);
+
+  _checkIndex(int index) {
+    if (index is int && (index < 0 || index >= length)) {
+      throw new RangeError.range(index, 0, length);
+    }
+  }
+
+  _checkInsertIndex(int index) {
+    if (index is int && (index < 0 || index >= length + 1)) {
+      throw new RangeError.range(index, 0, length);
+    }
+  }
+
+  _checkRange(int start, int end) {
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
+    }
+    if (end < start || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
+    }
+  }
+
+  // Methods required by ListMixin
+
+  E operator [](int index) {
+    _checkIndex(index);
+    return super[index];
+  }
+
+  void operator []=(int index, E value) {
+    _checkIndex(index);
+    super[index] = value;
+  }
+
+  int get length => super['length'];
+
+  void set length(int length) { super['length'] = length; }
+
+
+  // Methods overriden for better performance
+
+  void add(E value) {
+    callMethod('push', [value]);
+  }
+
+  void addAll(Iterable<E> iterable) {
+    var list = (JS('bool', '# instanceof Array', iterable)) 
+        ? iterable
+        : new List.from(iterable);
+    callMethod('push', list);
+  }
+
+  void insert(int index, E element) {
+    _checkInsertIndex(index);
+    callMethod('splice', [index, 0, element]);
+  }
+
+  E removeAt(int index) {
+    _checkIndex(index);
+    return callMethod('splice', [index, 1])[0];
+  }
+
+  E removeLast() {
+    if (length == 0) throw new RangeError(-1);
+    return callMethod('pop');
+  }
+
+  void removeRange(int start, int end) {
+    _checkRange(start, end);
+    callMethod('splice', [start, end - start]);
+  }
+
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _checkRange(start, end);
+    int length = end - start;
+    if (length == 0) return;
+    if (skipCount < 0) throw new ArgumentError(skipCount);
+    var args = [start, length]..addAll(iterable.skip(skipCount).take(length));
+    callMethod('splice', args);
+  }
+
+  void sort([int compare(E a, E b)]) {
+    callMethod('sort', [compare]);
+  }
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
@@ -359,8 +463,8 @@ dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
   } else if (o is String || o is num || o is bool
-    || o is Blob || o is KeyRange || o is ImageData || o is Node 
-    || o is TypedData) {
+      || o is Blob || o is KeyRange || o is ImageData || o is Node
+      || o is TypedData) {
     return o;
   } else if (o is DateTime) {
     return Primitives.lazyAsJsDate(o);
@@ -391,20 +495,30 @@ Object _getJsProxy(o, String propertyName, createProxy(o)) {
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
 Object _convertToDart(o) {
+  var isArray = JS('bool', '# instanceof Array', o);
   if (JS('bool', '# == null', o) ||
       JS('bool', 'typeof # == "string"', o) ||
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o)) {
     return o;
   } else if (o is Blob || o is KeyRange || o is ImageData || o is Node
-    || o is TypedData) {
+      || o is TypedData) {
     return JS('Blob|KeyRange|ImageData|Node|TypedData', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getMilliseconds()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
-  } else if (JS('bool', 'typeof # == "function"', o)) {
+  } else {
+    return _wrapToDart(o);
+  }
+}
+
+JsObject _wrapToDart(o) {
+  if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
         (o) => new JsFunction._fromJs(o));
+  } else if (JS('bool', '# instanceof Array', o)) {
+    return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
+        (o) => new JsArray._fromJs(o));
   } else if (JS('bool', '#.constructor === DartObject', o)) {
     return JS('', '#.o', o);
   } else {

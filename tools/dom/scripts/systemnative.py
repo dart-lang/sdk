@@ -1208,6 +1208,7 @@ class CPPLibraryEmitter():
     e.Emit('    _DateTimeClassId,\n');
     e.Emit('    _JsObjectClassId,\n');
     e.Emit('    _JsFunctionClassId,\n');
+    e.Emit('    _JsArrayClassId,\n');
     e.Emit('    // New types that are not auto-generated should be added here.\n');
     e.Emit('\n');
     for interface in database.GetInterfaces():
@@ -1254,6 +1255,7 @@ class CPPLibraryEmitter():
     e.Emit('    { "DateTime", DartCoreLibraryId, -1, false, false, false },\n');
     e.Emit('    { "JsObject", DartJsLibraryId, -1, false, false, false },\n');
     e.Emit('    { "JsFunction", DartJsLibraryId, _JsObjectClassId, false, false, false },\n');
+    e.Emit('    { "JsArray", DartJsLibraryId, _JsObjectClassId, false, false, false },\n');
     e.Emit('    // New types that are not auto-generated should be added here.\n');
     e.Emit('\n');
     is_node_test = lambda interface: interface.id == 'Node'
