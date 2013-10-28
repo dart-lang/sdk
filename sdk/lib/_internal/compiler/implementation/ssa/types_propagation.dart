@@ -99,9 +99,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   HType visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
-    if (left.isDouble()) return HType.DOUBLE;
-    return HType.NUMBER;
+    JavaScriptBackend backend = compiler.backend;    
+    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+      return backend.intType;
+    }
+    if (left.isDouble(compiler)) return backend.doubleType;
+    return backend.numType;
   }
 
   HType visitNegate(HNegate instruction) {
@@ -125,16 +128,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   HType visitTypeConversion(HTypeConversion instruction) {
     HType inputType = instruction.checkedInput.instructionType;
     HType checkedType = instruction.checkedType;
+    JavaScriptBackend backend = compiler.backend;
     if (instruction.isArgumentTypeCheck || instruction.isReceiverTypeCheck) {
       // We must make sure a type conversion for receiver or argument check
       // does not try to do an int check, because an int check is not enough.
       // We only do an int check if the input is integer or null.
-      if (checkedType.isNumber()
-          && !checkedType.isDouble()
-          && inputType.isIntegerOrNull()) {
-        instruction.checkedType = HType.INTEGER;
-      } else if (checkedType.isInteger() && !inputType.isIntegerOrNull()) {
-        instruction.checkedType = HType.NUMBER;
+      if (checkedType.isNumber(compiler)
+          && !checkedType.isDouble(compiler)
+          && inputType.isIntegerOrNull(compiler)) {
+        instruction.checkedType = backend.intType;
+      } else if (checkedType.isInteger(compiler)
+                 && !inputType.isIntegerOrNull(compiler)) {
+        instruction.checkedType = backend.numType;
       }
     }
 
@@ -145,11 +150,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // can be a literal double '8.0' that is marked as an integer (because 'is
       // int' will return 'true').  What we really need to do is make the
       // overlap between int and double values explicit in the HType system.
-      if (inputType.isIntegerOrNull() && checkedType.isDoubleOrNull()) {
+      if (inputType.isIntegerOrNull(compiler)
+          && checkedType.isDoubleOrNull(compiler)) {
         if (inputType.canBeNull() && checkedType.canBeNull()) {
-          outputType = HType.DOUBLE_OR_NULL;
+          outputType =
+              new HBoundedType(new TypeMask.exact(backend.jsDoubleClass));
         } else {
-          outputType = HType.DOUBLE;
+          outputType = backend.doubleType;
         }
       }
     }
@@ -179,11 +186,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     // In some cases, we want the receiver to be an integer,
     // but that does not mean we will get a NoSuchMethodError
     // if it's not: the receiver could be a double.
-    if (type.isInteger()) {
+    if (type.isInteger(compiler)) {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
-      return instruction.instructionType.isIntegerOrNull();
+      return instruction.instructionType.isIntegerOrNull(compiler);
     }
     return true;
   }
@@ -193,8 +200,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   // Return true if the receiver type check was added.
   bool checkReceiver(HInvokeDynamic instruction) {
     HInstruction receiver = instruction.inputs[1];
-    if (receiver.isNumber()) return false;
-    if (receiver.isNumberOrNull()) {
+    if (receiver.isNumber(compiler)) return false;
+    if (receiver.isNumberOrNull(compiler)) {
       convertInput(instruction,
                    receiver,
                    receiver.instructionType.nonNullable(compiler),
@@ -233,9 +240,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     HInstruction right = instruction.inputs[2];
     Selector selector = instruction.selector;
-    if (selector.isOperator() && receiverType.isNumber()) {
-      if (right.isNumber()) return false;
-      HType type = right.isIntegerOrNull() ? HType.INTEGER : HType.NUMBER;
+    if (selector.isOperator() && receiverType.isNumber(compiler)) {
+      if (right.isNumber(compiler)) return false;
+      JavaScriptBackend backend = compiler.backend;    
+      HType type = right.isIntegerOrNull(compiler)
+          ? backend.intType
+          : backend.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,

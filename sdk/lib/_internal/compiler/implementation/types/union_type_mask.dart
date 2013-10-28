@@ -197,19 +197,36 @@ class UnionTypeMask implements TypeMask {
   bool get isContainer => false;
   bool get isForwarding => false;
 
-  bool containsOnlyInt(Compiler compiler) => false;
-  bool containsOnlyDouble(Compiler compiler) => false;
+  bool containsOnlyInt(Compiler compiler) {
+    return disjointMasks.every((mask) => mask.containsOnlyInt(compiler));
+  }
+
+  bool containsOnlyDouble(Compiler compiler) {
+    return disjointMasks.every((mask) => mask.containsOnlyDouble(compiler));
+  }
+
   bool containsOnlyNum(Compiler compiler) {
     return disjointMasks.every((mask) {
-      return mask.containsOnlyInt(compiler)
-          || mask.containsOnlyDouble(compiler)
-          || mask.containsOnlyNum(compiler);
+      return mask.containsOnlyNum(compiler);
     });
   }
-  bool containsOnlyNull(Compiler compiler) => false;
-  bool containsOnlyBool(Compiler compiler) => false;
-  bool containsOnlyString(Compiler compiler) => false;
-  bool containsOnly(ClassElement element) => false;
+
+  bool containsOnlyNull(Compiler compiler) {
+    return disjointMasks.every((mask) => mask.containsOnlyNull(compiler));
+  }
+
+  bool containsOnlyBool(Compiler compiler) {
+    return disjointMasks.every((mask) => mask.containsOnlyBool(compiler));
+  }
+
+  bool containsOnlyString(Compiler compiler) {
+    return disjointMasks.every((mask) => mask.containsOnlyString(compiler));
+  }
+
+  bool containsOnly(ClassElement element) {
+    return disjointMasks.every((mask) => mask.containsOnly(element));
+  }
+
   bool satisfies(ClassElement cls, Compiler compiler) {
     return disjointMasks.every((mask) => mask.satisfies(cls, compiler));
   }
@@ -218,7 +235,9 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.any((e) => e.contains(type, compiler));
   }
 
-  bool containsAll(Compiler compiler) => false;
+  bool containsAll(Compiler compiler) {
+    return disjointMasks.any((mask) => mask.containsAll(compiler));
+  }
 
   ClassElement singleClass(Compiler compiler) => null;
 

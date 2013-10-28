@@ -208,6 +208,11 @@ class JavaScriptBackend extends Backend {
   Element mapTypeToInterceptor;
 
   HType stringType;
+  HType doubleType;
+  HType intType;
+  HType numType;
+  HType boolType;
+  HType nullType;
   HType indexablePrimitiveType;
   HType readableArrayType;
   HType mutableArrayType;
@@ -615,6 +620,15 @@ class JavaScriptBackend extends Backend {
 
     stringType = new HBoundedType(
         new TypeMask.nonNullExact(jsStringClass));
+    doubleType = new HBoundedType(
+        new TypeMask.nonNullExact(jsDoubleClass));
+    intType = new HBoundedType(
+        new TypeMask.nonNullExact(jsIntClass));
+    numType = new HBoundedType(
+        new TypeMask.nonNullSubclass(jsNumberClass));
+    boolType = new HBoundedType(
+        new TypeMask.nonNullExact(jsBoolClass));
+    nullType = new HBoundedType(const TypeMask.empty());
     indexablePrimitiveType = new HBoundedType(
         new TypeMask.nonNullSubtype(jsIndexableClass));
     readableArrayType = new HBoundedType(

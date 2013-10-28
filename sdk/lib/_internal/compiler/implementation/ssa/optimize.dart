@@ -153,7 +153,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
     HType type = input.instructionType;
-    if (type.isBoolean()) return input;
+    if (type.isBoolean(compiler)) return input;
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = type.computeMask(compiler);
     // TODO(kasperl): Get rid of the null check here once all HTypes
@@ -210,7 +210,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           !actualReceiver.isString(compiler);
       HFieldGet result = new HFieldGet(
           element, actualReceiver, isAssignable: isAssignable);
-      result.instructionType = HType.INTEGER;
+      result.instructionType = backend.intType;
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -391,7 +391,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitBoundsCheck(HBoundsCheck node) {
     HInstruction index = node.index;
-    if (index.isInteger()) return node;
+    if (index.isInteger(compiler)) return node;
     if (index.isConstant()) {
       HConstant constantInstruction = index;
       assert(!constantInstruction.constant.isInt());
@@ -451,7 +451,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
-    if (!(left.isNumberOrNull() && right.isNumberOrNull()) &&
+    if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler)) &&
         leftType.intersection(rightType, compiler).isConflicting()) {
       return graph.addConstantBool(false, compiler);
     }
@@ -460,21 +460,21 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    if (left.isConstantBoolean() && right.isBoolean()) {
+    if (left.isConstantBoolean() && right.isBoolean(compiler)) {
       HConstant constant = left;
       if (constant.constant.isTrue()) {
         return right;
       } else {
-        return new HNot(right);
+        return new HNot(right, backend.boolType);
       }
     }
 
-    if (right.isConstantBoolean() && left.isBoolean()) {
+    if (right.isConstantBoolean() && left.isBoolean(compiler)) {
       HConstant constant = right;
       if (constant.constant.isTrue()) {
         return left;
       } else {
-        return new HNot(left);
+        return new HNot(left, backend.boolType);
       }
     }
 
@@ -537,7 +537,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HType expressionType = node.expression.instructionType;
-    if (expressionType.isInteger()) {
+    if (expressionType.isInteger(compiler)) {
       if (identical(element, compiler.intClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -549,7 +549,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return graph.addConstantBool(false, compiler);
       }
-    } else if (expressionType.isDouble()) {
+    } else if (expressionType.isDouble(compiler)) {
       if (identical(element, compiler.doubleClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -562,7 +562,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return graph.addConstantBool(false, compiler);
       }
-    } else if (expressionType.isNumber()) {
+    } else if (expressionType.isNumber(compiler)) {
       if (identical(element, compiler.numClass)) {
         return graph.addConstantBool(true, compiler);
       } else {
@@ -638,7 +638,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // that we know takes an int.
         if (element == compiler.unnamedListConstructor
             && receiver.inputs.length == 1
-            && receiver.inputs[0].isInteger()) {
+            && receiver.inputs[0].isInteger(compiler)) {
           return receiver.inputs[0];
         }
       } else if (receiver.isConstantList() || receiver.isConstantString()) {
@@ -840,10 +840,11 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
         !array.isFixedArray(compiler) && !array.isString(compiler);
     HFieldGet length = new HFieldGet(
         backend.jsIndexableLength, array, isAssignable: isAssignable);
-    length.instructionType = HType.INTEGER;
+    length.instructionType = backend.intType;
     indexNode.block.addBefore(indexNode, length);
 
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array);
+    HBoundsCheck check = new HBoundsCheck(
+        indexArgument, length, array, backend.intType);
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
     // then we replace its uses with the bounds check, which is known to be an
@@ -852,7 +853,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     // the index eg. if it is a constant.  The range information from the
     // BoundsCheck instruction is attached to the input directly by
     // visitBoundsCheck in the SsaValueRangeAnalyzer.
-    if (!indexArgument.isInteger()) {
+    if (!indexArgument.isInteger(compiler)) {
       indexArgument.replaceAllUsersDominatedBy(indexNode, check);
     }
     boundsChecked.add(indexNode);

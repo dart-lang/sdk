@@ -20,12 +20,18 @@ abstract class HType {
 
     JavaScriptBackend backend = compiler.backend;
     if (mask.containsOnlyInt(compiler)) {
-      return isNullable ? HType.INTEGER_OR_NULL : HType.INTEGER;
+      return mask.isNullable
+          ? new HBoundedType(new TypeMask.exact(backend.jsIntClass))
+          : backend.intType;
     } else if (mask.containsOnlyDouble(compiler)) {
-      return isNullable ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
+      return mask.isNullable
+          ? new HBoundedType(new TypeMask.exact(backend.jsDoubleClass))
+          : backend.doubleType;
     } else if (mask.containsOnlyNum(compiler)
                || mask.satisfies(backend.jsNumberClass, compiler)) {
-      return isNullable ? HType.NUMBER_OR_NULL : HType.NUMBER;
+      return mask.isNullable
+          ? new HBoundedType(new TypeMask.subclass(backend.jsNumberClass))
+          : backend.numType;
     } else if (mask.containsOnlyString(compiler)) {
       // TODO(ngeoffray): Avoid creating [TypeMask]s with the string
       // class as base.
@@ -33,7 +39,9 @@ abstract class HType {
           ? new HBoundedType(new TypeMask.exact(backend.jsStringClass))
           : backend.stringType;
     } else if (mask.containsOnlyBool(compiler)) {
-      return isNullable ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
+      return isNullable
+          ? new HBoundedType(new TypeMask.exact(backend.jsBoolClass))
+          : backend.boolType;
     } else if (mask.containsOnlyNull(compiler)) {
       return HType.NULL;
     }
@@ -141,25 +149,16 @@ abstract class HType {
   static const HType CONFLICTING = const HConflictingType();
   static const HType UNKNOWN = const HUnknownType();
   static const HType NON_NULL = const HNonNullType();
-  static const HType BOOLEAN = const HBooleanType();
-  static const HType NUMBER = const HNumberType();
-  static const HType INTEGER = const HIntegerType();
-  static const HType DOUBLE = const HDoubleType();
   static const HType NULL = const HNullType();
-
-  static const HType BOOLEAN_OR_NULL = const HBooleanOrNullType();
-  static const HType NUMBER_OR_NULL = const HNumberOrNullType();
-  static const HType INTEGER_OR_NULL = const HIntegerOrNullType();
-  static const HType DOUBLE_OR_NULL = const HDoubleOrNullType();
 
   bool isConflicting() => identical(this, CONFLICTING);
   bool isUnknown() => identical(this, UNKNOWN);
   bool isExact() => false;
   bool isNull() => false;
-  bool isBoolean() => false;
-  bool isNumber() => false;
-  bool isInteger() => false;
-  bool isDouble() => false;
+  bool isBoolean(Compiler compiler) => false;
+  bool isNumber(Compiler compiler) => false;
+  bool isInteger(Compiler compiler) => false;
+  bool isDouble(Compiler compiler) => false;
 
   bool isString(Compiler compiler) => false;
   bool isFixedArray(Compiler compiler) => false;
@@ -169,10 +168,10 @@ abstract class HType {
   bool isPrimitive(Compiler compiler) => false;
   bool isPrimitiveOrNull(Compiler compiler) => false;
 
-  bool isBooleanOrNull() => false;
-  bool isNumberOrNull() => false;
-  bool isIntegerOrNull() => false;
-  bool isDoubleOrNull() => false;
+  bool isBooleanOrNull(Compiler compiler) => false;
+  bool isNumberOrNull(Compiler compiler) => false;
+  bool isIntegerOrNull(Compiler compiler) => false;
+  bool isDoubleOrNull(Compiler compiler) => false;
 
   // TODO(kasperl): Get rid of this one.
   bool isIndexablePrimitive(Compiler compiler) => false;
@@ -324,112 +323,6 @@ class HNullType extends HPrimitiveType {
   }
 }
 
-abstract class HPrimitiveOrNullType extends HType {
-  const HPrimitiveOrNullType();
-  bool canBePrimitive(Compiler compiler) => true;
-  bool canBeNull() => true;
-  bool isPrimitiveOrNull(Compiler compiler) => true;
-}
-
-class HBooleanOrNullType extends HPrimitiveOrNullType {
-  const HBooleanOrNullType();
-  String toString() => "boolean or null";
-  bool isBooleanOrNull() => true;
-  bool canBePrimitiveBoolean(Compiler compiler) => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.exact(backend.jsBoolClass);
-  }
-}
-
-class HBooleanType extends HPrimitiveType {
-  const HBooleanType();
-  bool isBoolean() => true;
-  bool isBooleanOrNull() => true;
-  String toString() => "boolean";
-  bool isExact() => true;
-  bool canBePrimitiveBoolean(Compiler compiler) => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.nonNullExact(backend.jsBoolClass);
-  }
-}
-
-class HNumberOrNullType extends HPrimitiveOrNullType {
-  const HNumberOrNullType();
-  bool isNumberOrNull() => true;
-  String toString() => "number or null";
-  bool canBePrimitiveNumber(Compiler compiler) => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.subclass(backend.jsNumberClass);
-  }
-}
-
-class HNumberType extends HPrimitiveType {
-  const HNumberType();
-  bool isNumber() => true;
-  bool isNumberOrNull() => true;
-  String toString() => "number";
-  bool canBePrimitiveNumber(Compiler compiler) => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.nonNullSubclass(backend.jsNumberClass);
-  }
-}
-
-class HIntegerOrNullType extends HNumberOrNullType {
-  const HIntegerOrNullType();
-  bool isIntegerOrNull() => true;
-  String toString() => "integer or null";
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.exact(backend.jsIntClass);
-  }
-}
-
-class HIntegerType extends HNumberType {
-  const HIntegerType();
-  bool isInteger() => true;
-  bool isIntegerOrNull() => true;
-  String toString() => "integer";
-  bool isExact() => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.nonNullExact(backend.jsIntClass);
-  }
-}
-
-class HDoubleOrNullType extends HNumberOrNullType {
-  const HDoubleOrNullType();
-  bool isDoubleOrNull() => true;
-  String toString() => "double or null";
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.exact(backend.jsDoubleClass);
-  }
-}
-
-class HDoubleType extends HNumberType {
-  const HDoubleType();
-  bool isDouble() => true;
-  bool isDoubleOrNull() => true;
-  String toString() => "double";
-  bool isExact() => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return new TypeMask.nonNullExact(backend.jsDoubleClass);
-  }
-}
-
 class HBoundedType extends HType {
   final TypeMask mask;
   const HBoundedType(this.mask);
@@ -500,16 +393,50 @@ class HBoundedType extends HType {
     return new HType.fromMask(mask.simplify(compiler), compiler);
   }
 
+  bool isInteger(Compiler compiler) {
+    return mask.containsOnlyInt(compiler) && !mask.isNullable;
+  }
+
+  bool isIntegerOrNull(Compiler compiler) {
+    return mask.containsOnlyInt(compiler);
+  }
+
+  bool isNumber(Compiler compiler) {
+    return mask.containsOnlyNum(compiler) && !mask.isNullable;
+  }
+
+  bool isNumberOrNull(Compiler compiler) {
+    return mask.containsOnlyNum(compiler);
+  }
+
+  bool isDouble(Compiler compiler) {
+    return mask.containsOnlyDouble(compiler) && !mask.isNullable;
+  }
+
+  bool isDoubleOrNull(Compiler compiler) {
+    return mask.containsOnlyDouble(compiler);
+  }
+
+  bool isBoolean(Compiler compiler) {
+    return mask.containsOnlyBool(compiler) && !mask.isNullable;
+  }
+
+  bool isBooleanOrNull(Compiler compiler) {
+    return mask.containsOnlyBool(compiler);
+  }
+
   bool isString(Compiler compiler) {
     return mask.containsOnlyString(compiler);
   }
 
   bool isPrimitive(Compiler compiler) {
-    return isIndexablePrimitive(compiler) && !mask.isNullable;
+    return isPrimitiveOrNull(compiler) && !mask.isNullable;
   }
 
   bool isPrimitiveOrNull(Compiler compiler) {
-    return isIndexablePrimitive(compiler);
+    return isIndexablePrimitive(compiler)
+        || isNumberOrNull(compiler)
+        || isBooleanOrNull(compiler);
   }
 
   bool operator ==(other) {

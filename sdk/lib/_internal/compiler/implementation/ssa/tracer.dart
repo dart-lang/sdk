@@ -195,13 +195,13 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 's';
     } else if (type.isIndexable(compiler)) {
       prefix = 'r';
-    } else if (type == HType.BOOLEAN) {
+    } else if (type.isBoolean(compiler)) {
       prefix = 'b';
-    } else if (type == HType.INTEGER) {
+    } else if (type.isInteger(compiler)) {
       prefix = 'i';
-    } else if (type == HType.DOUBLE) {
+    } else if (type.isDouble(compiler)) {
       prefix = 'd';
-    } else if (type == HType.NUMBER) {
+    } else if (type.isNumber(compiler)) {
       prefix = 'n';
     } else if (type == HType.UNKNOWN) {
       prefix = 'v';

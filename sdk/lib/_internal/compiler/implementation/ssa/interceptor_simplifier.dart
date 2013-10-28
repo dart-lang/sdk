@@ -107,17 +107,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (type.isNull()) {
         constantInterceptor = backend.jsNullClass;
       }
-    } else if (type.isInteger()) {
+    } else if (type.isInteger(compiler)) {
       constantInterceptor = backend.jsIntClass;
-    } else if (type.isDouble()) {
+    } else if (type.isDouble(compiler)) {
       constantInterceptor = backend.jsDoubleClass;
-    } else if (type.isBoolean()) {
+    } else if (type.isBoolean(compiler)) {
       constantInterceptor = backend.jsBoolClass;
     } else if (type.isString(compiler)) {
       constantInterceptor = backend.jsStringClass;
     } else if (type.isArray(compiler)) {
       constantInterceptor = backend.jsArrayClass;
-    } else if (type.isNumber()
+    } else if (type.isNumber(compiler)
         && !interceptedClasses.contains(backend.jsIntClass)
         && !interceptedClasses.contains(backend.jsDoubleClass)) {
       // If the method being intercepted is not defined in [int] or [double] we

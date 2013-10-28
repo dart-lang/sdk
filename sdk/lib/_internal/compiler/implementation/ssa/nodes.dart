@@ -164,9 +164,9 @@ class HGraph {
   static HType mapConstantTypeToSsaType(Constant constant, Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     if (constant.isNull()) return HType.NULL;
-    if (constant.isBool()) return HType.BOOLEAN;
-    if (constant.isInt()) return HType.INTEGER;
-    if (constant.isDouble()) return HType.DOUBLE;
+    if (constant.isBool()) return backend.boolType;
+    if (constant.isInt()) return backend.intType;
+    if (constant.isDouble()) return backend.doubleType;
     if (constant.isString()) return backend.stringType;
     if (constant.isList()) return backend.readableArrayType;
     if (constant.isFunction()) return HType.UNKNOWN;
@@ -174,6 +174,9 @@ class HGraph {
     // TODO(sra): What is the type of the prototype of an interceptor?
     if (constant.isInterceptor()) return HType.UNKNOWN;
     ObjectConstant objectConstant = constant;
+    if (backend.isInterceptorClass(objectConstant.type.element)) {
+      return HType.UNKNOWN;
+    }
     TypeMask mask = new TypeMask.nonNullExact(objectConstant.type.element);
     return new HBoundedType(mask);
   }
@@ -852,13 +855,20 @@ abstract class HInstruction implements Spannable {
       instructionType.isPrimitive(compiler);
   bool isPrimitiveOrNull(Compiler compiler) =>
       instructionType.isPrimitiveOrNull(compiler);
-  bool isBoolean() => instructionType.isBoolean();
-  bool isInteger() => instructionType.isInteger();
-  bool isIntegerOrNull() => instructionType.isIntegerOrNull();
-  bool isDouble() => instructionType.isDouble();
-  bool isDoubleOrNull() => instructionType.isDoubleOrNull();
-  bool isNumber() => instructionType.isNumber();
-  bool isNumberOrNull() => instructionType.isNumberOrNull();
+  bool isBoolean(Compiler compiler) =>
+      instructionType.isBoolean(compiler);
+  bool isInteger(Compiler compiler) =>
+      instructionType.isInteger(compiler);
+  bool isIntegerOrNull(Compiler compiler) =>
+      instructionType.isIntegerOrNull(compiler);
+  bool isDouble(Compiler compiler) =>
+      instructionType.isDouble(compiler);
+  bool isDoubleOrNull(Compiler compiler) =>
+      instructionType.isDoubleOrNull(compiler);
+  bool isNumber(Compiler compiler) =>
+      instructionType.isNumber(compiler);
+  bool isNumberOrNull(Compiler compiler) =>
+      instructionType.isNumberOrNull(compiler);
   bool isNull() => instructionType.isNull();
   bool canBeNull() => instructionType.canBeNull();
   bool canBePrimitive(Compiler compiler) =>
@@ -1123,7 +1133,8 @@ abstract class HInstruction implements Spannable {
       return new HTypeConversion(type, kind, HType.UNKNOWN, this);
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(type, kind, HType.BOOLEAN, this);
+      JavaScriptBackend backend = compiler.backend;
+      return new HTypeConversion(type, kind, backend.boolType, this);
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
@@ -1142,9 +1153,9 @@ abstract class HInstruction implements Spannable {
 }
 
 class HBoolify extends HInstruction {
-  HBoolify(HInstruction value) : super(<HInstruction>[value]) {
+  HBoolify(HInstruction value, HType type) : super(<HInstruction>[value]) {
     setUseGvn();
-    instructionType = HType.BOOLEAN;
+    instructionType = type;
   }
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
@@ -1183,9 +1194,9 @@ class HBoundsCheck extends HCheck {
    */
   int staticChecks = FULL_CHECK;
 
-  HBoundsCheck(length, index, array)
+  HBoundsCheck(length, index, array, type)
       : super(<HInstruction>[length, index, array]) {
-    instructionType = HType.INTEGER;
+    instructionType = type;
   }
 
   HInstruction get length => inputs[1];
@@ -1563,8 +1574,8 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(left, right, selector) : super(left, right, selector) {
-    instructionType = HType.DOUBLE;
+  HDivide(left, right, selector, type) : super(left, right, selector) {
+    instructionType = type;
   }
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
@@ -1621,13 +1632,13 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
-  HBinaryBitOp(left, right, selector) : super(left, right, selector) {
-    instructionType = HType.INTEGER;
+  HBinaryBitOp(left, right, selector, type) : super(left, right, selector) {
+    instructionType = type;
   }
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(left, right, selector) : super(left, right, selector);
+  HShiftLeft(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1638,7 +1649,7 @@ class HShiftLeft extends HBinaryBitOp {
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(left, right, selector) : super(left, right, selector);
+  HBitOr(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1649,7 +1660,7 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(left, right, selector) : super(left, right, selector);
+  HBitAnd(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1660,7 +1671,7 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(left, right, selector) : super(left, right, selector);
+  HBitXor(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1695,8 +1706,8 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(input, selector) : super(input, selector) {
-    instructionType = HType.INTEGER;
+  HBitNot(input, selector, type) : super(input, selector) {
+    instructionType = type;
   }
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
@@ -1851,9 +1862,9 @@ class HConstant extends HInstruction {
 }
 
 class HNot extends HInstruction {
-  HNot(HInstruction value) : super(<HInstruction>[value]) {
+  HNot(HInstruction value, HType type) : super(<HInstruction>[value]) {
     setUseGvn();
-    instructionType = HType.BOOLEAN;
+    instructionType = type;
   }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
@@ -1937,13 +1948,13 @@ class HPhi extends HInstruction {
 
 abstract class HRelational extends HInvokeBinary {
   bool usesBoolifiedInterceptor = false;
-  HRelational(left, right, selector) : super(left, right, selector) {
-    instructionType = HType.BOOLEAN;
+  HRelational(left, right, selector, type) : super(left, right, selector) {
+    instructionType = type;
   }
 }
 
 class HIdentity extends HRelational {
-  HIdentity(left, right, [selector]) : super(left, right, selector);
+  HIdentity(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1954,7 +1965,7 @@ class HIdentity extends HRelational {
 }
 
 class HGreater extends HRelational {
-  HGreater(left, right, selector) : super(left, right, selector);
+  HGreater(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1965,7 +1976,8 @@ class HGreater extends HRelational {
 }
 
 class HGreaterEqual extends HRelational {
-  HGreaterEqual(left, right, selector) : super(left, right, selector);
+  HGreaterEqual(left, right, selector, type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1976,7 +1988,7 @@ class HGreaterEqual extends HRelational {
 }
 
 class HLess extends HRelational {
-  HLess(left, right, selector) : super(left, right, selector);
+  HLess(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1987,7 +1999,7 @@ class HLess extends HRelational {
 }
 
 class HLessEqual extends HRelational {
-  HLessEqual(left, right, selector) : super(left, right, selector);
+  HLessEqual(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -2191,29 +2203,34 @@ class HIs extends HInstruction {
   final int kind;
 
   HIs.direct(DartType typeExpression,
-             HInstruction expression)
-      : this.internal(typeExpression, [expression], RAW_CHECK);
+             HInstruction expression,
+             HType type)
+      : this.internal(typeExpression, [expression], RAW_CHECK, type);
 
   HIs.raw(DartType typeExpression,
           HInstruction expression,
-          HInterceptor interceptor)
-      : this.internal(typeExpression, [expression, interceptor], RAW_CHECK);
+          HInterceptor interceptor,
+          HType type)
+      : this.internal(
+            typeExpression, [expression, interceptor], RAW_CHECK, type);
 
   HIs.compound(DartType typeExpression,
                HInstruction expression,
-               HInstruction call)
-      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK);
+               HInstruction call,
+               HType type)
+      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type);
 
   HIs.variable(DartType typeExpression,
                HInstruction expression,
-               HInstruction call)
-      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK);
+               HInstruction call,
+               HType type)
+      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type);
 
-  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind)
+  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind, type)
       : super(inputs) {
     assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
-    instructionType = HType.BOOLEAN;
+    instructionType = type;
   }
 
   HInstruction get expression => inputs[0];
@@ -2361,10 +2378,9 @@ class HTypeKnown extends HCheck {
 }
 
 class HRangeConversion extends HCheck {
-  HRangeConversion(HInstruction input) : super(<HInstruction>[input]) {
+  HRangeConversion(HInstruction input, type) : super(<HInstruction>[input]) {
     sourceElement = input.sourceElement;
-    // We currently only do range analysis for integers.
-    instructionType = HType.INTEGER;
+    instructionType = type;
   }
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
 }

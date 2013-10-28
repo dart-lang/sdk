@@ -1047,7 +1047,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             () {
               HParameterValue parameter = parameters.values.first;
               push(new HIdentity(
-                  parameter, graph.addConstantNull(compiler)));
+                  parameter, graph.addConstantNull(compiler), null,
+                  backend.boolType));
             },
             () {
               closeAndGotoExit(new HReturn(
@@ -2008,7 +2009,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           compiler.boolClass.computeType(compiler),
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
-    HInstruction result = new HBoolify(value);
+    HInstruction result = new HBoolify(value, backend.boolType);
     add(result);
     return result;
   }
@@ -2622,7 +2623,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void visitLogicalNot(Send node) {
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
-    HNot not = new HNot(popBoolified());
+    HNot not = new HNot(popBoolified(), backend.boolType);
     pushWithPosition(not, node);
   }
 
@@ -2653,18 +2654,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                    Send send) {
     switch (op.source) {
       case "===":
-        pushWithPosition(new HIdentity(left, right), op);
+        pushWithPosition(
+            new HIdentity(left, right, null, backend.boolType), op);
         return;
       case "!==":
-        HIdentity eq = new HIdentity(left, right);
+        HIdentity eq = new HIdentity(left, right, null, backend.boolType);
         add(eq);
-        pushWithPosition(new HNot(eq), op);
+        pushWithPosition(new HNot(eq, backend.boolType), op);
         return;
     }
 
     pushInvokeDynamic(send, selector, [left, right], location: op);
     if (op.source == '!=') {
-      pushWithPosition(new HNot(popBoolified()), op);
+      pushWithPosition(new HNot(popBoolified(), backend.boolType), op);
     }
   }
 
@@ -2901,7 +2903,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction instruction = buildIsNode(node, type, expression);
     if (isNot) {
       add(instruction);
-      instruction = new HNot(instruction);
+      instruction = new HNot(instruction, backend.boolType);
     }
     push(instruction);
   }
@@ -2921,7 +2923,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (type.kind == TypeKind.FUNCTION) {
       if (backend.rti.isSimpleFunctionType(type)) {
         // TODO(johnniwinther): Avoid interceptor if unneeded.
-        return new HIs.raw(type, expression, invokeInterceptor(expression));
+        return new HIs.raw(
+            type, expression, invokeInterceptor(expression), backend.boolType);
       }
       Element checkFunctionSubtype = backend.getCheckFunctionSubtype();
 
@@ -2957,16 +2960,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  contextName,
                                                  context,
                                                  typeArguments];
-      pushInvokeStatic(node, checkFunctionSubtype, inputs, HType.BOOLEAN);
+      pushInvokeStatic(node, checkFunctionSubtype, inputs, backend.boolType);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call);
+      return new HIs.compound(type, expression, call, backend.boolType);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
-      pushInvokeStatic(null, helper, inputs, HType.BOOLEAN);
+      pushInvokeStatic(null, helper, inputs, backend.boolType);
       HInstruction call = pop();
-      return new HIs.variable(type, expression, call);
+      return new HIs.variable(type, expression, call, backend.boolType);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
       ClassElement element = type.element;
       Element helper = backend.getCheckSubtype();
@@ -2983,15 +2986,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  isFieldName,
                                                  representations,
                                                  asFieldName];
-      pushInvokeStatic(node, helper, inputs, HType.BOOLEAN);
+      pushInvokeStatic(node, helper, inputs, backend.boolType);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call);
+      return new HIs.compound(type, expression, call, backend.boolType);
     } else {
       if (backend.hasDirectCheckFor(type)) {
-        return new HIs.direct(type, expression);
+        return new HIs.direct(type, expression, backend.boolType);
       }
       // TODO(johnniwinther): Avoid interceptor if unneeded.
-      return new HIs.raw(type, expression, invokeInterceptor(expression));
+      return new HIs.raw(
+          type, expression, invokeInterceptor(expression), backend.boolType);
     }
   }
 
@@ -3732,7 +3736,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       if (element == compiler.identicalFunction) {
-        pushWithPosition(new HIdentity(inputs[0], inputs[1]), node);
+        pushWithPosition(
+            new HIdentity(inputs[0], inputs[1], null, backend.boolType), node);
         return;
       }
 
@@ -4809,7 +4814,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void buildCondition() {
         js.Expression code = js.js.parseForeignJS('#');
         push(createForeign(code,
-                           HType.BOOLEAN,
+                           backend.boolType,
                            [localsHandler.readLocal(switchTarget)]));
       }
       handleIf(node, buildCondition, buildLoop, () => {});
@@ -5494,7 +5499,7 @@ class SsaBranchBuilder {
       boolifiedLeft = builder.popBoolified();
       builder.stack.add(boolifiedLeft);
       if (!isAnd) {
-        builder.push(new HNot(builder.pop()));
+        builder.push(new HNot(builder.pop(), builder.backend.boolType));
       }
     }
 

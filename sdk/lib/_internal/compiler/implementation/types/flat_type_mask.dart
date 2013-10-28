@@ -93,7 +93,9 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool containsOnlyNum(Compiler compiler) {
-    return base == compiler.numClass
+    return containsOnlyInt(compiler)
+        || containsOnlyDouble(compiler)
+        || base == compiler.numClass
         || base == compiler.backend.numImplementation;
   }
 

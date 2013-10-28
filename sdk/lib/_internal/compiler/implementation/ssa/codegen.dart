@@ -1837,8 +1837,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.instructionType.isUseful() && left.isInteger()
-          && right.instructionType.isUseful() && right.isInteger();
+      return left.instructionType.isUseful() && left.isInteger(compiler)
+          && right.instructionType.isUseful() && right.isInteger(compiler);
     }
 
     bool handledBySpecialCase = false;
@@ -1958,13 +1958,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger()) {
+        if (node.index.isInteger(compiler)) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger()) {
+      } else if (!node.index.isInteger(compiler)) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2075,7 +2075,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction input = node.inputs.first;
     if (input.isString(compiler)) {
       use(input);
-    } else if (input.isInteger() || input.isBoolean()) {
+    } else if (input.isInteger(compiler) || input.isBoolean(compiler)) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -2437,24 +2437,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool turnIntoNumCheck = input.isIntegerOrNull() && checkedType.isInteger();
+    bool turnIntoNumCheck = input.isIntegerOrNull(compiler)
+        && checkedType.isInteger(compiler);
     bool turnIntoNullCheck = !turnIntoNumCheck
         && (mask.nullable() == receiver)
-        && (checkedType.isInteger()
+        && (checkedType.isInteger(compiler)
             || checkedType.isIndexablePrimitive(compiler));
     js.Expression test;
     if (turnIntoNullCheck) {
       use(input);
       test = new js.Binary("==", pop(), new js.LiteralNull());
-    } else if (checkedType.isInteger() && !turnIntoNumCheck) {
+    } else if (checkedType.isInteger(compiler) && !turnIntoNumCheck) {
       // input is !int
       checkInt(input, '!==');
       test = pop();
-    } else if (checkedType.isNumber() || turnIntoNumCheck) {
+    } else if (checkedType.isNumber(compiler) || turnIntoNumCheck) {
       // input is !num
       checkNum(input, '!==');
       test = pop();
-    } else if (checkedType.isBoolean()) {
+    } else if (checkedType.isBoolean(compiler)) {
       // input is !bool
       checkBool(input, '!==');
       test = pop();
@@ -2525,8 +2526,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
       // An int check if the input is not int or null, is not
       // sufficient for doing a argument or receiver check.
-      assert(!node.checkedType.isInteger() ||
-          node.checkedInput.isIntegerOrNull());
+      assert(!node.checkedType.isInteger(compiler) ||
+          node.checkedInput.isIntegerOrNull(compiler));
       js.Expression test = generateTest(node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
