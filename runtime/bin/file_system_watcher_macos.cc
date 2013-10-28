@@ -264,7 +264,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
       return DartUtils::NewDartOSError();
     }
     size_t path_len = strlen(e.data.path);
-    Dart_Handle event = Dart_NewList(3);
+    Dart_Handle event = Dart_NewList(4);
     int flags = e.data.flags;
     int mask = 0;
     if (flags & kFSEventStreamEventFlagItemModified) mask |= kModifyContent;
@@ -283,6 +283,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
     Dart_ListSetAt(event, 2, Dart_NewStringFromUTF8(
         reinterpret_cast<uint8_t*>(e.data.path), path_len));
+    Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
     Dart_ListSetAt(events, i, event);
   }
   return events;

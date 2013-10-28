@@ -93,6 +93,13 @@ class _FileSystemWatcherImpl
           if ((event.type & _events) == 0) return;
           events.add(event);
         }
+        void rewriteMove(event) {
+          if (event[3]) {
+            add(new FileSystemCreateEvent._(getPath(event)));
+          } else {
+            add(new FileSystemDeleteEvent._(getPath(event)));
+          }
+        }
         while (socket.available() > 0) {
           for (var event in _readEvents()) {
             if (event == null) continue;
@@ -117,7 +124,7 @@ class _FileSystemWatcherImpl
                   pair[link] = event;
                 }
               } else {
-                add(new FileSystemMoveEvent._(path, null));
+                rewriteMove(event);
               }
             }
             if ((event[0] & FileSystemEvent.DELETE) != 0) {
@@ -130,7 +137,7 @@ class _FileSystemWatcherImpl
           }
         }
         for (var event in pair.values) {
-          events.add(new FileSystemMoveEvent._(getPath(event), null));
+          rewriteMove(event);
         }
       } else if (event == RawSocketEvent.CLOSED) {
       } else if (event == RawSocketEvent.READ_CLOSED) {
