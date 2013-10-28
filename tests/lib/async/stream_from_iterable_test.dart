@@ -73,4 +73,11 @@ main() {
       Expect.listEquals(expected.events, actual.events);
     }));
   });
+
+  test("iterable-single-subscription", () {
+    Stream stream = new Stream.fromIterable(iter);
+    stream.listen((x){});
+    Expect.throws(() { stream.listen((x){}); },
+                  (e) => e is StateError);
+  });
 }

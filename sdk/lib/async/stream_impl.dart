@@ -488,6 +488,7 @@ typedef _PendingEvents _EventGenerator();
 /** Stream that generates its own events. */
 class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
   final _EventGenerator _pending;
+  bool _isUsed = false;
   /**
    * Initializes the stream to have only the events provided by a
    * [_PendingEvents].
@@ -497,6 +498,8 @@ class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
   _GeneratedStreamImpl(this._pending);
 
   StreamSubscription _createSubscription(bool cancelOnError) {
+    if (_isUsed) throw new StateError("Stream has already been listened to.");
+    _isUsed = true;
     _BufferingStreamSubscription<T> subscription =
          new _BufferingStreamSubscription(cancelOnError);
     subscription._setPendingEvents(_pending());
