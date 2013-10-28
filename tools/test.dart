@@ -26,6 +26,7 @@ library test;
 
 import "dart:async";
 import "dart:io";
+import "dart:math" as math;
 import "testing/dart/browser_controller.dart";
 import "testing/dart/http_server.dart";
 import "testing/dart/test_options.dart";
@@ -169,6 +170,11 @@ void testConfigurations(List<Map> configurations) {
       // Safari does not allow us to run from a fresh profile, so we can only
       // use one browser.
       maxBrowserProcesses = 1;
+    } else if (conf['runtime'] == 'chrome' &&
+               conf['use_browser_controller'] &&
+               Platform.operatingSystem == 'macos') {
+      // Chrome on mac results in random timeouts.
+      maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
     }
 
     for (String key in selectors.keys) {

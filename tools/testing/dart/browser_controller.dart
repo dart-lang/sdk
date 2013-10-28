@@ -75,8 +75,7 @@ abstract class Browser {
   static const List<String> SUPPORTED_BROWSERS =
     const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10', 'dartium'];
 
-  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT =
-      const ['safari', 'ff', 'firefox', 'chrome'];
+  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const [];
 
   // TODO(kustermann): add standard support for chrome on android
   static bool supportedBrowser(String name) {
