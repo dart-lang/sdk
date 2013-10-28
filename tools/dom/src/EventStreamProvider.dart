@@ -41,6 +41,20 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    */
   Stream<T> matches(String selector);
 
+  /**
+   * Adds a capturing subscription to this stream.
+   *
+   * If the target of the event is a descendant of the element from which this
+   * stream derives then [onData] is called before the event propagates down to
+   * the target. This is the opposite of bubbling behavior, where the event
+   * is first processed for the event target and then bubbles upward.
+   *
+   * ## Other Resources
+   *
+   * * [Event Capture]
+   * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
+   * from the W3C DOM Events specification.
+   */
   StreamSubscription<T> capture(void onData(T event));
 }
 
@@ -318,6 +332,9 @@ class EventStreamProvider<T extends Event> {
    *
    *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
    *
+   *     // Alternate method:
+   *     Element.keyDownEvent.forTarget(element).capture(...);
+   *
    * Or for listening to an event which will bubble through the DOM tree:
    *
    *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
@@ -338,6 +355,13 @@ class EventStreamProvider<T extends Event> {
    * This may be used to capture DOM events:
    *
    *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
+   *
+   *     // Alternate method:
+   *     Element.keyDownEvent.forElement(element).capture(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forElement(document.body).listen(...);
    *
    * See also:
    *
