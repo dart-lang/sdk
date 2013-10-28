@@ -26,10 +26,8 @@ library test;
 
 import "dart:async";
 import "dart:io";
-import "dart:math" as math;
 import "testing/dart/browser_controller.dart";
 import "testing/dart/http_server.dart";
-import "testing/dart/record_and_replay.dart";
 import "testing/dart/test_options.dart";
 import "testing/dart/test_progress.dart";
 import "testing/dart/test_runner.dart";
@@ -38,7 +36,6 @@ import "testing/dart/utils.dart";
 
 import "../runtime/tests/vm/test_config.dart";
 import "../tests/co19/test_config.dart";
-import "../tests/lib/analyzer/test_config.dart";
 
 /**
  * The directories that contain test suites which follow the conventions

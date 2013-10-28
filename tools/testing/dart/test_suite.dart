@@ -823,13 +823,18 @@ class StandardTestSuite extends TestSuite {
 
     case 'dartanalyzer':
     case 'dart2analyzer':
-      return <Command>[CommandBuilder.instance.getAnalysisCommand(
-          compiler, dartShellFileName, args, configurationDir,
-          flavor: compiler)];
+      return <Command>[makeAnalysisCommand(info, args)];
 
     default:
       throw 'Unknown compiler ${configuration["compiler"]}';
     }
+  }
+
+  AnalysisCommand makeAnalysisCommand(TestInformation info,
+                                      List<String> arguments) {
+    return CommandBuilder.instance.getAnalysisCommand(
+        configuration['compiler'], dartShellFileName, arguments,
+        configurationDir, flavor: configuration['compiler']);
   }
 
   CreateTest makeTestCaseCreator(Map optionsFromFile) {
@@ -1595,6 +1600,40 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   }
 }
 
+class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
+  AnalyzeLibraryTestSuite(Map configuration)
+      : super(configuration,
+              'analyze_library',
+              'sdk',
+              ['lib'],
+              ['tests/lib/analyzer/analyze_library.status']);
+
+  List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) {
+    var options = super.additionalOptions(filePath);
+    // NOTE: This flag has been deprecated.
+    options.add('--show-sdk-warnings');
+    return options;
+  }
+
+  bool isTestFile(String filename) {
+    var sep = Platform.pathSeparator;
+    return filename.endsWith(".dart") && !filename.contains("_internal");
+  }
+
+  AnalysisCommand makeAnalysisCommand(TestInformation info,
+                                      List<String> arguments) {
+    bool fileFilter(String filepath) {
+      return filepath == "${info.originTestPath}";
+    }
+
+    return CommandBuilder.instance.getAnalysisCommand(
+        configuration['compiler'], dartShellFileName, arguments,
+        configurationDir, flavor: configuration['compiler'],
+        fileFilter: fileFilter);
+  }
+
+  bool get listRecursively => true;
+}
 
 class JUnitTestSuite extends TestSuite {
   String directoryPath;

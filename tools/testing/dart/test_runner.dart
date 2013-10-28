@@ -339,23 +339,30 @@ class SeleniumTestCommand extends Command {
 class AnalysisCommand extends Command {
   final String flavor;
 
+  // If [fileFilter] is given, only errors/warnings reported by the analyzer
+  // for which [fileFilter] returns [:true:] are considered.
+  final Function fileFilter;
+
   AnalysisCommand._(this.flavor,
                     String displayName,
                     String executable,
                     List<String> arguments,
-                    String configurationDir)
+                    String configurationDir,
+                    this.fileFilter)
       : super._(displayName, executable, arguments, configurationDir);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(flavor);
+    builder.add(fileFilter);
   }
 
   bool _equal(Command other) {
     return
         other is AnalysisCommand &&
         super._equal(other) &&
-        flavor == other.flavor;
+        flavor == other.flavor &&
+        fileFilter == other.fileFilter;
   }
 }
 
@@ -434,9 +441,10 @@ class CommandBuilder {
 
   AnalysisCommand getAnalysisCommand(
       String displayName, executable, arguments, String configurationDir,
-      {String flavor: 'dartanalyzer'}) {
+      {String flavor: 'dartanalyzer', Function fileFilter: null}) {
     var command = new AnalysisCommand._(
-        flavor, displayName, executable, arguments, configurationDir);
+        flavor, displayName, executable, arguments, configurationDir,
+        fileFilter);
     return _getUniqueCommand(command);
   }
 
@@ -917,6 +925,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
   final int ERROR_LEVEL = 0;
   final int ERROR_TYPE = 1;
+  final int FILENAME = 3;
   final int FORMATTED_ERROR = 7;
 
   AnalysisCommandOutputImpl(command,
@@ -977,6 +986,13 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 
   void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
+    AnalysisCommand analysisCommand = command;
+    Function fileFilter = analysisCommand.fileFilter;
+    if (fileFilter == null) {
+      // If no filter function was given, we don't filter the output at all.
+      fileFilter = (arg) => true;
+    }
+
     // Parse a line delimited by the | character using \ as an escape charager
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
@@ -1004,12 +1020,17 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     for (String line in decodeUtf8(super.stderr).split("\n")) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
-      if (fields[ERROR_LEVEL] == 'ERROR') {
-        outErrors.add(fields[FORMATTED_ERROR]);
-      } else if (fields[ERROR_LEVEL] == 'WARNING') {
-        outWarnings.add(fields[FORMATTED_ERROR]);
+      // We only consider errors/warnings for files of interest.
+      if (fields.length > FILENAME) {
+        if (fileFilter(fields[FILENAME])) {
+          if (fields[ERROR_LEVEL] == 'ERROR') {
+            outErrors.add(fields[FORMATTED_ERROR]);
+          } else if (fields[ERROR_LEVEL] == 'WARNING') {
+            outWarnings.add(fields[FORMATTED_ERROR]);
+          }
+        }
+        // OK to Skip error output that doesn't match the machine format
       }
-      // OK to Skip error output that doesn't match the machine format
     }
   }
 }
