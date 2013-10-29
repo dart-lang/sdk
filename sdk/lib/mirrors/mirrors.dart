@@ -1029,7 +1029,7 @@ abstract class TypedefMirror implements TypeMirror {
    *
    * For instance [:void f(int):] is the referent for [:typedef void f(int):].
    */
-  TypeMirror get referent;
+  FunctionTypeMirror get referent;
 }
 
 /**

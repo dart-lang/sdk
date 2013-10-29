@@ -19,15 +19,15 @@ class CustomAnnotation {
 }
 
 class B {
-  B.foo(int x);
-  factory B.bar(@m3 @m2 int z, x){}
+  B.foo(int x) {}
+  factory B.bar(@m3 @m2 int z, x) {}
 
-  baz(@m1 final int x, @m2 int y, @m3 final int z);
-  qux(int x, [@m3 @m2 @m1 int y= 3 + 1]);
-  quux(int x, {String str: "foo"});
-  corge({@m1 int x: 3 * 17, @m2 String str: "bar"});
+  baz(@m1 final int x, @m2 int y, @m3 final int z) {}
+  qux(int x, [@m3 @m2 @m1 int y= 3 + 1]) {}
+  quux(int x, {String str: "foo"}) {}
+  corge({@m1 int x: 3 * 17, @m2 String str: "bar"}) {}
 
-  set x(@m2 final value);
+  set x(@m2 final value) {}
 }
 
 main() {
@@ -38,18 +38,18 @@ main() {
   checkMetadata(cm.constructors[#B.bar].parameters[0], [m3, m2]);
   checkMetadata(cm.constructors[#B.bar].parameters[1], []);
 
-  checkMetadata(cm.members[#baz].parameters[0], [m1]);
-  checkMetadata(cm.members[#baz].parameters[1], [m2]);
-  checkMetadata(cm.members[#baz].parameters[2], [m3]);
+  checkMetadata(cm.methods[#baz].parameters[0], [m1]);
+  checkMetadata(cm.methods[#baz].parameters[1], [m2]);
+  checkMetadata(cm.methods[#baz].parameters[2], [m3]);
 
-  checkMetadata(cm.members[#qux].parameters[0], []);
-  checkMetadata(cm.members[#qux].parameters[1], [m3, m2, m1]);
+  checkMetadata(cm.methods[#qux].parameters[0], []);
+  checkMetadata(cm.methods[#qux].parameters[1], [m3, m2, m1]);
 
-  checkMetadata(cm.members[#quux].parameters[0], []);
-  checkMetadata(cm.members[#quux].parameters[1], []);
+  checkMetadata(cm.methods[#quux].parameters[0], []);
+  checkMetadata(cm.methods[#quux].parameters[1], []);
 
-  checkMetadata(cm.members[#corge].parameters[0], [m1]);
-  checkMetadata(cm.members[#corge].parameters[1], [m2]);
+  checkMetadata(cm.methods[#corge].parameters[0], [m1]);
+  checkMetadata(cm.methods[#corge].parameters[1], [m2]);
 
-  checkMetadata(cm.members[const Symbol('x=')].parameters[0], [m2]);
+  checkMetadata(cm.setters[const Symbol('x=')].parameters[0], [m2]);
 }

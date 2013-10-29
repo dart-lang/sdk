@@ -14,8 +14,5 @@ main() {
   Expect.throws(() => reflectClass(dynamic), expectedError);
   Expect.throws(() => reflectClass(1), expectedError);
   Expect.throws(() => reflectClass("string"), expectedError);
-
-  // reflectClass() on a function type should fail once typedefs are represented
-  // by TypedefMirrors instead of ClassMirrors.
-  // Expect.throws(() => reflectClass(FooFunction), expectedError);
+  Expect.throws(() => reflectClass(FooFunction), expectedError);
 }

@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 import 'stringify.dart';
 
-class Fooer {
+abstract class Fooer {
   foo1();
 }
 

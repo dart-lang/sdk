@@ -207,32 +207,6 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 convert/chunked_conversion_utf88_test: Pass, Slow # Issue 12644.
 convert/utf85_test: Pass, Slow # Issue 12644.
 
-[ $compiler == dartanalyzer ]
-mirrors/typedef_test/none: Fail # Issue 13093
-mirrors/generics_test/none: Fail # Issue 13432
-mirrors/generic_bounded_test/none: Fail # Issue 13432
-mirrors/generic_f_bounded_test/none: Fail # Issue 13432
-mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
-mirrors/generic_mixin_test/none: Fail # Issue 13432
-mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
-mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
-mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
-mirrors/typevariable_mirror_metadata_test/none: Fail # Issue 13093
-mirrors/type_variable_owner_test/none: Fail # Issue 14356
-
-[ $compiler == dart2analyzer ]
-mirrors/typedef_test/none: Fail # Issue 13093
-mirrors/generics_test/none: Fail # Issue 13432
-mirrors/generic_bounded_test/none: Fail # Issue 13432
-mirrors/generic_f_bounded_test/none: Fail # Issue 13432
-mirrors/generic_bounded_by_type_parameter_test/none: Fail # Issue 13432
-mirrors/generic_mixin_test/none: Fail # Issue 13432
-mirrors/invoke_named_test/none: Fail # http://dartbug.com/13612
-mirrors/generic_f_bounded_mixin_application_test: Fail # Issue 14116
-mirrors/generic_interface_test/none: Fail # Inexpressible in multitest
-mirrors/typevariable_mirror_metadata_test/none: Fail # Issue 13093
-mirrors/type_variable_owner_test/none: Fail # Issue 14356
-
 [ $compiler == none && $runtime == dartium ]
 async/schedule_microtask5_test: Pass, Timeout # Issue 13719: Please triage this failure.
 async/timer_cancel2_test: Pass, Timeout # Issue 13719: Please triage this failure.
@@ -267,32 +241,20 @@ async/zone_debug_test: StaticWarning
 convert/chunked_conversion1_test: StaticWarning
 convert/chunked_conversion_json_decode1_test: StaticWarning
 math/min_max_test: StaticWarning
-mirrors/closure_mirror_find_in_context_test: StaticWarning
-mirrors/equality_test/02: StaticWarning
-mirrors/fake_function_without_call_test: StaticWarning
-mirrors/find_in_context_fake_function_test: StaticWarning
-mirrors/function_type_mirror_test: StaticWarning
-mirrors/generic_f_bounded_test/01: StaticWarning
-mirrors/generic_function_typedef_test: StaticWarning
-mirrors/generic_interface_test/01: StaticWarning
-mirrors/generic_mixin_applications_test: StaticWarning
-mirrors/generic_mixin_test: StaticWarning
-mirrors/generics_test/01: StaticWarning
-mirrors/immutable_collections_test: StaticWarning
-mirrors/inference_and_no_such_method_test: StaticWarning
-mirrors/invoke_named_test/01: StaticWarning
-mirrors/library_metadata2_test/01: StaticWarning
-mirrors/method_mirror_properties_test: StaticWarning
-mirrors/method_mirror_returntype_test: StaticWarning
-mirrors/method_mirror_source_test: StaticWarning
-mirrors/mirrors_test: StaticWarning
-mirrors/mixin_members_test: StaticWarning
-mirrors/parameter_metadata_test: StaticWarning
-mirrors/private_symbol_test: StaticWarning
-mirrors/reflect_class_test: StaticWarning
-mirrors/reflected_type_test: StaticWarning
-mirrors/type_argument_is_type_variable_test: StaticWarning
-mirrors/type_variable_owner_test/01: StaticWarning
-mirrors/typedef_metadata_test: StaticWarning
-mirrors/typedef_test/01: StaticWarning
-mirrors/typevariable_mirror_metadata_test: StaticWarning
+mirrors/equality_test/02: StaticWarning # Issue 14524
+mirrors/function_type_mirror_test: StaticWarning # Issue 14524
+mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
+mirrors/invoke_named_test: StaticWarning # Issue 14522
+mirrors/mirrors_test: StaticWarning # Issue 14524
+mirrors/private_symbol_test: StaticWarning # Issue 14524
+mirrors/reflect_class_test: StaticWarning # Issue 14524
+mirrors/type_variable_owner_test: StaticWarning # Issue 14524
+mirrors/typedef_test: StaticWarning # Issue 14524
+mirrors/typedef_metadata_test: StaticWarning # Issue 14524
+mirrors/typevariable_mirror_metadata_test: StaticWarning # Issue 14524
+
+mirrors/fake_function_without_call_test: StaticWarning, OK # Implements Function without defining call.
+mirrors/find_in_context_fake_function_test: StaticWarning, OK # Implements Function without defining call.
+mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
+mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
+mirrors/library_metadata2_test/01: StaticWarning, OK # Compile-time or run-time

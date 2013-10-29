@@ -7,11 +7,14 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 expectSource(Mirror mirror, String source) {
+  MethodMirror methodMirror;
   if (mirror is ClosureMirror) {
-    mirror = mirror.function;
+    methodMirror = mirror.function;
+  } else {
+    methodMirror = mirror as MethodMirror;
   }
-  Expect.isTrue(mirror is MethodMirror);
-  Expect.equals(mirror.source, source);
+  Expect.isTrue(methodMirror is MethodMirror);
+  Expect.equals(methodMirror.source, source);
 }
 
 foo1() {}

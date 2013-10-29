@@ -21,20 +21,20 @@ class C<E> {
 main() {
   MethodMirror mm;
 
-  mm = reflect(intFunc).function;
+  mm = (reflect(intFunc) as ClosureMirror).function;
   Expect.equals(true, mm.returnType is TypeMirror);
   Expect.equals(#int, mm.returnType.simpleName);
   Expect.equals(true, mm.returnType.owner is LibraryMirror);
 
-  mm = reflect(dynamicFunc1).function;
+  mm = (reflect(dynamicFunc1) as ClosureMirror).function;
   Expect.equals(true, mm.returnType is TypeMirror);
   Expect.equals(#dynamic, mm.returnType.simpleName);
 
-  mm = reflect(dynamicFunc2).function;
+  mm = (reflect(dynamicFunc2) as ClosureMirror).function;
   Expect.equals(true, mm.returnType is TypeMirror);
   Expect.equals(#dynamic, mm.returnType.simpleName);
 
-  mm = reflect(voidFunc).function;
+  mm = (reflect(voidFunc) as ClosureMirror).function;
   Expect.equals(true, mm.returnType is TypeMirror);
   Expect.equals(const Symbol("void"), mm.returnType.simpleName);
 

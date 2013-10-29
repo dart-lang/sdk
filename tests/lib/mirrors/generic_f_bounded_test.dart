@@ -8,7 +8,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-import 'generics_test.dart';
+import 'generics_helper.dart';
 
 class Magnitude<T> {}
 class Real extends Magnitude<Real> {}
