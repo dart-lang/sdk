@@ -7,7 +7,7 @@ authors include [Custom Element](https://github.com/Polymer/CustomElements)
 definitions from external URLs.
 
 
-## Getting Started
+## Getting started
 
 Include the `html_import.debug.js` or `html_import.min.js` (minified) file in
 your project.

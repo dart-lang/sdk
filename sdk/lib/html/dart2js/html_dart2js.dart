@@ -28266,7 +28266,7 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    * the target. This is the opposite of bubbling behavior, where the event
    * is first processed for the event target and then bubbles upward.
    *
-   * ## Other Resources
+   * ## Other resources
    *
    * * [Event Capture]
    * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)

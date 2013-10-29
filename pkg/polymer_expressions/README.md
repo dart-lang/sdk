@@ -48,7 +48,7 @@ dot-separate property names.
 
 [mdv]: http://www.polymer-project.org/platform/mdv.html
 
-### Custom Binding Syntaxes with BindingDelegate
+### Custom binding syntaxes with binding delegate
 
 While MDV's built-in syntax is very basic, it does allow custom syntaxes called
 "binding delegates" to be installed and used. A binding delegate can interpret
@@ -81,7 +81,7 @@ Then import polymer_expressions.dart:
 
     import 'package:polymer_expressions/polymer_expressions.dart';
 
-### Registering a Binding Delegate
+### Registering a binding delegate
 
 **Polymer Expressions are now the default syntax for `<polymer-element>` custom
 elements.**
@@ -106,7 +106,7 @@ binding expressions.
     }
 ```
 
-### Registering Top-Level Variables
+### Registering top-level variables
 
 Before a top-level variable can be used, it must be registered. The
 PolymerExpressions constructor takes a map of named values to use as variables.
@@ -124,7 +124,7 @@ PolymerExpressions constructor takes a map of named values to use as variables.
 
 ## Features
 
-### The Model and Scope
+### The model and scope
 
 Polymer Expressions allow binding to more than just the model assigned to a
 template instance. Top-level variables can be defined so that you can use
@@ -132,7 +132,7 @@ filters, global variables and constants, functions, etc. These variables and the
 model are held together in a container called a Scope. Scopes can be nested,
 which happens when template tags are nested.
 
-### Two-way Bindings
+### Two-way bindings
 
 Bindings can be used to modify the data model based on events in the DOM. The
 most common case is to bind an &lt;input&gt; element's value field to a model
@@ -177,7 +177,7 @@ See the examples in /example/streams for more details.
 
 ## Syntax
 
-### Property Access
+### Property access
 
 Properties on the model and in the scope are looked up via simple property
 names, like `foo`. Property names are looked up first in the top-level
@@ -200,7 +200,7 @@ can use either single or double quotes.
 
 List literals are planned, see [issue 9](https://github.com/dart-lang/polymer_expressions/issues/9)
 
-### Functions and Methods
+### Functions and methods
 
 If a property is a function in the scope, a method on the model, or a method on
 an object, it can be invoked with standard function syntax. Functions and
@@ -224,7 +224,7 @@ Polymer Expressions supports the following binary and unary operators:
 
 Expressions do not support bitwise operators such as &, |, << and >>, or increment/decrement operators (++ and --)
 
-### List and Map Indexing
+### List and Map indexing
 
 List and Map like objects can be accessed via the index operator: []
 
@@ -238,7 +238,7 @@ property access. That is, the previous examples are not equivalent to `items.2`
 and `people.john`. This ensures that access to properties and methods on Lists
 and Maps is preserved.
 
-### Filters and Transformers
+### Filters and transformers
 
 A filter is a function that transforms a value into another, used via the pipe
 syntax: `value | filter` Any function that takes exactly one argument can be
@@ -254,7 +254,7 @@ support two-way bindings through transformers. A transformer is a filter that
 has an inverse function. Transformers must extend or implement the `Transformer`
 class, which has `forward()` and `reverse()` methods.
 
-### Repeating Templates
+### Repeating templates
 
 A template can be repeated by using the "repeat" attribute with a binding. The
 binding can either evaluate to an Iterable, in which case the template is

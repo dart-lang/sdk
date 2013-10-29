@@ -10,7 +10,7 @@
  * [dart:async section of the language tour]
  * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-asynchronous-programming).
  *
- * ## Other Resources
+ * ## Other resources
  *
  * * [Using Future Based APIs]
  * (https://www.dartlang.org/articles/using-future-based-apis/): A first look at

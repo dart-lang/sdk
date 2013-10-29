@@ -25,7 +25,7 @@
  * element, regardless of whether the element is one of the three patchable
  * element types or not.
  *
- * ## Variants of Classes and Functions ##
+ * ## Variants of classes and functions ##
  *
  * With patches there are four variants of classes and function:
  *
@@ -67,7 +67,7 @@
  *     }
  *
  *
- * ## Declaration and Implementation ##
+ * ## Declaration and implementation ##
  *
  * With patches we have two views on elements: as the 'declaration' which
  * introduces the entity and defines its interface, and as the 'implementation'
