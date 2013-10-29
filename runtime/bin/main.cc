@@ -225,6 +225,16 @@ static bool ProcessEnableVmServiceOption(const char* port) {
   return true;
 }
 
+bool trace_debug_protocol = false;
+static bool ProcessTraceDebugProtocolOption(const char* arg) {
+  if (*arg != '\0') {
+    return false;
+  }
+  trace_debug_protocol = true;
+  return true;
+}
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option);
@@ -244,6 +254,7 @@ static struct {
   { "--print-script", ProcessPrintScriptOption },
   { "--check-function-fingerprints", ProcessFingerprintedFunctions },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { NULL, NULL }
 };
 
