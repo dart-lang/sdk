@@ -29,7 +29,7 @@ namespace bin {
 
 void IOServiceCallback(Dart_Port dest_port_id,
                        Dart_CObject* message) {
-  Dart_Port reply_port_id;
+  Dart_Port reply_port_id = ILLEGAL_PORT;
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
   if (message->type == Dart_CObject_kArray &&
