@@ -99,9 +99,9 @@ class GCSNamer(object):
     return '/'.join([self.editor_directory(revision),
       self.editor_zipfilename(system, arch)])
 
-  def editor_installer_zipfilepath(self, revision, system, arch, extension):
+  def editor_installer_filepath(self, revision, system, arch, extension):
     return '/'.join([self.editor_directory(revision),
-      self.editor_installer_zipfilename(system, arch, extension)])
+      self.editor_installer_filename(system, arch, extension)])
 
   def sdk_zipfilepath(self, revision, system, arch, mode):
     return '/'.join([self.sdk_directory(revision),
@@ -148,8 +148,8 @@ class GCSNamer(object):
     return 'darteditor-%s-%s.zip' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch])
 
-  def editor_installer_zipfilename(self, system, arch, extension):
-    assert extension in ['dmg']
+  def editor_installer_filename(self, system, arch, extension):
+    assert extension in ['dmg', 'msi']
     return 'darteditor-installer-%s-%s.%s' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch], extension)
 

@@ -231,6 +231,13 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
 def GetBaseDir():
   return BASE_DIR
 
+# Return the base part of the version, Major.Minor.Build.Patch,
+# without the _revision addition
+def GetShortVersion():
+  (major, minor, build, patch) = ReadVersionFile()
+  return '%s.%s.%s.%s' % (major, minor, build, patch)
+
+
 def GetVersion():
   version_tuple = ReadVersionFile()
   if not version_tuple:

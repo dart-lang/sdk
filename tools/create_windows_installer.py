@@ -40,6 +40,8 @@ def GetOptions():
   options = optparse.OptionParser(usage='usage: %prog [options]')
   options.add_option("--zip_file_location",
       help='Where the zip file including the editor is located.')
+  options.add_option("--input_directory",
+      help='Directory where all the files needed is located.')
   options.add_option("--msi_location",
       help='Where to store the resulting msi.')
   options.add_option("--version",
@@ -49,7 +51,31 @@ def GetOptions():
   options.add_option("--print_wxs", action="store_true", dest="print_wxs",
                     default=False,
                     help="Prints the generated wxs to stdout.")
-  return options.parse_args()
+  (options, args) = options.parse_args()
+  if len(args) > 0:
+    raise Exception("This script takes no arguments, only options")
+  ValidateOptions(options)
+  return options
+
+def ValidateOptions(options):
+  if not options.version:
+    raise Exception('You must supply a version')
+  if options.zip_file_location and options.input_directory:
+    raise Exception('Please pass either zip_file_location or input_directory')
+  if not options.zip_file_location and not options.input_directory:
+    raise Exception('Please pass either zip_file_location or input_directory')
+  if (options.zip_file_location and
+      not os.path.isfile(options.zip_file_location)):
+    raise Exception('Passed in zip file not found')
+  if (options.input_directory and
+      not os.path.isdir(options.input_directory)):
+    raise Exception('Passed in directory not found')
+
+def GetInputDirectory(options, temp_dir):
+  if options.zip_file_location:
+    ExtractZipFile(options.zip_file_location, temp_dir)
+    return os.path.join(temp_dir, 'dart')
+  return options.input_directory
 
 # We combine the build and patch into a single entry since
 # the windows installer does _not_ consider a change in Patch
@@ -311,18 +337,14 @@ def GenerateInstaller(wxs_content, options, temp_dir):
                                          options.msi_location))
   print 'Created msi file to %s' % options.msi_location
 
+
 def Main(argv):
   if sys.platform != 'win32':
     raise Exception("This script can only be run on windows")
-  (options, args) = GetOptions()
-  if not options.version:
-    raise Exception('You must supply a version')
-  if not os.path.isfile(options.zip_file_location):
-    raise Exception('You must pass in a valid zip file')
-
+  options = GetOptions()
   version = GetMicrosoftProductVersion(options.version)
   with utils.TempDir('installer') as temp_dir:
-    ExtractZipFile(options.zip_file_location, temp_dir)
+    input_location = GetInputDirectory(options, temp_dir)
     print "Generating wix XML"
     XmlHeader()
     with WixAndProduct(version):
@@ -338,7 +360,7 @@ def Main(argv):
           with Directory('RootInstallDir', 'Dart Editor'):
             AppendComment("Add all files and directories")
             print 'Installing files and directories in xml'
-            ListFiles(os.path.join(temp_dir, 'dart'))
+            ListFiles(input_location)
         AppendBlankLine()
         AppendComment("Create shortcuts")
         with Directory('ProgramMenuFolder'):
