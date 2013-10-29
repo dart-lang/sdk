@@ -1,0 +1,23 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+    <title>publish inherited properties</title>
+    <script src="packages/unittest/test_controller.js"></script>
+  </head>
+  <body>
+
+    <polymer-element name="x-zot">
+    </polymer-element>
+
+    <polymer-element name="x-squid" extends="x-zot" attributes="squid">
+    </polymer-element>
+
+  <script type="application/dart" src="publish_inherited_properties_test.dart"></script>
+  </body>
+</html>

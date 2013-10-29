@@ -55,6 +55,7 @@ polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
+polymer/test/publish_inherited_properties_test: Skip #uses dart:html
 polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
@@ -102,6 +103,7 @@ polymer/test/noscript_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
+polymer/test/publish_inherited_properties_test: Pass, Timeout # Issue 13260
 polymer/test/register_test: Pass, Timeout # Issue 13260
 polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 polymer/test/template_distribute_dynamic_test: Pass, Timeout # Issue 13260
@@ -392,6 +394,7 @@ polymer/test/noscript_test: StaticWarning
 polymer/test/prop_attr_bind_reflection_test: StaticWarning
 polymer/test/prop_attr_reflection_test: StaticWarning
 polymer/test/publish_attributes_test: StaticWarning
+polymer/test/publish_inherited_properties_test: StaticWarning
 polymer/test/register_test: StaticWarning
 polymer/test/take_attributes_test: StaticWarning
 polymer/test/template_distribute_dynamic_test: StaticWarning
