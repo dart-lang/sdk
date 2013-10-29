@@ -4,7 +4,7 @@
 
 library filenames;
 
-import 'dart:io';
+import 'dart:io' show Platform;
 
 // For information about how to convert Windows file names to URIs:
 // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
@@ -29,8 +29,6 @@ String uriPathToNative(String path) {
   }
 }
 
-final Uri currentDirectory = new Uri(
-    scheme: 'file',
-    path: appendSlash(nativeToUriPath(new File('.').fullPathSync())));
+final Uri currentDirectory = Uri.base;
 
 String appendSlash(String path) => path.endsWith('/') ? path : '$path/';
