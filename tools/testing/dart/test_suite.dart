@@ -1617,7 +1617,10 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
 
   bool isTestFile(String filename) {
     var sep = Platform.pathSeparator;
-    return filename.endsWith(".dart") && !filename.contains("_internal");
+    // NOTE: We exclude tests and patch files for now.
+    return filename.endsWith(".dart") &&
+        !filename.endsWith("_test.dart") &&
+        !filename.contains("_internal/lib");
   }
 
   AnalysisCommand makeAnalysisCommand(TestInformation info,

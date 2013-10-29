@@ -18,6 +18,64 @@ lib/html/dartium/html_dartium: CompileTimeError
 lib/html/html_common/lists: Pass, CompileTimeError
 lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError
+lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError
+lib/_internal/compiler/samples/darttags/darttags: CompileTimeError
+lib/_internal/compiler/samples/jsonify/jsonify: CompileTimeError
+lib/_internal/compiler/samples/leap/leap: CompileTimeError
+lib/_internal/compiler/samples/leap/leap_leg: CompileTimeError
+lib/_internal/compiler/samples/leap/request_cache: CompileTimeError
+lib/_internal/dartdoc/bin/dartdoc: CompileTimeError
+lib/_internal/dartdoc/lib/dartdoc: CompileTimeError
+lib/_internal/dartdoc/lib/src/dartdoc/utils: CompileTimeError
+lib/_internal/dartdoc/lib/src/export_map: CompileTimeError
+lib/_internal/dartdoc/lib/universe_serializer: CompileTimeError
+lib/_internal/pub/bin/pub: CompileTimeError
+lib/_internal/pub/lib/src/barback: CompileTimeError
+lib/_internal/pub/lib/src/barback/dart2js_transformer: CompileTimeError
+lib/_internal/pub/lib/src/barback/dart_forwarding_transformer: CompileTimeError
+lib/_internal/pub/lib/src/barback/load_all_transformers: CompileTimeError
+lib/_internal/pub/lib/src/barback/load_transformers: CompileTimeError
+lib/_internal/pub/lib/src/barback/pub_barback_logger: CompileTimeError
+lib/_internal/pub/lib/src/barback/pub_package_provider: CompileTimeError
+lib/_internal/pub/lib/src/barback/rewrite_import_transformer: CompileTimeError
+lib/_internal/pub/lib/src/barback/server: CompileTimeError
+lib/_internal/pub/lib/src/barback/watch_sources: CompileTimeError
+lib/_internal/pub/lib/src/command: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/command.dart)
+lib/_internal/pub/lib/src/command/build: CompileTimeError
+lib/_internal/pub/lib/src/command/lish: CompileTimeError
+lib/_internal/pub/lib/src/command/list_package_dirs: CompileTimeError
+lib/_internal/pub/lib/src/command/uploader: CompileTimeError
+lib/_internal/pub/lib/src/dart: CompileTimeError
+lib/_internal/pub/lib/src/directory_tree: CompileTimeError
+lib/_internal/pub/lib/src/entrypoint: CompileTimeError
+lib/_internal/pub/lib/src/http: CompileTimeError
+lib/_internal/pub/lib/src/io: CompileTimeError
+lib/_internal/pub/lib/src/lock_file: CompileTimeError
+lib/_internal/pub/lib/src/oauth2: CompileTimeError
+lib/_internal/pub/lib/src/package: CompileTimeError
+lib/_internal/pub/lib/src/package_graph: CompileTimeError
+lib/_internal/pub/lib/src/pubspec: CompileTimeError
+lib/_internal/pub/lib/src/safe_http_server: CompileTimeError
+lib/_internal/pub/lib/src/sdk: CompileTimeError
+lib/_internal/pub/lib/src/source: CompileTimeError
+lib/_internal/pub/lib/src/source/git: CompileTimeError
+lib/_internal/pub/lib/src/source/hosted: CompileTimeError
+lib/_internal/pub/lib/src/source/path: CompileTimeError
+lib/_internal/pub/lib/src/system_cache: CompileTimeError
+lib/_internal/pub/lib/src/utils: CompileTimeError
+lib/_internal/pub/lib/src/validator/compiled_dartdoc: CompileTimeError
+lib/_internal/pub/lib/src/validator/directory: CompileTimeError
+lib/_internal/pub/lib/src/validator/lib: CompileTimeError
+lib/_internal/pub/lib/src/validator/license: CompileTimeError
+lib/_internal/pub/lib/src/validator/name: CompileTimeError
+lib/_internal/pub/test/descriptor: CompileTimeError
+lib/_internal/pub/test/descriptor/git: CompileTimeError
+lib/_internal/pub/test/descriptor/tar: CompileTimeError
+lib/_internal/pub/test/lish/utils: CompileTimeError
+lib/_internal/pub/test/oauth2/utils: CompileTimeError
+lib/_internal/pub/test/serve/utils: CompileTimeError
+lib/_internal/pub/test/test_pub: CompileTimeError
+lib/_internal/pub/test/validator/utils: CompileTimeError
 lib/js/dartium/js_dartium: CompileTimeError
 lib/svg/dart2js/svg_dart2js: CompileTimeError
 lib/svg/dartium/svg_dartium: CompileTimeError
@@ -27,6 +85,7 @@ lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError
 lib/web_gl/dartium/web_gl_dartium: CompileTimeError
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError
 lib/web_sql/dartium/web_sql_dartium: CompileTimeError
+
 
 [ $compiler == dart2analyzer ]
 lib/async/async_error: CompileTimeError
