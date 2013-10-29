@@ -2100,8 +2100,9 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   // Indicated if the http server has been closed.
   bool closed = false;
 
-  // The server listen socket.
-  final ServerSocket _serverSocket;
+  // The server listen socket. Untyped as it can be both ServerSocket and
+  // SecureServerSocket.
+  final _serverSocket;
   final bool _closeServer;
 
   // Set of currently connected clients.
