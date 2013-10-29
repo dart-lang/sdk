@@ -39,6 +39,9 @@ class CodeEmitterTask extends CompilerTask {
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
   final Set<String> recordedMangledNames = new Set<String>();
 
+  final Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties =
+      new Map<ClassElement, Map<String, jsAst.Expression>>();
+
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
@@ -734,7 +737,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void generateClass(ClassElement classElement, CodeBuffer buffer) {
-    classEmitter.generateClass(classElement, buffer);
+    classEmitter.generateClass(
+        classElement, buffer, additionalProperties[classElement]);
   }
 
   int _selectorRank(Selector selector) {
@@ -1177,6 +1181,16 @@ mainBuffer.add(r'''
         mainBuffer.add('var $classesCollector$_=$_{}$N$n');
       }
 
+      // Emit native classes on [nativeBuffer].
+      // Might create methodClosures.
+      final CodeBuffer nativeBuffer = new CodeBuffer();
+      if (!nativeClasses.isEmpty) {
+        addComment('Native classes', nativeBuffer);
+        addComment('Native classes', mainBuffer);
+        nativeEmitter.generateNativeClasses(nativeClasses, mainBuffer,
+            additionalProperties);
+      }
+
       // As a side-effect, emitting classes will produce "bound closures" in
       // [methodClosures].  The bound closures are JS AST nodes that add
       // properties to $$ [classesCollector].  The bound closures are not
@@ -1189,14 +1203,6 @@ mainBuffer.add(r'''
         }
       }
 
-      // Emit native classes on [nativeBuffer].
-      // Might create methodClosures.
-      final CodeBuffer nativeBuffer = new CodeBuffer();
-      if (!nativeClasses.isEmpty) {
-        addComment('Native classes', nativeBuffer);
-        addComment('Native classes', mainBuffer);
-        nativeEmitter.generateNativeClasses(nativeClasses, mainBuffer);
-      }
       nativeEmitter.finishGenerateNativeClasses();
       nativeEmitter.assembleCode(nativeBuffer);
 

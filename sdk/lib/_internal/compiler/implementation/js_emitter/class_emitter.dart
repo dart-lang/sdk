@@ -10,7 +10,8 @@ class ClassEmitter extends CodeEmitterHelper {
    *
    * Invariant: [classElement] must be a declaration element.
    */
-  void generateClass(ClassElement classElement, CodeBuffer buffer) {
+  void generateClass(ClassElement classElement, CodeBuffer buffer,
+      Map<String, jsAst.Expression> additionalProperties) {
     final onlyForRti =
         task.typeTestEmitter.rtiNeededClasses.contains(classElement);
 
@@ -41,6 +42,9 @@ class ClassEmitter extends CodeEmitterHelper {
     emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
     emitInstanceMembers(classElement, builder, onlyForRti: onlyForRti);
     task.typeTestEmitter.emitIsTests(classElement, builder);
+    if (additionalProperties != null) {
+      additionalProperties.forEach(builder.addProperty);
+    }
 
     emitClassBuilderWithReflectionData(
         className, classElement, builder, buffer);

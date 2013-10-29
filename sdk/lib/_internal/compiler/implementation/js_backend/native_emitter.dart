@@ -111,9 +111,14 @@ class NativeEmitter {
    * [classes] contains native classes, mixin applications, and user subclasses
    * of native classes.  ONLY the native classes are generated here.  [classes]
    * is sorted in desired output order.
+   *
+   * [additionalProperties] is used to collect properties that are pushed up
+   * from the above optimizations onto a non-native class, e.g, `Interceptor`.
    */
-  void generateNativeClasses(List<ClassElement> classes,
-                             CodeBuffer mainBuffer) {
+  void generateNativeClasses(
+      List<ClassElement> classes,
+      CodeBuffer mainBuffer,
+      Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties) {
     // Compute a pre-order traversal of the subclass forest.  We actually want a
     // post-order traversal but it is easier to compute the pre-order and use it
     // in reverse.
@@ -259,14 +264,10 @@ class NativeEmitter {
           // No builder because this is an intermediate mixin application or
           // Interceptor - these are not direct native classes.
           if (encoding != '') {
-            // TODO(sra): Figure out how to emit this as a property onto
-            // Interceptor's ClassBuilder.
-            jsAst.Expression assignment =
-                js.assign(
-                    js(backend.namer.isolateAccess(classElement))['%'],
-                    js.string(encoding));
-            nativeBuffer.add(jsAst.prettyPrint(assignment, compiler));
-            nativeBuffer.add('$N$n');
+            Map<String, jsAst.Expression> properties =
+                additionalProperties.putIfAbsent(classElement,
+                    () => new LinkedHashMap<String, jsAst.Expression>());
+            properties['%'] = js.string(encoding);
           }
         } else {
           builder.addProperty('%', js.string(encoding));
