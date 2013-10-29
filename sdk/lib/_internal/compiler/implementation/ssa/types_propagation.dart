@@ -117,7 +117,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   HType visitPhi(HPhi phi) {
-    HType candidateType = HType.CONFLICTING;
+    JavaScriptBackend backend = compiler.backend;    
+    HType candidateType = backend.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       HType inputType = phi.inputs[i].instructionType;
       candidateType = candidateType.union(inputType, compiler);

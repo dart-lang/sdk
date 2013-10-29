@@ -1830,15 +1830,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.instructionType.isUseful() && left.isString(compiler) &&
-          right.instructionType.isUseful() && right.isString(compiler)) {
+      if (left.isString(compiler) && right.isString(compiler)) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.instructionType.isUseful() && left.isInteger(compiler)
-          && right.instructionType.isUseful() && right.isInteger(compiler);
+      return left.isInteger(compiler) && right.isInteger(compiler);
     }
 
     bool handledBySpecialCase = false;

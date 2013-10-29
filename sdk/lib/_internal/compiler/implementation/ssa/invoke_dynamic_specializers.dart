@@ -114,13 +114,12 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       // We want the right checked mode error.
       return null;
     }
-    HInstruction index = new HIndex(
-        instruction.inputs[1], instruction.inputs[2], instruction.selector);
     HType receiverType = instruction.getDartReceiver(compiler).instructionType;
     Selector refined = receiverType.refine(instruction.selector, compiler);
     HType type = new HType.inferredTypeForSelector(refined, compiler);
-    index.instructionType = type;
-    return index;
+    return new HIndex(
+        instruction.inputs[1], instruction.inputs[2],
+        instruction.selector, type);
   }
 }
 
@@ -171,7 +170,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
                                    Compiler compiler) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(compiler)) {
-      return new HNegate(input, instruction.selector);
+      return new HNegate(input, instruction.selector, input.instructionType);
     }
     return null;
   }
@@ -230,7 +229,8 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
     return new HAdd(
-        instruction.inputs[1], instruction.inputs[2], instruction.selector);
+        instruction.inputs[1], instruction.inputs[2],
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 
@@ -284,7 +284,8 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
     return new HMultiply(
-        instruction.inputs[1], instruction.inputs[2], instruction.selector);
+        instruction.inputs[1], instruction.inputs[2],
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 
@@ -298,7 +299,8 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
     return new HSubtract(
-        instruction.inputs[1], instruction.inputs[2], instruction.selector);
+        instruction.inputs[1], instruction.inputs[2],
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 

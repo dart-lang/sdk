@@ -212,13 +212,15 @@ class JavaScriptBackend extends Backend {
   HType intType;
   HType numType;
   HType boolType;
-  HType nullType;
   HType indexablePrimitiveType;
   HType readableArrayType;
   HType mutableArrayType;
   HType fixedArrayType;
   HType extendableArrayType;
-  HType objectType;
+  HType nonNullType;
+  HType dynamicType;
+  HType nullType = const HBoundedType(const TypeMask.empty());
+  HType emptyType = const HBoundedType(const TypeMask.nonNullEmpty());
 
   // TODO(9577): Make it so that these are not needed when there are no native
   // classes.
@@ -627,7 +629,6 @@ class JavaScriptBackend extends Backend {
         new TypeMask.nonNullSubclass(jsNumberClass));
     boolType = new HBoundedType(
         new TypeMask.nonNullExact(jsBoolClass));
-    nullType = new HBoundedType(const TypeMask.empty());
     indexablePrimitiveType = new HBoundedType(
         new TypeMask.nonNullSubtype(jsIndexableClass));
     readableArrayType = new HBoundedType(
@@ -638,10 +639,10 @@ class JavaScriptBackend extends Backend {
         new TypeMask.nonNullExact(jsFixedArrayClass));
     extendableArrayType = new HBoundedType(
         new TypeMask.nonNullExact(jsExtendableArrayClass));
-    nullType = new HBoundedType(
-        const TypeMask.empty());
-    objectType = new HBoundedType(
+    nonNullType = new HBoundedType(
         compiler.typesTask.dynamicType.nonNullable());
+    dynamicType = new HBoundedType(
+        compiler.typesTask.dynamicType);
 
     typeVariableClass = compiler.findHelper('TypeVariable');
   }

@@ -111,14 +111,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // [replacement]'s type can be narrowed.
         HType newType = replacement.instructionType.intersection(
             instruction.instructionType, compiler);
-        if (!newType.isConflicting()) {
-          // [HType.intersection] may give up when doing the
-          // intersection of two types is too complicated, and return
-          // [HType.CONFLICTING]. We do not want instructions to have
-          // [HType.CONFLICTING], so we only update the type if the
-          // intersection did not give up.
-          replacement.instructionType = newType;
-        }
+        replacement.instructionType = newType;
 
         // If the replacement instruction does not know its
         // source element, use the source element of the
@@ -209,8 +202,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       bool isAssignable = !actualReceiver.isFixedArray(compiler) &&
           !actualReceiver.isString(compiler);
       HFieldGet result = new HFieldGet(
-          element, actualReceiver, isAssignable: isAssignable);
-      result.instructionType = backend.intType;
+          element, actualReceiver, backend.intType, isAssignable: isAssignable);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -280,7 +272,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check will become explicit, so we won't need this
         // optimization.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-            node.selector, node.inputs.sublist(1));
+            node.selector, node.inputs.sublist(1), node.instructionType);
         result.element = target;
         return result;
       }
@@ -376,16 +368,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!canInline) return null;
 
-    HInvokeDynamicMethod result =
-        new HInvokeDynamicMethod(node.selector, inputs);
-    result.element = method;
 
     // Strengthen instruction type from annotations to help optimize
     // dependent instructions.
     native.NativeBehavior nativeBehavior =
         native.NativeBehavior.ofMethod(method, compiler);
     HType returnType = new HType.fromNativeBehavior(nativeBehavior, compiler);
-    result.instructionType = returnType;
+    HInvokeDynamicMethod result =
+        new HInvokeDynamicMethod(node.selector, inputs, returnType);
+    result.element = method;
     return result;
   }
 
@@ -611,7 +602,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, HType checkedType) {
-    if (checkedType.isUnknown()) return node;
+    if (checkedType.containsAll(compiler)) return node;
     HInstruction input = node.checkedInput;
     HType inputType = input.instructionType;
     HType filteredType = inputType.intersection(checkedType, compiler);
@@ -702,18 +693,18 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // distinct from ordinary Dart effects.
       isAssignable = true;
     }
-    HFieldGet result = new HFieldGet(
-        field, receiver, isAssignable: isAssignable);
 
+    HType type;
     if (field.getEnclosingClass().isNative()) {
-      result.instructionType = new HType.fromNativeBehavior(
+      type = new HType.fromNativeBehavior(
           native.NativeBehavior.ofFieldLoad(field, compiler),
           compiler);
     } else {
-      result.instructionType =
-          new HType.inferredTypeForElement(field, compiler);
+      type = new HType.inferredTypeForElement(field, compiler);
     }
-    return result;
+
+    return new HFieldGet(
+        field, receiver, type, isAssignable: isAssignable);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -839,8 +830,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     bool isAssignable =
         !array.isFixedArray(compiler) && !array.isString(compiler);
     HFieldGet length = new HFieldGet(
-        backend.jsIndexableLength, array, isAssignable: isAssignable);
-    length.instructionType = backend.intType;
+        backend.jsIndexableLength, array, backend.intType,
+        isAssignable: isAssignable);
     indexNode.block.addBefore(indexNode, length);
 
     HBoundsCheck check = new HBoundsCheck(

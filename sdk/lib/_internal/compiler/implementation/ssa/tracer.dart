@@ -181,7 +181,7 @@ class HInstructionStringifier implements HVisitor<String> {
     HType type = instruction.instructionType;
     if (type.isNull()) {
       prefix = 'u';
-    } else if (type == HType.CONFLICTING) {
+    } else if (type.isConflicting()) {
       prefix = 'c';
     } else if (type.isExtendableArray(compiler)) {
       prefix = 'e';
@@ -203,7 +203,7 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'd';
     } else if (type.isNumber(compiler)) {
       prefix = 'n';
-    } else if (type == HType.UNKNOWN) {
+    } else if (type.containsAll(compiler)) {
       prefix = 'v';
     } else {
       prefix = 'U';
