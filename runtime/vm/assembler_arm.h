@@ -733,6 +733,11 @@ class Assembler : public ValueObject {
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 
+  // On some other platforms, we draw a distinction between safe and unsafe
+  // smis.
+  static bool IsSafe(const Object& object) { return true; }
+  static bool IsSafeSmi(const Object& object) { return true; }
+
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.

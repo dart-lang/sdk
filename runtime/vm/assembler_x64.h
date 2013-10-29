@@ -847,6 +847,11 @@ class Assembler : public ValueObject {
 
   static const char* FpuRegisterName(FpuRegister reg);
 
+  // On some other platforms, we draw a distinction between safe and unsafe
+  // smis.
+  static bool IsSafe(const Object& object) { return true; }
+  static bool IsSafeSmi(const Object& object) { return true; }
+
  private:
   AssemblerBuffer buffer_;
 
