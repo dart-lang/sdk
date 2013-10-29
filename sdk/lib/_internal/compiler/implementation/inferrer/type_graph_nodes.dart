@@ -257,6 +257,14 @@ class ElementTypeInformation extends TypeInformation {
         // [call] instance methods.
         giveUp(inferrer);
         return type;
+      } else if (enclosing == inferrer.mainElement) {
+        // The implicit call to main is not seen by the inferrer,
+        // therefore we explicitly set the type of its parameters as
+        // dynamic.
+        // TODO(14566): synthesize a call instead to get the exact
+        // types.
+        giveUp(inferrer);
+        return type;
       }
     }
     if (element.isField()
