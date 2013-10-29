@@ -541,10 +541,12 @@ class TypeGraphInferrerEngine
       if ((info.type = newType) != oldType) {
         overallRefineCount++;
         info.refineCount++;
-        if (info.refineCount > MAX_CHANGE_COUNT) {
+        workQueue.addAll(info.users);
+        if (info.hasStableType(this)) {
+          info.stabilize(this);
+        } else if (info.refineCount > MAX_CHANGE_COUNT) {
           info.giveUp(this);
         }
-        workQueue.addAll(info.users);
       }
     }
   }

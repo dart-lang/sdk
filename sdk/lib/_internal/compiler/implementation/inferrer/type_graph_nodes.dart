@@ -39,6 +39,10 @@ abstract class TypeInformation {
   /// work queue.
   bool inQueue = false;
 
+  /// Whether this [TypeInformation] has a stable [type] that will not
+  /// change.
+  bool isStable = false;
+
   // TypeInformations are unique.
   static int staticHashCode = 0;
   final int hashCode = staticHashCode++;
@@ -51,11 +55,13 @@ abstract class TypeInformation {
 
 
   void addUser(TypeInformation user) {
+    if (isStable) return;
     assert(!user.isConcrete);
     users.add(user);
   }
 
   void removeUser(TypeInformation user) {
+    if (isStable) return;
     assert(!user.isConcrete);
     users.remove(user);
   }
@@ -89,7 +95,12 @@ abstract class TypeInformation {
   void giveUp(TypeGraphInferrerEngine inferrer) {
     abandonInferencing = true;
     type = inferrer.types.dynamicType.type;
+    // Do not remove [this] as a user of nodes in [assignments],
+    // because our tracing analysis could be interested in tracing
+    // this node.
     assignments = const <TypeInformation>[];
+    // Do not remove users because our tracing analysis could be
+    // interested in tracing the users of this node.
   }
 
   void clear() {
@@ -114,6 +125,24 @@ abstract class TypeInformation {
   /// for some [TypeInformation] nodes, where we do not need to store
   /// the information.
   Element get owner => null;
+
+  /// Returns whether the type cannot change after it has been
+  /// inferred.
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return !abandonInferencing && assignments.every((e) => e.isStable);
+  }
+
+  void removeAndClearReferences(TypeGraphInferrerEngine inferrer) {
+    assignments.forEach((info) { info.removeUser(this); });
+  }
+
+  void stabilize(TypeGraphInferrerEngine inferrer) {
+    removeAndClearReferences(inferrer);
+    users = const <TypeInformation>[];
+    assignments = const <TypeInformation>[];
+    abandonInferencing = true;
+    isStable = true;
+  }
 }
 
 /**
@@ -294,6 +323,21 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   Element get owner => element.getOutermostEnclosingMemberOrTopLevel();
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    // The number of assignments of parameters of instance methods is
+    // not stable. Therefore such a parameter cannot be stable.
+    if (element.isParameter() && element.enclosingElement.isInstanceMember()) {
+      return false;
+    }
+    // The number of assignments of non-final fields is
+    // not stable. Therefore such a field cannot be stable.
+    if (element.isField()
+        && !(element.modifiers.isConst() || element.modifiers.isFinal())) {
+      return false;
+    }
+    return super.hasStableType(inferrer);
+  }
 }
 
 /**
@@ -379,6 +423,22 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStaticCallSiteTypeInformation(this);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return inferrer.types.getInferredTypeOf(calledElement).isStable
+        && (arguments == null || arguments.every((info) => info.isStable))
+        && super.hasStableType(inferrer);
+  }
+
+  void removeAndClearReferences(TypeGraphInferrerEngine inferrer) {
+    ElementTypeInformation callee =
+        inferrer.types.getInferredTypeOf(calledElement);
+    callee.removeUser(this);
+    if (arguments != null) {
+      arguments.forEach((info) => info.removeUser(this));
+    }
+    super.removeAndClearReferences(inferrer);
   }
 }
 
@@ -535,6 +595,17 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     super.giveUp(inferrer);
   }
 
+  void removeAndClearReferences(TypeGraphInferrerEngine inferrer) {
+    for (Element element in targets) {
+      ElementTypeInformation callee = inferrer.types.getInferredTypeOf(element);
+      callee.removeUser(this);
+    }
+    if (arguments != null) {
+      arguments.forEach((info) => info.removeUser(this));
+    }
+    super.removeAndClearReferences(inferrer);
+  }
+
   bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
     return targets
             .map((element) => inferrer.types.getInferredTypeOf(element))
@@ -545,6 +616,14 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitDynamicCallSiteTypeInformation(this);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return receiver.isStable
+        && targets.every(
+              (element) => inferrer.types.getInferredTypeOf(element).isStable)
+        && (arguments == null || arguments.every((info) => info.isStable))
+        && super.hasStableType(inferrer);
   }
 }
 
@@ -576,6 +655,16 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   accept(TypeInformationVisitor visitor) {
     return visitor.visitClosureCallSiteTypeInformation(this);
   }
+
+  void removeAndClearReferences(TypeGraphInferrerEngine inferrer) {
+    // This method is a placeholder for the following comment:
+    // We should maintain the information that the closure is a user
+    // of its arguments because we do not check that the arguments
+    // have a stable type for a closure call to be stable; our tracing
+    // analysis want to know whether an (non-stable) argument is
+    // passed to a closure.
+    return super.removeAndClearReferences(inferrer);
+  }
 }
 
 /**
@@ -592,6 +681,7 @@ class ConcreteTypeInformation extends TypeInformation {
   ConcreteTypeInformation(TypeMask type)
       : super(const <TypeInformation>[], const <TypeInformation>[]) {
     this.type = type;
+    this.isStable = true;
   }
 
   bool get isConcrete => true;
@@ -619,6 +709,10 @@ class ConcreteTypeInformation extends TypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitConcreteTypeInformation(this);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return true;
   }
 }
 
@@ -652,7 +746,9 @@ class NarrowTypeInformation extends TypeInformation {
     return assignments[0].type.intersection(typeAnnotation, inferrer.compiler);
   }
 
-  String toString() => 'Narrow ${assignments.first} to $typeAnnotation $type';
+  String toString() {
+    return 'Narrow to $typeAnnotation $type';
+  }
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitNarrowTypeInformation(this);
@@ -687,6 +783,10 @@ class ContainerTypeInformation extends TypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitContainerTypeInformation(this);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return elementType.isStable && super.hasStableType(inferrer);
   }
 
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
@@ -727,6 +827,10 @@ class ElementInContainerTypeInformation extends TypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitElementInContainerTypeInformation(this);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return inferred && super.hasStableType(inferrer);
   }
 }
 
