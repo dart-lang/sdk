@@ -51,7 +51,8 @@ class BuildCommand extends PubCommand {
       // user-facing, just use an IPv4 address to avoid a weird bug on the
       // OS X buildbots.
       return barback.createServer("127.0.0.1", 0, graph,
-          builtInTransformers: [dart2jsTransformer]);
+          builtInTransformers: [dart2jsTransformer],
+          watchForUpdates: false);
     }).then((server) {
       // Show in-progress errors, but not results. Those get handled implicitly
       // by getAllAssets().

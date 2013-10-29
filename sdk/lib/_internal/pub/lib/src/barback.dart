@@ -13,7 +13,7 @@ import 'barback/load_all_transformers.dart';
 import 'barback/pub_barback_logger.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
-import 'barback/watch_sources.dart';
+import 'barback/sources.dart';
 import 'package_graph.dart';
 import 'utils.dart';
 
@@ -103,43 +103,53 @@ class TransformerId {
 ///
 /// If [builtInTransformers] is provided, then a phase is added to the end of
 /// each package's cascade including those transformers.
+///
+/// If [watchForUpdates] is true (the default), the server will continually
+/// monitor the app and its dependencies for any updates. Otherwise the state of
+/// the app when the server is started will be maintained.
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
-    {Iterable<Transformer> builtInTransformers}) {
+    {Iterable<Transformer> builtInTransformers, bool watchForUpdates: true}) {
   var provider = new PubPackageProvider(graph);
   var logger = new PubBarbackLogger();
   var barback = new Barback(provider, logger: logger);
 
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
-    watchSources(graph, barback);
+    return new Future.sync(() {
+      if (watchForUpdates) return watchSources(graph, barback);
+      loadSources(graph, barback);
+    }).then((_) {
+      var completer = new Completer();
 
-    var completer = new Completer();
+      // If any errors get emitted either by barback or by the server, including
+      // non-programmatic barback errors, they should take down the whole
+      // program.
+      var subscriptions = [
+        server.barback.errors.listen((error) {
+          if (error is TransformerException) error = error.error;
+          if (!completer.isCompleted) completer.completeError(error);
+        }),
+        server.barback.results.listen((_) {}, onError: (error, stackTrace) {
+          if (completer.isCompleted) return;
+          completer.completeError(error, stackTrace);
+        }),
+        server.results.listen((_) {}, onError: (error, stackTrace) {
+          if (completer.isCompleted) return;
+          completer.completeError(error, stackTrace);
+        })
+      ];
 
-    // If any errors get emitted either by barback or by the server, including
-    // non-programmatic barback errors, they should take down the whole program.
-    var subscriptions = [
-      server.barback.errors.listen((error) {
-        if (error is TransformerException) error = error.error;
-        if (!completer.isCompleted) completer.completeError(error);
-      }),
-      server.barback.results.listen((_) {}, onError: (error, stackTrace) {
+      loadAllTransformers(server, graph, builtInTransformers).then((_) {
+        if (!completer.isCompleted) completer.complete(server);
+      }).catchError((error, stackTrace) {
         if (!completer.isCompleted) completer.completeError(error, stackTrace);
-      }),
-      server.results.listen((_) {}, onError: (error, stackTrace) {
-        if (!completer.isCompleted) completer.completeError(error, stackTrace);
-      })
-    ];
+      });
 
-    loadAllTransformers(server, graph, builtInTransformers).then((_) {
-      if (!completer.isCompleted) completer.complete(server);
-    }).catchError((error, stackTrace) {
-      if (!completer.isCompleted) completer.completeError(error, stackTrace);
-    });
-
-    return completer.future.whenComplete(() {
-      for (var subscription in subscriptions) {
-        subscription.cancel();
-      }
+      return completer.future.whenComplete(() {
+        for (var subscription in subscriptions) {
+          subscription.cancel();
+        }
+      });
     });
   });
 }
