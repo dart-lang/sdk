@@ -102,7 +102,7 @@ patch class StringBuffer {
     _consumeBuffer();
     return (_partsCodeUnits == 0) ?
         "" :
-        _StringBase._concatAllNative(_parts, 0, _parts.length);
+        _StringBase._concatRange(_parts, 0, _parts.length);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
@@ -153,7 +153,7 @@ patch class StringBuffer {
    */
   void _compact() {
     if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
-      String compacted = _StringBase._concatAllNative(
+      String compacted = _StringBase._concatRange(
           _parts,
           _partsCompactionIndex,                     // Start
           _partsCompactionIndex + _PARTS_TO_COMPACT  // End

@@ -84,9 +84,8 @@ class _StringBase {
     if (identical(this, other)) {
       return true;
     }
-    if ((other is !String) ||
+    if ((other is! String) ||
         (this.length != other.length)) {
-      // TODO(5413632): Compare hash codes when both are present.
       return false;
     }
     final len = this.length;
@@ -120,7 +119,7 @@ class _StringBase {
 
   bool _substringMatches(int start, String other) {
     if (other.isEmpty) return true;
-    final int len = other.length;
+    final len = other.length;
     if ((start < 0) || (start + len > this.length)) {
       return false;
     }
@@ -265,7 +264,7 @@ class _StringBase {
   }
 
   String trim() {
-    final int len = this.length;
+    final len = this.length;
     int first = 0;
     for (; first < len; first++) {
       if (!_isWhitespace(this.codeUnitAt(first))) {
@@ -405,7 +404,7 @@ class _StringBase {
    * into a result string.
    */
   static String _interpolate(List<String> values) {
-    final int numValues = values.length;
+    final numValues = values.length;
     _List stringList = new List<String>(numValues);
     bool isOneByteString = true;
     int totalLength = 0;
@@ -424,7 +423,7 @@ class _StringBase {
     if (isOneByteString) {
       return _OneByteString._concatAll(stringList, totalLength);
     }
-    return _concatAllNative(stringList, 0, stringList.length);
+    return _concatRangeNative(stringList, 0, stringList.length);
   }
 
   Iterable<Match> allMatches(String str) {
@@ -509,10 +508,31 @@ class _StringBase {
 
   String toLowerCase() native "String_toLowerCase";
 
+  // Concatenate ['start', 'end'[ elements of 'strings'. 'strings' must contain
+  // String elements. Optimized for OneByteStrings.
+  static String _concatRange(List<String> strings, int start, int end) {
+    if ((end - start) == 1) {
+      return strings[start];
+    }
+    final numValues = strings.length;
+    if ((start == 0) && (end == numValues)) {
+      int totalLength = 0;
+      for (int i = 0; i < numValues; i++) {
+        String s = strings[i];
+        if (s._cid != _OneByteString._classId) {
+          return _concatRangeNative(strings, start, end);
+        }
+        totalLength += s.length;
+      }
+      return _OneByteString._concatAll(strings, totalLength);
+    }
+    return _concatRangeNative(strings, start, end);
+  }
+
   // Call this method if not all list elements are known to be OneByteString(s).
   // 'strings' must be an _List or _GrowableList.
-  static String _concatAllNative(List<String> strings, int start, int end)
-      native "Strings_concatAll";
+  static String _concatRangeNative(List<String> strings, int start, int end)
+      native "String_concatRange";
 }
 
 
@@ -548,11 +568,11 @@ class _OneByteString extends _StringBase implements String {
   }
 
   // All element of 'strings' must be OneByteStrings.
-  static _concatAll(_List<String> strings, int totalLength) {
+  static _concatAll(List<String> strings, int totalLength) {
     // TODO(srdjan): Improve code below and raise or eliminate the limit.
     if (totalLength > 128) {
       // Native is quicker.
-      return _StringBase._concatAllNative(strings, 0, strings.length);
+      return _StringBase._concatRangeNative(strings, 0, strings.length);
     }
     var res = _OneByteString._allocate(totalLength);
     final stringsLength = strings.length;
@@ -565,6 +585,24 @@ class _OneByteString extends _StringBase implements String {
       }
     }
     return res;
+  }
+
+  int indexOf(Pattern pattern, [int start = 0]) {
+    final len = this.length;
+    // Specialize for single character pattern.
+    // TODO(srdjan): Implement for other string classes.
+    if ((pattern._cid == _OneByteString._classId) &&
+        (pattern.length == 1) &&
+        (start >= 0) && (start < len)) {
+      final patternCu0 = pattern.codeUnitAt(0);
+      for (int i = start; i < len; i++) {
+        if (this.codeUnitAt(i) == patternCu0) {
+          return i;
+        }
+      }
+      return -1;
+    }
+    return super.indexOf(pattern, start);
   }
 
   // Allocates a string of given length, expecting its content to be
