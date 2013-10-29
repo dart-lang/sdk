@@ -1353,12 +1353,6 @@ Please include the following information:
       "'#{shownType}' because '#{shownType}' is not more specific than the "
       "known type '#{knownType}' of '#{variableName}'.");
 
-  static const MessageKind NOT_MORE_SPECIFIC_RAW = const MessageKind(
-      "Hint: Variable '#{variableName}' is not shown to have type "
-      "'#{shownType}' because '#{shownType}' is not more specific than the "
-      "known type '#{knownType}' of '#{variableName}'.",
-      howToFix: "Try replacing '#{shownType}' with '#{shownTypeRaw}'.");
-
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
   //////////////////////////////////////////////////////////////////////////////

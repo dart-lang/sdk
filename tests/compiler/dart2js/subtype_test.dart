@@ -67,30 +67,30 @@ void testInterfaceSubtype() {
     expect(true, num_, Object_);
     expect(true, int_, Object_);
     expect(true, String_, Object_);
-    expect(true, dynamic_, Object_);
+    expect(true, dynamic_, Object_, expectMoreSpecific: false);
 
     expect(false, Object_, num_);
     expect(true, num_, num_);
     expect(true, int_, num_);
     expect(false, String_, num_);
-    expect(true, dynamic_, num_);
+    expect(true, dynamic_, num_, expectMoreSpecific: false);
 
     expect(false, Object_, int_);
     expect(false, num_, int_);
     expect(true, int_, int_);
     expect(false, String_, int_);
-    expect(true, dynamic_, int_);
+    expect(true, dynamic_, int_, expectMoreSpecific: false);
 
     expect(false, Object_, String_);
     expect(false, num_, String_);
     expect(false, int_, String_);
     expect(true, String_, String_);
-    expect(true, dynamic_, String_);
+    expect(true, dynamic_, String_, expectMoreSpecific: false);
 
-    expect(true, Object_, dynamic_, expectMoreSpecific: false);
-    expect(true, num_, dynamic_, expectMoreSpecific: false);
-    expect(true, int_, dynamic_, expectMoreSpecific: false);
-    expect(true, String_, dynamic_, expectMoreSpecific: false);
+    expect(true, Object_, dynamic_);
+    expect(true, num_, dynamic_);
+    expect(true, int_, dynamic_);
+    expect(true, String_, dynamic_);
     expect(true, dynamic_, dynamic_);
 
     DartType A_Object = instantiate(A, [Object_]);
@@ -103,36 +103,36 @@ void testInterfaceSubtype() {
     expect(false, A_Object, num_);
     expect(false, A_Object, int_);
     expect(false, A_Object, String_);
-    expect(true, A_Object, dynamic_, expectMoreSpecific: false);
+    expect(true, A_Object, dynamic_);
 
     expect(true, A_Object, A_Object);
     expect(true, A_num, A_Object);
     expect(true, A_int, A_Object);
     expect(true, A_String, A_Object);
-    expect(true, A_dynamic, A_Object);
+    expect(true, A_dynamic, A_Object, expectMoreSpecific: false);
 
     expect(false, A_Object, A_num);
     expect(true, A_num, A_num);
     expect(true, A_int, A_num);
     expect(false, A_String, A_num);
-    expect(true, A_dynamic, A_num);
+    expect(true, A_dynamic, A_num, expectMoreSpecific: false);
 
     expect(false, A_Object, A_int);
     expect(false, A_num, A_int);
     expect(true, A_int, A_int);
     expect(false, A_String, A_int);
-    expect(true, A_dynamic, A_int);
+    expect(true, A_dynamic, A_int, expectMoreSpecific: false);
 
     expect(false, A_Object, A_String);
     expect(false, A_num, A_String);
     expect(false, A_int, A_String);
     expect(true, A_String, A_String);
-    expect(true, A_dynamic, A_String);
+    expect(true, A_dynamic, A_String, expectMoreSpecific: false);
 
-    expect(true, A_Object, A_dynamic, expectMoreSpecific: false);
-    expect(true, A_num, A_dynamic, expectMoreSpecific: false);
-    expect(true, A_int, A_dynamic, expectMoreSpecific: false);
-    expect(true, A_String, A_dynamic, expectMoreSpecific: false);
+    expect(true, A_Object, A_dynamic);
+    expect(true, A_num, A_dynamic);
+    expect(true, A_int, A_dynamic);
+    expect(true, A_String, A_dynamic);
     expect(true, A_dynamic, A_dynamic);
 
     DartType B_Object_Object = instantiate(B, [Object_, Object_]);
@@ -146,27 +146,27 @@ void testInterfaceSubtype() {
     expect(false, B_Object_Object, A_num);
     expect(false, B_Object_Object, A_int);
     expect(false, B_Object_Object, A_String);
-    expect(true, B_Object_Object, A_dynamic, expectMoreSpecific: false);
+    expect(true, B_Object_Object, A_dynamic);
 
     expect(true, B_num_num, Object_);
     expect(true, B_num_num, A_Object);
     expect(true, B_num_num, A_num);
     expect(false, B_num_num, A_int);
     expect(false, B_num_num, A_String);
-    expect(true, B_num_num, A_dynamic, expectMoreSpecific: false);
+    expect(true, B_num_num, A_dynamic);
 
     expect(true, B_int_num, Object_);
     expect(true, B_int_num, A_Object);
     expect(true, B_int_num, A_num);
     expect(true, B_int_num, A_int);
     expect(false, B_int_num, A_String);
-    expect(true, B_int_num, A_dynamic, expectMoreSpecific: false);
+    expect(true, B_int_num, A_dynamic);
 
     expect(true, B_dynamic_dynamic, Object_);
-    expect(true, B_dynamic_dynamic, A_Object);
-    expect(true, B_dynamic_dynamic, A_num);
-    expect(true, B_dynamic_dynamic, A_int);
-    expect(true, B_dynamic_dynamic, A_String);
+    expect(true, B_dynamic_dynamic, A_Object, expectMoreSpecific: false);
+    expect(true, B_dynamic_dynamic, A_num, expectMoreSpecific: false);
+    expect(true, B_dynamic_dynamic, A_int, expectMoreSpecific: false);
+    expect(true, B_dynamic_dynamic, A_String, expectMoreSpecific: false);
     expect(true, B_dynamic_dynamic, A_dynamic);
 
     expect(true, B_String_dynamic, Object_);
@@ -174,37 +174,37 @@ void testInterfaceSubtype() {
     expect(false, B_String_dynamic, A_num);
     expect(false, B_String_dynamic, A_int);
     expect(true, B_String_dynamic, A_String);
-    expect(true, B_String_dynamic, A_dynamic, expectMoreSpecific: false);
+    expect(true, B_String_dynamic, A_dynamic);
 
     expect(true, B_Object_Object, B_Object_Object);
     expect(true, B_num_num, B_Object_Object);
     expect(true, B_int_num, B_Object_Object);
-    expect(true, B_dynamic_dynamic, B_Object_Object);
-    expect(true, B_String_dynamic, B_Object_Object);
+    expect(true, B_dynamic_dynamic, B_Object_Object, expectMoreSpecific: false);
+    expect(true, B_String_dynamic, B_Object_Object, expectMoreSpecific: false);
 
     expect(false, B_Object_Object, B_num_num);
     expect(true, B_num_num, B_num_num);
     expect(true, B_int_num, B_num_num);
-    expect(true, B_dynamic_dynamic, B_num_num);
+    expect(true, B_dynamic_dynamic, B_num_num, expectMoreSpecific: false);
     expect(false, B_String_dynamic, B_num_num);
 
     expect(false, B_Object_Object, B_int_num);
     expect(false, B_num_num, B_int_num);
     expect(true, B_int_num, B_int_num);
-    expect(true, B_dynamic_dynamic, B_int_num);
+    expect(true, B_dynamic_dynamic, B_int_num, expectMoreSpecific: false);
     expect(false, B_String_dynamic, B_int_num);
 
-    expect(true, B_Object_Object, B_dynamic_dynamic, expectMoreSpecific: false);
-    expect(true, B_num_num, B_dynamic_dynamic, expectMoreSpecific: false);
-    expect(true, B_int_num, B_dynamic_dynamic, expectMoreSpecific: false);
+    expect(true, B_Object_Object, B_dynamic_dynamic);
+    expect(true, B_num_num, B_dynamic_dynamic);
+    expect(true, B_int_num, B_dynamic_dynamic);
     expect(true, B_dynamic_dynamic, B_dynamic_dynamic);
-    expect(true, B_String_dynamic, B_dynamic_dynamic,
-           expectMoreSpecific: false);
+    expect(true, B_String_dynamic, B_dynamic_dynamic);
 
     expect(false, B_Object_Object, B_String_dynamic);
     expect(false, B_num_num, B_String_dynamic);
     expect(false, B_int_num, B_String_dynamic);
-    expect(true, B_dynamic_dynamic, B_String_dynamic);
+    expect(true, B_dynamic_dynamic, B_String_dynamic,
+           expectMoreSpecific: false);
     expect(true, B_String_dynamic, B_String_dynamic);
 
     DartType C_Object_Object = instantiate(C, [Object_, Object_]);
@@ -215,26 +215,27 @@ void testInterfaceSubtype() {
     expect(true, C_Object_Object, B_Object_Object);
     expect(false, C_Object_Object, B_num_num);
     expect(false, C_Object_Object, B_int_num);
-    expect(true, C_Object_Object, B_dynamic_dynamic, expectMoreSpecific: false);
+    expect(true, C_Object_Object, B_dynamic_dynamic);
     expect(false, C_Object_Object, B_String_dynamic);
 
     expect(true, C_num_num, B_Object_Object);
     expect(true, C_num_num, B_num_num);
     expect(false, C_num_num, B_int_num);
-    expect(true, C_num_num, B_dynamic_dynamic, expectMoreSpecific: false);
+    expect(true, C_num_num, B_dynamic_dynamic);
     expect(false, C_num_num, B_String_dynamic);
 
     expect(true, C_int_String, B_Object_Object);
     expect(false, C_int_String, B_num_num);
     expect(false, C_int_String, B_int_num);
-    expect(true, C_int_String, B_dynamic_dynamic, expectMoreSpecific: false);
-    expect(true, C_int_String, B_String_dynamic, expectMoreSpecific: false);
+    expect(true, C_int_String, B_dynamic_dynamic);
+    expect(true, C_int_String, B_String_dynamic);
 
-    expect(true, C_dynamic_dynamic, B_Object_Object);
-    expect(true, C_dynamic_dynamic, B_num_num);
-    expect(true, C_dynamic_dynamic, B_int_num);
+    expect(true, C_dynamic_dynamic, B_Object_Object, expectMoreSpecific: false);
+    expect(true, C_dynamic_dynamic, B_num_num, expectMoreSpecific: false);
+    expect(true, C_dynamic_dynamic, B_int_num, expectMoreSpecific: false);
     expect(true, C_dynamic_dynamic, B_dynamic_dynamic);
-    expect(true, C_dynamic_dynamic, B_String_dynamic);
+    expect(true, C_dynamic_dynamic, B_String_dynamic,
+           expectMoreSpecific: false);
 
     expect(false, C_int_String, A_int);
     expect(true, C_int_String, A_String);
@@ -586,7 +587,7 @@ void testTypeVariableSubtype() {
     expect(false, A_T, num_);
     expect(false, A_T, int_);
     expect(false, A_T, String_);
-    expect(true, A_T, dynamic_, expectMoreSpecific: false);
+    expect(true, A_T, dynamic_);
     expect(true, A_T, A_T);
     expect(false, A_T, B_T);
 
@@ -595,7 +596,7 @@ void testTypeVariableSubtype() {
     expect(false, B_T, num_);
     expect(false, B_T, int_);
     expect(false, B_T, String_);
-    expect(true, B_T, dynamic_, expectMoreSpecific: false);
+    expect(true, B_T, dynamic_);
     expect(true, B_T, B_T);
     expect(false, B_T, A_T);
 
@@ -604,7 +605,7 @@ void testTypeVariableSubtype() {
     expect(true, C_T, num_);
     expect(false, C_T, int_);
     expect(false, C_T, String_);
-    expect(true, C_T, dynamic_, expectMoreSpecific: false);
+    expect(true, C_T, dynamic_);
     expect(true, C_T, C_T);
     expect(false, C_T, A_T);
 
@@ -613,7 +614,7 @@ void testTypeVariableSubtype() {
     expect(true, D_T, num_);
     expect(true, D_T, int_);
     expect(false, D_T, String_);
-    expect(true, D_T, dynamic_, expectMoreSpecific: false);
+    expect(true, D_T, dynamic_);
     expect(true, D_T, D_T);
     expect(false, D_T, A_T);
 
@@ -622,7 +623,7 @@ void testTypeVariableSubtype() {
     expect(true, E_T, num_);
     expect(false, E_T, int_);
     expect(false, E_T, String_);
-    expect(true, E_T, dynamic_, expectMoreSpecific: false);
+    expect(true, E_T, dynamic_);
     expect(true, E_T, E_T);
     expect(true, E_T, E_S);
     expect(false, E_T, A_T);
@@ -631,7 +632,7 @@ void testTypeVariableSubtype() {
     expect(true, E_S, num_);
     expect(false, E_S, int_);
     expect(false, E_S, String_);
-    expect(true, E_S, dynamic_, expectMoreSpecific: false);
+    expect(true, E_S, dynamic_);
     expect(false, E_S, E_T);
     expect(true, E_S, E_S);
     expect(false, E_S, A_T);
@@ -641,7 +642,7 @@ void testTypeVariableSubtype() {
     expect(true, F_T, num_);
     expect(false, F_T, int_);
     expect(false, F_T, String_);
-    expect(true, F_T, dynamic_, expectMoreSpecific: false);
+    expect(true, F_T, dynamic_);
     expect(false, F_T, F_S);
     expect(true, F_T, F_T);
     expect(false, F_T, A_T);
@@ -650,7 +651,7 @@ void testTypeVariableSubtype() {
     expect(true, F_S, num_);
     expect(false, F_S, int_);
     expect(false, F_S, String_);
-    expect(true, F_S, dynamic_, expectMoreSpecific: false);
+    expect(true, F_S, dynamic_);
     expect(true, F_S, F_S);
     expect(true, F_S, F_T);
     expect(false, F_S, A_T);
@@ -660,7 +661,7 @@ void testTypeVariableSubtype() {
     expect(false, G_T, num_);
     expect(false, G_T, int_);
     expect(false, G_T, String_);
-    expect(true, G_T, dynamic_, expectMoreSpecific: false);
+    expect(true, G_T, dynamic_);
     expect(true, G_T, G_T);
     expect(false, G_T, A_T);
 
@@ -669,7 +670,7 @@ void testTypeVariableSubtype() {
     expect(false, H_T, num_);
     expect(false, H_T, int_);
     expect(false, H_T, String_);
-    expect(true, H_T, dynamic_, expectMoreSpecific: false);
+    expect(true, H_T, dynamic_);
     expect(true, H_T, H_T);
     expect(true, H_T, H_S);
     expect(false, H_T, A_T);
@@ -678,7 +679,7 @@ void testTypeVariableSubtype() {
     expect(false, H_S, num_);
     expect(false, H_S, int_);
     expect(false, H_S, String_);
-    expect(true, H_S, dynamic_, expectMoreSpecific: false);
+    expect(true, H_S, dynamic_);
     expect(true, H_S, H_T);
     expect(true, H_S, H_S);
     expect(false, H_S, A_T);
@@ -688,7 +689,7 @@ void testTypeVariableSubtype() {
     expect(false, I_T, num_);
     expect(false, I_T, int_);
     expect(false, I_T, String_);
-    expect(true, I_T, dynamic_, expectMoreSpecific: false);
+    expect(true, I_T, dynamic_);
     expect(true, I_T, I_T);
     expect(true, I_T, I_S);
     expect(true, I_T, I_U);
@@ -698,7 +699,7 @@ void testTypeVariableSubtype() {
     expect(false, I_S, num_);
     expect(false, I_S, int_);
     expect(false, I_S, String_);
-    expect(true, I_S, dynamic_, expectMoreSpecific: false);
+    expect(true, I_S, dynamic_);
     expect(true, I_S, I_T);
     expect(true, I_S, I_S);
     expect(true, I_S, I_U);
@@ -708,7 +709,7 @@ void testTypeVariableSubtype() {
     expect(false, I_U, num_);
     expect(false, I_U, int_);
     expect(false, I_U, String_);
-    expect(true, I_U, dynamic_, expectMoreSpecific: false);
+    expect(true, I_U, dynamic_);
     expect(true, I_U, I_T);
     expect(true, I_U, I_S);
     expect(true, I_U, I_U);
@@ -719,7 +720,7 @@ void testTypeVariableSubtype() {
     expect(false, J_T, num_);
     expect(false, J_T, int_);
     expect(false, J_T, String_);
-    expect(true, J_T, dynamic_, expectMoreSpecific: false);
+    expect(true, J_T, dynamic_);
     expect(true, J_T, J_T);
     expect(true, J_T, J_S);
     expect(true, J_T, J_U);
@@ -729,7 +730,7 @@ void testTypeVariableSubtype() {
     expect(false, J_S, num_);
     expect(false, J_S, int_);
     expect(false, J_S, String_);
-    expect(true, J_S, dynamic_, expectMoreSpecific: false);
+    expect(true, J_S, dynamic_);
     expect(false, J_S, J_T);
     expect(true, J_S, J_S);
     expect(true, J_S, J_U);
@@ -739,7 +740,7 @@ void testTypeVariableSubtype() {
     expect(false, J_U, num_);
     expect(false, J_U, int_);
     expect(false, J_U, String_);
-    expect(true, J_U, dynamic_, expectMoreSpecific: false);
+    expect(true, J_U, dynamic_);
     expect(false, J_U, J_T);
     expect(true, J_U, J_S);
     expect(true, J_U, J_U);

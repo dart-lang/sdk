@@ -163,16 +163,16 @@ bailout3_test: fail # test issue 14289
 prefix9_test: fail # test issue 14289
 
 # test issue 14358, E does not implement inherited A.+
-type_promotion_closure_test/none: Fail
-
-# test issue 14362, wrong assumption that dynamic << A
-type_promotion_functions_test/none: Fail
+type_promotion_closure_test/01: Fail
+type_promotion_closure_test/02: Fail
 
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
 
 # test issue 14364, "E<A> << D"
-type_promotion_more_specific_test/08: fail
+type_promotion_more_specific_test/09: Fail
+type_promotion_more_specific_test/10: Fail
+type_promotion_more_specific_test/11: Fail
 
 # test issue 14406, setter for final field was removed from spec
 implicit_setter_test/01: fail
@@ -459,10 +459,6 @@ try_catch4_test: StaticWarning
 try_catch5_test: StaticWarning
 type_argument_in_super_type_test: StaticWarning
 typed_selector2_test: StaticWarning
-type_promotion_closure_test/05: StaticWarning
-type_promotion_closure_test/08: StaticWarning
-type_promotion_more_specific_test/06: StaticWarning
-type_promotion_more_specific_test/07: StaticWarning
 type_variable_bounds2_test/05: StaticWarning
 type_variable_bounds3_test/00: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
