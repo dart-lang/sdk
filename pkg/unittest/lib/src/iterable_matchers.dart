@@ -58,6 +58,12 @@ class _EveryElement extends _IterableMatcher {
 }
 
 /**
+ * Deprecated form of [anyElement].
+ */
+@deprecated
+Matcher someElement(matcher) => new _AnyElement(wrapMatcher(matcher));
+
+/**
  * Returns a matcher which matches [Iterable]s in which at least one
  * element matches the given [matcher].
  */
@@ -225,7 +231,7 @@ class _PairwiseCompare extends _IterableMatcher {
     }
     return true;
   }
-
+    
   Description describe(Description description) =>
       description.add('pairwise $_description ').addDescriptionOf(_expected);
 

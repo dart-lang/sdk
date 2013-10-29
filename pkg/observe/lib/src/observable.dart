@@ -171,6 +171,21 @@ abstract class Observable {
   }
 }
 
+/**
+ * *Deprecated* use [Observable.notifyPropertyChange] instead.
+ *
+ * This API should not be used as it creates a
+ * [PropertyChangeRecord] without oldValue and newValue.
+ *
+ * Notify the property change. Shorthand for:
+ *
+ *     target.notifyChange(new PropertyChangeRecord(target, name, null, null));
+ */
+@deprecated
+void notifyProperty(Observable target, Symbol name) {
+  target.notifyChange(new PropertyChangeRecord(target, name, null, null));
+}
+
 // TODO(jmesserly): remove the instance method and make this top-level method
 // public instead?
 _notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
