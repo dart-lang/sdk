@@ -292,13 +292,17 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   // Methods required by ListMixin
 
-  E operator [](int index) {
-    _checkIndex(index);
+  E operator [](index) {
+    if (index is int) {
+      _checkIndex(index);
+    }
     return super[index];
   }
 
-  void operator []=(int index, E value) {
-    _checkIndex(index);
+  void operator []=(index, E value) {
+    if(index is int) {
+      _checkIndex(index);
+    }
     super[index] = value;
   }
 
