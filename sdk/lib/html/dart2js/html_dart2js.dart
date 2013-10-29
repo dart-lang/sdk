@@ -28248,28 +28248,89 @@ typedef EventListener(Event event);
 
 
 /**
- * Adapter for exposing DOM events as Dart streams.
+ * A factory to expose DOM events as Streams.
  */
-class _EventStream<T extends Event> extends Stream<T> {
-  final EventTarget _target;
+class EventStreamProvider<T extends Event> {
   final String _eventType;
-  final bool _useCapture;
 
-  _EventStream(this._target, this._eventType, this._useCapture);
+  const EventStreamProvider(this._eventType);
 
-  // DOM events are inherently multi-subscribers.
-  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
-                               void onCancel(StreamSubscription subscription)})
-      => this;
-  bool get isBroadcast => true;
+  /**
+   * Gets a [Stream] for this event type, on the specified target.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
+   *
+   *     // Alternate method:
+   *     Element.keyDownEvent.forTarget(element).capture(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+    new _EventStream(e, _eventType, useCapture);
 
-  StreamSubscription<T> listen(void onData(T event),
-      { Function onError,
-        void onDone(),
-        bool cancelOnError}) {
+  /**
+   * Gets an [ElementEventStream] for this event type, on the specified element.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
+   *
+   *     // Alternate method:
+   *     Element.keyDownEvent.forElement(element).capture(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forElement(document.body).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+  }
 
-    return new _EventStreamSubscription<T>(
-        this._target, this._eventType, onData, this._useCapture);
+  /**
+   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent._forElementList(element, useCapture: true).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
+  }
+
+  /**
+   * Gets the type of the event which this would listen for on the specified
+   * event target.
+   *
+   * The target is necessary because some browsers may use different event names
+   * for the same purpose and the target allows differentiating browser support.
+   */
+  String getEventType(EventTarget target) {
+    return _eventType;
   }
 }
 
@@ -28299,6 +28360,32 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    * from the W3C DOM Events specification.
    */
   StreamSubscription<T> capture(void onData(T event));
+}
+
+/**
+ * Adapter for exposing DOM events as Dart streams.
+ */
+class _EventStream<T extends Event> extends Stream<T> {
+  final EventTarget _target;
+  final String _eventType;
+  final bool _useCapture;
+
+  _EventStream(this._target, this._eventType, this._useCapture);
+
+  // DOM events are inherently multi-subscribers.
+  Stream<T> asBroadcastStream({void onListen(StreamSubscription subscription),
+                               void onCancel(StreamSubscription subscription)})
+      => this;
+  bool get isBroadcast => true;
+
+  StreamSubscription<T> listen(void onData(T event),
+      { Function onError,
+        void onDone(),
+        bool cancelOnError}) {
+
+    return new _EventStreamSubscription<T>(
+        this._target, this._eventType, onData, this._useCapture);
+  }
 }
 
 /**
@@ -28365,6 +28452,83 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
                                void onCancel(StreamSubscription subscription)})
       => this;
   bool get isBroadcast => true;
+}
+
+class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+  int _pauseCount = 0;
+  EventTarget _target;
+  final String _eventType;
+  var _onData;
+  final bool _useCapture;
+
+  _EventStreamSubscription(this._target, this._eventType, onData,
+      this._useCapture) : _onData = _wrapZone(onData) {
+    _tryResume();
+  }
+
+  void cancel() {
+    if (_canceled) return;
+
+    _unlisten();
+    // Clear out the target to indicate this is complete.
+    _target = null;
+    _onData = null;
+  }
+
+  bool get _canceled => _target == null;
+
+  void onData(void handleData(T event)) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    // Remove current event listener.
+    _unlisten();
+
+    _onData = _wrapZone(handleData);
+    _tryResume();
+  }
+
+  /// Has no effect.
+  void onError(Function handleError) {}
+
+  /// Has no effect.
+  void onDone(void handleDone()) {}
+
+  void pause([Future resumeSignal]) {
+    if (_canceled) return;
+    ++_pauseCount;
+    _unlisten();
+
+    if (resumeSignal != null) {
+      resumeSignal.whenComplete(resume);
+    }
+  }
+
+  bool get isPaused => _pauseCount > 0;
+
+  void resume() {
+    if (_canceled || !isPaused) return;
+    --_pauseCount;
+    _tryResume();
+  }
+
+  void _tryResume() {
+    if (_onData != null && !isPaused) {
+      _target.addEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+
+  void _unlisten() {
+    if (_onData != null) {
+      _target.removeEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
+  }
 }
 
 /**
@@ -28477,170 +28641,6 @@ class _StreamPool<T> {
     }
     _subscriptions.clear();
     _controller.close();
-  }
-}
-
-class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
-  int _pauseCount = 0;
-  EventTarget _target;
-  final String _eventType;
-  var _onData;
-  final bool _useCapture;
-
-  _EventStreamSubscription(this._target, this._eventType, onData,
-      this._useCapture) : _onData = _wrapZone(onData) {
-    _tryResume();
-  }
-
-  void cancel() {
-    if (_canceled) return;
-
-    _unlisten();
-    // Clear out the target to indicate this is complete.
-    _target = null;
-    _onData = null;
-  }
-
-  bool get _canceled => _target == null;
-
-  void onData(void handleData(T event)) {
-    if (_canceled) {
-      throw new StateError("Subscription has been canceled.");
-    }
-    // Remove current event listener.
-    _unlisten();
-
-    _onData = _wrapZone(handleData);
-    _tryResume();
-  }
-
-  /// Has no effect.
-  void onError(Function handleError) {}
-
-  /// Has no effect.
-  void onDone(void handleDone()) {}
-
-  void pause([Future resumeSignal]) {
-    if (_canceled) return;
-    ++_pauseCount;
-    _unlisten();
-
-    if (resumeSignal != null) {
-      resumeSignal.whenComplete(resume);
-    }
-  }
-
-  bool get isPaused => _pauseCount > 0;
-
-  void resume() {
-    if (_canceled || !isPaused) return;
-    --_pauseCount;
-    _tryResume();
-  }
-
-  void _tryResume() {
-    if (_onData != null && !isPaused) {
-      _target.addEventListener(_eventType, _onData, _useCapture);
-    }
-  }
-
-  void _unlisten() {
-    if (_onData != null) {
-      _target.removeEventListener(_eventType, _onData, _useCapture);
-    }
-  }
-
-  Future asFuture([var futureValue]) {
-    // We just need a future that will never succeed or fail.
-    Completer completer = new Completer();
-    return completer.future;
-  }
-}
-
-/**
- * A factory to expose DOM events as Streams.
- */
-class EventStreamProvider<T extends Event> {
-  final String _eventType;
-
-  const EventStreamProvider(this._eventType);
-
-  /**
-   * Gets a [Stream] for this event type, on the specified target.
-   *
-   * This will always return a broadcast stream so multiple listeners can be
-   * used simultaneously.
-   *
-   * This may be used to capture DOM events:
-   *
-   *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
-   *
-   *     // Alternate method:
-   *     Element.keyDownEvent.forTarget(element).capture(...);
-   *
-   * Or for listening to an event which will bubble through the DOM tree:
-   *
-   *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
-   *
-   * See also:
-   *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
-   */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
-    new _EventStream(e, _eventType, useCapture);
-
-  /**
-   * Gets an [ElementEventStream] for this event type, on the specified element.
-   *
-   * This will always return a broadcast stream so multiple listeners can be
-   * used simultaneously.
-   *
-   * This may be used to capture DOM events:
-   *
-   *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
-   *
-   *     // Alternate method:
-   *     Element.keyDownEvent.forElement(element).capture(...);
-   *
-   * Or for listening to an event which will bubble through the DOM tree:
-   *
-   *     MediaElement.pauseEvent.forElement(document.body).listen(...);
-   *
-   * See also:
-   *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
-   */
-  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  /**
-   * Gets an [ElementEventStream] for this event type, on the list of elements.
-   *
-   * This will always return a broadcast stream so multiple listeners can be
-   * used simultaneously.
-   *
-   * This may be used to capture DOM events:
-   *
-   *     Element.keyDownEvent._forElementList(element, useCapture: true).listen(...);
-   *
-   * See also:
-   *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
-   */
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  /**
-   * Gets the type of the event which this would listen for on the specified
-   * event target.
-   *
-   * The target is necessary because some browsers may use different event names
-   * for the same purpose and the target allows differentiating browser support.
-   */
-  String getEventType(EventTarget target) {
-    return _eventType;
   }
 }
 
