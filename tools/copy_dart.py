@@ -106,11 +106,6 @@ def main(outdir = None, *inputs):
           or dirname(lib).endswith('dom/src')):
         continue
 
-      if lib.endswith('json/json.dart'):
-        # TODO(jmesserly): Dartium interprets "json.dart" as "dart_json.dart",
-        # so we need that add dart_json.dart here. This is hacky.
-        lib = lib.replace('json.dart', 'dart_json.dart')
-
       library = parseLibrary(lib)
 
       # Ensure output directory exists
