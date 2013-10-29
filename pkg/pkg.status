@@ -363,7 +363,6 @@ intl/test/date_time_format_file_odd_test: StaticWarning
 intl/test/date_time_format_http_request_test: StaticWarning
 intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
-mutation_observer/test/mutation_observer_test: StaticWarning
 observe/test/list_change_test: StaticWarning
 observe/test/observable_list_test: StaticWarning
 observe/test/observable_map_test: StaticWarning
