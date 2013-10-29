@@ -460,8 +460,8 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _dataSink.add(data);
   }
 
-  void addError(error) {
-    _dataSink.addError(error);
+  void addError(error, [StackTrace stackTrace]) {
+    _dataSink.addError(error, stackTrace);
   }
 
   Future<T> addStream(Stream<List<int>> stream) {
@@ -2244,7 +2244,8 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void add(List<int> bytes) => _socket.add(bytes);
 
-  void addError(error) => _socket.addError(error);
+  void addError(error, [StackTrace stackTrace]) =>
+      _socket.addError(error, stackTrace);
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     return _socket.addStream(stream);

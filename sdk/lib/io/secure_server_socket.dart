@@ -210,6 +210,11 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   int get port => _socket.port;
 
   /**
+   * Returns the address used by this socket.
+   */
+  InternetAddress get address => _socket.address;
+
+  /**
    * Closes the socket. The returned future completes when the socket
    * is fully closed and is no longer bound.
    */

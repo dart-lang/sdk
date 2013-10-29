@@ -13,6 +13,8 @@ const SYSTEM_ENCODING = const SystemEncoding();
 class SystemEncoding extends Encoding {
   const SystemEncoding();
 
+  String get name => 'system';
+
   List<int> encode(String input) => encoder.convert(input);
   String decode(List<int> encoded) => decoder.convert(encoded);
 
