@@ -67,7 +67,7 @@ class BuildCommand extends PubCommand {
       // in the generated JavaScript.
       assets = assets.where((asset) => asset.id.extension != ".dart");
 
-      return Future.forEach(assets, (asset) {
+      return Future.wait(assets.map((asset) {
         // Figure out the output directory for the asset, which is the same
         // as the path pub serve would use to serve it.
         var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id);
@@ -81,7 +81,7 @@ class BuildCommand extends PubCommand {
         ensureDir(path.dirname(destPath));
         // TODO(rnystrom): Should we display this to the user?
         return createFileFromStream(asset.read(), destPath);
-      }).then((_) {
+      })).then((_) {
         _copyBrowserJsFiles(dart2jsTransformer.entrypoints);
         // TODO(rnystrom): Should this count include the JS files?
         log.message("Built ${assets.length} files!");
@@ -101,8 +101,8 @@ class BuildCommand extends PubCommand {
   /// directories next to each entrypoint in [entrypoints].
   void _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
     // Must depend on the browser package.
-    if (!entrypoint.root.dependencies.any((dep) =>
-        dep.name == 'browser' && dep.source == 'hosted')) {
+    if (!entrypoint.root.dependencies.any(
+        (dep) => dep.name == 'browser' && dep.source == 'hosted')) {
       return;
     }
 
