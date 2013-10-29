@@ -662,8 +662,7 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
     _target.addError(error);
   }
   Future close() => _target.close();
-  Future addStream(Stream<T> source, { bool cancelOnError: true})
-      => _target.addStream(source, cancelOnError: cancelOnError);
+  Future addStream(Stream<T> source) => _target.addStream(source);
   Future get done => _target.done;
 }
 
