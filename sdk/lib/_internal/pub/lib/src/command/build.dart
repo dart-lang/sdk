@@ -21,10 +21,10 @@ final _arrow = getSpecial('\u2192', '=>');
 
 /// Handles the `build` pub command.
 class BuildCommand extends PubCommand {
-  final description = "Copy and compile all Dart entrypoints in the 'web' "
-      "directory.";
-  final usage = "pub build [options]";
-  final aliases = const ["deploy", "settle-up"];
+  String get description =>
+      "Copy and compile all Dart entrypoints in the 'web' directory.";
+  String get usage => "pub build [options]";
+  List<String> get aliases => const ["deploy", "settle-up"];
 
   // TODO(nweiz): make these configurable.
   /// The path to the source directory of the application.

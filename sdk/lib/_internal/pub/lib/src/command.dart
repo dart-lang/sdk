@@ -123,7 +123,8 @@ and include the results in a bug report on http://dartbug.com/new.
     new Future.sync(() {
       // Make sure there aren't unexpected arguments.
       if (!takesArguments && commandOptions.rest.isNotEmpty) {
-        log.error('Command does not take any arguments.');
+        log.error('Command "${commandOptions.name}" does not take any '
+                  'arguments.');
         this.printUsage();
         return flushThenExit(exit_codes.USAGE);
       }

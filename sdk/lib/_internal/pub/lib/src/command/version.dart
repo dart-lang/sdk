@@ -12,11 +12,11 @@ import '../sdk.dart' as sdk;
 
 /// Handles the `version` pub command.
 class VersionCommand extends PubCommand {
-  String get description => 'Print pub version.';
-  String get usage => 'pub version';
+  String get description => "Print pub version.";
+  String get usage => "pub version";
   bool get requiresEntrypoint => false;
 
   Future onRun() {
-    log.message('Pub ${sdk.version}');
+    log.message("Pub ${sdk.version}");
   }
 }

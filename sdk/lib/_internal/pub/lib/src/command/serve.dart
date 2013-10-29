@@ -22,7 +22,7 @@ final _arrow = getSpecial('\u2192', '=>');
 /// Handles the `serve` pub command.
 class ServeCommand extends PubCommand {
   String get description => "Run a local web development server.";
-  String get usage => 'pub serve';
+  String get usage => "pub serve";
 
   PubPackageProvider _provider;
 

@@ -19,9 +19,10 @@ import '../source/hosted.dart';
 
 /// Handles the `uploader` pub command.
 class UploaderCommand extends PubCommand {
-  final description = "Manage uploaders for a package on pub.dartlang.org.";
-  final usage = "pub uploader [options] {add/remove} <email>";
-  final requiresEntrypoint = false;
+  String get description =>
+      "Manage uploaders for a package on pub.dartlang.org.";
+  String get usage => "pub uploader [options] {add/remove} <email>";
+  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 
   /// The URL of the package hosting server.

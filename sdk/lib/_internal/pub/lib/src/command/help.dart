@@ -14,7 +14,7 @@ import '../log.dart' as log;
 /// Handles the `help` pub command.
 class HelpCommand extends PubCommand {
   String get description => "Display help information for Pub.";
-  String get usage => 'pub help [command]';
+  String get usage => "pub help [command]";
   bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 

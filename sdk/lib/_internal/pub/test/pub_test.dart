@@ -123,7 +123,7 @@ main() {
          -h, --help    Print usage information for this command.
         ''',
         error: '''
-        Command does not take any arguments.
+        Command "version" does not take any arguments.
         ''',
         exitCode: 64);
   });
