@@ -274,8 +274,6 @@ unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
 unittest/test/unitttest_group_name_test: Fail # 13921
-template_binding/test/template_element_test: Pass, Fail # Flaky, 14330
-polymer_expressions/test/bindings_test: Pass, Fail # Flaky, 14330
 polymer/test/custom_event_test: Pass, Crash # 14360
 polymer/example/canonicalization/test/canonicalization_deploy_test: Fail, OK # tests deploy only behavior
 
@@ -307,12 +305,10 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 [ $compiler == dartanalyzer ]
 # pkg issue 13944; Missing inherited member 'Observable._mirror'
 custom_element/test/analyzer_test: fail
-template_binding/test/analyzer_test: fail
 
 [ $compiler == dart2analyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
-template_binding/test/analyzer_test: fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 barback/test/asset_id_test: StaticWarning
@@ -366,7 +362,6 @@ polymer_expressions/test/globals_test: StaticWarning
 polymer_expressions/test/syntax_test: StaticWarning
 polymer/test/attr_deserialize_test: StaticWarning
 polymer/test/attr_mustache_test: StaticWarning
-polymer/test/bind_mdv_test: StaticWarning
 polymer/test/bind_test: StaticWarning
 polymer/test/build/all_phases_test: CompileTimeError, StaticWarning
 polymer/test/build/code_extractor_test: CompileTimeError, StaticWarning
@@ -411,11 +406,6 @@ scheduled_test/test/scheduled_test/task_return_value_test: StaticWarning
 scheduled_test/test/scheduled_test/timeout_test: StaticWarning
 scheduled_test/test/scheduled_test/wrap_async_test: StaticWarning
 scheduled_test/test/scheduled_test/wrap_future_test: StaticWarning
-template_binding/test/binding_syntax_test: StaticWarning
-template_binding/test/custom_element_bindings_test: StaticWarning
-template_binding/test/element_bindings_test: StaticWarning
-template_binding/test/node_bindings_test: StaticWarning
-template_binding/test/template_element_test: StaticWarning
 unittest/test/matchers_test: StaticWarning
 unittest/test/mock_test: StaticWarning
 watcher/test/directory_watcher_test: StaticWarning

@@ -24,11 +24,17 @@ import 'dart:html';
 import 'dart:svg' show SvgSvgElement;
 import 'package:observe/observe.dart';
 
+import 'src/binding_delegate.dart';
+import 'src/node_binding.dart';
 import 'src/list_diff.dart' show calculateSplices, ListChangeDelta;
+
+export 'src/binding_delegate.dart';
+export 'src/node_binding.dart' show NodeBinding;
 
 part 'src/element.dart';
 part 'src/input_bindings.dart';
 part 'src/input_element.dart';
+part 'src/instance_binding_map.dart';
 part 'src/node.dart';
 part 'src/select_element.dart';
 part 'src/template.dart';
@@ -141,7 +147,7 @@ bool _isAttributeTemplate(Element n) => n.attributes.containsKey('template') &&
  * and COL), OPTION, and OPTGROUP.
  */
 bool isSemanticTemplate(Node n) => n is Element &&
-    ((n as Element).localName == 'template' || _isAttributeTemplate(n));
+    (n.localName == 'template' || _isAttributeTemplate(n));
 
 // TODO(jmesserly): const set would be better
 const _SEMANTIC_TEMPLATE_TAGS = const {

@@ -124,7 +124,7 @@ customElementBindingsTest() {
     var element = div.nodes[1];
 
     expect(element is MyCustomElement, true,
-        reason: '${element} should be a MyCustomElement');
+        reason: '$element should be a MyCustomElement');
 
     expect(element.myPoint, model['a']);
     expect(element.scaryMonster, model['b']);
@@ -179,6 +179,7 @@ class MyCustomElement extends HtmlElement implements NodeBindExtension {
   unbind(name) => nodeBindFallback(this).unbind(name);
   unbindAll() => nodeBindFallback(this).unbindAll();
   get bindings => nodeBindFallback(this).bindings;
+  get templateInstance => nodeBindFallback(this).templateInstance;
 }
 
 class _MyCustomBinding extends NodeBinding {

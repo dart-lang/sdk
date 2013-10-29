@@ -2,17 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library template_binding.test.node_bindings_test;
+library template_binding.test.node_bind_test;
 
 import 'dart:html';
 
-@MirrorsUsed(targets: const [NodeBinding], override:
-    'template_binding.test.node_bindings_test')
-import 'dart:mirrors';
-
 import 'package:observe/observe.dart' show toObservable, PathObserver;
-import 'package:template_binding/template_binding.dart'
-  show nodeBind, NodeBinding;
+import 'package:template_binding/template_binding.dart' show nodeBind;
+import 'package:template_binding/src/node_binding.dart' show getObserverForTest;
+
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
@@ -72,9 +69,6 @@ testBindings() {
   });
 
   observeTest('Observer is Model', () {
-    _observer(x) => reflect(x).getField(
-        privateSymbol(NodeBinding, '_observer')).reflectee;
-
     var text = new Text('');
     var model = toObservable({'a': {'b': {'c': 1}}});
     var observer = new PathObserver(model, 'a.b.c');
@@ -83,7 +77,7 @@ testBindings() {
 
     var binding = nodeBind(text).bindings['text'];
     expect(binding, isNotNull);
-    expect(privateField(binding, '_observer'), observer,
+    expect(getObserverForTest(binding), observer,
         reason: 'should reuse observer');
 
     model['a']['b']['c'] = 2;
@@ -653,18 +647,4 @@ formBindings() {
     performMicrotaskCheckpoint();
     expect(select.value, 'a');
   });
-}
-
-privateField(x, name) => reflect(x).getField(
-    privateSymbol(reflect(x).type, name)).reflectee;
-
-// TODO(jmesserly): fix this when it's easier to get a private symbol.
-privateSymbol(TypeMirror type, String name) {
-  while (type != null) {
-    var symbol = type.variables.keys.firstWhere(
-        (s) => MirrorSystem.getName(s) == name, orElse: () => null);
-    if (symbol != null) return symbol;
-    type = type.superclass;
-  }
-  return null;
 }

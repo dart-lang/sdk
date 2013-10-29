@@ -437,6 +437,8 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 
   Map<String, NodeBinding> get bindings => nodeBindFallback(this).bindings;
+  TemplateInstance get templateInstance =>
+      nodeBindFallback(this).templateInstance;
 
   void unbind(String name) => nodeBindFallback(this).unbind(name);
 
@@ -738,37 +740,39 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   // we implement this by wrapping/overriding getBinding instead.
   // TODO(sorvell): we're patching the syntax while evaluating
   // event bindings. we'll move this to a better spot when that's done
-  static getBindingWithEvents(
-      model, String path, name, node, originalGetBinding) {
+  static PrepareBindingFunction prepareBinding(String path, String name, node,
+      originalPrepareBinding) {
+
     // if lhs an event prefix,
-    if (name is! String || !_hasEventPrefix(name)) {
-      return originalGetBinding(model, path, name, node);
-    }
+    if (!_hasEventPrefix(name)) return originalPrepareBinding(path, name, node);
 
     // provide an event-binding callback.
-    // return (model, name, node) {
-    if (_eventsLog.isLoggable(Level.FINE)) {
-      _eventsLog.fine('event: [$node].$name => [$model].$path())');
-    }
-    var eventName = _removeEventPrefix(name);
-    // TODO(sigmund): polymer.js dropped event translations. reconcile?
-    var translated = _eventTranslations[eventName];
-    eventName = translated != null ? translated : eventName;
-    return node.on[eventName].listen((event) {
-      var ctrlr = _findController(node);
-      if (ctrlr is! Polymer) return;
-      var obj = ctrlr;
-      var method = path;
-      if (path[0] == '@') {
-        obj = model;
-        // Dart note: using getBinding gets us the result of evaluating the
-        // original path (without the @) as a normal expression.
-        method = originalGetBinding(model, path.substring(1), name, node).value;
+    return (model, node) {
+      if (_eventsLog.isLoggable(Level.FINE)) {
+        _eventsLog.fine('event: [$node].$name => [$model].$path())');
       }
-      var detail = event is CustomEvent ?
-          (event as CustomEvent).detail : null;
-      ctrlr.dispatchMethod(obj, method, [event, detail, node]);
-    });
+      var eventName = _removeEventPrefix(name);
+      // TODO(sigmund): polymer.js dropped event translations. reconcile?
+      var translated = _eventTranslations[eventName];
+      eventName = translated != null ? translated : eventName;
+
+      // TODO(jmesserly): returning a StreamSubscription as the model is quite
+      // strange. package:template_binding doesn't have any cleanup logic to
+      // handle that.
+      return node.on[eventName].listen((event) {
+        var ctrlr = _findController(node);
+        if (ctrlr is! Polymer) return;
+        var obj = ctrlr;
+        var method = path;
+        if (path[0] == '@') {
+          obj = model;
+          method = new PathObserver(model, path.substring(1)).value;
+        }
+        var detail = event is CustomEvent ?
+            (event as CustomEvent).detail : null;
+        ctrlr.dispatchMethod(obj, method, [event, detail, node]);
+      });
+    };
   }
 
   // TODO(jmesserly): this won't find the correct host unless the ShadowRoot
@@ -1073,8 +1077,6 @@ class _PropertyValue {
 }
 
 class _PolymerExpressionsWithEventDelegate extends PolymerExpressions {
-  getBinding(model, String path, name, node) {
-    return Polymer.getBindingWithEvents(
-        model, path, name, node, super.getBinding);
-  }
+  prepareBinding(String path, name, node) =>
+      Polymer.prepareBinding(path, name, node, super.prepareBinding);
 }

@@ -148,11 +148,12 @@ class _SelectBinding extends _InputBinding {
     // Instead we use scheduleMicrotask. Each <template repeat> needs a delay of
     // 2:
     //   * once to happen after the child _TemplateIterator is created
-    //   * once to be after _TemplateIterator.inputs CompoundBinding resolve
+    //   * once to be after _TemplateIterator's CompoundPathObserver resolve
     // And then we need to do this delay sequence twice:
     //   * once for OPTGROUP
     //   * once for OPTION.
     // The resulting 2 * 2 is our maxRetries.
+    //
     // TODO(jmesserly): a much better approach would be to find the nested
     // <template> and wait on some future that completes when it has expanded.
     var maxRetries = 4;

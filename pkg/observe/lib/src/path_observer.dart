@@ -29,6 +29,10 @@ import 'package:observe/src/observable.dart' show objectType;
  *
  * This class is used to implement [Node.bind] and similar functionality.
  */
+// TODO(jmesserly): consider specialized subclasses for:
+// * empty path
+// * "value"
+// * single token in path, e.g. "foo"
 class PathObserver extends ChangeNotifier {
   /** The path string. */
   final String path;
@@ -40,13 +44,22 @@ class PathObserver extends ChangeNotifier {
   List<Object> _values;
   List<StreamSubscription> _subs;
 
+  final Function _computeValue;
+
   /**
    * Observes [path] on [object] for changes. This returns an object that can be
    * used to get the changes and get/set the value at this path.
+   *
+   * You can optionally use [computeValue] to apply a function to the result of
+   * evaluating the path. The function should be pure, as PathObserver will not
+   * know to observe any of its dependencies. If you need to observe mutliple
+   * values, use [CompoundPathObserver] instead.
+   *
    * See [PathObserver.bindSync] and [PathObserver.value].
    */
-  PathObserver(Object object, String path)
+  PathObserver(Object object, String path, {computeValue(newValue)})
       : path = path,
+        _computeValue = computeValue,
         _isValid = _isPathValid(path),
         _segments = <Object>[] {
 
@@ -62,11 +75,19 @@ class PathObserver extends ChangeNotifier {
     // Note that the path itself can't change after it is initially
     // constructed, even though the objects along the path can change.
     _values = new List<Object>(_segments.length + 1);
+
+    // If we have an empty path, we need to apply the transformation function
+    // to the value. The "value" property should always show the transformed
+    // value.
+    if (_segments.isEmpty && computeValue != null) {
+      object = computeValue(object);
+    }
+
     _values[0] = object;
     _subs = new List<StreamSubscription>(_segments.length);
   }
 
-  /** The object being observed. */
+  /** The object being observed. If the path is empty this will be [value]. */
   get object => _values[0];
 
   /** Gets the last reported value at this path. */
@@ -77,7 +98,7 @@ class PathObserver extends ChangeNotifier {
   }
 
   /** Sets the value at this path. */
-  @reflectable void set value(Object value) {
+  @reflectable void set value(Object newValue) {
     int len = _segments.length;
 
     // TODO(jmesserly): throw if property cannot be set?
@@ -85,11 +106,11 @@ class PathObserver extends ChangeNotifier {
     if (len == 0) return;
     if (!hasObservers) _updateValues(end: len - 1);
 
-    if (_setObjectProperty(_values[len - 1], _segments[len - 1], value)) {
+    if (_setObjectProperty(_values[len - 1], _segments[len - 1], newValue)) {
       // Technically, this would get updated asynchronously via a change record.
       // However, it is nice if calling the getter will yield the same value
       // that was just set. So we use this opportunity to update our cache.
-      _values[len] = value;
+      _values[len] = newValue;
     }
   }
 
@@ -123,16 +144,24 @@ class PathObserver extends ChangeNotifier {
   // TODO(jmesserly): should we be caching these values if not observing?
   void _updateValues({int end}) {
     if (end == null) end = _segments.length;
+    int last = _segments.length - 1;
     for (int i = 0; i < end; i++) {
-      _values[i + 1] = _getObjectProperty(_values[i], _segments[i]);
+      var newValue = _getObjectProperty(_values[i], _segments[i]);
+      if (i == last && _computeValue != null) {
+        newValue = _computeValue(newValue);
+      }
+      _values[i + 1] = newValue;
     }
   }
 
   void _updateObservedValues({int start: 0}) {
     var oldValue, newValue;
-    for (int i = start; i < _segments.length; i++) {
+    for (int i = start, last = _segments.length - 1; i <= last; i++) {
       oldValue = _values[i + 1];
       newValue = _getObjectProperty(_values[i], _segments[i]);
+      if (i == last && _computeValue != null) {
+        newValue = _computeValue(newValue);
+      }
       if (identical(oldValue, newValue)) {
         _observePath(start, i);
         return;
@@ -157,16 +186,11 @@ class PathObserver extends ChangeNotifier {
     final object = _values[i];
     if (object is Observable) {
       // TODO(jmesserly): rather than allocating a new closure for each
-      // property, we could try and have one for the entire path. In that case,
-      // we would lose information about which object changed (note: unless
-      // PropertyChangeRecord is modified to includes the sender object), so
-      // we would need to re-evaluate the entire path. Need to evaluate perf.
+      // property, we could try and have one for the entire path. However we'd
+      // need to do a linear scan to find the index as soon as we got a change.
+      // Also we need to fix ListChangeRecord and MapChangeRecord to contain
+      // the target. Not sure if it's worth it.
       _subs[i] = object.changes.listen((List<ChangeRecord> records) {
-        if (!identical(_values[i], object)) {
-          // Ignore this object if we're now tracking something else.
-          return;
-        }
-
         for (var record in records) {
           if (_changeRecordMatches(record, _segments[i])) {
             _updateObservedValues(start: i);
