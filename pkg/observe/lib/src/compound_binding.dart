@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.compound_binding;
+
+import 'dart:async';
+import 'package:observe/observe.dart';
 
 /** The callback used in the [CompoundBinding.combinator] field. */
 typedef Object CompoundBindingCombinator(Map objects);
@@ -129,5 +132,5 @@ class CompoundBinding extends ChangeNotifier {
     value = null;
   }
 
-  _unobserved() => close();
+  unobserved() => close();
 }

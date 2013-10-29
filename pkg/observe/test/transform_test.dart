@@ -161,7 +161,7 @@ class _MockTransform implements Transform {
   readInputAsString(id, {encoding}) => throw new UnimplementedError();
 
   static void _mockLogFn(AssetId asset, LogLevel level, String message,
-                         Span span) {
+                         span) {
     // Do nothing.
   }
 }

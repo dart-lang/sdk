@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.list_path_observer;
+
+import 'dart:async';
+import 'package:observe/observe.dart';
 
 // Inspired by ArrayReduction at:
 // https://raw.github.com/rafaelw/ChangeSummary/master/util/array_reduction.js

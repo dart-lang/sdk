@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.bind_property;
+
+import 'dart:async';
+import 'package:observe/observe.dart';
 
 /**
  * Forwards an observable property from one object to another. For example:

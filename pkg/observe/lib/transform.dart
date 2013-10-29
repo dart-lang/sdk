@@ -256,11 +256,11 @@ void _mixinObservable(ClassDeclaration cls, TextEditTransaction code) {
 }
 
 SimpleIdentifier _getSimpleIdentifier(Identifier id) =>
-    id is PrefixedIdentifier ? (id as PrefixedIdentifier).identifier : id;
+    id is PrefixedIdentifier ? id.identifier : id;
 
 
 bool _hasKeyword(Token token, Keyword keyword) =>
-    token is KeywordToken && (token as KeywordToken).keyword == keyword;
+    token is KeywordToken && token.keyword == keyword;
 
 String _getOriginalCode(TextEditTransaction code, ASTNode node) =>
     code.original.substring(node.offset, node.end);

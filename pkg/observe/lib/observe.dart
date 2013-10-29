@@ -77,34 +77,15 @@
  */
 library observe;
 
-import 'dart:async';
-import 'dart:collection';
-
-// Note: ObservableProperty is in this list only for the unusual use case of
-// dart2js without deploy tool. The deploy tool (see "transformer.dart") will
-// add the @reflectable annotation, which makes it work with Polymer's
-// @published.
-@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
-    override: 'observe')
-import 'dart:mirrors';
-
-import 'package:meta/meta.dart';
-
-// Note: this is an internal library so we can import it from tests.
-// TODO(jmesserly): ideally we could import this with a prefix, but it caused
-// strange problems on the VM when I tested out the dirty-checking example
-// above.
-import 'src/dirty_check.dart';
-
-part 'src/bind_property.dart';
-part 'src/change_notifier.dart';
-part 'src/change_record.dart';
-part 'src/compound_binding.dart';
-part 'src/list_path_observer.dart';
-part 'src/metadata.dart';
-part 'src/observable.dart';
-part 'src/observable_box.dart';
-part 'src/observable_list.dart';
-part 'src/observable_map.dart';
-part 'src/path_observer.dart';
-part 'src/to_observable.dart';
+export 'src/bind_property.dart';
+export 'src/change_notifier.dart';
+export 'src/change_record.dart';
+export 'src/compound_binding.dart';
+export 'src/list_path_observer.dart';
+export 'src/metadata.dart';
+export 'src/observable.dart' hide notifyPropertyChangeHelper, objectType;
+export 'src/observable_box.dart';
+export 'src/observable_list.dart';
+export 'src/observable_map.dart';
+export 'src/path_observer.dart';
+export 'src/to_observable.dart';

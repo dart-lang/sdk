@@ -308,16 +308,11 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 # pkg issue 13944; Missing inherited member 'Observable._mirror'
 custom_element/test/analyzer_test: fail
 template_binding/test/analyzer_test: fail
-observe/test/observe_test: fail
 
 [ $compiler == dart2analyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
 template_binding/test/analyzer_test: fail
-observe/test/observe_test: fail
-
-# pkg issue 13945; Missing inherited member 'Trace.frames'
-observe/test/observe_test: fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 barback/test/asset_id_test: StaticWarning
@@ -363,11 +358,7 @@ intl/test/date_time_format_file_odd_test: StaticWarning
 intl/test/date_time_format_http_request_test: StaticWarning
 intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
-observe/test/list_change_test: StaticWarning
-observe/test/observable_list_test: StaticWarning
-observe/test/observable_map_test: StaticWarning
-observe/test/path_observer_test: StaticWarning
-observe/test/transform_test: CompileTimeError, StaticWarning
+observe/test/transform_test: StaticWarning
 polymer/example/component/news/test/news_index_test: StaticWarning
 polymer_expressions/test/bindings_test: StaticWarning
 polymer_expressions/test/eval_test: StaticWarning

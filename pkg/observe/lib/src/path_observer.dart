@@ -2,7 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.path_observer;
+
+import 'dart:async';
+@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
+    override: 'observe.src.path_observer')
+import 'dart:mirrors';
+import 'package:logging/logging.dart' show Logger, Level;
+import 'package:observe/observe.dart';
+import 'package:observe/src/observable.dart' show objectType;
 
 // This code is inspired by ChangeSummary:
 // https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
@@ -75,7 +83,7 @@ class PathObserver extends ChangeNotifier {
     // TODO(jmesserly): throw if property cannot be set?
     // MDV seems tolerant of these errors.
     if (len == 0) return;
-    if (!hasObservers) _updateValues();
+    if (!hasObservers) _updateValues(end: len - 1);
 
     if (_setObjectProperty(_values[len - 1], _segments[len - 1], value)) {
       // Technically, this would get updated asynchronously via a change record.
@@ -96,29 +104,31 @@ class PathObserver extends ChangeNotifier {
     return result;
   }
 
-  void _observed() {
-    super._observed();
+  void observed() {
+    super.observed();
     _updateValues();
     _observePath();
   }
 
-  void _unobserved() {
+  void unobserved() {
     for (int i = 0; i < _subs.length; i++) {
       if (_subs[i] != null) {
         _subs[i].cancel();
         _subs[i] = null;
       }
     }
+    super.unobserved();
   }
 
   // TODO(jmesserly): should we be caching these values if not observing?
-  void _updateValues() {
-    for (int i = 0; i < _segments.length; i++) {
+  void _updateValues({int end}) {
+    if (end == null) end = _segments.length;
+    for (int i = 0; i < end; i++) {
       _values[i + 1] = _getObjectProperty(_values[i], _segments[i]);
     }
   }
 
-  void _updateObservedValues([int start = 0]) {
+  void _updateObservedValues({int start: 0}) {
     var oldValue, newValue;
     for (int i = start; i < _segments.length; i++) {
       oldValue = _values[i + 1];
@@ -159,7 +169,7 @@ class PathObserver extends ChangeNotifier {
 
         for (var record in records) {
           if (_changeRecordMatches(record, _segments[i])) {
-            _updateObservedValues(i);
+            _updateObservedValues(start: i);
             return;
           }
         }
@@ -183,85 +193,78 @@ bool _changeRecordMatches(record, key) {
 }
 
 _getObjectProperty(object, property) {
-  if (object == null) {
-    return null;
-  }
+  if (object == null) return null;
 
-  if (object is List && property is int) {
-    if (property >= 0 && property < object.length) {
+  if (property is int) {
+    if (object is List && property >= 0 && property < object.length) {
       return object[property];
-    } else {
-      return null;
+    }
+  } else if (property is Symbol) {
+    var mirror = reflect(object);
+    final type = mirror.type;
+    try {
+      if (_maybeHasGetter(type, property)) {
+        return mirror.getField(property).reflectee;
+      }
+      // Support indexer if available, e.g. Maps or polymer_expressions Scope.
+      // This is the default syntax used by polymer/nodebind and
+      // polymer/observe-js PathObserver.
+      if (_hasMethod(type, const Symbol('[]'))) {
+        return object[MirrorSystem.getName(property)];
+      }
+    } on NoSuchMethodError catch (e) {
+      // Rethrow, unless the type implements noSuchMethod, in which case we
+      // interpret the exception as a signal that the method was not found.
+      if (!_hasMethod(type, #noSuchMethod)) rethrow;
     }
   }
 
-  if (property is Symbol) {
-    var mirror = reflect(object);
-    var result = _tryGetField(mirror, property);
-    if (result != null) return result.reflectee;
+  if (_logger.isLoggable(Level.FINER)) {
+    _logger.log("can't get $property in $object");
   }
-
-  if (object is Map) {
-    if (property is Symbol) property = MirrorSystem.getName(property);
-    return object[property];
-  }
-
   return null;
 }
 
 bool _setObjectProperty(object, property, value) {
-  if (object is List && property is int) {
-    if (property >= 0 && property < object.length) {
+  if (object == null) return false;
+
+  if (property is int) {
+    if (object is List && property >= 0 && property < object.length) {
       object[property] = value;
       return true;
-    } else {
-      return false;
+    }
+  } else if (property is Symbol) {
+    var mirror = reflect(object);
+    final type = mirror.type;
+    try {
+      if (_maybeHasSetter(type, property)) {
+        mirror.setField(property, value);
+        return true;
+      }
+      // Support indexer if available, e.g. Maps or polymer_expressions Scope.
+      if (_hasMethod(type, const Symbol('[]='))) {
+        object[MirrorSystem.getName(property)] = value;
+        return true;
+      }
+    } on NoSuchMethodError catch (e) {
+      if (!_hasMethod(type, #noSuchMethod)) rethrow;
     }
   }
 
-  if (property is Symbol) {
-    var mirror = reflect(object);
-    if (_trySetField(mirror, property, value)) return true;
+  if (_logger.isLoggable(Level.FINER)) {
+    _logger.log("can't set $property in $object");
   }
-
-  if (object is Map) {
-    if (property is Symbol) property = MirrorSystem.getName(property);
-    object[property] = value;
-    return true;
-  }
-
   return false;
 }
 
-InstanceMirror _tryGetField(InstanceMirror mirror, Symbol name) {
-  try {
-    return mirror.getField(name);
-  } on NoSuchMethodError catch (e) {
-    if (_hasMember(mirror, name, (m) =>
-        m is VariableMirror || m is MethodMirror && m.isGetter)) {
-      // The field/getter is there but threw a NoSuchMethod exception.
-      // This is a legitimate error in the code so rethrow.
-      rethrow;
-    }
-    // The field isn't there. PathObserver does not treat this as an error.
-    return null;
+bool _maybeHasGetter(ClassMirror type, Symbol name) {
+  while (type != objectType) {
+    final members = type.members;
+    if (members.containsKey(name)) return true;
+    if (members.containsKey(#noSuchMethod)) return true;
+    type = _safeSuperclass(type);
   }
-}
-
-bool _trySetField(InstanceMirror mirror, Symbol name, Object value) {
-  try {
-    mirror.setField(name, value);
-    return true;
-  } on NoSuchMethodError catch (e) {
-    if (_hasMember(mirror, name, (m) => m is VariableMirror) ||
-        _hasMember(mirror, _setterName(name))) {
-      // The field/setter is there but threw a NoSuchMethod exception.
-      // This is a legitimate error in the code so rethrow.
-      rethrow;
-    }
-    // The field isn't there. PathObserver does not treat this as an error.
-    return false;
-  }
+  return false;
 }
 
 // TODO(jmesserly): workaround for:
@@ -269,21 +272,39 @@ bool _trySetField(InstanceMirror mirror, Symbol name, Object value) {
 Symbol _setterName(Symbol getter) =>
     new Symbol('${MirrorSystem.getName(getter)}=');
 
-bool _hasMember(InstanceMirror mirror, Symbol name, [bool test(member)]) {
-  var type = mirror.type;
-  while (type != null) {
-    final member = type.members[name];
-    if (member != null && (test == null || test(member))) return true;
-
-    try {
-      type = type.superclass;
-    } on UnsupportedError catch (e) {
-      // TODO(jmesserly): dart2js throws this error when the type is not
-      // reflectable.
-      return false;
-    }
+bool _maybeHasSetter(ClassMirror type, Symbol name) {
+  var setterName = _setterName(name);
+  while (type != objectType) {
+    final members = type.members;
+    if (members[name] is VariableMirror) return true;
+    if (members.containsKey(setterName)) return true;
+    if (members.containsKey(#noSuchMethod)) return true;
+    type = _safeSuperclass(type);
   }
   return false;
+}
+
+/**
+ * True if the type has a method, other than on Object.
+ * Doesn't consider noSuchMethod, unless [name] is `#noSuchMethod`.
+ */
+bool _hasMethod(ClassMirror type, Symbol name) {
+  while (type != objectType) {
+    final member = type.members[name];
+    if (member is MethodMirror && member.isRegularMethod) return true;
+    type = _safeSuperclass(type);
+  }
+  return false;
+}
+
+ClassMirror _safeSuperclass(ClassMirror type) {
+  try {
+    return type.superclass;
+  } on UnsupportedError catch (e) {
+    // TODO(jmesserly): dart2js throws this error when the type is not
+    // reflectable.
+    return objectType;
+  }
 }
 
 // From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
@@ -307,3 +328,5 @@ bool _isPathValid(String s) {
   if (s[0] == '.') return false;
   return _pathRegExp.hasMatch(s);
 }
+
+final _logger = new Logger('observe.PathObserver');
