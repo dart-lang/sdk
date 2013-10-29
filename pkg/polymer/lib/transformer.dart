@@ -35,26 +35,29 @@ class PolymerTransformerGroup implements TransformerGroup {
 
 
 TransformOptions _parseArgs(Map args) {
-  var entryPoints;
-  if (args.containsKey('entry_points')) {
-    entryPoints = [];
-    var value = args['entry_points'];
-    bool error;
-    if (value is List) {
-      entryPoints = value;
-      error = value.any((e) => e is! String);
-    } else if (value is String) {
-      entryPoints = [value];
-      error = false;
-    } else {
-      error = true;
-    }
+  return new TransformOptions(
+      entryPoints: _readEntrypoints(args['entry_points']),
+      directlyIncludeJS: args['js'] != false, // default to true
+      contentSecurityPolicy: args['csp'] == true); // default to false
+}
 
-    if (error) {
-      print('Invalid value for "entry_points" in the polymer transformer.');
-    }
+_readEntrypoints(value) {
+  if (value == null) return null;
+  var entryPoints = [];
+  bool error;
+  if (value is List) {
+    entryPoints = value;
+    error = value.any((e) => e is! String);
+  } else if (value is String) {
+    entryPoints = [value];
+    error = false;
+  } else {
+    error = true;
   }
-  return new TransformOptions(entryPoints: entryPoints);
+  if (error) {
+    print('Invalid value for "entry_points" in the polymer transformer.');
+  }
+  return entryPoints;
 }
 
 List<List<Transformer>> _createDeployPhases(TransformOptions options) {
