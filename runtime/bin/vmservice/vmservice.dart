@@ -5,7 +5,7 @@
 library vmservice;
 
 import 'dart:async';
-import "dart:convert";
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -19,26 +19,29 @@ part 'service_request_router.dart';
 class VMService {
   static VMService _instance;
   RunningIsolates runningIsolates = new RunningIsolates();
+  final RawReceivePort receivePort;
 
-  void controlMessageHandler(int code, SendPort sp, String name) {
+  void controlMessageHandler(int code, int port_id, SendPort sp, String name) {
     switch (code) {
       case Constants.ISOLATE_STARTUP_MESSAGE_ID:
-        runningIsolates.isolateStartup(sp, name);
+        runningIsolates.isolateStartup(port_id, sp, name);
       break;
       case Constants.ISOLATE_SHUTDOWN_MESSAGE_ID:
-        runningIsolates.isolateShutdown(sp);
+        runningIsolates.isolateShutdown(port_id, sp);
       break;
     }
   }
 
   void messageHandler(message) {
-    if (message is List && message.length == 3) {
-      controlMessageHandler(message[0], message[1], message[2]);
+    assert(message is List);
+    assert(message.length == 4);
+    if (message is List && message.length == 4) {
+      controlMessageHandler(message[0], message[1], message[2], message[3]);
     }
   }
 
-  VMService._internal() {
-    port.listen(messageHandler);
+  VMService._internal() : receivePort = new RawReceivePort() {
+    receivePort.handler = messageHandler;
   }
 
   factory VMService() {

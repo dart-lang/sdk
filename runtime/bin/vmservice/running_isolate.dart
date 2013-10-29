@@ -5,10 +5,11 @@
 part of vmservice;
 
 class RunningIsolate implements ServiceRequestRouter {
+  final int portId;
   final SendPort sendPort;
   final String name;
 
-  RunningIsolate(this.sendPort, this.name);
+  RunningIsolate(this.portId, this.sendPort, this.name);
 
   Future sendMessage(List request) {
     final completer = new Completer.sync();

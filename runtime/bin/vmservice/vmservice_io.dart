@@ -9,11 +9,16 @@ import 'vmservice.dart';
 
 part 'server.dart';
 
-var _port;
+// The TCP port that the HTTP server listens on.
+int _port;
+
+// The receive port that isolate startup / shutdown messages are delivered on.
+RawReceivePort _receivePort;
 
 main() {
   // Create VmService.
   var service = new VMService();
+  _receivePort = service.receivePort;
   // Start HTTP server.
   var server = new Server(service, _port);
   server.startServer();
