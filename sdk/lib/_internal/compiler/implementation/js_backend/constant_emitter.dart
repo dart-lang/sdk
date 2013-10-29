@@ -313,12 +313,18 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
     if (element.isForeign(compiler)
         && element.name == 'JS_CONST') {
       StringConstant str = constant.fields[0];
-      return new jsAst.LiteralExpression(str.value.slowToString());
+      String value = str.value.slowToString();
+      return new jsAst.LiteralExpression(stripComments(value));
     }
     jsAst.New instantiation = new jsAst.New(
         new jsAst.VariableUse(getJsConstructor(constant.type.element)),
         _array(constant.fields));
     return maybeAddTypeArguments(constant.type, instantiation);
+  }
+
+  String stripComments(String rawJavaScript) {
+    RegExp COMMENT_RE = new RegExp(r'^ *//.*\n' , multiLine: true);
+    return rawJavaScript.replaceAll(COMMENT_RE, '');
   }
 
   List<jsAst.Expression> _array(List<Constant> values) {

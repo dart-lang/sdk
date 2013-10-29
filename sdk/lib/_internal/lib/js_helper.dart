@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CALL_IN_ISOLATE,
+                                   JS_CONST,
                                    JS_CURRENT_ISOLATE,
                                    JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_DART_OBJECT_CONSTRUCTOR,
