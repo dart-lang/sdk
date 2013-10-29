@@ -10,8 +10,8 @@ import 'utils.dart';
 
 String sandbox;
 
-void main(List<String> args, message) {
-  metaTestInit(message);
+void main(_, message) {
+  initMetatest(message);
 
   setUpTimeout();
 

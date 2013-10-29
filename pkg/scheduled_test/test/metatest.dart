@@ -9,20 +9,16 @@
 /// isolate, then reporting the results back to the parent isolate.
 library metatest;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
+import 'dart:platform' as platform;
 
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 import 'package:scheduled_test/scheduled_test.dart' as scheduled_test;
 
 import 'utils.dart';
-
-// TODO(nweiz): get rid of this once issue 8863 is fixed.
-/// The path to the Dart executable. This is only set in a child isolate.
-String get dartExecutable => _executable;
-String _executable;
 
 /// Declares a test with the given [description] and [body]. [body] corresponds
 /// to the `main` method of a test file, and will be run in an isolate. By
@@ -75,77 +71,62 @@ void expectTestsFail(String description, void body()) {
 /// Runs [setUpFn] before every metatest. Note that [setUpFn] will be
 /// overwritten if the test itself calls [setUp].
 void metaSetUp(void setUpFn()) {
-  _inChildIsolate.then((inIsolate) {
-    if (inIsolate) scheduled_test.setUp(setUpFn);
-  });
+  if (_inChildIsolate) scheduled_test.setUp(setUpFn);
 }
 
 /// Sets up a test with the given [description] and [body]. After the test runs,
 /// calls [validate] with the result map.
 void _setUpTest(String description, void body(), void validate(Map)) {
-  _inChildIsolate.then((inIsolate) {
-    if (inIsolate) {
-      _ensureInitialized();
-      if (_testToRun == description) body();
-    } else {
-      test(description, () {
-        expect(_runInIsolate(description).then(validate), completes);
-      });
-    }
-  });
+  if (_inChildIsolate) {
+    _ensureInitialized();
+    if (_testToRun == description) body();
+  } else {
+    test(description, () {
+      expect(_runInIsolate(description).then(validate), completes);
+    });
+  }
 }
 
-/// The description of the test to run in the child isolate. `null` in the
-/// parent isolate. Not set until [_inChildIsolate] completes.
+/// The description of the test to run in the child isolate.
+///
+/// `null` in the parent isolate.
 String _testToRun;
 
 /// The port with which the child isolate should communicate with the parent
-/// isolate. `null` in the parent isolate. Not set until [_inChildIsolate]
-/// completes.
+/// isolate.
+///
+/// `null` in the parent isolate.
 SendPort _replyTo;
 
-/// The cached [Future] for [_inChildIsolate].
-Future<bool> _inChildIsolateFuture;
+/// Whether or not we're running in a child isolate that's supposed to run a
+/// test.
+bool _inChildIsolate;
 
-/// The initial message received by the isolate.
-var _initialMessage;
-
-void metaTestInit(message) {
-  _initialMessage = message;
-}
-
-/// Returns whether or not we're running in a child isolate that's supposed to
-/// run a test.
-Future<bool> get _inChildIsolate {
-  if (_inChildIsolateFuture != null) return _inChildIsolateFuture;
-
-  if (_initialMessage == null) {
-    _inChildIsolateFuture = new Future.value(false);
+/// Initialize metatest.
+///
+/// [message] should be the second argument to [main]. It's used to determine
+/// whether this test is in the parent isolate or a child isolate.
+void initMetatest(message) {
+  if (message == null) {
+    _inChildIsolate = false;
   } else {
-    _testToRun = _initialMessage['testToRun'];
-    _executable = _initialMessage['executable'];
-    _replyTo = _initialMessage['replyTo'];
-    _inChildIsolateFuture = new Future.value(true);
+    _testToRun = message['testToRun'];
+    _replyTo = message['replyTo'];
+    _inChildIsolate = true;
   }
-  return _inChildIsolateFuture;
 }
 
 /// Runs the test described by [description] in its own isolate. Returns a map
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   var replyPort = new ReceivePort();
-  // TODO(nweiz): Don't use path here once issue 8440 is fixed.
-  return Isolate.spawnUri(Uri.parse(path.join(path.current, Platform.script)),
-      [], {
+  return Isolate.spawnUri(platform.script, [], {
     'testToRun': description,
-    'executable': Platform.executable,
     'replyTo': replyPort.sendPort
   }).then((_) {
-    var future = replyPort.first;
-
     // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
     // capture top-level exceptions.
-    return timeout(future, 30 * 1000, () {
+    return timeout(replyPort.first, 30 * 1000, () {
       throw 'Timed out waiting for test to complete.';
     });
   });

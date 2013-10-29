@@ -86,27 +86,26 @@ bool isEntrypoint(CompilationUnit dart) {
 /// Runs [code] in an isolate.
 ///
 /// [code] should be the contents of a Dart entrypoint. It may contain imports;
-/// they will be resolved in the same context as the host isolate.
+/// they will be resolved in the same context as the host isolate. [message] is
+/// passed to the [main] method of the code being run; the caller is responsible
+/// for using this to establish communication with the isolate.
 ///
-/// Returns a Future that will resolve to a [SendPort] that will communicate to
-/// the spawned isolate once it's spawned. If the isolate fails to spawn, the
-/// Future will complete with an error.
-Future<SendPort> runInIsolate(String code) {
+/// Returns a Future that will fire when the isolate has been spawned. If the
+/// isolate fails to spawn, the Future will complete with an error.
+Future runInIsolate(String code, message) {
   return withTempDir((dir) {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
     var port = new ReceivePort();
-    var initialMessage =  [path.toUri(dartPath).toString(), port.sendPort];
-    var isolate = Isolate.spawn(_isolateBuffer, initialMessage);
-    return isolate.then((_) {
-      return port.first.then((response) {
-        if (response.first == 'error') {
-          return new Future.error(
-              new CrossIsolateException.deserialize(response.last));
-        }
-
-        return response.last;
-      });
+    return Isolate.spawn(_isolateBuffer, {
+      'replyTo': port.sendPort,
+      'uri': path.toUri(dartPath).toString(),
+      'message': message
+    }).then((_) => port.first).then((response) {
+      if (response['type'] == 'success') return;
+      assert(response['type'] == 'error');
+      return new Future.error(
+          new CrossIsolateException.deserialize(response['error']));
     });
   });
 }
@@ -117,18 +116,18 @@ Future<SendPort> runInIsolate(String code) {
 /// [spawnUri] synchronously loads the file and its imports, which can deadlock
 /// the host isolate if there's an HTTP import pointing at a server in the host.
 /// Adding an additional isolate in the middle works around this.
-void _isolateBuffer(initialMessage) {
-  var uri = initialMessage[0];
-  var replyTo = initialMessage[1];
-  try {
-    // TODO(floitsch): If we do it right we shouldn't need to have a try/catch
-    // and a catchError.
-    Isolate.spawnUri(Uri.parse(uri), [], replyTo).catchError((e, stack) {
-      replyTo.send(['error', CrossIsolateException.serialize(e, stack)]);
+void _isolateBuffer(message) {
+  var replyTo = message['replyTo'];
+  // TODO(floitsch): If we do it right we shouldn't need to capture synchronous
+  // errors.
+  new Future.sync(() {
+    return Isolate.spawnUri(Uri.parse(message['uri']), [], message['message']);
+  }).then((_) => replyTo.send({'type': 'success'})).catchError((e, stack) {
+    replyTo.send({
+      'type': 'error',
+      'error': CrossIsolateException.serialize(e, stack)
     });
-  } catch (e, stack) {
-    replyTo.send(['error', CrossIsolateException.serialize(e, stack)]);
-  }
+  });
 }
 
 /// An exception that was originally raised in another isolate.

@@ -7,6 +7,7 @@ library scheduled_process_test;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:platform' as platform;
 
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
@@ -15,8 +16,8 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'metatest.dart';
 import 'utils.dart';
 
-void main(List<String> args, message) {
-  metaTestInit(message);
+void main(_, message) {
+  initMetatest(message);
 
   setUpTimeout();
 
@@ -389,5 +390,6 @@ ScheduledProcess startDartProcess(String script) {
     });
   }, 'clean up temp dir');
 
-  return new ScheduledProcess.start(dartExecutable, ['--checked', dartPath]);
+  return new ScheduledProcess.start(platform.executable,
+      ['--checked', dartPath]);
 }
