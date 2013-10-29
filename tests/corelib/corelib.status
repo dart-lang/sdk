@@ -40,7 +40,6 @@ unicode_test: Fail
 [ $compiler == dart2js ]
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
-main_test: Fail # Issue 14200
 
 big_integer_vm_test: RuntimeError, OK # VM specific test.
 bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
