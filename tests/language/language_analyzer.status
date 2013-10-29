@@ -158,10 +158,6 @@ black_listed_test/none: fail # test issue 14228, warnings are required but not e
 bailout3_test: fail # test issue 14289
 prefix9_test: fail # test issue 14289
 
-# test issue 14358, E does not implement inherited A.+
-type_promotion_closure_test/01: Fail
-type_promotion_closure_test/02: Fail
-
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
 
