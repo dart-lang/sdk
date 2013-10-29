@@ -748,8 +748,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // provide an event-binding callback.
     // return (model, name, node) {
     if (_eventsLog.isLoggable(Level.FINE)) {
-      _eventsLog.fine('event: [${node.localName}].$name => '
-          '[${model.localName}].$path())');
+      _eventsLog.fine('event: [$node].$name => [$model].$path())');
     }
     var eventName = _removeEventPrefix(name);
     // TODO(sigmund): polymer.js dropped event translations. reconcile?
