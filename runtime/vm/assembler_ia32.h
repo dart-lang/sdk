@@ -311,8 +311,7 @@ class Assembler : public ValueObject {
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
-        comments_(),
-        jit_cookie_(1017109444) {
+        comments_() {
     // This mode is only needed and implemented for MIPS and ARM.
     ASSERT(!use_far_branches);
   }
@@ -637,10 +636,6 @@ class Assembler : public ValueObject {
 
   void LoadObject(Register dst, const Object& object);
 
-  // If 'object' is a large Smi, xor it with a per-assembler cookie value to
-  // prevent user-controlled immediates from appearing in the code stream.
-  void LoadObjectSafely(Register dst, const Object& object);
-
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
@@ -787,16 +782,6 @@ class Assembler : public ValueObject {
   static const char* RegisterName(Register reg);
   static const char* FpuRegisterName(FpuRegister reg);
 
-  // Smis that do not fit into 17 bits (16 bits of payload) are unsafe.
-  static bool IsSafe(const Object& object) {
-    return !object.IsSmi() ||
-        Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()));
-  }
-  static bool IsSafeSmi(const Object& object) {
-    return object.IsSmi() &&
-        Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()));
-  }
-
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Object pool is not used on ia32.
@@ -818,8 +803,6 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
-
-  int32_t jit_cookie_;
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);

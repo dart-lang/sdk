@@ -1127,11 +1127,6 @@ class Assembler : public ValueObject {
   // up on entry (it is the frame of the unoptimized code).
   void EnterOsrFrame(intptr_t extra_size);
 
-  // On some other platforms, we draw a distinction between safe and unsafe
-  // smis.
-  static bool IsSafe(const Object& object) { return true; }
-  static bool IsSafeSmi(const Object& object) { return true; }
-
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
