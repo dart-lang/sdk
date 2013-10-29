@@ -32,12 +32,13 @@ const initMethod = const _InitMethodAnnotation();
  * The urls in [libraries] can be absolute or relative to
  * `currentMirrorSystem().isolate.rootLibrary.uri`.
  */
-void initPolymer() {
+Zone initPolymer() {
   if (_useDirtyChecking) {
-    dirtyCheckZone().run(_initPolymerOptimized);
-  } else {
-    _initPolymerOptimized();
+    return dirtyCheckZone()..run(_initPolymerOptimized);
   }
+
+  _initPolymerOptimized();
+  return Zone.current;
 }
 
 /**
