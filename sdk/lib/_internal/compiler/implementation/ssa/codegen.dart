@@ -1541,9 +1541,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           compiler);
       return receiverType.refine(selector, compiler);
     }
-    // If [JSInvocationMirror._invokeOn] has been called, we must not create a
-    // typed selector based on the receiver type.
-    return backend.compiler.enabledInvokeOn ? selector.asUntyped : selector;
+    // If [JSInvocationMirror._invokeOn] is enabled, and this call
+    // might hit a `noSuchMethod`, we register an untyped selector.
+    return selector.extendIfReachesAll(compiler);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {

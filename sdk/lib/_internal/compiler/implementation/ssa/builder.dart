@@ -3367,12 +3367,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     ClassElement cls = currentNonClosureClass;
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
-    if (element.enclosingElement.declaration != compiler.objectClass) {
+    if (compiler.enabledInvokeOn
+        && element.enclosingElement.declaration != compiler.objectClass) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
-      compiler.enqueuer.codegen.registerSelectorUse(selector);
+      compiler.enqueuer.codegen.registerSelectorUse(selector.asUntyped);
     }
     String publicName = name;
     if (selector.isSetter()) publicName += '=';

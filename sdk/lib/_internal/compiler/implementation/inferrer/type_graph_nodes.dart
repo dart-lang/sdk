@@ -547,7 +547,21 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     Iterable<Element> oldTargets = targets;
     Selector typedSelector = computeTypedSelector(inferrer);
     inferrer.updateSelectorInTree(caller, call, typedSelector);
-    targets = inferrer.compiler.world.allFunctions.filter(typedSelector);
+
+    Compiler compiler = inferrer.compiler;
+    Selector selectorToUse = typedSelector.extendIfReachesAll(compiler);
+
+    bool canReachAll = compiler.enabledInvokeOn
+        && (selectorToUse != typedSelector);
+
+    // If this call could potentially reach all methods that satisfy
+    // the untyped selector (through noSuchMethod's `Invocation`
+    // and a call to `delegate`), we iterate over all these methods to
+    // update their parameter types.
+    targets = compiler.world.allFunctions.filter(selectorToUse);
+    Iterable<Element> typedTargets = canReachAll
+        ? compiler.world.allFunctions.filter(typedSelector)
+        : targets;
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
@@ -559,6 +573,15 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         callee.addUser(this);
         inferrer.updateParameterAssignments(
             this, element, arguments, typedSelector, remove: false);
+      }
+
+      // If [canReachAll] is true, then we are iterating over all
+      // targets that satisfy the untyped selector. We skip the return
+      // type of the targets that can only be reached through
+      // `Invocation.delegate`. Note that the `noSuchMethod` targets
+      // are included in [typedTargets].
+      if (canReachAll && !typedTargets.contains(element)) {
+        return const TypeMask.nonNullEmpty();
       }
 
       if (returnsElementType(typedSelector)) {
@@ -584,6 +607,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
             this, element, arguments, typedSelector, remove: true);
       }
     });
+
     return newType;
   }
 

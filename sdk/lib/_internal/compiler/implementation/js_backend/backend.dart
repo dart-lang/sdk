@@ -425,7 +425,6 @@ class JavaScriptBackend extends Backend {
 
   bool invokedReflectively(Element element) {
     if (element.isParameter() || element.isFieldParameter()) {
-      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return true;
       if (invokedReflectively(element.enclosingElement)) return true;
     }
 
@@ -434,7 +433,6 @@ class JavaScriptBackend extends Backend {
           && (element.modifiers.isFinal() || element.modifiers.isConst())) {
         return false;
       }
-      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return true;
     }
 
     return isNeededForReflection(element.declaration);
