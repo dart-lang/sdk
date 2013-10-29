@@ -17,7 +17,7 @@ patch MirrorSystem currentMirrorSystem() {
  * Creates a [MirrorSystem] for the isolate which is listening on
  * the [SendPort].
  */
-patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
+Future<MirrorSystem> mirrorSystemOf(SendPort port) {
   return _Mirrors.mirrorSystemOf(port);
 }
 
