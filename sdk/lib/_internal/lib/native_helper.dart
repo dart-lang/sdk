@@ -45,12 +45,13 @@ newJsObject() {
 
 /**
  * Returns a String tag identifying the type of the native object, or `null`.
- * The tag is not the name of the type.
+ * The tag is not the name of the type, but usually the name of the JavaScript
+ * constructor function.
  */
 Function getTagFunction;
 
 /**
- * If a lookup via [getTagFunction] an object [object] that has [tag] fails,
+ * If a lookup via [getTagFunction] on an object [object] that has [tag] fails,
  * this function is called to provide an alternate tag.  This allows us to fail
  * gracefully if we can make a good guess, for example, when browsers add novel
  * kinds of HTMLElement that we have never heard of.
@@ -60,7 +61,8 @@ Function alternateTagFunction;
 
 String toStringForNativeObject(var obj) {
   // TODO(sra): Is this code dead?
-  // getTagFunction might be uninitialized, but in usual usage, toString has been
+  // [getTagFunction] might be uninitialized, but in usual usage, toString has
+  // been called via an interceptor and initialized it.
   String name = getTagFunction == null
       ? '<Unknown>'
       : JS('String', '#', getTagFunction(obj));
@@ -216,10 +218,10 @@ void initNativeDispatch() {
  * by applying a series of hooks transformers.  Built-in hooks transformers deal
  * with various known browser behaviours.
  *
- * Each hook tranformer takes a 'hooks' input a JavaScript object containing the
- * hook functions, and returns the same or a new object with replacements.  The
- * replacements can wrap the originals to provide alternate or modified
- * behaviour.
+ * Each hook tranformer takes a 'hooks' input which is a JavaScript object
+ * containing the hook functions, and returns the same or a new object with
+ * replacements.  The replacements can wrap the originals to provide alternate
+ * or modified behaviour.
  *
  *     { getTag: function(obj) {...},
  *       getUnknownTag: function(obj, tag) {...},
@@ -245,7 +247,7 @@ void initHooks() {
   // The initial simple hooks:
   var hooks = JS('', '#()', _baseHooks);
 
-  // Csutomize for browsers where `object.constructor.name` fails:
+  // Customize for browsers where `object.constructor.name` fails:
   var _fallbackConstructorHooksTransformer =
       JS('', '#(#)', _fallbackConstructorHooksTransformerGenerator,
           _constructorNameFallback);
@@ -264,8 +266,8 @@ void initHooks() {
 
   // Apply global hooks.
   //
-  // If defined, dartNativeDispatchHookdTransformer should be a JavaScript Array
-  // of functions.  We will permit a function.
+  // If defined, dartNativeDispatchHookdTransformer should be a single function
+  // of a JavaScript Array of functions.
 
   if (JS('bool', 'typeof dartNativeDispatchHooksTransformer != "undefined"')) {
     var transformers = JS('', 'dartNativeDispatchHooksTransformer');
@@ -304,7 +306,7 @@ applyHooksTransformer(transformer, hooks) {
 // the code emitter, or JS_CONST could be improved to parse entire functions and
 // take care of the minification.
 
-const _baseHooks = const JS_CONST(r"""
+const _baseHooks = const JS_CONST(r'''
 function() {
   function typeNameInChrome(obj) { return obj.constructor.name; }
   function getUnknownTag(object, tag) {
@@ -313,8 +315,8 @@ function() {
     if (/^HTML[A-Z].*Element$/.test(tag)) {
       // Check that it is not a simple JavaScript object.
       var name = Object.prototype.toString.call(object);
-      if (name == '[object Object]') return null;
-      return 'HTMLElement';
+      if (name == "[object Object]") return null;
+      return "HTMLElement";
     }
   }
   function getUnknownTagGenericBrowser(object, tag) {
@@ -329,7 +331,7 @@ function() {
     getTag: typeNameInChrome,
     getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,
     discriminator: discriminator };
-}""");
+}''');
 
 
 /**
@@ -340,33 +342,33 @@ function() {
  * as it is called from both the dispatch hooks and via
  * [constructorNameFallback] from objectToString.
  */
-const _constructorNameFallback = const JS_CONST(r"""
+const _constructorNameFallback = const JS_CONST(r'''
 function getTagFallback(o) {
   if (o == null) return "Null";
   var constructor = o.constructor;
   if (typeof constructor == "function") {
     var name = constructor.builtin$cls;
     if (typeof name == "string") return name;
-    // The constructor isn't null or undefined at this point. Try
+    // The constructor is not null or undefined at this point. Try
     // to grab hold of its name.
     name = constructor.name;
     // If the name is a non-empty string, we use that as the type name of this
-    // object. On Firefox, we often get 'Object' as the constructor name even
+    // object. On Firefox, we often get "Object" as the constructor name even
     // for more specialized objects so we have to fall through to the toString()
     // based implementation below in that case.
     if (typeof name == "string"
         && name !== ""
         && name !== "Object"
-        && name !== Function.prototype) {  // Can happen in Opera.
+        && name !== "Function.prototype") {  // Can happen in Opera.
       return name;
     }
   }
   var s = Object.prototype.toString.call(o);
   return s.substring(8, s.length - 1);
-}""");
+}''');
 
 
-const _fallbackConstructorHooksTransformerGenerator = const JS_CONST(r"""
+const _fallbackConstructorHooksTransformerGenerator = const JS_CONST(r'''
 function(getTagFallback) {
   return function(hooks) {
     // If we are not in a browser, assume we are in d8.
@@ -382,75 +384,81 @@ function(getTagFallback) {
 
     hooks.getTag = getTagFallback;
   };
-}""");
+}''');
 
 
-const _ieHooksTransformer = const JS_CONST(r"""
+const _ieHooksTransformer = const JS_CONST(r'''
 function(hooks) {
   var userAgent = typeof navigator == "object" ? navigator.userAgent : "";
   if (userAgent.indexOf("Trident/") == -1) return hooks;
 
   var getTag = hooks.getTag;
 
+  var quickMap = {
+    "BeforeUnloadEvent": "Event",
+    "DataTransfer": "Clipboard",
+    "HTMLDDElement": "HTMLElement",
+    "HTMLDTElement": "HTMLElement",
+    "HTMLPhraseElement": "HTMLElement",
+    "Position": "Geoposition"
+  };
+
   function getTagIE(o) {
     var tag = getTag(o);
+    var newTag = quickMap[tag];
+    if (newTag) return newTag;
     if (tag == "Document") {
       // IE calls both HTML and XML documents "Document", so we check for the
       // xmlVersion property, which is the empty string on HTML documents.
-      if (!!o.xmlVersion) "Document";
+      if (!!o.xmlVersion) return "Document";
       return "HTMLDocument";
     }
-    if (tag == "BeforeUnloadEvent") return "Event";
-    if (tag == "DataTransfer") return "Clipboard";
-    if (tag == "HTMLDDElement") return "HTMLElement";
-    if (tag == "HTMLDTElement") return "HTMLElement";
-    if (tag == "HTMLPhraseElement") return "HTMLElement";
-    if (tag == "Position") return "Geoposition";
-
     // Patches for types which report themselves as Objects.
     if (tag == "Object") {
       if (window.DataView && (o instanceof window.DataView)) return "DataView";
     }
-    return tag
+    return tag;
   }
 
   hooks.getTag = getTagIE;
-}""");
+}''');
 
 
-const _firefoxHooksTransformer = const JS_CONST(r"""
+const _firefoxHooksTransformer = const JS_CONST(r'''
 function(hooks) {
   var userAgent = typeof navigator == "object" ? navigator.userAgent : "";
   if (userAgent.indexOf("Firefox") == -1) return hooks;
 
   var getTag = hooks.getTag;
 
+  var quickMap = {
+    "BeforeUnloadEvent": "Event",
+    "DataTransfer": "Clipboard",
+    "GeoGeolocation": "Geolocation",
+    "WorkerMessageEvent": "MessageEvent",
+    "XMLDocument": "Document"};
+
   function getTagFirefox(o) {
     var tag = getTag(o);
-    if (tag == 'BeforeUnloadEvent') return 'Event';
-    if (tag == 'DataTransfer') return 'Clipboard';
-    if (tag == 'GeoGeolocation') return 'Geolocation';
-    if (tag == 'WorkerMessageEvent') return 'MessageEvent';
-    if (tag == 'XMLDocument') return 'Document';
-    return tag;
+    return quickMap[tag] || tag;
   }
 
   hooks.getTag = getTagFirefox;
-}""");
+}''');
 
 
-const _operaHooksTransformer = const JS_CONST(r"""
+const _operaHooksTransformer = const JS_CONST(r'''
 function(hooks) { return hooks; }
-""");
+''');
 
 
-const _safariHooksTransformer = const JS_CONST(r"""
+const _safariHooksTransformer = const JS_CONST(r'''
 function(hooks) { return hooks; }
-""");
+''');
 
 
-const _dartExperimentalFixupGetTagHooksTransformer = const JS_CONST(r"""
+const _dartExperimentalFixupGetTagHooksTransformer = const JS_CONST(r'''
 function(hooks) {
   if (typeof dartExperimentalFixupGetTag != "function") return hooks;
   hooks.getTag = dartExperimentalFixupGetTag(hooks.getTag);
-}""");
+}''');

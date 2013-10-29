@@ -155,6 +155,11 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   final Namer namer;
   final ConstantReferenceEmitter referenceEmitter;
 
+  // Matches blank lines, comment lines and trailing comments that can't be part
+  // of a string.
+  static final RegExp COMMENT_RE =
+      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''' , multiLine: true);
+
   ConstantInitializerEmitter(this.compiler, this.namer, this.referenceEmitter);
 
   jsAst.Expression generate(Constant constant) {
@@ -323,7 +328,6 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   String stripComments(String rawJavaScript) {
-    RegExp COMMENT_RE = new RegExp(r'^ *//.*\n' , multiLine: true);
     return rawJavaScript.replaceAll(COMMENT_RE, '');
   }
 
