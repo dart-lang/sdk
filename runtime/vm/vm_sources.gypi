@@ -129,6 +129,7 @@
     'disassembler_x64.cc',
     'double_conversion.cc',
     'double_conversion.h',
+    'double_internals.h',
     'exceptions.cc',
     'exceptions.h',
     'exceptions_test.cc',
