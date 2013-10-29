@@ -10,8 +10,9 @@ class ClassEmitter extends CodeEmitterHelper {
    *
    * Invariant: [classElement] must be a declaration element.
    */
-  void generateClass(ClassElement classElement, CodeBuffer buffer,
-      Map<String, jsAst.Expression> additionalProperties) {
+  void generateClass(ClassElement classElement,
+                     CodeBuffer buffer,
+                     Map<String, jsAst.Expression> additionalProperties) {
     final onlyForRti =
         task.typeTestEmitter.rtiNeededClasses.contains(classElement);
 

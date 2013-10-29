@@ -411,6 +411,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   jsAst.FunctionDeclaration buildFinishClass() {
+    String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
+
     // function finishClass(cls) {
     jsAst.Fun fun = js.fun(['cls'], [
 
@@ -464,8 +466,8 @@ class CodeEmitterTask extends CompilerTask {
           //
           // The information is used to build tables referenced by
           // getNativeInterceptor and custom element support.
-          js.if_('hasOwnProperty.call(prototype, "%")', [
-              js('var nativeSpec = prototype["%"].split(";")'),
+          js.if_('hasOwnProperty.call(prototype, $specProperty)', [
+              js('var nativeSpec = prototype[$specProperty].split(";")'),
               js.if_('nativeSpec[0]', [
                   js('var tags = nativeSpec[0].split("|")'),
                   js.for_('var i = 0', 'i < tags.length', 'i++', [

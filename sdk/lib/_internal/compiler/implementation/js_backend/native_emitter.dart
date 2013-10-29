@@ -267,10 +267,11 @@ class NativeEmitter {
             Map<String, jsAst.Expression> properties =
                 additionalProperties.putIfAbsent(classElement,
                     () => new LinkedHashMap<String, jsAst.Expression>());
-            properties['%'] = js.string(encoding);
+            properties[backend.namer.nativeSpecProperty] = js.string(encoding);
           }
         } else {
-          builder.addProperty('%', js.string(encoding));
+          builder.addProperty(
+              backend.namer.nativeSpecProperty, js.string(encoding));
         }
       }
       generateClassInfo(backend.jsInterceptorClass);
