@@ -38,7 +38,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -57,7 +57,7 @@ import 'dart:_js_helper' show
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
     findConstructorForNativeSubclassType, getNativeInterceptor,
-    setDispatchProperty, findInterceptorForType;
+    setDispatchProperty;
 
 export 'dart:math' show Rectangle, Point;
 
@@ -31812,7 +31812,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Helper to statically create the dispatch record. */
   static _makeRecord() {
-    var interceptor = findInterceptorForType(KeyboardEvent);
+    var interceptor = JS_INTERCEPTOR_CONSTANT(KeyboardEvent);
     return makeLeafDispatchRecord(interceptor);
   }
 

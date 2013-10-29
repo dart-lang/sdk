@@ -3201,6 +3201,29 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                 argument, string.dartString.slowToString())));
   }
 
+  void handleJsInterceptorConstant(Send node) {
+    // Single argument must be a TypeConstant which is converted into a
+    // InterceptorConstant.
+    if (!node.arguments.isEmpty && node.arguments.tail.isEmpty) {
+      Node argument = node.arguments.head;
+      visit(argument);
+      HInstruction argumentInstruction = pop();
+      if (argumentInstruction is HConstant) {
+        Constant argumentConstant = argumentInstruction.constant;
+        if (argumentConstant is TypeConstant) {
+          Constant constant =
+              new InterceptorConstant(argumentConstant.representedType);
+          HInstruction instruction = graph.addConstant(constant, compiler);
+          stack.add(instruction);
+          return;
+        }
+      }
+    }
+    compiler.reportError(node,
+        MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    stack.add(graph.addConstantNull(compiler));
+  }
+
   void handleForeignJsCallInIsolate(Send node) {
     Link<Node> link = node.arguments;
     if (!compiler.hasIsolateSupport()) {
@@ -3370,6 +3393,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJsGetName(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
+    } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
+      handleJsInterceptorConstant(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }

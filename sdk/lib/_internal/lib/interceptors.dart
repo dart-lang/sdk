@@ -27,7 +27,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               lookupDispatchRecord,
                               StringMatch,
                               firstMatchAfter;
-import 'dart:_foreign_helper' show JS, JS_EFFECT;
+import 'dart:_foreign_helper' show JS, JS_EFFECT, JS_INTERCEPTOR_CONSTANT;
 import 'dart:math' show Random;
 
 part 'js_array.dart';
@@ -145,7 +145,7 @@ getNativeInterceptor(object) {
 
   record = lookupDispatchRecord(object);
   if (record == null) {
-    return const UnknownJavaScriptObject();
+    return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
   }
   setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', object), record);
   return getNativeInterceptor(object);

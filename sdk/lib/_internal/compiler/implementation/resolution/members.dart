@@ -1926,6 +1926,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
 
+  /**
+   * Record of argument nodes to JS_INTERCEPTOR_CONSTANT for deferred
+   * processing.
+   */
+  Set<Node> argumentsToJsInterceptorConstant = null;
+
   /// When visiting the type declaration of the variable in a [ForIn] loop,
   /// the initializer of the variable is implicit and we should not emit an
   /// error when verifying that all final variables are initialized.
@@ -2622,10 +2628,17 @@ class ResolverVisitor extends MappingVisitor<Element> {
         warnArgumentMismatch(node, target);
       }
 
-      if (target != null &&
-          target.isForeign(compiler) &&
-          selector.name == 'JS') {
-        world.registerJsCall(node, this);
+      if (target != null && target.isForeign(compiler)) {
+        if (selector.name == 'JS') {
+          world.registerJsCall(node, this);
+        } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
+          if (!node.argumentsNode.isEmpty) {
+            Node argument = node.argumentsNode.nodes.head;
+            if (argumentsToJsInterceptorConstant == null)
+              argumentsToJsInterceptorConstant = new Set<Node>();
+            argumentsToJsInterceptorConstant.add(argument);
+          }
+        }
       }
     }
 
@@ -3042,8 +3055,28 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   void analyzeConstant(Node node, {bool isConst: true}) {
     addDeferredAction(enclosingElement, () {
-       compiler.constantHandler.compileNodeWithDefinitions(
+       Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
            node, mapping, isConst: isConst);
+
+       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
+       // a class that will be instantiated outside the program by attaching a
+       // native class dispatch record referencing the interceptor.
+       if (argumentsToJsInterceptorConstant != null &&
+           argumentsToJsInterceptorConstant.contains(node)) {
+         if (constant.isType()) {
+           TypeConstant typeConstant = constant;
+           if (typeConstant.representedType is InterfaceType) {
+             world.registerInstantiatedType(typeConstant.representedType,
+                 mapping);
+           } else {
+             compiler.reportError(node,
+                 MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+           }
+         } else {
+           compiler.reportError(node,
+               MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+         }
+       }
     });
   }
 
