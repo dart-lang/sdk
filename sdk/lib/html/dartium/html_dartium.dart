@@ -26130,6 +26130,33 @@ class WheelEvent extends MouseEvent {
 
 
 @DocsEditable()
+/**
+ * Top-level container for the current browser tab or window.
+ *
+ * In a web browser, each window has a [Window] object, but within the context
+ * of a script, a [Window] object represents only the current window. In
+ * addition to the open window, each window, tab, and iframe has its own
+ * [Window] object. A [Window] contains a [Document] object, which contains this
+ * web page's content.
+ *
+ * Use `window` to access properties of the current window. For example:
+ *
+ *     // Draw a scene when the window repaints.
+ *     drawScene(num delta) {...}
+ *     window.animationFrame.then(drawScene);.
+ *
+ *     // Write to the console.
+ *     window.console.log('Jinkies!');
+ *     window.console.error('Jeepers!');
+ *
+ * **Note:** This class represents the current window, whereas [WindowBase] is
+ * a representation of any window, including other tabs, windows, and frames.
+ *
+ * ## Other resources
+ *
+ * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
+ * * [Window](http://www.w3.org/TR/Window/) from the W3C.
+ */
 @DomName('Window')
 class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 {
 
@@ -29525,17 +29552,16 @@ abstract class CanvasImageSource {}
 
 
 /**
- * An object representing the top-level context object for web scripting.
+ * Top-level container for a browser tab or window.
  *
- * In a web browser, a [Window] object represents the actual browser window.
- * In a multi-tabbed browser, each tab has its own [Window] object. A [Window]
- * is the container that displays a [Document]'s content. All web scripting
- * happens within the context of a [Window] object.
+ * In a web browser, a [WindowBase] object represents any browser window.  This
+ * abstract class contains the state of the window and its relation to other
+ * windows, such as which window opened it.
  *
  * **Note:** This class represents any window, whereas [Window] is
- * used to access the properties and content of the current window.
+ * used to access the properties and content of the current window or tab.
  *
- * See also:
+ * ## Other resources
  *
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
