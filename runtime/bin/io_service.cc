@@ -28,18 +28,21 @@ namespace bin {
     break;
 
 void IOServiceCallback(Dart_Port dest_port_id,
-                       Dart_Port reply_port_id,
                        Dart_CObject* message) {
+  Dart_Port reply_port_id;
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
   if (message->type == Dart_CObject_kArray &&
-      request.Length() == 3 &&
+      request.Length() == 4 &&
       request[0]->IsInt32() &&
-      request[1]->IsInt32() &&
-      request[2]->IsArray()) {
+      request[1]->IsSendPort() &&
+      request[2]->IsInt32() &&
+      request[3]->IsArray()) {
     CObjectInt32 message_id(request[0]);
-    CObjectInt32 request_id(request[1]);
-    CObjectArray data(request[2]);
+    CObjectSendPort reply_port(request[1]);
+    CObjectInt32 request_id(request[2]);
+    CObjectArray data(request[3]);
+    reply_port_id = reply_port.Value();
     switch (request_id.Value()) {
   IO_SERVICE_REQUEST_LIST(CASE_REQUEST);
       default:
@@ -75,4 +78,3 @@ void FUNCTION_NAME(IOService_NewServicePort)(Dart_NativeArguments args) {
 
 }  // namespace bin
 }  // namespace dart
-

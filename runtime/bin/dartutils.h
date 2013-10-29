@@ -251,6 +251,7 @@ class CObject {
     return type() == Dart_CObject_kTypedData &&
            byte_array_type() == Dart_TypedData_kUint8;
   }
+  bool IsSendPort() { return type() == Dart_CObject_kSendPort; }
 
   bool IsTrue() {
     return type() == Dart_CObject_kBool && cobject_->value.as_bool;
@@ -465,6 +466,17 @@ class CObjectArray : public CObject {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectArray);
+};
+
+
+class CObjectSendPort : public CObject {
+ public:
+  DECLARE_COBJECT_CONSTRUCTORS(SendPort)
+
+  Dart_Port Value() const { return cobject_->value.as_send_port; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectSendPort);
 };
 
 
