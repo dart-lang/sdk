@@ -26,6 +26,7 @@ class XBar extends XFoo {
 class XZot extends XBar {
   XZot.created() : super.created();
 
+  var m;
   @published int zot = 3;
 }
 
@@ -55,8 +56,9 @@ main() {
     published(tag) =>
         query('polymer-element[name=$tag]').publishedProperties;
 
-    expect(published('x-zot'), [#Foo, #Bar, #zot]);
-    expect(published('x-squid'), [#Foo, #Bar, #zot, #baz, #squid]);
+    expect(published('x-zot'), [#Foo, #Bar, #zot, #m]);
+    expect(published('x-squid'), [#Foo, #Bar, #zot, #m, #baz, #squid]);
+    expect(published('x-noscript'), [#Foo, #Bar, #zot, #m]);
     // TODO(sigmund): uncomment, see above
     // expect(published('x-squid'), [#Foo, #Bar, #zot, #zap, #baz, #squid]);
   });

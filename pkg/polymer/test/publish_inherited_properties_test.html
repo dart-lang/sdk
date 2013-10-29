@@ -12,10 +12,13 @@ BSD-style license that can be found in the LICENSE file.
   </head>
   <body>
 
-    <polymer-element name="x-zot">
+    <polymer-element name="x-zot" attributes="m">
     </polymer-element>
 
     <polymer-element name="x-squid" extends="x-zot" attributes="squid">
+    </polymer-element>
+
+    <polymer-element name="x-noscript" extends="x-zot" noscript>
     </polymer-element>
 
   <script type="application/dart" src="publish_inherited_properties_test.dart"></script>
