@@ -11,9 +11,15 @@ import 'utils.dart';
 
 /// Records the values and errors that are sent through a stream and allows them
 /// to be replayed arbitrarily many times.
+///
+/// This only listens to the wrapped stream when a replayed stream gets a
+/// listener.
 class StreamReplayer<T> {
   /// The wrapped stream.
   final Stream<T> _stream;
+
+  /// Whether or not [this] has started listening to [_stream].
+  bool _isSubscribed = false;
 
   /// Whether or not [_stream] has been closed.
   bool _isClosed = false;
@@ -28,7 +34,32 @@ class StreamReplayer<T> {
   /// The controllers that are listening for future events from [_stream].
   final _controllers = new Set<StreamController<T>>();
 
-  StreamReplayer(this._stream) {
+  StreamReplayer(this._stream);
+
+  /// Returns a stream that replays the values and errors of the input stream.
+  ///
+  /// This stream is a buffered stream.
+  Stream<T> getReplay() {
+    var controller = new StreamController<T>(onListen: _subscribe);
+
+    for (var eventOrError in _buffer) {
+      eventOrError.match(controller.add, (pair) {
+        controller.addError(pair.first, pair.second);
+      });
+    }
+    if (_isClosed) {
+      controller.close();
+    } else {
+      _controllers.add(controller);
+    }
+    return controller.stream;
+  }
+
+  /// Subscribe to [_stream] if we haven't yet done so.
+  void _subscribe() {
+    if (_isSubscribed || _isClosed) return;
+    _isSubscribed = true;
+
     _stream.listen((data) {
       _buffer.add(new Either<T, dynamic>.withFirst(data));
       for (var controller in _controllers) {
@@ -47,24 +78,5 @@ class StreamReplayer<T> {
       }
       _controllers.clear();
     });
-  }
-
-  /// Returns a stream that replays the values and errors of the input stream.
-  ///
-  /// This stream is a buffered stream regardless of whether the input stream
-  /// was broadcast or buffered.
-  Stream<T> getReplay() {
-    var controller = new StreamController<T>();
-    for (var eventOrError in _buffer) {
-      eventOrError.match(controller.add, (pair) {
-        controller.addError(pair.first, pair.second);
-      });
-    }
-    if (_isClosed) {
-      controller.close();
-    } else {
-      _controllers.add(controller);
-    }
-    return controller.stream;
   }
 }
