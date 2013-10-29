@@ -64,7 +64,7 @@ class VirtualDirectory {
             return;
           }
           if (entity is File) {
-            _serveFile(entity, request);
+            serveFile(entity, request);
           } else if (entity is Directory) {
             _serveDirectory(entity, request);
           } else {
@@ -141,7 +141,20 @@ class VirtualDirectory {
         });
   }
 
-  void _serveFile(File file, HttpRequest request) {
+  /**
+   * Serve the content of [file] to [request].
+   *
+   * This is usefull when e.g. overriding [directoryHandler] to redirect to
+   * some index file.
+   *
+   * In the request contains the [HttpStatus.IF_MODIFIED_SINCE] header,
+   * [serveFile] will send a [HttpStatus.NOT_MODIFIED] response if the file
+   * was not changed.
+   *
+   * Note that if it was unabled to read from [file], the [request]s response
+   * is closed with error-code [HttpStatus.NOT_FOUND].
+   */
+  void serveFile(File file, HttpRequest request) {
     var response = request.response;
     // TODO(ajohnsen): Set up Zone support for these errors.
     file.lastModified().then((lastModified) {
@@ -201,6 +214,7 @@ class VirtualDirectory {
             .catchError((_) {});
       });
     }).catchError((_) {
+      response.statusCode = HttpStatus.NOT_FOUND;
       response.close();
     });
   }
