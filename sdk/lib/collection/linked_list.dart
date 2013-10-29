@@ -147,7 +147,7 @@ class LinkedList<E extends LinkedListEntry<E>>
 }
 
 
-class _LinkedListIterator<E extends LinkedListEntry>
+class _LinkedListIterator<E extends LinkedListEntry<E>>
     implements Iterator<E> {
   final LinkedList<E> _list;
   final int _modificationCount;
@@ -185,7 +185,7 @@ class _LinkedListLink {
 /**
  * Entry element for a [LinkedList]. Any entry must extend this class.
  */
-abstract class LinkedListEntry<E extends LinkedListEntry>
+abstract class LinkedListEntry<E extends LinkedListEntry<E>>
     implements _LinkedListLink {
   LinkedList<E> _list;
   _LinkedListLink _next;
