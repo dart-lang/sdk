@@ -39,10 +39,6 @@ class MapChangeRecord<K, V> extends ChangeRecord {
   MapChangeRecord.remove(this.key, this.oldValue)
       : isInsert = false, isRemove = true;
 
-  /// *Deprecated* compare [key]s instead.
-  @deprecated
-  bool changes(otherKey) => key == otherKey;
-
   String toString() {
     var kind = isInsert ? 'insert' : isRemove ? 'remove' : 'set';
     return '#<MapChangeRecord $kind $key from: $oldValue to: $newValue>';

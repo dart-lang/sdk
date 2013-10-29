@@ -279,7 +279,7 @@ main() {
       root.level = Level.ALL;
       var rootMessages = [];
       root.onRecord.listen((r) {
-        rootMessages.add('${r.level}: ${r.message} ${r.exception}');
+        rootMessages.add('${r.level}: ${r.message} ${r.error}');
       });
 
       root.finest('1');

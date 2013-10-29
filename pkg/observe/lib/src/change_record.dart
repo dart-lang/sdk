@@ -10,13 +10,6 @@ abstract class ChangeRecord {}
 
 /** A change record to a field of an observable object. */
 class PropertyChangeRecord<T> extends ChangeRecord {
-  /**
-   * *Deprecated* use [name] instead.
-   * The field that was changed.
-   */
-  @deprecated
-  Symbol get field => name;
-
   /** The object that changed. */
   final object;
 
@@ -30,13 +23,6 @@ class PropertyChangeRecord<T> extends ChangeRecord {
   final T newValue;
 
   PropertyChangeRecord(this.object, this.name, this.oldValue, this.newValue);
-
-  /*
-   * *Deprecated* instead of `record.changes(key)` simply do
-   * `key == record.name`.
-   */
-  @deprecated
-  bool changes(key) => key is Symbol && name == key;
 
   String toString() =>
       '#<PropertyChangeRecord $name from: $oldValue to: $newValue>';
@@ -59,13 +45,6 @@ class ListChangeRecord extends ChangeRecord {
           'zero. Use 1 if this was a single item update.');
     }
   }
-
-  /**
-   * *Deprecated* use [indexChanged] instead.
-   * Returns true if the provided index was changed by this operation.
-   */
-  @deprecated
-  bool changes(value) => indexChanged(value);
 
   /** Returns true if the provided index was changed by this operation. */
   bool indexChanged(otherIndex) {
