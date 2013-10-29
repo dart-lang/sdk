@@ -78,7 +78,7 @@ abstract class PubCommand {
         help: 'Print usage information for this command.');
   }
 
-  void run(String cacheDir, ArgResults options) {
+  void run(String cacheDir, ArgResults options, List<String> arguments) {
     commandOptions = options.command;
 
     if (commandOptions['help']) {
@@ -111,7 +111,7 @@ abstract class PubCommand {
         log.error("""
 This is an unexpected error. Please run
 
-    pub --trace ${new Options().arguments.map((arg) => "'$arg'").join(' ')}
+    pub --trace ${arguments.map((arg) => "'$arg'").join(' ')}
 
 and include the results in a bug report on http://dartbug.com/new.
 """);
