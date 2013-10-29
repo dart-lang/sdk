@@ -679,9 +679,10 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
   test("$type-controller-addstream-error-stop", () {
     // Check that addStream defaults to ending after the first error.
     var done = expectAsync0((){});
-    var c = broadcast ? new StreamController.broadcast(sync: sync)
-                      : new StreamController(sync: sync);
-    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    StreamController c = broadcast
+        ? new StreamController.broadcast(sync: sync)
+        : new StreamController(sync: sync);
+    Stream stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
     var actual = new Events.capture(stream);
 
     var source = new Events();
@@ -703,9 +704,10 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
     // Check that addStream with cancelOnError:false passes all data and errors
     // to the controller.
     var done = expectAsync0((){});
-    var c = broadcast ? new StreamController.broadcast(sync: sync)
-                      : new StreamController(sync: sync);
-    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    StreamController c = broadcast
+        ? new StreamController.broadcast(sync: sync)
+        : new StreamController(sync: sync);
+    Stream stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
     var actual = new Events.capture(stream);
 
     var source = new Events();
@@ -725,9 +727,10 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
   test("$type-controller-addstream-twice", () {
     // Using addStream twice on the same stream
     var done = expectAsync0((){});
-    var c = broadcast ? new StreamController.broadcast(sync: sync)
-                      : new StreamController(sync: sync);
-    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    StreamController c = broadcast
+        ? new StreamController.broadcast(sync: sync)
+        : new StreamController(sync: sync);
+    Stream stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
     var actual = new Events.capture(stream);
 
     // Streams of five events, throws on 3.

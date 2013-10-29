@@ -167,6 +167,26 @@ abstract class StreamController<T> implements StreamSink<T> {
    * allows.
    */
   void addError(Object error, [StackTrace stackTrace]);
+
+  /**
+   * Receives events from [source] and puts them into this controller's stream.
+   *
+   * Returns a future which completes when the source stream is done.
+   *
+   * Events must not be added directly to this controller using [add],
+   * [addError], [close] or [addStream], until the returned future
+   * is complete.
+   *
+   * Data and error events are forwarded to this controller's stream. A done
+   * event on the source will end the `addStream` operation and complete the
+   * returned future.
+   *
+   * If [cancelOnError] is true, only the first error on [source] is
+   * forwarded to the controller's stream, and the `addStream` ends
+   * after this. If [cancelOnError] is false, all errors are forwarded
+   * and only a done event will end the `addStream`.
+   */
+  Future addStream(Stream<T> source, {bool cancelOnError: true});
 }
 
 
@@ -344,24 +364,6 @@ abstract class _StreamController<T> implements StreamController<T>,
   }
 
   // StreamSink interface.
-  /**
-   * Receives events from [source] and puts them into this controller's stream.
-   *
-   * Returns a future which completes when the source stream is done.
-   *
-   * Events must not be added directly to this controller using [add],
-   * [addError], [close] or [addStream], until the returned future
-   * is complete.
-   *
-   * Data and error events are forwarded to this controller's stream. A done
-   * event on the source will end the `addStream` operation and complete the
-   * returned future.
-   *
-   * If [cancelOnError] is true, only the first error on [source] is
-   * forwarded to the controller's stream, and the `addStream` ends
-   * after this. If [cancelOnError] is false, all errors are forwarded
-   * and only a done event will end the `addStream`.
-   */
   Future addStream(Stream<T> source, { bool cancelOnError: true }) {
     if (!_mayAddEvent) throw _badEventState();
     if (_isCanceled) return new _Future.immediate(null);
