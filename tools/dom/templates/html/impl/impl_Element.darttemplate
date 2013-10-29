@@ -259,7 +259,7 @@ $!STREAM_GETTER_SIGNATURES
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
 class _FrozenElementList<T extends Element> extends ListBase<T>
-    implements ElementList, NodeListWrapper {
+    implements ElementList<T>, NodeListWrapper {
   final List<Node> _nodeList;
   // The subset of _nodeList that are Elements.
   List<Element> _elementList;
