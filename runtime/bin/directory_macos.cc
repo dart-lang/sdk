@@ -187,11 +187,15 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
     return kListError;
   }
 
-  if (closedir(reinterpret_cast<DIR*>(lister_)) == -1) {
-    return kListError;
-  }
-
   return kListDone;
+}
+
+
+DirectoryListingEntry::~DirectoryListingEntry() {
+  ResetLink();
+  if (lister_ != 0) {
+    closedir(reinterpret_cast<DIR*>(lister_));
+  }
 }
 
 

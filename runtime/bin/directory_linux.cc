@@ -105,8 +105,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   dirent entry;
   dirent* result;
   if ((status = TEMP_FAILURE_RETRY(readdir_r(reinterpret_cast<DIR*>(lister_),
-                                    &entry,
-                                    &result))) == 0 &&
+                                   &entry,
+                                   &result))) == 0 &&
       result != NULL) {
     if (!listing->path_buffer().Add(entry.d_name)) {
       done_ = true;
@@ -188,11 +188,15 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
     return kListError;
   }
 
-  if (closedir(reinterpret_cast<DIR*>(lister_)) == -1) {
-    return kListError;
-  }
-
   return kListDone;
+}
+
+
+DirectoryListingEntry::~DirectoryListingEntry() {
+  ResetLink();
+  if (lister_ != 0) {
+    closedir(reinterpret_cast<DIR*>(lister_));
+  }
 }
 
 

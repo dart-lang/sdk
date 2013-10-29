@@ -43,6 +43,55 @@ void testPauseList() {
   });
 }
 
+
+void testPauseResumeCancelList() {
+  asyncStart();
+  // TOTAL should be bigger the our directory listing buffer.
+  const int TOTAL = 128;
+  Directory.systemTemp.createTemp('dart_directory_list_pause').then((d) {
+    for (int i = 0; i < TOTAL; i++) {
+      new Directory("${d.path}/$i").createSync();
+      new File("${d.path}/$i/file").createSync();
+    }
+    var subscription;
+    subscription = d.list(recursive: true).listen((entity) {
+      subscription.pause();
+      subscription.resume();
+      void close() {
+        d.deleteSync(recursive: true);
+        asyncEnd();
+      }
+      var future = subscription.cancel();
+      if (future != null) {
+        future.whenComplete(close);
+      } else {
+        close();
+      }
+    }, onDone: () {
+      Expect.fail('the stream was canceled, onDone should not happend');
+    });
+  });
+}
+
+void testListIsEmpty() {
+  asyncStart();
+  // TOTAL should be bigger the our directory listing buffer.
+  const int TOTAL = 128;
+  Directory.systemTemp.createTemp('dart_directory_list_pause').then((d) {
+    for (int i = 0; i < TOTAL; i++) {
+      new Directory("${d.path}/$i").createSync();
+      new File("${d.path}/$i/file").createSync();
+    }
+    d.list(recursive: true).isEmpty.then((empty) {
+      Expect.isFalse(empty);
+      d.deleteSync(recursive: true);
+      asyncEnd();
+    });
+  });
+}
+
 void main() {
   testPauseList();
+  testPauseResumeCancelList();
+  testListIsEmpty();
 }
