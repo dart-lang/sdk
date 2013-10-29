@@ -238,10 +238,10 @@ abstract class _BroadcastStreamController<T>
 
   Future get done => _ensureDoneFuture();
 
-  Future addStream(Stream<T> stream) {
+  Future addStream(Stream<T> stream, {bool cancelOnError: true}) {
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_ADDSTREAM;
-    _addStreamState = new _AddStreamState(this, stream);
+    _addStreamState = new _AddStreamState(this, stream, cancelOnError);
     return _addStreamState.addStreamFuture;
   }
 

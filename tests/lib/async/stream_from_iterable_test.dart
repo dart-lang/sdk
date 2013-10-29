@@ -80,4 +80,72 @@ main() {
     Expect.throws(() { stream.listen((x){}); },
                   (e) => e is StateError);
   });
+
+  test("regression-14332", () {
+    // Regression test for http://dartbug.com/14332.
+    // This should succeede.
+    var from = new Stream.fromIterable([1,2,3,4,5]);
+
+    var c = new StreamController();
+    var sink = c.sink;
+
+    var done = expectAsync0((){}, count: 2);
+
+    // if this goes first, test failed (hanged). Swapping addStream and toList
+    // made failure go away.
+    sink.addStream(from).then((_) {
+      c.close();
+      done();
+    });
+
+    c.stream.toList().then((x) {
+      Expect.listEquals([1,2,3,4,5], x);
+      done();
+    });
+  });
+
+  test("regression-14334-a", () {
+    var from = new Stream.fromIterable([1,2,3,4,5]);
+
+    // odd numbers as data events, even numbers as error events
+    from = from.map((x) => x.isOdd ? x : throw x);
+
+    var c = new StreamController();
+    var sink = c.sink;
+
+    var done = expectAsync0((){}, count: 2);
+
+    var data = [], errors = [];
+    c.stream.listen(data.add, onError: errors.add, onDone: () {
+      Expect.listEquals([1], data);
+      Expect.listEquals([2], errors);
+      done();
+    });
+    sink.addStream(from).then((_) {
+      c.close();
+      done();
+    });
+  });
+
+  test("regression-14334-b", () {
+    var from = new Stream.fromIterable([1,2,3,4,5]);
+
+    // odd numbers as data events, even numbers as error events
+    from = from.map((x) => x.isOdd ? x : throw x);
+
+    var c = new StreamController();
+
+    var done = expectAsync0((){}, count: 2);
+
+    var data = [], errors = [];
+    c.stream.listen(data.add, onError: errors.add, onDone: () {
+      Expect.listEquals([1, 3, 5], data);
+      Expect.listEquals([2, 4], errors);
+      done();
+    });
+    c.addStream(from, cancelOnError: false).then((_) {
+      c.close();
+      done();
+    });
+  });
 }

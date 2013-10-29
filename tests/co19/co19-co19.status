@@ -93,8 +93,7 @@ LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 LibTest/async/Stream/handleError_A04_t02: Fail # co19-roll r641: Please triage this failure
 LibTest/async/Stream/listen_A05_t02: Fail # co19-roll r641: Please triage this failure
 LibTest/async/StreamSink/addError_A01_t01: Fail # co19-roll r641: Please triage this failure
-LibTest/async/StreamSink/addStream_A01_t01: Timeout, Fail # co19-roll r641: Please triage this failure
-LibTest/async/StreamSink/addStream_A01_t02: Timeout, Fail # co19-roll r641: Please triage this failure
+LibTest/async/StreamSink/addStream_A01_t02: Timeout, Fail, OK # Dart issue 14334 - test is also incorrect.
 LibTest/collection/ListBase/ListBase_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
 

@@ -675,6 +675,81 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
           }
         });
   });
+
+  test("$type-controller-addstream-error-stop", () {
+    // Check that addStream defaults to ending after the first error.
+    var done = expectAsync0((){});
+    var c = broadcast ? new StreamController.broadcast(sync: sync)
+                      : new StreamController(sync: sync);
+    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    var actual = new Events.capture(stream);
+
+    var source = new Events();
+    source..add(1)..add(2)..error("BAD")..add(3)..error("FAIL")..close();
+
+    var expected = new Events()..add(1)..add(2)..error("BAD")..close();
+    StreamController sourceController = new StreamController();
+    c.addStream(sourceController.stream).then((_) {
+      c.close().then((_) {
+        Expect.listEquals(expected.events, actual.events);
+        done();
+      });
+    });
+
+    source.replay(sourceController);
+  });
+
+  test("$type-controller-addstream-error-forward", () {
+    // Check that addStream with cancelOnError:false passes all data and errors
+    // to the controller.
+    var done = expectAsync0((){});
+    var c = broadcast ? new StreamController.broadcast(sync: sync)
+                      : new StreamController(sync: sync);
+    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    var actual = new Events.capture(stream);
+
+    var source = new Events();
+    source..add(1)..add(2)..addError("BAD")..add(3)..addError("FAIL")..close();
+
+    StreamController sourceController = new StreamController();
+    c.addStream(sourceController.stream, cancelOnError: false).then((_) {
+      c.close().then((_) {
+        Expect.listEquals(source.events, actual.events);
+        done();
+      });
+    });
+
+    source.replay(sourceController);
+  });
+
+  test("$type-controller-addstream-twice", () {
+    // Using addStream twice on the same stream
+    var done = expectAsync0((){});
+    var c = broadcast ? new StreamController.broadcast(sync: sync)
+                      : new StreamController(sync: sync);
+    var stream = asBroadcast ? c.stream.asBroadcastStream() : c.stream;
+    var actual = new Events.capture(stream);
+
+    // Streams of five events, throws on 3.
+    Stream s1 = new Stream.fromIterable([1,2,3,4,5])
+                    .map((x) => (x == 3 ? throw x : x));
+    Stream s2 = new Stream.fromIterable([1,2,3,4,5])
+                    .map((x) => (x == 3 ? throw x : x));
+
+    Events expected = new Events();
+    expected..add(1)..add(2)..error(3);
+    expected..add(1)..add(2)..error(3)..add(4)..add(5);
+    expected..close();
+
+    c.addStream(s1).then((_) {
+      c.addStream(s2, cancelOnError: false).then((_) {
+        c.close().then((_) {
+          Expect.listEquals(expected.events, actual.events);
+          done();
+        });
+      });
+    });
+  });
 }
 
 main() {

@@ -344,11 +344,32 @@ abstract class _StreamController<T> implements StreamController<T>,
   }
 
   // StreamSink interface.
-  Future addStream(Stream<T> source) {
+  /**
+   * Receives events from [source] and puts them into this controller's stream.
+   *
+   * Returns a future which completes when the source stream is done.
+   *
+   * Events must not be added directly to this controller using [add],
+   * [addError], [close] or [addStream], until the returned future
+   * is complete.
+   *
+   * Data and error events are forwarded to this controller's stream. A done
+   * event on the source will end the `addStream` operation and complete the
+   * returned future.
+   *
+   * If [cancelOnError] is true, only the first error on [source] is
+   * forwarded to the controller's stream, and the `addStream` ends
+   * after this. If [cancelOnError] is false, all errors are forwarded
+   * and only a done event will end the `addStream`.
+   */
+  Future addStream(Stream<T> source, { bool cancelOnError: true }) {
     if (!_mayAddEvent) throw _badEventState();
     if (_isCanceled) return new _Future.immediate(null);
     _StreamControllerAddStreamState addState =
-        new _StreamControllerAddStreamState(this, _varData, source);
+        new _StreamControllerAddStreamState(this,
+                                            _varData,
+                                            source,
+                                            cancelOnError);
     _varData = addState;
     _state |= _STATE_ADDSTREAM;
     return addState.addStreamFuture;
@@ -454,6 +475,7 @@ abstract class _StreamController<T> implements StreamController<T>,
     if (_isAddingStream) {
       _StreamControllerAddStreamState addState = _varData;
       addState.varData = subscription;
+      addState.resume();
     } else {
       _varData = subscription;
     }
@@ -633,14 +655,15 @@ class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
 
 /** A class that exposes only the [StreamSink] interface of an object. */
 class _StreamSinkWrapper<T> implements StreamSink<T> {
-  final StreamSink _target;
+  final StreamController _target;
   _StreamSinkWrapper(this._target);
   void add(T data) { _target.add(data); }
   void addError(Object error, [StackTrace stackTrace]) {
     _target.addError(error);
   }
   Future close() => _target.close();
-  Future addStream(Stream<T> source) => _target.addStream(source);
+  Future addStream(Stream<T> source, { bool cancelOnError: true})
+      => _target.addStream(source, cancelOnError: cancelOnError);
   Future get done => _target.done;
 }
 
@@ -649,17 +672,25 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
  */
 class _AddStreamState<T> {
   // [_Future] returned by call to addStream.
-  _Future addStreamFuture;
+  final _Future addStreamFuture;
 
   // Subscription on stream argument to addStream.
-  StreamSubscription addSubscription;
+  final StreamSubscription addSubscription;
 
-  _AddStreamState(_EventSink<T> controller, Stream source)
+  _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError)
       : addStreamFuture = new _Future(),
         addSubscription = source.listen(controller._add,
-                                        onError: controller._addError,
+                                        onError: cancelOnError
+                                             ? makeErrorHandler(controller)
+                                             : controller._addError,
                                         onDone: controller._close,
-                                        cancelOnError: true);
+                                        cancelOnError: cancelOnError);
+
+  static makeErrorHandler(_EventSink controller) =>
+      (e, StackTrace s) {
+        controller._addError(e, s);
+        controller._close();
+      };
 
   void pause() {
     addSubscription.pause();
@@ -687,7 +718,9 @@ class _StreamControllerAddStreamState<T> extends _AddStreamState<T> {
 
   _StreamControllerAddStreamState(_StreamController controller,
                                   this.varData,
-                                  Stream source) : super(controller, source) {
+                                  Stream source,
+                                  bool cancelOnError)
+      : super(controller, source, cancelOnError) {
     if (controller.isPaused) {
       addSubscription.pause();
     }
