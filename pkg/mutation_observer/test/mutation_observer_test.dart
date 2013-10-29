@@ -101,14 +101,5 @@ testMutationObserver() {
       container.append(div1);
       div1.append(div2);
     });
-
-    test('mutation event', () {
-      var event = new MutationEvent('something', prevValue: 'prev',
-          newValue: 'new', attrName: 'attr');
-      expect(event is MutationEvent, isTrue);
-      expect(event.prevValue, 'prev');
-      expect(event.newValue, 'new');
-      expect(event.attrName, 'attr');
-    });
   });
 }
