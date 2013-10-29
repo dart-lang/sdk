@@ -46,10 +46,6 @@ initConfig() {
   unittestConfiguration.timeout = null;
 }
 
-/// Returns whether we're running on a Dart build bot.
-bool get runningOnBuildbot =>
-  Platform.environment.containsKey('BUILDBOT_BUILDERNAME');
-
 /// The current [HttpServer] created using [serve].
 var _server;
 
@@ -582,14 +578,13 @@ class PubProcess extends ScheduledProcess {
 /// The path to the `packages` directory from which pub loads its dependencies.
 String get _packageRoot => path.absolute(Platform.packageRoot);
 
-/// Skips the current test if Git is not installed. This validates that the
-/// current test is running on a buildbot in which case we expect git to be
-/// installed. If we are not running on the buildbot, we will instead see if
-/// git is installed and skip the test if not. This way, users don't need to
-/// have git installed to run the tests locally (unless they actually care
-/// about the pub git tests).
+/// Fails the current test if Git is not installed.
 ///
-/// This will also increase the [Schedule] timeout to 30 seconds on Windows,
+/// We require machines running these tests to have git installed. This
+/// validation gives an easier-to-understand error when that requirement isn't
+/// met than just failing in the middle of a test when pub invokes git.
+///
+/// This also increases the [Schedule] timeout to 30 seconds on Windows,
 /// where Git runs really slowly.
 void ensureGit() {
   if (Platform.operatingSystem == "windows") {
@@ -598,9 +593,9 @@ void ensureGit() {
 
   schedule(() {
     return gitlib.isInstalled.then((installed) {
-      if (installed) return;
-      if (runningOnBuildbot) return;
-      currentSchedule.abort();
+      if (!installed) {
+        throw new Exception("Git must be installed to run this test.");
+      }
     });
   }, 'ensuring that Git is installed');
 }
