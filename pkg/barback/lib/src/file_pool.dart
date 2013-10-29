@@ -5,7 +5,6 @@
 library barback.file_pool;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 

@@ -10,9 +10,9 @@ import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
-import 'barback_logger.dart';
 import 'build_result.dart';
 import 'errors.dart';
+import 'log.dart';
 import 'package_provider.dart';
 import 'pool.dart';
 import 'transformer.dart';
@@ -25,10 +25,6 @@ import 'utils.dart';
 class PackageGraph {
   /// The provider that exposes asset and package information.
   final PackageProvider provider;
-
-  /// The logger used to report transformer log entries. If this is null, then
-  /// [_defaultLogger] will be used instead.
-  final BarbackLogger _logger;
 
   /// The [AssetCascade] for each package.
   final _cascades = <String, AssetCascade>{};
@@ -60,6 +56,10 @@ class PackageGraph {
   Stream<BarbackException> get errors => _errors;
   Stream<BarbackException> _errors;
 
+  /// The stream of [LogEntry] objects used to report transformer log entries.
+  Stream<LogEntry> get log => _logController.stream;
+  final _logController = new StreamController<LogEntry>.broadcast();
+
   /// The most recent error emitted from a cascade's result stream.
   ///
   /// This is used to pipe an unexpected error from a build to the resulting
@@ -75,8 +75,7 @@ class PackageGraph {
 
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
-  PackageGraph(this.provider, {BarbackLogger logger})
-      : _logger = logger != null ? logger : new BarbackLogger() {
+  PackageGraph(this.provider) {
     for (var package in provider.packages) {
       var cascade = new AssetCascade(this, package);
       // The initial result for each cascade is "success" since the cascade
@@ -87,7 +86,23 @@ class PackageGraph {
         _cascadeResults[package] = null;
       });
 
-      cascade.onLog.listen(_logger.logEntry);
+      cascade.onLog.listen((entry) {
+        if (_logController.hasListener) {
+          _logController.add(entry);
+        } else {
+          // No listeners, so just print entry.
+          var buffer = new StringBuffer();
+          buffer.write("[${entry.level} ${entry.transform}] ");
+
+          if (entry.span != null) {
+            buffer.write(entry.span.getLocationMessage(entry.message));
+          } else {
+            buffer.write(entry.message);
+          }
+
+          print(buffer);
+        }
+      });
 
       cascade.results.listen((result) {
         _cascadeResults[cascade.package] = result;

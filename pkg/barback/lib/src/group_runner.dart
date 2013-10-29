@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'asset_cascade.dart';
 import 'asset_node.dart';
-import 'barback_logger.dart';
+import 'log.dart';
 import 'phase.dart';
 import 'stream_pool.dart';
 import 'transformer_group.dart';
@@ -32,8 +32,8 @@ class GroupRunner {
   /// Whether this group is dirty and needs to be run.
   bool get isDirty => _phases.any((phase) => phase.isDirty);
 
-  /// A stream that emits an event whenever any transforms in this group log an
-  /// entry.
+  /// A stream that emits an event whenever any transforms in this group logs
+  /// an entry.
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 

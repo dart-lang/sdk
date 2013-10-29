@@ -5,15 +5,12 @@
 library barback.phase;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'asset_cascade.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
-import 'asset_set.dart';
-import 'barback_logger.dart';
 import 'group_runner.dart';
-import 'errors.dart';
+import 'log.dart';
 import 'multiset.dart';
 import 'phase_forwarder.dart';
 import 'phase_input.dart';
@@ -92,8 +89,8 @@ class Phase {
   bool get isDirty => _inputs.values.any((input) => input.isDirty) ||
       _groups.values.any((group) => group.isDirty);
 
-  /// A stream that emits an event whenever any transforms in this phase log an
-  /// entry.
+  /// A stream that emits an event whenever any transforms in this phase logs
+  /// an entry.
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 

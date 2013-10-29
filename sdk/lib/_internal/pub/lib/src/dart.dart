@@ -57,7 +57,10 @@ Future<String> compile(String entrypoint, {String packageRoot,
         path.toUri(entrypoint),
         path.toUri(appendSlash(_libPath)),
         path.toUri(appendSlash(packageRoot)),
-        inputProvider, diagnosticHandler, options);
+        inputProvider, diagnosticHandler, options).then((js) {
+      if (js == null) throw new CompilerException(entrypoint);
+      return js;
+    });
   });
 }
 
@@ -174,4 +177,10 @@ class CrossIsolateException implements Exception {
   }
 
   String toString() => "$message\n$stackTrace";
+}
+
+/// An exception thrown when dart2js generates compiler errors.
+class CompilerException extends ApplicationException {
+  CompilerException(String entrypoint)
+      : super('Failed to compile "$entrypoint".');
 }

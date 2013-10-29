@@ -79,18 +79,17 @@ class Dart2JSTransformer extends Transformer {
           packageRoot: packageRoot,
           inputProvider: provider.readStringFromUri,
           diagnosticHandler: provider.handleDiagnostic).then((js) {
-        if (js == null) {
-          // The compile failed and errors should have already been reported
-          // through the diagnostic handler, so just do nothing here.
-          return;
-        }
-
         var id = transform.primaryInput.id.changeExtension(".dart.js");
         transform.addOutput(new Asset.fromString(id, js));
 
         stopwatch.stop();
         transform.logger.info("Generated $id (${js.length} characters) in "
             "${stopwatch.elapsed}");
+      }).catchError((error) {
+        // The compile failed and errors have been reported through the
+        // diagnostic handler, so just do nothing here.
+        if (error is CompilerException) return;
+        throw error;
       });
     });
   }

@@ -10,10 +10,10 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
 import 'barback/load_all_transformers.dart';
-import 'barback/pub_barback_logger.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
 import 'barback/sources.dart';
+import 'log.dart' as log;
 import 'package_graph.dart';
 import 'utils.dart';
 
@@ -110,8 +110,9 @@ class TransformerId {
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
     {Iterable<Transformer> builtInTransformers, bool watchForUpdates: true}) {
   var provider = new PubPackageProvider(graph);
-  var logger = new PubBarbackLogger();
-  var barback = new Barback(provider, logger: logger);
+  var barback = new Barback(provider);
+
+  barback.log.listen(_log);
 
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
@@ -247,5 +248,58 @@ String idtoUrlPath(String entrypoint, AssetId id) {
 
     default:
       throw new FormatException('Cannot access assets from "$dir".');
+  }
+}
+
+/// Log [entry] using Pub's logging infrastructure.
+///
+/// Since both [LogEntry] objects and the message itself often redundantly
+/// show the same context like the file where an error occurred, this tries
+/// to avoid showing redundant data in the entry.
+void _log(LogEntry entry) {
+  messageMentions(String text) {
+    return entry.message.toLowerCase().contains(text.toLowerCase());
+  }
+
+  var prefixParts = [];
+
+  // Show the level (unless the message mentions it).
+  if (!messageMentions(entry.level.name)) {
+    prefixParts.add("${entry.level} in");
+  }
+
+  // Show the transformer.
+  prefixParts.add(entry.transform.transformer);
+
+  // Mention the primary input of the transform unless the message seems to.
+  if (!messageMentions(entry.transform.primaryId.path)) {
+    prefixParts.add("on ${entry.transform.primaryId}");
+  }
+
+  // If the relevant asset isn't the primary input, mention it unless the
+  // message already does.
+  if (entry.assetId != entry.transform.primaryId &&
+      !messageMentions(entry.assetId.path)) {
+    prefixParts.add("with input ${entry.assetId}");
+  }
+
+  var prefix = "[${prefixParts.join(' ')}]:";
+  var message = entry.message;
+  if (entry.span != null) {
+    message = entry.span.getLocationMessage(entry.message);
+  }
+
+  switch (entry.level) {
+    case LogLevel.ERROR:
+      log.error("${log.red(prefix)}\n$message");
+      break;
+
+    case LogLevel.WARNING:
+      log.warning("${log.yellow(prefix)}\n$message");
+      break;
+
+    case LogLevel.INFO:
+      log.message("$prefix\n$message");
+      break;
   }
 }
