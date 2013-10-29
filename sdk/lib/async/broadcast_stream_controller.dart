@@ -183,9 +183,9 @@ abstract class _BroadcastStreamController<T>
     return subscription;
   }
 
-  void _recordCancel(_BroadcastSubscription<T> subscription) {
+  Future _recordCancel(_BroadcastSubscription<T> subscription) {
     // If already removed by the stream, don't remove it again.
-    if (identical(subscription._next, subscription)) return;
+    if (identical(subscription._next, subscription)) return null;
     assert(!identical(subscription._next, subscription));
     if (subscription._isFiring) {
       subscription._setRemoveAfterFiring();

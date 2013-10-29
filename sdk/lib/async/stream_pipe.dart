@@ -147,12 +147,13 @@ class _ForwardingStreamSubscription<S, T>
     _subscription.resume();
   }
 
-  void _onCancel() {
+  Future _onCancel() {
     if (_subscription != null) {
       StreamSubscription subscription = _subscription;
       _subscription = null;
       subscription.cancel();
     }
+    return null;
   }
 
   // Methods used as listener on source subscription.
@@ -349,7 +350,7 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
       _remaining--;
       return;
     }
-    return sink._add(inputEvent);
+    sink._add(inputEvent);
   }
 }
 
