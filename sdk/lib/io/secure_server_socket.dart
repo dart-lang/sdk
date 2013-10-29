@@ -10,7 +10,7 @@ part of dart.io;
  *
  * See [SecureSocket] for more info.
  */
-class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
+class SecureServerSocket extends Stream<SecureSocket> {
   final RawSecureServerSocket _socket;
 
   SecureServerSocket._(RawSecureServerSocket this._socket);
@@ -93,6 +93,11 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
    * Returns the port used by this socket.
    */
   int get port => _socket.port;
+
+  /**
+   * Returns the address used by this socket.
+   */
+  InternetAddress get address => _socket.address;
 
   /**
    * Closes the socket. The returned future completes when the socket
