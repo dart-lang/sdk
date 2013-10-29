@@ -179,7 +179,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.instructionType;
-    if (type == HType.NULL) {
+    if (type.isNull()) {
       prefix = 'u';
     } else if (type == HType.CONFLICTING) {
       prefix = 'c';

@@ -163,7 +163,7 @@ class HGraph {
 
   static HType mapConstantTypeToSsaType(Constant constant, Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    if (constant.isNull()) return HType.NULL;
+    if (constant.isNull()) return backend.nullType;
     if (constant.isBool()) return backend.boolType;
     if (constant.isInt()) return backend.intType;
     if (constant.isDouble()) return backend.doubleType;
@@ -2088,7 +2088,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
                       this.interceptedClasses)
       : super(selector, null, inputs, true) {
     assert(inputs[0] is HConstant);
-    assert(inputs[0].instructionType == HType.NULL);
+    assert(inputs[0].instructionType.isNull());
   }
   bool isCallOnInterceptor(Compiler compiler) => true;
 

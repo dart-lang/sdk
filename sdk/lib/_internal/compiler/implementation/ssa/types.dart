@@ -14,11 +14,11 @@ abstract class HType {
    */
   factory HType.fromMask(TypeMask mask, Compiler compiler) {
     bool isNullable = mask.isNullable;
+    JavaScriptBackend backend = compiler.backend;
     if (mask.isEmpty) {
-      return isNullable ? HType.NULL : HType.CONFLICTING;
+      return isNullable ? backend.nullType : HType.CONFLICTING;
     }
 
-    JavaScriptBackend backend = compiler.backend;
     if (mask.containsOnlyInt(compiler)) {
       return mask.isNullable
           ? new HBoundedType(new TypeMask.exact(backend.jsIntClass))
@@ -43,13 +43,13 @@ abstract class HType {
           ? new HBoundedType(new TypeMask.exact(backend.jsBoolClass))
           : backend.boolType;
     } else if (mask.containsOnlyNull(compiler)) {
-      return HType.NULL;
+      return backend.nullType;
     }
 
     // TODO(kasperl): A lot of the code in the system currently
     // expects the top type to be 'unknown'. I'll rework this.
     if (mask.containsAll(compiler)) {
-      return isNullable ? HType.UNKNOWN : HType.NON_NULL;
+      return isNullable ? HType.UNKNOWN : backend.objectType;
     }
 
     return new HBoundedType(mask);
@@ -129,12 +129,13 @@ abstract class HType {
   // [type] is either an instance of [DartType] or special objects
   // like [native.SpecialType.JsObject].
   static HType fromNativeType(type, Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
     if (type == native.SpecialType.JsObject) {
       return new HType.nonNullExact(compiler.objectClass, compiler);
     } else if (type.isVoid) {
-      return HType.NULL;
+      return backend.nullType;
     } else if (type.element == compiler.nullClass) {
-      return HType.NULL;
+      return backend.nullType;
     } else if (type.treatAsDynamic) {
       return HType.UNKNOWN;
     } else if (compiler.world.hasAnySubtype(type.element)) {
@@ -148,8 +149,6 @@ abstract class HType {
 
   static const HType CONFLICTING = const HConflictingType();
   static const HType UNKNOWN = const HUnknownType();
-  static const HType NON_NULL = const HNonNullType();
-  static const HType NULL = const HNullType();
 
   bool isConflicting() => identical(this, CONFLICTING);
   bool isUnknown() => identical(this, UNKNOWN);
@@ -280,20 +279,6 @@ class HUnknownType extends HAnalysisType {
   }
 }
 
-class HNonNullType extends HAnalysisType {
-  const HNonNullType() : super("non-null");
-  bool canBePrimitive(Compiler compiler) => true;
-  bool canBeNull() => false;
-  bool canBePrimitiveNumber(Compiler compiler) => true;
-  bool canBePrimitiveString(Compiler compiler) => true;
-  bool canBePrimitiveArray(Compiler compiler) => true;
-  bool canBePrimitiveBoolean(Compiler compiler) => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    return new TypeMask.nonNullSubclass(compiler.objectClass);
-  }
-}
-
 class HConflictingType extends HAnalysisType {
   const HConflictingType() : super("conflicting");
   bool canBePrimitive(Compiler compiler) => true;
@@ -304,38 +289,22 @@ class HConflictingType extends HAnalysisType {
   }
 }
 
-abstract class HPrimitiveType extends HType {
-  const HPrimitiveType();
-  bool isPrimitive(Compiler compiler) => true;
-  bool canBePrimitive(Compiler compiler) => true;
-  bool isPrimitiveOrNull(Compiler compiler) => true;
-}
-
-class HNullType extends HPrimitiveType {
-  const HNullType();
-  bool canBeNull() => true;
-  bool isNull() => true;
-  String toString() => 'null type';
-  bool isExact() => true;
-
-  TypeMask computeMask(Compiler compiler) {
-    return new TypeMask.empty();
-  }
-}
-
 class HBoundedType extends HType {
   final TypeMask mask;
   const HBoundedType(this.mask);
 
-  bool isExact() => mask.isExact;
+  bool isExact() => mask.isExact || isNull();
 
   bool canBeNull() => mask.isNullable;
+
+  bool isNull() => mask.isEmpty && mask.isNullable;
 
   bool canBePrimitive(Compiler compiler) {
     return canBePrimitiveNumber(compiler)
         || canBePrimitiveArray(compiler)
         || canBePrimitiveBoolean(compiler)
-        || canBePrimitiveString(compiler);
+        || canBePrimitiveString(compiler)
+        || isNull();
   }
 
   bool canBePrimitiveNumber(Compiler compiler) {
@@ -430,13 +399,15 @@ class HBoundedType extends HType {
   }
 
   bool isPrimitive(Compiler compiler) {
-    return isPrimitiveOrNull(compiler) && !mask.isNullable;
+    return (isPrimitiveOrNull(compiler) && !mask.isNullable)
+        || isNull();
   }
 
   bool isPrimitiveOrNull(Compiler compiler) {
     return isIndexablePrimitive(compiler)
         || isNumberOrNull(compiler)
-        || isBooleanOrNull(compiler);
+        || isBooleanOrNull(compiler)
+        || isNull();
   }
 
   bool operator ==(other) {

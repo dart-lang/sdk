@@ -251,10 +251,11 @@ class LocalsHandler {
     closureData.freeVariableMapping.forEach((Element from, Element to) {
       redirectElement(from, to);
     });
+    JavaScriptBackend backend = compiler.backend;
     if (closureData.isClosure()) {
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction = new HThis(closureData.thisElement,
-                                        HType.NON_NULL);
+                                        backend.objectType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
@@ -273,7 +274,6 @@ class LocalsHandler {
     // parameter to it, that is the actual receiver for intercepted
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
-    JavaScriptBackend backend = compiler.backend;
 
     // When the class extends a native class, the instance is pre-constructed
     // and passed to the generative constructor factory function as a parameter.

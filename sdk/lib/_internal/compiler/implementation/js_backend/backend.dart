@@ -218,6 +218,7 @@ class JavaScriptBackend extends Backend {
   HType mutableArrayType;
   HType fixedArrayType;
   HType extendableArrayType;
+  HType objectType;
 
   // TODO(9577): Make it so that these are not needed when there are no native
   // classes.
@@ -639,6 +640,10 @@ class JavaScriptBackend extends Backend {
         new TypeMask.nonNullExact(jsFixedArrayClass));
     extendableArrayType = new HBoundedType(
         new TypeMask.nonNullExact(jsExtendableArrayClass));
+    nullType = new HBoundedType(
+        const TypeMask.empty());
+    objectType = new HBoundedType(
+        compiler.typesTask.dynamicType.nonNullable());
 
     typeVariableClass = compiler.findHelper('TypeVariable');
   }
