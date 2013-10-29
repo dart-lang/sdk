@@ -229,8 +229,8 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
   bool get hasReflectedType => false;
   Type get reflectedType => throw new UnsupportedError("This type does not support reflectedTypees");
 
-  List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
-  List<TypeMirror> get typeArguments => throw new UnimplementedError();
+  List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
+  List<TypeMirror> get typeArguments => const <TypeMirror>[];
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
@@ -689,7 +689,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
     throw new UnimplementedError();
   }
 
-  List<TypeMirror> get typeArguments => new List();
+  List<TypeMirror> get typeArguments => const <TypeMirror>[];
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -1422,7 +1422,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return _cachedTypeVariables = new UnmodifiableListView(result);
   }
 
-  List<TypeMirror> get typeArguments => new List();
+  List<TypeMirror> get typeArguments => const <TypeMirror>[];
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {

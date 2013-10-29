@@ -33,4 +33,9 @@ patch ClassMirror reflectClass(Type key) {
   return (tm as ClassMirror).originalDeclaration;
 }
 
-patch TypeMirror reflectType(Type key) => js.reflectType(key);
+patch TypeMirror reflectType(Type key) {
+  if (key == dynamic) {
+    return currentMirrorSystem().dynamicType;
+  }
+  return js.reflectType(key);
+}
