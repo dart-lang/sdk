@@ -448,146 +448,132 @@ class _SpreadArgsHelper {
     }
   }
 
-  /**
-   * Using [noSuchMethod] to handle the invocation of [call].
-   *
-   * This allows direct access to the arguments via [Invocation], which are
-   * passed to the original callback.
-   */
-  dynamic noSuchMethod(Invocation invocation) {
-    if (invocation.memberName != #call) return super.noSuchMethod(invocation);
-
+  invoke0() {
     return _guardAsync(
         () {
           if (shouldCallBack()) {
-            return Function.apply(callback, invocation.positionalArguments,
-                invocation.namedArguments);
+            return callback();
           }
         },
         after, testCase);
   }
 
-  /**
-   * Eliminates type warnings since this class does not directly expose the
-   * [call] method -- causing compliants that it is not a valid [Function].
-   */
-  // TODO(kevmoo): consider implementing Function and flagging class with @proxy
-  Function get asFunction => (this as dynamic);
+  invoke1(arg1) {
+    return _guardAsync(
+        () {
+          if (shouldCallBack()) {
+            return callback(arg1);
+          }
+        },
+        after, testCase);
+  }
+
+  invoke2(arg1, arg2) {
+    return _guardAsync(
+        () {
+          if (shouldCallBack()) {
+            return callback(arg1, arg2);
+          }
+        },
+        after, testCase);
+  }
 }
 
 /**
  * Indicate that [callback] is expected to be called a [count] number of times
- * (by default 1).
- *
- * The unittest framework will wait for the callback to run the
+ * (by default 1). The unittest framework will wait for the callback to run the
  * specified [count] times before it continues with the following test.  Using
- * [expectAsync] will also ensure that errors that occur within [callback] are
- * tracked and reported.
- *
- * [id] can be used to provide more descriptive error messages if the callback
- * is called more often than expected.
- *
- * [max] can be used to specify an upper bound on the number of calls; if this
- * is exceeded the test will fail (or be marked as in error if it was already
- * complete). A value of 0 for [max] (the default) will set the upper bound to
- * the same value as [count]; i.e. the callback should be called exactly [count]
- * times. A value of -1 for [max] will mean no upper bound.
+ * [expectAsync0] will also ensure that errors that occur within [callback] are
+ * tracked and reported. [callback] should take 0 positional arguments (named
+ * arguments are not supported). [id] can be used to provide more
+ * descriptive error messages if the callback is called more often than
+ * expected. [max] can be used to specify an upper bound on the number of
+ * calls; if this is exceeded the test will fail (or be marked as in error if
+ * it was already complete). A value of 0 for [max] (the default) will set
+ * the upper bound to the same value as [count]; i.e. the callback should be
+ * called exactly [count] times. A value of -1 for [max] will mean no upper
+ * bound.
  */
-Function expectAsync(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-  new _SpreadArgsHelper(callback, count, max, null, id).asFunction;
-
-/**
- * *DEPRECATED*: use [expectAsync] instead.
- **/
-@deprecated
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync0(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-                         expectAsync(callback, count: count, max: max, id: id);
+                     {int count: 1, int max: 0, String id}) {
+  return new _SpreadArgsHelper(callback, count, max, null, id).invoke0;
+}
 
-/**
- * *DEPRECATED*: use [expectAsync] instead.
- **/
-@deprecated
+/** Like [expectAsync0] but [callback] should take 1 positional argument. */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync1(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-                         expectAsync(callback, count: count, max: max, id: id);
+                     {int count: 1, int max: 0, String id}) {
+  return new _SpreadArgsHelper(callback, count, max, null, id).invoke1;
+}
 
-/**
- * *DEPRECATED*: use [expectAsync] instead.
- **/
-@deprecated
+/** Like [expectAsync0] but [callback] should take 2 positional arguments. */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsync2(Function callback,
-                     {int count: 1, int max: 0, String id}) =>
-                         expectAsync(callback, count: count, max: max, id: id);
+                     {int count: 1, int max: 0, String id}) {
+  return new _SpreadArgsHelper(callback, count, max, null, id).invoke2;
+}
 
 /**
  * Indicate that [callback] is expected to be called until [isDone] returns
  * true. The unittest framework check [isDone] after each callback and only
- * when it returns true will it continue with the following test.
- *
- * Using [expectAsyncUntil] will also ensure that errors that occur within
- * [callback] are tracked and reported.
- *
- * [id] can be used to identify the callback in error messages (for example if
- * it is called after the test case is complete).
+ * when it returns true will it continue with the following test. Using
+ * [expectAsyncUntil0] will also ensure that errors that occur within
+ * [callback] are tracked and reported. [callback] should take 0 positional
+ * arguments (named arguments are not supported). [id] can be used to
+ * identify the callback in error messages (for example if it is called
+ * after the test case is complete).
  */
-Function expectAsyncUntil(Function callback, Function isDone, {String id}) =>
-  new _SpreadArgsHelper(callback, 0, -1, isDone, id).asFunction;
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsyncUntil0(Function callback, Function isDone, {String id}) {
+  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke0;
+}
 
 /**
- * *DEPRECATED*: Use [expectAsyncUntil] instead.
+ * Like [expectAsyncUntil0] but [callback] should take 1 positional argument.
  */
-@deprecated
-Function expectAsyncUntil0(Function callback, Function isDone, {String id}) =>
-    expectAsyncUntil(callback, isDone, id: id);
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsyncUntil1(Function callback, Function isDone, {String id}) {
+  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke1;
+}
 
 /**
- * *DEPRECATED*: Use [expectAsyncUntil] instead.
+ * Like [expectAsyncUntil0] but [callback] should take 2 positional arguments.
  */
-@deprecated
-Function expectAsyncUntil1(Function callback, Function isDone, {String id})  =>
-    expectAsyncUntil(callback, isDone, id: id);
-
-/**
- * *DEPRECATED*: Use [expectAsyncUntil] instead.
- */
-@deprecated
-Function expectAsyncUntil2(Function callback, Function isDone, {String id})  =>
-    expectAsyncUntil(callback, isDone, id: id);
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
+  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
+}
 
 /**
  * Wraps the [callback] in a new function and returns that function. The new
  * function will be able to handle exceptions by directing them to the correct
- * test. This is thus similar to [expectAsync]. Use it to wrap any callbacks
- * that might optionally be called but may never be called during the test.
- *
- * [id] can be used to identify the callback in error messages (for example if
- * it is called after the test case is complete).
+ * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
+ * might optionally be called but may never be called during the test.
+ * [callback] should take 0 positional arguments (named arguments are not
+ * supported). [id] can be used to identify the callback in error
+ * messages (for example if it is called after the test case is complete).
  */
-Function protectAsync(Function callback, {String id}) =>
-  new _SpreadArgsHelper(callback, 0, -1, null, id).asFunction;
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync0(Function callback, {String id}) {
+  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke0;
+}
 
 /**
- * *DEPRECATED*: use [protectAsync] instead.
- **/
-@deprecated
-Function protectAsync0(Function callback, {String id}) =>
-    protectAsync(callback, id: id);
+ * Like [protectAsync0] but [callback] should take 1 positional argument.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync1(Function callback, {String id}) {
+  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke1;
+}
 
 /**
- * *DEPRECATED*: use [protectAsync] instead.
- **/
-@deprecated
-Function protectAsync1(Function callback, {String id}) =>
-    protectAsync(callback, id: id);
-
-/**
- * *DEPRECATED*: use [protectAsync] instead.
- **/
-@deprecated
-Function protectAsync2(Function callback, {String id})  =>
-    protectAsync(callback, id: id);
+ * Like [protectAsync0] but [callback] should take 2 positional arguments.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync2(Function callback, {String id}) {
+  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke2;
+}
 
 /**
  * Creates a new named group of tests. Calls to group() or test() within the

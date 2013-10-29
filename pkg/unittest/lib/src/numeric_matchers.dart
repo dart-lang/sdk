@@ -74,7 +74,7 @@ const Matcher isNonNegative =
       'a non-negative value', false);
 
 bool _isNumeric(value) {
-  return value is num;
+  return value is int || value is double;
 }
 
 class _OrderingComparison extends Matcher {
