@@ -7,7 +7,6 @@ library scheduled_process_test;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:platform' as platform;
 
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
@@ -390,6 +389,6 @@ ScheduledProcess startDartProcess(String script) {
     });
   }, 'clean up temp dir');
 
-  return new ScheduledProcess.start(platform.executable,
+  return new ScheduledProcess.start(Platform.executable,
       ['--checked', dartPath]);
 }

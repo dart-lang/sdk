@@ -12,7 +12,6 @@ library metatest;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:platform' as platform;
 
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
@@ -120,7 +119,7 @@ void initMetatest(message) {
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   var replyPort = new ReceivePort();
-  return Isolate.spawnUri(platform.script, [], {
+  return Isolate.spawnUri(Uri.parse(Platform.script), [], {
     'testToRun': description,
     'replyTo': replyPort.sendPort
   }).then((_) {
