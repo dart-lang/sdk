@@ -3995,7 +3995,7 @@ bool Parser::IsFunctionTypeAliasName() {
   bool is_alias_name = false;
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
-    if (TryParseTypeParameter() && (CurrentToken() == Token::kLPAREN)) {
+    if (TryParseTypeParameters() && (CurrentToken() == Token::kLPAREN)) {
       is_alias_name = true;
     }
   }
@@ -4014,7 +4014,7 @@ bool Parser::IsMixinTypedef() {
   bool is_mixin_def = false;
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
-    if (TryParseTypeParameter() && (CurrentToken() == Token::kASSIGN)) {
+    if (TryParseTypeParameters() && (CurrentToken() == Token::kASSIGN)) {
       is_mixin_def = true;
     }
   }
@@ -5587,7 +5587,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
 // Returns true if the current and next tokens can be parsed as type
 // parameters. Current token position is not saved and restored.
-bool Parser::TryParseTypeParameter() {
+bool Parser::TryParseTypeParameters() {
   if (CurrentToken() == Token::kLT) {
     // We are possibly looking at type parameters. Find closing ">".
     int nesting_level = 0;
@@ -5672,7 +5672,7 @@ bool Parser::TryParseOptionalType() {
   if (CurrentToken() == Token::kIDENT) {
     QualIdent type_name;
     ParseQualIdent(&type_name);
-    if ((CurrentToken() == Token::kLT) && !TryParseTypeParameter()) {
+    if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
       return false;
     }
   }

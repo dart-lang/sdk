@@ -584,12 +584,12 @@ void ClassFinalizer::FinalizeTypeArguments(
       // Such legal self-references occur with F-bounded quantification.
       // Example 1: class Derived extends Base<Derived>.
       // The type 'Derived' forms a cycle by pointing to itself via its
-      // flattened type argument vector: Derived[Base[Derived[Base[...]]]]
-      // We break the cycle as follows: Derived[Base[Derived[dynamic]]]
+      // flattened type argument vector: Derived[Derived[...]]
+      // We break the cycle as follows: Derived[Derived[dynamic]]
       // Example 2: class Derived extends Base<Middle<Derived>> results in
-      // Derived[Base[Middle[Derived[dynamic]]]]
+      // Derived[Middle[Derived[dynamic]]]
       // Example 3: class Derived<T> extends Base<Derived<T>> results in
-      // Derived[Base[Derived[dynamic]], T].
+      // Derived[Derived[dynamic], T].
       ASSERT(super_type_args.IsNull());  // Same as a vector of dynamic.
     } else {
       super_type ^= FinalizeType(cls, super_type, finalization);
@@ -2127,7 +2127,7 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
 
 
 // Helper function called by IsAliasCycleFree.
-bool ClassFinalizer::IsParameterTypeCycleFree(
+bool ClassFinalizer::IsTypeCycleFree(
     const Class& cls,
     const AbstractType& type,
     GrowableArray<intptr_t>* visited) {
@@ -2146,7 +2146,7 @@ bool ClassFinalizer::IsParameterTypeCycleFree(
       AbstractType& type_arg = AbstractType::Handle();
       for (intptr_t i = 0; i < type_args.Length(); i++) {
         type_arg = type_args.TypeAt(i);
-        if (!IsParameterTypeCycleFree(cls, type_arg, visited)) {
+        if (!IsTypeCycleFree(cls, type_arg, visited)) {
           return false;
         }
       }
@@ -2170,19 +2170,35 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
     }
   }
 
-  // Visit the result type and parameter types of this signature type.
+  // Visit the bounds, result type, and parameter types of this signature type.
   visited->Add(cls.id());
+  AbstractType& type = AbstractType::Handle();
+
+  // Check the bounds of this signature type.
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  TypeParameter& type_param = TypeParameter::Handle();
+  const AbstractTypeArguments& type_params =
+      AbstractTypeArguments::Handle(cls.type_parameters());
+  ASSERT((type_params.IsNull() && (num_type_params == 0)) ||
+         (type_params.Length() == num_type_params));
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_param ^= type_params.TypeAt(i);
+    type = type_param.bound();
+    if (!IsTypeCycleFree(cls, type, visited)) {
+      return false;
+    }
+  }
+  // Check the result type of the function of this signature type.
   const Function& function = Function::Handle(cls.signature_function());
-  // Check class of result type.
-  AbstractType& type = AbstractType::Handle(function.result_type());
-  if (!IsParameterTypeCycleFree(cls, type, visited)) {
+  type = function.result_type();
+  if (!IsTypeCycleFree(cls, type, visited)) {
     return false;
   }
-  // Check classes of formal parameter types.
+  // Check the formal parameter types of the function of this signature type.
   const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    if (!IsParameterTypeCycleFree(cls, type, visited)) {
+    if (!IsTypeCycleFree(cls, type, visited)) {
       return false;
     }
   }

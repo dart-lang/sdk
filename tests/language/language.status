@@ -27,9 +27,6 @@ duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 implicit_setter_test: Fail # Issue 13917
 
-cyclic_typedef_test/10: Fail # Issue 13675
-cyclic_typedef_test/11: Fail # Issue 13675
-
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 
