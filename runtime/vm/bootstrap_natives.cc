@@ -76,10 +76,6 @@ void Bootstrap::SetupNativeResolver() {
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
 
-  library = Library::PlatformLibrary();
-  ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(resolver);
-
   library = Library::TypedDataLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);

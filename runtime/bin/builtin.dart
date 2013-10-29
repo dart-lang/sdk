@@ -310,27 +310,3 @@ String _filePathFromHttpUri(Uri uri) {
   _logResolution('# Path: $uri -> $uri');
   return uri.toString();
 }
-
-
-class _PlatformHook {
-  // TODO(whesse):  Replace uses of Platform with uses of internal _Platform
-  //   class, to prepare for removal of (deprecated) Platform class.
-  //   Also merge _Platform and _PlatformHook class into _Platform class
-  //   at that time, since _PlatformHook is the only user of _Platform.
-  int get numberOfProcessors => Platform.numberOfProcessors;
-  String get pathSeparator => Platform.pathSeparator;
-  String get operatingSystem => Platform.operatingSystem;
-  String get localHostname => Platform.localHostname;
-  String get version => Platform.version;
-  Map<String, String> get environment => Platform.environment;
-  Uri get script => new Uri.file(Platform.script);
-  String get executable => Platform.executable;
-  List<String>  get executableArguments => Platform.executableArguments;
-  String get packageRoot => Platform.packageRoot;
-}
-
-
-_getPlatform() => new _PlatformHook();
-
-
-
