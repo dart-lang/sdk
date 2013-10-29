@@ -10,7 +10,7 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("does not compile if dart2js is disabled", () {
+  integration("generates minified JS if the flag is set", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -18,8 +18,8 @@ main() {
       ])
     ]).create();
 
-    startPubServe(args: ["--no-dart2js"]);
-    requestShould404("main.dart.js");
+    startPubServe(args: ["--minify"]);
+    requestShouldSucceed("main.dart.js", isMinifiedDart2JSOutput);
     endPubServe();
   });
 }

@@ -33,6 +33,14 @@ class BuildCommand extends PubCommand {
   /// The path to the application's build output directory.
   String get target => path.join(entrypoint.root.dir, 'build');
 
+  /// `true` if generated JavaScript should be minified.
+  bool get minify => commandOptions['minify'];
+
+  BuildCommand() {
+    commandParser.addFlag('minify', defaultsTo: true,
+        help: 'Minify generated JavaScript.');
+  }
+
   Future onRun() {
     if (!dirExists(source)) {
       throw new ApplicationException("There is no '$source' directory.");
@@ -45,7 +53,7 @@ class BuildCommand extends PubCommand {
     return entrypoint.ensureLockFileIsUpToDate().then((_) {
       return entrypoint.loadPackageGraph();
     }).then((graph) {
-      dart2jsTransformer = new Dart2JSTransformer(graph);
+      dart2jsTransformer = new Dart2JSTransformer(graph, minify: minify);
 
       // Since this server will only be hit by the transformer loader and isn't
       // user-facing, just use an IPv4 address to avoid a weird bug on the
@@ -84,7 +92,8 @@ class BuildCommand extends PubCommand {
       })).then((_) {
         _copyBrowserJsFiles(dart2jsTransformer.entrypoints);
         // TODO(rnystrom): Should this count include the JS files?
-        log.message("Built ${assets.length} files!");
+        log.message("Built ${assets.length} "
+            "${pluralize('file', assets.length)}!");
       });
     }).catchError((error) {
       // If [getAllAssets()] throws a BarbackException, the error has already

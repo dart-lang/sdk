@@ -30,12 +30,17 @@ import 'utils.dart';
 /// If [inputProvider] and [diagnosticHandler] are omitted, uses a default
 /// [compiler.CompilerInputProvider] that loads directly from the filesystem.
 /// If either is provided, both must be.
-Future<String> compile(String entrypoint, {String packageRoot,
-    bool toDart: false, compiler.CompilerInputProvider inputProvider,
+Future<String> compile(String entrypoint, {
+    String packageRoot,
+    bool toDart: false,
+    bool minify: true,
+    compiler.CompilerInputProvider inputProvider,
     compiler.DiagnosticHandler diagnosticHandler}) {
   return new Future.sync(() {
-    var options = <String>['--categories=Client,Server', '--minify'];
+    var options = <String>['--categories=Client,Server'];
     if (toDart) options.add('--output-type=dart');
+    if (minify) options.add('--minify');
+
     if (packageRoot == null) {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
