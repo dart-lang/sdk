@@ -94,8 +94,7 @@ class Conversation {
   }
 }
 
-main() {
-  List<String> arguments = new Options().arguments;
+main(List<String> arguments) {
   if (arguments.length > 0) {
     Conversation.landingPage = arguments[0];
   }

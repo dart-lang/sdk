@@ -6,7 +6,7 @@ library dart2js.cmdline;
 
 import 'dart:async';
 import 'dart:io'
-    show exit, File, FileMode, Options, Platform, RandomAccessFile;
+    show exit, File, FileMode, Platform, RandomAccessFile;
 import 'dart:math' as math;
 
 import '../compiler.dart' as api;
@@ -452,11 +452,11 @@ void fail(String message) {
   exit(1);
 }
 
-Future compilerMain(Options options) {
+Future compilerMain(List<String> arguments) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
-  List<String> argv = ['--library-root=${options.script}$root'];
-  argv.addAll(options.arguments);
-  return compile(argv);
+  arguments =
+      <String>['--library-root=${Platform.script}$root']..addAll(arguments);
+  return compile(arguments);
 }
 
 void help() {
@@ -589,8 +589,8 @@ void helpAndFail(String message) {
   fail(message);
 }
 
-void mainWithErrorHandler(Options options) {
-  runZoned(() => compilerMain(options), onError: (exception) {
+void main(List<String> arguments) {
+  runZoned(() => compilerMain(arguments), onError: (exception) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {
@@ -606,8 +606,4 @@ void mainWithErrorHandler(Options options) {
       exit(253); // 253 is recognized as a crash by our test scripts.
     }
   });
-}
-
-void main() {
-  mainWithErrorHandler(new Options());
 }

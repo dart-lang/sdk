@@ -236,6 +236,7 @@ String _filePathFromUri(String userUri) {
     // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
     //
     // Drop the leading / before the drive letter.
+    // TODO(14577): Handle paths like \\server\share\dir\file.
     path = path.substring(1);
     _logResolution('# Path: Removed leading / -> $path');
   }

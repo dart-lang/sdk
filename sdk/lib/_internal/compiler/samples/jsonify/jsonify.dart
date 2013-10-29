@@ -32,20 +32,16 @@ RandomAccessFile output;
 Uri outputUri;
 Uri sdkRoot;
 
-main() {
-  mainWithOptions(new Options());
-}
-
-mainWithOptions(Options options) {
+main(List<String> arguments) {
   handler = new FormattingDiagnosticHandler()
       ..throwOnError = true;
 
   outputUri =
-      handler.provider.cwd.resolve(nativeToUriPath(options.arguments.first));
-  output = new File(options.arguments.first).openSync(mode: FileMode.WRITE);
+      handler.provider.cwd.resolve(nativeToUriPath(arguments.first));
+  output = new File(arguments.first).openSync(mode: FileMode.WRITE);
 
   Uri myLocation =
-      handler.provider.cwd.resolve(nativeToUriPath(options.script));
+      handler.provider.cwd.resolve(nativeToUriPath(Platform.script));
 
   sdkRoot = myLocation.resolve(SDK_ROOT).resolve('../');
 
