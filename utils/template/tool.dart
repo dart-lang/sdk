@@ -31,11 +31,9 @@ printStats(String phase, num elapsed, [String filename = '']) {
 /**
  * Run from the `utils/css` directory.
  */
-void main() {
+void main(List<String> optionArgs) {
   // argument 0 - sourcefile full path
   // argument 1 - outputfile full path
-  var optionArgs = new Options().arguments;
-
   String sourceFullFn = optionArgs[0];
   String outputFullFn = optionArgs[1];
 

@@ -196,10 +196,11 @@ class TestReport {
 }
 
 class Runner {
+  static List<String> arguments;  // Set by main.
+
   static bool runTest(String testId) {
-    Options opts = new Options();
-    return opts.arguments.length == 0 ||
-        opts.arguments.any((String id) => id == testId);
+    return arguments.length == 0 ||
+        arguments.any((String id) => id == testId);
   }
 }
 

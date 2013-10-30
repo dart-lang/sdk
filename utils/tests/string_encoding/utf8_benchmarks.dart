@@ -9,7 +9,8 @@ import 'dart:math' as Math;
 import '../../../lib/convert/convert.dart' as SE;
 part 'benchmark_runner.dart';
 
-void main() {
+void main(List<String> arguments) {
+  Runner.arguments = arguments;
 
   final List<int> testEnglishUtf8 = const<int> [
       0x54, 0x68, 0x65, 0x20, 0x71, 0x75, 0x69, 0x63,

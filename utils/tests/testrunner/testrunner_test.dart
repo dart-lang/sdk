@@ -103,8 +103,7 @@ Future runTest(
 skip_group(_1,_2) {}
 
 main() {
-  var opt = new Options();
-  dart = opt.executable;
+  dart = Platform.executable;
   var idx = dart.indexOf('dart-sdk');
   if (idx < 0) {
     print("Please run using the dart executable from the Dart SDK");
