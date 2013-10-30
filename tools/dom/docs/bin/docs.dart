@@ -34,4 +34,4 @@ main() {
  * Gets the full path to the directory containing the entrypoint of the current
  * script.
  */
-String get scriptDir => path.dirname(new Options().script);
+String get scriptDir => path.dirname(Platform.script);

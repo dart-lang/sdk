@@ -11,8 +11,7 @@ final startBlock = new RegExp(r'^(\s*)/\*\*(.*)$');
 final blockLine = new RegExp(r'^\s*\*\s?(.*)$');
 final endBlock = new RegExp(r'^\s*\*/\s*$');
 
-main() {
-  var args = new Options().arguments;
+main(List<String> args) {
   if (args.length != 1) {
     print('Converts "/**"-style block doc comments in a directory ');
     print('containing Dart code to "///"-style line doc comments.');

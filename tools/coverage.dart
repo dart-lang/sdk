@@ -523,10 +523,9 @@ class JsonBuffer {
 }
 
 
-void main() {
-  var options = new Options();
+void main(List<String> arguments) {
   var targetOpts = [ "--debug:0" ];
-  for (String str in options.arguments) {
+  for (String str in arguments) {
     switch (str) {
       case "--verbose":
         showDebuggeeOutput = true;
@@ -540,7 +539,7 @@ void main() {
     }
   }
 
-  Process.start(options.executable, targetOpts).then((Process process) {
+  Process.start(Platform.executable, targetOpts).then((Process process) {
     process.stdin.close();
     debugger = new Debugger(process);
   });
