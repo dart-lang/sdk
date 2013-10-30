@@ -83,7 +83,7 @@ class _FileSystemWatcherImpl
       if (event == RawSocketEvent.READ) {
         String getPath(event) {
           var path = _path;
-          if (event[2] != null) {
+          if (event[2] != null && event[2].isNotEmpty) {
             path += Platform.pathSeparator;
             path += event[2];
           }
