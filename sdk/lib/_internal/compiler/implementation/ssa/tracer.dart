@@ -179,9 +179,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.instructionType;
-    if (type == HType.NULL) {
+    if (type.isNull()) {
       prefix = 'u';
-    } else if (type == HType.CONFLICTING) {
+    } else if (type.isConflicting()) {
       prefix = 'c';
     } else if (type.isExtendableArray(compiler)) {
       prefix = 'e';
@@ -195,15 +195,15 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 's';
     } else if (type.isIndexable(compiler)) {
       prefix = 'r';
-    } else if (type == HType.BOOLEAN) {
+    } else if (type.isBoolean(compiler)) {
       prefix = 'b';
-    } else if (type == HType.INTEGER) {
+    } else if (type.isInteger(compiler)) {
       prefix = 'i';
-    } else if (type == HType.DOUBLE) {
+    } else if (type.isDouble(compiler)) {
       prefix = 'd';
-    } else if (type == HType.NUMBER) {
+    } else if (type.isNumber(compiler)) {
       prefix = 'n';
-    } else if (type == HType.UNKNOWN) {
+    } else if (type.containsAll(compiler)) {
       prefix = 'v';
     } else {
       prefix = 'U';

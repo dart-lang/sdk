@@ -206,11 +206,15 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
     return kListError;
   }
 
-  if (FindClose(reinterpret_cast<HANDLE>(lister_)) == 0) {
-    return kListError;
-  }
-
   return kListDone;
+}
+
+
+DirectoryListingEntry::~DirectoryListingEntry() {
+  ResetLink();
+  if (lister_ != 0) {
+    FindClose(reinterpret_cast<HANDLE>(lister_));
+  }
 }
 
 

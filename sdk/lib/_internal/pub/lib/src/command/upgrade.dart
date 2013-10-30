@@ -13,9 +13,9 @@ import '../log.dart' as log;
 /// Handles the `upgrade` pub command.
 class UpgradeCommand extends PubCommand {
   String get description =>
-    "Upgrade the current package's dependencies to latest versions.";
-  String get usage => 'pub upgrade [dependencies...]';
-  final aliases = const ["update"];
+      "Upgrade the current package's dependencies to latest versions.";
+  String get usage => "pub upgrade [dependencies...]";
+  List<String> get aliases => const ["update"];
   bool get takesArguments => true;
 
   bool get isOffline => commandOptions['offline'];

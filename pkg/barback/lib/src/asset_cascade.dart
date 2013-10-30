@@ -11,7 +11,7 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
-import 'barback_logger.dart';
+import 'log.dart';
 import 'build_result.dart';
 import 'cancelable_future.dart';
 import 'errors.dart';
@@ -85,7 +85,7 @@ class AssetCascade {
   /// A controller whose stream feeds into [_onDirtyPool].
   final _onDirtyController = new StreamController.broadcast(sync: true);
 
-  /// A stream that emits an event whenever any transforms in this cascade log
+  /// A stream that emits an event whenever any transforms in this cascade logs
   /// an entry.
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();

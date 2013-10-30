@@ -143,20 +143,42 @@ bool VmService::_Start(intptr_t server_port) {
 
 
   Dart_Handle library = Dart_RootLibrary();
-  // Set requested port.
+  // Set requested TCP port.
   DartUtils::SetIntegerField(library, "_port", server_port);
   result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
   SHUTDOWN_ON_ERROR(result);
+
+  // Retrieve the ReceivePort that the service is waiting on. The _receivePort
+  // variable is setup in the call to main.
+  Dart_Handle receivePort = Dart_GetField(library,
+                                          DartUtils::NewString("_receivePort"));
+  SHUTDOWN_ON_ERROR(receivePort);
+
+  {
+    // Extract the Dart_Port from the receive port.
+    HANDLESCOPE(Isolate::Current());
+    const Object& unwrapped_rp = Object::Handle(Api::UnwrapHandle(receivePort));
+    const Instance& rp = Instance::Cast(unwrapped_rp);
+    // Extract ReceivePort port id.
+    const Object& rp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(rp));
+    if (rp_id_obj.IsError()) {
+      const Error& error = Error::Cast(rp_id_obj);
+      error_msg_ = strdup(error.ToErrorCString());
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return false;
+    }
+    ASSERT(rp_id_obj.IsSmi() || rp_id_obj.IsMint());
+    Integer& id = Integer::Handle();
+    id ^= rp_id_obj.raw();
+    port_ = static_cast<Dart_Port>(id.AsInt64Value());
+  }
 
   Dart_Handle library_name = Dart_NewStringFromCString(kVMServiceLibraryName);
   library = Dart_LookupLibrary(library_name);
   SHUTDOWN_ON_ERROR(library);
   result = LoadResources(library);
   SHUTDOWN_ON_ERROR(result);
-  result = Dart_CompileAll();
-  SHUTDOWN_ON_ERROR(result);
-
-  port_ = Dart_GetMainPortId();
 
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -392,47 +414,58 @@ void VmService::ThreadMain(uword parameters) {
 }
 
 
-static Dart_Handle MakeServiceControlMessage(Dart_Port port, intptr_t code) {
+static Dart_Handle MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
+                                             Dart_Handle name) {
   Dart_Handle result;
-  Dart_Handle list = Dart_NewList(3);
+  Dart_Handle list = Dart_NewList(4);
   ASSERT(!Dart_IsError(list));
-  Dart_Handle codeHandle = Dart_NewInteger(code);
-  ASSERT(!Dart_IsError(codeHandle));
-  result = Dart_ListSetAt(list, 0, codeHandle);
+  Dart_Handle code_handle = Dart_NewInteger(code);
+  ASSERT(!Dart_IsError(code_handle));
+  result = Dart_ListSetAt(list, 0, code_handle);
   ASSERT(!Dart_IsError(result));
-  Dart_Handle sendPort = Dart_NewSendPort(port);
+  Dart_Handle port_id_handle = Dart_NewInteger(port_id);
+  ASSERT(!Dart_IsError(port_id_handle));
+  result = Dart_ListSetAt(list, 1, port_id_handle);
+  ASSERT(!Dart_IsError(result));
+  Dart_Handle sendPort = Dart_NewSendPort(port_id);
   ASSERT(!Dart_IsError(sendPort));
-  result = Dart_ListSetAt(list, 1, sendPort);
+  result = Dart_ListSetAt(list, 2, sendPort);
+  ASSERT(!Dart_IsError(result));
+  result = Dart_ListSetAt(list, 3, name);
   ASSERT(!Dart_IsError(result));
   return list;
 }
 
 
-bool VmService::SendIsolateStartupMessage(Dart_Port port, Dart_Handle name) {
+bool VmService::SendIsolateStartupMessage() {
   if (!IsRunning()) {
     return false;
   }
-  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  ASSERT(Dart_GetMainPortId() == port);
+  HANDLESCOPE(isolate);
+  Dart_Handle name = Api::NewHandle(isolate, String::New(isolate->name()));
+  ASSERT(!Dart_IsError(name));
   Dart_Handle list =
-      MakeServiceControlMessage(port, VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID);
+      MakeServiceControlMessage(Dart_GetMainPortId(),
+                                VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID,
+                                name);
   ASSERT(!Dart_IsError(list));
-  Dart_Handle result = Dart_ListSetAt(list, 2, name);
-  ASSERT(!Dart_IsError(result));
   return Dart_Post(port_, list);
 }
 
 
-bool VmService::SendIsolateShutdownMessage(Dart_Port port) {
+bool VmService::SendIsolateShutdownMessage() {
   if (!IsRunning()) {
     return false;
   }
-  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  ASSERT(Dart_GetMainPortId() == port);
+  HANDLESCOPE(isolate);
   Dart_Handle list =
-      MakeServiceControlMessage(port, VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID);
+      MakeServiceControlMessage(Dart_GetMainPortId(),
+                                VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
+                                Dart_Null());
   ASSERT(!Dart_IsError(list));
   return Dart_Post(port_, list);
 }
@@ -441,7 +474,7 @@ bool VmService::SendIsolateShutdownMessage(Dart_Port port) {
 void VmService::VmServiceShutdownCallback(void* callback_data) {
   ASSERT(Dart_CurrentIsolate() != NULL);
   Dart_EnterScope();
-  VmService::SendIsolateShutdownMessage(Dart_GetMainPortId());
+  VmService::SendIsolateShutdownMessage();
   Dart_ExitScope();
 }
 

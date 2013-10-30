@@ -21,9 +21,9 @@ import '../validator.dart';
 
 /// Handles the `lish` and `publish` pub commands.
 class LishCommand extends PubCommand {
-  final description = "Publish the current package to pub.dartlang.org.";
-  final usage = "pub publish [options]";
-  final aliases = const ["lish", "lush"];
+  String get description => "Publish the current package to pub.dartlang.org.";
+  String get usage => "pub publish [options]";
+  List<String> get aliases => const ["lish", "lush"];
 
   /// The URL of the server to which to upload the package.
   Uri get server => Uri.parse(commandOptions['server']);

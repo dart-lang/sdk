@@ -25,7 +25,7 @@ You can also use a minified version for deployment:
 Because it does extensive DOM patching, it should be included **before** other
 script tags.
 
-## Useful Resources
+## Useful resources
 
 - [What the Heck is Shadow DOM?](http://glazkov.com/2011/01/14/what-the-heck-is-shadow-dom/)
 - [Web Components Explained - Shadow DOM](https://dvcs.w3.org/hg/webcomponents/raw-file/57f8cfc4a7dc/explainer/index.html#shadow-dom-section)

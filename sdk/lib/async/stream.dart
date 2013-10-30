@@ -1030,7 +1030,16 @@ class StreamView<T> extends Stream<T> {
  * done.
  */
 abstract class StreamConsumer<S> {
+  /**
+   * Consumes the elements of [stream].
+   *
+   * Listens on [stream] and does something for each event.
+   *
+   * The consumer may stop listening after an error, or it may consume
+   * all the errors and only stop at a done event.
+   */
   Future addStream(Stream<S> stream);
+
   Future close();
 }
 

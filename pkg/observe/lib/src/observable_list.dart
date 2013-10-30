@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.observable_list;
+
+import 'dart:async';
+import 'dart:collection' show ListBase;
+import 'package:observe/observe.dart';
 
 /**
  * Represents an observable list of model values. If any items are added,

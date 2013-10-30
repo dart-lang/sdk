@@ -221,7 +221,8 @@ ApiMessageReader::BackRefNode* ApiMessageReader::AllocateBackRefNode(
 
 
 static Dart_TypedData_Type GetTypedDataTypeFromView(
-    Dart_CObject_Internal* object) {
+    Dart_CObject_Internal* object,
+    char* class_name) {
   struct {
     const char* name;
     Dart_TypedData_Type type;
@@ -241,13 +242,6 @@ static Dart_TypedData_Type GetTypedDataTypeFromView(
     { NULL, Dart_TypedData_kInvalid },
   };
 
-  char* library_url =
-      object->cls->internal.as_class.library_url->value.as_string;
-  char* class_name =
-      object->cls->internal.as_class.class_name->value.as_string;
-  if (strcmp("dart:typed_data", library_url) != 0) {
-    return Dart_TypedData_kInvalid;
-  }
   int i = 0;
   while (view_class_names[i].name != NULL) {
     if (strncmp(view_class_names[i].name,
@@ -286,31 +280,54 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
            static_cast<Dart_CObject_Type>(
                Dart_CObject_Internal::kUninitialized));
 
+    char* library_uri =
+        object->cls->internal.as_class.library_url->value.as_string;
+    char* class_name =
+        object->cls->internal.as_class.class_name->value.as_string;
+
     // Handle typed data views.
-    Dart_TypedData_Type type = GetTypedDataTypeFromView(object);
-    if (type != Dart_TypedData_kInvalid) {
-      object->type =
-          static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kView);
+    if (strcmp("dart:typed_data", library_uri) == 0) {
+      Dart_TypedData_Type type = GetTypedDataTypeFromView(object, class_name);
+      if (type != Dart_TypedData_kInvalid) {
+        object->type =
+            static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kView);
+        ReadObjectImpl();  // Skip type arguments.
+        object->internal.as_view.buffer = ReadObjectImpl();
+        object->internal.as_view.offset_in_bytes = ReadSmiValue();
+        object->internal.as_view.length = ReadSmiValue();
+        ReadObjectImpl();  // Skip last field.
+
+        // The buffer is fully read now as typed data objects are
+        // serialized in-line.
+        Dart_CObject* buffer = object->internal.as_view.buffer;
+        ASSERT(buffer->type == Dart_CObject_kTypedData);
+
+        // Now turn the view into a byte array.
+        object->type = Dart_CObject_kTypedData;
+        object->value.as_typed_data.type = type;
+        object->value.as_typed_data.length =
+            object->internal.as_view.length *
+            GetTypedDataSizeInBytes(type);
+        object->value.as_typed_data.values =
+            buffer->value.as_typed_data.values +
+            object->internal.as_view.offset_in_bytes;
+      } else {
+        // TODO(sgjesse): Handle other instances. Currently this will
+        // skew the reading as the fields of the instance is not read.
+      }
+    } else if (strcmp("dart:isolate", library_uri) == 0 &&
+               strncmp("_SendPortImpl@", class_name, 14) == 0) {
       ReadObjectImpl();  // Skip type arguments.
-      object->internal.as_view.buffer = ReadObjectImpl();
-      object->internal.as_view.offset_in_bytes = ReadSmiValue();
-      object->internal.as_view.length = ReadSmiValue();
+      // Read the port id.
+      Dart_CObject* port = ReadObjectImpl();
+      if (port->type == Dart_CObject_kInt32) {
+        object->type = Dart_CObject_kSendPort;
+        object->value.as_send_port = port->value.as_int32;
+      } else if (port->type == Dart_CObject_kInt64) {
+        object->type = Dart_CObject_kSendPort;
+        object->value.as_send_port = port->value.as_int64;
+      }
       ReadObjectImpl();  // Skip last field.
-
-      // The buffer is fully read now as typed data objects are
-      // serialized in-line.
-      Dart_CObject* buffer = object->internal.as_view.buffer;
-      ASSERT(buffer->type == Dart_CObject_kTypedData);
-
-      // Now turn the view into a byte array.
-      object->type = Dart_CObject_kTypedData;
-      object->value.as_typed_data.type = type;
-      object->value.as_typed_data.length =
-          object->internal.as_view.length *
-          GetTypedDataSizeInBytes(type);
-      object->value.as_typed_data.values =
-          buffer->value.as_typed_data.values +
-          object->internal.as_view.offset_in_bytes;
     } else {
       // TODO(sgjesse): Handle other instances. Currently this will
       // skew the reading as the fields of the instance is not read.

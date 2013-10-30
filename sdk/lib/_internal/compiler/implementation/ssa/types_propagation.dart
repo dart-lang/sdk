@@ -15,26 +15,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   SsaTypePropagator(this.compiler);
 
-  // Compute the (shared) type of the inputs if any. If all inputs
-  // have the same known type return it. If any two inputs have
-  // different known types, we'll return a conflict -- otherwise we'll
-  // simply return an unknown type.
-  HType computeInputsType(HPhi phi, bool ignoreUnknowns) {
-    HType candidateType = HType.CONFLICTING;
-    for (int i = 0, length = phi.inputs.length; i < length; i++) {
-      HType inputType = phi.inputs[i].instructionType;
-      if (inputType.isConflicting()) return HType.CONFLICTING;
-      if (ignoreUnknowns && inputType.isUnknown()) continue;
-      // Phis need to combine the incoming types using the union operation.
-      // For example, if one incoming edge has type integer and the other has
-      // type double, then the phi is either an integer or double and thus has
-      // type number.
-      candidateType = candidateType.union(inputType, compiler);
-      if (candidateType.isUnknown()) return HType.UNKNOWN;
-    }
-    return candidateType;
-  }
-
   HType computeType(HInstruction instruction) {
     return instruction.accept(this);
   }
@@ -119,9 +99,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   HType visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
-    if (left.isDouble()) return HType.DOUBLE;
-    return HType.NUMBER;
+    JavaScriptBackend backend = compiler.backend;    
+    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+      return backend.intType;
+    }
+    if (left.isDouble(compiler)) return backend.doubleType;
+    return backend.numType;
   }
 
   HType visitNegate(HNegate instruction) {
@@ -134,24 +117,30 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   HType visitPhi(HPhi phi) {
-    HType inputsType = computeInputsType(phi, false);
-    if (inputsType.isConflicting()) return HType.UNKNOWN;
-    return inputsType;
+    JavaScriptBackend backend = compiler.backend;    
+    HType candidateType = backend.emptyType;
+    for (int i = 0, length = phi.inputs.length; i < length; i++) {
+      HType inputType = phi.inputs[i].instructionType;
+      candidateType = candidateType.union(inputType, compiler);
+    }
+    return candidateType;
   }
 
   HType visitTypeConversion(HTypeConversion instruction) {
     HType inputType = instruction.checkedInput.instructionType;
     HType checkedType = instruction.checkedType;
+    JavaScriptBackend backend = compiler.backend;
     if (instruction.isArgumentTypeCheck || instruction.isReceiverTypeCheck) {
       // We must make sure a type conversion for receiver or argument check
       // does not try to do an int check, because an int check is not enough.
       // We only do an int check if the input is integer or null.
-      if (checkedType.isNumber()
-          && !checkedType.isDouble()
-          && inputType.isIntegerOrNull()) {
-        instruction.checkedType = HType.INTEGER;
-      } else if (checkedType.isInteger() && !inputType.isIntegerOrNull()) {
-        instruction.checkedType = HType.NUMBER;
+      if (checkedType.isNumber(compiler)
+          && !checkedType.isDouble(compiler)
+          && inputType.isIntegerOrNull(compiler)) {
+        instruction.checkedType = backend.intType;
+      } else if (checkedType.isInteger(compiler)
+                 && !inputType.isIntegerOrNull(compiler)) {
+        instruction.checkedType = backend.numType;
       }
     }
 
@@ -162,11 +151,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // can be a literal double '8.0' that is marked as an integer (because 'is
       // int' will return 'true').  What we really need to do is make the
       // overlap between int and double values explicit in the HType system.
-      if (inputType.isIntegerOrNull() && checkedType.isDoubleOrNull()) {
+      if (inputType.isIntegerOrNull(compiler)
+          && checkedType.isDoubleOrNull(compiler)) {
         if (inputType.canBeNull() && checkedType.canBeNull()) {
-          outputType = HType.DOUBLE_OR_NULL;
+          outputType =
+              new HBoundedType(new TypeMask.exact(backend.jsDoubleClass));
         } else {
-          outputType = HType.DOUBLE;
+          outputType = backend.doubleType;
         }
       }
     }
@@ -196,11 +187,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     // In some cases, we want the receiver to be an integer,
     // but that does not mean we will get a NoSuchMethodError
     // if it's not: the receiver could be a double.
-    if (type.isInteger()) {
+    if (type.isInteger(compiler)) {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
-      return instruction.instructionType.isIntegerOrNull();
+      return instruction.instructionType.isIntegerOrNull(compiler);
     }
     return true;
   }
@@ -210,8 +201,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   // Return true if the receiver type check was added.
   bool checkReceiver(HInvokeDynamic instruction) {
     HInstruction receiver = instruction.inputs[1];
-    if (receiver.isNumber()) return false;
-    if (receiver.isNumberOrNull()) {
+    if (receiver.isNumber(compiler)) return false;
+    if (receiver.isNumberOrNull(compiler)) {
       convertInput(instruction,
                    receiver,
                    receiver.instructionType.nonNullable(compiler),
@@ -250,9 +241,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     HInstruction right = instruction.inputs[2];
     Selector selector = instruction.selector;
-    if (selector.isOperator() && receiverType.isNumber()) {
-      if (right.isNumber()) return false;
-      HType type = right.isIntegerOrNull() ? HType.INTEGER : HType.NUMBER;
+    if (selector.isOperator() && receiverType.isNumber(compiler)) {
+      if (right.isNumber(compiler)) return false;
+      JavaScriptBackend backend = compiler.backend;    
+      HType type = right.isIntegerOrNull(compiler)
+          ? backend.intType
+          : backend.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
@@ -292,8 +286,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // of [instruction] might move from number to dynamic.
       pendingOptimizations.putIfAbsent(instruction, () => () {
         Selector selector = instruction.selector;
-        if (selector.isOperator()
-            && selector.name != '==') {
+        if (selector.isOperator() && selector.name != '==') {
           if (checkReceiver(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[1]);
           }
@@ -303,6 +296,41 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         }
       });
     }
+
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HType receiverType = receiver.instructionType;
+    Selector selector = receiverType.refine(instruction.selector, compiler);
+    instruction.selector = selector;
+
+    // Try to specialize the receiver after this call.
+    if (receiver.dominatedUsers(instruction).length != 1
+        && !selector.isClosureCall()) {
+      TypeMask oldMask = receiverType.computeMask(compiler);
+      TypeMask newMask = compiler.world.allFunctions.receiverType(selector);
+      newMask = newMask.intersection(oldMask, compiler);
+
+      if (newMask != oldMask) {
+        HType newType = new HType.fromMask(newMask, compiler);
+        var next = instruction.next;
+        if (next is HTypeKnown && next.checkedInput == receiver) {
+          // We already have refined [receiver].
+          HType nextType = next.instructionType;
+          if (nextType != newType) {
+            next.knownType = next.instructionType = newType;
+            addDependentInstructionsToWorkList(next);
+          }
+        } else {
+          // Insert a refinement node after the call and update all
+          // users dominated by the call to use that node instead of
+          // [receiver].
+          HTypeKnown converted = new HTypeKnown(newType, receiver);
+          instruction.block.addBefore(instruction.next, converted);
+          receiver.replaceAllUsersDominatedBy(converted.next, converted);
+          addDependentInstructionsToWorkList(converted);
+        }
+      }
+    }
+
     return instruction.specializer.computeTypeFromInputTypes(
         instruction, compiler);
   }

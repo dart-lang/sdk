@@ -12,8 +12,8 @@ import 'package:scheduled_test/scheduled_test.dart';
 import '../metatest.dart';
 import 'utils.dart';
 
-void main(List<String> args, message) {
-  metaTestInit(message);
+void main(_, message) {
+  initMetatest(message);
 
   setUpTimeout();
 

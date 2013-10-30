@@ -17,7 +17,7 @@ class C extends B {
 class D extends A {
   var d = "d";
 }
-class E implements C, D {
+class E extends D implements C {
   var a = "";
   var b = "";
   var c = "";

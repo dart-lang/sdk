@@ -212,7 +212,7 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, ImmutableListMixin<Map> implements List {
+class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 

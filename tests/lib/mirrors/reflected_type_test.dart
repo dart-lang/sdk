@@ -9,8 +9,8 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class A<T> {}
-class B extends A {}            // Same as class B extends A<dynamic>.
-class C extends A<num, int> {}  // Same as class C extends A<dynamic>.
+class B extends A {}
+class C extends A<num, int> {}  /// 01: static type warning
 class D extends A<int> {}
 class E<S> extends A<S> {}
 class F<R> extends A<int> {}
@@ -33,7 +33,7 @@ main() {
   // Declarations.
   expectReflectedType(reflectClass(A), null);
   expectReflectedType(reflectClass(B), B);
-  expectReflectedType(reflectClass(C), C);
+  expectReflectedType(reflectClass(C), C);  /// 01: continued
   expectReflectedType(reflectClass(D), D);
   expectReflectedType(reflectClass(E), null);
   expectReflectedType(reflectClass(F), null);
@@ -43,7 +43,7 @@ main() {
    // Instantiations.
   expectReflectedType(reflect(new A()).type, new A().runtimeType);
   expectReflectedType(reflect(new B()).type, new B().runtimeType);
-  expectReflectedType(reflect(new C()).type, new C().runtimeType);
+  expectReflectedType(reflect(new C()).type, new C().runtimeType);  /// 01: continued
   expectReflectedType(reflect(new D()).type, new D().runtimeType);
   expectReflectedType(reflect(new E()).type, new E().runtimeType);
   expectReflectedType(reflect(new F()).type, new F().runtimeType);
@@ -51,16 +51,15 @@ main() {
   expectReflectedType(reflect(new H()).type, new H().runtimeType);
 
   expectReflectedType(reflect(new A<num>()).type, new A<num>().runtimeType);
-  expectReflectedType(reflect(new B<num>()).type.superclass,
-                      new A<dynamic>().runtimeType);
-  expectReflectedType(reflect(new C<num>()).type.superclass,
-                      new A<dynamic>().runtimeType);
-  expectReflectedType(reflect(new D<num>()).type.superclass,
-                      new A<int>().runtimeType);
+  expectReflectedType(reflect(new B<num>()).type.superclass,  /// 02: static type warning
+                      new A<dynamic>().runtimeType);          /// 02: continued
+  expectReflectedType(reflect(new C<num>()).type.superclass,  /// 01: continued
+                      new A<dynamic>().runtimeType);          /// 01: continued
+  expectReflectedType(reflect(new D<num>()).type.superclass,  /// 03: static type warning
+                      new A<int>().runtimeType);              /// 03: continued
   expectReflectedType(reflect(new E<num>()).type, new E<num>().runtimeType);
-  // TODO(rmacnak): This requires some work to compute.
-  // expectReflectedType(reflect(new E<num>()).type.superclass,
-  //                     new A<num>().runtimeType);
+  expectReflectedType(reflect(new E<num>()).type.superclass,
+                      new A<num>().runtimeType);
   expectReflectedType(reflect(new F<num>()).type.superclass,
                       new A<int>().runtimeType);
   expectReflectedType(reflect(new F<num>()).type, new F<num>().runtimeType);

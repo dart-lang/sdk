@@ -18,13 +18,13 @@ abstract class VmServiceRequestHelper {
       client = new HttpClient();
 
   Future makeRequest() {
+    print('** GET: $uri');
     return client.getUrl(uri)
       .then((HttpClientRequest request) => request.close())
       .then((HttpClientResponse response) {
         return response
             .fold(new BytesBuilder(), (b, d) => b..add(d))
             .then((builder) {
-              print('** GET: $uri');
               return _requestCompleted(builder.takeBytes(), response);
             });
       }).catchError((error) {

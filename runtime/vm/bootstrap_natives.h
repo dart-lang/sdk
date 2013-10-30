@@ -101,7 +101,7 @@ namespace dart {
   V(String_concat, 2)                                                          \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
-  V(Strings_concatAll, 3)                                                      \
+  V(String_concatRange, 3)                                                     \
   V(Math_sqrt, 1)                                                              \
   V(Math_sin, 1)                                                               \
   V(Math_cos, 1)                                                               \
@@ -264,7 +264,7 @@ namespace dart {
   V(InstanceMirror_computeType, 1)                                             \
   V(ClosureMirror_find_in_context, 2)                                          \
   V(ClosureMirror_function, 1)                                                 \
-  V(ClosureMirror_apply, 3)                                                    \
+  V(ClosureMirror_apply, 2)                                                    \
   V(ClassMirror_library, 1)                                                    \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_supertype_instantiated, 1)                                     \

@@ -51,7 +51,7 @@ bool NativeMessageHandler::HandleMessage(Message* message) {
   ApiNativeScope scope;
   ApiMessageReader reader(message->data(), message->len(), zone_allocator);
   Dart_CObject* object = reader.ReadMessage();
-  (*func())(message->dest_port(), message->reply_port(), object);
+  (*func())(message->dest_port(), object);
   delete message;
   return true;
 }

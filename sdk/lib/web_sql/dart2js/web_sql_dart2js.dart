@@ -203,7 +203,7 @@ class SqlResultSet extends Interceptor native "SQLResultSet" {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List native "SQLResultSetRowList" {
+class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> native "SQLResultSetRowList" {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 

@@ -9,7 +9,7 @@ import 'dart:async';
 import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_set.dart';
-import 'barback_logger.dart';
+import 'log.dart';
 import 'build_result.dart';
 import 'errors.dart';
 import 'package_graph.dart';
@@ -65,8 +65,14 @@ class Barback {
   /// emitted through the [results] stream's error channel.
   Stream get errors => _graph.errors;
 
-  Barback(PackageProvider provider, {BarbackLogger logger})
-      : _graph = new PackageGraph(provider, logger: logger);
+  /// The stream of [LogEntry] objects used to report transformer log entries.
+  ///
+  /// If this stream has listeners, then log entries will go to that.
+  /// Otherwise, a default logger will display them.
+  Stream<LogEntry> get log => _graph.log;
+
+  Barback(PackageProvider provider)
+      : _graph = new PackageGraph(provider);
 
   /// Gets the asset identified by [id].
   ///

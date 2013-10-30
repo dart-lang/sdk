@@ -9,9 +9,6 @@ import 'package:observe/src/dirty_check.dart' as dirty_check;
 import 'package:unittest/unittest.dart';
 import 'observe_test_utils.dart';
 
-// Note: this ensures we run the dartanalyzer on the @observe package.
-// @static-clean
-
 void main() {
   // Note: to test the basic Observable system, we use ObservableBox due to its
   // simplicity. We also test a variant that is based on dirty-checking.

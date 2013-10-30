@@ -37,10 +37,11 @@ testFuncAtoDyn() {
   b = funcAtoDyn(new B());
   c = funcAtoDyn(new C()); /// 01: static type warning
 
-  if (funcAtoDyn is FuncDynToDyn) { // Promotion: FuncDynToDyn << FuncAtoDyn.
+  if (funcAtoDyn is FuncDynToDyn) {
+    // No promotion: FuncDynToDyn !<< FuncAtoDyn.
     a = funcAtoDyn(new A());
     b = funcAtoDyn(new B());
-    c = funcAtoDyn(new C());
+    c = funcAtoDyn(new C()); /// 11: static type warning
   }
 }
 
@@ -50,11 +51,10 @@ testFuncDynToDyn() {
   b = funcDynToDyn(new B());
   c = funcDynToDyn(new C());
 
-  if (funcDynToDyn is FuncAtoDyn) {
-    // No promotion: FuncAtoDyn !<< FuncDynToDyn.
+  if (funcDynToDyn is FuncAtoDyn) { // Promotion: FuncAtoDyn << FuncDynToDyn.
     a = funcDynToDyn(new A());
     b = funcDynToDyn(new B());
-    c = funcDynToDyn(new C());
+    c = funcDynToDyn(new C()); /// 09: static type warning
   }
 
   if (funcDynToDyn is FuncDynToVoid) {
@@ -64,11 +64,10 @@ testFuncDynToDyn() {
     c = funcDynToDyn(new C());
   }
 
-  if (funcDynToDyn is FuncDynToA) {
-    // No promotion: FuncDynToA !<< FuncDynToDyn.
+  if (funcDynToDyn is FuncDynToA) { // Promotion: FuncDynToA << FuncDynToDyn.
     a = funcDynToDyn(new A());
     b = funcDynToDyn(new B());
-    c = funcDynToDyn(new C());
+    c = funcDynToDyn(new C()); /// 10: static type warning
   }
 }
 
@@ -98,10 +97,11 @@ testFuncDynToA() {
   b = funcDynToA(new B());
   c = funcDynToA(new C()); /// 06: static type warning
 
-  if (funcDynToA is FuncDynToDyn) { // Promotion: FuncDynToDyn << FuncDynToA.
+  if (funcDynToA is FuncDynToDyn) {
+    // No promotion: FuncDynToDyn !<< FuncDynToA.
     a = funcDynToA(new A());
     b = funcDynToA(new B());
-    c = funcDynToA(new C());
+    c = funcDynToA(new C()); /// 08: static type warning
   }
 
   if (funcDynToA is FuncDynToVoid) {

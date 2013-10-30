@@ -122,14 +122,6 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
 DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library);
 
 /**
- * Returns in \library_id the library id of the given \library.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
-                                       intptr_t* library_id);
-
-/**
  * Returns a list of the names of all classes and interfaces declared
  * in a library.
  *

@@ -401,7 +401,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol, Object> namedArguments]) {
-    // TODO(iposva): When closures get an ordinary call method, this can be
+    // TODO(12602): When closures get an ordinary call method, this can be
     // replaced with
     //   return this.invoke(#call, positionalArguments, namedArguments);
     // and the native ClosureMirror_apply can be removed.
@@ -423,7 +423,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
     // It is tempting to implement this in terms of Function.apply, but then
     // lazy compilation errors would be fatal.
-    return reflect(_apply(_reflectee, arguments, names));
+    return reflect(_apply(arguments, names));
   }
 
   Future<InstanceMirror> applyAsync(List positionalArguments,
@@ -448,7 +448,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
   String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 
-  static _apply(reflectee, arguments, argumentNames)
+  static _apply(arguments, argumentNames)
       native 'ClosureMirror_apply';
 
   static _computeFunction(reflectee)

@@ -445,9 +445,9 @@ class HtmlDartGenerator(object):
     # TODO: Include all implemented interfaces, including other Lists.
     implements = []
     if self._interface_type_info.list_item_type():
-      item_type_info = self._type_registry.TypeInfo(
-          self._interface_type_info.list_item_type())
-      implements.append('List')
+      item_type = self._type_registry.TypeInfo(
+          self._interface_type_info.list_item_type()).dart_type()
+      implements.append('List<%s>' % item_type)
     return implements
 
   def Mixins(self):

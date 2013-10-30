@@ -8,7 +8,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-import 'generics_test.dart';
+import 'generics_helper.dart';
 
 class SuperSuper<SS> {}
 class Super<S> extends SuperSuper<S> {}

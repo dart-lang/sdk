@@ -393,6 +393,25 @@ Stream mergeStreams(Stream stream1, Stream stream2) {
   return controller.stream;
 }
 
+/// Returns a [Stream] that will emit the same values as the stream returned by
+/// [callback].
+///
+/// [callback] will only be called when the returned [Stream] gets a subscriber.
+Stream callbackStream(Stream callback()) {
+  var subscription;
+  var controller;
+  controller = new StreamController(onListen: () {
+    subscription = callback().listen(controller.add,
+        onError: controller.addError,
+        onDone: controller.close);
+  },
+      onCancel: () => subscription.cancel(),
+      onPause: () => subscription.pause(),
+      onResume: () => subscription.resume(),
+      sync: true);
+  return controller.stream;
+}
+
 /// A regular expression matching a trailing CR character.
 final _trailingCR = new RegExp(r"\r$");
 

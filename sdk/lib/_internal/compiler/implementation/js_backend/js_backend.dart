@@ -5,7 +5,7 @@
 library js_backend;
 
 import 'dart:async' show Future;
-import 'dart:collection' show Queue;
+import 'dart:collection' show Queue, LinkedHashMap;
 
 import '../closure.dart';
 import '../elements/elements.dart';

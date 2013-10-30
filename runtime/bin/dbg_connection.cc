@@ -21,6 +21,8 @@
 namespace dart {
 namespace bin {
 
+extern bool trace_debug_protocol;
+
 int DebuggerConnectionHandler::listener_fd_ = -1;
 dart::Monitor* DebuggerConnectionHandler::handler_lock_ = new dart::Monitor();
 
@@ -29,6 +31,9 @@ dart::Monitor* DebuggerConnectionHandler::handler_lock_ = new dart::Monitor();
 // handler in a static variable.
 static DebuggerConnectionHandler* singleton_handler = NULL;
 
+// The maximum message length to print when --trace_debug_protocol is
+// specified.
+static const int kMaxPrintMessageLen = 1024;
 
 class MessageBuffer {
  public:
@@ -196,6 +201,19 @@ void DebuggerConnectionHandler::HandleMessages() {
       return;
     }
 
+    if (trace_debug_protocol) {
+      dart::JSONReader r(msgbuf_->buf());
+      const char* msg_end = r.EndOfObject();
+      if (msg_end != NULL) {
+        intptr_t msg_len = msg_end - msgbuf_->buf();
+        int print_len = ((msg_len > kMaxPrintMessageLen)
+                         ? kMaxPrintMessageLen : msg_len);
+        Log::Print("[<<<] Receiving message from debug fd %d:\n%.*s%s\n",
+                   debug_fd_, print_len, msgbuf_->buf(),
+                   ((msg_len > print_len) ? "..." : ""));
+      }
+    }
+
     // Parse out the command portion from the message.
     dart::JSONReader r(msgbuf_->buf());
     bool found = r.Seek("command");
@@ -344,6 +362,15 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
                                               dart::TextBuffer* msg) {
   ASSERT(debug_fd >= 0);
   ASSERT(IsValidJSON(msg->buf()));
+
+  if (trace_debug_protocol) {
+    int print_len = ((msg->length() > kMaxPrintMessageLen)
+                     ? kMaxPrintMessageLen : msg->length());
+    Log::Print("[>>>] Sending message to debug fd %d:\n%.*s%s\n",
+               debug_fd, print_len, msg->buf(),
+               ((msg->length() > print_len) ? "..." : ""));
+  }
+
   // Sending messages in short pieces can be used to stress test the
   // debugger front-end's message handling code.
   const bool send_in_pieces = false;

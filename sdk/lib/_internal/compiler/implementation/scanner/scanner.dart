@@ -428,7 +428,7 @@ abstract class AbstractScanner implements Scanner {
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
       Token token = previousToken();
       if (token is KeywordToken &&
-          identical((token as KeywordToken).keyword.syntax, 'operator')) {
+          identical(token.keyword.syntax, 'operator')) {
         return select($EQ, INDEX_EQ_INFO, INDEX_INFO);
       }
     }

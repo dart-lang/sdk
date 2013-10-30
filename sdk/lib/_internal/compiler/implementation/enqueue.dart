@@ -218,7 +218,8 @@ abstract class Enqueuer {
       // need to emit the method.
       if (universe.hasInvokedGetter(member, compiler)) {
         registerClosurizedMember(member, compiler.globalDependencies);
-        return addToWorkList(member);
+        addToWorkList(member);
+        return;
       }
       // Store the member in [instanceFunctionsByName] to catch
       // getters on the function.
@@ -226,20 +227,24 @@ abstract class Enqueuer {
           memberName, () => const Link<Element>());
       instanceFunctionsByName[memberName] = members.prepend(member);
       if (universe.hasInvocation(member, compiler)) {
-        return addToWorkList(member);
+        addToWorkList(member);
+        return;
       }
     } else if (member.kind == ElementKind.GETTER) {
       if (universe.hasInvokedGetter(member, compiler)) {
-        return addToWorkList(member);
+        addToWorkList(member);
+        return;
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
       if (universe.hasInvocation(member, compiler)) {
-        return addToWorkList(member);
+        addToWorkList(member);
+        return;
       }
     } else if (member.kind == ElementKind.SETTER) {
       if (universe.hasInvokedSetter(member, compiler)) {
-        return addToWorkList(member);
+        addToWorkList(member);
+        return;
       }
     }
 

@@ -534,7 +534,7 @@ class Parser : public ValueObject {
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
   bool IsMixinTypedef();
-  bool TryParseTypeParameter();
+  bool TryParseTypeParameters();
   bool TryParseOptionalType();
   bool TryParseReturnType();
   bool IsVariableDeclaration();

@@ -110,6 +110,7 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
 
     // From List.
     '[]',
+    '[]=',
     'length',
     'reversed',
     'sort',

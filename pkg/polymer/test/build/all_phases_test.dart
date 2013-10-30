@@ -33,7 +33,7 @@ void main() {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
           '<script type="application/dart" src="a.dart"></script>',
-      'a|web/test.dart': _sampleObservable('A', 'foo'),
+      'a|web/a.dart': _sampleObservable('A', 'foo'),
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
@@ -45,16 +45,18 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'a.dart' as i0;
+          import 'a.dart_modified.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'a.dart',
+                'a.dart_modified.dart',
               ]);
-            i0.main();
+            i0.polymerMainWrapper();
           }
           '''.replaceAll('\n          ', '\n'),
-      'a|web/test.dart': _sampleObservableOutput('A', 'foo'),
+      'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
+      'a|web/a.dart_modified.dart':
+          _sampleObservableOutput('A', 'foo', includeMain: true),
     });
 
   testPhases('single inline script', phases, {
@@ -73,16 +75,19 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'test.html.0.dart' as i0;
+          import 'test.html.0.dart_modified.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'test.html.0.dart',
+                'test.html.0.dart_modified.dart',
               ]);
-            i0.main();
+            i0.polymerMainWrapper();
           }
           '''.replaceAll('\n          ', '\n'),
-      'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
+      'a|web/test.html.0.dart':
+          _sampleObservableOutput("B", "bar"),
+      'a|web/test.html.0.dart_modified.dart':
+          _sampleObservableOutput("B", "bar", includeMain: true),
     });
 
   testPhases('several scripts', phases, {
@@ -114,16 +119,18 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'a.dart' as i0;
+          import 'a.dart_modified.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'a.dart',
+                'a.dart_modified.dart',
               ]);
-            i0.main();
+            i0.polymerMainWrapper();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
+      'a|web/a.dart_modified.dart':
+          _sampleObservableOutput('A', 'foo', includeMain: true),
       'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
       'a|web/test.html.1.dart': _sampleObservableOutput("C", "car"),
     });
@@ -153,17 +160,19 @@ void main() {
       'a|web/index.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'test2.html.0.dart' as i0;
-          import 'b.dart' as i1;
+          import 'b.dart_modified.dart' as i1;
 
           void main() {
             configureForDeployment([
                 'test2.html.0.dart',
-                'b.dart',
+                'b.dart_modified.dart',
               ]);
-            i1.main();
+            i1.polymerMainWrapper();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),
+      'a|web/test2.html.0.dart_modified.dart':
+          _sampleObservableOutput("A", "foo", includeMain: true),
       'a|web/b.dart': _sampleObservableOutput('B', 'bar'),
     });
 }
@@ -178,7 +187,8 @@ class $className extends Observable {
 }
 ''';
 
-String _sampleObservableOutput(String className, String field) =>
+String _sampleObservableOutput(String className, String field,
+    {bool includeMain: false}) =>
     "library ${className}_$field;\n"
     "import 'package:observe/observe.dart';\n\n"
     "class $className extends ChangeNotifier {\n"
@@ -188,4 +198,5 @@ String _sampleObservableOutput(String className, String field) =>
       "__\$$field = notifyPropertyChange(#$field, __\$$field, value); "
       "}\n"
     "  $className($field) : __\$$field = $field;\n"
-    "}\n";
+    "}\n"
+    "${includeMain ? '\n\npolymerMainWrapper() => main();\n' : ''}";

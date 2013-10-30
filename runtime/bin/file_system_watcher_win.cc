@@ -83,7 +83,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     FILE_NOTIFY_INFORMATION* e =
         reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
 
-    Dart_Handle event = Dart_NewList(3);
+    Dart_Handle event = Dart_NewList(4);
     int mask = 0;
     if (e->Action == FILE_ACTION_ADDED) mask |= kCreate;
     if (e->Action == FILE_ACTION_REMOVED) mask |= kDelete;
@@ -95,7 +95,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
     Dart_ListSetAt(event, 2, Dart_NewStringFromUTF16(
         reinterpret_cast<uint16_t*>(e->FileName), e->FileNameLength / 2));
-
+    Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
     Dart_ListSetAt(events, i, event);
     i++;
     if (e->NextEntryOffset == 0) break;

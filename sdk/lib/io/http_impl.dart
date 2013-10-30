@@ -460,8 +460,8 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _dataSink.add(data);
   }
 
-  void addError(error) {
-    _dataSink.addError(error);
+  void addError(error, [StackTrace stackTrace]) {
+    _dataSink.addError(error, stackTrace);
   }
 
   Future<T> addStream(Stream<List<int>> stream) {
@@ -697,7 +697,7 @@ class _BufferTransformer implements StreamTransformer<List<int>, List<int>> {
 
 class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     implements HttpResponse {
-  int statusCode = 200;
+  int _statusCode = 200;
   String _reasonPhrase;
   List<Cookie> _cookies;
   _HttpRequest _httpRequest;
@@ -715,6 +715,12 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
     return _cookies;
+  }
+
+  int get statusCode => _statusCode;
+  void set statusCode(int statusCode) {
+    if (_headersWritten) throw new StateError("Header already sent");
+    _statusCode = statusCode;
   }
 
   String get reasonPhrase => _findReasonPhrase(statusCode);
@@ -2094,8 +2100,9 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   // Indicated if the http server has been closed.
   bool closed = false;
 
-  // The server listen socket.
-  final ServerSocket _serverSocket;
+  // The server listen socket. Untyped as it can be both ServerSocket and
+  // SecureServerSocket.
+  final _serverSocket;
   final bool _closeServer;
 
   // Set of currently connected clients.
@@ -2238,7 +2245,8 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void add(List<int> bytes) => _socket.add(bytes);
 
-  void addError(error) => _socket.addError(error);
+  void addError(error, [StackTrace stackTrace]) =>
+      _socket.addError(error, stackTrace);
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     return _socket.addStream(stream);

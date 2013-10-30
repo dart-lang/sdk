@@ -39,7 +39,7 @@ class ListChangeDelta implements ListChangeRecord {
   int get removedCount => _removed.length;
 
   /** Returns true if the provided index was changed by this operation. */
-  bool changes(key) {
+  bool indexChanged(key) {
     // If key isn't an int, or before the index, then it wasn't changed.
     if (key is! int || key < index) return false;
 

@@ -163,17 +163,20 @@ class HGraph {
 
   static HType mapConstantTypeToSsaType(Constant constant, Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    if (constant.isNull()) return HType.NULL;
-    if (constant.isBool()) return HType.BOOLEAN;
-    if (constant.isInt()) return HType.INTEGER;
-    if (constant.isDouble()) return HType.DOUBLE;
+    if (constant.isNull()) return backend.nullType;
+    if (constant.isBool()) return backend.boolType;
+    if (constant.isInt()) return backend.intType;
+    if (constant.isDouble()) return backend.doubleType;
     if (constant.isString()) return backend.stringType;
     if (constant.isList()) return backend.readableArrayType;
-    if (constant.isFunction()) return HType.UNKNOWN;
-    if (constant.isSentinel()) return HType.UNKNOWN;
+    if (constant.isFunction()) return backend.nonNullType;
+    if (constant.isSentinel()) return backend.nonNullType;
     // TODO(sra): What is the type of the prototype of an interceptor?
-    if (constant.isInterceptor()) return HType.UNKNOWN;
+    if (constant.isInterceptor()) return backend.nonNullType;
     ObjectConstant objectConstant = constant;
+    if (backend.isInterceptorClass(objectConstant.type.element)) {
+      return backend.nonNullType;
+    }
     TypeMask mask = new TypeMask.nonNullExact(objectConstant.type.element);
     return new HBoundedType(mask);
   }
@@ -749,6 +752,7 @@ class HBasicBlock extends HInstructionList {
   }
 }
 
+const HType EMPTY_TYPE = const HBoundedType(const TypeMask.nonNullEmpty());
 
 abstract class HInstruction implements Spannable {
   Element sourceElement;
@@ -800,7 +804,8 @@ abstract class HInstruction implements Spannable {
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
 
-  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
+  HInstruction(this.inputs, this.instructionType)
+      : id = idCounter++, usedBy = <HInstruction>[] {
     assert(inputs.every((e) => e != null));
   }
 
@@ -852,13 +857,20 @@ abstract class HInstruction implements Spannable {
       instructionType.isPrimitive(compiler);
   bool isPrimitiveOrNull(Compiler compiler) =>
       instructionType.isPrimitiveOrNull(compiler);
-  bool isBoolean() => instructionType.isBoolean();
-  bool isInteger() => instructionType.isInteger();
-  bool isIntegerOrNull() => instructionType.isIntegerOrNull();
-  bool isDouble() => instructionType.isDouble();
-  bool isDoubleOrNull() => instructionType.isDoubleOrNull();
-  bool isNumber() => instructionType.isNumber();
-  bool isNumberOrNull() => instructionType.isNumberOrNull();
+  bool isBoolean(Compiler compiler) =>
+      instructionType.isBoolean(compiler);
+  bool isInteger(Compiler compiler) =>
+      instructionType.isInteger(compiler);
+  bool isIntegerOrNull(Compiler compiler) =>
+      instructionType.isIntegerOrNull(compiler);
+  bool isDouble(Compiler compiler) =>
+      instructionType.isDouble(compiler);
+  bool isDoubleOrNull(Compiler compiler) =>
+      instructionType.isDoubleOrNull(compiler);
+  bool isNumber(Compiler compiler) =>
+      instructionType.isNumber(compiler);
+  bool isNumberOrNull(Compiler compiler) =>
+      instructionType.isNumberOrNull(compiler);
   bool isNull() => instructionType.isNull();
   bool canBeNull() => instructionType.canBeNull();
   bool canBePrimitive(Compiler compiler) =>
@@ -878,7 +890,7 @@ abstract class HInstruction implements Spannable {
   /**
    * Type of the unstruction.
    */
-  HType instructionType = HType.UNKNOWN;
+  HType instructionType;
 
   Selector get selector => null;
   HInstruction getDartReceiver(Compiler compiler) => null;
@@ -1119,11 +1131,12 @@ abstract class HInstruction implements Spannable {
     // The type element is either a class or the void element.
     Element element = type.element;
     if (identical(element, compiler.objectClass)) return this;
+    JavaScriptBackend backend = compiler.backend;
     if (type.kind != TypeKind.INTERFACE) {
-      return new HTypeConversion(type, kind, HType.UNKNOWN, this);
+      return new HTypeConversion(type, kind, backend.dynamicType, this);
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(type, kind, HType.BOOLEAN, this);
+      return new HTypeConversion(type, kind, backend.boolType, this);
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
@@ -1142,9 +1155,9 @@ abstract class HInstruction implements Spannable {
 }
 
 class HBoolify extends HInstruction {
-  HBoolify(HInstruction value) : super(<HInstruction>[value]) {
+  HBoolify(HInstruction value, HType type)
+      : super(<HInstruction>[value], type) {
     setUseGvn();
-    instructionType = HType.BOOLEAN;
   }
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
@@ -1161,7 +1174,7 @@ class HBoolify extends HInstruction {
  * instruction itself.
  */
 abstract class HCheck extends HInstruction {
-  HCheck(inputs) : super(inputs) {
+  HCheck(inputs, type) : super(inputs, type) {
     setUseGvn();
   }
   HInstruction get checkedInput => inputs[0];
@@ -1183,10 +1196,8 @@ class HBoundsCheck extends HCheck {
    */
   int staticChecks = FULL_CHECK;
 
-  HBoundsCheck(length, index, array)
-      : super(<HInstruction>[length, index, array]) {
-    instructionType = HType.INTEGER;
-  }
+  HBoundsCheck(length, index, array, type)
+      : super(<HInstruction>[length, index, array], type);
 
   HInstruction get length => inputs[1];
   HInstruction get index => inputs[0];
@@ -1207,7 +1218,7 @@ abstract class HConditionalBranch extends HControlFlow {
 }
 
 abstract class HControlFlow extends HInstruction {
-  HControlFlow(inputs) : super(inputs);
+  HControlFlow(inputs) : super(inputs, EMPTY_TYPE);
   bool isControlFlow() => true;
   bool isJsStatement() => true;
 }
@@ -1218,7 +1229,7 @@ abstract class HInvoke extends HInstruction {
     * the receiver of a method-call. The remaining inputs are the arguments
     * to the invocation.
     */
-  HInvoke(List<HInstruction> inputs) : super(inputs) {
+  HInvoke(List<HInstruction> inputs, type) : super(inputs, type) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
@@ -1238,14 +1249,15 @@ abstract class HInvoke extends HInstruction {
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
-  final Selector selector;
+  Selector selector;
   Element element;
 
   HInvokeDynamic(Selector selector,
                  this.element,
                  List<HInstruction> inputs,
+                 HType type,
                  [bool isIntercepted = false])
-    : super(inputs),
+    : super(inputs, type),
       this.selector = selector,
       specializer = isIntercepted
           ? InvokeDynamicSpecializer.lookupSpecializer(selector)
@@ -1275,8 +1287,8 @@ abstract class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  HInvokeClosure(Selector selector, List<HInstruction> inputs)
-    : super(selector, null, inputs) {
+  HInvokeClosure(Selector selector, List<HInstruction> inputs, HType type)
+    : super(selector, null, inputs, type) {
     assert(selector.isClosureCall());
   }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
@@ -1285,8 +1297,9 @@ class HInvokeClosure extends HInvokeDynamic {
 class HInvokeDynamicMethod extends HInvokeDynamic {
   HInvokeDynamicMethod(Selector selector,
                        List<HInstruction> inputs,
+                       HType type,
                        [bool isIntercepted = false])
-    : super(selector, null, inputs, isIntercepted);
+    : super(selector, null, inputs, type, isIntercepted);
 
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
@@ -1303,14 +1316,14 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
   final bool isSideEffectFree;
   HInvokeDynamicField(
       Selector selector, Element element, List<HInstruction> inputs,
-      this.isSideEffectFree)
-      : super(selector, element, inputs);
+      HType type, this.isSideEffectFree)
+      : super(selector, element, inputs, type);
   toString() => 'invoke dynamic field: $selector';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, inputs, isSideEffectFree)
-    : super(selector, element, inputs, isSideEffectFree) {
+  HInvokeDynamicGetter(selector, element, inputs, type, isSideEffectFree)
+    : super(selector, element, inputs, type, isSideEffectFree) {
     sideEffects.clearAllSideEffects();
     if (isSideEffectFree) {
       setUseGvn();
@@ -1325,8 +1338,8 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, inputs, isSideEffectFree)
-    : super(selector, element, inputs, isSideEffectFree) {
+  HInvokeDynamicSetter(selector, element, inputs, type, isSideEffectFree)
+    : super(selector, element, inputs, type, isSideEffectFree) {
     sideEffects.clearAllSideEffects();
     if (isSideEffectFree) {
       sideEffects.setChangesInstanceProperty();
@@ -1349,9 +1362,7 @@ class HInvokeStatic extends HInvoke {
   List<DartType> instantiatedTypes;
 
   /** The first input must be the target. */
-  HInvokeStatic(this.element, inputs, HType type) : super(inputs) {
-    instructionType = type;
-  }
+  HInvokeStatic(this.element, inputs, HType type) : super(inputs, type);
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
@@ -1368,8 +1379,9 @@ class HInvokeSuper extends HInvokeStatic {
                this.caller,
                this.selector,
                inputs,
+               type,
                {this.isSetter})
-      : super(element, inputs, HType.UNKNOWN);
+      : super(element, inputs, type);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
@@ -1384,8 +1396,8 @@ class HInvokeConstructorBody extends HInvokeStatic {
   // The 'inputs' are
   //     [receiver, arg1, ..., argN] or
   //     [interceptor, receiver, arg1, ... argN].
-  HInvokeConstructorBody(element, inputs)
-      : super(element, inputs, HType.UNKNOWN);
+  HInvokeConstructorBody(element, inputs, type)
+      : super(element, inputs, type);
 
   String toString() => 'invoke constructor body: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
@@ -1394,8 +1406,8 @@ class HInvokeConstructorBody extends HInvokeStatic {
 abstract class HFieldAccess extends HInstruction {
   final Element element;
 
-  HFieldAccess(Element element, List<HInstruction> inputs)
-      : this.element = element, super(inputs);
+  HFieldAccess(Element element, List<HInstruction> inputs, HType type)
+      : this.element = element, super(inputs, type);
 
   HInstruction get receiver => inputs[0];
 }
@@ -1403,11 +1415,14 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(Element element, HInstruction receiver, {bool isAssignable})
+  HFieldGet(Element element,
+            HInstruction receiver,
+            HType type,
+            {bool isAssignable})
       : this.isAssignable = (isAssignable != null)
             ? isAssignable
             : element.isAssignable(),
-        super(element, <HInstruction>[receiver]) {
+        super(element, <HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
     setUseGvn();
     if (this.isAssignable) {
@@ -1444,7 +1459,7 @@ class HFieldSet extends HFieldAccess {
   HFieldSet(Element element,
             HInstruction receiver,
             HInstruction value)
-      : super(element, <HInstruction>[receiver, value]) {
+      : super(element, <HInstruction>[receiver, value], EMPTY_TYPE) {
     sideEffects.clearAllSideEffects();
     sideEffects.setChangesInstanceProperty();
   }
@@ -1464,8 +1479,8 @@ class HFieldSet extends HFieldAccess {
 class HLocalGet extends HFieldAccess {
   // No need to use GVN for a [HLocalGet], it is just a local
   // access.
-  HLocalGet(Element element, HLocalValue local)
-      : super(element, <HInstruction>[local]);
+  HLocalGet(Element element, HLocalValue local, HType type)
+      : super(element, <HInstruction>[local], type);
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
@@ -1474,7 +1489,7 @@ class HLocalGet extends HFieldAccess {
 
 class HLocalSet extends HFieldAccess {
   HLocalSet(Element element, HLocalValue local, HInstruction value)
-      : super(element, <HInstruction>[local, value]);
+      : super(element, <HInstruction>[local, value], EMPTY_TYPE);
 
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
@@ -1494,18 +1509,18 @@ class HForeign extends HInstruction {
            {this.isStatement: false,
             SideEffects effects,
             native.NativeBehavior nativeBehavior})
-      : this.nativeBehavior = nativeBehavior, super(inputs) {
+      : this.nativeBehavior = nativeBehavior, super(inputs, type) {
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
     if (effects != null) sideEffects.add(effects);
-    instructionType = type;
   }
 
   HForeign.statement(codeAst, List<HInstruction> inputs,
                      SideEffects effects,
-                     native.NativeBehavior nativeBehavior)
-      : this(codeAst, HType.UNKNOWN, inputs, isStatement: true,
+                     native.NativeBehavior nativeBehavior,
+                     HType type)
+      : this(codeAst, type, inputs, isStatement: true,
              effects: effects, nativeBehavior: nativeBehavior);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
@@ -1534,8 +1549,8 @@ class HForeignNew extends HForeign {
 
 abstract class HInvokeBinary extends HInstruction {
   final Selector selector;
-  HInvokeBinary(HInstruction left, HInstruction right, this.selector)
-      : super(<HInstruction>[left, right]) {
+  HInvokeBinary(HInstruction left, HInstruction right, this.selector, type)
+      : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
     setUseGvn();
   }
@@ -1547,12 +1562,13 @@ abstract class HInvokeBinary extends HInstruction {
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
-  HBinaryArithmetic(left, right, selector) : super(left, right, selector);
+  HBinaryArithmetic(left, right, selector, type)
+      : super(left, right, selector, type);
   BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(left, right, selector) : super(left, right, selector);
+  HAdd(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1563,9 +1579,7 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(left, right, selector) : super(left, right, selector) {
-    instructionType = HType.DOUBLE;
-  }
+  HDivide(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1576,7 +1590,7 @@ class HDivide extends HBinaryArithmetic {
 }
 
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(left, right, selector) : super(left, right, selector);
+  HMultiply(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
   BinaryOperation operation(ConstantSystem operations)
@@ -1587,7 +1601,7 @@ class HMultiply extends HBinaryArithmetic {
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(left, right, selector) : super(left, right, selector);
+  HSubtract(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1621,13 +1635,12 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
-  HBinaryBitOp(left, right, selector) : super(left, right, selector) {
-    instructionType = HType.INTEGER;
-  }
+  HBinaryBitOp(left, right, selector, type)
+      : super(left, right, selector, type);
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(left, right, selector) : super(left, right, selector);
+  HShiftLeft(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1638,7 +1651,7 @@ class HShiftLeft extends HBinaryBitOp {
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(left, right, selector) : super(left, right, selector);
+  HBitOr(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1649,7 +1662,7 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(left, right, selector) : super(left, right, selector);
+  HBitAnd(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1660,7 +1673,7 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(left, right, selector) : super(left, right, selector);
+  HBitXor(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1672,8 +1685,8 @@ class HBitXor extends HBinaryBitOp {
 
 abstract class HInvokeUnary extends HInstruction {
   final Selector selector;
-  HInvokeUnary(HInstruction input, this.selector)
-      : super(<HInstruction>[input]) {
+  HInvokeUnary(HInstruction input, this.selector, type)
+      : super(<HInstruction>[input], type) {
     sideEffects.clearAllSideEffects();
     setUseGvn();
   }
@@ -1684,7 +1697,7 @@ abstract class HInvokeUnary extends HInstruction {
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(input, selector) : super(input, selector);
+  HNegate(input, selector, type) : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
   UnaryOperation operation(ConstantSystem constantSystem)
@@ -1695,9 +1708,7 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(input, selector) : super(input, selector) {
-    instructionType = HType.INTEGER;
-  }
+  HBitNot(input, selector, type) : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
   UnaryOperation operation(ConstantSystem constantSystem)
@@ -1825,9 +1836,7 @@ class HLoopBranch extends HConditionalBranch {
 class HConstant extends HInstruction {
   final Constant constant;
   HConstant.internal(this.constant, HType constantType)
-      : super(<HInstruction>[]) {
-    instructionType = constantType;
-  }
+      : super(<HInstruction>[], constantType);
 
   toString() => 'literal: $constant';
   accept(HVisitor visitor) => visitor.visitConstant(this);
@@ -1851,9 +1860,8 @@ class HConstant extends HInstruction {
 }
 
 class HNot extends HInstruction {
-  HNot(HInstruction value) : super(<HInstruction>[value]) {
+  HNot(HInstruction value, HType type) : super(<HInstruction>[value], type) {
     setUseGvn();
-    instructionType = HType.BOOLEAN;
   }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
@@ -1868,7 +1876,7 @@ class HNot extends HInstruction {
   * value from the start, whereas [HLocalValue]s need to be initialized first.
   */
 class HLocalValue extends HInstruction {
-  HLocalValue(Element element) : super(<HInstruction>[]) {
+  HLocalValue(Element element, HType type) : super(<HInstruction>[], type) {
     sourceElement = element;
   }
 
@@ -1877,16 +1885,14 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(Element element) : super(element);
+  HParameterValue(Element element, type) : super(element, type);
 
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 
 class HThis extends HParameterValue {
-  HThis(Element element, [HType type = HType.UNKNOWN]) : super(element) {
-    instructionType = type;
-  }
+  HThis(Element element, HType type) : super(element, type);
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
   bool isCodeMotionInvariant() => true;
@@ -1906,14 +1912,16 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi(Element element, List<HInstruction> inputs) : super(inputs) {
+  HPhi(Element element, List<HInstruction> inputs, HType type)
+      : super(inputs, type) {
     sourceElement = element;
   }
-  HPhi.noInputs(Element element) : this(element, <HInstruction>[]);
-  HPhi.singleInput(Element element, HInstruction input)
-      : this(element, <HInstruction>[input]);
-  HPhi.manyInputs(Element element, List<HInstruction> inputs)
-      : this(element, inputs);
+  HPhi.noInputs(Element element, HType type)
+      : this(element, <HInstruction>[], type);
+  HPhi.singleInput(Element element, HInstruction input, HType type)
+      : this(element, <HInstruction>[input], type);
+  HPhi.manyInputs(Element element, List<HInstruction> inputs, HType type)
+      : this(element, inputs, type);
 
   void addInput(HInstruction input) {
     assert(isInBasicBlock());
@@ -1937,13 +1945,11 @@ class HPhi extends HInstruction {
 
 abstract class HRelational extends HInvokeBinary {
   bool usesBoolifiedInterceptor = false;
-  HRelational(left, right, selector) : super(left, right, selector) {
-    instructionType = HType.BOOLEAN;
-  }
+  HRelational(left, right, selector, type) : super(left, right, selector, type);
 }
 
 class HIdentity extends HRelational {
-  HIdentity(left, right, [selector]) : super(left, right, selector);
+  HIdentity(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1954,7 +1960,7 @@ class HIdentity extends HRelational {
 }
 
 class HGreater extends HRelational {
-  HGreater(left, right, selector) : super(left, right, selector);
+  HGreater(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1965,7 +1971,8 @@ class HGreater extends HRelational {
 }
 
 class HGreaterEqual extends HRelational {
-  HGreaterEqual(left, right, selector) : super(left, right, selector);
+  HGreaterEqual(left, right, selector, type)
+      : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1976,7 +1983,7 @@ class HGreaterEqual extends HRelational {
 }
 
 class HLess extends HRelational {
-  HLess(left, right, selector) : super(left, right, selector);
+  HLess(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1987,7 +1994,7 @@ class HLess extends HRelational {
 }
 
 class HLessEqual extends HRelational {
-  HLessEqual(left, right, selector) : super(left, right, selector);
+  HLessEqual(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -2004,7 +2011,7 @@ class HReturn extends HControlFlow {
 }
 
 class HThrowExpression extends HInstruction {
-  HThrowExpression(value) : super(<HInstruction>[value]);
+  HThrowExpression(value) : super(<HInstruction>[value], EMPTY_TYPE);
   toString() => 'throw expression';
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
   bool canThrow() => true;
@@ -2019,7 +2026,7 @@ class HThrow extends HControlFlow {
 
 class HStatic extends HInstruction {
   final Element element;
-  HStatic(this.element) : super(<HInstruction>[]) {
+  HStatic(this.element, type) : super(<HInstruction>[], type) {
     assert(element != null);
     assert(invariant(this, element.isDeclaration));
     sideEffects.clearAllSideEffects();
@@ -2042,7 +2049,8 @@ class HInterceptor extends HInstruction {
   // This field should originally be null to allow GVN'ing all
   // [HInterceptor] on the same input.
   Set<ClassElement> interceptedClasses;
-  HInterceptor(HInstruction receiver) : super(<HInstruction>[receiver]) {
+  HInterceptor(HInstruction receiver, HType type)
+      : super(<HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
     setUseGvn();
   }
@@ -2073,10 +2081,11 @@ class HOneShotInterceptor extends HInvokeDynamic {
   Set<ClassElement> interceptedClasses;
   HOneShotInterceptor(Selector selector,
                       List<HInstruction> inputs,
+                      HType type,
                       this.interceptedClasses)
-      : super(selector, null, inputs, true) {
+      : super(selector, null, inputs, type, true) {
     assert(inputs[0] is HConstant);
-    assert(inputs[0].instructionType == HType.NULL);
+    assert(inputs[0].instructionType.isNull());
   }
   bool isCallOnInterceptor(Compiler compiler) => true;
 
@@ -2087,7 +2096,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */
 class HLazyStatic extends HInstruction {
   final Element element;
-  HLazyStatic(this.element) : super(<HInstruction>[]) {
+  HLazyStatic(this.element, type) : super(<HInstruction>[], type) {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
     sideEffects.setAllSideEffects();
@@ -2106,7 +2115,7 @@ class HLazyStatic extends HInstruction {
 class HStaticStore extends HInstruction {
   Element element;
   HStaticStore(this.element, HInstruction value)
-      : super(<HInstruction>[value]) {
+      : super(<HInstruction>[value], EMPTY_TYPE) {
     sideEffects.clearAllSideEffects();
     sideEffects.setChangesStaticProperty();
   }
@@ -2120,9 +2129,7 @@ class HStaticStore extends HInstruction {
 }
 
 class HLiteralList extends HInstruction {
-  HLiteralList(List<HInstruction> inputs, HType type) : super(inputs) {
-    instructionType = type;
-  }
+  HLiteralList(List<HInstruction> inputs, HType type) : super(inputs, type);
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 }
@@ -2133,8 +2140,8 @@ class HLiteralList extends HInstruction {
  */
 class HIndex extends HInstruction {
   final Selector selector;
-  HIndex(HInstruction receiver, HInstruction index, this.selector)
-      : super(<HInstruction>[receiver, index]) {
+  HIndex(HInstruction receiver, HInstruction index, this.selector, type)
+      : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.setDependsOnIndexStore();
     setUseGvn();
@@ -2164,7 +2171,7 @@ class HIndexAssign extends HInstruction {
                HInstruction index,
                HInstruction value,
                this.selector)
-      : super(<HInstruction>[receiver, index, value]) {
+      : super(<HInstruction>[receiver, index, value], EMPTY_TYPE) {
     sideEffects.clearAllSideEffects();
     sideEffects.setChangesIndex();
   }
@@ -2191,29 +2198,33 @@ class HIs extends HInstruction {
   final int kind;
 
   HIs.direct(DartType typeExpression,
-             HInstruction expression)
-      : this.internal(typeExpression, [expression], RAW_CHECK);
+             HInstruction expression,
+             HType type)
+      : this.internal(typeExpression, [expression], RAW_CHECK, type);
 
   HIs.raw(DartType typeExpression,
           HInstruction expression,
-          HInterceptor interceptor)
-      : this.internal(typeExpression, [expression, interceptor], RAW_CHECK);
+          HInterceptor interceptor,
+          HType type)
+      : this.internal(
+            typeExpression, [expression, interceptor], RAW_CHECK, type);
 
   HIs.compound(DartType typeExpression,
                HInstruction expression,
-               HInstruction call)
-      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK);
+               HInstruction call,
+               HType type)
+      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type);
 
   HIs.variable(DartType typeExpression,
                HInstruction expression,
-               HInstruction call)
-      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK);
+               HInstruction call,
+               HType type)
+      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type);
 
-  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind)
-      : super(inputs) {
+  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind, type)
+      : super(inputs, type) {
     assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
-    instructionType = HType.BOOLEAN;
   }
 
   HInstruction get expression => inputs[0];
@@ -2264,12 +2275,11 @@ class HTypeConversion extends HCheck {
                   [this.receiverTypeCheckSelector])
       : contextIsTypeArguments = false,
         checkedType = type,
-        super(<HInstruction>[input]) {
+        super(<HInstruction>[input], type) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null ||
            typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
-    instructionType = type;
   }
 
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
@@ -2277,23 +2287,21 @@ class HTypeConversion extends HCheck {
                                          HInstruction typeRepresentation)
       : contextIsTypeArguments = false,
         checkedType = type,
-        super(<HInstruction>[input, typeRepresentation]),
+        super(<HInstruction>[input, typeRepresentation],type),
         receiverTypeCheckSelector = null {
     assert(typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
-    instructionType = type;
   }
 
   HTypeConversion.withContext(this.typeExpression, this.kind,
                               HType type, HInstruction input,
                               HInstruction context,
                               {bool this.contextIsTypeArguments})
-      : super(<HInstruction>[input, context]),
+      : super(<HInstruction>[input, context], type),
         checkedType = type,
         receiverTypeCheckSelector = null {
     assert(typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
-    instructionType = type;
   }
 
   bool get hasTypeRepresentation {
@@ -2339,10 +2347,9 @@ class HTypeConversion extends HCheck {
 /// The [HTypeKnown] instruction marks a value with a refined type.
 class HTypeKnown extends HCheck {
   HType knownType;
-  HTypeKnown(HType this.knownType, HInstruction input)
-      : super(<HInstruction>[input]) {
-    instructionType = knownType;
-  }
+  HTypeKnown(HType knownType, HInstruction input)
+      : this.knownType = knownType,
+        super(<HInstruction>[input], knownType);
   toString() => 'TypeKnown $knownType';
   accept(HVisitor visitor) => visitor.visitTypeKnown(this);
 
@@ -2361,10 +2368,9 @@ class HTypeKnown extends HCheck {
 }
 
 class HRangeConversion extends HCheck {
-  HRangeConversion(HInstruction input) : super(<HInstruction>[input]) {
+  HRangeConversion(HInstruction input, type)
+      : super(<HInstruction>[input], type) {
     sourceElement = input.sourceElement;
-    // We currently only do range analysis for integers.
-    instructionType = HType.INTEGER;
   }
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
 }
@@ -2372,12 +2378,11 @@ class HRangeConversion extends HCheck {
 class HStringConcat extends HInstruction {
   final Node node;
   HStringConcat(HInstruction left, HInstruction right, this.node, HType type)
-      : super(<HInstruction>[left, right]) {
+      : super(<HInstruction>[left, right], type) {
     // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
     // concats bunched with stringified inputs for much better looking code with
     // fewer temps.
     sideEffects.setDependsOnSomething();
-    instructionType = type;
   }
 
   HInstruction get left => inputs[0];
@@ -2394,10 +2399,9 @@ class HStringConcat extends HInstruction {
 class HStringify extends HInstruction {
   final Node node;
   HStringify(HInstruction input, this.node, HType type)
-      : super(<HInstruction>[input]) {
+      : super(<HInstruction>[input], type) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
-    instructionType = type;
   }
 
   accept(HVisitor visitor) => visitor.visitStringify(this);

@@ -1554,17 +1554,17 @@ testTypePromotionHints() {
         infos: []);
 
   check('''
-           D d = new E();
-           if (d is E<int>) {
+           D<int> d = new E();
+           if (d is E) {
              var x = d.e;
            }''',
         warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
-        hints: [MessageKind.NOT_MORE_SPECIFIC_RAW],
+        hints: [MessageKind.NOT_MORE_SPECIFIC],
         infos: []);
 
   check('''
-           D d = new E();
-           if (d is E<int>) {
+           D<int> d = new E();
+           if (d is E) {
              var x = d.f; // Type promotion wouldn't help.
            }''',
         warnings: [MessageKind.MEMBER_NOT_FOUND.warning],

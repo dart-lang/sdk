@@ -8,7 +8,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-import 'generics_test.dart';
+import 'generics_helper.dart';
 
 typedef bool NonGenericPredicate(num n);
 typedef bool GenericPredicate<T>(T t);

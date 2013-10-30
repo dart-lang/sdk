@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.observable_map;
+
+import 'dart:collection';
+import 'package:observe/observe.dart';
+
 
 // TODO(jmesserly): this needs to be faster. We currently require multiple
 // lookups per key to get the old value.
@@ -34,14 +38,10 @@ class MapChangeRecord<K, V> extends ChangeRecord {
       : isInsert = false, isRemove = false;
 
   MapChangeRecord.insert(this.key, this.newValue)
-      : isInsert = true, isRemove = false;
+      : isInsert = true, isRemove = false, oldValue = null;
 
   MapChangeRecord.remove(this.key, this.oldValue)
-      : isInsert = false, isRemove = true;
-
-  /// *Deprecated* compare [key]s instead.
-  @deprecated
-  bool changes(otherKey) => key == otherKey;
+      : isInsert = false, isRemove = true, newValue = null;
 
   String toString() {
     var kind = isInsert ? 'insert' : isRemove ? 'remove' : 'set';
@@ -76,10 +76,11 @@ class ObservableMap<K, V> extends ChangeNotifier implements Map<K, V> {
    * you should use [toObservable].
    */
   factory ObservableMap.from(Map<K, V> other) {
-    return new ObservableMap<K, V>._createFromType(other)..addAll(other);
+    return new ObservableMap<K, V>.createFromType(other)..addAll(other);
   }
 
-  factory ObservableMap._createFromType(Map<K, V> other) {
+  /** Like [ObservableMap.from], but creates an empty map. */
+  factory ObservableMap.createFromType(Map<K, V> other) {
     ObservableMap result;
     if (other is SplayTreeMap) {
       result = new ObservableMap<K, V>.sorted();

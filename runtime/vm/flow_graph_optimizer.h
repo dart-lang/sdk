@@ -47,6 +47,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineRecognizedMethod(intptr_t receiver_cid,
                                  const Function& target,
                                  Instruction* call,
+                                 Definition* receiver,
                                  intptr_t token_pos,
                                  const ICData& ic_data,
                                  TargetEntryInstr** entry,
@@ -77,6 +78,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool InlineSetIndexed(MethodRecognizer::Kind kind,
                         const Function& target,
                         Instruction* call,
+                        Definition* receiver,
                         intptr_t token_pos,
                         const ICData* ic_data,
                         const ICData& value_check,
@@ -85,6 +87,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithLoadIndexed(InstanceCallInstr* call);
   bool InlineGetIndexed(MethodRecognizer::Kind kind,
                         Instruction* call,
+                        Definition* receiver,
                         const ICData& ic_data,
                         TargetEntryInstr** entry,
                         Definition** last);
@@ -120,6 +123,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                           intptr_t cid);
 
   bool InlineByteArrayViewLoad(Instruction* call,
+                               Definition* receiver,
                                intptr_t array_cid,
                                intptr_t view_cid,
                                const ICData& ic_data,

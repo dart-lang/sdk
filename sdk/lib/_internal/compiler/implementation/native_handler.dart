@@ -1062,6 +1062,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   NativeEmitter nativeEmitter = builder.emitter.nativeEmitter;
+  JavaScriptBackend backend = builder.backend;
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
@@ -1070,7 +1071,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     HInstruction arity = builder.graph.addConstant(arityConstant, compiler);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    Element helper = builder.backend.getClosureConverter();
+    Element helper = backend.getClosureConverter();
     builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
     HInstruction closure = builder.pop();
     return closure;
@@ -1134,7 +1135,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
                                      element: element);
     }
 
-    builder.push(new HForeign(js.js(nativeMethodCall), HType.UNKNOWN,
+    builder.push(new HForeign(js.js(nativeMethodCall), backend.dynamicType,
                               inputs, effects: new SideEffects()));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
@@ -1148,6 +1149,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         new js.LiteralStatement(jsCode.dartString.slowToString()),
         <HInstruction>[],
         new SideEffects(),
-        null));
+        null,
+        backend.dynamicType));
   }
 }

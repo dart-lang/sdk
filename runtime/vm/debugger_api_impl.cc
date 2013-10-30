@@ -796,6 +796,22 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
+                                       intptr_t* library_id) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+  if (library_id == NULL) {
+    RETURN_NULL_ERROR(library_id);
+  }
+  *library_id = lib.index();
+  return Api::Success();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);

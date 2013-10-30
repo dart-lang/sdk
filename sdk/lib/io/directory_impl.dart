@@ -292,6 +292,7 @@ class _AsyncDirectoryLister {
   bool canceled = false;
   bool nextRunning = false;
   bool closed = false;
+  Completer closeCompleter = new Completer();
 
   _AsyncDirectoryLister(String this.path,
                         bool this.recursive,
@@ -312,7 +313,7 @@ class _AsyncDirectoryLister {
             next();
           } else {
             error(response);
-            controller.close();
+            close();
           }
         });
   }
@@ -321,12 +322,14 @@ class _AsyncDirectoryLister {
     if (!nextRunning) next();
   }
 
-  void onCancel() {
+  Future onCancel() {
     canceled = true;
     // If we are active, but not requesting, close.
     if (!nextRunning) {
       close();
     }
+
+    return closeCompleter.future;
   }
 
   void next() {
@@ -336,10 +339,12 @@ class _AsyncDirectoryLister {
     }
     if (id == null) return;
     if (controller.isPaused) return;
-    assert(!nextRunning);
+    if (nextRunning) return;
     nextRunning = true;
     _IOService.dispatch(_DIRECTORY_LIST_NEXT, [id]).then((result) {
+      nextRunning = false;
       if (result is List) {
+        next();
         assert(result.length % 2 == 0);
         for (int i = 0; i < result.length; i++) {
           assert(i % 2 == 0);
@@ -357,25 +362,29 @@ class _AsyncDirectoryLister {
               error(result[i]);
               break;
             case LIST_DONE:
-              close();
+              canceled = true;
               return;
           }
         }
       } else {
         controller.addError(new FileSystemException("Internal error"));
       }
-      nextRunning = false;
-      next();
     });
   }
 
   void close() {
     if (closed) return;
-    if (id == null) return;
-    closed = true;
-    _IOService.dispatch(_DIRECTORY_LIST_STOP, [id]).then((_) {
+    if (nextRunning) return;
+    void cleanup() {
       controller.close();
-    });
+      closeCompleter.complete();
+    }
+    closed = true;
+    if (id != null) {
+      _IOService.dispatch(_DIRECTORY_LIST_STOP, [id]).whenComplete(cleanup);
+    } else {
+      cleanup();
+    }
   }
 
   void error(message) {

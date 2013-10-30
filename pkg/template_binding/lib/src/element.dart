@@ -15,7 +15,7 @@ class _ElementExtension extends NodeBindExtension {
     if (_node is OptionElement && name == 'value') {
       // Note: because <option> can be a semantic template, <option> will be
       // a TemplateBindExtension sometimes. So we need to handle it here.
-      _node.attributes.remove(name);
+      (_node as OptionElement).attributes.remove(name);
       binding = new _OptionValueBinding(_node, model, path);
     } else {
       binding = new _AttributeBinding(_node, name, model, path);

@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
 
-import 'barback_logger.dart';
 import 'errors.dart';
 import 'utils.dart';
 

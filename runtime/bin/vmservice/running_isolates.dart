@@ -9,28 +9,28 @@ class RunningIsolates implements ServiceRequestRouter {
 
   RunningIsolates();
 
-  void isolateStartup(SendPort sp, String name) {
-    if (isolates[sp.hashCode] != null) {
+  void isolateStartup(int portId, SendPort sp, String name) {
+    if (isolates[portId] != null) {
       throw new StateError('Duplicate isolate startup.');
     }
-    var ri = new RunningIsolate(sp, name);
-    isolates[sp.hashCode] = ri;
+    var ri = new RunningIsolate(portId, sp, name);
+    isolates[portId] = ri;
   }
 
-  void isolateShutdown(SendPort sp) {
-    if (isolates[sp.hashCode] == null) {
+  void isolateShutdown(int portId, SendPort sp) {
+    if (isolates[portId] == null) {
       throw new StateError('Unknown isolate.');
     }
-    isolates.remove(sp.hashCode);
+    isolates.remove(portId);
   }
 
   void _isolateCollectionRequest(ServiceRequest request) {
     var members = [];
     var result = {};
-    isolates.forEach((sp, ri) {
+    isolates.forEach((portId, runningIsolate) {
       members.add({
-        'id': sp,
-        'name': ri.name
+        'id': portId,
+        'name': runningIsolate.name
         });
     });
     result['type'] = 'IsolateList';

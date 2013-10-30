@@ -165,6 +165,14 @@ JS_CREATE_ISOLATE() {}
 JS_DART_OBJECT_CONSTRUCTOR() {}
 
 /**
+ * Returns the interceptor for class [type].  The interceptor is the type's
+ * constructor's `prototype` property.  [type] will typically be the class, not
+ * an interface, e.g. `JS_INTERCEPTOR_CONSTANT(JSInt)`, not
+ * `JS_INTERCEPTOR_CONSTANT(int)`.
+ */
+JS_INTERCEPTOR_CONSTANT(Type type) {}
+
+/**
  * Returns the prefix used for generated is checks on classes.
  */
 String JS_OPERATOR_IS_PREFIX() {}

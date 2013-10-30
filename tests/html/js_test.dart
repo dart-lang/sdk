@@ -269,7 +269,6 @@ main() {
       context.deleteProperty('foo2');
     });
 
-
     test('retrieve same dart Object', () {
       final obj = new Object();
       context['obj'] = obj;
@@ -315,16 +314,19 @@ main() {
     });
 
     test('new Array()', () {
-      final a = new JsObject(context['Array']);
-      expect(a, isNotNull);
-      expect(a['length'], equals(0));
+      var a = new JsObject(context['Array']);
+      expect(a, new isInstanceOf<JsArray>());
+
+      // Test that the object still behaves via the base JsObject interface.
+      // JsArray specific tests are below.
+      expect(a['length'], 0);
 
       a.callMethod('push', ["value 1"]);
-      expect(a['length'], equals(1));
-      expect(a[0], equals("value 1"));
+      expect(a['length'], 1);
+      expect(a[0], "value 1");
 
       a.callMethod('pop');
-      expect(a['length'], equals(0));
+      expect(a['length'], 0);
     });
 
     test('new Date()', () {
@@ -337,10 +339,9 @@ main() {
       expect(a.callMethod('getTime'), equals(12345678));
     });
 
-    test('new Date("December 17, 1995 03:24:00 GMT")',
-        () {
+    test('new Date("December 17, 1995 03:24:00 GMT")', () {
       final a = new JsObject(context['Date'],
-                             ["December 17, 1995 03:24:00 GMT"]);
+          ["December 17, 1995 03:24:00 GMT"]);
       expect(a.callMethod('getTime'), equals(819170640000));
     });
 
@@ -354,7 +355,7 @@ main() {
     test('new Date(1995,11,17,3,24,0)', () {
       // Note: JS Date counts months from 0 while Dart counts from 1.
       final a = new JsObject(context['Date'],
-                                         [1995, 11, 17, 3, 24, 0]);
+          [1995, 11, 17, 3, 24, 0]);
       final b = new DateTime(1995, 12, 17, 3, 24, 0);
       expect(a.callMethod('getTime'), equals(b.millisecondsSinceEpoch));
     });
@@ -419,6 +420,11 @@ main() {
 
   group('JsFunction and callMethod', () {
 
+    test('new JsObject can return a JsFunction', () {
+      var f = new JsObject(context['Function']);
+      expect(f, new isInstanceOf<JsFunction>());
+    });
+
     test('JsFunction.apply on a function defined in JS', () {
       expect(context['razzle'].apply([]), equals(42));
     });
@@ -452,6 +458,150 @@ main() {
           throwsA(new isInstanceOf<ArgumentError>()));
     });
 */
+  });
+
+  group('JsArray', () {
+
+    test('new JsArray()', () {
+      var array = new JsArray();
+      var arrayType = context['Array'];
+      expect(array.instanceof(arrayType), true);
+      expect(array, []);
+      // basic check that it behaves like a List
+      array.addAll([1, 2, 3]);
+      expect(array, [1, 2, 3]);
+    });
+
+    test('new JsArray.from()', () {
+      var array = new JsArray.from([1, 2, 3]);
+      var arrayType = context['Array'];
+      expect(array.instanceof(arrayType), true);
+      expect(array, [1, 2, 3]);
+    });
+
+    test('get Array from JS', () {
+      context['a'] = new JsObject(context['Array'], [1, 2, 3]);
+      expect(context.callMethod('isPropertyInstanceOf',
+          ['a', context['Array']]), isTrue);
+      var a = context['a'];
+      expect(a, new isInstanceOf<JsArray>());
+      expect(a, [1, 2, 3]);
+      context.deleteProperty('a');
+    });
+
+    test('pass Array to JS', () {
+      context['a'] = [1, 2, 3];
+      expect(context.callMethod('isPropertyInstanceOf',
+          ['a', context['Array']]), isFalse);
+      var a = context['a'];
+      expect(a, new isInstanceOf<List>());
+      expect(a, isNot(new isInstanceOf<JsArray>()));
+      expect(a, [1, 2, 3]);
+      context.deleteProperty('a');
+    });
+
+    test('[]', () {
+      var array = new JsArray.from([1, 2]);
+      expect(array[0], 1);
+      expect(array[1], 2);
+      expect(() => array[-1], throwsA(isRangeError));
+      expect(() => array[2], throwsA(isRangeError));
+    });
+
+   test('[]=', () {
+      var array = new JsArray.from([1, 2]);
+      array[0] = 'd';
+      array[1] = 'e';
+      expect(array, ['d', 'e']);
+      expect(() => array[-1] = 3, throwsA(isRangeError));
+      expect(() => array[2] = 3, throwsA(isRangeError));
+    });
+
+    test('length', () {
+      var array = new JsArray.from([1, 2, 3]);
+      expect(array.length, 3);
+      array.add(4);
+      expect(array.length, 4);
+      array.length = 2;
+      expect(array, [1, 2]);
+      array.length = 3;
+      expect(array, [1, 2, null]);
+    });
+ 
+     test('add', () {
+      var array = new JsArray();
+      array.add('a');
+      expect(array, ['a']);
+      array.add('b');
+      expect(array, ['a', 'b']);
+    });
+
+    test('addAll', () {
+      var array = new JsArray();
+      array.addAll(['a', 'b']);
+      expect(array, ['a', 'b']);
+      // make sure addAll can handle Iterables
+      array.addAll(new Set.from(['c']));
+      expect(array, ['a', 'b', 'c']);
+    });
+
+    test('insert', () {
+      var array = new JsArray.from([]);
+      array.insert(0, 'b');
+      expect(array, ['b']);
+      array.insert(0, 'a');
+      expect(array, ['a', 'b']);
+      array.insert(2, 'c');
+      expect(array, ['a', 'b', 'c']);
+      expect(() => array.insert(4, 'e'), throwsA(isRangeError));
+      expect(() => array.insert(-1, 'e'), throwsA(isRangeError));
+    });
+
+    test('removeAt', () {
+      var array = new JsArray.from(['a', 'b', 'c']);
+      expect(array.removeAt(1), 'b');
+      expect(array, ['a', 'c']);
+      expect(() => array.removeAt(2), throwsA(isRangeError));
+      expect(() => array.removeAt(-1), throwsA(isRangeError));
+    });
+
+    test('removeLast', () {
+      var array = new JsArray.from(['a', 'b', 'c']);
+      expect(array.removeLast(), 'c');
+      expect(array, ['a', 'b']);
+      array.length = 0;
+      expect(() => array.removeLast(), throwsA(isRangeError));
+    });
+
+    test('removeRange', () {
+      var array = new JsArray.from(['a', 'b', 'c', 'd']);
+      array.removeRange(1, 3);
+      expect(array, ['a', 'd']);
+      expect(() => array.removeRange(-1, 2), throwsA(isRangeError));
+      expect(() => array.removeRange(0, 3), throwsA(isRangeError));
+      expect(() => array.removeRange(2, 1), throwsA(isRangeError));
+    });
+
+    test('setRange', () {
+      var array = new JsArray.from(['a', 'b', 'c', 'd']);
+      array.setRange(1, 3, ['e', 'f']);
+      expect(array, ['a', 'e', 'f', 'd']);
+      array.setRange(3, 4, ['g', 'h', 'i'], 1);
+      expect(array, ['a', 'e', 'f', 'h']);
+    });
+
+    test('sort', () {
+      var array = new JsArray.from(['c', 'a', 'b']);
+      array.sort();
+      expect(array, ['a', 'b', 'c']);
+    });
+
+    test('sort with a Comparator', () {
+      var array = new JsArray.from(['c', 'a', 'b']);
+      array.sort((a, b) => -(a.compareTo(b)));
+      expect(array, ['c', 'b', 'a']);
+    });
+
   });
 
   group('JsObject.fromBrowserObject()', () {

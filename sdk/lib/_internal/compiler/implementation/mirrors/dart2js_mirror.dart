@@ -492,8 +492,7 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
     return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
         _members,
         (MemberMirror member) =>
-            member is MethodMirror && (member as MethodMirror).isGetter ?
-                member : null);
+            member is MethodMirror && member.isGetter ? member : null);
   }
 
   Map<String, MethodMirror> get setters {
@@ -501,8 +500,7 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
     return new AsFilteredImmutableMap<String, MemberMirror, MethodMirror>(
         _members,
         (MemberMirror member) =>
-            member is MethodMirror && (member as MethodMirror).isSetter ?
-                member : null);
+            member is MethodMirror && member.isSetter ? member : null);
   }
 
   Map<String, VariableMirror> get variables {

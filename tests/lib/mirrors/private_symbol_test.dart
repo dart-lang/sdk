@@ -109,7 +109,7 @@ main() {
   Expect.equals(#_F, tdm.simpleName);
   Expect.equals('_F', MirrorSystem.getName(tdm.simpleName));
 
-  ParameterMirror pm = cm.members[#m].parameters[0];
+  ParameterMirror pm = (cm.members[#m] as MethodMirror).parameters[0];
   Expect.equals(#_p, pm.simpleName);
   Expect.equals('_p', MirrorSystem.getName(pm.simpleName));
 

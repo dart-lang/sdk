@@ -7,28 +7,20 @@ library test.type_arguments_test;
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
+import 'generics_helper.dart';
 
 class A<T> {}
 class Z<T> {}
-class B extends A {}            // Same as class B extends A<dynamic>.
-class C extends A
-<num, int> // TODO(zarah): Should be "01: static warning".
-{} // Same as class C extends A<dynamic>.
+class B extends A {}
+class C
+    extends A<num, int>  /// 01: static type warning
+    {}
 class D extends A<int> {}
 class E<S> extends A<S> {}
 class F<R> extends A<int> {}
 class G {}
 class H<A,B,C> {}
 class I extends G {}
-
-typeParameters(mirror, parameterNames) {
-  Expect.listEquals(parameterNames,
-                    mirror.typeVariables.map((v) => v.simpleName).toList());
-}
-
-typeArguments(mirror, argumentMirrors) {
-  Expect.listEquals(argumentMirrors, mirror.typeArguments);
-}
 
 main() {
   // Declarations.
@@ -75,7 +67,7 @@ main() {
 
   // Instantiations.
   typeParameters(reflect(new A<num>()).type, [#T]);
-  typeParameters(reflect(new B<num>()).type, []);
+  typeParameters(reflect(new B()).type, []);
   typeParameters(reflect(new C()).type, []);
   typeParameters(reflect(new D()).type, []);
   typeParameters(reflect(new E()).type, [#S]);

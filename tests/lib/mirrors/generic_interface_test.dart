@@ -8,7 +8,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-import 'generics_test.dart';
+import 'generics_helper.dart';
 
 class Interface<T> {}
 class Bounded<S extends num> {}
@@ -17,7 +17,7 @@ class Fixed implements Interface<int> {}
 class Generic<R> implements Interface<R> {}
 
 class Bienbounded implements Bounded<int> {}
-class Malbounded implements Bounded<String> {}
+class Malbounded implements Bounded<String> {}  /// 01: static type warning
 class FBounded implements Interface<FBounded> {}
 
 class Mixin {}
@@ -37,7 +37,7 @@ main() {
   ClassMirror interfaceOfBool = reflect(new Generic<bool>()).type.superinterfaces.single;
 
   ClassMirror boundedOfInt = reflectClass(Bienbounded).superinterfaces.single;
-  ClassMirror boundedOfString = reflectClass(Malbounded).superinterfaces.single;
+  ClassMirror boundedOfString = reflectClass(Malbounded).superinterfaces.single;  /// 01: continued
   ClassMirror interfaceOfFBounded = reflectClass(FBounded).superinterfaces.single;
   
   ClassMirror interfaceOfInt2 = reflectClass(FixedMixinApplication).superinterfaces.single;
@@ -55,7 +55,7 @@ main() {
   Expect.isFalse(interfaceOfR.isOriginalDeclaration);
   Expect.isFalse(interfaceOfBool.isOriginalDeclaration);
   Expect.isFalse(boundedOfInt.isOriginalDeclaration);
-  Expect.isFalse(boundedOfString.isOriginalDeclaration);
+  Expect.isFalse(boundedOfString.isOriginalDeclaration);  /// 01: continued
   Expect.isFalse(interfaceOfFBounded.isOriginalDeclaration);
   Expect.isFalse(interfaceOfInt2.isOriginalDeclaration);
   Expect.isFalse(interfaceOfX.isOriginalDeclaration);
@@ -84,7 +84,7 @@ main() {
   typeParameters(interfaceOfR, [#T]);
   typeParameters(interfaceOfBool, [#T]);
   typeParameters(boundedOfInt, [#S]);
-  typeParameters(boundedOfString, [#S]);
+  typeParameters(boundedOfString, [#S]);  /// 01: continued
   typeParameters(interfaceOfFBounded, [#T]);
   typeParameters(interfaceOfInt2, [#T]);
   typeParameters(interfaceOfX, [#T]);
@@ -97,14 +97,14 @@ main() {
   typeArguments(boundedDecl, []);
   typeArguments(interfaceOfInt, [reflectClass(int)]);
   typeArguments(interfaceOfR, [rFromGeneric]);
-  typeArguments(interfaceOfBool, [reflectClass(bool)]);  /// 01: ok
+  typeArguments(interfaceOfBool, [reflectClass(bool)]);
   typeArguments(boundedOfInt, [reflectClass(int)]);
-  typeArguments(boundedOfString, [reflectClass(String)]);
+  typeArguments(boundedOfString, [reflectClass(String)]);  /// 01: continued
   typeArguments(interfaceOfFBounded, [reflectClass(FBounded)]);
   typeArguments(interfaceOfInt2, [reflectClass(int)]);
   typeArguments(interfaceOfX, [xFromGenericMixinApplication]);
-  typeArguments(interfaceOfDouble, [reflectClass(double)]);  /// 01: ok
+  typeArguments(interfaceOfDouble, [reflectClass(double)]);
   typeArguments(interfaceOfInt3, [reflectClass(int)]);
   typeArguments(interfaceOfY, [yFromGenericClass]);
-  typeArguments(interfaceOfDouble2, [reflectClass(double)]);  /// 01: ok
+  typeArguments(interfaceOfDouble2, [reflectClass(double)]);
 }

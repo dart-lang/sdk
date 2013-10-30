@@ -7,7 +7,6 @@ library test.invoke_named_test;
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
-import 'invoke_test.dart';
 
 class C {
   method(a, b, c) => "$a-$b-$c";

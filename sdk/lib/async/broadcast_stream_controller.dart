@@ -183,9 +183,9 @@ abstract class _BroadcastStreamController<T>
     return subscription;
   }
 
-  void _recordCancel(_BroadcastSubscription<T> subscription) {
+  Future _recordCancel(_BroadcastSubscription<T> subscription) {
     // If already removed by the stream, don't remove it again.
-    if (identical(subscription._next, subscription)) return;
+    if (identical(subscription._next, subscription)) return null;
     assert(!identical(subscription._next, subscription));
     if (subscription._isFiring) {
       subscription._setRemoveAfterFiring();
@@ -238,10 +238,10 @@ abstract class _BroadcastStreamController<T>
 
   Future get done => _ensureDoneFuture();
 
-  Future addStream(Stream<T> stream) {
+  Future addStream(Stream<T> stream, {bool cancelOnError: true}) {
     if (!_mayAddEvent) throw _addEventError();
     _state |= _STATE_ADDSTREAM;
-    _addStreamState = new _AddStreamState(this, stream);
+    _addStreamState = new _AddStreamState(this, stream, cancelOnError);
     return _addStreamState.addStreamFuture;
   }
 
@@ -472,7 +472,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   void _resume(_) {
     if (_pauseCount > 0) _pauseCount--;
   }
-  void cancel() {}
+  Future cancel() { return new _Future.immediate(null); }
   bool get isPaused => _pauseCount > 0;
   Future asFuture([Object value]) => new _Future();
 }

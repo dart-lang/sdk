@@ -898,7 +898,8 @@ class _WebSocketImpl extends Stream implements WebSocket {
   String get closeReason => _closeReason;
 
   void add(data) => _sink.add(data);
-  void addError(error) => _sink.addError(error);
+  void addError(error, [StackTrace stackTrace]) =>
+      _sink.addError(error, stackTrace);
   Future addStream(Stream stream) => _sink.addStream(stream);
   Future get done => _sink.done;
 

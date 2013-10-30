@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.observable_box;
+
+import 'package:observe/observe.dart';
 
 // TODO(jmesserly): should the property name be configurable?
 // That would be more convenient.

@@ -100,6 +100,6 @@ class ContainerTypeMask extends ForwardingTypeMask {
   }
 
   String toString() {
-    return 'Container mask: $elementType';
+    return 'Container mask: $elementType $length';
   }
 }

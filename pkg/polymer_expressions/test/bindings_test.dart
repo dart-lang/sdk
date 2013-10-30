@@ -37,7 +37,7 @@ main() {
     observeTest('should update binding when data changes', () {
       var model = new NotifyModel();
       var binding = new PolymerExpressions()
-          .getBinding(model, 'x', null, null);
+          .prepareBinding('x', null, null)(model, null);
       expect(binding.value, isNull);
       model.x = "hi";
       performMicrotaskCheckpoint();

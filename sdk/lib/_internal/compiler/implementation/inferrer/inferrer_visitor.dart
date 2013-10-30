@@ -256,6 +256,10 @@ class ArgumentsTypes<T> {
     positional.forEach(f);
     named.values.forEach(f);
   }
+
+  bool every(bool f(T type)) {
+    return positional.every(f) && named.values.every(f);
+  }
 }
 
 abstract class MinimalInferrerEngine<T> {

@@ -18,7 +18,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe(dart2js: false);
+    startPubServe(args: ["--no-dart2js"]);
     requestShould404("main.dart.js");
     endPubServe();
   });

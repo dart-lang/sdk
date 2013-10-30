@@ -1300,6 +1300,10 @@ main() {}
   static const MessageKind MIRROR_IMPORT = const MessageKind(
       "Info: Import of 'dart:mirrors'.");
 
+  static const MessageKind WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT =
+      const MessageKind(
+      "Error: Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant.");
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
@@ -1352,12 +1356,6 @@ Please include the following information:
       "Hint: Variable '#{variableName}' is not shown to have type "
       "'#{shownType}' because '#{shownType}' is not more specific than the "
       "known type '#{knownType}' of '#{variableName}'.");
-
-  static const MessageKind NOT_MORE_SPECIFIC_RAW = const MessageKind(
-      "Hint: Variable '#{variableName}' is not shown to have type "
-      "'#{shownType}' because '#{shownType}' is not more specific than the "
-      "known type '#{knownType}' of '#{variableName}'.",
-      howToFix: "Try replacing '#{shownType}' with '#{shownTypeRaw}'.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

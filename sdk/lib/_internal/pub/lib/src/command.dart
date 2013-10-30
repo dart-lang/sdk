@@ -78,7 +78,7 @@ abstract class PubCommand {
         help: 'Print usage information for this command.');
   }
 
-  void run(String cacheDir, ArgResults options) {
+  void run(String cacheDir, ArgResults options, List<String> arguments) {
     commandOptions = options.command;
 
     if (commandOptions['help']) {
@@ -111,7 +111,7 @@ abstract class PubCommand {
         log.error("""
 This is an unexpected error. Please run
 
-    pub --trace ${new Options().arguments.map((arg) => "'$arg'").join(' ')}
+    pub --trace ${arguments.map((arg) => "'$arg'").join(' ')}
 
 and include the results in a bug report on http://dartbug.com/new.
 """);
@@ -123,7 +123,8 @@ and include the results in a bug report on http://dartbug.com/new.
     new Future.sync(() {
       // Make sure there aren't unexpected arguments.
       if (!takesArguments && commandOptions.rest.isNotEmpty) {
-        log.error('Command does not take any arguments.');
+        log.error('Command "${commandOptions.name}" does not take any '
+                  'arguments.');
         this.printUsage();
         return flushThenExit(exit_codes.USAGE);
       }

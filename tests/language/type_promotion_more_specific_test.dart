@@ -61,17 +61,17 @@ testGeneric() {
   if (d1 is E) { // Promotion: E << D.
     x = d1.e; /// 05: ok
   }
-  if (d1 is E<A>) { // No promotion E<A> << D.
-    int a = d1.d; /// 06: ok
-    String b = d1.d; /// 07: ok
-    x = d1.e; /// 08: static type warning
+  if (d1 is E<A>) { // Promotion: E<A> << D.
+    int a = d1.d; /// 06: static type warning
+    String b = d1.d; /// 07: static type warning
+    x = d1.e; /// 08: ok
   }
 
   D<A> d2 = new E<B>(null);
-  if (d2 is E) { // Promotion: E << D<A>
-    x = d2.e; /// 09: ok
-    int a = d2.e; /// 10: ok
-    String b = d2.e; /// 11: ok
+  if (d2 is E) { // No promotion: E !<< D<A>
+    x = d2.e; /// 09: static type warning
+    int a = d2.e; /// 10: static type warning
+    String b = d2.e; /// 11: static type warning
   }
 
   D<A> d3 = new E<B>(new B());

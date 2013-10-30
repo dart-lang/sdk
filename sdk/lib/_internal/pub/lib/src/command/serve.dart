@@ -22,7 +22,7 @@ final _arrow = getSpecial('\u2192', '=>');
 /// Handles the `serve` pub command.
 class ServeCommand extends PubCommand {
   String get description => "Run a local web development server.";
-  String get usage => 'pub serve';
+  String get usage => "pub serve";
 
   PubPackageProvider _provider;
 
@@ -30,6 +30,9 @@ class ServeCommand extends PubCommand {
 
   /// `true` if Dart entrypoints should be compiled to JavaScript.
   bool get useDart2JS => commandOptions['dart2js'];
+
+  /// `true` if generated JavaScript should be minified.
+  bool get minify => commandOptions['minify'];
 
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
@@ -45,6 +48,9 @@ class ServeCommand extends PubCommand {
 
     commandParser.addFlag('dart2js', defaultsTo: true,
         help: 'Compile Dart to JavaScript.');
+
+    commandParser.addFlag('minify', defaultsTo: false,
+        help: 'Minify generated JavaScript.');
   }
 
   Future onRun() {
@@ -64,7 +70,7 @@ class ServeCommand extends PubCommand {
       var builtInTransformers = null;
       if (useDart2JS) {
         builtInTransformers = [
-          new Dart2JSTransformer(graph),
+          new Dart2JSTransformer(graph, minify: minify),
           new DartForwardingTransformer()
         ];
       }

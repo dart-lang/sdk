@@ -107,17 +107,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (type.isNull()) {
         constantInterceptor = backend.jsNullClass;
       }
-    } else if (type.isInteger()) {
+    } else if (type.isInteger(compiler)) {
       constantInterceptor = backend.jsIntClass;
-    } else if (type.isDouble()) {
+    } else if (type.isDouble(compiler)) {
       constantInterceptor = backend.jsDoubleClass;
-    } else if (type.isBoolean()) {
+    } else if (type.isBoolean(compiler)) {
       constantInterceptor = backend.jsBoolClass;
     } else if (type.isString(compiler)) {
       constantInterceptor = backend.jsStringClass;
     } else if (type.isArray(compiler)) {
       constantInterceptor = backend.jsArrayClass;
-    } else if (type.isNumber()
+    } else if (type.isNumber(compiler)
         && !interceptedClasses.contains(backend.jsIntClass)
         && !interceptedClasses.contains(backend.jsDoubleClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
@@ -246,10 +246,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
     inputs[0] = nullConstant;
     HOneShotInterceptor interceptor = new HOneShotInterceptor(
-        user.selector, inputs, node.interceptedClasses);
+        user.selector, inputs, user.instructionType, node.interceptedClasses);
     interceptor.sourcePosition = user.sourcePosition;
     interceptor.sourceElement = user.sourceElement;
-    interceptor.instructionType = user.instructionType;
 
     HBasicBlock block = user.block;
     block.addAfter(user, interceptor);
@@ -273,17 +272,20 @@ class SsaSimplifyInterceptors extends HBaseVisitor
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1]],
+          node.instructionType,
           false);
     } else if (node.selector.isSetter()) {
       instruction = new HInvokeDynamicSetter(
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1], node.inputs[2]],
+          node.instructionType,
           false);
     } else {
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
       inputs[0] = constant;
-      instruction = new HInvokeDynamicMethod(selector, inputs, true);
+      instruction = new HInvokeDynamicMethod(
+          selector, inputs, node.instructionType, true);
     }
 
     HBasicBlock block = node.block;

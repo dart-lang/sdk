@@ -225,6 +225,16 @@ static bool ProcessEnableVmServiceOption(const char* port) {
   return true;
 }
 
+bool trace_debug_protocol = false;
+static bool ProcessTraceDebugProtocolOption(const char* arg) {
+  if (*arg != '\0') {
+    return false;
+  }
+  trace_debug_protocol = true;
+  return true;
+}
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option);
@@ -244,6 +254,7 @@ static struct {
   { "--print-script", ProcessPrintScriptOption },
   { "--check-function-fingerprints", ProcessFingerprintedFunctions },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { NULL, NULL }
 };
 
@@ -495,9 +506,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       Dart_SetField(platform_type, script_name_name, dart_script);
   CHECK_RESULT(set_script_name);
 
-  Dart_Handle debug_name = Dart_DebugName();
-  CHECK_RESULT(debug_name);
-  VmService::SendIsolateStartupMessage(Dart_GetMainPortId(), debug_name);
+  VmService::SendIsolateStartupMessage();
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();

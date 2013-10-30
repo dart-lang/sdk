@@ -7,8 +7,6 @@ library barback.phase_forwarder;
 import 'dart:async';
 
 import 'asset_node.dart';
-import 'asset_forwarder.dart';
-import 'phase_output.dart';
 
 /// A class that takes care of forwarding assets within a phase.
 ///

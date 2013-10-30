@@ -226,6 +226,53 @@ void main() {
     });
   });
 
+  group('.parseSafari6_1', () {
+    test('parses a simple stack frame correctly', () {
+      var frame = new Frame.parseSafari6_1(
+          "foo\$bar@http://dartlang.org/foo/bar.dart:10:11");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
+      expect(frame.column, equals(11));
+      expect(frame.member, equals('foo\$bar'));
+    });
+
+    test('parses an anonymous stack frame correctly', () {
+      var frame = new Frame.parseSafari6_1(
+          "http://dartlang.org/foo/bar.dart:10:11");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
+      expect(frame.column, equals(11));
+      expect(frame.member, equals('<fn>'));
+    });
+
+    test('parses a stack frame with no line correctly', () {
+      var frame = new Frame.parseSafari6_1(
+          "foo\$bar@http://dartlang.org/foo/bar.dart::11");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, isNull);
+      expect(frame.column, equals(11));
+      expect(frame.member, equals('foo\$bar'));
+    });
+
+    test('parses a stack frame with no column correctly', () {
+      var frame = new Frame.parseSafari6_1(
+          "foo\$bar@http://dartlang.org/foo/bar.dart:10:");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('foo\$bar'));
+    });
+
+    test('parses a stack frame with no line or column correctly', () {
+      var frame = new Frame.parseSafari6_1(
+          "foo\$bar@http://dartlang.org/foo/bar.dart:10:11");
+      expect(frame.uri, equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(frame.line, equals(10));
+      expect(frame.column, equals(11));
+      expect(frame.member, equals('foo\$bar'));
+    });
+  });
+
   group('.parseFriendly', () {
     test('parses a simple stack frame correctly', () {
       var frame = new Frame.parseFriendly(

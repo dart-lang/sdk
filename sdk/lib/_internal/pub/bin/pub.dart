@@ -18,11 +18,11 @@ import '../lib/src/utils.dart';
 
 final pubArgParser = initArgParser();
 
-void main() {
+void main(List<String> arguments) {
   ArgResults options;
 
   try {
-    options = pubArgParser.parse(new Options().arguments);
+    options = pubArgParser.parse(arguments);
   } on FormatException catch (e) {
     log.error(e.message);
     log.error('Run "pub help" to see available options.');
@@ -84,7 +84,7 @@ void main() {
   }
 
   validatePlatform().then((_) {
-    PubCommand.commands[options.command.name].run(cacheDir, options);
+    PubCommand.commands[options.command.name].run(cacheDir, options, arguments);
   });
 }
 

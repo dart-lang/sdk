@@ -595,6 +595,10 @@ class Selector {
     return 'Selector($kind, $name, '
            'arity=$argumentCount$named$type)';
   }
+
+  Selector extendIfReachesAll(Compiler compiler) {
+    return new TypedSelector(compiler.typesTask.dynamicType, this);
+  }
 }
 
 class TypedSelector extends Selector {
@@ -655,5 +659,13 @@ class TypedSelector extends Selector {
 
     if (!mask.canHit(element, this, compiler)) return false;
     return appliesUntyped(element, compiler);
+  }
+
+  Selector extendIfReachesAll(Compiler compiler) {
+    bool canReachAll = compiler.enabledInvokeOn
+        && mask.needsNoSuchMethodHandling(this, compiler);
+    return canReachAll
+        ? new TypedSelector(compiler.typesTask.dynamicType, this)
+        : this;
   }
 }

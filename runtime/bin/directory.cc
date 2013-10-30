@@ -262,6 +262,9 @@ CObject* Directory::ListNextRequest(const CObjectArray& request) {
     CObjectIntptr ptr(request[0]);
     AsyncDirectoryListing* dir_listing =
         reinterpret_cast<AsyncDirectoryListing*>(ptr.Value());
+    if (dir_listing->IsEmpty()) {
+      return new CObjectArray(CObject::NewArray(0));
+    }
     const int kArraySize = 128;
     CObjectArray* response = new CObjectArray(CObject::NewArray(kArraySize));
     dir_listing->SetArray(response, kArraySize);

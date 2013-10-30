@@ -89,16 +89,21 @@ const deprecated = const Deprecated("next release");
  * instance fields, where it means that the implicit getter and setter of the
  * field is marked as overriding, but the field itself is not.
  *
- * A tool may report if no declaration of an annotated member is inherited by
- * the class from either a superclass or an interface.
- *
- * The intent of the "override" notation is to catch situations where a
+ * The intent of the "@override" notation is to catch situations where a
  * superclass renames a member, and an independent subclass which used to
  * override the member, could silently continue working using the
  * superclass implementation.
  *
- * The "@override" annotation is intentionally not used in the core libraries.
- * It is intended for the editor, or similar tools, to support user written
- * code.
+ * The editor, or a similar tool aimed at the programmer, may report if no
+ * declaration of an annotated member is inherited by the class from either a
+ * superclass or an interface.
+ *
+ * Use the "@override" annotation judiciously and only for methods where
+ * the superclass is not under the programmer's control, the superclass is in a
+ * different library or package, and it is not considered stable.
+ * In any case, the use of "@override" is optional.
+ *
+ * For example, the annotation is intentionally not used in the Dart platform
+ * libraries, since they only depend on themselves.
  */
 const override = const _Override();

@@ -65,9 +65,7 @@ class DirectoryListingEntry {
   explicit DirectoryListingEntry(DirectoryListingEntry* parent)
     : parent_(parent), lister_(0), done_(false), link_(NULL) {}
 
-  ~DirectoryListingEntry() {
-    ResetLink();
-  }
+  ~DirectoryListingEntry();
 
   ListType Next(DirectoryListing* listing);
 

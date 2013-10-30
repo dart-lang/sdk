@@ -1734,31 +1734,43 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */
-  static final CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR = new CompileTimeErrorCode.con1('REDIRECT_TO_NON_CONST_CONSTRUCTOR', 119, "Constant factory constructor cannot delegate to a non-constant constructor");
+  static final CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR = new CompileTimeErrorCode.con1('REDIRECT_TO_MISSING_CONSTRUCTOR', 119, "The constructor '%s' could not be found in '%s'");
+
+  /**
+   * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
+   * <i>k'</i> is not a constant constructor.
+   */
+  static final CompileTimeErrorCode REDIRECT_TO_NON_CLASS = new CompileTimeErrorCode.con1('REDIRECT_TO_NON_CLASS', 120, "The name '%s' is not a type and cannot be used in a redirected constructor");
+
+  /**
+   * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
+   * <i>k'</i> is not a constant constructor.
+   */
+  static final CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR = new CompileTimeErrorCode.con1('REDIRECT_TO_NON_CONST_CONSTRUCTOR', 121, "Constant factory constructor cannot delegate to a non-constant constructor");
 
   /**
    * 13.3 Local Variable Declaration: It is a compile-time error if <i>e</i> refers to the name
    * <i>v</i> or the name <i>v=</i>.
    */
-  static final CompileTimeErrorCode REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER = new CompileTimeErrorCode.con1('REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER', 120, "The name '%s' cannot be referenced in the initializer of a variable with the same name");
+  static final CompileTimeErrorCode REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER = new CompileTimeErrorCode.con1('REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER', 122, "The name '%s' cannot be referenced in the initializer of a variable with the same name");
 
   /**
    * 5 Variables: A local variable may only be referenced at a source code location that is after
    * its initializer, if any, is complete, or a compile-time error occurs.
    */
-  static final CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION = new CompileTimeErrorCode.con1('REFERENCED_BEFORE_DECLARATION', 121, "Local variables cannot be referenced before they are declared");
+  static final CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION = new CompileTimeErrorCode.con1('REFERENCED_BEFORE_DECLARATION', 123, "Local variables cannot be referenced before they are declared");
 
   /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form <i>rethrow;</i> is not
    * enclosed within a on-catch clause.
    */
-  static final CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = new CompileTimeErrorCode.con1('RETHROW_OUTSIDE_CATCH', 122, "rethrow must be inside of a catch clause");
+  static final CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = new CompileTimeErrorCode.con1('RETHROW_OUTSIDE_CATCH', 124, "rethrow must be inside of a catch clause");
 
   /**
    * 13.11 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
-  static final CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = new CompileTimeErrorCode.con1('RETURN_IN_GENERATIVE_CONSTRUCTOR', 123, "Constructors cannot return a value");
+  static final CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = new CompileTimeErrorCode.con1('RETURN_IN_GENERATIVE_CONSTRUCTOR', 125, "Constructors cannot return a value");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -1768,19 +1780,19 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * initializer list, in class Object, in a factory constructor, or in a static method or variable
    * initializer.
    */
-  static final CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = new CompileTimeErrorCode.con1('SUPER_IN_INVALID_CONTEXT', 124, "Invalid context for 'super' invocation");
+  static final CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = new CompileTimeErrorCode.con1('SUPER_IN_INVALID_CONTEXT', 126, "Invalid context for 'super' invocation");
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
    * only action is to invoke another generative constructor.
    */
-  static final CompileTimeErrorCode SUPER_IN_REDIRECTING_CONSTRUCTOR = new CompileTimeErrorCode.con1('SUPER_IN_REDIRECTING_CONSTRUCTOR', 125, "The redirecting constructor cannot have a 'super' initializer");
+  static final CompileTimeErrorCode SUPER_IN_REDIRECTING_CONSTRUCTOR = new CompileTimeErrorCode.con1('SUPER_IN_REDIRECTING_CONSTRUCTOR', 127, "The redirecting constructor cannot have a 'super' initializer");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if a generative constructor of class Object includes a superinitializer.
    */
-  static final CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = new CompileTimeErrorCode.con1('SUPER_INITIALIZER_IN_OBJECT', 126, "");
+  static final CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = new CompileTimeErrorCode.con1('SUPER_INITIALIZER_IN_OBJECT', 128, "");
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type arguments to a
@@ -1799,19 +1811,19 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param boundingTypeName the name of the bounding type
    * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
-  static final CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = new CompileTimeErrorCode.con1('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', 127, "'%s' does not extend '%s'");
+  static final CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = new CompileTimeErrorCode.con1('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', 129, "'%s' does not extend '%s'");
 
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via another typedef, is a
    * compile time error.
    */
-  static final CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF = new CompileTimeErrorCode.con1('TYPE_ALIAS_CANNOT_REFERENCE_ITSELF', 128, "Type alias cannot reference itself directly or recursively via another typedef");
+  static final CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF = new CompileTimeErrorCode.con1('TYPE_ALIAS_CANNOT_REFERENCE_ITSELF', 130, "Type alias cannot reference itself directly or recursively via another typedef");
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
    * scope, optionally followed by type arguments.
    */
-  static final CompileTimeErrorCode UNDEFINED_CLASS = new CompileTimeErrorCode.con1('UNDEFINED_CLASS', 129, "Undefined class '%s'");
+  static final CompileTimeErrorCode UNDEFINED_CLASS = new CompileTimeErrorCode.con1('UNDEFINED_CLASS', 131, "Undefined class '%s'");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
@@ -1819,7 +1831,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static final CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER = new CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER', 130, "The class '%s' does not have a generative constructor '%s'");
+  static final CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER = new CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER', 132, "The class '%s' does not have a generative constructor '%s'");
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
@@ -1827,7 +1839,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static final CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = new CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT', 131, "The class '%s' does not have a default generative constructor");
+  static final CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = new CompileTimeErrorCode.con1('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT', 133, "The class '%s' does not have a default generative constructor");
 
   /**
    * 12.14.3 Unqualified Invocation: If there exists a lexically visible declaration named
@@ -1837,7 +1849,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param methodName the name of the method that is undefined
    */
-  static final CompileTimeErrorCode UNDEFINED_FUNCTION = new CompileTimeErrorCode.con1('UNDEFINED_FUNCTION', 132, "The function '%s' is not defined");
+  static final CompileTimeErrorCode UNDEFINED_FUNCTION = new CompileTimeErrorCode.con1('UNDEFINED_FUNCTION', 134, "The function '%s' is not defined");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
@@ -1849,7 +1861,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param name the name of the requested named parameter
    */
-  static final CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER = new CompileTimeErrorCode.con1('UNDEFINED_NAMED_PARAMETER', 133, "The named parameter '%s' is not defined");
+  static final CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER = new CompileTimeErrorCode.con1('UNDEFINED_NAMED_PARAMETER', 135, "The named parameter '%s' is not defined");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
@@ -1864,7 +1876,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param uri the URI pointing to a non-existent file
    * @see #INVALID_URI
    */
-  static final CompileTimeErrorCode URI_DOES_NOT_EXIST = new CompileTimeErrorCode.con1('URI_DOES_NOT_EXIST', 134, "Target of URI does not exist: '%s'");
+  static final CompileTimeErrorCode URI_DOES_NOT_EXIST = new CompileTimeErrorCode.con1('URI_DOES_NOT_EXIST', 136, "Target of URI does not exist: '%s'");
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if
@@ -1876,7 +1888,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
    * not a compile-time constant, or if <i>x</i> involves string interpolation.
    */
-  static final CompileTimeErrorCode URI_WITH_INTERPOLATION = new CompileTimeErrorCode.con1('URI_WITH_INTERPOLATION', 135, "URIs cannot use string interpolation");
+  static final CompileTimeErrorCode URI_WITH_INTERPOLATION = new CompileTimeErrorCode.con1('URI_WITH_INTERPOLATION', 137, "URIs cannot use string interpolation");
 
   /**
    * 7.1.1 Operators: It is a compile-time error if the arity of the user-declared operator []= is
@@ -1889,7 +1901,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param expectedNumberOfParameters the number of parameters expected
    * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = new CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 136, "Operator '%s' should declare exactly %d parameter(s), but %d found");
+  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR = new CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR', 138, "Operator '%s' should declare exactly %d parameter(s), but %d found");
 
   /**
    * 7.1.1 Operators: It is a compile time error if the arity of the user-declared operator - is not
@@ -1897,13 +1909,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = new CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS', 137, "Operator '-' should declare 0 or 1 parameter, but %d found");
+  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = new CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS', 139, "Operator '-' should declare 0 or 1 parameter, but %d found");
 
   /**
    * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
    */
-  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = new CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 138, "Setters should declare exactly one required parameter");
+  static final CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER = new CompileTimeErrorCode.con1('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER', 140, "Setters should declare exactly one required parameter");
   static final List<CompileTimeErrorCode> values = [
       AMBIGUOUS_EXPORT,
       ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
@@ -2024,6 +2036,8 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
       RECURSIVE_INTERFACE_INHERITANCE,
       RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
       RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS,
+      REDIRECT_TO_MISSING_CONSTRUCTOR,
+      REDIRECT_TO_NON_CLASS,
       REDIRECT_TO_NON_CONST_CONSTRUCTOR,
       REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER,
       REFERENCED_BEFORE_DECLARATION,
@@ -3234,7 +3248,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   static final StaticTypeWarningCode INVOCATION_OF_NON_FUNCTION_EXPRESSION = new StaticTypeWarningCode.con1('INVOCATION_OF_NON_FUNCTION_EXPRESSION', 7, "Cannot invoke a non-function");
 
   /**
-   * 12.19 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
+   * 12.20 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
    * assigned to bool.
    *
    * 13.5 If: It is a static type warning if the type of the expression <i>b</i> may not be assigned
@@ -3253,10 +3267,19 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   static final StaticTypeWarningCode NON_BOOL_EXPRESSION = new StaticTypeWarningCode.con1('NON_BOOL_EXPRESSION', 9, "Assertions must be on either a 'bool' or '() -> bool'");
 
   /**
+   * 12.28 Unary Expressions: The expression !<i>e</i> is equivalent to the expression
+   * <i>e</i>?<b>false<b> : <b>true</b>.
+   *
+   * 12.20 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
+   * assigned to bool.
+   */
+  static final StaticTypeWarningCode NON_BOOL_NEGATION_EXPRESSION = new StaticTypeWarningCode.con1('NON_BOOL_NEGATION_EXPRESSION', 10, "Negation argument must have a static type of 'bool'");
+
+  /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>, 1 &lt;= i &lt;=
    * n</i> does not denote a type in the enclosing lexical scope.
    */
-  static final StaticTypeWarningCode NON_TYPE_AS_TYPE_ARGUMENT = new StaticTypeWarningCode.con1('NON_TYPE_AS_TYPE_ARGUMENT', 10, "The name '%s' is not a type and cannot be used as a parameterized type");
+  static final StaticTypeWarningCode NON_TYPE_AS_TYPE_ARGUMENT = new StaticTypeWarningCode.con1('NON_TYPE_AS_TYPE_ARGUMENT', 11, "The name '%s' is not a type and cannot be used as a parameterized type");
 
   /**
    * 13.11 Return: It is a static type warning if the type of <i>e</i> may not be assigned to the
@@ -3266,7 +3289,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param expectedReturnType the expected return type as defined by the method
    * @param methodName the name of the method
    */
-  static final StaticTypeWarningCode RETURN_OF_INVALID_TYPE = new StaticTypeWarningCode.con1('RETURN_OF_INVALID_TYPE', 11, "The return type '%s' is not a '%s', as defined by the method '%s'");
+  static final StaticTypeWarningCode RETURN_OF_INVALID_TYPE = new StaticTypeWarningCode.con1('RETURN_OF_INVALID_TYPE', 12, "The return type '%s' is not a '%s', as defined by the method '%s'");
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type arguments to a
@@ -3290,7 +3313,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param boundingTypeName the name of the bounding type
    * @see #TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
    */
-  static final StaticTypeWarningCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = new StaticTypeWarningCode.con1('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', 12, "'%s' does not extend '%s'");
+  static final StaticTypeWarningCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS = new StaticTypeWarningCode.con1('TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', 13, "'%s' does not extend '%s'");
 
   /**
    * 10 Generics: It is a static type warning if a type parameter is a supertype of its upper bound.
@@ -3298,7 +3321,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param typeParameterName the name of the type parameter
    * @see #TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
-  static final StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND = new StaticTypeWarningCode.con1('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND', 13, "'%s' cannot be a supertype of its upper bound");
+  static final StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND = new StaticTypeWarningCode.con1('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND', 14, "'%s' cannot be a supertype of its upper bound");
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
@@ -3307,7 +3330,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  static final StaticTypeWarningCode UNDEFINED_GETTER = new StaticTypeWarningCode.con1('UNDEFINED_GETTER', 14, "There is no such getter '%s' in '%s'");
+  static final StaticTypeWarningCode UNDEFINED_GETTER = new StaticTypeWarningCode.con1('UNDEFINED_GETTER', 15, "There is no such getter '%s' in '%s'");
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>. It is a static type
@@ -3316,7 +3339,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening on
    */
-  static final StaticTypeWarningCode UNDEFINED_METHOD = new StaticTypeWarningCode.con1('UNDEFINED_METHOD', 15, "The method '%s' is not defined for the class '%s'");
+  static final StaticTypeWarningCode UNDEFINED_METHOD = new StaticTypeWarningCode.con1('UNDEFINED_METHOD', 16, "The method '%s' is not defined for the class '%s'");
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -3334,7 +3357,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param operator the name of the operator
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    */
-  static final StaticTypeWarningCode UNDEFINED_OPERATOR = new StaticTypeWarningCode.con1('UNDEFINED_OPERATOR', 16, "There is no such operator '%s' in '%s'");
+  static final StaticTypeWarningCode UNDEFINED_OPERATOR = new StaticTypeWarningCode.con1('UNDEFINED_OPERATOR', 17, "There is no such operator '%s' in '%s'");
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
@@ -3344,7 +3367,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param enclosingType the name of the enclosing type where the setter is being looked for
    * @see #INACCESSIBLE_SETTER
    */
-  static final StaticTypeWarningCode UNDEFINED_SETTER = new StaticTypeWarningCode.con1('UNDEFINED_SETTER', 17, "There is no such setter '%s' in '%s'");
+  static final StaticTypeWarningCode UNDEFINED_SETTER = new StaticTypeWarningCode.con1('UNDEFINED_SETTER', 18, "There is no such setter '%s' in '%s'");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -3355,7 +3378,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening on
    */
-  static final StaticTypeWarningCode UNDEFINED_SUPER_METHOD = new StaticTypeWarningCode.con1('UNDEFINED_SUPER_METHOD', 18, "There is no such method '%s' in '%s'");
+  static final StaticTypeWarningCode UNDEFINED_SUPER_METHOD = new StaticTypeWarningCode.con1('UNDEFINED_SUPER_METHOD', 19, "There is no such method '%s' in '%s'");
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does not have an
@@ -3365,7 +3388,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * able to find the name defined in a supertype. It exists to provide a more informative error
    * message.
    */
-  static final StaticTypeWarningCode UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = new StaticTypeWarningCode.con1('UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER', 19, "Static members from supertypes must be qualified by the name of the defining type");
+  static final StaticTypeWarningCode UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = new StaticTypeWarningCode.con1('UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER', 20, "Static members from supertypes must be qualified by the name of the defining type");
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not a generic type with
@@ -3377,7 +3400,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
    * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
    */
-  static final StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = new StaticTypeWarningCode.con1('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 20, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
+  static final StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = new StaticTypeWarningCode.con1('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 21, "The type '%s' is declared with %d type parameters, but %d type arguments were given");
   static final List<StaticTypeWarningCode> values = [
       EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
       EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
@@ -3389,6 +3412,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
       INVOCATION_OF_NON_FUNCTION_EXPRESSION,
       NON_BOOL_CONDITION,
       NON_BOOL_EXPRESSION,
+      NON_BOOL_NEGATION_EXPRESSION,
       NON_TYPE_AS_TYPE_ARGUMENT,
       RETURN_OF_INVALID_TYPE,
       TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,

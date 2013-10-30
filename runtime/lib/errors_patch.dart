@@ -110,6 +110,11 @@ class _InternalError {
   final String _msg;
 }
 
+patch class CyclicInitializationError {
+  static _throwNew(String variableName) {
+    throw new CyclicInitializationError(variableName);
+  }
+}
 
 patch class AbstractClassInstantiationError {
   AbstractClassInstantiationError._create(

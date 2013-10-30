@@ -139,9 +139,9 @@ main() {
      'thisLibrary.variables[#somePredicate].type'  /// 02: ok
         : thisLibrary.variables[#somePredicate].type},  /// 02: ok
 
-    {'reflectType(Predicate).referent' : reflectType(Predicate).referent,  /// 02: ok
+    {'reflectType(Predicate).referent' : (reflectType(Predicate) as TypedefMirror).referent,  /// 02: ok
      'thisLibrary.variables[#somePredicate].type.referent'  /// 02: ok
-        : thisLibrary.variables[#somePredicate].type.referent},  /// 02: ok
+        : (thisLibrary.variables[#somePredicate].type as TypedefMirror).referent},  /// 02: ok
 
     {'reflectClass(A).typeVariables.single'  /// 02: ok
         : reflectClass(A).typeVariables.single,  /// 02: ok

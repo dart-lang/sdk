@@ -781,21 +781,23 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitSuperSend(Send node) {
     Element element = elements[node];
-    if (Elements.isUnresolved(element)) {
-      return types.dynamicType;
-    }
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): We could do better here if we knew what we
     // are calling does not expose this.
     isThisExposed = true;
-    if (node.isPropertyAccess) {
-      return handleStaticSend(node, selector, element, null);
-    } else if (element.isFunction() || element.isGenerativeConstructor()) {
-      if (!selector.applies(element, compiler)) return types.dynamicType;
-      ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    ArgumentsTypes arguments = node.isPropertyAccess
+        ? null
+        : analyzeArguments(node.arguments);
+    if (Elements.isUnresolved(element)
+        || !selector.applies(element, compiler)) {
+      // Ensure we create a node, to make explicit the call to the
+      // `noSuchMethod` handler.
+      return handleDynamicSend(node, selector, superType, arguments);
+    } else if (node.isPropertyAccess
+              || element.isFunction()
+              || element.isGenerativeConstructor()) {
       return handleStaticSend(node, selector, element, arguments);
     } else {
-      ArgumentsTypes arguments = analyzeArguments(node.arguments);
       return inferrer.registerCalledClosure(
           node, selector, inferrer.typeOfElement(element),
           outermostElement, arguments, sideEffects, inLoop);

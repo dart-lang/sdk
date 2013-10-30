@@ -23,7 +23,7 @@ DEFINE_FLAG(bool, print_free_list_before_gc, false,
             "Print free list statistics before a GC");
 DEFINE_FLAG(bool, print_free_list_after_gc, false,
             "Print free list statistics after a GC");
-DEFINE_FLAG(bool, collect_code, true,
+DEFINE_FLAG(bool, collect_code, false,
             "Attempt to GC infrequently used code.");
 DEFINE_FLAG(int, code_collection_interval_in_us, 30000000,
             "Time between attempts to collect unused code.");
@@ -384,7 +384,6 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
-
 class CodeDetacherVisitor : public ObjectVisitor {
  public:
   explicit CodeDetacherVisitor(Isolate* isolate) : ObjectVisitor(isolate) { }
@@ -392,8 +391,17 @@ class CodeDetacherVisitor : public ObjectVisitor {
   virtual void VisitObject(RawObject* obj);
 
  private:
+  static bool MayDetachCode(const Function& fn);
   DISALLOW_COPY_AND_ASSIGN(CodeDetacherVisitor);
 };
+
+
+bool CodeDetacherVisitor::MayDetachCode(const Function& fn) {
+  return fn.HasCode() &&  // Not already detached.
+         !fn.HasOptimizedCode() &&
+         !fn.HasBreakpoint() &&
+         (fn.usage_counter() > 0);
+}
 
 
 void CodeDetacherVisitor::VisitObject(RawObject* raw_obj) {
@@ -402,10 +410,7 @@ void CodeDetacherVisitor::VisitObject(RawObject* raw_obj) {
   const Object& obj = Object::Handle(raw_obj);
   if (obj.GetClassId() == kFunctionCid) {
     const Function& fn = Function::Cast(obj);
-    if (!fn.HasOptimizedCode() &&
-        !fn.HasBreakpoint() &&
-        fn.HasCode() &&  // Not already detached.
-        (fn.usage_counter() > 0)) {
+    if (CodeDetacherVisitor::MayDetachCode(fn)) {
       fn.set_usage_counter(fn.usage_counter() / 2);
       if (fn.usage_counter() == 0) {
         if (FLAG_log_code_drop) {

@@ -5,6 +5,31 @@
 part of ssa;
 
 /**
+ * Remove [HTypeKnown] instructions from the graph, to make codegen
+ * analysis easier.
+ */
+class SsaTypeKnownRemover extends HBaseVisitor {
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  void visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  void visitTypeKnown(HTypeKnown instruction) {
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
+  }
+}
+
+/**
  * Instead of emitting each SSA instruction with a temporary variable
  * mark instructions that can be emitted at their use-site.
  * For example, in:
@@ -119,7 +144,8 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitTypeKnown(HTypeKnown instruction) {
-    markAsGenerateAtUseSite(instruction);
+    // [HTypeKnown] instructions are removed before code generation.
+    assert(false);
   }
 
   void tryGenerateAtUseSite(HInstruction instruction) {

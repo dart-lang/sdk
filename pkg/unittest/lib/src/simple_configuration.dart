@@ -54,7 +54,7 @@ class SimpleConfiguration extends Configuration {
 
   /// How long a [TestCase] can run before it is considered an error.
   /// A [timeout] value of [:null:] means that the limit is infinite.
-  Duration timeout = const Duration(seconds: 20);
+  Duration timeout = const Duration(minutes: 2);
 
   /**
    * The constructor sets up a failure handler for [expect] that redirects

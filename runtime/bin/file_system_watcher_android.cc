@@ -67,7 +67,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
   while (offset < bytes) {
     struct inotify_event* e =
         reinterpret_cast<struct inotify_event*>(buffer + offset);
-    Dart_Handle event = Dart_NewList(3);
+    Dart_Handle event = Dart_NewList(4);
     int mask = 0;
     if (e->mask & IN_MODIFY) mask |= kModifyContent;
     if (e->mask & IN_ATTRIB) mask |= kModefyAttribute;
@@ -82,6 +82,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     } else {
       Dart_ListSetAt(event, 2, Dart_Null());
     }
+    Dart_ListSetAt(event, 3, Dart_NewBoolean(e->mask & IN_MOVED_TO));
     Dart_ListSetAt(events, i, event);
     i++;
     offset += kEventSize + e->len;

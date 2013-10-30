@@ -16,10 +16,6 @@ patch class MirrorSystem {
 
 patch MirrorSystem currentMirrorSystem() => js.currentJsMirrorSystem;
 
-patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-  throw new UnsupportedError("MirrorSystem not implemented");
-}
-
 patch InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
 
 patch ClassMirror reflectClass(Type key) {
@@ -33,4 +29,9 @@ patch ClassMirror reflectClass(Type key) {
   return (tm as ClassMirror).originalDeclaration;
 }
 
-patch TypeMirror reflectType(Type key) => js.reflectType(key);
+patch TypeMirror reflectType(Type key) {
+  if (key == dynamic) {
+    return currentMirrorSystem().dynamicType;
+  }
+  return js.reflectType(key);
+}

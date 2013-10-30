@@ -26,12 +26,16 @@ import '../package_graph.dart';
 class Dart2JSTransformer extends Transformer {
   final PackageGraph _graph;
 
+  /// Whether the JavaScript output should be minified.
+  final bool _minify;
+
   /// The [AssetId]s the transformer has discovered so far. Used by pub build
   /// to determine where to copy the JS bootstrap files.
   // TODO(rnystrom): Do something cleaner for this, or eliminate those files.
   final entrypoints = new Set<AssetId>();
 
-  Dart2JSTransformer(this._graph);
+  Dart2JSTransformer(this._graph, {bool minify})
+      : _minify = minify == true ? true : false;
 
   /// Only ".dart" files within "web/" are processed.
   Future<bool> isPrimary(Asset asset) {
@@ -77,20 +81,20 @@ class Dart2JSTransformer extends Transformer {
       // path so they can understand them.
       return dart.compile(entrypoint,
           packageRoot: packageRoot,
+          minify: _minify,
           inputProvider: provider.readStringFromUri,
           diagnosticHandler: provider.handleDiagnostic).then((js) {
-        if (js == null) {
-          // The compile failed and errors should have already been reported
-          // through the diagnostic handler, so just do nothing here.
-          return;
-        }
-
         var id = transform.primaryInput.id.changeExtension(".dart.js");
         transform.addOutput(new Asset.fromString(id, js));
 
         stopwatch.stop();
         transform.logger.info("Generated $id (${js.length} characters) in "
             "${stopwatch.elapsed}");
+      }).catchError((error) {
+        // The compile failed and errors have been reported through the
+        // diagnostic handler, so just do nothing here.
+        if (error is CompilerException) return;
+        throw error;
       });
     });
   }

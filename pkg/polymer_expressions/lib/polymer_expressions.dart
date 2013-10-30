@@ -67,28 +67,25 @@ class PolymerExpressions extends BindingDelegate {
       : globals = (globals == null) ?
           new Map<String, Object>.from(DEFAULT_GLOBALS) : globals;
 
-  _Binding getBinding(model, String path, name, node) {
+  prepareBinding(String path, name, node) {
     if (path == null) return null;
     var expr = new Parser(path).parse();
-    if (model is! Scope) {
-      model = new Scope(model: model, variables: globals);
-    }
-    if (node is Element && name == "class") {
-      return new _Binding(expr, model, _classAttributeConverter);
-    }
-    if (node is Element && name == "style") {
-      return new _Binding(expr, model, _styleAttributeConverter);
-    }
-    return new _Binding(expr, model);
+    return (model, node) {
+      if (model is! Scope) {
+        model = new Scope(model: model, variables: globals);
+      }
+      if (node is Element && name == "class") {
+        return new _Binding(expr, model, _classAttributeConverter);
+      }
+      if (node is Element && name == "style") {
+        return new _Binding(expr, model, _styleAttributeConverter);
+      }
+      return new _Binding(expr, model);
+    };
   }
 
-  getInstanceModel(Element template, model) {
-    if (model is! Scope) {
-      var _scope = new Scope(model: model, variables: globals);
-      return _scope;
-    }
-    return model;
-  }
+  prepareInstanceModel(Element template) => (model) =>
+      model is Scope ? model : new Scope(model: model, variables: globals);
 }
 
 class _Binding extends ChangeNotifier {

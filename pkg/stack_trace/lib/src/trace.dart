@@ -28,6 +28,19 @@ final _v8Trace = new RegExp(r"\n    ?at ");
 /// though it is possible for the message to match this as well.
 final _v8TraceLine = new RegExp(r"    ?at ");
 
+/// A RegExp to match Safari's stack traces.
+///
+/// Prior to version 6, Safari's stack traces were uncapturable. In v6 they were
+/// almost identical to Firefox traces, and so are handled by the Firefox code.
+/// In v6.1+, they have their own format that's similar to Firefox but distinct
+/// enough to warrant handling separately.
+///
+/// Most notably, Safari traces occasionally don't include the initial method
+/// name followed by "@", and they always have both the line and column number
+/// (or just a trailing colon if no column number is available).
+final _safariTrace = new RegExp(r"^([0-9A-Za-z_$]*@)?.*:\d*:\d*$",
+    multiLine: true);
+
 /// A RegExp to match Firefox's stack traces.
 ///
 /// Firefox's trace frames start with the name of the function in which the
@@ -36,7 +49,8 @@ final _v8TraceLine = new RegExp(r"    ?at ");
 final _firefoxTrace = new RegExp(r"^([.0-9A-Za-z_$/<]|\(.*\))*@");
 
 /// A RegExp to match this package's stack traces.
-final _friendlyTrace = new RegExp(r"^[^\s]+( \d+(:\d+)?)?\s+[^\s]+($|\n)");
+final _friendlyTrace = new RegExp(r"^[^\s]+( \d+(:\d+)?)?[ \t]+[^\s]+$",
+    multiLine: true);
 
 /// A stack trace, comprised of a list of stack frames.
 class Trace implements StackTrace {
@@ -89,9 +103,15 @@ class Trace implements StackTrace {
     try {
       if (trace.isEmpty) return new Trace(<Frame>[]);
       if (trace.contains(_v8Trace)) return new Trace.parseV8(trace);
-      // Valid Safari traces are a superset of valid Firefox traces.
-      if (trace.contains(_firefoxTrace)) return new Trace.parseSafari(trace);
-      if (trace.contains(_friendlyTrace)) return new Trace.parseFriendly(trace);
+      // Safari 6.1+ traces could be misinterpreted as Firefox traces, so we
+      // check for them first.
+      if (trace.contains(_safariTrace)) return new Trace.parseSafari6_1(trace);
+      // Safari 6.0 traces are a superset of Firefox traces, so we parse those
+      // two together.
+      if (trace.contains(_firefoxTrace)) return new Trace.parseSafari6_0(trace);
+      if (trace.contains(_friendlyTrace)) {
+        return new Trace.parseFriendly(trace);
+      }
 
       // Default to parsing the stack trace as a VM trace. This is also hit on
       // IE and Safari, where the stack trace is just an empty string (issue
@@ -129,11 +149,25 @@ class Trace implements StackTrace {
 
   /// Parses a string representation of a Safari stack trace.
   ///
-  /// Safari 6+ stack traces look just like Firefox traces, except that they
+  /// This will automatically decide between [parseSafari6_0] and
+  /// [parseSafari6_1] based on the contents of [trace].
+  factory Trace.parseSafari(String trace) {
+    if (trace.contains(_safariTrace)) return new Trace.parseSafari6_1(trace);
+    return new Trace.parseSafari6_0(trace);
+  }
+
+  /// Parses a string representation of a Safari 6.1+ stack trace.
+  Trace.parseSafari6_1(String trace)
+      : this(trace.trim().split("\n")
+          .map((line) => new Frame.parseSafari6_1(line)));
+
+  /// Parses a string representation of a Safari 6.0 stack trace.
+  ///
+  /// Safari 6.0 stack traces look just like Firefox traces, except that they
   /// sometimes (e.g. in isolates) have a "[native code]" frame. We just ignore
   /// this frame to make the stack format more consistent between browsers.
-  /// Prior to Safari 6, stack traces can't be retrieved.
-  Trace.parseSafari(String trace)
+  /// Prior to Safari 6.0, stack traces can't be retrieved.
+  Trace.parseSafari6_0(String trace)
       : this(trace.trim().split("\n")
           .where((line) => line != '[native code]')
           .map((line) => new Frame.parseFirefox(line)));

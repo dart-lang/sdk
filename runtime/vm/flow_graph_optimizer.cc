@@ -832,6 +832,7 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   if (!TryInlineRecognizedMethod(ic_data.GetReceiverClassIdAt(0),
                                  target,
                                  call,
+                                 call->ArgumentAt(0),
                                  call->token_pos(),
                                  *call->ic_data(),
                                  &entry, &last)) {
@@ -865,6 +866,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     MethodRecognizer::Kind kind,
     const Function& target,
     Instruction* call,
+    Definition* receiver,
     intptr_t token_pos,
     const ICData* ic_data,
     const ICData& value_check,
@@ -873,7 +875,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
   intptr_t array_cid = MethodKindToCid(kind);
   ASSERT(array_cid != kIllegalCid);
 
-  Definition* array = call->ArgumentAt(0);
+  Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   Definition* stored_value = call->ArgumentAt(2);
 
@@ -999,6 +1001,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
 bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const Function& target,
                                                    Instruction* call,
+                                                   Definition* receiver,
                                                    intptr_t token_pos,
                                                    const ICData& ic_data,
                                                    TargetEntryInstr** entry,
@@ -1019,14 +1022,14 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
-      return InlineGetIndexed(kind, call, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
       if (!ShouldInlineSimd()) return false;
-      return InlineGetIndexed(kind, call, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) return false;
-      return InlineGetIndexed(kind, call, ic_data, entry, last);
+      return InlineGetIndexed(kind, call, receiver, ic_data, entry, last);
 
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
@@ -1034,7 +1037,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       if (ArgIsAlways(kSmiCid, ic_data, 2)) {
         value_check = ic_data.AsUnaryClassChecksForArgNr(2);
       }
-      return InlineSetIndexed(kind, target, call, token_pos,
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kInt8ArraySetIndexed:
     case MethodRecognizer::kUint8ArraySetIndexed:
@@ -1045,7 +1048,7 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kUint16ArraySetIndexed:
       if (!ArgIsAlways(kSmiCid, ic_data, 2)) return false;
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      return InlineSetIndexed(kind, target, call, token_pos,
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kInt32ArraySetIndexed:
     case MethodRecognizer::kUint32ArraySetIndexed:
@@ -1060,59 +1063,59 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       } else if (!HasOnlyOneSmi(value_check)) {
         return false;
       }
-      return InlineSetIndexed(kind, target, call, token_pos,
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed:
       // Check that value is always double.
       if (!ArgIsAlways(kDoubleCid, ic_data, 2)) return false;
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      return InlineSetIndexed(kind, target, call, token_pos,
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       if (!ShouldInlineSimd()) return false;
       // Check that value is always a Float32x4.
       if (!ArgIsAlways(kFloat32x4Cid, ic_data, 2)) return false;
       value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      return InlineSetIndexed(kind, target, call, token_pos,
+      return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               &ic_data, value_check, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt8:
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataInt8ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint8:
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataUint8ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt16:
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataInt16ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint16:
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataUint16ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt32:
       if (!CanUnboxInt32()) return false;
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataInt32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetUint32:
       if (!CanUnboxInt32()) return false;
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32:
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat64:
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat64ArrayCid,
                                      ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32x4:
       if (!ShouldInlineSimd()) return false;
-      return InlineByteArrayViewLoad(call, receiver_cid,
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
                                      ic_data, entry, last);
     default:
@@ -1186,13 +1189,14 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
 
 bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                           Instruction* call,
+                                          Definition* receiver,
                                           const ICData& ic_data,
                                           TargetEntryInstr** entry,
                                           Definition** last) {
   intptr_t array_cid = MethodKindToCid(kind);
   ASSERT(array_cid != kIllegalCid);
 
-  Definition* array = call->ArgumentAt(0);
+  Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   *entry = new TargetEntryInstr(flow_graph()->allocate_block_id(),
                                 call->GetBlock()->try_index());
@@ -1242,6 +1246,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   if (!TryInlineRecognizedMethod(ic_data.GetReceiverClassIdAt(0),
                                  target,
                                  call,
+                                 call->ArgumentAt(0),
                                  call->token_pos(),
                                  *call->ic_data(),
                                  &entry, &last)) {
@@ -2483,13 +2488,14 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
 
 
 bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
+                                                 Definition* receiver,
                                                  intptr_t array_cid,
                                                  intptr_t view_cid,
                                                  const ICData& ic_data,
                                                  TargetEntryInstr** entry,
                                                  Definition** last) {
   ASSERT(array_cid != kIllegalCid);
-  Definition* array = call->ArgumentAt(0);
+  Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   *entry = new TargetEntryInstr(flow_graph()->allocate_block_id(),
                                 call->GetBlock()->try_index());
@@ -2625,6 +2631,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
   if (!TryInlineRecognizedMethod(receiver_cid,
                                  target,
                                  call,
+                                 call->ArgumentAt(0),
                                  call->token_pos(),
                                  *call->ic_data(),
                                  &entry, &last)) {

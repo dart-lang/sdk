@@ -46,7 +46,7 @@ void _scheduleAsyncCallback(callback) {
  * callbacks through this method. For example the following program runs
  * the callbacks without ever giving the Timer callback a chance to execute:
  *
- *     Timer.run(() { print("executed"); });  // Will never be executed,
+ *     Timer.run(() { print("executed"); });  // Will never be executed.
  *     foo() {
  *       scheduleMicrotask(foo);  // Schedules [foo] in front of other events.
  *     }
@@ -54,7 +54,7 @@ void _scheduleAsyncCallback(callback) {
  *       foo();
  *     }
  *
- * ## Other Resources
+ * ## Other resources
  *
  * * [The Event Loop and Dart](https://www.dartlang.org/articles/event-loop/):
  * Learn how Dart handles the event queue and microtask queue, so you can write

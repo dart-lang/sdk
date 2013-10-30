@@ -3,7 +3,7 @@ Library of HTTP server classes.
 This package contains a set of high-level classes that, together with
 HttpServer, makes is easy to provide content through HTTP servers.
 
-## Virtual Directory
+## Virtual directory
 
 The VirtualDirectory class makes it possible to easy serve static content from
 the drive. It supports:
@@ -25,7 +25,7 @@ See [VirtualDirectory](
 http://api.dartlang.org/docs/http_server/VirtualDirectory.html)
 for more info about how to customize the class.
 
-## Virtual Host
+## Virtual host
 
 The VirtualHost class makes it possible to serve multiple hosts on the same
 address, by using the `Host` field of the incoming requests. It also provides

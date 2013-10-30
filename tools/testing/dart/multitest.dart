@@ -229,7 +229,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       openedFile.writeStringSync(tests[key]);
       openedFile.closeSync();
       Set<String> outcome = outcomes[key];
-      bool enableFatalTypeErrors = outcome.contains('static type warning');
+      bool hasStaticWarning = outcome.contains('static type warning');
       bool hasRuntimeErrors = outcome.contains('runtime error');
       bool hasCompileError = outcome.contains('compile-time error');
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
@@ -237,7 +237,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
              hasCompileError,
              hasRuntimeErrors,
              isNegativeIfChecked: isNegativeIfChecked,
-             hasFatalTypeErrors: enableFatalTypeErrors,
+             hasStaticWarning: hasStaticWarning,
              multitestOutcome: outcome,
              multitestKey: key,
              originTestPath: filePath);

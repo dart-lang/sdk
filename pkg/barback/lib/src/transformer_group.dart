@@ -4,8 +4,6 @@
 
 library barback.transformer_group;
 
-import 'dart:async';
-
 /// A [TransformerGroup] encapsulates a phased collection of transformers.
 ///
 /// A transformer group is defined like a collection of phases, such as you

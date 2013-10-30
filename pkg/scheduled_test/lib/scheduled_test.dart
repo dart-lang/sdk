@@ -49,7 +49,7 @@
 ///       });
 ///     }
 ///
-/// ## Setting Up and Tearing Down
+/// ## Setting up and tearing down
 ///
 /// The `scheduled_test` package defines its own [setUp] method that works just
 /// like the one in `unittest`. Tasks can be scheduled in [setUp]; they'll be
@@ -77,7 +77,7 @@
 ///       // ...
 ///     }
 ///
-/// ## Passing Values Between Tasks
+/// ## Passing values between tasks
 ///
 /// It's often useful to use values computed in one task in other tasks that are
 /// scheduled afterwards. There are two ways to do this. The most

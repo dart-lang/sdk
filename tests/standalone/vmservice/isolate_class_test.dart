@@ -28,10 +28,10 @@ class LibraryTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     Expect.equals('Library', reply['type']);
     Expect.equals('isolate_stacktrace_command_script', reply['name']);
-    Expect.equals(1, reply['classes'].length);
-    Expect.equals('@Class', reply['classes'][0]['type']);
-    Expect.equals('C', reply['classes'][0]['name']);
-    _classId = reply['classes'][0]['id'];
+    Expect.equals(2, reply['classes'].length);
+    Expect.equals('@Class', reply['classes'][1]['type']);
+    Expect.equals('C', reply['classes'][1]['name']);
+    _classId = reply['classes'][1]['id'];
   }
 }
 

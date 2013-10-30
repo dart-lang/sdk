@@ -12,7 +12,6 @@ symbol_test/03: Fail, Pass # bug 11669
 
 [ $compiler == none || $compiler == dart2dart ]
 symbol_test/none: Fail # bug 11669
-error_stack_trace2_test: Fail  # Bug 5802
 
 [ $compiler == none && $runtime == drt ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
@@ -41,7 +40,6 @@ unicode_test: Fail
 [ $compiler == dart2js ]
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
-main_test: Fail # Issue 14200
 
 big_integer_vm_test: RuntimeError, OK # VM specific test.
 bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
@@ -113,3 +111,14 @@ collection_length_test: Pass, Timeout
 
 [ $arch == simmips && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207
+
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+collection_to_string_test: StaticWarning
+error_stack_trace_test: StaticWarning
+iterable_element_at_test: StaticWarning
+iterable_test: StaticWarning
+list_map_test: StaticWarning
+num_clamp_test: StaticWarning
+queue_test: StaticWarning
+string_codeunits_test: StaticWarning
+string_test: StaticWarning

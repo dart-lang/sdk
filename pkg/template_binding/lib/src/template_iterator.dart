@@ -17,32 +17,23 @@ part of template_binding;
 // See: https://github.com/polymer/TemplateBinding/issues/59
 bool _toBoolean(value) => null != value && false != value;
 
-Node _createDeepCloneAndDecorateTemplates(Node node, BindingDelegate delegate) {
-  var clone = node.clone(false); // Shallow clone.
-  if (isSemanticTemplate(clone)) {
-    TemplateBindExtension.decorate(clone, node);
-    if (delegate != null) {
-      templateBindFallback(clone)._bindingDelegate = delegate;
-    }
+List _getBindings(Node node, BindingDelegate delegate) {
+  if (node is Element) {
+    return _parseAttributeBindings(node, delegate);
   }
 
-  for (var c = node.firstChild; c != null; c = c.nextNode) {
-    clone.append(_createDeepCloneAndDecorateTemplates(c, delegate));
+  if (node is Text) {
+    var tokens = _parseMustaches(node.text, 'text', node, delegate);
+    if (tokens != null) return ['text', tokens];
   }
-  return clone;
+
+  return null;
 }
 
 void _addBindings(Node node, model, [BindingDelegate delegate]) {
-  List bindings = null;
-  if (node is Element) {
-    bindings = _parseAttributeBindings(node);
-  } else if (node is Text) {
-    var tokens = _parseMustacheTokens(node.text);
-    if (tokens != null) bindings = ['text', tokens];
-  }
-
+  var bindings = _getBindings(node, delegate);
   if (bindings != null) {
-    _processBindings(bindings, node, model, delegate);
+    _processBindings(bindings, node, model);
   }
 
   for (var c = node.firstChild; c != null; c = c.nextNode) {
@@ -50,23 +41,34 @@ void _addBindings(Node node, model, [BindingDelegate delegate]) {
   }
 }
 
-List _parseAttributeBindings(Element element) {
+
+List _parseAttributeBindings(Element element, BindingDelegate delegate) {
   var bindings = null;
   var ifFound = false;
   var bindFound = false;
   var isTemplateNode = isSemanticTemplate(element);
 
   element.attributes.forEach((name, value) {
+    // Allow bindings expressed in attributes to be prefixed with underbars.
+    // We do this to allow correct semantics for browsers that don't implement
+    // <template> where certain attributes might trigger side-effects -- and
+    // for IE which sanitizes certain attributes, disallowing mustache
+    // replacements in their text.
+    while (name[0] == '_') {
+      name = name.substring(1);
+    }
+
     if (isTemplateNode) {
       if (name == 'if') {
         ifFound = true;
+        if (value == '') value = '{{}}'; // Accept 'naked' if.
       } else if (name == 'bind' || name == 'repeat') {
         bindFound = true;
-        if (value == '') value = '{{}}';
+        if (value == '') value = '{{}}'; // Accept 'naked' bind & repeat.
       }
     }
 
-    var tokens = _parseMustacheTokens(value);
+    var tokens = _parseMustaches(value, name, element, delegate);
     if (tokens != null) {
       if (bindings == null) bindings = [];
       bindings..add(name)..add(tokens);
@@ -76,90 +78,70 @@ List _parseAttributeBindings(Element element) {
   // Treat <template if> as <template bind if>
   if (ifFound && !bindFound) {
     if (bindings == null) bindings = [];
-    bindings..add('bind')..add(_parseMustacheTokens('{{}}'));
+    bindings..add('bind')
+        ..add(_parseMustaches('{{}}', 'bind', element, delegate));
   }
 
   return bindings;
 }
 
 void _processBindings(List bindings, Node node, model,
-    BindingDelegate delegate) {
+    [List<NodeBinding> bound]) {
 
   for (var i = 0; i < bindings.length; i += 2) {
-    _setupBinding(node, bindings[i], bindings[i + 1], model, delegate);
-  }
-}
-
-void _setupBinding(Node node, String name, List tokens, model,
-    BindingDelegate delegate) {
-
-  if (_isSimpleBinding(tokens)) {
-    _bindOrDelegate(node, name, model, tokens[1], delegate);
-    return;
-  }
-
-  // TODO(jmesserly): MDV caches the closure on the tokens, but I'm not sure
-  // why they do that instead of just caching the entire CompoundBinding object
-  // and unbindAll then bind to the new model.
-  var replacementBinding = new CompoundBinding()
-      ..scheduled = true
-      ..combinator = (values) {
-    var newValue = new StringBuffer();
-
-    for (var i = 0, text = true; i < tokens.length; i++, text = !text) {
-      if (text) {
-        newValue.write(tokens[i]);
-      } else {
-        var value = values[i];
-        if (value != null) {
-          newValue.write(value);
+    var name = bindings[i];
+    var tokens = bindings[i + 1];
+    var bindingModel = model;
+    var bindingPath = tokens.tokens[1];
+    if (tokens.hasOnePath) {
+      var delegateFn = tokens.tokens[2];
+      if (delegateFn != null) {
+        var delegateBinding = delegateFn(model, node);
+        if (delegateBinding != null) {
+          bindingModel = delegateBinding;
+          bindingPath = 'value';
         }
       }
+
+      if (!tokens.isSimplePath) {
+        bindingModel = new PathObserver(bindingModel, bindingPath,
+            computeValue: tokens.combinator);
+        bindingPath = 'value';
+      }
+    } else {
+      var observer = new CompoundPathObserver(computeValue: tokens.combinator);
+      for (var j = 1; j < tokens.tokens.length; j += 3) {
+        var subModel = model;
+        var subPath = tokens.tokens[j];
+        var delegateFn = tokens.tokens[j + 1];
+        var delegateBinding = delegateFn != null ?
+            delegateFn(subModel, node) : null;
+
+        if (delegateBinding != null) {
+          subModel = delegateBinding;
+          subPath = 'value';
+        }
+
+        observer.addPath(subModel, subPath);
+      }
+
+      observer.start();
+      bindingModel = observer;
+      bindingPath = 'value';
     }
 
-    return newValue.toString();
-  };
-
-  for (var i = 1; i < tokens.length; i += 2) {
-    // TODO(jmesserly): not sure if this index is correct. See my comment here:
-    // https://github.com/Polymer/mdv/commit/f1af6fe683fd06eed2a7a7849f01c227db12cda3#L0L1035
-    _bindOrDelegate(replacementBinding, i, model, tokens[i], delegate);
-  }
-
-  replacementBinding.resolve();
-
-  nodeBind(node).bind(name, replacementBinding, 'value');
-}
-
-void _bindOrDelegate(node, name, model, String path,
-    BindingDelegate delegate) {
-
-  if (delegate != null) {
-    var delegateBinding = delegate.getBinding(model, path, name, node);
-    if (delegateBinding != null) {
-      model = delegateBinding;
-      path = 'value';
-    }
-  }
-
-  if (node is CompoundBinding) {
-    node.bind(name, model, path);
-  } else {
-    nodeBind(node).bind(name, model, path);
+    var binding = nodeBind(node).bind(name, bindingModel, bindingPath);
+    if (bound != null) bound.add(binding);
   }
 }
-
-/** True if and only if [tokens] is of the form `['', path, '']`. */
-bool _isSimpleBinding(List<String> tokens) =>
-    tokens.length == 3 && tokens[0].isEmpty && tokens[2].isEmpty;
 
 /**
  * Parses {{ mustache }} bindings.
  *
- * Returns null if there are no matches. Otherwise returns
- * [TEXT, (PATH, TEXT)+] if there is at least one mustache.
+ * Returns null if there are no matches. Otherwise returns the parsed tokens.
  */
-List<String> _parseMustacheTokens(String s) {
+_MustacheTokens _parseMustaches(String s, String name, Node node,
+    BindingDelegate delegate) {
   if (s.isEmpty) return null;
 
   var tokens = null;
@@ -172,18 +154,63 @@ List<String> _parseMustacheTokens(String s) {
     if (endIndex < 0) {
       if (tokens == null) return null;
 
-      tokens.add(s.substring(lastIndex));
+      tokens.add(s.substring(lastIndex)); // TEXT
       break;
     }
 
-    if (tokens == null) tokens = <String>[];
+    if (tokens == null) tokens = [];
     tokens.add(s.substring(lastIndex, startIndex)); // TEXT
-    tokens.add(s.substring(startIndex + 2, endIndex).trim()); // PATH
+    var pathString = s.substring(startIndex + 2, endIndex).trim();
+    tokens.add(pathString); // PATH
+    var delegateFn = delegate == null ? null :
+        delegate.prepareBinding(pathString, name, node);
+    tokens.add(delegateFn);
+
     lastIndex = endIndex + 2;
   }
 
   if (lastIndex == length) tokens.add('');
-  return tokens;
+
+  return new _MustacheTokens(tokens);
+}
+
+class _MustacheTokens {
+  bool get hasOnePath => tokens.length == 4;
+  bool get isSimplePath => hasOnePath && tokens[0] == '' && tokens[3] == '';
+
+  /** [TEXT, (PATH, TEXT, DELEGATE_FN)+] if there is at least one mustache. */
+  // TODO(jmesserly): clean up the type here?
+  final List tokens;
+
+  // Dart note: I think this is cached in JavaScript to avoid an extra
+  // allocation per template instance. Seems reasonable, so we do the same.
+  Function _combinator;
+  Function get combinator => _combinator;
+
+  _MustacheTokens(this.tokens) {
+    // Should be: [TEXT, (PATH, TEXT, DELEGATE_FN)+].
+    assert((tokens.length + 2) % 3 == 0);
+
+    _combinator = hasOnePath ? _singleCombinator : _listCombinator;
+  }
+
+  // Dart note: split "combinator" into the single/list variants, so the
+  // argument can be typed.
+  String _singleCombinator(Object value) {
+    if (value == null) value = '';
+    return '${tokens[0]}$value${tokens[3]}';
+  }
+
+  String _listCombinator(List<Object> values) {
+    var newValue = new StringBuffer(tokens[0]);
+    for (var i = 1; i < tokens.length; i += 3) {
+      var value = values[(i - 1) ~/ 3];
+      if (value != null) newValue.write(value);
+      newValue.write(tokens[i + 2]);
+    }
+
+    return newValue.toString();
+  }
 }
 
 void _addTemplateInstanceRecord(fragment, model) {
@@ -201,106 +228,150 @@ void _addTemplateInstanceRecord(fragment, model) {
   }
 }
 
-
 class _TemplateIterator {
-  final Element _templateElement;
-  final List<Node> terminators = [];
-  CompoundBinding inputs;
+  final TemplateBindExtension _templateExt;
+
+  /**
+   * Flattened array of tuples:
+   * <instanceTerminatorNode, [bindingsSetupByInstance]>
+   */
+  final List terminators = [];
   List iteratedValue;
   bool closed = false;
+  bool depsChanging = false;
 
-  StreamSubscription _sub;
+  bool hasRepeat = false, hasBind = false, hasIf = false;
+  Object repeatModel, bindModel, ifModel;
+  String repeatPath, bindPath, ifPath;
 
-  _TemplateIterator(this._templateElement) {
-    inputs = new CompoundBinding(resolveInputs);
-  }
+  StreamSubscription _valueSub, _arraySub;
 
-  resolveInputs(Map values) {
-    if (closed) return;
+  bool _initPrepareFunctions = false;
+  PrepareInstanceModelFunction _instanceModelFn;
+  PrepareInstancePositionChangedFunction _instancePositionChangedFn;
 
-    if (values.containsKey('if') && !_toBoolean(values['if'])) {
-      valueChanged(null);
-    } else if (values.containsKey('repeat')) {
-      valueChanged(values['repeat']);
-    } else if (values.containsKey('bind') || values.containsKey('if')) {
-      valueChanged([values['bind']]);
-    } else {
-      valueChanged(null);
+  _TemplateIterator(this._templateExt);
+
+  Element get _templateElement => _templateExt._node;
+
+  resolve() {
+    depsChanging = false;
+
+    if (_valueSub != null) {
+      _valueSub.cancel();
+      _valueSub = null;
     }
-    // We don't return a value to the CompoundBinding; instead we skip a hop and
-    // call valueChanged directly.
-    return null;
+
+    if (!hasRepeat && !hasBind) {
+      _valueChanged(null);
+      return;
+    }
+
+    final model = hasRepeat ? repeatModel : bindModel;
+    final path = hasRepeat ? repeatPath : bindPath;
+
+    var valueObserver;
+    if (!hasIf) {
+      valueObserver = new PathObserver(model, path,
+          computeValue: hasRepeat ? null : (x) => [x]);
+    } else {
+      // TODO(jmesserly): I'm not sure if closing over this is necessary for
+      // correctness. It does seem useful if the valueObserver gets fired after
+      // hasRepeat has changed, due to async nature of things.
+      final isRepeat = hasRepeat;
+
+      valueFn(List values) {
+        var modelValue = values[0];
+        var ifValue = values[1];
+        if (!_toBoolean(ifValue)) return null;
+        return isRepeat ? modelValue : [ modelValue ];
+      }
+
+      valueObserver = new CompoundPathObserver(computeValue: valueFn)
+          ..addPath(model, path)
+          ..addPath(ifModel, ifPath)
+          ..start();
+    }
+
+    _valueSub = valueObserver.changes.listen(
+        (r) => _valueChanged(r.last.newValue));
+    _valueChanged(valueObserver.value);
   }
 
-  void valueChanged(value) {
-    if (value is! List) value = null;
-
+  void _valueChanged(newValue) {
     var oldValue = iteratedValue;
     unobserve();
-    iteratedValue = value;
 
-    if (iteratedValue is Observable) {
-      _sub = (iteratedValue as Observable).changes.listen(_handleChanges);
+    if (newValue is List) {
+      iteratedValue = newValue;
+    } else if (newValue is Iterable) {
+      // Dart note: we support Iterable by calling toList.
+      // But we need to be careful to observe the original iterator if it
+      // supports that.
+      iteratedValue = (newValue as Iterable).toList();
+    } else {
+      iteratedValue = null;
+    }
+
+    if (iteratedValue != null && newValue is Observable) {
+      _arraySub = (newValue as Observable).changes.listen(
+          _handleSplices);
     }
 
     var splices = calculateSplices(
         iteratedValue != null ? iteratedValue : [],
         oldValue != null ? oldValue : []);
 
-    if (splices.length > 0) _handleChanges(splices);
-
-    if (inputs.length == 0) {
-      close();
-      templateBindFallback(_templateElement)._templateIterator = null;
-    }
+    if (splices.isNotEmpty) _handleSplices(splices);
   }
 
   Node getTerminatorAt(int index) {
     if (index == -1) return _templateElement;
-    var terminator = terminators[index];
-    if (isSemanticTemplate(terminator) &&
-        !identical(terminator, _templateElement)) {
-      var subIterator = templateBindFallback(terminator)._templateIterator;
-      if (subIterator != null) {
-        return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
-      }
+    var terminator = terminators[index * 2];
+    if (!isSemanticTemplate(terminator) ||
+        identical(terminator, _templateElement)) {
+      return terminator;
     }
 
-    return terminator;
+    var subIter = templateBindFallback(terminator)._iterator;
+    if (subIter == null) return terminator;
+
+    return subIter.getTerminatorAt(subIter.terminators.length ~/ 2 - 1);
   }
 
+  // TODO(rafaelw): If we inserting sequences of instances we can probably
+  // avoid lots of calls to getTerminatorAt(), or cache its result.
   void insertInstanceAt(int index, DocumentFragment fragment,
-        List<Node> instanceNodes) {
+        List<Node> instanceNodes, List<NodeBinding> bound) {
 
     var previousTerminator = getTerminatorAt(index - 1);
     var terminator = null;
     if (fragment != null) {
       terminator = fragment.lastChild;
-    } else if (instanceNodes.length > 0) {
+    } else if (instanceNodes != null && instanceNodes.isNotEmpty) {
       terminator = instanceNodes.last;
     }
     if (terminator == null) terminator = previousTerminator;
 
-    terminators.insert(index, terminator);
-
+    terminators.insertAll(index * 2, [terminator, bound]);
     var parent = _templateElement.parentNode;
     var insertBeforeNode = previousTerminator.nextNode;
 
     if (fragment != null) {
       parent.insertBefore(fragment, insertBeforeNode);
-      return;
-    }
-
-    for (var node in instanceNodes) {
-      parent.insertBefore(node, insertBeforeNode);
+    } else if (instanceNodes != null) {
+      for (var node in instanceNodes) {
+        parent.insertBefore(node, insertBeforeNode);
+      }
     }
   }
 
-  List<Node> extractInstanceAt(int index) {
+  _BoundNodes extractInstanceAt(int index) {
     var instanceNodes = <Node>[];
     var previousTerminator = getTerminatorAt(index - 1);
     var terminator = getTerminatorAt(index);
-    terminators.removeAt(index);
+    var bound = terminators[index * 2 + 1];
+    terminators.removeRange(index * 2, index * 2 + 2);
 
     var parent = _templateElement.parentNode;
     while (terminator != previousTerminator) {
@@ -309,45 +380,41 @@ class _TemplateIterator {
       node.remove();
       instanceNodes.add(node);
     }
-    return instanceNodes;
+    return new _BoundNodes(instanceNodes, bound);
   }
 
-  getInstanceModel(model, BindingDelegate delegate) {
-    if (delegate != null) {
-      return delegate.getInstanceModel(_templateElement, model);
-    }
-    return model;
-  }
-
-  DocumentFragment getInstanceFragment(model, BindingDelegate delegate) {
-    return templateBind(_templateElement).createInstance(model, delegate);
-  }
-
-  void _handleChanges(Iterable<ChangeRecord> splices) {
+  void _handleSplices(Iterable<ChangeRecord> splices) {
     if (closed) return;
 
     splices = splices.where((s) => s is ListChangeRecord);
 
-    var template = _templateElement;
-    var delegate = templateBind(template).bindingDelegate;
+    final template = _templateElement;
+    final delegate = _templateExt._self.bindingDelegate;
 
     if (template.parentNode == null || template.ownerDocument.window == null) {
       close();
-      // TODO(jmesserly): MDV calls templateIteratorTable.delete(this) here,
-      // but I think that's a no-op because only nodes are used as keys.
-      // See https://github.com/Polymer/mdv/pull/114.
       return;
     }
 
-    var instanceCache = new HashMap(equals: identical);
+    // Dart note: the JavaScript code relies on the distinction between null
+    // and undefined to track whether the functions are prepared. We use a bool.
+    if (!_initPrepareFunctions) {
+      _initPrepareFunctions = true;
+      if (delegate != null) {
+        _instanceModelFn = delegate.prepareInstanceModel(template);
+        _instancePositionChangedFn =
+            delegate.prepareInstancePositionChanged(template);
+      }
+    }
+
+    var instanceCache = new HashMap<Object, _BoundNodes>(equals: identical);
     var removeDelta = 0;
     for (var splice in splices) {
       for (int i = 0; i < splice.removedCount; i++) {
-        var instanceNodes = extractInstanceAt(splice.index + removeDelta);
-        if (instanceNodes.length == 0) continue;
-        var model = nodeBindFallback(instanceNodes.first)
-            ._templateInstance.model;
-        instanceCache[model] = instanceNodes;
+        var instance = extractInstanceAt(splice.index + removeDelta);
+        if (instance.nodes.length == 0) continue;
+        var model = nodeBind(instance.nodes.first).templateInstance.model;
+        instanceCache[model] = instance;
       }
 
       removeDelta -= splice.addedCount;
@@ -360,51 +427,109 @@ class _TemplateIterator {
 
         var model = iteratedValue[addIndex];
         var fragment = null;
-        var instanceNodes = instanceCache.remove(model);
-        if (instanceNodes == null) {
-          var actualModel = getInstanceModel(model, delegate);
-          fragment = getInstanceFragment(actualModel, delegate);
+        var instance = instanceCache.remove(model);
+        List bound;
+        List instanceNodes = null;
+        if (instance != null && instance.nodes.isNotEmpty) {
+          bound = instance.bound;
+          instanceNodes = instance.nodes;
+        } else {
+          bound = [];
+          if (_instanceModelFn != null) {
+            model = _instanceModelFn(model);
+          }
+          if (model != null) {
+            fragment = _templateExt.createInstance(model, delegate, bound);
+          }
         }
 
-        insertInstanceAt(addIndex, fragment, instanceNodes);
+        insertInstanceAt(addIndex, fragment, instanceNodes, bound);
       }
     }
 
-    for (var instanceNodes in instanceCache.values) {
-      instanceNodes.forEach(_unbindAllRecursively);
+    for (var instance in instanceCache.values) {
+      closeInstanceBindings(instance.bound);
+    }
+
+    if (_instancePositionChangedFn != null) reportInstancesMoved(splices);
+  }
+
+  void reportInstanceMoved(int index) {
+    var previousTerminator = getTerminatorAt(index - 1);
+    var terminator = getTerminatorAt(index);
+    if (identical(previousTerminator, terminator)) {
+      return; // instance has zero nodes.
+    }
+
+    // We must use the first node of the instance, because any subsequent
+    // nodes may have been generated by sub-templates.
+    // TODO(rafaelw): This is brittle WRT instance mutation -- e.g. if the
+    // first node was removed by script.
+    var instance = nodeBind(previousTerminator.nextNode).templateInstance;
+    _instancePositionChangedFn(instance, index);
+  }
+
+  void reportInstancesMoved(Iterable<ChangeRecord> splices) {
+    var index = 0;
+    var offset = 0;
+    for (ListChangeRecord splice in splices) {
+      if (offset != 0) {
+        while (index < splice.index) {
+          reportInstanceMoved(index);
+          index++;
+        }
+      } else {
+        index = splice.index;
+      }
+
+      while (index < splice.index + splice.addedCount) {
+        reportInstanceMoved(index);
+        index++;
+      }
+
+      offset += splice.addedCount - splice.removedCount;
+    }
+
+    if (offset == 0) return;
+
+    var length = terminators.length ~/ 2;
+    while (index < length) {
+      reportInstanceMoved(index);
+      index++;
     }
   }
 
+  void closeInstanceBindings(List<NodeBinding> bound) {
+    for (var binding in bound) binding.close();
+  }
+
   void unobserve() {
-    if (_sub == null) return;
-    _sub.cancel();
-    _sub = null;
+    if (_arraySub == null) return;
+    _arraySub.cancel();
+    _arraySub = null;
   }
 
   void close() {
     if (closed) return;
 
     unobserve();
-    inputs.close();
+    for (var i = 1; i < terminators.length; i += 2) {
+      closeInstanceBindings(terminators[i]);
+    }
+
     terminators.clear();
+    if (_valueSub != null) {
+      _valueSub.cancel();
+      _valueSub = null;
+    }
+    _templateExt._iterator = null;
     closed = true;
   }
+}
 
-  static void _unbindAllRecursively(Node node) {
-    var nodeExt = nodeBindFallback(node);
-    nodeExt._templateInstance = null;
-    if (isSemanticTemplate(node)) {
-      // Make sure we stop observing when we remove an element.
-      var templateIterator = nodeExt._templateIterator;
-      if (templateIterator != null) {
-        templateIterator.close();
-        nodeExt._templateIterator = null;
-      }
-    }
-
-    nodeBind(node).unbindAll();
-    for (var c = node.firstChild; c != null; c = c.nextNode) {
-      _unbindAllRecursively(c);
-    }
-  }
+// Dart note: the JavaScript version just puts an expando on the array.
+class _BoundNodes {
+  final List<Node> nodes;
+  final List<NodeBinding> bound;
+  _BoundNodes(this.nodes, this.bound);
 }

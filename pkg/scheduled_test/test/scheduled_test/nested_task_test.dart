@@ -10,8 +10,8 @@ import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 import '../metatest.dart';
 import '../utils.dart';
 
-void main(List<String> args, message) {
-  metaTestInit(message);
+void main(_, message) {
+  initMetatest(message);
 
   setUpTimeout();
 

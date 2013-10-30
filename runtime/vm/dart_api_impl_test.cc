@@ -5775,34 +5775,35 @@ TEST_CASE(ImportLibrary5) {
 
 
 void NewNativePort_send123(Dart_Port dest_port_id,
-                           Dart_Port reply_port_id,
                            Dart_CObject *message) {
-  // Gets a null message.
+  // Gets a send port message.
   EXPECT_NOTNULL(message);
-  EXPECT_EQ(Dart_CObject_kNull, message->type);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
+  EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
 
   // Post integer value.
   Dart_CObject* response =
       reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
   response->type = Dart_CObject_kInt32;
   response->value.as_int32 = 123;
-  Dart_PostCObject(reply_port_id, response);
+  Dart_PostCObject(
+      message->value.as_array.values[0]->value.as_send_port, response);
 }
 
 
 void NewNativePort_send321(Dart_Port dest_port_id,
-                           Dart_Port reply_port_id,
                            Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
-  EXPECT_EQ(Dart_CObject_kNull, message->type);
+  EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
 
   // Post integer value.
   Dart_CObject* response =
       reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
   response->type = Dart_CObject_kInt32;
   response->value.as_int32 = 321;
-  Dart_PostCObject(reply_port_id, response);
+  Dart_PostCObject(
+      message->value.as_array.values[0]->value.as_send_port, response);
 }
 
 
@@ -5820,7 +5821,8 @@ UNIT_TEST_CASE(NewNativePort) {
       "import 'dart:isolate';\n"
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
-      "  port.send(null, receivePort.sendPort);\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send([replyPort]);\n"
       "  receivePort.handler = (message) {\n"
       "    receivePort.close();\n"
       "    throw new Exception(message);\n"

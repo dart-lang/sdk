@@ -750,6 +750,7 @@ if (!HTMLElement.prototype.createShadowRoot
     },
 
     start: function() {
+      this.started = true;
       this.connect();
       this.sync(true);
     },
@@ -1511,20 +1512,24 @@ var ShadowDOMPolyfill = {};
     return /^on[a-z]+$/.test(name);
   }
 
+  function isIdentifierName(name) {
+    return /^\w[a-zA-Z_0-9]*$/.test(name);
+  }
+
   function getGetter(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('return this.impl.' + name) :
         function() { return this.impl[name]; };
   }
 
   function getSetter(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('v', 'this.impl.' + name + ' = v') :
         function(v) { this.impl[name] = v; };
   }
 
   function getMethod(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('return this.impl.' + name +
                      '.apply(this.impl, arguments)') :
         function() { return this.impl[name].apply(this.impl, arguments); };
@@ -3592,7 +3597,8 @@ var ShadowDOMPolyfill = {};
     }
   });
 
-  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement);
+  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement,
+                  document.createElement('canvas'));
 
   scope.wrappers.HTMLCanvasElement = HTMLCanvasElement;
 })(this.ShadowDOMPolyfill);
@@ -3638,6 +3644,49 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.HTMLContentElement = HTMLContentElement;
 })(this.ShadowDOMPolyfill);
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var rewrap = scope.rewrap;
+
+  var OriginalHTMLImageElement = window.HTMLImageElement;
+
+  function HTMLImageElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLImageElement.prototype = Object.create(HTMLElement.prototype);
+
+  registerWrapper(OriginalHTMLImageElement, HTMLImageElement,
+                  document.createElement('img'));
+
+  function Image(width, height) {
+    if (!(this instanceof Image)) {
+      throw new TypeError(
+          'DOM object constructor cannot be called as a function.');
+    }
+
+    var node = unwrap(document.createElement('img'));
+    if (width !== undefined)
+      node.width = width;
+    if (height !== undefined)
+      node.height = height;
+    HTMLElement.call(this, node);
+    rewrap(node, this);
+  }
+
+  Image.prototype = HTMLImageElement.prototype;
+
+  scope.wrappers.HTMLImageElement = HTMLImageElement;
+  scope.wrappers.Image = Image;
+})(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3790,6 +3839,7 @@ var ShadowDOMPolyfill = {};
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
@@ -3804,7 +3854,7 @@ var ShadowDOMPolyfill = {};
     },
 
     drawImage: function() {
-      arguments[0] = unwrap(arguments[0]);
+      arguments[0] = unwrapIfNeeded(arguments[0]);
       this.impl.drawImage.apply(this.impl, arguments);
     },
 
@@ -3828,7 +3878,7 @@ var ShadowDOMPolyfill = {};
 
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
@@ -3847,12 +3897,12 @@ var ShadowDOMPolyfill = {};
     },
 
     texImage2D: function() {
-      arguments[5] = unwrap(arguments[5]);
+      arguments[5] = unwrapIfNeeded(arguments[5]);
       this.impl.texImage2D.apply(this.impl, arguments);
     },
 
     texSubImage2D: function() {
-      arguments[6] = unwrap(arguments[6]);
+      arguments[6] = unwrapIfNeeded(arguments[6]);
       this.impl.texSubImage2D.apply(this.impl, arguments);
     }
   });
@@ -5205,10 +5255,10 @@ var ShadowDOMPolyfill = {};
     'base': 'HTMLBaseElement',
     'body': 'HTMLBodyElement',
     'button': 'HTMLButtonElement',
-    'canvas': 'HTMLCanvasElement',
     // 'command': 'HTMLCommandElement',  // Not fully implemented in Gecko.
     'dl': 'HTMLDListElement',
     'datalist': 'HTMLDataListElement',
+    'data': 'HTMLDataElement',
     'dir': 'HTMLDirectoryElement',
     'div': 'HTMLDivElement',
     'embed': 'HTMLEmbedElement',
@@ -5222,17 +5272,13 @@ var ShadowDOMPolyfill = {};
     'h1': 'HTMLHeadingElement',
     'html': 'HTMLHtmlElement',
     'iframe': 'HTMLIFrameElement',
-
-    // Uses HTMLSpanElement in Firefox.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=843881
-    // 'image',
-
     'input': 'HTMLInputElement',
     'li': 'HTMLLIElement',
     'label': 'HTMLLabelElement',
     'legend': 'HTMLLegendElement',
     'link': 'HTMLLinkElement',
     'map': 'HTMLMapElement',
+    'marquee': 'HTMLMarqueeElement',
     // 'media', Covered by audio and video
     'menu': 'HTMLMenuElement',
     'menuitem': 'HTMLMenuItemElement',
@@ -5254,6 +5300,7 @@ var ShadowDOMPolyfill = {};
     'source': 'HTMLSourceElement',
     'span': 'HTMLSpanElement',
     'style': 'HTMLStyleElement',
+    'time': 'HTMLTimeElement',
     'caption': 'HTMLTableCaptionElement',
     // WebKit and Moz are wrong:
     // https://bugs.webkit.org/show_bug.cgi?id=111469
@@ -5265,6 +5312,7 @@ var ShadowDOMPolyfill = {};
     'thead': 'HTMLTableSectionElement',
     'tbody': 'HTMLTableSectionElement',
     'textarea': 'HTMLTextAreaElement',
+    'track': 'HTMLTrackElement',
     'title': 'HTMLTitleElement',
     'ul': 'HTMLUListElement',
     'video': 'HTMLVideoElement',

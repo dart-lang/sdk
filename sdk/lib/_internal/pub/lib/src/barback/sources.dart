@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub.barback.watch_sources;
+library pub.barback.sources;
+
+import 'dart:async';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
@@ -15,24 +17,26 @@ import '../package_graph.dart';
 
 /// Adds all of the source assets in the provided packages to barback and
 /// then watches the public directories for changes.
-void watchSources(PackageGraph graph, Barback barback) {
-  for (var package in graph.packages.values) {
-    // Add the initial sources.
-    barback.updateSources(_listAssets(graph.entrypoint, package));
-
+///
+/// Returns a Future that completes when the sources are loaded and the
+/// watchers are active.
+Future watchSources(PackageGraph graph, Barback barback) {
+  return Future.wait(graph.packages.values.map((package) {
     // If this package comes from a cached source, its contents won't change so
     // we don't need to monitor it. `packageId` will be null for the application
     // package, since that's not locked.
     var packageId = graph.lockFile.packages[package.name];
     if (packageId != null &&
         graph.entrypoint.cache.sources[packageId.source].shouldCache) {
-      continue;
+      barback.updateSources(_listAssets(graph.entrypoint, package));
+      return new Future.value();
     }
 
     // Watch the visible package directories for changes.
-    for (var name in _getPublicDirectories(graph.entrypoint, package)) {
+    return Future.wait(_getPublicDirectories(graph.entrypoint, package)
+        .map((name) {
       var subdirectory = path.join(package.dir, name);
-      if (!dirExists(subdirectory)) continue;
+      if (!dirExists(subdirectory)) return new Future.value();
 
       // TODO(nweiz): close these watchers when [barback] is closed.
       var watcher = new DirectoryWatcher(subdirectory);
@@ -50,7 +54,17 @@ void watchSources(PackageGraph graph, Barback barback) {
           barback.updateSources([id]);
         }
       });
-    }
+      return watcher.ready;
+    })).then((_) {
+      barback.updateSources(_listAssets(graph.entrypoint, package));
+    });
+  }));
+}
+
+/// Adds all of the source assets in the provided packages to barback.
+void loadSources(PackageGraph graph, Barback barback) {
+  for (var package in graph.packages.values) {
+    barback.updateSources(_listAssets(graph.entrypoint, package));
   }
 }
 

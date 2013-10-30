@@ -101,11 +101,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       documented: false,
       platforms: VM_PLATFORM),
 
-  "platform": const LibraryInfo(
-      "platform/platform.dart",
-      maturity: Maturity.UNSTABLE,
-      dart2jsPatchPath: "_internal/lib/platform_patch.dart"),
-
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",
       maturity: Maturity.STABLE,

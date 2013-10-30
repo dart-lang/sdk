@@ -76,4 +76,26 @@ main() {
       expect(isClosed, isTrue);
     }), completes);
   });
+
+  test("the wrapped stream isn't opened if there are no replays", () {
+    var isOpened = false;
+    var controller = new StreamController<int>(onListen: () {
+      isOpened = true;
+    });
+    var replayer = new StreamReplayer<int>(controller.stream);
+
+    expect(pumpEventQueue().then((_) => isOpened), completion(isFalse));
+  });
+
+  test("the wrapped stream isn't opened if no replays are opened", () {
+    var isOpened = false;
+    var controller = new StreamController<int>(onListen: () {
+      isOpened = true;
+    });
+    var replayer = new StreamReplayer<int>(controller.stream);
+    replayer.getReplay();
+    replayer.getReplay();
+
+    expect(pumpEventQueue().then((_) => isOpened), completion(isFalse));
+  });
 }

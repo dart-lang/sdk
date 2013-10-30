@@ -21,10 +21,10 @@ final _arrow = getSpecial('\u2192', '=>');
 
 /// Handles the `build` pub command.
 class BuildCommand extends PubCommand {
-  final description = "Copy and compile all Dart entrypoints in the 'web' "
-      "directory.";
-  final usage = "pub build [options]";
-  final aliases = const ["deploy", "settle-up"];
+  String get description =>
+      "Copy and compile all Dart entrypoints in the 'web' directory.";
+  String get usage => "pub build [options]";
+  List<String> get aliases => const ["deploy", "settle-up"];
 
   // TODO(nweiz): make these configurable.
   /// The path to the source directory of the application.
@@ -32,6 +32,14 @@ class BuildCommand extends PubCommand {
 
   /// The path to the application's build output directory.
   String get target => path.join(entrypoint.root.dir, 'build');
+
+  /// `true` if generated JavaScript should be minified.
+  bool get minify => commandOptions['minify'];
+
+  BuildCommand() {
+    commandParser.addFlag('minify', defaultsTo: true,
+        help: 'Minify generated JavaScript.');
+  }
 
   Future onRun() {
     if (!dirExists(source)) {
@@ -45,13 +53,14 @@ class BuildCommand extends PubCommand {
     return entrypoint.ensureLockFileIsUpToDate().then((_) {
       return entrypoint.loadPackageGraph();
     }).then((graph) {
-      dart2jsTransformer = new Dart2JSTransformer(graph);
+      dart2jsTransformer = new Dart2JSTransformer(graph, minify: minify);
 
       // Since this server will only be hit by the transformer loader and isn't
       // user-facing, just use an IPv4 address to avoid a weird bug on the
       // OS X buildbots.
       return barback.createServer("127.0.0.1", 0, graph,
-          builtInTransformers: [dart2jsTransformer]);
+          builtInTransformers: [dart2jsTransformer],
+          watchForUpdates: false);
     }).then((server) {
       // Show in-progress errors, but not results. Those get handled implicitly
       // by getAllAssets().
@@ -66,7 +75,7 @@ class BuildCommand extends PubCommand {
       // in the generated JavaScript.
       assets = assets.where((asset) => asset.id.extension != ".dart");
 
-      return Future.forEach(assets, (asset) {
+      return Future.wait(assets.map((asset) {
         // Figure out the output directory for the asset, which is the same
         // as the path pub serve would use to serve it.
         var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id);
@@ -80,10 +89,11 @@ class BuildCommand extends PubCommand {
         ensureDir(path.dirname(destPath));
         // TODO(rnystrom): Should we display this to the user?
         return createFileFromStream(asset.read(), destPath);
-      }).then((_) {
+      })).then((_) {
         _copyBrowserJsFiles(dart2jsTransformer.entrypoints);
         // TODO(rnystrom): Should this count include the JS files?
-        log.message("Built ${assets.length} files!");
+        log.message("Built ${assets.length} "
+            "${pluralize('file', assets.length)}!");
       });
     }).catchError((error) {
       // If [getAllAssets()] throws a BarbackException, the error has already
@@ -100,8 +110,8 @@ class BuildCommand extends PubCommand {
   /// directories next to each entrypoint in [entrypoints].
   void _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
     // Must depend on the browser package.
-    if (!entrypoint.root.dependencies.any((dep) =>
-        dep.name == 'browser' && dep.source == 'hosted')) {
+    if (!entrypoint.root.dependencies.any(
+        (dep) => dep.name == 'browser' && dep.source == 'hosted')) {
       return;
     }
 

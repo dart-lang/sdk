@@ -2416,29 +2416,46 @@ RawClass* Class::NewSignatureClass(const String& name,
 
 void Class::PatchSignatureFunction(const Function& signature_function) const {
   ASSERT(!signature_function.IsNull());
+  set_signature_function(signature_function);
   const Class& owner_class = Class::Handle(signature_function.Owner());
   ASSERT(!owner_class.IsNull());
-  TypeArguments& type_parameters = TypeArguments::Handle();
-  // A signature class extends class Instance and is parameterized in the same
-  // way as the owner class of its non-static signature function.
-  // It is not type parameterized if its signature function is static.
-  // In case of a function type alias, the function owner is the alias class
-  // instead of the enclosing class.
-  if (!signature_function.is_static() &&
-      (owner_class.NumTypeParameters() > 0) &&
-      !signature_function.HasInstantiatedSignature()) {
-    type_parameters = owner_class.type_parameters();
-  }
-  set_signature_function(signature_function);
-  set_type_parameters(type_parameters);
+  // A signature class extends class Instance and is either not parameterized or
+  // parameterized with exactly the same list of type parameters as the owner
+  // class of its function.
+  // In case of a function type alias, the function owner is the alias class,
+  // which is also the signature class. The signature class is therefore
+  // parameterized according to the alias class declaration, even if the
+  // function type is not generic.
+  // Otherwise, if the function is static or if its signature type is
+  // non-generic, i.e. it does not depend on any type parameter of the owner
+  // class, then the signature class is not parameterized, although the owner
+  // class may be.
   if (owner_class.raw() == raw()) {
     // This signature class is an alias, which cannot be the canonical
     // signature class for this signature function.
     ASSERT(!IsCanonicalSignatureClass());
-  } else if (signature_function.signature_class() == Object::null()) {
-    // Make this signature class the canonical signature class.
-    signature_function.set_signature_class(*this);
-    ASSERT(IsCanonicalSignatureClass());
+    // Do not modify the declared type parameters of the alias, even if unused.
+  } else {
+    // Copy the type parameters only for an instance function type that is not
+    // instantiated, i.e. that depends on the type parameters of the owner
+    // class.
+    // TODO(regis): Verify that it is not a problem for the copied type
+    // parameters to refer to the owner class rather than to the signature
+    // class. In other words, uninstantiated function types should only get
+    // instantiated by the owner class as instantiator and never by the
+    // signature class itself.
+    TypeArguments& type_parameters = TypeArguments::Handle();
+    if (!signature_function.is_static() &&
+        (owner_class.NumTypeParameters() > 0) &&
+        !signature_function.HasInstantiatedSignature()) {
+      type_parameters = owner_class.type_parameters();
+    }
+    set_type_parameters(type_parameters);
+    if (signature_function.signature_class() == Object::null()) {
+      // Make this signature class the canonical signature class.
+      signature_function.set_signature_class(*this);
+      ASSERT(IsCanonicalSignatureClass());
+    }
   }
   set_is_prefinalized();
 }
@@ -4051,8 +4068,8 @@ void Function::DetachCode() const {
 
 
 void Function::ReattachCode(const Code& code) const {
-  set_unoptimized_code(code);
-  SetCode(code);
+  StorePointer(&raw_ptr()->code_, code.raw());
+  StorePointer(&raw_ptr()->unoptimized_code_, code.raw());
   CodePatcher::RestoreEntry(code);
 }
 
@@ -4510,7 +4527,9 @@ void Function::set_is_inlinable(bool value) const {
 
 
 bool Function::IsInlineable() const {
-  return InlinableBit::decode(raw_ptr()->kind_tag_) && HasCode();
+  return (InlinableBit::decode(raw_ptr()->kind_tag_) &&
+          HasCode() &&
+          !Isolate::Current()->debugger()->HasBreakpoint(*this));
 }
 
 
@@ -7924,10 +7943,6 @@ RawLibrary* Library::MirrorsLibrary() {
 
 RawLibrary* Library::NativeWrappersLibrary() {
   return Isolate::Current()->object_store()->native_wrappers_library();
-}
-
-RawLibrary* Library::PlatformLibrary() {
-  return Isolate::Current()->object_store()->platform_library();
 }
 
 

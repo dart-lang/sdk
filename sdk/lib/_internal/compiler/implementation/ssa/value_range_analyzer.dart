@@ -626,7 +626,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
     void visit(HInstruction instruction) {
       Range range = instruction.accept(this);
-      if (instruction.isInteger()) {
+      if (instruction.isInteger(compiler)) {
         assert(range != null);
         ranges[instruction] = range;
       }
@@ -641,20 +641,22 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitParameterValue(HParameterValue parameter) {
-    if (!parameter.isInteger()) return info.newUnboundRange();
+    if (!parameter.isInteger(compiler)) return info.newUnboundRange();
     Value value = info.newInstructionValue(parameter);
     return info.newNormalizedRange(value, value);
   }
 
   Range visitPhi(HPhi phi) {
-    if (!phi.isInteger()) return info.newUnboundRange();
+    if (!phi.isInteger(compiler)) return info.newUnboundRange();
     // Some phases may replace instructions that change the inputs of
     // this phi. Only the [SsaTypesPropagation] phase will update the
     // phi type. Play it safe by assuming the [SsaTypesPropagation]
     // phase is not necessarily run before the [ValueRangeAnalyzer].
-    if (phi.inputs.any((i) => !i.isInteger())) return info.newUnboundRange();
+    if (phi.inputs.any((i) => !i.isInteger(compiler))) {
+      return info.newUnboundRange();
+    }
     if (phi.block.isLoopHeader()) {
-      Range range = new LoopUpdateRecognizer(ranges, info).run(phi);
+      Range range = new LoopUpdateRecognizer(compiler, ranges, info).run(phi);
       if (range == null) return info.newUnboundRange();
       return range;
     }
@@ -667,14 +669,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitConstant(HConstant constant) {
-    if (!constant.isInteger()) return info.newUnboundRange();
+    if (!constant.isInteger(compiler)) return info.newUnboundRange();
     IntConstant constantInt = constant.constant;
     Value value = info.newIntValue(constantInt.value);
     return info.newNormalizedRange(value, value);
   }
 
   Range visitFieldGet(HFieldGet fieldGet) {
-    if (!fieldGet.isInteger()) return info.newUnboundRange();
+    if (!fieldGet.isInteger(compiler)) return info.newUnboundRange();
     if (!fieldGet.receiver.isIndexable(compiler)) {
       return visitInstruction(fieldGet);
     }
@@ -693,9 +695,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range lengthRange = ranges[check.length];
     if (indexRange == null) {
       indexRange = info.newUnboundRange();
-      assert(!check.index.isInteger());
+      assert(!check.index.isInteger(compiler));
     }
-    assert(check.length.isInteger());
+    assert(check.length.isInteger(compiler));
 
     // Check if the index is strictly below the upper bound of the length
     // range.
@@ -749,8 +751,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitRelational(HRelational relational) {
     HInstruction right = relational.right;
     HInstruction left = relational.left;
-    if (!left.isInteger()) return info.newUnboundRange();
-    if (!right.isInteger()) return info.newUnboundRange();
+    if (!left.isInteger(compiler)) return info.newUnboundRange();
+    if (!right.isInteger(compiler)) return info.newUnboundRange();
     BinaryOperation operation = relational.operation(constantSystem);
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
@@ -780,7 +782,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
-    if (!instruction.isInteger()) return info.newUnboundRange();
+    if (!instruction.isInteger(compiler)) return info.newUnboundRange();
     return instruction.operation(constantSystem).apply(
         ranges[instruction.left], ranges[instruction.right]);
   }
@@ -794,10 +796,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitBitAnd(HBitAnd node) {
-    if (!node.isInteger()) return info.newUnboundRange();
+    if (!node.isInteger(compiler)) return info.newUnboundRange();
     HInstruction right = node.right;
     HInstruction left = node.left;
-    if (left.isInteger() && right.isInteger()) {
+    if (left.isInteger(compiler) && right.isInteger(compiler)) {
       return ranges[left] & ranges[right];
     }
 
@@ -811,9 +813,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
 
-    if (left.isInteger()) {
+    if (left.isInteger(compiler)) {
       return tryComputeRange(left);
-    } else if (right.isInteger()) {
+    } else if (right.isInteger(compiler)) {
       return tryComputeRange(right);
     }
     return info.newUnboundRange();
@@ -828,7 +830,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction createRangeConversion(HInstruction cursor,
                                      HInstruction instruction) {
-    HRangeConversion newInstruction = new HRangeConversion(instruction);
+    JavaScriptBackend backend = compiler.backend;
+    HRangeConversion newInstruction =
+        new HRangeConversion(instruction, backend.intType);
     conversions.add(newInstruction);
     cursor.block.addBefore(cursor, newInstruction);
     // Update the users of the instruction dominated by [cursor] to
@@ -878,8 +882,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (condition is HIdentity) return info.newUnboundRange();
     HInstruction right = condition.right;
     HInstruction left = condition.left;
-    if (!left.isInteger()) return info.newUnboundRange();
-    if (!right.isInteger()) return info.newUnboundRange();
+    if (!left.isInteger(compiler)) return info.newUnboundRange();
+    if (!right.isInteger(compiler)) return info.newUnboundRange();
 
     Range rightRange = ranges[right];
     Range leftRange = ranges[left];
@@ -939,9 +943,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
  * Tries to find a range for the update instruction of a loop phi.
  */
 class LoopUpdateRecognizer extends HBaseVisitor {
+  final Compiler compiler;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;
-  LoopUpdateRecognizer(this.ranges, this.info);
+  LoopUpdateRecognizer(this.compiler, this.ranges, this.info);
 
   Range run(HPhi loopPhi) {
     // Create a marker range for the loop phi, so that if the update
@@ -966,7 +971,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
   }
 
   Range visit(HInstruction instruction) {
-    if (!instruction.isInteger()) return null;
+    if (!instruction.isInteger(compiler)) return null;
     if (ranges[instruction] != null) return ranges[instruction];
     return instruction.accept(this);
   }

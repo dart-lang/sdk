@@ -62,6 +62,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'WindowTimers': '_WindowTimers',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
+    'XMLHttpRequestEventTarget': 'HttpRequestEventTarget',
 }, **typed_array_renames))
 
 # Interfaces that are suppressed, but need to still exist for Dartium and to

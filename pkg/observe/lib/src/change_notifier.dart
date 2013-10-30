@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.change_notifier;
+
+import 'dart:async';
+import 'dart:collection' show UnmodifiableListView;
+import 'package:observe/observe.dart';
+import 'package:observe/src/observable.dart' show notifyPropertyChangeHelper;
 
 /**
  * Mixin and base class for implementing an [Observable] object that performs
@@ -19,7 +24,7 @@ abstract class ChangeNotifier implements Observable {
   Stream<List<ChangeRecord>> get changes {
     if (_changes == null) {
       _changes = new StreamController.broadcast(sync: true,
-          onListen: _observed, onCancel: _unobserved);
+          onListen: observed, onCancel: unobserved);
     }
     return _changes.stream;
   }
@@ -29,13 +34,13 @@ abstract class ChangeNotifier implements Observable {
   /**
    * Override this method to be called when the [changes] are first observed.
    */
-  void _observed() {}
+  void observed() {}
 
   /**
    * Override this method to be called when the [changes] are no longer being
    * observed.
    */
-  void _unobserved() {}
+  void unobserved() {}
 
   bool deliverChanges() {
     var records = _records;
@@ -69,7 +74,7 @@ abstract class ChangeNotifier implements Observable {
    *     }
    */
   notifyPropertyChange(Symbol field, Object oldValue, Object newValue)
-      => _notifyPropertyChange(this, field, oldValue, newValue);
+      => notifyPropertyChangeHelper(this, field, oldValue, newValue);
 
   void notifyChange(ChangeRecord record) {
     if (!hasObservers) return;

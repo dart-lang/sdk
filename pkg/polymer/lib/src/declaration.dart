@@ -242,9 +242,13 @@ class PolymerDeclaration extends HtmlElement {
   void publishAttributes(ClassMirror cls, PolymerDeclaration superDecl) {
     // get properties to publish
     if (superDecl != null && superDecl._publish != null) {
+      // Dart note: even though we walk the type hierarchy in
+      // _getPublishedProperties, this will additionally include any names
+      // published via the `attributes` attribute.
       _publish = new Map.from(superDecl._publish);
     }
-    _publish = _getProperties(cls, _publish, (x) => x is PublishedProperty);
+
+    _publish = _getPublishedProperties(cls, _publish);
 
     // merge names from 'attributes' attribute
     var attrs = attributes['attributes'];
@@ -491,12 +495,14 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
 final _objectType = reflectClass(Object);
 
-Map _getProperties(ClassMirror cls, Map props, bool matches(metadata)) {
+Map _getPublishedProperties(ClassMirror cls, Map props) {
+  if (cls == _objectType) return props;
+  props = _getPublishedProperties(cls.superclass, props);
   for (var field in cls.variables.values) {
     if (field.isFinal || field.isStatic || field.isPrivate) continue;
 
     for (var meta in field.metadata) {
-      if (matches(meta.reflectee)) {
+      if (meta.reflectee is PublishedProperty) {
         if (props == null) props = {};
         props[field.simpleName] = field;
         break;
@@ -508,7 +514,7 @@ Map _getProperties(ClassMirror cls, Map props, bool matches(metadata)) {
     if (getter.isStatic || getter.isPrivate) continue;
 
     for (var meta in getter.metadata) {
-      if (matches(meta.reflectee)) {
+      if (meta.reflectee is PublishedProperty) {
         if (_hasSetter(cls, getter)) {
           if (props == null) props = {};
           props[getter.simpleName] = getter;

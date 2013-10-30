@@ -27,19 +27,9 @@ import 'package:path/path.dart' as path;
 /**
  * Run this from the `lib/_internal/dartdoc` directory.
  */
-main() {
-  mainWithOptions(new Options());
-}
-
-/**
- * We use this to include dartdoc in a single snapshot with dart2js.
- * (They share 90% of the code)
- */
-mainWithOptions(Options options) {
+main(List<String> arguments) {
   // Need this because ArgParser.getUsage doesn't show command invocation.
   final USAGE = 'Usage dartdoc [options] <entrypoint(s)>\n[options] include:';
-
-  final args = options.arguments;
 
   final dartdoc = new Dartdoc();
 
@@ -197,7 +187,7 @@ mainWithOptions(Options options) {
 
   dartdoc.dartdocPath = path.join(libPath, 'lib', '_internal', 'dartdoc');
 
-  if (args.isEmpty) {
+  if (arguments.isEmpty) {
     print('No arguments provided.');
     print(USAGE);
     print(argParser.getUsage());
@@ -206,7 +196,7 @@ mainWithOptions(Options options) {
 
   final entrypoints = <Uri>[];
   try {
-    final option = argParser.parse(args, allowTrailingOptions: true);
+    final option = argParser.parse(arguments, allowTrailingOptions: true);
 
     // This checks to see if the root of all entrypoints is the same.
     // If it is not, then we display a warning, as package imports might fail.

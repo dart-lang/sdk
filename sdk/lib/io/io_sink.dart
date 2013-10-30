@@ -38,7 +38,7 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
   /**
    * Writes an error to the consumer.
    */
-  void addError(error);
+  void addError(error, [StackTrace stackTrace]);
 
   /**
    * Adds all elements of the given [stream] to `this`.
@@ -76,8 +76,8 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     _controller.add(data);
   }
 
-  void addError(error) {
-    _controller.addError(error);
+  void addError(error, [StackTrace stackTrace]) {
+    _controller.addError(error, stackTrace);
   }
 
   Future addStream(Stream<T> stream) {

@@ -2,7 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.observable;
+
+import 'dart:async';
+import 'dart:collection';
+
+// Note: ObservableProperty is in this list only for the unusual use case of
+// dart2js without deploy tool. The deploy tool (see "transformer.dart") will
+// add the @reflectable annotation, which makes it work with Polymer's
+// @published.
+@MirrorsUsed(metaTargets: const [Reflectable, ObservableProperty],
+    override: 'observe.src.observable')
+import 'dart:mirrors';
+
+import 'package:observe/observe.dart';
+
+// Note: this is an internal library so we can import it from tests.
+// TODO(jmesserly): ideally we could import this with a prefix, but it caused
+// strange problems on the VM when I tested out the dirty-checking example
+// above.
+import 'dirty_check.dart';
 
 /**
  * Represents an object with observable properties. This is used by data in
@@ -31,8 +50,6 @@ abstract class Observable {
 
   Map<Symbol, Object> _values;
   List<ChangeRecord> _records;
-
-  static final _objectType = reflectClass(Object);
 
   /**
    * The stream of change records to this object. Records will be delivered
@@ -64,7 +81,7 @@ abstract class Observable {
     // Note: we scan for @observable regardless of whether the base type
     // actually includes this mixin. While perhaps too inclusive, it lets us
     // avoid complex logic that walks "with" and "implements" clauses.
-    for (var type = mirror.type; type != _objectType; type = type.superclass) {
+    for (var type = mirror.type; type != objectType; type = type.superclass) {
       for (var field in type.variables.values) {
         if (field.isFinal || field.isStatic || field.isPrivate) continue;
 
@@ -148,7 +165,7 @@ abstract class Observable {
    * For convenience this returns [newValue].
    */
   notifyPropertyChange(Symbol field, Object oldValue, Object newValue)
-      => _notifyPropertyChange(this, field, oldValue, newValue);
+      => notifyPropertyChangeHelper(this, field, oldValue, newValue);
 
   /**
    * Notify observers of a change.
@@ -188,7 +205,8 @@ void notifyProperty(Observable target, Symbol name) {
 
 // TODO(jmesserly): remove the instance method and make this top-level method
 // public instead?
-_notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
+// NOTE: this is not exported publically.
+notifyPropertyChangeHelper(Observable obj, Symbol field, Object oldValue,
     Object newValue) {
 
   if (obj.hasObservers && oldValue != newValue) {
@@ -196,3 +214,6 @@ _notifyPropertyChange(Observable obj, Symbol field, Object oldValue,
   }
   return newValue;
 }
+
+// NOTE: this is not exported publically.
+final objectType = reflectClass(Object);

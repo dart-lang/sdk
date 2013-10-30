@@ -12,7 +12,7 @@ int _x = 5;
 int get topGetter => _x;
 void set topSetter(x) { _x = x; }
 
-class AbstractC {
+abstract class AbstractC {
 
   AbstractC();
 
@@ -21,7 +21,7 @@ class AbstractC {
   set priv(value);
 }
 
-class C extends AbstractC {
+abstract class C extends AbstractC {
 
   static foo() {}
 

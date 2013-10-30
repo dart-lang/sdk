@@ -13,9 +13,8 @@ import '../log.dart' as log;
 class GetCommand extends PubCommand {
   String get description => "Get the current package's dependencies.";
   String get usage => "pub get";
-  final aliases = const ["install"];
-
-  bool get isOffline => commandOptions['offline'];
+  List<String> get aliases => const ["install"];
+  bool get isOffline => commandOptions["offline"];
 
   GetCommand() {
     commandParser.addFlag('offline',

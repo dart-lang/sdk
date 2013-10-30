@@ -43,7 +43,7 @@
  *       context['console'].callMethod('log', [message]);
  *     }
  *
- * ## Proxying and Automatic Conversion
+ * ## Proxying and automatic conversion
  * 
  * When setting properties on a JsObject or passing arguments to a Javascript
  * method or function, Dart objects are automatically converted or proxied to
@@ -83,6 +83,7 @@
  */
 library dart.js;
 
+import 'dart:collection' show ListMixin;
 import 'dart:nativewrappers';
 
 JsObject _cachedContext;
@@ -257,6 +258,101 @@ class JsFunction extends JsObject {
   _applyDebuggerOnly(List args, {thisArg}) native "JsFunction_applyDebuggerOnly";
 
   static JsFunction _withThis(Function f) native "JsFunction_withThis";
+}
+
+/**
+ * A [List] proxying a JavaScript Array.
+ */
+class JsArray<E> extends JsObject with ListMixin<E> {
+
+  factory JsArray() => _newJsArray();
+
+  static JsArray _newJsArray() native "JsArray_newJsArray";
+
+  factory JsArray.from(Iterable<E> other) => _newJsArrayFromSafeList(new List.from(other));
+
+  static JsArray _newJsArrayFromSafeList(List list) native "JsArray_newJsArrayFromSafeList";
+
+  _checkIndex(int index, {bool insert: false}) {
+    int length = insert ? this.length + 1 : this.length;
+    if (index is int && (index < 0 || index >= length)) {
+      throw new RangeError.range(index, 0, length);
+    }
+  }
+
+  _checkRange(int start, int end) {
+    int cachedLength = this.length;
+    if (start < 0 || start > cachedLength) {
+      throw new RangeError.range(start, 0, cachedLength);
+    }
+    if (end < start || end > cachedLength) {
+      throw new RangeError.range(end, start, cachedLength);
+    }
+  }
+
+  // Methods required by ListMixin
+
+  E operator [](index) {
+    if (index is int) {
+      _checkIndex(index);
+    }
+    return super[index];
+  }
+
+  void operator []=(index, E value) {
+    if(index is int) {
+      _checkIndex(index);
+    }
+    super[index] = value;
+  }
+
+  int get length native "JsArray_length";
+
+  void set length(int length) { super['length'] = length; }
+
+  // Methods overriden for better performance
+
+  void add(E value) {
+    callMethod('push', [value]);
+  }
+
+  void addAll(Iterable<E> iterable) {
+    // TODO(jacobr): this can be optimized slightly.
+    callMethod('push', new List.from(iterable));
+  }
+
+  void insert(int index, E element) {
+    _checkIndex(index, insert:true);
+    callMethod('splice', [index, 0, element]);
+  }
+
+  E removeAt(int index) {
+    _checkIndex(index);
+    return callMethod('splice', [index, 1])[0];
+  }
+
+  E removeLast() {
+    if (length == 0) throw new RangeError(-1);
+    return callMethod('pop');
+  }
+
+  void removeRange(int start, int end) {
+    _checkRange(start, end);
+    callMethod('splice', [start, end - start]);
+  }
+
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _checkRange(start, end);
+    int length = end - start;
+    if (length == 0) return;
+    if (skipCount < 0) throw new ArgumentError(skipCount);
+    var args = [start, length]..addAll(iterable.skip(skipCount).take(length));
+    callMethod('splice', args);
+  }
+
+  void sort([int compare(E a, E b)]) {
+    callMethod('sort', [compare]);
+  }
 }
 
 /**

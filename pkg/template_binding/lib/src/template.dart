@@ -8,7 +8,7 @@ part of template_binding;
 class TemplateBindExtension extends _ElementExtension {
   var _model;
   BindingDelegate _bindingDelegate;
-  _TemplateIterator _templateIterator;
+  _TemplateIterator _iterator;
   bool _scheduled = false;
 
   Element _templateInstanceRef;
@@ -17,22 +17,86 @@ class TemplateBindExtension extends _ElementExtension {
   DocumentFragment _content;
   bool _templateIsDecorated;
 
+  var _bindingMap;
+
   TemplateBindExtension._(Element node) : super(node);
 
   Element get _node => super._node;
 
+  TemplateBindExtension get _self => super._node is TemplateBindExtension
+      ? _node : this;
+
   NodeBinding bind(String name, model, [String path]) {
+    path = path != null ? path : '';
+
+    if (_iterator == null) {
+      // TODO(jmesserly): since there's only one iterator, we could just
+      // inline it into this object.
+      _iterator = new _TemplateIterator(this);
+    }
+
+    // Dart note: we return _TemplateBinding instead of _iterator.
+    // See comment on _TemplateBinding class.
     switch (name) {
       case 'bind':
+        _iterator..hasBind = true
+            ..bindModel = model
+            ..bindPath = path;
+        _scheduleIterator();
+        return bindings[name] = new _TemplateBinding(this, name, model, path);
       case 'repeat':
+        _iterator..hasRepeat = true
+            ..repeatModel = model
+            ..repeatPath = path;
+        _scheduleIterator();
+        return bindings[name] = new _TemplateBinding(this, name, model, path);
       case 'if':
-        _self.unbind(name);
-        if (_templateIterator == null) {
-          _templateIterator = new _TemplateIterator(_node);
-        }
+        _iterator..hasIf = true
+            ..ifModel = model
+            ..ifPath = path;
+        _scheduleIterator();
         return bindings[name] = new _TemplateBinding(this, name, model, path);
       default:
         return super.bind(name, model, path);
+    }
+  }
+
+  void unbind(String name) {
+    switch (name) {
+      case 'bind':
+        if (_iterator == null) return;
+        _iterator..hasBind = false
+            ..bindModel = null
+            ..bindPath = null;
+        _scheduleIterator();
+        bindings.remove(name);
+        return;
+      case 'repeat':
+        if (_iterator == null) return;
+        _iterator..hasRepeat = false
+            ..repeatModel = null
+            ..repeatPath = null;
+        _scheduleIterator();
+        bindings.remove(name);
+        return;
+      case 'if':
+        if (_iterator == null) return;
+        _iterator..hasIf = false
+            ..ifModel = null
+            ..ifPath = null;
+        _scheduleIterator();
+        bindings.remove(name);
+        return;
+      default:
+        super.unbind(name);
+        return;
+    }
+  }
+
+  void _scheduleIterator() {
+    if (!_iterator.depsChanging) {
+      _iterator.depsChanging = true;
+      scheduleMicrotask(_iterator.resolve);
     }
   }
 
@@ -40,11 +104,28 @@ class TemplateBindExtension extends _ElementExtension {
    * Creates an instance of the template, using the provided model and optional
    * binding delegate.
    */
-  DocumentFragment createInstance([model, BindingDelegate delegate]) {
-    var instance = _createDeepCloneAndDecorateTemplates(
-        templateBind(ref).content, delegate);
+  DocumentFragment createInstance([model, BindingDelegate delegate,
+      List<NodeBinding> bound]) {
+    var ref = templateBind(this.ref);
+    var content = ref.content;
+    // Dart note: we store _bindingMap on the TemplateBindExtension instead of
+    // the "content" because we already have an expando for it.
+    var map = ref._bindingMap;
+    if (map == null) {
+      // TODO(rafaelw): Setup a MutationObserver on content to detect
+      // when the instanceMap is invalid.
+      map = new _InstanceBindingMap(content, delegate);
+      ref._bindingMap = map;
+    }
 
-    _addBindings(instance, model, delegate);
+    var instance = map.hasSubTemplate
+        ? _deepCloneIgnoreTemplateContent(content)
+        : content.clone(true);
+
+    _addMapBindings(instance, map, model, delegate, bound);
+    // TODO(rafaelw): We can do this more lazily, but setting a sentinel
+    // in the parent of the template element, and creating it when it's
+    // asked for by walking back to find the iterating template.
     _addTemplateInstanceRecord(instance, model);
     return instance;
   }
@@ -55,6 +136,16 @@ class TemplateBindExtension extends _ElementExtension {
   void set model(value) {
     _model = value;
     _ensureSetModelScheduled();
+  }
+
+  static Node _deepCloneIgnoreTemplateContent(Node node) {
+    var clone = node.clone(false); // Shallow clone.
+    if (isSemanticTemplate(clone)) return clone;
+
+    for (var c = node.firstChild; c != null; c = c.nextNode) {
+      clone.append(_deepCloneIgnoreTemplateContent(c));
+    }
+    return clone;
   }
 
   /**
@@ -138,7 +229,7 @@ class TemplateBindExtension extends _ElementExtension {
 
     if (!isNative && _isAttributeTemplate(_node)) {
       if (instanceRef != null) {
-        // TODO(jmesserly): this is just an assert in MDV.
+        // TODO(jmesserly): this is just an assert in TemplateBinding.
         throw new ArgumentError('instanceRef should not be supplied for '
             'attribute templates.');
       }
@@ -269,48 +360,64 @@ class TemplateBindExtension extends _ElementExtension {
 
   static bool _initStyles;
 
+  // This is to replicate template_element.css
+  // TODO(jmesserly): move this to an opt-in CSS file?
   static void _injectStylesheet() {
     if (_initStyles == true) return;
     _initStyles = true;
 
-    var style = new StyleElement();
-    style.text = r'''
-template,
-thead[template],
-tbody[template],
-tfoot[template],
-th[template],
-tr[template],
-td[template],
-caption[template],
-colgroup[template],
-col[template],
-option[template] {
-  display: none;
-}''';
+    var style = new StyleElement()
+        ..text = '$_allTemplatesSelectors { display: none; }';
     document.head.append(style);
   }
 }
 
-class _TemplateBinding extends NodeBinding {
+// TODO(jmesserly): https://github.com/polymer/templatebinding uses
+// TemplateIterator as the binding. This is a nice performance optimization,
+// however it means it doesn't share any of the reflective APIs with
+// NodeBinding: https://github.com/Polymer/TemplateBinding/issues/147
+class _TemplateBinding implements NodeBinding {
   TemplateBindExtension _ext;
+  Object _model;
+  final String property;
+  final String path;
 
-  // TODO(jmesserly): MDV uses TemplateIterator as the node, see:
-  // https://github.com/Polymer/mdv/issues/127
-  _TemplateBinding(ext, name, model, path)
-      : _ext = ext, super(ext._node, name, model, path) {
-    _ext._templateIterator.inputs.bind(property, model, this.path);
+  Node get node => _ext._node;
+
+  get model => _model;
+
+  bool get closed => _ext == null;
+
+  get value => _observer.value;
+
+  set value(newValue) {
+    _observer.value = newValue;
   }
 
-  // These are no-ops because we don't use the underlying PathObserver.
-  void _observePath() {}
+  // No need to cache this since we only have it to support get/set value.
+  get _observer {
+    if ((_model is PathObserver || _model is CompoundPathObserver) &&
+        path == 'value') {
+      return _model;
+    }
+    return new PathObserver(_model, path);
+  }
+
+  _TemplateBinding(this._ext, this.property, this._model, this.path);
+
   void valueChanged(newValue) {}
+
+  sanitizeBoundValue(value) => value == null ? '' : '$value';
 
   void close() {
     if (closed) return;
-    var templateIterator = _ext._templateIterator;
-    if (templateIterator != null) templateIterator.inputs.unbind(property);
-    super.close();
+
+    // TODO(jmesserly): unlike normal NodeBinding.close methods this will remove
+    // the binding from _node.bindings. Is that okay?
+    _ext.unbind(property);
+
+    _model = null;
+    _ext = null;
   }
 }
 

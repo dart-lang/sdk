@@ -69,7 +69,7 @@ def main():
   # Execute Docgen.dart on the SDK.
   ExecuteCommand([DART, '--checked', '--package-root=' + PACKAGE_ROOT, 
       abspath(join(dirname(__file__), 'docgen.dart')), 
-      '--parse-sdk'])
+      '--parse-sdk', '--json'])
   
   # Use SVN Revision to get the revision number.
   revision = utils.GetSVNRevision()

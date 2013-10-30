@@ -208,11 +208,19 @@ class JavaScriptBackend extends Backend {
   Element mapTypeToInterceptor;
 
   HType stringType;
+  HType doubleType;
+  HType intType;
+  HType numType;
+  HType boolType;
   HType indexablePrimitiveType;
   HType readableArrayType;
   HType mutableArrayType;
   HType fixedArrayType;
   HType extendableArrayType;
+  HType nonNullType;
+  HType dynamicType;
+  HType nullType = const HBoundedType(const TypeMask.empty());
+  HType emptyType = const HBoundedType(const TypeMask.nonNullEmpty());
 
   // TODO(9577): Make it so that these are not needed when there are no native
   // classes.
@@ -419,7 +427,6 @@ class JavaScriptBackend extends Backend {
 
   bool invokedReflectively(Element element) {
     if (element.isParameter() || element.isFieldParameter()) {
-      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return true;
       if (invokedReflectively(element.enclosingElement)) return true;
     }
 
@@ -428,7 +435,6 @@ class JavaScriptBackend extends Backend {
           && (element.modifiers.isFinal() || element.modifiers.isConst())) {
         return false;
       }
-      if (hasInsufficientMirrorsUsed && compiler.enabledInvokeOn) return true;
     }
 
     return isNeededForReflection(element.declaration);
@@ -615,6 +621,14 @@ class JavaScriptBackend extends Backend {
 
     stringType = new HBoundedType(
         new TypeMask.nonNullExact(jsStringClass));
+    doubleType = new HBoundedType(
+        new TypeMask.nonNullExact(jsDoubleClass));
+    intType = new HBoundedType(
+        new TypeMask.nonNullExact(jsIntClass));
+    numType = new HBoundedType(
+        new TypeMask.nonNullSubclass(jsNumberClass));
+    boolType = new HBoundedType(
+        new TypeMask.nonNullExact(jsBoolClass));
     indexablePrimitiveType = new HBoundedType(
         new TypeMask.nonNullSubtype(jsIndexableClass));
     readableArrayType = new HBoundedType(
@@ -625,6 +639,10 @@ class JavaScriptBackend extends Backend {
         new TypeMask.nonNullExact(jsFixedArrayClass));
     extendableArrayType = new HBoundedType(
         new TypeMask.nonNullExact(jsExtendableArrayClass));
+    nonNullType = new HBoundedType(
+        compiler.typesTask.dynamicType.nonNullable());
+    dynamicType = new HBoundedType(
+        compiler.typesTask.dynamicType);
 
     typeVariableClass = compiler.findHelper('TypeVariable');
   }

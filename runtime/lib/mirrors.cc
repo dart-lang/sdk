@@ -1425,11 +1425,9 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 3) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
-  ASSERT(!closure.IsNull() && closure.IsCallable(NULL, NULL));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(2));
+DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(1));
 
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
@@ -1530,9 +1528,10 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
 
   Function& function = Function::Handle();
   bool callable = closure.IsCallable(&function, NULL);
-  ASSERT(callable);
-
-  return CreateMethodMirror(function, Instance::null_instance());
+  if (callable) {
+    return CreateMethodMirror(function, Instance::null_instance());
+  }
+  return Instance::null();
 }
 
 

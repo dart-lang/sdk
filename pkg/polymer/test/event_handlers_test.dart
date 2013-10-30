@@ -7,10 +7,11 @@ library polymer.test.event_handlers_test;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'package:template_binding/template_binding.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 
 @CustomTag('x-test')
 class XTest extends PolymerElement {
@@ -19,12 +20,9 @@ class XTest extends PolymerElement {
   String _lastMessage;
   List list1 = [];
   List list2 = [];
-  final _ready = new Completer();
   Future _onTestDone;
 
-  XTest.created() : super.created() {
-    _onTestDone = _ready.future.then(_runTest);
-  }
+  XTest.created() : super.created();
 
   ready() {
     super.ready();
@@ -33,7 +31,8 @@ class XTest extends PolymerElement {
       list1.add(model);
       list2.add(model);
     }
-    _ready.complete();
+
+    _onTestDone = new Future.sync(_runTests);
   }
 
   hostTapAction(event, detail, node) => _logEvent(event);
@@ -57,7 +56,7 @@ class XTest extends PolymerElement {
     _lastMessage = message;
   }
 
-  _runTest(_) {
+  Future _runTests() {
     fire('tap', toNode: $['div']);
     expect(_testCount, 2, reason: 'event heard at div and host');
     expect(_lastEvent, 'tap', reason: 'tap handled');
@@ -70,6 +69,7 @@ class XTest extends PolymerElement {
     fire('scroll', toNode: $['list'], canBubble: false);
     expect(_testCount, 5, reason: 'event heard by list');
     expect(_lastEvent, 'scroll', reason: 'scroll handled');
+
     return onMutation($['list']).then((_) {
       var l1 = $['list'].querySelectorAll('.list1')[4];
       fire('tap', toNode: l1, canBubble: false);
@@ -103,6 +103,9 @@ class MiniModel extends Observable {
 }
 
 main() {
+  Logger.root..level = Level.FINE
+      ..onRecord.listen((m) => print('${m.loggerName} ${m.message}'));
+
   initPolymer();
 }
 
@@ -110,6 +113,8 @@ main() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
-  test('events handled', () => (query('x-test') as XTest)._onTestDone);
+  test('events handled', () {
+    XTest test = query('x-test');
+    expect(test._onTestDone, isNotNull, reason: 'ready was called');
+  });
 }
-

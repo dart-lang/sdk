@@ -22,6 +22,9 @@ class Expectation {
   static Expectation MISSING_RUNTIME_ERROR = byName('MissingRuntimeError');
   static Expectation MISSING_COMPILETIME_ERROR =
       byName('MissingCompileTimeError');
+  static Expectation STATIC_WARNING = byName('StaticWarning');
+  static Expectation MISSING_STATIC_WARNING =
+      byName('MissingStaticWarning');
 
   // "meta expectations"
   static Expectation OK = byName('Ok');
@@ -60,6 +63,9 @@ class Expectation {
       build("MissingRuntimeError", group: fail);
       build("CompileTimeError", group: fail);
       build("RuntimeError", group: fail);
+
+      build("MissingStaticWarning", group: fail);
+      build("StaticWarning", group: fail);
 
       build("Skip", isMetaExpectation: true);
       build("SkipByDesign", isMetaExpectation: true);

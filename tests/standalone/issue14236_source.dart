@@ -9,9 +9,9 @@
 // test.
 
 library test.issue14236;
-import 'dart:isolate';
+import "dart:isolate";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart"; 
+import "package:async_helper/async_helper.dart";
 
 /*
 test(SendPort replyTo) {

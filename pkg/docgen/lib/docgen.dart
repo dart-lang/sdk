@@ -22,6 +22,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart';
 
 import 'dart2yaml.dart';
 import 'src/io.dart';
@@ -38,8 +39,8 @@ var logger = new Logger('Docgen');
 const String USAGE = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
 
 
-List<String> validAnnotations = const ['metadata.Experimental', 
-    'metadata.DomName', 'metadata.Deprecated', 'metadata.Unstable', 
+List<String> validAnnotations = const ['metadata.Experimental',
+    'metadata.DomName', 'metadata.Deprecated', 'metadata.Unstable',
     'meta.deprecated', 'metadata.SupportedBrowser'];
 
 /// Current library being documented to be used for comment links.
@@ -65,9 +66,9 @@ Map<String, Indexable> entityMap = new Map<String, Indexable>();
 /// This is set from the command line arguments flag --include-private
 bool _includePrivate = false;
 
-// TODO(janicejl): Make MDN content generic or pluggable. Maybe move 
+// TODO(janicejl): Make MDN content generic or pluggable. Maybe move
 // MDN-specific code to its own library that is imported into the default impl?
-/// Map of all the comments for dom elements from MDN. 
+/// Map of all the comments for dom elements from MDN.
 Map _mdn;
 
 /**
@@ -109,26 +110,50 @@ Future<bool> docgen(List<String> files, {String packageRoot,
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
       }
-      _documentLibraries(mirrorSystem.libraries.values,includeSdk: includeSdk,
-          outputToYaml: outputToYaml, append: append, parseSdk: parseSdk, 
+      var librariesWeAskedFor = _listLibraries(files);
+      var librariesWeGot = mirrorSystem.libraries.values.where((each)
+          => each.uri.scheme == 'file');
+      var sdkLibraries = mirrorSystem.libraries.values.where(
+          (each) => each.uri.scheme == 'dart');
+      var librariesWeGotByPath = new Map.fromIterables(
+          librariesWeGot.map((each) => each.uri.toFilePath()),
+          librariesWeGot);
+      var librariesToDocument = librariesWeAskedFor.map((each) =>
+        librariesWeGotByPath
+            .putIfAbsent(each, () => throw "Missing library $each")).toList();
+      librariesToDocument.addAll((includeSdk || parseSdk) ? sdkLibraries : []);
+      _documentLibraries(librariesToDocument, includeSdk: includeSdk,
+          outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
           introduction: introduction);
-
       return true;
     });
 }
 
-List<String> _listLibraries(List<String> args) {
-  if (args.length != 1) throw new UnsupportedError(USAGE);
-  var libraries = new List<String>();
-  var type = FileSystemEntity.typeSync(args[0]);
+/// For a [library] and its corresponding [mirror] that we believe come
+/// from a package (because it has a file
+/// URI) look for the package name and set it on [library].
+_findPackage(Library library, LibraryMirror mirror) {
+    if (mirror.uri.scheme != 'file') return;
+    var filePath = mirror.uri.toFilePath();
+    // We assume that we are documenting only libraries under package/lib
+    var rootdir = path.dirname((path.dirname(filePath)));
+    var pubspec = path.join(rootdir, 'pubspec.yaml');
+    library.packageName = _packageName(pubspec);
+}
 
-  if (type == FileSystemEntityType.FILE) {
-    if (args[0].endsWith('.dart')) {
-      libraries.add(path.absolute(args[0]));
-      logger.info('Added to libraries: ${libraries.last}');
+List<String> _listLibraries(List<String> args) {
+  var libraries = new List<String>();
+  for (var arg in args) {
+    var type = FileSystemEntity.typeSync(arg);
+
+    if (type == FileSystemEntityType.FILE) {
+      if (arg.endsWith('.dart')) {
+        libraries.add(path.absolute(arg));
+        logger.info('Added to libraries: ${libraries.last}');
+      }
+    } else {
+      libraries.addAll(_listDartFromDir(arg));
     }
-  } else {
-    libraries.addAll(_listDartFromDir(args[0]));
   }
   return libraries;
 }
@@ -141,15 +166,18 @@ List<String> _listDartFromDir(String args) {
   var files = listDir(args, recursive: true).where((f) => f.endsWith('.dart') &&
       (!f.contains('${path.separator}packages') ||
           args.contains('${path.separator}packages'))).toList();
-  
-  files.forEach((f) {
-    // Only add the file if it does not contain 'part of' 
-    // TODO(janicejl): Remove when Issue(12406) is resolved.
-    var contents = new File(f).readAsStringSync();
-    if (!(contents.contains(new RegExp('\npart of ')) || 
-        contents.startsWith(new RegExp('part of ')))) {
-      libraries.add(f);
-      logger.info('Added to libraries: $f');
+
+  files.forEach((String f) {
+    // Only include libraries at the top level of "lib"
+    if (path.basename(path.dirname(f)) == 'lib') {
+      // Only add the file if it does not contain 'part of'
+      // TODO(janicejl): Remove when Issue(12406) is resolved.
+      var contents = new File(f).readAsStringSync();
+      if (!(contents.contains(new RegExp('\npart of ')) ||
+          contents.startsWith(new RegExp('part of ')))) {
+        libraries.add(f);
+        logger.info('Added to libraries: $f');
+      }
     }
   });
   return libraries;
@@ -164,6 +192,17 @@ String _findPackageRoot(String directory) {
     packageRoot = path.join(path.dirname(packageRoot), 'packages');
   }
   return packageRoot;
+}
+
+/**
+ * Read a pubspec and return the library name.
+ */
+String _packageName(String pubspecName) {
+  File pubspec = new File(pubspecName);
+  if (!pubspec.existsSync()) return '';
+  var contents = pubspec.readAsStringSync();
+  var spec = loadYaml(contents);
+  return spec["name"];
 }
 
 List<String> _listSdk() {
@@ -200,7 +239,10 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       String libraryRoot, {String packageRoot}) {
   SourceFileProvider provider = new CompilerSourceFileProvider();
   api.DiagnosticHandler diagnosticHandler =
-        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+      (new FormattingDiagnosticHandler(provider)
+        ..showHints = false
+        ..showWarnings = false)
+          .diagnosticHandler;
   Uri libraryUri = new Uri(scheme: 'file', path: appendSlash(libraryRoot));
   Uri packageUri = null;
   if (packageRoot != null) {
@@ -227,7 +269,7 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
  * Creates documentation for filtered libraries.
  */
 void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
-    bool outputToYaml: true, bool append: false, bool parseSdk: false, 
+    bool outputToYaml: true, bool append: false, bool parseSdk: false,
     String introduction: ''}) {
   libs.forEach((lib) {
     // Files belonging to the SDK have a uri that begins with 'dart:'.
@@ -244,8 +286,8 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   if (parseSdk) entityMap['dart.core.Object'].subclasses.clear();
 
   var filteredEntities = entityMap.values.where(_isVisible);
-  
-  // Outputs a JSON file with all libraries and their preview comments. 
+
+  // Outputs a JSON file with all libraries and their preview comments.
   // This will help the viewer know what libraries are available to read in.
   var libraryMap;
   if (append) {
@@ -262,19 +304,19 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
       var intro = libraryMap['introduction'];
       if (intro.isNotEmpty) intro += '<br/><br/>';
       intro += markdown.markdownToHtml(
-          new File(introduction).readAsStringSync(), 
+          new File(introduction).readAsStringSync(),
               linkResolver: linkResolver, inlineSyntaxes: markdownSyntaxes);
       libraryMap['introduction'] = intro;
     }
     outputToYaml = libraryMap['filetype'] == 'yaml';
   } else {
     libraryMap = {
-      'libraries' : filteredEntities.where((e) => 
+      'libraries' : filteredEntities.where((e) =>
           e is Library).map((e) => e.previewMap).toList(),
-      'introduction' : introduction == '' ? 
+      'introduction' : introduction == '' ?
           '' : markdown.markdownToHtml(new File(introduction)
-              .readAsStringSync(), linkResolver: linkResolver, 
-                  inlineSyntaxes: markdownSyntaxes), 
+              .readAsStringSync(), linkResolver: linkResolver,
+                  inlineSyntaxes: markdownSyntaxes),
       'filetype' : outputToYaml ? 'yaml' : 'json'
     };
   }
@@ -285,9 +327,18 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   });
   // Outputs all the qualified names documented with their type.
   // This will help generate search results.
-  _writeToFile(filteredEntities.map((e) => 
-      '${e.qualifiedName} ${e.typeName}').join('\n'),
+  _writeToFile(filteredEntities.map((e) =>
+      '${e.qualifiedName} ${e.typeName}').join('\n') + '\n',
       'index.txt', append: append);
+  var index = new Map.fromIterables(
+      filteredEntities.map((e) => e.qualifiedName),
+      filteredEntities.map((e) => e.typeName));
+  if (append) {
+    var previousIndex =
+        JSON.decode(new File('docs/index.json').readAsStringSync());
+    index.addAll(previousIndex);
+  }
+  _writeToFile(JSON.encode(index), 'index.json');
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
@@ -296,6 +347,7 @@ Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
       _variables(library.variables),
       _methods(library.functions),
       _classes(library.classes), _isHidden(library));
+  _findPackage(result, library);
   logger.fine('Generated library for ${result.name}');
   return result;
 }
@@ -320,7 +372,7 @@ bool _isLibraryPrivate(LibraryMirror mirror) {
   var sdkLibrary = LIBRARIES[mirror.simpleName];
   if (sdkLibrary != null) {
     return !sdkLibrary.documented;
-  } else if (mirror.simpleName.startsWith('_') || 
+  } else if (mirror.simpleName.startsWith('_') ||
       mirror.simpleName.contains('._')) {
     return true;
   }
@@ -392,12 +444,12 @@ String _commentToHtml(DeclarationMirror mirror) {
 }
 
 /**
- * Generates MDN comments from database.json. 
+ * Generates MDN comments from database.json.
  */
 void _mdnComment(Indexable item) {
-  //Check if MDN is loaded. 
+  //Check if MDN is loaded.
   if (_mdn == null) {
-    // Reading in MDN related json file. 
+    // Reading in MDN related json file.
     var mdnDir = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
         path.absolute(new Options().script))))), 'utils', 'apidoc', 'mdn');
     _mdn = JSON.decode(new File(path.join(mdnDir, 'database.json'))
@@ -414,12 +466,12 @@ void _mdnComment(Indexable item) {
 }
 
 /**
- * Generates the MDN Comment for variables and method DOM elements. 
+ * Generates the MDN Comment for variables and method DOM elements.
  */
 String _mdnMemberComment(String type, String member) {
   var mdnType = _mdn[type];
   if (mdnType == null) return '';
-  var mdnMember = mdnType['members'].firstWhere((e) => e['name'] == member, 
+  var mdnMember = mdnType['members'].firstWhere((e) => e['name'] == member,
       orElse: () => null);
   if (mdnMember == null) return '';
   if (mdnMember['help'] == null || mdnMember['help'] == '') return '';
@@ -428,7 +480,7 @@ String _mdnMemberComment(String type, String member) {
 }
 
 /**
- * Generates the MDN Comment for class DOM elements. 
+ * Generates the MDN Comment for class DOM elements.
  */
 String _mdnTypeComment(String type) {
   var mdnType = _mdn[type];
@@ -627,10 +679,10 @@ class Indexable {
 
   Indexable(this.name, this.comment, this.qualifiedName, this.isPrivate,
       this.owner);
-  
+
   /// The type of this member to be used in index.txt.
   String get typeName => '';
-  
+
   /**
    * Creates a [Map] with this [Indexable]'s name and a preview comment.
    */
@@ -658,6 +710,10 @@ class Library extends Indexable {
   /// Classes defined within the library
   ClassGroup classes;
 
+  String packageName = '';
+
+  Map get previewMap => super.previewMap..['packageName'] = packageName;
+
   Library(String name, String comment, this.variables,
       this.functions, this.classes, bool isPrivate) : super(name, comment,
           name, isPrivate, "") {}
@@ -669,9 +725,10 @@ class Library extends Indexable {
     'comment': comment,
     'variables': recurseMap(variables),
     'functions': functions.toMap(),
-    'classes': classes.toMap()
+    'classes': classes.toMap(),
+    'packageName': packageName,
   };
-  
+
   String get typeName => 'library';
 }
 
@@ -709,13 +766,13 @@ class Class extends Indexable {
 
   Class(String name, this.superclass, String comment, this.interfaces,
       this.variables, this.methods, this.annotations, this.generics,
-      String qualifiedName, bool isPrivate, String owner, this.isAbstract) 
+      String qualifiedName, bool isPrivate, String owner, this.isAbstract)
       : super(name, comment, qualifiedName, isPrivate, owner) {
     _mdnComment(this);
   }
 
   String get typeName => 'class';
-  
+
   /**
    * Returns a list of all the parent classes.
    */
@@ -752,12 +809,12 @@ class Class extends Indexable {
       subclasses.add(subclass.qualifiedName);
     }
   }
-  
+
   /**
    * Check if this [Class] is an error or exception.
    */
   bool isError() {
-    if (qualifiedName == 'dart.core.Error' || 
+    if (qualifiedName == 'dart.core.Error' ||
         qualifiedName == 'dart.core.Exception')
       return true;
     for (var interface in interfaces) {
@@ -847,16 +904,16 @@ class ClassGroup {
       }
     } else {
       var clazz = _class(mirror);
-  
+
       // Adding inherited parent variables and methods.
       clazz.parent().forEach((parent) {
         if (_isVisible(clazz)) {
           parent.addSubclass(clazz);
         }
       });
-  
+
       clazz.ensureComments();
-  
+
       if (clazz.isError()) {
         errors[mirror.simpleName] = clazz;
       } else if (mirror.isClass) {
@@ -873,7 +930,7 @@ class ClassGroup {
   bool containsKey(String name) {
     return classes.containsKey(name) || errors.containsKey(name);
   }
-  
+
   Map toMap() => {
     'class': classes.values.where(_isVisible)
       .map((e) => e.previewMap).toList(),
@@ -896,7 +953,7 @@ class Typedef extends Indexable {
 
   Typedef(String name, this.returnType, String comment, this.generics,
       this.parameters, this.annotations,
-      String qualifiedName, bool isPrivate, String owner) 
+      String qualifiedName, bool isPrivate, String owner)
         : super(name, comment, qualifiedName, isPrivate, owner);
 
   Map toMap() => {
@@ -908,7 +965,7 @@ class Typedef extends Indexable {
     'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
-  
+
   String get typeName => 'typedef';
 }
 
@@ -942,7 +999,7 @@ class Variable extends Indexable {
     'type': new List.filled(1, type.toMap()),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
-  
+
   String get typeName => 'property';
 }
 
@@ -972,7 +1029,7 @@ class Method extends Indexable {
   Method(String name, this.isStatic, this.isAbstract, this.isConst,
       this.returnType, String comment, this.parameters, this.annotations,
       String qualifiedName, bool isPrivate, String owner, this.isConstructor,
-      this.isGetter, this.isSetter, this.isOperator) 
+      this.isGetter, this.isSetter, this.isOperator)
         : super(name, comment, qualifiedName, isPrivate, owner) {
     _mdnComment(this);
   }
@@ -1001,7 +1058,7 @@ class Method extends Indexable {
     'parameters': recurseMap(parameters),
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
-  
+
   String get typeName => isConstructor ? 'constructor' :
     isGetter ? 'getter' : isSetter ? 'setter' :
     isOperator ? 'operator' : 'method';

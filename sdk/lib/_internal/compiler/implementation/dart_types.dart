@@ -1121,10 +1121,14 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
       : super(compiler, dynamicType, voidType);
 
   bool isMoreSpecific(DartType t, DartType s) {
-    if (identical(t, s) ||
-        t.treatAsDynamic ||
-        identical(s.element, compiler.objectClass) ||
+    if (identical(t, s) || s.treatAsDynamic ||
         identical(t.element, compiler.nullClass)) {
+      return true;
+    }
+    if (t.treatAsDynamic) {
+      return false;
+    }
+    if (identical(s.element, compiler.objectClass)) {
       return true;
     }
     t = t.unalias(compiler);
@@ -1138,6 +1142,7 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
   }
 
   bool invalidFunctionReturnTypes(DartType t, DartType s) {
+    if (s.treatAsDynamic && t.isVoid) return true;
     return !s.isVoid && !isMoreSpecific(t, s);
   }
 
@@ -1161,7 +1166,7 @@ class SubtypeVisitor extends MoreSpecificVisitor {
       : super(compiler, dynamicType, voidType);
 
   bool isSubtype(DartType t, DartType s) {
-    return s.treatAsDynamic || isMoreSpecific(t, s);
+    return t.treatAsDynamic || isMoreSpecific(t, s);
   }
 
   bool isAssignable(DartType t, DartType s) {

@@ -8,34 +8,35 @@ import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
 import '../lib/docgen.dart';
+import 'package:path/path.dart' as path;
 
 /**
- * Analyzes Dart files and generates a representation of included libraries, 
- * classes, and members. 
+ * Analyzes Dart files and generates a representation of included libraries,
+ * classes, and members.
  */
 void main() {
   logger.onRecord.listen((record) => print(record.message));
   var results = _initArgParser().parse(new Options().arguments);
-  
-  docgen(results.rest, 
-      packageRoot: results['package-root'], 
-      outputToYaml: !results['json'],  
-      includePrivate: results['include-private'], 
-      includeSdk: results['parse-sdk'] || results['include-sdk'], 
+
+  docgen(results.rest.map(path.normalize).toList(),
+      packageRoot: results['package-root'],
+      outputToYaml: !results['json'],
+      includePrivate: results['include-private'],
+      includeSdk: results['parse-sdk'] || results['include-sdk'],
       parseSdk: results['parse-sdk'],
       append: results['append'] && new Directory('docs').existsSync(),
-      introduction: results['parse-sdk'] ? 
+      introduction: results['parse-sdk'] ?
           'sdk-introduction.md' : results['introduction']);
 }
 
 /**
- * Creates parser for docgen command line arguments. 
+ * Creates parser for docgen command line arguments.
  */
 ArgParser _initArgParser() {
   var parser = new ArgParser();
-  parser.addFlag('help', abbr: 'h', 
-      help: 'Prints help and usage information.', 
-      negatable: false, 
+  parser.addFlag('help', abbr: 'h',
+      help: 'Prints help and usage information.',
+      negatable: false,
       callback: (help) {
         if (help) {
           logger.info(parser.getUsage());
@@ -43,31 +44,31 @@ ArgParser _initArgParser() {
           exit(0);
         }
       });
-  parser.addFlag('verbose', abbr: 'v', 
-      help: 'Output more logging information.', negatable: false, 
+  parser.addFlag('verbose', abbr: 'v',
+      help: 'Output more logging information.', negatable: false,
       callback: (verbose) {
         if (verbose) Logger.root.level = Level.FINEST;
       });
-  parser.addFlag('json', abbr: 'j', 
-      help: 'Outputs to JSON. Files are outputted to YAML by default. ' 
+  parser.addFlag('json', abbr: 'j',
+      help: 'Outputs to JSON. Files are outputted to YAML by default. '
         'If --append is used, it takes the file-format of the previous '
-        'run stated in library_list.json ignoring the flag.', 
+        'run stated in library_list.json ignoring the flag.',
       negatable: true);
-  parser.addFlag('include-private', 
+  parser.addFlag('include-private',
       help: 'Flag to include private declarations.', negatable: false);
-  parser.addFlag('include-sdk', 
+  parser.addFlag('include-sdk',
       help: 'Flag to parse SDK Library files.', negatable: false);
-  parser.addFlag('parse-sdk', 
-      help: 'Parses the SDK libraries only.', 
+  parser.addFlag('parse-sdk',
+      help: 'Parses the SDK libraries only.',
       defaultsTo: false, negatable: false);
-  parser.addOption('package-root', 
+  parser.addOption('package-root',
       help: 'Sets the package root of the library being analyzed.');
-  parser.addFlag('append', 
-      help: 'Append to the docs folder, library_list.json and index.txt', 
+  parser.addFlag('append',
+      help: 'Append to the docs folder, library_list.json and index.txt',
       defaultsTo: false, negatable: false);
-  parser.addOption('introduction', 
-      help: 'Adds the provided markdown text file as the introduction' 
+  parser.addOption('introduction',
+      help: 'Adds the provided markdown text file as the introduction'
         ' for the outputted documentation.', defaultsTo: '');
-  
+
   return parser;
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library template_binding.test.template_element_test;
+library template_binding.test.template_binding_test;
 
 import 'dart:async';
 import 'dart:collection';
@@ -12,20 +12,21 @@ import 'package:observe/observe.dart';
 import 'package:template_binding/template_binding.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
+
+// TODO(jmesserly): merge this file?
+import 'binding_syntax.dart' show syntaxTests;
 import 'utils.dart';
 
 // Note: this file ported from
-// https://github.com/toolkitchen/mdv/blob/master/tests/template_element.js
+// https://github.com/Polymer/TemplateBinding/blob/ed3266266e751b5ab1f75f8e0509d0d5f0ef35d8/tests/tests.js
+
 // TODO(jmesserly): submit a small cleanup patch to original. I fixed some
 // cases where "div" and "t" were unintentionally using the JS global scope;
 // look for "assertNodesAre".
 
 main() {
   useHtmlConfiguration();
-  group('Template Element', templateElementTests);
-}
 
-templateElementTests() {
   setUp(() {
     document.body.append(testDiv = new DivElement());
   });
@@ -35,36 +36,57 @@ templateElementTests() {
     testDiv = null;
   });
 
-  var expando = new Expando('observeTest');
-  void addExpandos(node) {
-    while (node != null) {
-      expando[node] = node.text;
-      node = node.nextNode;
-    }
-  }
+  group('Template Instantiation', templateInstantiationTests);
 
-  void checkExpandos(node) {
-    expect(node, isNotNull);
-    while (node != null) {
-      expect(expando[node], node.text);
-      node = node.nextNode;
-    }
+  group('Binding Delegate API', () {
+    group('with Observable', () {
+      syntaxTests(([f, b]) => new FooBarModel(f, b));
+    });
+
+    group('with ChangeNotifier', () {
+      syntaxTests(([f, b]) => new FooBarNotifyModel(f, b));
+    });
+  });
+
+  group('Compat', compatTests);
+}
+
+var expando = new Expando('test');
+void addExpandos(node) {
+  while (node != null) {
+    expando[node] = node.text;
+    node = node.nextNode;
   }
+}
+
+void checkExpandos(node) {
+  expect(node, isNotNull);
+  while (node != null) {
+    expect(expando[node], node.text);
+    node = node.nextNode;
+  }
+}
+
+templateInstantiationTests() {
 
   observeTest('Template', () {
     var div = createTestHtml('<template bind={{}}>text</template>');
-    recursivelySetTemplateModel(div, null);
+    templateBind(div.firstChild).model = {};
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'text');
+
+    templateBind(div.firstChild).model = null;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
   });
 
   observeTest('Template bind, no parent', () {
     var div = createTestHtml('<template bind>text</template>');
-    var template = div.nodes[0];
+    var template = div.firstChild;
     template.remove();
 
-    recursivelySetTemplateModel(template, toObservable({}));
+    templateBind(template).model = {};
     performMicrotaskCheckpoint();
     expect(template.nodes.length, 0);
     expect(template.nextNode, null);
@@ -72,17 +94,18 @@ templateElementTests() {
 
   observeTest('Template bind, no defaultView', () {
     var div = createTestHtml('<template bind>text</template>');
-    var template = div.nodes[0];
+    var template = div.firstChild;
     var doc = document.implementation.createHtmlDocument('');
     doc.adoptNode(div);
-    recursivelySetTemplateModel(template, toObservable({}));
+    recursivelySetTemplateModel(template, {});
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
   });
 
   observeTest('Template-Empty Bind', () {
     var div = createTestHtml('<template bind>text</template>');
-    recursivelySetTemplateModel(div, null);
+    var template = div.firstChild;
+    templateBind(template).model = {};
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.nodes.last.text, 'text');
@@ -93,7 +116,8 @@ templateElementTests() {
     // Note: changed this value from 0->null because zero is not falsey in Dart.
     // See https://code.google.com/p/dart/issues/detail?id=11956
     var m = toObservable({ 'foo': null });
-    recursivelySetTemplateModel(div, m);
+    var template = div.firstChild;
+    templateBind(template).model = m;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
@@ -101,6 +125,10 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'text');
+
+    templateBind(template).model = null;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
   });
 
   observeTest('Template Bind If, 2', () {
@@ -119,14 +147,32 @@ templateElementTests() {
 
   observeTest('Template If', () {
     var div = createTestHtml('<template if="{{ foo }}">{{ value }}</template>');
-    // Note: changed this value from 0->null because zero is not falsey in Dart.
-    // See https://code.google.com/p/dart/issues/detail?id=11956
+    // Note: changed this value from 0->null because zero is not falsey in
+    // Dart. See https://code.google.com/p/dart/issues/detail?id=11956
     var m = toObservable({ 'foo': null, 'value': 'foo' });
-    recursivelySetTemplateModel(div, m);
+    var template = div.firstChild;
+    templateBind(template).model = m;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
     m['foo'] = 1;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 2);
+    expect(div.lastChild.text, 'foo');
+
+    templateBind(template).model = null;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
+  });
+
+  observeTest('Template Empty-If', () {
+    var div = createTestHtml('<template if>{{ value }}</template>');
+    var m = toObservable({ 'value': 'foo' });
+    recursivelySetTemplateModel(div, null);
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
+
+    recursivelySetTemplateModel(div, m);
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
     expect(div.lastChild.text, 'foo');
@@ -138,7 +184,8 @@ templateElementTests() {
     // Note: changed this value from 0->null because zero is not falsey in Dart.
     // See https://code.google.com/p/dart/issues/detail?id=11956
     var m = toObservable({ 'bar': null, 'foo': [1, 2, 3] });
-    recursivelySetTemplateModel(div, m);
+    var template = div.firstChild;
+    templateBind(template).model = m;
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 1);
 
@@ -148,6 +195,10 @@ templateElementTests() {
     expect(div.nodes[1].text, '1');
     expect(div.nodes[2].text, '2');
     expect(div.nodes[3].text, '3');
+
+    templateBind(template).model = null;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
   });
 
   observeTest('TextTemplateWithNullStringBinding', () {
@@ -177,7 +228,8 @@ templateElementTests() {
     var div = createTestHtml(
         '<template bind="{{ data }}">a{{b}}c</template>');
     var model = toObservable({ 'data': {'b': 'B'} });
-    recursivelySetTemplateModel(div, model);
+    var template = div.firstChild;
+    templateBind(template).model = model;
 
     performMicrotaskCheckpoint();
     expect(div.nodes.length, 2);
@@ -191,9 +243,14 @@ templateElementTests() {
     performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'aXc');
 
-    model['data'] = null;
+    // Dart note: changed from `null` since our null means don't render a model.
+    model['data'] = toObservable({});
     performMicrotaskCheckpoint();
     expect(div.nodes.last.text, 'ac');
+
+    model['data'] = null;
+    performMicrotaskCheckpoint();
+    expect(div.nodes.length, 1);
   });
 
   observeTest('TextTemplateWithBindingAndConditional', () {
@@ -599,7 +656,7 @@ templateElementTests() {
   });
 
   observeTest('BindWithRef', () {
-    var id = 't${new math.Random().nextDouble()}';
+    var id = 't${new math.Random().nextInt(100)}';
     var div = createTestHtml(
         '<template id="$id">'
           'Hi {{ name }}'
@@ -612,6 +669,23 @@ templateElementTests() {
     expect(templateBind(t2).ref, t1);
 
     var model = toObservable({'name': 'Fry'});
+    recursivelySetTemplateModel(div, model);
+
+    performMicrotaskCheckpoint();
+    expect(t2.nextNode.text, 'Hi Fry');
+  });
+
+  observeTest('BindWithDynamicRef', () {
+    var id = 't${new math.Random().nextInt(100)}';
+    var div = createTestHtml(
+        '<template id="$id">'
+          'Hi {{ name }}'
+        '</template>'
+        '<template ref="{{ id }}" bind="{{}}"></template>');
+
+    var t1 = div.firstChild;
+    var t2 = div.nodes[1];
+    var model = toObservable({'name': 'Fry', 'id': id });
     recursivelySetTemplateModel(div, model);
 
     performMicrotaskCheckpoint();
@@ -1548,6 +1622,7 @@ templateElementTests() {
     }
   });
 
+  // Dart note: this test seems gone from JS. Keeping for posterity sake.
   observeTest('BindShadowDOM createInstance', () {
     if (ShadowRoot.supported) {
       var model = toObservable({'name': 'Leela'});
@@ -1674,11 +1749,100 @@ templateElementTests() {
     expect(template3.content.nodes.length, 1);
     expect(template3.content.nodes.first.text, 'Hello');
   });
+
+  observeTest('issue-285', () {
+    var div = createTestHtml(
+        '<template>'
+          '<template bind if="{{show}}">'
+            '<template id=del repeat="{{items}}">'
+              '{{}}'
+            '</template>'
+          '</template>'
+        '</template>');
+
+    var template = div.firstChild;
+
+    var model = toObservable({
+      'show': true,
+      'items': [1]
+    });
+
+    div.append(templateBind(template).createInstance(model,
+        new Issue285Syntax()));
+
+    performMicrotaskCheckpoint();
+    expect(template.nextNode.nextNode.nextNode.text, '2');
+    model['show'] = false;
+    performMicrotaskCheckpoint();
+    model['show'] = true;
+    performMicrotaskCheckpoint();
+    expect(template.nextNode.nextNode.nextNode.text, '2');
+  });
+
+  observeTest('issue-141', () {
+    var div = createTestHtml(
+        '<template bind>' +
+          '<div foo="{{foo1}} {{foo2}}" bar="{{bar}}"></div>' +
+        '</template>');
+
+    var model = toObservable({
+      'foo1': 'foo1Value',
+      'foo2': 'foo2Value',
+      'bar': 'barValue'
+    });
+
+    recursivelySetTemplateModel(div, model);
+    performMicrotaskCheckpoint();
+
+    expect(div.lastChild.attributes['bar'], 'barValue');
+  });
+}
+
+compatTests() {
+  observeTest('underbar bindings', () {
+    var div = createTestHtml(
+        '<template bind>'
+          '<div _style="color: {{ color }};"></div>'
+          '<img _src="{{ url }}">'
+          '<a _href="{{ url2 }}">Link</a>'
+          '<input type="number" _value="{{ number }}">'
+        '</template>');
+
+    var model = toObservable({
+      'color': 'red',
+      'url': 'pic.jpg',
+      'url2': 'link.html',
+      'number': 4
+    });
+
+    recursivelySetTemplateModel(div, model);
+    performMicrotaskCheckpoint();
+
+    var subDiv = div.firstChild.nextNode;
+    expect(subDiv.attributes['style'], 'color: red;');
+
+    var img = subDiv.nextNode;
+    expect(img.attributes['src'], 'pic.jpg');
+
+    var a = img.nextNode;
+    expect(a.attributes['href'], 'link.html');
+
+    var input = a.nextNode;
+    expect(input.value, '4');
+  });
+}
+
+class Issue285Syntax extends BindingDelegate {
+  prepareInstanceModel(template) {
+    if (template.id == 'del') return (val) => val * 2;
+  }
 }
 
 class TestBindingSyntax extends BindingDelegate {
-  getBinding(model, String path, name, node) {
-    if (path.trim() == 'replaceme') return new ObservableBox('replaced');
+  prepareBinding(String path, name, node) {
+    if (path.trim() == 'replaceme') {
+      return (x, y) => new ObservableBox('replaced');
+    }
     return null;
   }
 }
@@ -1687,11 +1851,13 @@ class UnbindingInNestedBindSyntax extends BindingDelegate {
   int expectedAge = 42;
   int count = 0;
 
-  getBinding(model, path, name, node) {
-    if (name != 'text' || path != 'age')
-      return;
+  prepareBinding(path, name, node) {
+    if (name != 'text' || path != 'age') return null;
 
-    expect(model['age'], expectedAge);
-    count++;
+    return (model, node) {
+      expect(model['age'], expectedAge);
+      count++;
+      return model;
+    };
   }
 }

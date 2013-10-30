@@ -456,7 +456,7 @@ class Printer implements NodeVisitor {
         (requiredPrecedence != EXPRESSION &&
          node.precedenceLevel < requiredPrecedence) ||
         // for (a = (x in o); ... ; ... ) { ... }
-        (newInForInit && node is Binary && (node as Binary).op == "in") ||
+        (newInForInit && node is Binary && node.op == "in") ||
         // (function() { ... })().
         // ({a: 2, b: 3}.toString()).
         (newAtStatementBegin && (node is NamedFunction ||

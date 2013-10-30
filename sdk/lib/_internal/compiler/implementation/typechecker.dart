@@ -933,21 +933,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                 new TypePromotion(node, variable, shownType);
             if (!types.isMoreSpecific(shownType, knownType)) {
               String variableName = variable.name;
-              if (types.isMoreSpecific(shownType.asRaw(), knownType)) {
-                //trace('$node');
-                typePromotion.addHint(node,
-                    MessageKind.NOT_MORE_SPECIFIC_RAW,
-                    {'variableName': variableName,
-                     'shownType': shownType,
-                     'knownType': knownType,
-                     'shownTypeRaw': shownType.asRaw()});
-              } else {
-                typePromotion.addHint(node,
-                    MessageKind.NOT_MORE_SPECIFIC,
-                    {'variableName': variableName,
-                     'shownType': shownType,
-                     'knownType': knownType});
-              }
+              // TODO(johnniwinther): Provide a how-to-fix in the case one tries
+              // to promote a generic type to a raw type.
+              typePromotion.addHint(node,
+                  MessageKind.NOT_MORE_SPECIFIC,
+                  {'variableName': variableName,
+                   'shownType': shownType,
+                   'knownType': knownType});
             }
             showTypePromotion(node, typePromotion);
           }

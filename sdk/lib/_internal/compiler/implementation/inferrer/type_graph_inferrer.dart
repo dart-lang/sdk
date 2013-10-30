@@ -382,6 +382,7 @@ class TypeGraphInferrerEngine
   final List<CallSiteTypeInformation> allocatedCalls =
       <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
+  final Element mainElement;
 
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
@@ -390,7 +391,7 @@ class TypeGraphInferrerEngine
 
   int overallRefineCount = 0;
 
-  TypeGraphInferrerEngine(Compiler compiler)
+  TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
 
   void runOverAllElements() {
@@ -541,10 +542,12 @@ class TypeGraphInferrerEngine
       if ((info.type = newType) != oldType) {
         overallRefineCount++;
         info.refineCount++;
-        if (info.refineCount > MAX_CHANGE_COUNT) {
+        workQueue.addAll(info.users);
+        if (info.hasStableType(this)) {
+          info.stabilize(this);
+        } else if (info.refineCount > MAX_CHANGE_COUNT) {
           info.giveUp(this);
         }
-        workQueue.addAll(info.users);
       }
     }
   }
@@ -848,8 +851,8 @@ class TypeGraphInferrer implements TypesInferrer {
 
   String get name => 'Graph inferrer';
 
-  void analyzeMain(_) {
-    inferrer = new TypeGraphInferrerEngine(compiler);
+  void analyzeMain(Element main) {
+    inferrer = new TypeGraphInferrerEngine(compiler, main);
     inferrer.runOverAllElements();
   }
 

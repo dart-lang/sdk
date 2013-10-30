@@ -20,7 +20,7 @@ patch class _IOService {
     _initialize(index);
     var completer = new Completer();
     _messageMap[id] = completer;
-    _servicePort[index].send([id, request, data], _replyToPort);
+    _servicePort[index].send([id, _replyToPort, request, data]);
     return completer.future;
   }
 

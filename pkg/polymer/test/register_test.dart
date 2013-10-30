@@ -23,8 +23,8 @@ class XDivElement extends DivElement with Polymer, Observable {
 }
 
 @CustomTag('x-div-two')
-class XDiv2lElement extends XDivElement {
-  XDiv2lElement.created() : super.created();
+class XDiv2Element extends XDivElement {
+  XDiv2Element.created() : super.created();
 }
 
 main() {

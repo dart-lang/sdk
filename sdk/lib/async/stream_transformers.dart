@@ -102,12 +102,13 @@ class _SinkTransformerStreamSubscription<S, T>
     if (_isSubscribed) _subscription.resume();
   }
 
-  void _onCancel() {
+  Future _onCancel() {
     if (_isSubscribed) {
       StreamSubscription subscription = _subscription;
       _subscription = null;
       subscription.cancel();
     }
+    return null;
   }
 
   void _handleData(S data) {
@@ -199,7 +200,7 @@ typedef void _TransformDoneHandler<T>(EventSink<T> sink);
  *
  * This way we can reuse the code from [_StreamSinkTransformer].
  */
-class _HandlerEventSink<S, T> implements EventSink<T> {
+class _HandlerEventSink<S, T> implements EventSink<S> {
   final _TransformDataHandler<S, T> _handleData;
   final _TransformErrorHandler<T> _handleError;
   final _TransformDoneHandler<T> _handleDone;

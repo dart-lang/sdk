@@ -56,7 +56,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Helper to statically create the dispatch record. */
   static _makeRecord() {
-    var interceptor = findInterceptorForType(KeyboardEvent);
+    var interceptor = JS_INTERCEPTOR_CONSTANT(KeyboardEvent);
     return makeLeafDispatchRecord(interceptor);
   }
 

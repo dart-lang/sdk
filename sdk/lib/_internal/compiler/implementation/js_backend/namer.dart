@@ -223,6 +223,9 @@ class Namer implements ClosureNamer {
   final String methodsWithOptionalArgumentsField =
       r'$methodsWithOptionalArguments';
 
+  // Name of property in a class description for the native dispatch metadata.
+  final String nativeSpecProperty = '%';
+
   /**
    * Map from top-level or static elements to their unique identifiers provided
    * by [getName].

@@ -29,6 +29,7 @@ collection_helpers/test/equality_test/03: Fail # Issue 1533
 collection_helpers/test/equality_test/04: Fail # Issue 1533
 collection_helpers/test/equality_test/05: Fail # Issue 1533
 collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
+intl/test/number_closure_test: Pass, CompileTimeError # Issue 14603
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -55,6 +56,7 @@ polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
+polymer/test/publish_inherited_properties_test: Skip #uses dart:html
 polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
@@ -84,7 +86,6 @@ crypto/test/sha1_test: Fail # Issue 11407.
 stack_trace/test/trace_test: Fail # http://dartbug.com/12380
 crypto/test/sha256_test: Pass, Fail # Issue 12502
 crypto/test/hmac_sha256_test: Pass, Fail # Issue 12502
-polymer_expressions/test/globals_test: Fail # Issue 13890
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/example/canonicalization/test/canonicalization_deploy_test: Pass, Timeout
@@ -102,11 +103,11 @@ polymer/test/noscript_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260
+polymer/test/publish_inherited_properties_test: Pass, Timeout # Issue 13260
 polymer/test/register_test: Pass, Timeout # Issue 13260
 polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 polymer/test/template_distribute_dynamic_test: Pass, Timeout # Issue 13260
 polymer/test/unbind_test: Pass, Timeout # Issue 13260
-polymer_expressions/test/globals_test: Fail # Issue 13890
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -149,7 +150,9 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
-analyzer/test/generated/ast_test: Fail # Issue 12336
+
+ # Issue 9217: Uses unspecified Type.toString.
+analyzer/test/generated/ast_test: Fail
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
@@ -270,8 +273,6 @@ unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
 unittest/test/unitttest_group_name_test: Fail # 13921
-template_binding/test/template_element_test: Pass, Fail # Flaky, 14330
-polymer_expressions/test/bindings_test: Pass, Fail # Flaky, 14330
 polymer/test/custom_event_test: Pass, Crash # 14360
 polymer/example/canonicalization/test/canonicalization_deploy_test: Fail, OK # tests deploy only behavior
 
@@ -290,7 +291,7 @@ docgen/test/single_library_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
-unittest/test/missing_tick_test: Fail, OK # This test should fail, not time out.
+unittest/test/missing_tick_test: Timeout, Fail, OK # This test should fail, not time out.
 
 # Issue http://dartbug.com/12930
 [ $runtime == vm ]
@@ -303,14 +304,82 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 [ $compiler == dartanalyzer ]
 # pkg issue 13944; Missing inherited member 'Observable._mirror'
 custom_element/test/analyzer_test: fail
-template_binding/test/analyzer_test: fail
-observe/test/observe_test: fail
 
 [ $compiler == dart2analyzer ]
 # pkg issue 13944; Missing inherited members: 'ListChangeRecord.addedCount' and 'ListChangeRecord.removedCount'
 custom_element/test/analyzer_test: fail
-template_binding/test/analyzer_test: fail
-observe/test/observe_test: fail
 
-# pkg issue 13945; Missing inherited member 'Trace.frames'
-observe/test/observe_test: fail
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+barback/test/asset_id_test: StaticWarning
+barback/test/asset_set_test: StaticWarning
+barback/test/asset_test: StaticWarning
+barback/test/cancelable_future_test: StaticWarning
+barback/test/mutliset_test: StaticWarning
+barback/test/package_graph/add_remove_transform_test: StaticWarning
+barback/test/package_graph/errors_test: StaticWarning
+barback/test/package_graph/get_all_assets_test: StaticWarning
+barback/test/package_graph/group_test: StaticWarning
+barback/test/package_graph/many_parallel_transformers_test: StaticWarning
+barback/test/package_graph/repetition_test: StaticWarning
+barback/test/package_graph/source_test: StaticWarning
+barback/test/package_graph/transform_test: StaticWarning
+barback/test/stream_pool_test: StaticWarning
+barback/test/stream_replayer_test: StaticWarning
+barback/test/too_many_open_files_test: StaticWarning
+barback/test/transformer_test: StaticWarning
+csslib/test/big_1_test: StaticWarning
+csslib/test/compiler_test: StaticWarning
+csslib/test/declaration_test: StaticWarning
+csslib/test/error_test: StaticWarning
+csslib/test/extend_test: StaticWarning
+csslib/test/mixin_test: StaticWarning
+csslib/test/nested_test: StaticWarning
+csslib/test/selector_test: StaticWarning
+csslib/test/var_test: StaticWarning
+csslib/test/visitor_test: StaticWarning
+docgen/test/single_library_test: StaticWarning
+http_server/test/http_body_test: StaticWarning
+http_server/test/http_multipart_test: StaticWarning
+http_server/test/virtual_directory_test: StaticWarning
+http_server/test/virtual_host_test: StaticWarning
+http/test/client_test: StaticWarning
+http/test/http_test: StaticWarning
+http/test/mock_client_test: StaticWarning
+http/test/multipart_test: StaticWarning
+http/test/request_test: StaticWarning
+http/test/streamed_request_test: StaticWarning
+intl/test/date_time_format_file_even_test: StaticWarning
+intl/test/date_time_format_file_odd_test: StaticWarning
+intl/test/date_time_format_http_request_test: StaticWarning
+intl/test/date_time_format_local_even_test: StaticWarning
+intl/test/date_time_format_local_odd_test: StaticWarning
+observe/test/transform_test: StaticWarning
+polymer/test/build/*: StaticWarning
+polymer/test/build/utils_test: Pass
+scheduled_test/test/descriptor/async_test: StaticWarning
+scheduled_test/test/descriptor/directory_test: StaticWarning
+scheduled_test/test/descriptor/file_test: StaticWarning
+scheduled_test/test/descriptor/nothing_test: StaticWarning
+scheduled_test/test/descriptor/pattern_test: StaticWarning
+scheduled_test/test/scheduled_future_matchers_test: StaticWarning
+scheduled_test/test/scheduled_process_test: StaticWarning
+scheduled_test/test/scheduled_test/abort_test: StaticWarning
+scheduled_test/test/scheduled_test/current_schedule_current_task_test: StaticWarning
+scheduled_test/test/scheduled_test/current_schedule_errors_test: StaticWarning
+scheduled_test/test/scheduled_test/current_schedule_state_test: StaticWarning
+scheduled_test/test/scheduled_test/nested_task_test: StaticWarning
+scheduled_test/test/scheduled_test/on_complete_test: StaticWarning
+scheduled_test/test/scheduled_test/on_exception_test: StaticWarning
+scheduled_test/test/scheduled_test/out_of_band_task_test: StaticWarning
+scheduled_test/test/scheduled_test/set_up_test: StaticWarning
+scheduled_test/test/scheduled_test/signal_error_test: StaticWarning
+scheduled_test/test/scheduled_test/simple_test: StaticWarning
+scheduled_test/test/scheduled_test/task_return_value_test: StaticWarning
+scheduled_test/test/scheduled_test/timeout_test: StaticWarning
+scheduled_test/test/scheduled_test/wrap_async_test: StaticWarning
+scheduled_test/test/scheduled_test/wrap_future_test: StaticWarning
+unittest/test/matchers_test: StaticWarning
+unittest/test/mock_test: StaticWarning
+watcher/test/directory_watcher_test: StaticWarning
+watcher/test/no_subscription_test: StaticWarning
+watcher/test/ready_test: StaticWarning

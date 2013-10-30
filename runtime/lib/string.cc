@@ -210,7 +210,7 @@ DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Strings_concatAll, 3) {
+DEFINE_NATIVE_ENTRY(String_concatRange, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, argument, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end, arguments->NativeArgAt(2));

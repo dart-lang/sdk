@@ -38,7 +38,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -57,7 +57,7 @@ import 'dart:_js_helper' show
 import 'dart:_interceptors' show
     Interceptor, JSExtendableArray, findInterceptorConstructorForType,
     findConstructorForNativeSubclassType, getNativeInterceptor,
-    setDispatchProperty, findInterceptorForType;
+    setDispatchProperty;
 
 export 'dart:math' show Rectangle, Point;
 
@@ -7777,7 +7777,7 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List native "DOMStringList" {
+class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -8372,7 +8372,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
 class _FrozenElementList<T extends Element> extends ListBase<T>
-    implements ElementList, NodeListWrapper {
+    implements ElementList<T>, NodeListWrapper {
   final List<Node> _nodeList;
   // The subset of _nodeList that are Elements.
   List<Element> _elementList;
@@ -11241,7 +11241,7 @@ class FileError extends DomError native "FileError" {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List native "FileList" {
+class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
@@ -12235,7 +12235,7 @@ class HmacParams extends Algorithm native "HmacParams" {
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List native "HTMLCollection" {
+class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
@@ -12630,7 +12630,7 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
 @DomName('XMLHttpRequest')
-class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
+class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
 
   /**
    * Creates a URL get request for the specified [url].
@@ -13184,10 +13184,100 @@ class HttpRequest extends XmlHttpRequestEventTarget native "XMLHttpRequest" {
 
 
 @DocsEditable()
+@DomName('XMLHttpRequestEventTarget')
+@Experimental() // untriaged
+class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarget" {
+  // To suppress missing implicit constructor warnings.
+  factory HttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('XMLHttpRequestEventTarget.abortEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
+
+  @DomName('XMLHttpRequestEventTarget.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
+
+  @DomName('XMLHttpRequestEventTarget.loadEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
+
+  @DomName('XMLHttpRequestEventTarget.loadendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
+
+  @DomName('XMLHttpRequestEventTarget.loadstartEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
+
+  @DomName('XMLHttpRequestEventTarget.progressEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
+
+  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
+
+  @DomName('XMLHttpRequestEventTarget.onabort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadend')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onloadstart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.onprogress')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
+
+  @DomName('XMLHttpRequestEventTarget.ontimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends XmlHttpRequestEventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
+class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 }
@@ -16512,7 +16602,7 @@ class MimeType extends Interceptor native "MimeType" {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List native "MimeTypeArray" {
+class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -17816,7 +17906,7 @@ class NodeIterator extends Interceptor native "NodeIterator" {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List native "NodeList,RadioNodeList" {
+class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
@@ -18898,7 +18988,7 @@ class Plugin extends Interceptor native "Plugin" {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List native "PluginArray" {
+class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -20869,7 +20959,7 @@ class SourceBuffer extends EventTarget native "SourceBuffer" {
 @DomName('SourceBufferList')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 @Experimental()
-class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List native "SourceBufferList" {
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List<SourceBuffer> native "SourceBufferList" {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -21048,7 +21138,7 @@ class SpeechGrammar extends Interceptor native "SpeechGrammar" {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List native "SpeechGrammarList" {
+class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
@@ -22792,7 +22882,7 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements JavaScriptIndexingBehavior, List native "TextTrackCueList" {
+class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -22861,7 +22951,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
 @DomName('TextTrackList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
 @Experimental()
-class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List native "TextTrackList" {
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List<TextTrack> native "TextTrackList" {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
@@ -23165,7 +23255,7 @@ class TouchEvent extends UIEvent native "TouchEvent" {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List native "TouchList" {
+class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -24182,6 +24272,33 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
 
 
 @DocsEditable()
+/**
+ * Top-level container for the current browser tab or window.
+ *
+ * In a web browser, each window has a [Window] object, but within the context
+ * of a script, a [Window] object represents only the current window. In
+ * addition to the open window, each window, tab, and iframe has its own
+ * [Window] object. A [Window] contains a [Document] object, which contains this
+ * web page's content.
+ *
+ * Use `window` to access properties of the current window. For example:
+ *
+ *     // Draw a scene when the window repaints.
+ *     drawScene(num delta) {...}
+ *     window.animationFrame.then(drawScene);.
+ *
+ *     // Write to the console.
+ *     window.console.log('Jinkies!');
+ *     window.console.error('Jeepers!');
+ *
+ * **Note:** This class represents the current window, whereas [WindowBase] is
+ * a representation of any window, including other tabs, windows, and frames.
+ *
+ * ## Other resources
+ *
+ * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
+ * * [Window](http://www.w3.org/TR/Window/) from the W3C.
+ */
 @DomName('Window')
 class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBase64 native "Window,DOMWindow" {
 
@@ -25699,96 +25816,6 @@ class XPathResult extends Interceptor native "XPathResult" {
 
 
 @DocsEditable()
-@DomName('XMLHttpRequestEventTarget')
-@Experimental() // untriaged
-class XmlHttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarget" {
-  // To suppress missing implicit constructor warnings.
-  factory XmlHttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('XMLHttpRequestEventTarget.abortEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
-
-  @DomName('XMLHttpRequestEventTarget.errorEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
-
-  @DomName('XMLHttpRequestEventTarget.loadEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
-
-  @DomName('XMLHttpRequestEventTarget.loadendEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
-
-  @DomName('XMLHttpRequestEventTarget.loadstartEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
-
-  @DomName('XMLHttpRequestEventTarget.progressEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
-
-  @DomName('XMLHttpRequestEventTarget.timeoutEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
-
-  @DomName('XMLHttpRequestEventTarget.onabort')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onerror')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onload')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onloadend')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onloadstart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.onprogress')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
-
-  @DomName('XMLHttpRequestEventTarget.ontimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<ProgressEvent> get onTimeout => timeoutEvent.forTarget(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('XMLSerializer')
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
@@ -26101,7 +26128,7 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements JavaScriptIndexingBehavior, List native "ClientRectList" {
+class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle>, JavaScriptIndexingBehavior native "ClientRectList" {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26177,7 +26204,7 @@ abstract class _Counter extends Interceptor native "Counter" {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List native "CSSRuleList" {
+class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26242,7 +26269,7 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
 @DomName('CSSValueList')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List native "CSSValueList" {
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List<_CSSValue> native "CSSValueList" {
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26468,7 +26495,7 @@ abstract class _FileWriterSync extends Interceptor native "FileWriterSync" {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List native "GamepadList" {
+class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26709,7 +26736,7 @@ abstract class _MutationEvent extends Event native "MutationEvent" {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List native "NamedNodeMap,MozNamedAttrMap" {
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap,MozNamedAttrMap" {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -26905,7 +26932,7 @@ abstract class _SharedWorker extends EventTarget implements AbstractWorker nativ
 @DomName('SpeechInputResultList')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
 @Experimental()
-class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List native "SpeechInputResultList" {
+class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
   // To suppress missing implicit constructor warnings.
   factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26970,7 +26997,7 @@ class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResul
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List native "SpeechRecognitionResultList" {
+class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
@@ -27033,7 +27060,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List native "StyleSheetList" {
+class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
@@ -27580,17 +27607,16 @@ abstract class CanvasImageSource {}
 
 
 /**
- * An object representing the top-level context object for web scripting.
+ * Top-level container for a browser tab or window.
  *
- * In a web browser, a [Window] object represents the actual browser window.
- * In a multi-tabbed browser, each tab has its own [Window] object. A [Window]
- * is the container that displays a [Document]'s content. All web scripting
- * happens within the context of a [Window] object.
+ * In a web browser, a [WindowBase] object represents any browser window.  This
+ * abstract class contains the state of the window and its relation to other
+ * windows, such as which window opened it.
  *
  * **Note:** This class represents any window, whereas [Window] is
- * used to access the properties and content of the current window.
+ * used to access the properties and content of the current window or tab.
  *
- * See also:
+ * ## Other resources
  *
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
@@ -28222,6 +28248,121 @@ typedef EventListener(Event event);
 
 
 /**
+ * A factory to expose DOM events as Streams.
+ */
+class EventStreamProvider<T extends Event> {
+  final String _eventType;
+
+  const EventStreamProvider(this._eventType);
+
+  /**
+   * Gets a [Stream] for this event type, on the specified target.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
+   *
+   *     // Alternate method:
+   *     Element.keyDownEvent.forTarget(element).capture(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+    new _EventStream(e, _eventType, useCapture);
+
+  /**
+   * Gets an [ElementEventStream] for this event type, on the specified element.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
+   *
+   *     // Alternate method:
+   *     Element.keyDownEvent.forElement(element).capture(...);
+   *
+   * Or for listening to an event which will bubble through the DOM tree:
+   *
+   *     MediaElement.pauseEvent.forElement(document.body).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
+    return new _ElementEventStreamImpl(e, _eventType, useCapture);
+  }
+
+  /**
+   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
+   * This may be used to capture DOM events:
+   *
+   *     Element.keyDownEvent._forElementList(element, useCapture: true).listen(...);
+   *
+   * See also:
+   *
+   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
+   */
+  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
+  }
+
+  /**
+   * Gets the type of the event which this would listen for on the specified
+   * event target.
+   *
+   * The target is necessary because some browsers may use different event names
+   * for the same purpose and the target allows differentiating browser support.
+   */
+  String getEventType(EventTarget target) {
+    return _eventType;
+  }
+}
+
+/** A specialized Stream available to [Element]s to enable event delegation. */
+abstract class ElementStream<T extends Event> implements Stream<T> {
+  /**
+   * Return a stream that only fires when the particular event fires for
+   * elements matching the specified CSS selector.
+   *
+   * This is the Dart equivalent to jQuery's
+   * [delegate](http://api.jquery.com/delegate/).
+   */
+  Stream<T> matches(String selector);
+
+  /**
+   * Adds a capturing subscription to this stream.
+   *
+   * If the target of the event is a descendant of the element from which this
+   * stream derives then [onData] is called before the event propagates down to
+   * the target. This is the opposite of bubbling behavior, where the event
+   * is first processed for the event target and then bubbles upward.
+   *
+   * ## Other resources
+   *
+   * * [Event Capture]
+   * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
+   * from the W3C DOM Events specification.
+   */
+  StreamSubscription<T> capture(void onData(T event));
+}
+
+/**
  * Adapter for exposing DOM events as Dart streams.
  */
 class _EventStream<T extends Event> extends Stream<T> {
@@ -28245,20 +28386,6 @@ class _EventStream<T extends Event> extends Stream<T> {
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
   }
-}
-
-/** A specialized Stream available to [Element]s to enable event delegation. */
-abstract class ElementStream<T extends Event> implements Stream<T> {
-  /**
-   * Return a stream that only fires when the particular event fires for
-   * elements matching the specified CSS selector.
-   *
-   * This is the Dart equivalent to jQuery's
-   * [delegate](http://api.jquery.com/delegate/).
-   */
-  Stream<T> matches(String selector);
-
-  StreamSubscription<T> capture(void onData(T event));
 }
 
 /**
@@ -28325,6 +28452,83 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
                                void onCancel(StreamSubscription subscription)})
       => this;
   bool get isBroadcast => true;
+}
+
+class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
+  int _pauseCount = 0;
+  EventTarget _target;
+  final String _eventType;
+  var _onData;
+  final bool _useCapture;
+
+  _EventStreamSubscription(this._target, this._eventType, onData,
+      this._useCapture) : _onData = _wrapZone(onData) {
+    _tryResume();
+  }
+
+  void cancel() {
+    if (_canceled) return;
+
+    _unlisten();
+    // Clear out the target to indicate this is complete.
+    _target = null;
+    _onData = null;
+  }
+
+  bool get _canceled => _target == null;
+
+  void onData(void handleData(T event)) {
+    if (_canceled) {
+      throw new StateError("Subscription has been canceled.");
+    }
+    // Remove current event listener.
+    _unlisten();
+
+    _onData = _wrapZone(handleData);
+    _tryResume();
+  }
+
+  /// Has no effect.
+  void onError(Function handleError) {}
+
+  /// Has no effect.
+  void onDone(void handleDone()) {}
+
+  void pause([Future resumeSignal]) {
+    if (_canceled) return;
+    ++_pauseCount;
+    _unlisten();
+
+    if (resumeSignal != null) {
+      resumeSignal.whenComplete(resume);
+    }
+  }
+
+  bool get isPaused => _pauseCount > 0;
+
+  void resume() {
+    if (_canceled || !isPaused) return;
+    --_pauseCount;
+    _tryResume();
+  }
+
+  void _tryResume() {
+    if (_onData != null && !isPaused) {
+      _target.addEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+
+  void _unlisten() {
+    if (_onData != null) {
+      _target.removeEventListener(_eventType, _onData, _useCapture);
+    }
+  }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
+  }
 }
 
 /**
@@ -28437,160 +28641,6 @@ class _StreamPool<T> {
     }
     _subscriptions.clear();
     _controller.close();
-  }
-}
-
-class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
-  int _pauseCount = 0;
-  EventTarget _target;
-  final String _eventType;
-  var _onData;
-  final bool _useCapture;
-
-  _EventStreamSubscription(this._target, this._eventType, onData,
-      this._useCapture) : _onData = _wrapZone(onData) {
-    _tryResume();
-  }
-
-  void cancel() {
-    if (_canceled) return;
-
-    _unlisten();
-    // Clear out the target to indicate this is complete.
-    _target = null;
-    _onData = null;
-  }
-
-  bool get _canceled => _target == null;
-
-  void onData(void handleData(T event)) {
-    if (_canceled) {
-      throw new StateError("Subscription has been canceled.");
-    }
-    // Remove current event listener.
-    _unlisten();
-
-    _onData = _wrapZone(handleData);
-    _tryResume();
-  }
-
-  /// Has no effect.
-  void onError(Function handleError) {}
-
-  /// Has no effect.
-  void onDone(void handleDone()) {}
-
-  void pause([Future resumeSignal]) {
-    if (_canceled) return;
-    ++_pauseCount;
-    _unlisten();
-
-    if (resumeSignal != null) {
-      resumeSignal.whenComplete(resume);
-    }
-  }
-
-  bool get isPaused => _pauseCount > 0;
-
-  void resume() {
-    if (_canceled || !isPaused) return;
-    --_pauseCount;
-    _tryResume();
-  }
-
-  void _tryResume() {
-    if (_onData != null && !isPaused) {
-      _target.addEventListener(_eventType, _onData, _useCapture);
-    }
-  }
-
-  void _unlisten() {
-    if (_onData != null) {
-      _target.removeEventListener(_eventType, _onData, _useCapture);
-    }
-  }
-
-  Future asFuture([var futureValue]) {
-    // We just need a future that will never succeed or fail.
-    Completer completer = new Completer();
-    return completer.future;
-  }
-}
-
-/**
- * A factory to expose DOM events as Streams.
- */
-class EventStreamProvider<T extends Event> {
-  final String _eventType;
-
-  const EventStreamProvider(this._eventType);
-
-  /**
-   * Gets a [Stream] for this event type, on the specified target.
-   *
-   * This will always return a broadcast stream so multiple listeners can be
-   * used simultaneously.
-   *
-   * This may be used to capture DOM events:
-   *
-   *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
-   *
-   * Or for listening to an event which will bubble through the DOM tree:
-   *
-   *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
-   *
-   * See also:
-   *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
-   */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
-    new _EventStream(e, _eventType, useCapture);
-
-  /**
-   * Gets an [ElementEventStream] for this event type, on the specified element.
-   *
-   * This will always return a broadcast stream so multiple listeners can be
-   * used simultaneously.
-   *
-   * This may be used to capture DOM events:
-   *
-   *     Element.keyDownEvent.forElement(element, useCapture: true).listen(...);
-   *
-   * See also:
-   *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
-   */
-  ElementStream<T> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  /**
-   * Gets an [ElementEventStream] for this event type, on the list of elements.
-   *
-   * This will always return a broadcast stream so multiple listeners can be
-   * used simultaneously.
-   *
-   * This may be used to capture DOM events:
-   *
-   *     Element.keyDownEvent._forElementList(element, useCapture: true).listen(...);
-   *
-   * See also:
-   *
-   * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
-   */
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  /**
-   * Gets the type of the event which this would listen for on the specified
-   * event target.
-   *
-   * The target is necessary because some browsers may use different event names
-   * for the same purpose and the target allows differentiating browser support.
-   */
-  String getEventType(EventTarget target) {
-    return _eventType;
   }
 }
 
@@ -31788,7 +31838,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Helper to statically create the dispatch record. */
   static _makeRecord() {
-    var interceptor = findInterceptorForType(KeyboardEvent);
+    var interceptor = JS_INTERCEPTOR_CONSTANT(KeyboardEvent);
     return makeLeafDispatchRecord(interceptor);
   }
 

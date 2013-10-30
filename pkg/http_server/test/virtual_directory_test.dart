@@ -669,5 +669,28 @@ void main() {
     testEncoding('%2f', HttpStatus.NOT_FOUND, false);
     testEncoding('%2f', HttpStatus.OK, true);
   });
+
+  group('serve-file', () {
+    test('from-dir-handler', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+        new File('${dir.path}/file')..writeAsStringSync('file contents');
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (d, request) {
+          expect(FileSystemEntity.identicalSync(dir.path, d.path), isTrue);
+          virDir.serveFile(new File('${d.path}/file'), request);
+        };
+
+        virDir.serve(server);
+
+        return getAsString(server.port, '/')
+            .whenComplete(() {
+              server.close();
+              dir.deleteSync(recursive: true);
+            });
+      }), completion(equals('file contents')));
+    });
+  });
 }
 

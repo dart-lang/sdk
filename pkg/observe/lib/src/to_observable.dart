@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of observe;
+library observe.src.to_observable;
+
+import 'package:observe/observe.dart';
 
 /**
  * Converts the [Iterable] or [Map] to an [ObservableList] or [ObservableMap],
@@ -34,7 +36,7 @@ _toObservableShallow(value) {
 _toObservableDeep(value) {
   if (value is Observable) return value;
   if (value is Map) {
-    var result = new ObservableMap._createFromType(value);
+    var result = new ObservableMap.createFromType(value);
     value.forEach((k, v) {
       result[_toObservableDeep(k)] = _toObservableDeep(v);
     });

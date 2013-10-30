@@ -213,6 +213,105 @@ observePathTests() {
     performMicrotaskCheckpoint();
     expect(values, [1, 2]);
   });
+
+  observeTest('errors thrown from getter/setter', () {
+    var model = new ObjectWithErrors();
+    var observer = new PathObserver(model, 'foo');
+
+    expect(() => observer.value, throws);
+    expect(model.getFooCalled, 1);
+
+    expect(() { observer.value = 123; }, throws);
+    expect(model.setFooCalled, [123]);
+  });
+
+  observeTest('object with noSuchMethod', () {
+    var model = new NoSuchMethodModel();
+    var observer = new PathObserver(model, 'foo');
+
+    expect(observer.value, 42);
+    observer.value = 'hi';
+    expect(model._foo, 'hi');
+    expect(observer.value, 'hi');
+
+    expect(model.log, [#foo, const Symbol('foo='), #foo]);
+
+    // These shouldn't throw
+    observer = new PathObserver(model, 'bar');
+    expect(observer.value, null, reason: 'path not found');
+    observer.value = 42;
+    expect(observer.value, null, reason: 'path not found');
+  });
+
+  observeTest('object with indexer', () {
+    var model = new IndexerModel();
+    var observer = new PathObserver(model, 'foo');
+
+    expect(observer.value, 42);
+    expect(model.log, ['[] foo']);
+    model.log.clear();
+
+    observer.value = 'hi';
+    expect(model.log, ['[]= foo hi']);
+    expect(model._foo, 'hi');
+
+    expect(observer.value, 'hi');
+
+    // These shouldn't throw
+    model.log.clear();
+    observer = new PathObserver(model, 'bar');
+    expect(observer.value, null, reason: 'path not found');
+    expect(model.log, ['[] bar']);
+    model.log.clear();
+
+    observer.value = 42;
+    expect(model.log, ['[]= bar 42']);
+    model.log.clear();
+  });
+}
+
+class ObjectWithErrors {
+  int getFooCalled = 0;
+  List setFooCalled = [];
+  @reflectable get foo {
+    getFooCalled++;
+    (this as dynamic).bar;
+  }
+  @reflectable set foo(value) {
+    setFooCalled.add(value);
+    (this as dynamic).bar = value;
+  }
+}
+
+class NoSuchMethodModel {
+  var _foo = 42;
+  List log = [];
+
+  noSuchMethod(Invocation invocation) {
+    final name = invocation.memberName;
+    log.add(name);
+    if (name == #foo && invocation.isGetter) return _foo;
+    if (name == const Symbol('foo=')) {
+      _foo = invocation.positionalArguments[0];
+      return null;
+    }
+    return super.noSuchMethod(invocation);
+  }
+}
+
+class IndexerModel {
+  var _foo = 42;
+  List log = [];
+
+  operator [](index) {
+    log.add('[] $index');
+    if (index == 'foo') return _foo;
+  }
+
+  operator []=(index, value) {
+    log.add('[]= $index $value');
+    if (index == 'foo') _foo = value;
+  }
 }
 
 @reflectable

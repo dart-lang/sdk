@@ -80,9 +80,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   js.Expression generateMethod(CodegenWorkItem work, HGraph graph) {
     return measure(() {
-      compiler.tracer.traceGraph("codegen", graph);
       SsaCodeGenerator codegen = new SsaCodeGenerator(backend, work);
       codegen.visitGraph(graph);
+      compiler.tracer.traceGraph("codegen", graph);
       FunctionElement element = work.element;
       return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
@@ -278,10 +278,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return jsNode;
   }
 
-  beginGraph(HGraph graph);
-  endGraph(HGraph graph);
-
   void preGenerateMethod(HGraph graph) {
+    new SsaTypeKnownRemover().visitGraph(graph);
     new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
         generateAtUseSite, controlFlowOperators).visitGraph(graph);
@@ -1543,13 +1541,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           compiler);
       return receiverType.refine(selector, compiler);
     }
-    // If [JSInvocationMirror._invokeOn] has been called, we must not create a
-    // typed selector based on the receiver type.
-    if (backend.compiler.enabledInvokeOn) {
-      return selector.asUntyped;
-    }
-    HType receiverType = node.getDartReceiver(compiler).instructionType;
-    return receiverType.refine(selector, compiler);
+    // If [JSInvocationMirror._invokeOn] is enabled, and this call
+    // might hit a `noSuchMethod`, we register an untyped selector.
+    return selector.extendIfReachesAll(compiler);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
@@ -1836,15 +1830,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.instructionType.isUseful() && left.isString(compiler) &&
-          right.instructionType.isUseful() && right.isString(compiler)) {
+      if (left.isString(compiler) && right.isString(compiler)) {
         return true;
       }
 
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return left.instructionType.isUseful() && left.isInteger()
-          && right.instructionType.isUseful() && right.isInteger();
+      return left.isInteger(compiler) && right.isInteger(compiler);
     }
 
     bool handledBySpecialCase = false;
@@ -1964,13 +1956,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        if (node.index.isInteger()) {
+        if (node.index.isInteger(compiler)) {
           under = js.js("# < 0", pop());
         } else {
           js.Expression jsIndex = pop();
           under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
         }
-      } else if (!node.index.isInteger()) {
+      } else if (!node.index.isInteger(compiler)) {
         checkInt(node.index, '!==');
         under = pop();
       }
@@ -2081,7 +2073,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction input = node.inputs.first;
     if (input.isString(compiler)) {
       use(input);
-    } else if (input.isInteger() || input.isBoolean()) {
+    } else if (input.isInteger(compiler) || input.isBoolean(compiler)) {
       // JavaScript's + operator with a string for the left operand will convert
       // the right operand to a string, and the conversion result is correct.
       use(input);
@@ -2443,24 +2435,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool turnIntoNumCheck = input.isIntegerOrNull() && checkedType.isInteger();
+    bool turnIntoNumCheck = input.isIntegerOrNull(compiler)
+        && checkedType.isInteger(compiler);
     bool turnIntoNullCheck = !turnIntoNumCheck
         && (mask.nullable() == receiver)
-        && (checkedType.isInteger()
+        && (checkedType.isInteger(compiler)
             || checkedType.isIndexablePrimitive(compiler));
     js.Expression test;
     if (turnIntoNullCheck) {
       use(input);
       test = new js.Binary("==", pop(), new js.LiteralNull());
-    } else if (checkedType.isInteger() && !turnIntoNumCheck) {
+    } else if (checkedType.isInteger(compiler) && !turnIntoNumCheck) {
       // input is !int
       checkInt(input, '!==');
       test = pop();
-    } else if (checkedType.isNumber() || turnIntoNumCheck) {
+    } else if (checkedType.isNumber(compiler) || turnIntoNumCheck) {
       // input is !num
       checkNum(input, '!==');
       test = pop();
-    } else if (checkedType.isBoolean()) {
+    } else if (checkedType.isBoolean(compiler)) {
       // input is !bool
       checkBool(input, '!==');
       test = pop();
@@ -2531,8 +2524,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
       // An int check if the input is not int or null, is not
       // sufficient for doing a argument or receiver check.
-      assert(!node.checkedType.isInteger() ||
-          node.checkedInput.isIntegerOrNull());
+      assert(!node.checkedType.isInteger(compiler) ||
+          node.checkedInput.isIntegerOrNull(compiler));
       js.Expression test = generateTest(node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
@@ -2577,7 +2570,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeKnown(HTypeKnown node) {
-    use(node.checkedInput);
+    // [HTypeKnown] instructions are removed before generating code.
+    assert(false);
   }
 }
 
