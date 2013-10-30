@@ -19,6 +19,12 @@ abstract class Link implements FileSystemEntity {
    * the link when it has been created. If the link exists,
    * the future will complete with an error.
    *
+   * If [recursive] is false, the default, the link is created
+   * only if all directories in its path exist.
+   * If [recursive] is true, all non-existing path
+   * components are created. The directories in the path of [target] are
+   * not affected, unless they are also in [path].
+   *
    * On the Windows platform, this will only work with directories, and the
    * target directory must exist. The link will be created as a Junction.
    * Only absolute links will be created, and relative paths to the target
@@ -29,11 +35,16 @@ abstract class Link implements FileSystemEntity {
    * link containing the string [target].  If [target] is a relative path,
    * it will be interpreted relative to the directory containing the link.
    */
-  Future<Link> create(String target);
+  Future<Link> create(String target, {bool recursive: false});
 
   /**
    * Synchronously create the link. Calling [createSync] on an existing link
    * will throw an exception.
+   *
+   * If [recursive] is false, the default, the link is created only if all
+   * directories in its path exist. If [recursive] is true, all
+   * non-existing path components are created. The directories in
+   * the path of [target] are not affected, unless they are also in [path].
    *
    * On the Windows platform, this will only work with directories, and the
    * target directory must exist. The link will be created as a Junction.
@@ -44,7 +55,7 @@ abstract class Link implements FileSystemEntity {
    * link containing the string [target].  If [target] is a relative path,
    * it will be interpreted relative to the directory containing the link.
    */
-  void createSync(String target);
+  void createSync(String target, {bool recursive: false});
 
   /**
    * Synchronously updates the link. Calling [updateSync] on a non-existing link
@@ -145,21 +156,26 @@ class _Link extends FileSystemEntity implements Link {
 
   FileStat statSync() => FileStat.statSync(path);
 
-  Future<Link> create(String target) {
+  Future<Link> create(String target, {bool recursive: false}) {
     if (Platform.operatingSystem == 'windows') {
       target = _makeWindowsLinkTarget(target);
     }
-    return _IOService.dispatch(_FILE_CREATE_LINK, [path, target])
-        .then((response) {
-          if (_isErrorResponse(response)) {
-            throw _exceptionFromResponse(
-                response, "Cannot create link to target '$target'", path);
-          }
-          return this;
-        });
+    return (recursive ? parent.create(recursive: true)
+                      : new Future.value(null))
+      .then((_) => _IOService.dispatch(_FILE_CREATE_LINK, [path, target]))
+      .then((response) {
+        if (_isErrorResponse(response)) {
+          throw _exceptionFromResponse(
+              response, "Cannot create link to target '$target'", path);
+        }
+        return this;
+      });
   }
 
-  void createSync(String target) {
+  void createSync(String target, {bool recursive: false}) {
+    if (recursive) {
+      parent.createSync(recursive: true);
+    }
     if (Platform.operatingSystem == 'windows') {
       target = _makeWindowsLinkTarget(target);
     }

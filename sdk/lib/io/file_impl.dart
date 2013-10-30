@@ -256,13 +256,16 @@ class _File extends FileSystemEntity implements File {
 
   FileStat statSync() => FileStat.statSync(path);
 
-  Future<File> create() {
-    return _IOService.dispatch(_FILE_CREATE, [path]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Cannot create file", path);
-      }
-      return this;
-    });
+  Future<File> create({bool recursive: false}) {
+    return (recursive ? parent.create(recursive: true)
+                      : new Future.value(null))
+      .then((_) => _IOService.dispatch(_FILE_CREATE, [path]))
+      .then((response) {
+        if (_isErrorResponse(response)) {
+          throw _exceptionFromResponse(response, "Cannot create file", path);
+        }
+        return this;
+      });
   }
 
   external static _create(String path);
@@ -271,7 +274,10 @@ class _File extends FileSystemEntity implements File {
 
   external static _linkTarget(String path);
 
-  void createSync() {
+  void createSync({bool recursive: false}) {
+    if (recursive) {
+      parent.createSync(recursive: true);
+    }
     var result = _create(path);
     throwIfError(result, "Cannot create file", path);
   }

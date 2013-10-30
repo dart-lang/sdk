@@ -595,32 +595,6 @@ testCreateDirExistingFile() {
 }
 
 
-testCreateRecursiveSync() {
-  var temp = Directory.systemTemp.createTempSync('directory_test');
-  var d = new Directory('${temp.path}/a/b/c');
-  d.createSync(recursive: true);
-  Expect.isTrue(new Directory('${temp.path}/a').existsSync());
-  Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());
-  Expect.isTrue(new Directory('${temp.path}/a/b/c').existsSync());
-  temp.deleteSync(recursive: true);
-}
-
-
-testCreateRecursive() {
-  asyncStart();
-  Directory.systemTemp.createTemp('dart_directory').then((temp) {
-    var d = new Directory('${temp.path}/a/b/c');
-    d.create(recursive: true).then((_) {
-      Expect.isTrue(new Directory('${temp.path}/a').existsSync());
-      Expect.isTrue(new Directory('${temp.path}/a/b').existsSync());
-      Expect.isTrue(new Directory('${temp.path}/a/b/c').existsSync());
-      temp.deleteSync(recursive: true);
-      asyncEnd();
-    });
-  });
-}
-
-
 testRename() {
   var temp1 = Directory.systemTemp.createTempSync('directory_test');
   var temp2 = Directory.systemTemp.createTempSync('directory_test');
@@ -648,7 +622,5 @@ main() {
   testCreateExisting();
   testCreateDirExistingFileSync();
   testCreateDirExistingFile();
-  testCreateRecursive();
-  testCreateRecursiveSync();
   testRename();
 }

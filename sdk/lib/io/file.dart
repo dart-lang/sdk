@@ -44,20 +44,30 @@ abstract class File implements FileSystemEntity {
    * Create the file. Returns a [:Future<File>:] that completes with
    * the file when it has been created.
    *
+   * If [recursive] is false, the default, the file is created only if
+   * all directories in the path exist. If [recursive] is true, all
+   * non-existing path components are created.
+   *
    * Existing files are left untouched by [create]. Calling [create] on an
    * existing file might fail if there are restrictive permissions on
    * the file.
+   *
+   * Completes the future with a [FileSystemException] if the operation fails.
    */
-  Future<File> create();
+  Future<File> create({bool recursive: false});
 
   /**
    * Synchronously create the file. Existing files are left untouched
    * by [createSync]. Calling [createSync] on an existing file might fail
    * if there are restrictive permissions on the file.
    *
+   * If [recursive] is false, the default, the file is created
+   * only if all directories in the path exist.
+   * If [recursive] is true, all non-existing path components are created.
+   *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void createSync();
+  void createSync({bool recursive: false});
 
   /**
    * Renames this file. Returns a `Future<File>` that completes
