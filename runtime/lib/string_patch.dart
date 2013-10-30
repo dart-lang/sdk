@@ -509,22 +509,10 @@ class _StringBase {
   String toLowerCase() native "String_toLowerCase";
 
   // Concatenate ['start', 'end'[ elements of 'strings'. 'strings' must contain
-  // String elements. Optimized for OneByteStrings.
+  // String elements. TODO(srdjan): optimize it.
   static String _concatRange(List<String> strings, int start, int end) {
     if ((end - start) == 1) {
       return strings[start];
-    }
-    final numValues = strings.length;
-    if ((start == 0) && (end == numValues)) {
-      int totalLength = 0;
-      for (int i = 0; i < numValues; i++) {
-        String s = strings[i];
-        if (s._cid != _OneByteString._classId) {
-          return _concatRangeNative(strings, start, end);
-        }
-        totalLength += s.length;
-      }
-      return _OneByteString._concatAll(strings, totalLength);
     }
     return _concatRangeNative(strings, start, end);
   }
