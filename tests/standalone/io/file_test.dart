@@ -292,7 +292,7 @@ class FileTest {
           String outFilename = tempDirectory.path + "/out_read_write";
           final File file2 = new File(outFilename);
           file2.create().then((ignore) {
-            file2.fullPath().then((s) {
+            file2.resolveSymbolicLinks().then((s) {
               Expect.isTrue(new File(s).existsSync());
               if (s[0] != '/' && s[0] != '\\' && s[1] != ':') {
                 Expect.fail("Not a full path");
@@ -431,7 +431,7 @@ class FileTest {
     String outFilename = tempDirectory.path + "/out_read_write_sync";
     File outFile = new File(outFilename);
     outFile.createSync();
-    String path = outFile.fullPathSync();
+    String path = outFile.resolveSymbolicLinksSync();
     if (path[0] != '/' && path[0] != '\\' && path[1] != ':') {
       Expect.fail("Not a full path");
     }
@@ -469,7 +469,7 @@ class FileTest {
     String outFilename = tempDirectory.path + "/out_read_write_sync";
     File outFile = new File(outFilename);
     outFile.createSync();
-    String path = outFile.fullPathSync();
+    String path = outFile.resolveSymbolicLinksSync();
     if (path[0] != '/' && path[0] != '\\' && path[1] != ':') {
       Expect.fail("Not a full path");
     }
@@ -565,7 +565,7 @@ class FileTest {
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectory");
       file.create().then((ignore) {
-          Directory d = file.directory;
+          Directory d = file.parent;
           d.exists().then((xexists) {
           Expect.isTrue(xexists);
           Expect.isTrue(d.path.endsWith(tempDir));
@@ -578,20 +578,20 @@ class FileTest {
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectorySync");
     // Non-existing file still provides the directory.
-    Expect.equals("${tempDir}", file.directory.path);
+    Expect.equals("${tempDir}", file.parent.path);
     file.createSync();
     // Check that the path of the returned directory is the temp directory.
-    Directory d = file.directory;
+    Directory d = file.parent;
     Expect.isTrue(d.existsSync());
     Expect.isTrue(d.path.endsWith(tempDir));
     file.deleteSync();
     // The directory getter does not care about file or type of file
     // system entity.
-    Expect.equals("${tempDir}", file.directory.path);
+    Expect.equals("${tempDir}", file.parent.path);
     file = new File("foo");
-    Expect.equals(".", file.directory.path);
+    Expect.equals(".", file.parent.path);
     file = new File(".");
-    Expect.equals(".", file.directory.path);
+    Expect.equals(".", file.parent.path);
   }
 
   // Test for file length functionality.

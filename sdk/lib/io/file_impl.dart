@@ -308,8 +308,6 @@ class _File extends FileSystemEntity implements File {
     return new File(newPath);
   }
 
-  Directory get directory => super.parent;
-
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
@@ -387,10 +385,6 @@ class _File extends FileSystemEntity implements File {
     }
     return new _RandomAccessFile(id, "");
   }
-
-  Future<String> fullPath() => resolveSymbolicLinks();
-
-  String fullPathSync() => resolveSymbolicLinksSync();
 
   Stream<List<int>> openRead([int start, int end]) {
     return new _FileStream(path, start, end);

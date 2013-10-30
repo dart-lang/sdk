@@ -44,7 +44,7 @@ fuzzAsyncMethods() {
       var f = new File(v);
       futures.add(doItAsync(f.exists));
       futures.add(doItAsync(f.delete));
-      futures.add(doItAsync(f.directory));
+      futures.add(doItAsync(f.parent));
       futures.add(doItAsync(f.length));
       futures.add(doItAsync(f.modified));
       futures.add(doItAsync(f.open));

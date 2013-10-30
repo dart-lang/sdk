@@ -73,7 +73,7 @@ testCreateSync() {
   Expect.isTrue(FileSystemEntity.identicalSync(target, target));
   Expect.isTrue(FileSystemEntity.identicalSync(target,
                                                new Link(link).targetSync()));
-  String absolutePath = new File(".").fullPathSync();
+  String absolutePath = new File(".").resolveSymbolicLinksSync();
   Expect.isTrue(FileSystemEntity.identicalSync(".", absolutePath));
 
   String createdFile = join(base, 'target', 'createdFile');

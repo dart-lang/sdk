@@ -21,11 +21,11 @@ main() {
   // The contents of the file is precomposed utf8.
   Expect.equals(precomposed, nonAsciiFile.readAsStringSync());
   nonAsciiFile.createSync();
-  var path = nonAsciiFile.directory.path;
+  var path = nonAsciiFile.parent.path;
   Expect.isTrue(path.endsWith(precomposed) || path.endsWith(decomposed));
   Expect.equals(6, nonAsciiFile.lengthSync());
   nonAsciiFile.lastModifiedSync();
-  path = nonAsciiFile.fullPathSync();
+  path = nonAsciiFile.resolveSymbolicLinksSync();
   Expect.isTrue(path.endsWith('${precomposed}.txt') ||
                 path.endsWith('${decomposed}.txt'));
   tempDir.deleteSync(recursive: true);

@@ -28,13 +28,13 @@ main() {
               // The contents of the file is precomposed utf8.
               Expect.equals(precomposed, contents);
               nonAsciiFile.create().then((_) {
-                var d = nonAsciiFile.directory;
+                var d = nonAsciiFile.parent;
                 Expect.isTrue(d.path.endsWith(precomposed) ||
                               d.path.endsWith(decomposed));
                 nonAsciiFile.length().then((length) {
                   Expect.equals(6, length);
                   nonAsciiFile.lastModified().then((_) {
-                    nonAsciiFile.fullPath().then((path) {
+                    nonAsciiFile.resolveSymbolicLinks().then((path) {
                       Expect.isTrue(path.endsWith('${precomposed}.txt') ||
                                     path.endsWith('${decomposed}.txt'));
                       tempDir.delete(recursive: true).then((_) {

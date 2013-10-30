@@ -80,14 +80,6 @@ abstract class File implements FileSystemEntity {
   File renameSync(String newPath);
 
   /**
-   * Get a [Directory] object for the directory containing this
-   * file. Deprecated: Replaced by [FileSystemEntity.parent].
-   * Will be removed on Oct 25, 2013.
-   */
-  @deprecated
-  Directory get directory;
-
-  /**
    * Get the length of the file. Returns a [:Future<int>:] that
    * completes with the length in bytes.
    */
@@ -154,28 +146,6 @@ abstract class File implements FileSystemEntity {
    * Throws a [FileSystemException] if the operation fails.
    */
   RandomAccessFile openSync({FileMode mode: FileMode.READ});
-
-  /**
-   * Get the canonical full path corresponding to the file path.
-   * Returns a [:Future<String>:] that completes with the path.
-   *
-   * *FullPath is deprecated.  Use absolutePath or resolveSymbolicLinks
-   * instead.  FullPath will be removed the 23rd of September, 2013.*
-   */
-  @deprecated
-  Future<String> fullPath();
-
-  /**
-   * Synchronously get the canonical full path corresponding to the file path.
-   *
-   * Throws a [FileSystemException] if the operation fails.
-   *
-   * *FullPathSync is deprecated.  Use absolutePathSync or
-   * resolveSymbolicLinksSync instead.  FullPathSync will be removed
-   * the 23rd of September, 2013.*
-   */
-  @deprecated
-  String fullPathSync();
 
   /**
    * Create a new independent [Stream] for the contents of this file.

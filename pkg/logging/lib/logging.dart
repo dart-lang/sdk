@@ -308,13 +308,6 @@ class LogRecord {
   /** Associated error (if any) when recording errors messages. */
   final Object error;
 
-  // TODO(kevmoo) - remove before V1
-  /**
-   * DEPRECATED. Use [error] instead.
-   */
-  @deprecated
-  Object get exception => error;
-
   /** Associated stackTrace (if any) when recording errors messages. */
   final StackTrace stackTrace;
 

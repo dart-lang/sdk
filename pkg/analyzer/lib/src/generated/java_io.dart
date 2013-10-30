@@ -93,7 +93,7 @@ class JavaFile {
   String getAbsolutePath() => pathos.absolute(_path);
   String getCanonicalPath() {
     try {
-      return _newFile().fullPathSync();
+      return _newFile().resolveSymbolicLinksSync();
     } catch (e) {
       throw new JavaIOException('IOException', e);
     }

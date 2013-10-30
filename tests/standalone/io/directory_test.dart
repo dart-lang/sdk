@@ -51,7 +51,8 @@ class DirectoryTest {
 
     testSyncListing(true);
     testSyncListing(false);
-    Expect.equals(f.fullPathSync(), fLong.fullPathSync());
+    Expect.equals(f.resolveSymbolicLinksSync(),
+                  fLong.resolveSymbolicLinksSync());
 
     asyncStart();
     directory.list(recursive: true).listen(
@@ -421,7 +422,7 @@ class DirectoryTest {
   }
 
   static void testEquals() {
-    var name = new File('.').fullPathSync();
+    var name = new File('.').resolveSymbolicLinksSync();
     Directory current1 = new Directory(name);
     Directory current2 = new Directory(name);
     Expect.equals(current1.path, current2.path);

@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 
 main() {
 
-  print('working dir ${new File('.').fullPathSync()}');
+  print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
   var args = new Options().arguments;
   if (args.length == 0) {

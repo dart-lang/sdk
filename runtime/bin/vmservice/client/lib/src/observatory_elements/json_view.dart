@@ -16,7 +16,7 @@ class JsonViewElement extends ObservatoryElement {
   }
 
   void jsonChanged(oldValue) {
-    notifyProperty(this, #valueType);
+    this.notifyPropertyChange(#valueType, null, null);
   }
 
   String get primitiveString {

@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 
 main() {
 
-  print('working dir ${new File('.').fullPathSync()}');
+  print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
   var args = new Options().arguments;
   if (args.length == 0) {
