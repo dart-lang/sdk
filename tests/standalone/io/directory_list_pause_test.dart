@@ -82,6 +82,7 @@ void testListIsEmpty() {
       new Directory("${d.path}/$i").createSync();
       new File("${d.path}/$i/file").createSync();
     }
+    // isEmpty will cancel the stream after first data event.
     d.list(recursive: true).isEmpty.then((empty) {
       Expect.isFalse(empty);
       d.deleteSync(recursive: true);

@@ -54,7 +54,7 @@ class _FileStream extends Stream<List<int>> {
         onResume: _resume,
         onCancel: () {
           _unsubscribed = true;
-          _closeFile();
+          return _closeFile();
         });
   }
 
