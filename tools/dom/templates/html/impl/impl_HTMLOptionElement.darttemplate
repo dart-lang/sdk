@@ -5,8 +5,8 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory OptionElement({String data, String value, bool selected: false}) {
-    return new OptionElement._(data, value, false, selected);
+  factory OptionElement({String data: '', String value : '', bool selected: false}) {
+    return new OptionElement._(data, value, null, selected);
   }
 $!MEMBERS
 }

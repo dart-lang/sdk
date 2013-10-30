@@ -18254,8 +18254,8 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
 
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement native "HTMLOptionElement" {
-  factory OptionElement({String data, String value, bool selected: false}) {
-    return new OptionElement._(data, value, false, selected);
+  factory OptionElement({String data: '', String value : '', bool selected: false}) {
+    return new OptionElement._(data, value, null, selected);
   }
 
   @DomName('HTMLOptionElement.HTMLOptionElement')

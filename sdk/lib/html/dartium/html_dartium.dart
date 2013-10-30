@@ -19543,8 +19543,8 @@ class OptGroupElement extends HtmlElement {
 
 @DomName('HTMLOptionElement')
 class OptionElement extends HtmlElement {
-  factory OptionElement({String data, String value, bool selected: false}) {
-    return new OptionElement._(data, value, false, selected);
+  factory OptionElement({String data: '', String value : '', bool selected: false}) {
+    return new OptionElement._(data, value, null, selected);
   }
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
@@ -34377,6 +34377,13 @@ final _pureIsolatePrintClosure = (s) {
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
+
+final _uriBaseClosure = () => Uri.parse(window.location.href);
+
+final _pureIsolateUriBaseClosure = () {
+  throw new UnimplementedError("Uri.base on a background isolate "
+                               "is not supported in the browser");
+};
 
  class _Timer implements Timer {
   var _canceler;
