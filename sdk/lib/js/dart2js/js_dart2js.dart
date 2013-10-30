@@ -376,13 +376,21 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   // Methods required by ListMixin
 
-  E operator [](int index) {
-    _checkIndex(index);
+  E operator [](index) {
+    // TODO(justinfagnani): fix the semantics for non-ints
+    // dartbug.com/14605
+    if (index is num && index == index.toInt()) {
+      _checkIndex(index);
+    }
     return super[index];
   }
 
-  void operator []=(int index, E value) {
-    _checkIndex(index);
+  void operator []=(index, E value) {
+    // TODO(justinfagnani): fix the semantics for non-ints
+    // dartbug.com/14605
+    if (index is num && index == index.toInt()) {
+      _checkIndex(index);
+    }
     super[index] = value;
   }
 
@@ -507,6 +515,8 @@ Object _convertToDart(o) {
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getMilliseconds()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
+  } else if (JS('bool', '#.constructor === DartObject', o)) {
+    return JS('', '#.o', o);
   } else {
     return _wrapToDart(o);
   }
@@ -519,8 +529,6 @@ JsObject _wrapToDart(o) {
   } else if (JS('bool', '# instanceof Array', o)) {
     return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
         (o) => new JsArray._fromJs(o));
-  } else if (JS('bool', '#.constructor === DartObject', o)) {
-    return JS('', '#.o', o);
   } else {
     return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
         (o) => new JsObject._fromJs(o));
