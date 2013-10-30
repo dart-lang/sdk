@@ -192,6 +192,19 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
 
 Future doMultitest(Path filePath, String outputDir, Path suiteDir,
                    CreateTest doTest) {
+  void writeFile(String filepath, String content) {
+    final File file = new File(filepath);
+
+    if (file.existsSync()) {
+      var oldContent = file.readAsStringSync();
+      if (oldContent == content) {
+        // Don't write to the file if the content is the same
+        return;
+      }
+    }
+    file.writeAsStringSync(content);
+  }
+
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
   Map<String, Set<String>> outcomes = new Map<String, Set<String>>();
@@ -222,12 +235,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
     for (String key in tests.keys) {
       final Path multitestFilename =
           targetDir.append('${baseFilename}_$key.dart');
-      final File file = new File(multitestFilename.toNativePath());
-
-      file.createSync();
-      RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);
-      openedFile.writeStringSync(tests[key]);
-      openedFile.closeSync();
+      writeFile(multitestFilename.toNativePath(), tests[key]);
       Set<String> outcome = outcomes[key];
       bool hasStaticWarning = outcome.contains('static type warning');
       bool hasRuntimeErrors = outcome.contains('runtime error');
