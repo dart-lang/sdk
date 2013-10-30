@@ -60,7 +60,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *     growableList.length; // 0;
    *     growableList.length = 3;
    *
-   * An error occurs if [length] is negative.
+   * The [length] must not be negative or null, if it is provided.
    */
   external factory List([int length]);
 
@@ -69,6 +69,8 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    * value at each position with [fill]:
    *
    *     new List<int>.filled(3, 0); // [0, 0, 0]
+   *
+   * The [length] must not be negative or null.
    */
   external factory List.filled(int length, E fill);
 

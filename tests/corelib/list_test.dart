@@ -44,6 +44,8 @@ void main() {
   testTypedGrowableList(new Int16List(0).toList());
   testTypedGrowableList(new Uint32List(0).toList());
   testTypedGrowableList(new Int32List(0).toList());
+
+  testListConstructor();
 }
 
 void testLength(int length, List list) {
@@ -491,4 +493,14 @@ class MyFixedList<E> extends ListBase<E> {
   void set length(int length) { throw new UnsupportedError("Fixed length!"); }
   E operator[](int index) => _source[index];
   void operator[]=(int index, E value) { _source[index] = value; }
+}
+
+void testListConstructor() {
+  Expect.throws(() { new List(0).add(4); });  // Is fixed-length.
+  Expect.throws(() { new List(-2); });  // Not negative.
+  Expect.throws(() { new List(null); });  // Not null.
+  Expect.listEquals([4], new List()..add(4));
+  Expect.throws(() { new List.filled(0, 42).add(4); });  // Is fixed-length.
+  Expect.throws(() { new List.filled(-2, 42); });  // Not negative.
+  Expect.throws(() { new List.filled(null, 42); });  // Not null.
 }
