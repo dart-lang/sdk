@@ -1091,6 +1091,8 @@ class _Socket extends Stream<List<int>> implements Socket {
     return _sink.addStream(stream);
   }
 
+  Future<Socket> flush() => _sink.flush();
+
   Future<Socket> close() => _sink.close();
 
   Future<Socket> get done => _sink.done;

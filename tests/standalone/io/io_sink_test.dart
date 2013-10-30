@@ -3,40 +3,43 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:async";
 import "dart:io";
-import "dart:isolate";
 
 class TestConsumer implements StreamConsumer {
   final List expected;
   final List received = [];
 
-  var closePort;
-
   int addStreamCount = 0;
   int expcetedAddStreamCount;
+  bool expectClose;
 
   TestConsumer(this.expected,
-               {close: true,
+               {this.expectClose: true,
                 this.expcetedAddStreamCount: -1}) {
-    if (close) closePort = new ReceivePort();
+    if (expectClose) asyncStart();
   }
 
   Future addStream(Stream stream) {
     addStreamCount++;
-    return stream.fold(
-        received,
-        (list, value) {
-          list.addAll(value);
-          return list;
-        })
-        .then((_) {});
+    var sub = stream
+      .listen((v) {
+        received.addAll(v);
+      });
+    sub.pause();
+    scheduleMicrotask(sub.resume);
+    return sub.asFuture();
+  }
+
+  void matches(List list) {
+    Expect.listEquals(list, received);
   }
 
   Future close() {
     return new Future.value()
       .then((_) {
-        if (closePort != null) closePort.close();
+        if (expectClose) asyncEnd();
         Expect.listEquals(expected, received);
         if (expcetedAddStreamCount >= 0) {
           Expect.equals(expcetedAddStreamCount, addStreamCount);
@@ -61,6 +64,23 @@ void testAddClose() {
   sink.add([2]);
   sink.close();
 }
+
+
+void testAddFlush() {
+  var consumer = new TestConsumer([0, 1, 2]);
+  var sink = new IOSink(consumer);
+  sink.add([0]);
+  sink.flush().then((s) {
+    consumer.matches([0]);
+    s.add([1]);
+    s.add([2]);
+    s.flush().then((s) {
+      consumer.matches([0, 1, 2]);
+      s.close();
+    });
+  });
+}
+
 
 void testAddStreamClose() {
   {
@@ -104,6 +124,7 @@ void testAddStreamAddClose() {
 void main() {
   testClose();
   testAddClose();
+  testAddFlush();
   testAddStreamClose();
   testAddStreamAddClose();
 }

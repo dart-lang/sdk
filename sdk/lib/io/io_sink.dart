@@ -46,6 +46,17 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
   Future addStream(Stream<List<int>> stream);
 
   /**
+   * Returns a [Future] that completes once all buffered data is accepted by the
+   * to underlying [StreamConsumer].
+   *
+   * It's an error to call this method, while an [addStream] is incomplete.
+   *
+   * NOTE: This is not necessarily the same as the data being flushed by the
+   * operating system.
+   */
+  Future flush();
+
+  /**
    * Close the target.
    */
   Future close();
@@ -97,6 +108,13 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     var future = _controllerCompleter.future;
     _controllerInstance.close();
     return future.then((_) => targetAddStream());
+  }
+
+  Future flush() {
+    // Adding an empty stream-controller will return a future that will complete
+    // when all data is done.
+    var controller = new StreamController()..close();
+    return addStream(controller.stream).then((_) => this);
   }
 
   Future close() {

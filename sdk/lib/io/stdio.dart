@@ -166,6 +166,7 @@ class _StdSink implements IOSink {
       _sink.addError(error, stackTrace);
   void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
   Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
+  Future flush() => _sink.flush();
   Future close() => _sink.close();
   Future get done => _sink.done;
 }
