@@ -392,37 +392,6 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
 }
 
 
-static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
-  Dart_Handle dart_arguments = CreateRuntimeOptions(options);
-  if (Dart_IsError(dart_arguments)) {
-    return dart_arguments;
-  }
-  Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
-  if (Dart_IsError(io_lib_url)) {
-    return io_lib_url;
-  }
-  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
-  if (Dart_IsError(io_lib)) {
-    return io_lib;
-  }
-  Dart_Handle runtime_options_class_name = DartUtils::NewString("_OptionsImpl");
-  if (Dart_IsError(runtime_options_class_name)) {
-    return runtime_options_class_name;
-  }
-  Dart_Handle runtime_options_type = Dart_GetType(
-      io_lib, runtime_options_class_name, 0, NULL);
-  if (Dart_IsError(runtime_options_type)) {
-    return runtime_options_type;
-  }
-  Dart_Handle native_name = DartUtils::NewString("_nativeArguments");
-  if (Dart_IsError(native_name)) {
-    return native_name;
-  }
-
-  return Dart_SetField(runtime_options_type, native_name, dart_arguments);
-}
-
-
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     *error = strdup(Dart_GetError(result));                                    \
@@ -861,11 +830,6 @@ int main(int argc, char** argv) {
       }
     }
 
-    // Create a dart options object that can be accessed from dart code.
-    Dart_Handle options_result = SetupRuntimeOptions(&dart_options);
-    if (Dart_IsError(options_result)) {
-      return DartErrorExit(options_result);
-    }
     // Lookup the library of the root script.
     Dart_Handle library = Dart_RootLibrary();
     if (Dart_IsNull(library)) {
