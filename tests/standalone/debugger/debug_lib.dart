@@ -601,12 +601,11 @@ class Debugger {
 }
 
 
-bool RunScript(List script) {
-  var options = new Options();
-  if (options.arguments.contains("--debuggee")) {
+bool RunScript(List script, List<String> arguments) {
+  if (arguments.contains("--debuggee")) {
     return false;
   }
-  verboseWire = options.arguments.contains("--wire");
+  verboseWire = arguments.contains("--wire");
 
   // Port number 0 means debug target picks a free port dynamically.
   var targetOpts = [ "--debug:0" ];

@@ -40,9 +40,8 @@ doTest() {
 }
 
 
-main() {
-  var opts = new Options();
-  if (opts.arguments.contains("--run")) {
+main(List<String> arguments) {
+  if (arguments.contains("--run")) {
     doTest();
   } else {
     // Run the test and capture stdout.

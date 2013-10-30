@@ -11,8 +11,8 @@ class MyClass {
   }
 }
 
-main() {
-  if (RunScript(testScript)) return;
+main(List<String> arguments) {
+  if (RunScript(testScript, arguments)) return;
   var a = new MyClass();
   var b = null;
   var x = a == b;  // Breakpoint #1.

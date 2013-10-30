@@ -14,9 +14,9 @@ import 'package:path/path.dart' as path;
  * Analyzes Dart files and generates a representation of included libraries,
  * classes, and members.
  */
-void main() {
+void main(List<String> arguments) {
   logger.onRecord.listen((record) => print(record.message));
-  var results = _initArgParser().parse(new Options().arguments);
+  var results = _initArgParser().parse(arguments);
 
   docgen(results.rest.map(path.normalize).toList(),
       packageRoot: results['package-root'],

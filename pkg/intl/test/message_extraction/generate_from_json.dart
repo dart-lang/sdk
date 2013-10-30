@@ -30,9 +30,8 @@ import 'package:serialization/serialization.dart';
  */
 Map<String, MainMessage> messages;
 
-main() {
+main(List<String> args) {
   var targetDir;
-  var args = new Options().arguments;
   var parser = new ArgParser();
   parser.addFlag("suppress-warnings", defaultsTo: false,
       callback: (x) => suppressWarnings = x);

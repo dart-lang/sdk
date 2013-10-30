@@ -14,10 +14,9 @@ import 'package:analyzer/src/generated/engine.dart';
 
 import 'dart:io';
 
-main() {
+main(List<String> args) {
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
-  var args = new Options().arguments;
   if (args.length != 2) {
     print('Usage: resolve_driver [path_to_sdk] [file_to_resolve]');
     exit(0);

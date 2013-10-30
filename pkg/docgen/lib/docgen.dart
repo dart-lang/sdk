@@ -226,7 +226,7 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // Finds the root of SDK library based off the location of docgen.
   var sdkRoot = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
-        path.absolute(new Options().script))))), 'sdk');
+        path.absolute(Platform.script))))), 'sdk');
   logger.info('SDK Root: ${sdkRoot}');
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
 }
@@ -451,7 +451,7 @@ void _mdnComment(Indexable item) {
   if (_mdn == null) {
     // Reading in MDN related json file.
     var mdnDir = path.join(path.dirname(path.dirname(path.dirname(path.dirname(
-        path.absolute(new Options().script))))), 'utils', 'apidoc', 'mdn');
+        path.absolute(Platform.script))))), 'utils', 'apidoc', 'mdn');
     _mdn = JSON.decode(new File(path.join(mdnDir, 'database.json'))
         .readAsStringSync());
   }

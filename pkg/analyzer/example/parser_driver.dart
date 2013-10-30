@@ -13,11 +13,10 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
 
-main() {
+main(List<String> args) {
 
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
-  var args = new Options().arguments;
   if (args.length == 0) {
     print('Usage: parser_driver [files_to_parse]');
     exit(0);

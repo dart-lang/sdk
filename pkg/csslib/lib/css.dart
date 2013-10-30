@@ -14,9 +14,9 @@ import 'visitor.dart';
 import 'src/messages.dart';
 import 'src/options.dart';
 
-void main() {
+void main(List<String> arguments) {
   // TODO(jmesserly): fix this to return a proper exit code
-  var options = PreprocessorOptions.parse(new Options().arguments);
+  var options = PreprocessorOptions.parse(arguments);
   if (options == null) return;
 
   messages = new Messages(options: options);

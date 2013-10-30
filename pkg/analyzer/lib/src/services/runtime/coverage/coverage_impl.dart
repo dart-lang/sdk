@@ -28,9 +28,8 @@ void runServerApplication(String targetPath, String outPath) {
   var targetName = pathos.basename(targetPath);
   var server = new CoverageServer(targetFolder, targetPath, outPath);
   server.start().then((port) {
-    var options = new Options();
     var targetArgs = ['http://127.0.0.1:$port/$targetName'];
-    var dartExecutable = options.executable;
+    var dartExecutable = Platform.executable;
     return Process.start(dartExecutable, targetArgs);
   }).then((process) {
     stdin.pipe(process.stdin);

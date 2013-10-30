@@ -58,7 +58,7 @@ const CERTIFICATE = "localhost_cert";
 
 
 setupSecure() {
-  String scriptDir = dirname(new Options().script);
+  String scriptDir = dirname(Platform.script);
   String certificateDatabase = join(scriptDir, 'pkcert');
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');

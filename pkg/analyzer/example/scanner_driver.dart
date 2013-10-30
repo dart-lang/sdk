@@ -9,11 +9,10 @@ import 'dart:io';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 
-main() {
+main(List<String> args) {
 
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
 
-  var args = new Options().arguments;
   if (args.length == 0) {
     print('Usage: scanner_driver [files_to_scan]');
     exit(0);
