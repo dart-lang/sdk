@@ -10,11 +10,7 @@ var warning = [
 console.error(warning);
 
 // Bootstrap support for Dart scripts on the page as this script.
-if (navigator.webkitStartDart) {
-  if (!navigator.webkitStartDart()) {
-    document.body.innerHTML = 'This build has expired.  Please download a new Dartium at http://www.dartlang.org/dartium/index.html';
-  }
-} else {
+if (navigator.userAgent.indexOf('(Dart)') === -1) {
   // TODO:
   // - Support in-browser compilation.
   // - Handle inline Dart scripts.
@@ -211,7 +207,7 @@ function ReceivePortSync() {
     delete ReceivePortSync.map[this.id];
   };
 
-  if (navigator.webkitStartDart) {
+  if (navigator.userAgent.indexOf('(Dart)') !== -1) {
     window.addEventListener('js-sync-message', function(event) {
       var data = JSON.parse(getPortSyncEventData(event));
       var deserialized = deserialize(data.message);

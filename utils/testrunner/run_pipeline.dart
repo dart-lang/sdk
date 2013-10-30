@@ -291,9 +291,6 @@ main() {
         $runAsText
         window.addEventListener("message", handleMessage, false);
       }
-      if (!$isJavascript && navigator.webkitStartDart) {
-        navigator.webkitStartDart();
-      }
     </script>
   </head>
 <body>

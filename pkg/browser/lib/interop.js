@@ -164,7 +164,7 @@ function DartObject(o) {
     delete ReceivePortSync.map[this.id];
   };
 
-  if (navigator.webkitStartDart) {
+  if (navigator.userAgent.indexOf('(Dart)') !== -1) {
     window.addEventListener('js-sync-message', function(event) {
       var data = JSON.parse(getPortSyncEventData(event));
       var deserialized = deserialize(data.message);
