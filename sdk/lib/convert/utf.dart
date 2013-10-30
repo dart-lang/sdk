@@ -22,7 +22,7 @@ const UNICODE_BOM_CHARACTER_RUNE = 0xFEFF;
  *     var decoded = UTF8.decode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
  *                                0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
  */
-const UTF8 = const Utf8Codec();
+const Utf8Codec UTF8 = const Utf8Codec();
 
 /**
  * A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes

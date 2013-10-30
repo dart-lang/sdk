@@ -5,7 +5,7 @@
 part of dart.convert;
 
 // TODO(floitsch) - Document - Issue 13097
-const HTML_ESCAPE = const HtmlEscape();
+const HtmlEscape HTML_ESCAPE = const HtmlEscape();
 
 class HtmlEscapeMode {
   final String _name;
