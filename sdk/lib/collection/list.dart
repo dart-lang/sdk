@@ -328,7 +328,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   List<E> sublist(int start, [int end]) {
-    if (end == null) end = length;
+    if (end == null) end = this.length;
     _rangeCheck(start, end);
     int length = end - start;
     List<E> result = new List<E>()..length = length;
