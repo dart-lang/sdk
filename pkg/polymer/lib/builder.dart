@@ -114,10 +114,9 @@ import 'transformer.dart';
 Future build({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
   if (options == null) {
-    // The dart:io Options class has been removed, and command-line
-    // arguments are only passed to main, as main(List<String> arguments).
-    throw new UnsupportedError(
-        "polymer builder tools must pass options to build()");
+    print('warning: now that main takes arguments, you need to explicitly pass'
+        ' options to build(). Running as if no options were passed.');
+    options = parseOptions([]);
   }
   return lint(entryPoints: entryPoints, options: options,
       currentPackage: currentPackage, packageDirs: packageDirs).then((res) {
@@ -147,10 +146,9 @@ Future build({List<String> entryPoints, CommandLineOptions options,
 Future lint({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
   if (options == null) {
-    // The dart:io Options class has been removed, and command-line
-    // arguments are only passed to main, as main(List<String> arguments).
-    throw new UnsupportedError(
-        "polymer builder tools must pass options to lint()");
+    print('warning: now that main takes arguments, you need to explicitly pass'
+        ' options to lint(). Running as if no options were passed.');
+    options = parseOptions([]);
   }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
   var linterOptions = new TransformOptions(entryPoints: entryPoints);
@@ -207,10 +205,9 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
 Future deploy({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
   if (options == null) {
-    // The dart:io Options class has been removed, and command-line
-    // arguments are only passed to main, as main(List<String> arguments).
-    throw new UnsupportedError(
-        "polymer builder tools must pass options to lint()");
+    print('warning: now that main takes arguments, you need to explicitly pass'
+        ' options to deploy(). Running as if no options were passed.');
+    options = parseOptions([]);
   }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
 
@@ -296,8 +293,9 @@ class CommandLineOptions {
  */
 CommandLineOptions parseOptions([List<String> args]) {
   if (args == null) {
-    throw new UnsupportedError(
-        "polymer builder tools must pass options from main(List<String> args)");
+    print('warning: the list of arguments from main(List<String> args) now '
+        'needs to be passed explicitly to parseOptions.');
+    args = [];
   }
   var parser = new ArgParser()
     ..addOption('changed', help: 'The file has changed since the last build.',
