@@ -10716,13 +10716,11 @@ class Event extends Interceptor native "Event" {
     var currentTarget = this.currentTarget;
     var target = this.target;
     var matchedTarget;
-    while (matchedTarget == null && target != currentTarget && target != null) {
-      if (target.matches(_selector)) {
-        matchedTarget = target;
-      }
+    do {
+      if (target.matches(_selector)) return target;
       target = target.parent;
-    }
-    return matchedTarget;
+    } while (target != null && target != currentTarget.parent);
+    throw new StateError('No selector matched for populating matchedTarget.');
   }
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }

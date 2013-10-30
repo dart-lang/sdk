@@ -780,6 +780,13 @@ main() {
         expect(event.target, clickOne);
         expect(event.matchingTarget, selectorOne);
       }));
+
+      selectorOne.onClick.matches('.selector').listen(expectAsync1(
+          (Event event) {
+        expect(event.currentTarget, selectorOne);
+        expect(event.target, clickOne);
+        expect(event.matchingTarget, selectorOne);
+      }));
       clickOne.click();
 
       Element elem = new Element.div()..classes.addAll(['a', 'b']);
