@@ -245,6 +245,9 @@ mirrors/typedef_test: StaticWarning # Issue 14524
 mirrors/typedef_metadata_test: StaticWarning # Issue 14524
 mirrors/typevariable_mirror_metadata_test: StaticWarning # Issue 14524
 
+mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
+mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
+
 mirrors/fake_function_without_call_test: StaticWarning, OK # Implements Function without defining call.
 mirrors/find_in_context_fake_function_test: StaticWarning, OK # Implements Function without defining call.
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
