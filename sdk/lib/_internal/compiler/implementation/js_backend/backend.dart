@@ -222,13 +222,8 @@ class JavaScriptBackend extends Backend {
   HType nullType = const HBoundedType(const TypeMask.empty());
   HType emptyType = const HBoundedType(const TypeMask.nonNullEmpty());
 
-  // TODO(9577): Make it so that these are not needed when there are no native
-  // classes.
-  Element dispatchPropertyName;
   Element getNativeInterceptorMethod;
   bool needToInitializeDispatchProperty = false;
-
-  bool seenAnyClass = false;
 
   final Namer namer;
 
@@ -545,7 +540,6 @@ class JavaScriptBackend extends Backend {
     getInterceptorMethod = compiler.findInterceptor('getInterceptor');
     interceptedNames = compiler.findInterceptor('interceptedNames');
     mapTypeToInterceptor = compiler.findInterceptor('mapTypeToInterceptor');
-    dispatchPropertyName = compiler.findInterceptor('dispatchPropertyName');
     getNativeInterceptorMethod =
         compiler.findInterceptor('getNativeInterceptor');
 
@@ -776,16 +770,6 @@ class JavaScriptBackend extends Backend {
       typeVariableHandler.registerClassWithTypeVariables(cls);
     }
 
-    if (!seenAnyClass) {
-      seenAnyClass = true;
-      if (enqueuer.isResolutionQueue) {
-        // TODO(9577): Make it so that these are not needed when there are no
-        // native classes.
-        enqueue(enqueuer, getNativeInterceptorMethod, elements);
-        enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
-      }
-    }
-
     // Register any helper that will be needed by the backend.
     if (enqueuer.isResolutionQueue) {
       if (cls == compiler.intClass
@@ -818,6 +802,10 @@ class JavaScriptBackend extends Backend {
         // TODO(ngeoffray): Move the bound closure class in the
         // backend.
         enqueueClass(enqueuer, compiler.boundClosureClass, elements);
+      } else if (Elements.isNativeOrExtendsNative(cls)) {
+        enqueue(enqueuer, getNativeInterceptorMethod, elements);
+        enqueueClass(enqueuer, jsInterceptorClass, compiler.globalDependencies);
+        enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
       }
     }
     ClassElement result = null;
