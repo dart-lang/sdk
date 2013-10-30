@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartanalyzer ]
-Language/07_Classes/1_Instance_Methods/2_Operators_A09_t01: StaticWarning # co19 issue 640
-Language/12_Expressions/06_Symbols_A01_t03: StaticWarning # co19 issue 640
 
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
@@ -254,15 +252,8 @@ LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail, OK
 LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
 
-# co19 issue 643, A value of type 'Iterable' cannot be assigned to a variable of type 'Iterator'
-LibTest/core/Iterable/Iterable.generate_A01_t01: Fail, OK
-
 # co19 issue 644, The argument type 'int' cannot be assigned to the parameter type '(String, Object) -> void'
-LibTest/collection/HashMap/allTests_A01_t01: Fail, OK
-LibTest/collection/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK
 LibTest/collection/LinkedHashMap/allTests_A01_t01: Fail, OK
-LibTest/collection/SplayTreeMap/allTests_A01_t01: Fail, OK
-LibTest/core/Map/allTests_A01_t01: Fail, OK
 
 # co19 issue 645, "15.7 Type Void". Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
 Language/06_Functions/06_Functions_A04_t01: Fail, OK
@@ -296,3 +287,15 @@ Language/13_Statements/06_For/1_For_Loop_A01_t08: MissingStaticWarning
 Language/13_Statements/09_Switch_A10_t03: MissingStaticWarning
 Language/13_Statements/15_Assert_A04_t04: MissingStaticWarning
 LibTest/collection/IterableMixin/IterableMixin_class_A01_t01: MissingStaticWarning
+
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
+Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticWarning # co19-roll r651: Please triage this failure
+Language/12_Expressions/01_Constants_A20_t04: CompileTimeError # co19-roll r651: Please triage this failure
+Language/07_Classes/8_Static_Variables_A01_t01: MissingStaticWarning # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A05_t04: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A05_t05: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A05_t06: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure

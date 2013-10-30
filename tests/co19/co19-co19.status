@@ -10,8 +10,6 @@
 
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
-LibTest/core/Match/str_A01_t01: Fail, OK # Issue 635
-LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # Issue 635
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
 LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
@@ -54,6 +52,7 @@ LibTest/json/stringify_A03_t02: Fail, OK # Issue 637
 LibTest/json/stringify_A03_t03: Fail, OK # Issue 637
 LibTest/json/stringify_A04_t01: Fail, OK # Issue 637
 
+
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok # co19 issue 634
@@ -83,7 +82,6 @@ Language/07_Classes/07_Classes_A13_t01: Pass, MissingCompileTimeError, Fail # co
 Language/07_Classes/07_Classes_A13_t04: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t07: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/collection/IterableBase/IterableBase_class_A01_t02: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
@@ -94,7 +92,6 @@ LibTest/async/Stream/handleError_A04_t02: Fail # co19-roll r641: Please triage t
 LibTest/async/Stream/listen_A05_t02: Fail # co19-roll r641: Please triage this failure
 LibTest/async/StreamSink/addError_A01_t01: Fail # co19-roll r641: Please triage this failure
 LibTest/async/StreamSink/addStream_A01_t02: Timeout, Fail, OK # Dart issue 14334 - test is also incorrect.
-LibTest/async/Completer/completeError_A01_t01: Fail, ok # co19 Issue 647
 LibTest/collection/ListBase/ListBase_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
 
@@ -277,14 +274,9 @@ Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # c
 ### CHECKED MODE FAILURES ###
 
 [ ($runtime == vm || $runtime == dartium || $compiler == dart2js) && $checked]
-Language/07_Classes/6_Constructors/2_Factories_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/13_Statements/09_Switch_A09_t01: PASS, FAIL, OK # co19 issue 633
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/collection/ListQueue/ListQueue_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/collection/Queue/Queue_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/core/Iterable/Iterable.generate_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r623: Please triage this failure
 LibTest/async/Future/catchError_A03_t05: RuntimeError # co19-roll r641: Please triage this failure
 
