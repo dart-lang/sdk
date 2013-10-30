@@ -14,7 +14,7 @@ import 'package:expect/expect.dart';
 var fisk = 1;
 
 main() {
-  var lm = currentMirrorSystem().findLibrary(const Symbol('test')).single;
+  var lm = currentMirrorSystem().findLibrary(const Symbol('test'));
   lm.setField(const Symbol('fisk'), 'hest');
   Expect.isTrue(fisk is String);
 }

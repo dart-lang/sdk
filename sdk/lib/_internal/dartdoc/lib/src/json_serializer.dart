@@ -62,14 +62,12 @@ void _serializeObject(String name, Object o, JsonPrinter printer) {
 
 void determineAllMembers(ClassMirror classMirror,
     List<String> members) {
-  for(Symbol getterName in classMirror.getters.keys) {
-    if (!members.contains(MirrorSystem.getName(getterName))) {
-      members.add(MirrorSystem.getName(getterName));
-    }
-  }
-  for(Symbol fieldName in classMirror.variables.keys) {
-    if (!members.contains(MirrorSystem.getName(fieldName))) {
-      members.add(MirrorSystem.getName(fieldName));
+  for (var mirror in classMirror.declarations.values) {
+    if (mirror is VariableMirror ||
+        (mirror is MethodMirror && mirror.isGetter)) {
+      if (!members.contains(MirrorSystem.getName(mirror.simpleName))) {
+        members.add(MirrorSystem.getName(mirror.simpleName));
+      }
     }
   }
   if (classMirror.superclass != null &&

@@ -71,11 +71,12 @@ abstract class MirrorSystem {
   Map<Uri, LibraryMirror> get libraries;
 
   /**
-   * Returns an iterable of all libraries in the mirror system whose library
-   * name is [libraryName].
+   * Returns the unique library named [libraryName] if it exists.
+   *
+   * If no unique library exists, an error is thrown.
    */
-  Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
-    return libraries.values.where(
+  LibraryMirror findLibrary(Symbol libraryName) {
+    return libraries.values.singleWhere(
         (library) => library.simpleName == libraryName);
   }
 
@@ -129,7 +130,7 @@ external MirrorSystem currentMirrorSystem();
  * Returns an [InstanceMirror] reflecting [reflectee].
  * If [reflectee] is a function or an instance of a class
  * that has a [:call:] method, the returned instance mirror
- * will be a [ClosureMirror].  
+ * will be a [ClosureMirror].
  *
  * Note that since one cannot obtain an object from
  * another isolate, this function can only be used to
@@ -282,6 +283,8 @@ abstract class DeclarationMirror implements Mirror {
 
   /**
    * The source location of this Dart language entity.
+   *
+   * This operation is optional and may return [:null:].
    */
   SourceLocation get location;
 
@@ -297,9 +300,9 @@ abstract class DeclarationMirror implements Mirror {
    * If no annotations are associated with *D*, then
    * an empty list is returned.
    *
-   * If evaluating any of *c1, ..., cn* would cause a 
+   * If evaluating any of *c1, ..., cn* would cause a
    * compilation error
-   * the effect is the same as if a non-reflective compilation error 
+   * the effect is the same as if a non-reflective compilation error
    * had been encountered.
    */
   List<InstanceMirror> get metadata;
@@ -336,7 +339,7 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * the effect is the same as if a non-reflective compilation error 
+   * the effect is the same as if a non-reflective compilation error
    * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
@@ -377,12 +380,13 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * the effect is the same as if a non-reflective compilation error 
+   * the effect is the same as if a non-reflective compilation error
    * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */
-  /* TODO(turnidge): Handle ambiguous names.*/
+  // TODO(ahe): Remove stuff about scope and private members. [fieldName] is a
+  // capability giving access to private members.
   InstanceMirror getField(Symbol fieldName);
 
   /**
@@ -401,7 +405,7 @@ abstract class ObjectMirror implements Mirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect]([value]).
    * If the invocation causes a compilation error
-   * the effect is the same as if a non-reflective compilation error 
+   * the effect is the same as if a non-reflective compilation error
    * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
@@ -482,6 +486,12 @@ abstract class InstanceMirror implements ObjectMirror {
 abstract class ClosureMirror implements InstanceMirror {
   /**
    * A mirror on the function associated with this closure.
+   *
+   * The function associated with an implicit closure of a function is that
+   * function.
+   *
+   * The function associated with an instance of a class that has a [:call:]
+   * method is that [:call:] method.
    */
   MethodMirror get function;
 
@@ -536,57 +546,12 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
 
   /**
    * Returns an immutable map of the declarations actually given in the library.
-   * 
+   *
    * This map includes all regular methods, getters, setters, fields, classes
    * and typedefs actually declared in the library. The map is keyed by the
    * simple names of the declarations.
    */
   Map<Symbol, DeclarationMirror> get declarations;
-
-  /**
-   * An immutable map from from names to mirrors for all members in
-   * this library.
-   *
-   * The members of a library are its top-level classes,
-   * functions, variables, getters, and setters.
-   */
-  Map<Symbol, Mirror> get members;
-
-  /**
-   * An immutable map from names to mirrors for all class
-   * declarations in this library.
-   */
-  Map<Symbol, ClassMirror> get classes;
-
-  /**
-   * An immutable map from names to mirrors for all type
-   * declarations in this library.
-   */
-  Map<Symbol, TypeMirror> get types;
-
-  /**
-   * An immutable map from names to mirrors for all function, getter,
-   * and setter declarations in this library.
-   */
-  Map<Symbol, MethodMirror> get functions;
-
-  /**
-   * An immutable map from names to mirrors for all getter
-   * declarations in this library.
-   */
-  Map<Symbol, MethodMirror> get getters;
-
-  /**
-   * An immutable map from names to mirrors for all setter
-   * declarations in this library.
-   */
-  Map<Symbol, MethodMirror> get setters;
-
-  /**
-   * An immutable map from names to mirrors for all variable
-   * declarations in this library.
-   */
-  Map<Symbol, VariableMirror> get variables;
 
   /**
    * Returns [:true:] if this mirror is equal to [other].
@@ -686,7 +651,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    */
   List<ClassMirror> get superinterfaces;
 
-  /** 
+  /**
    * Returns an immutable map of the declarations actually given in the class
    * declaration.
    *
@@ -694,6 +659,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * constructors and type variables actually declared in the class. Both
    * static and instance members are included, but no inherited members are
    * included. The map is keyed by the simple names of the declarations.
+   *
+   * This does not include inherited members.
    */
   Map<Symbol, DeclarationMirror> get declarations;
 
@@ -705,48 +672,10 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    */
   ClassMirror get mixin;
 
-  /**
-   * An immutable map from names to mirrors for all members of
-   * this type.
-   *
-   * The members of a type are its methods, fields, getters, and
-   * setters.  Note that constructors and type variables are not
-   * considered to be members of a type.
-   *
-   * This does not include inherited members.
-   */
-  Map<Symbol, Mirror> get members;
-
-  /**
-   * An immutable map from names to mirrors for all method,
-   * declarations for this type.  This does not include getters and
-   * setters.
-   */
-  Map<Symbol, MethodMirror> get methods;
-
-  /**
-   * An immutable map from names to mirrors for all getter
-   * declarations for this type.
-   */
-  Map<Symbol, MethodMirror> get getters;
-
-  /**
-   * An immutable map from names to mirrors for all setter
-   * declarations for this type.
-   */
-  Map<Symbol, MethodMirror> get setters;
-
-  /**
-   * An immutable map from names to mirrors for all variable
-   * declarations for this type.
-   */
-  Map<Symbol, VariableMirror> get variables;
-
-  /**
-   * An immutable map from names to mirrors for all constructor
-   * declarations for this type.
-   */
-  Map<Symbol, MethodMirror> get constructors;
+  // TODO(ahe): What about:
+  // /// Finds the instance member named [name] declared or inherited in the
+  // /// reflected class.
+  // DeclarationMirror instanceLookup(Symbol name);
 
    /**
    * Invokes the named constructor and returns a mirror on the result.
@@ -770,7 +699,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * If the expression evaluates to a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If evaluating the expression causes a compilation error
-   * the effect is the same as if a non-reflective compilation error 
+   * the effect is the same as if a non-reflective compilation error
    * had been encountered.
    * If evaluating the expression throws an exception *e*
    * (that it does not catch)
@@ -1039,88 +968,6 @@ abstract class ParameterMirror implements VariableMirror {
  * A [SourceLocation] describes the span of an entity in Dart source code.
  */
 abstract class SourceLocation {
-}
-
-/**
- * When an error occurs during the mirrored execution of code, a
- * [MirroredError] is thrown.
- *
- * In general, there are three main classes of failure that can happen
- * during mirrored execution of code in some isolate:
- *
- * - An exception is thrown but not caught.  This is caught by the
- *   mirrors framework and a [MirroredUncaughtExceptionError] is
- *   created and thrown.
- *
- * - A compile-time error occurs, such as a syntax error.  This is
- *   suppressed by the mirrors framework and a
- *   [MirroredCompilationError] is created and thrown.
- *
- * - A truly fatal error occurs, causing the isolate to be exited.  If
- *   the reflector and reflectee share the same isolate, then they
- *   will both suffer.  If the reflector and reflectee are in distinct
- *   isolates, then we hope to provide some information about the
- *   isolate death, but this has yet to be implemented.
- *
- * TODO(turnidge): Specify the behavior for remote fatal errors.
- */
-abstract class MirroredError implements Exception {
-}
-
-/**
- * When an uncaught exception occurs during the mirrored execution
- * of code, a [MirroredUncaughtExceptionError] is thrown.
- *
- * This exception contains a mirror on the original exception object.
- * It also contains an object which can be used to recover the
- * stacktrace.
- */
-class MirroredUncaughtExceptionError extends MirroredError {
-  MirroredUncaughtExceptionError(this.exception_mirror,
-                                 this.exception_string,
-                                 this.stacktrace) {}
-
-  /** A mirror on the exception object. */
-  final InstanceMirror exception_mirror;
-
-  /** The result of toString() for the exception object. */
-  final String exception_string;
-
-  /** A stacktrace object for the uncaught exception. */
-  final Object stacktrace;
-
-  String toString() {
-    return
-        "Uncaught exception during mirrored execution: <${exception_string}>";
-  }
-}
-
-/**
- * When a compile-time error occurs during the mirrored execution
- * of code, a [MirroredCompilationError] is thrown.
- *
- * This exception includes the compile-time error message that would
- * have been displayed to the user, if the function had not been
- * invoked via mirror.
- */
-class MirroredCompilationError extends MirroredError {
-  MirroredCompilationError(this.message) {}
-
-  final String message;
-
-  String toString() {
-    return "Compile-time error during mirrored execution: <$message>";
-  }
-}
-
-/**
- * A [MirrorException] is used to indicate errors within the mirrors
- * framework.
- */
-class MirrorException implements Exception {
-  const MirrorException(String this._message);
-  String toString() => "MirrorException: '$_message'";
-  final String _message;
 }
 
 /**

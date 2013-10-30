@@ -22,9 +22,9 @@ main() {
   // Test private symbols are distinct across libraries, and the same within a
   // library when created multiple ways. Test the string can be properly
   // extracted.
-  LibraryMirror libcore = currentMirrorSystem().findLibrary(#dart.core).single;
-  LibraryMirror libmath = currentMirrorSystem().findLibrary(#dart.math).single;
-  LibraryMirror libtest = currentMirrorSystem().findLibrary(#test).single;
+  LibraryMirror libcore = currentMirrorSystem().findLibrary(#dart.core);
+  LibraryMirror libmath = currentMirrorSystem().findLibrary(#dart.math);
+  LibraryMirror libtest = currentMirrorSystem().findLibrary(#test);
 
   Symbol corefoo = MirrorSystem.getSymbol('foo', libcore);
   Symbol mathfoo = MirrorSystem.getSymbol('foo', libmath);

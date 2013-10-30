@@ -17,8 +17,8 @@ abstract class MirrorSystem {
    * Returns an iterable of all libraries in the mirror system whose library
    * name is [libraryName].
    */
-  Iterable<LibraryMirror> findLibrary(String libraryName) {
-    return libraries.values.where(
+  LibraryMirror findLibrary(String libraryName) {
+    return libraries.values.singleWhere(
         (library) => library.simpleName == libraryName);
   }
 

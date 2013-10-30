@@ -7,6 +7,8 @@
 Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392, passes in checked mode b/c of type check
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium) ]
+Language/12_Expressions/06_Symbols_A01_t03: Fail # co19 issue 640
+
 Language/13_Statements/03_Variable_Declaration_A04_t01: Fail, MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t02: Fail, MissingCompileTimeError # Issue 7052
 Language/13_Statements/03_Variable_Declaration_A04_t05: Fail, MissingCompileTimeError # Issue 7052

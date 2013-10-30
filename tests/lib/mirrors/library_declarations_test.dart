@@ -12,7 +12,7 @@ import 'declarations_model.dart' as declarations_model;
 
 main() {
   LibraryMirror lm =
-      currentMirrorSystem().findLibrary(#test.declarations_model).single;
+      currentMirrorSystem().findLibrary(#test.declarations_model);
 
   Expect.setEquals(
    ['Variable(s(_libraryVariable)'

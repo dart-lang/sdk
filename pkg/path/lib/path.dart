@@ -90,7 +90,8 @@ LibraryMirror get _html =>
 /// return the current URL.
 String get current {
   if (_io != null) {
-    return _io.classes[#Directory].getField(#current).reflectee.path;
+    return (_io.declarations[#Directory] as ClassMirror)
+        .getField(#current).reflectee.path;
   } else if (_html != null) {
     return _html.getField(#window).reflectee.location.href;
   } else {
@@ -867,7 +868,7 @@ abstract class Style {
   static Style _getPlatformStyle() {
     if (_io == null) return Style.url;
 
-    if (_io.classes[#Platform].getField(#operatingSystem)
+    if ((_io.declarations[#Platform] as ClassMirror).getField(#operatingSystem)
         .reflectee == 'windows') {
       return Style.windows;
     }

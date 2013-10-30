@@ -19,7 +19,7 @@ main() {
   bar = 1;
   var local = bar;
 
-  var mirror = currentMirrorSystem().findLibrary(const Symbol('test')).single;
+  var mirror = currentMirrorSystem().findLibrary(const Symbol('test'));
   Expect.equals(1, mirror.setField(const Symbol('foo'), 1).reflectee);
   Expect.equals(1, mirror.getField(const Symbol('foo')).reflectee);
   Expect.throws(() => mirror.setField(const Symbol('bar'),  2),

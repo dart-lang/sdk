@@ -76,9 +76,8 @@ class JsMirrorSystem implements MirrorSystem {
         new UnmodifiableMapView<Uri, LibraryMirror>(result);
   }
 
-  Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
-    return new UnmodifiableListView<LibraryMirror>(
-        librariesByName[n(libraryName)]);
+  LibraryMirror findLibrary(Symbol libraryName) {
+    return librariesByName[n(libraryName)].single;
   }
 
   static Map<String, List<LibraryMirror>> computeLibrariesByName() {
@@ -629,15 +628,20 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   Symbol get qualifiedName => simpleName;
 
-  Map<Symbol, Mirror> get members => mixin.members;
+  // TODO(ahe): Remove this method, only here to silence warning.
+  get _mixin => mixin;
 
-  Map<Symbol, MethodMirror> get methods => mixin.methods;
+  Map<Symbol, Mirror> get members => _mixin.members;
 
-  Map<Symbol, MethodMirror> get getters => mixin.getters;
+  Map<Symbol, MethodMirror> get methods => _mixin.methods;
 
-  Map<Symbol, MethodMirror> get setters => mixin.setters;
+  Map<Symbol, MethodMirror> get getters => _mixin.getters;
 
-  Map<Symbol, VariableMirror> get variables => mixin.variables;
+  Map<Symbol, MethodMirror> get setters => _mixin.setters;
+
+  Map<Symbol, VariableMirror> get variables => _mixin.variables;
+
+  Map<Symbol, DeclarationMirror> get declarations => mixin.declarations;
 
   InstanceMirror invoke(
       Symbol memberName,
@@ -660,7 +664,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   List<ClassMirror> get superinterfaces => [mixin];
 
-  Map<Symbol, MethodMirror> get constructors => mixin.constructors;
+  Map<Symbol, MethodMirror> get constructors => _mixin.constructors;
 
   InstanceMirror newInstance(
       Symbol constructorName,

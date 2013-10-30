@@ -283,7 +283,7 @@ bool _setObjectProperty(object, property, value) {
 
 bool _maybeHasGetter(ClassMirror type, Symbol name) {
   while (type != objectType) {
-    final members = type.members;
+    final members = type.declarations;
     if (members.containsKey(name)) return true;
     if (members.containsKey(#noSuchMethod)) return true;
     type = _safeSuperclass(type);
@@ -299,7 +299,7 @@ Symbol _setterName(Symbol getter) =>
 bool _maybeHasSetter(ClassMirror type, Symbol name) {
   var setterName = _setterName(name);
   while (type != objectType) {
-    final members = type.members;
+    final members = type.declarations;
     if (members[name] is VariableMirror) return true;
     if (members.containsKey(setterName)) return true;
     if (members.containsKey(#noSuchMethod)) return true;
@@ -314,7 +314,7 @@ bool _maybeHasSetter(ClassMirror type, Symbol name) {
  */
 bool _hasMethod(ClassMirror type, Symbol name) {
   while (type != objectType) {
-    final member = type.members[name];
+    final member = type.declarations[name];
     if (member is MethodMirror && member.isRegularMethod) return true;
     type = _safeSuperclass(type);
   }

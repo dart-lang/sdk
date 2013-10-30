@@ -71,7 +71,7 @@ void test(MirrorSystem mirrors) {
     "Unexpected library simple name");
   Expect.stringEquals("mirrors_helper", helperLibrary.qualifiedName,
     "Unexpected library qualified name");
-  Expect.equals(helperLibrary, mirrors.findLibrary('mirrors_helper').single);
+  Expect.equals(helperLibrary, mirrors.findLibrary('mirrors_helper'));
 
   var helperLibraryLocation = helperLibrary.location;
   Expect.isNotNull(helperLibraryLocation);
