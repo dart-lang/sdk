@@ -24,7 +24,7 @@ intptr_t FileSystemWatcher::WatchPath(const char* path,
                                       bool recursive) {
   int fd = TEMP_FAILURE_RETRY(inotify_init1(IN_NONBLOCK | IN_CLOEXEC));
   if (fd < 0) return -1;
-  int list_events = IN_DELETE_SELF;
+  int list_events = IN_DELETE_SELF | IN_MOVE_SELF;
   if (events & kCreate) list_events |= IN_CREATE;
   if (events & kModifyContent) list_events |= IN_CLOSE_WRITE | IN_ATTRIB;
   if (events & kDelete) list_events |= IN_DELETE;
@@ -70,7 +70,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     if (e->mask & IN_CREATE) mask |= kCreate;
     if (e->mask & IN_MOVE) mask |= kMove;
     if (e->mask & IN_DELETE) mask |= kDelete;
-    if (e->mask & IN_DELETE_SELF) mask |= kDeleteSelf;
+    if (e->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) mask |= kDeleteSelf;
     if (e->mask & IN_ISDIR) mask |= kIsDir;
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));

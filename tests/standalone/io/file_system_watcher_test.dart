@@ -300,6 +300,33 @@ void testWatchNonExisting() {
 }
 
 
+void testWatchMoveSelf() {
+  // Windows keeps the directory handle open, even though it's deleted. It'll
+  // be flushed completely, once the watcher is closed as well.
+  if (Platform.isWindows) return;
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
+  var dir2 = new Directory(join(dir.path, 'dir'))..createSync();
+
+  var watcher = dir2.watch();
+
+  asyncStart();
+  var sub;
+  bool gotDelete = false;
+  sub = watcher.listen((event) {
+    if (event is FileSystemDeleteEvent) {
+      Expect.isTrue(event.path.endsWith('dir'));
+      gotDelete = true;
+    }
+  }, onDone: () {
+    Expect.isTrue(gotDelete);
+    dir.deleteSync(recursive: true);
+    asyncEnd();
+  });
+
+  dir2.renameSync(join(dir.path, 'new_dir'));
+}
+
+
 void main() {
   if (!FileSystemEntity.isWatchSupported) return;
   testWatchCreateFile();
@@ -312,4 +339,5 @@ void main() {
   testMultipleEvents();
   testWatchNonRecursive();
   testWatchNonExisting();
+  testWatchMoveSelf();
 }
