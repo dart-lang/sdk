@@ -581,7 +581,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  void unbindProperty(String name) => unregisterObserver(name);
+  bool unbindProperty(String name) => unregisterObserver(name);
 
   void unbindAllProperties() {
     if (_propertyObserver != null) {
@@ -905,7 +905,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
         decl = decl.superDeclaration;
       }
       if (cssText.length > 0) {
-        var style = this.element.cssTextToScopeStyle(cssText.toString(),
+        var style = decl.cssTextToScopeStyle(cssText.toString(),
               _STYLE_CONTROLLER_SCOPE);
         // TODO(sorvell): for now these styles are not shimmed
         // but we may need to shim them

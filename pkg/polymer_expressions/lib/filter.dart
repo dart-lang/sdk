@@ -10,14 +10,15 @@ abstract class Transformer<T, V> {
 
   T forward(V v);
   V reverse(T t);
-  Transformer<V, T> get inverse => new _InverseTransformer<V, T>(this);
+  Transformer<V, T> get inverse => new _InverseTransformer/*<V, T>*/(this);
 }
 
-class _InverseTransformer<V, T> implements Transformer<V, T> {
-  final Transformer<T, V> _t;
+// TODO(jmesserly): restore types when Issue 14094 is fixed.
+class _InverseTransformer/*<V, T>*/ implements Transformer/*<V, T>*/ {
+  final Transformer/*<T, V>*/ _t;
   _InverseTransformer(this._t);
 
-  V forward(T v) => _t.reverse(v);
-  T reverse(V t) => _t.forward(t);
-  Transformer<T, V> get inverse => _t;
+  /*V*/ forward(/*T*/ v) => _t.reverse(v);
+  /*T*/ reverse(/*V*/ t) => _t.forward(t);
+  Transformer/*<T, V>*/ get inverse => _t;
 }

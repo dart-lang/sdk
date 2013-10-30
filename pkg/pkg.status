@@ -353,35 +353,8 @@ intl/test/date_time_format_http_request_test: StaticWarning
 intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
 observe/test/transform_test: StaticWarning
-polymer/example/component/news/test/news_index_test: StaticWarning
-polymer_expressions/test/bindings_test: StaticWarning
-polymer_expressions/test/eval_test: StaticWarning
-polymer_expressions/test/globals_test: StaticWarning
-polymer_expressions/test/syntax_test: StaticWarning
-polymer/test/attr_deserialize_test: StaticWarning
-polymer/test/attr_mustache_test: StaticWarning
-polymer/test/bind_test: StaticWarning
-polymer/test/build/all_phases_test: CompileTimeError, StaticWarning
-polymer/test/build/code_extractor_test: CompileTimeError, StaticWarning
-polymer/test/build/import_inliner_test: CompileTimeError, StaticWarning
-polymer/test/build/linter_test: StaticWarning
-polymer/test/build/polyfill_injector_test: StaticWarning
-polymer/test/build/script_compactor_test: CompileTimeError, StaticWarning
-polymer/test/custom_event_test: StaticWarning
-polymer/test/event_handlers_test: StaticWarning
-polymer/test/event_path_declarative_test: StaticWarning
-polymer/test/event_path_test: StaticWarning
-polymer/test/events_test: StaticWarning
-polymer/test/instance_attrs_test: StaticWarning
-polymer/test/noscript_test: StaticWarning
-polymer/test/prop_attr_bind_reflection_test: StaticWarning
-polymer/test/prop_attr_reflection_test: StaticWarning
-polymer/test/publish_attributes_test: StaticWarning
-polymer/test/publish_inherited_properties_test: StaticWarning
-polymer/test/register_test: StaticWarning
-polymer/test/take_attributes_test: StaticWarning
-polymer/test/template_distribute_dynamic_test: StaticWarning
-polymer/test/unbind_test: StaticWarning
+polymer/test/build/*: StaticWarning
+polymer/test/build/utils_test: Pass
 scheduled_test/test/descriptor/async_test: StaticWarning
 scheduled_test/test/descriptor/directory_test: StaticWarning
 scheduled_test/test/descriptor/file_test: StaticWarning
