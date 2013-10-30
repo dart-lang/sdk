@@ -24,8 +24,6 @@ type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
 implicit_setter_test: Fail # Issue 13919
-redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 13663
-redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 13663
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699

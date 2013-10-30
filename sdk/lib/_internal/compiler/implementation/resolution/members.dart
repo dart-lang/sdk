@@ -1084,11 +1084,19 @@ class ResolverTask extends CompilerTask {
   }
 
   FunctionSignature resolveSignature(FunctionElement element) {
+    MessageKind defaultValuesError = null;
+    if (element.isFactoryConstructor()) {
+      FunctionExpression body = element.parseNode(compiler);
+      if (body.isRedirectingFactory) {
+        defaultValuesError = MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT;
+      }
+    }
     return compiler.withCurrentElement(element, () {
       FunctionExpression node =
           compiler.parser.measure(() => element.parseNode(compiler));
       return measure(() => SignatureResolver.analyze(
-          compiler, node.parameters, node.returnType, element));
+          compiler, node.parameters, node.returnType, element,
+          defaultValuesError: defaultValuesError));
     });
   }
 
