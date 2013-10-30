@@ -244,7 +244,7 @@ _getObjectProperty(object, property) {
   }
 
   if (_logger.isLoggable(Level.FINER)) {
-    _logger.log("can't get $property in $object");
+    _logger.finer("can't get $property in $object");
   }
   return null;
 }
@@ -276,7 +276,7 @@ bool _setObjectProperty(object, property, value) {
   }
 
   if (_logger.isLoggable(Level.FINER)) {
-    _logger.log("can't set $property in $object");
+    _logger.finer("can't set $property in $object");
   }
   return false;
 }
@@ -353,4 +353,4 @@ bool _isPathValid(String s) {
   return _pathRegExp.hasMatch(s);
 }
 
-final _logger = new Logger('observe.PathObserver');
+final Logger _logger = new Logger('observe.PathObserver');
