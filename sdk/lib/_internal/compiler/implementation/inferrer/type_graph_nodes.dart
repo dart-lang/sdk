@@ -304,6 +304,8 @@ class ElementTypeInformation extends TypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
+    // Parameters are being explicitly checked in the method.
+    if (element.isParameter() || element.isFieldParameter()) return mask;
     if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
       return mask;
     }

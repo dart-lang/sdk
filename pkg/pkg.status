@@ -29,7 +29,6 @@ collection_helpers/test/equality_test/03: Fail # Issue 1533
 collection_helpers/test/equality_test/04: Fail # Issue 1533
 collection_helpers/test/equality_test/05: Fail # Issue 1533
 collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
-intl/test/number_closure_test: Pass, CompileTimeError # Issue 14603
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486

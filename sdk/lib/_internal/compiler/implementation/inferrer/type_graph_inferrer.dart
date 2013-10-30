@@ -493,24 +493,6 @@ class TypeGraphInferrerEngine
 
     compiler.log('Inferred $overallRefineCount types.');
 
-    if (compiler.enableTypeAssertions) {
-      // Undo the narrowing of parameters types. Parameters are being
-      // checked by the method, and we can therefore only trust their
-      // type after the checks. It is okay for the inferrer to rely on
-      // the type annotations, but the backend should has to
-      // insert the checks.
-      types.typeInformations.forEach((Element element,
-                                      ElementTypeInformation info) {
-        if (element.isParameter() || element.isFieldParameter()) {
-          if (info.abandonInferencing) {
-            info.type = types.dynamicType.type;
-          } else {
-            info.type = types.computeTypeMask(info.assignments);
-          }
-        }
-      });
-    }
-
     processLoopInformation();
   }
 
