@@ -40,6 +40,9 @@ mirrors/immutable_collections_test: RuntimeError # Issue 14030
 mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
 mirrors/initializing_formals_test/02: RuntimeError # Issue 12087
 mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
+mirrors/instance_members_test: RuntimeError # Issue 14633
+mirrors/instance_members_with_override_test: RuntimeError # Issue 14633
+mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 14633
 mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
@@ -66,7 +69,9 @@ mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_test: RuntimeError # Issue 12607
+mirrors/static_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
+mirrors/toplevel_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
@@ -179,6 +184,12 @@ mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_f_bounded_test/01: RuntimeError # Issue 14000
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
+
+mirrors/static_members_test: RuntimeError # Issue 14632
+mirrors/toplevel_members_test: RuntimeError # Issue 14632
+mirrors/instance_members_test: RuntimeError # Issue 14632
+mirrors/instance_members_with_override_test: RuntimeError # Issue 14632
+mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 14632
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
