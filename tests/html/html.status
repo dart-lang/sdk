@@ -351,7 +351,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox do
 # FireFox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
 audiobuffersourcenode_test/supported: Fail
-audiocontext_test/supported: Fail
+audiocontext_test/supported: Pass, Fail # Issue 14602
 css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
