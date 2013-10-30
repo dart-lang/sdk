@@ -86,8 +86,8 @@ class MimeMultipartTransformer
   int _index;
   List<int> _buffer;
 
-  StringBuffer _headerField = new StringBuffer();
-  StringBuffer _headerValue = new StringBuffer();
+  List<int> _headerField = [];
+  List<int> _headerValue = [];
 
   /**
    * Construct a new MIME multipart parser with the boundary
@@ -246,7 +246,7 @@ class MimeMultipartTransformer
             _state = _HEADER_ENDING;
           } else {
             // Start of new header field.
-            _headerField.writeCharCode(_toLowerCase(byte));
+            _headerField.add(_toLowerCase(byte));
             _state = _HEADER_FIELD;
           }
           break;
@@ -258,7 +258,7 @@ class MimeMultipartTransformer
             if (!_isTokenChar(byte)) {
               throw new MimeMultipartException("Invalid header field name");
             }
-            _headerField.writeCharCode(_toLowerCase(byte));
+            _headerField.add(_toLowerCase(byte));
           }
           break;
 
@@ -267,7 +267,7 @@ class MimeMultipartTransformer
             _state = _HEADER_VALUE_FOLDING_OR_ENDING;
           } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
             // Start of new header value.
-            _headerValue.writeCharCode(byte);
+            _headerValue.add(byte);
             _state = _HEADER_VALUE;
           }
           break;
@@ -276,7 +276,7 @@ class MimeMultipartTransformer
           if (byte == _CharCode.CR) {
             _state = _HEADER_VALUE_FOLDING_OR_ENDING;
           } else {
-            _headerValue.writeCharCode(byte);
+            _headerValue.add(byte);
           }
           break;
 
@@ -289,16 +289,16 @@ class MimeMultipartTransformer
           if (byte == _CharCode.SP || byte == _CharCode.HT) {
             _state = _HEADER_VALUE_START;
           } else {
-            String headerField = _headerField.toString();
-            String headerValue =_headerValue.toString();
+            String headerField = UTF8.decode(_headerField);
+            String headerValue = UTF8.decode(_headerValue);
             _headers[headerField.toLowerCase()] = headerValue;
-            _headerField = new StringBuffer();
-            _headerValue = new StringBuffer();
+            _headerField = [];
+            _headerValue = [];
             if (byte == _CharCode.CR) {
               _state = _HEADER_ENDING;
             } else {
               // Start of new header field.
-              _headerField.writeCharCode(_toLowerCase(byte));
+              _headerField.add(_toLowerCase(byte));
               _state = _HEADER_FIELD;
             }
           }
