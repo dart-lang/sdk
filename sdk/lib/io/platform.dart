@@ -8,7 +8,6 @@ part of dart.io;
  * The [Platform] class exposes details of the machine and operating
  * system.
  */
-@deprecated
 class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
   static final _pathSeparator = _Platform.pathSeparator;

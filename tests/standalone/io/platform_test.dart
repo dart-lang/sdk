@@ -48,7 +48,7 @@ testIsolate() {
   port.first.then((results) {
     Expect.equals(Platform.executable, results["Platform.executable"]);
 
-    Uri uri = Uri.parse(results["Platform.script"]);
+    Uri uri = Uri.file(results["Platform.script"]);
     // SpawnFunction retains the script url of the parent which in this
     // case was a relative path.
     Expect.equals("", uri.scheme);

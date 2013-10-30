@@ -9,9 +9,6 @@
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
-[ $runtime == vm && $system == windows ]
-io/platform_test: Pass, Fail # Issue 14399
-
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 
