@@ -276,10 +276,6 @@ Language/13_Statements/09_Switch_A10_t03: MissingStaticWarning
 Language/13_Statements/15_Assert_A04_t04: MissingStaticWarning
 LibTest/collection/IterableMixin/IterableMixin_class_A01_t01: MissingStaticWarning
 
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticWarning # co19-roll r651: Please triage this failure
-Language/12_Expressions/01_Constants_A20_t04: CompileTimeError # co19-roll r651: Please triage this failure
-Language/07_Classes/8_Static_Variables_A01_t01: MissingStaticWarning # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A05_t04: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A05_t05: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A05_t06: MissingCompileTimeError # co19-roll r651: Please triage this failure
@@ -287,3 +283,9 @@ Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll 
 Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/07_Classes/8_Static_Variables_A01_t01: MissingStaticWarning # co19-roll r651: Please triage this failure
+Language/12_Expressions/01_Constants_A20_t04: CompileTimeError # co19-roll r651: Please triage this failure
+Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticWarning # co19-roll r651: Please triage this failure
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
+Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
