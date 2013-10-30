@@ -1770,7 +1770,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
         __ xorl(destination.reg(), destination.reg());
       } else {
-        __ LoadObject(destination.reg(), constant);
+        __ LoadObjectSafely(destination.reg(), constant);
       }
     } else {
       ASSERT(destination.IsStackSlot());
@@ -1869,11 +1869,11 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  if (obj.IsSmi() || obj.IsNull()) {
+  if (Assembler::IsSafeSmi(obj) || obj.IsNull()) {
     __ movl(dst, Immediate(reinterpret_cast<int32_t>(obj.raw())));
   } else {
     ScratchRegisterScope ensure_scratch(this, kNoRegister);
-    __ LoadObject(ensure_scratch.reg(), obj);
+    __ LoadObjectSafely(ensure_scratch.reg(), obj);
     __ movl(dst, ensure_scratch.reg());
   }
 }

@@ -150,7 +150,7 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out().IsInvalid()) {
     Register result = locs()->out().reg();
-    __ LoadObject(result, value());
+    __ LoadObjectSafely(result, value());
   }
 }
 
@@ -941,15 +941,16 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
-  if (!index->definition()->IsConstant()) return false;
-  const Object& constant = index->definition()->AsConstant()->value();
-  if (!constant.IsSmi()) return false;
-  const Smi& smi_const = Smi::Cast(constant);
+static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  if ((constant == NULL) || !Assembler::IsSafeSmi(constant->value())) {
+    return false;
+  }
+  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
   const intptr_t scale = FlowGraphCompiler::ElementSizeFor(cid);
-  const intptr_t data_offset = FlowGraphCompiler::DataOffsetFor(cid);
-  const int64_t disp = smi_const.AsInt64Value() * scale + data_offset;
-  return Utils::IsInt(32, disp);
+  const intptr_t offset = FlowGraphCompiler::DataOffsetFor(cid);
+  const int64_t displacement = index * scale + offset;
+  return Utils::IsInt(32, displacement);
 }
 
 
@@ -1113,18 +1114,15 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  if (index_scale() == 1) {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::WritableRegister());
+  if (CanBeImmediateIndex(index(), class_id())) {
+    // CanBeImmediateIndex must return false for unsafe smis.
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
   } else {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::RequiresRegister());
+    // The index is either untagged (element size == 1) or a smi (for all
+    // element sizes > 1).
+    locs->set_in(1, (index_scale() == 1)
+                        ? Location::WritableRegister()
+                        : Location::RequiresRegister());
   }
   if (representation() == kUnboxedDouble) {
     locs->set_out(Location::RequiresFpuRegister());
@@ -1279,18 +1277,15 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  if (index_scale() == 1) {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::WritableRegister());
+  if (CanBeImmediateIndex(index(), class_id())) {
+    // CanBeImmediateIndex must return false for unsafe smis.
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
   } else {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::RequiresRegister());
+    // The index is either untagged (element size == 1) or a smi (for all
+    // element sizes > 1).
+    locs->set_in(1, (index_scale() == 1)
+                        ? Location::WritableRegister()
+                        : Location::RequiresRegister());
   }
   switch (class_id()) {
     case kArrayCid:
@@ -2434,6 +2429,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     if (RightIsPowerOfTwoConstant()) {
       summary->set_in(0, Location::RequiresRegister());
       ConstantInstr* right_constant = right()->definition()->AsConstant();
+      // The programmer only controls one bit, so the constant is safe.
       summary->set_in(1, Location::Constant(right_constant->value()));
       summary->set_temp(0, Location::RequiresRegister());
       summary->set_out(Location::SameAsFirstInput());
