@@ -445,13 +445,20 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   /**
-   * Check if a value of type t can be assigned to a variable,
-   * parameter or return value of type s.
+   * Check if a value of type [from] can be assigned to a variable, parameter or
+   * return value of type [to].  If `isConst == true`, an error is emitted in
+   * checked mode, otherwise a warning is issued.
    */
-  bool checkAssignable(Node node, DartType from, DartType to) {
+  bool checkAssignable(Node node, DartType from, DartType to,
+                       {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
-      reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE.warning,
-                        {'fromType': from, 'toType': to});
+      if (compiler.enableTypeAssertions && isConst) {
+        compiler.reportError(node, MessageKind.NOT_ASSIGNABLE.error,
+                             {'fromType': from, 'toType': to});
+      } else {
+        reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE.warning,
+                          {'fromType': from, 'toType': to});
+      }
       return false;
     }
     return true;
@@ -1285,7 +1292,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
          link = link.tail) {
       Node element = link.head;
       DartType elementType = analyze(element);
-      checkAssignable(element, elementType, listElementType);
+      checkAssignable(element, elementType, listElementType,
+          isConst: node.isConst());
     }
     return listType;
   }
@@ -1459,14 +1467,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     InterfaceType mapType = elements.getType(node);
     DartType mapKeyType = firstType(mapType.typeArguments);
     DartType mapValueType = secondType(mapType.typeArguments);
+    bool isConst = node.isConst();
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       DartType keyType = analyze(entry.key);
-      checkAssignable(entry.key, keyType, mapKeyType);
+      checkAssignable(entry.key, keyType, mapKeyType, isConst: isConst);
       DartType valueType = analyze(entry.value);
-      checkAssignable(entry.value, valueType, mapValueType);
+      checkAssignable(entry.value, valueType, mapValueType, isConst: isConst);
     }
     return mapType;
   }
