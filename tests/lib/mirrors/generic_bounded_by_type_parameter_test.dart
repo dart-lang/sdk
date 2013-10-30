@@ -11,10 +11,19 @@ import 'package:expect/expect.dart';
 import 'generics_helper.dart';
 
 class Super<T, R extends T> {}
-
 class Fixed extends Super<num, int> {}
-class Generic<X, Y> extends Super<X, Y> {}  /// 02: static type warning
+class Generic<X, Y> extends Super<X, Y> {} /// 02: static type warning
 class Malbounded extends Super<num, String> {} /// 01: static type warning
+
+bool inCheckedMode() {
+  try {
+    var s = 'string';
+    int i = s;
+  } catch(e) {
+    return true;
+  }
+  return false;
+}
 
 main() {
   ClassMirror superDecl = reflectClass(Super);
@@ -23,9 +32,21 @@ main() {
   ClassMirror superOfXAndY = genericDecl.superclass;  /// 02: continued
   ClassMirror genericOfNumAndDouble = reflect(new Generic<num, double>()).type;  /// 02: continued
   ClassMirror superOfNumAndDouble = genericOfNumAndDouble.superclass;  /// 02: continued
-  ClassMirror genericOfNumAndBool = reflect(new Generic<num, bool>()).type;  /// 02: static type warning, dynamic type error
-  ClassMirror superOfNumAndBool = genericOfNumAndBool.superclass;  /// 02: continued
   ClassMirror superOfNumAndString = reflectClass(Malbounded).superclass;  /// 01: continued
+
+  try {
+    ClassMirror genericOfNumAndBool = reflect(new Generic<num, bool>()).type;  /// 02: static type warning
+    ClassMirror superOfNumAndBool = genericOfNumAndBool.superclass;  /// 02: continued
+    Expect.isFalse(genericOfNumAndBool.isOriginalDeclaration);  /// 02: continued
+    Expect.isFalse(superOfNumAndBool.isOriginalDeclaration);  /// 02: continued
+    typeParameters(genericOfNumAndBool, [#X, #Y]);  /// 02: continued
+    typeParameters(superOfNumAndBool, [#T, #R]);  /// 02: continued
+    typeArguments(genericOfNumAndBool, [reflectClass(num), reflectClass(bool)]);  /// 02: continued
+    typeArguments(superOfNumAndBool, [reflectClass(num), reflectClass(bool)]);  /// 02: continued
+    Expect.isFalse(inCheckedMode()); /// 02: continued
+  } on TypeError catch(e) {
+    Expect.isTrue(inCheckedMode());
+  }
 
   Expect.isTrue(superDecl.isOriginalDeclaration);
   Expect.isFalse(superOfNumAndInt.isOriginalDeclaration);
@@ -33,8 +54,6 @@ main() {
   Expect.isFalse(superOfXAndY.isOriginalDeclaration);   /// 02: continued
   Expect.isFalse(genericOfNumAndDouble.isOriginalDeclaration);  /// 02: continued
   Expect.isFalse(superOfNumAndDouble.isOriginalDeclaration);  /// 02: continued
-  Expect.isFalse(genericOfNumAndBool.isOriginalDeclaration);  /// 02: continued
-  Expect.isFalse(superOfNumAndBool.isOriginalDeclaration);  /// 02: continued
   Expect.isFalse(superOfNumAndString.isOriginalDeclaration);  /// 01: continued
 
   TypeVariableMirror tFromSuper = superDecl.typeVariables[0];
@@ -53,8 +72,6 @@ main() {
   typeParameters(superOfXAndY, [#T, #R]);  /// 02: continued
   typeParameters(genericOfNumAndDouble, [#X, #Y]);  /// 02: continued
   typeParameters(superOfNumAndDouble, [#T, #R]);  /// 02: continued
-  typeParameters(genericOfNumAndBool, [#X, #Y]);  /// 02: continued
-  typeParameters(superOfNumAndBool, [#T, #R]);  /// 02: continued
   typeParameters(superOfNumAndString, [#T, #R]);  /// 01: continued
 
   typeArguments(superDecl, []);
@@ -63,7 +80,5 @@ main() {
   typeArguments(superOfXAndY, [xFromGeneric, yFromGeneric]);  /// 02: continued
   typeArguments(genericOfNumAndDouble, [reflectClass(num), reflectClass(double)]);  /// 02: continued
   typeArguments(superOfNumAndDouble, [reflectClass(num), reflectClass(double)]);  /// 02: continued
-  typeArguments(genericOfNumAndBool, [reflectClass(num), reflectClass(bool)]);  /// 02: continued
-  typeArguments(superOfNumAndBool, [reflectClass(num), reflectClass(bool)]);  /// 02: continued
   typeArguments(superOfNumAndString, [reflectClass(num), reflectClass(String)]);  /// 01: continued
 }

@@ -134,10 +134,11 @@ String getClassName(var object) {
  * of type 4, the JavaScript array, where the first element represents the class
  * and the remaining elements represent the type arguments.
  */
-String getRuntimeTypeAsString(var runtimeType) {
+String getRuntimeTypeAsString(var runtimeType, {String onTypeVariable(int i)}) {
   assert(isJsArray(runtimeType));
   String className = getConstructorName(getIndex(runtimeType, 0));
-  return '$className${joinArguments(runtimeType, 1)}';
+  return '$className'
+         '${joinArguments(runtimeType, 1, onTypeVariable: onTypeVariable)}';
 }
 
 /**
@@ -149,17 +150,21 @@ String getConstructorName(var type) => JS('String', r'#.builtin$cls', type);
 /**
  * Returns a human-readable representation of the type representation [type].
  */
-String runtimeTypeToString(var type) {
+String runtimeTypeToString(var type , {String onTypeVariable(int i)}) {
   if (isNull(type)) {
     return 'dynamic';
   } else if (isJsArray(type)) {
     // A list representing a type with arguments.
-    return getRuntimeTypeAsString(type);
+    return getRuntimeTypeAsString(type, onTypeVariable: onTypeVariable);
   } else if (isJsFunction(type)) {
     // A reference to the constructor.
     return getConstructorName(type);
   } else if (type is int) {
-    return type.toString();
+    if (onTypeVariable == null) {
+      return type.toString();
+    } else {
+      return onTypeVariable(type);
+    }
   } else {
     return null;
   }
@@ -170,7 +175,8 @@ String runtimeTypeToString(var type) {
  * type representations in the JavaScript array [types] starting at index
  * [startIndex].
  */
-String joinArguments(var types, int startIndex) {
+String joinArguments(var types, int startIndex,
+                     {String onTypeVariable(int i)}) {
   if (isNull(types)) return '';
   assert(isJsArray(types));
   bool firstArgument = true;
@@ -186,7 +192,7 @@ String joinArguments(var types, int startIndex) {
     if (argument != null) {
       allDynamic = false;
     }
-    buffer.write(runtimeTypeToString(argument));
+    buffer.write(runtimeTypeToString(argument, onTypeVariable: onTypeVariable));
   }
   return allDynamic ? '' : '<$buffer>';
 }
