@@ -25,10 +25,14 @@ intptr_t FileSystemWatcher::WatchPath(const char* path,
                                       int events,
                                       bool recursive) {
   int fd = TEMP_FAILURE_RETRY(inotify_init());
-  if (fd < 0 || !FDUtils::SetNonBlocking(fd) || !FDUtils::SetCloseOnExec(fd)) {
+  if (fd < 0 || !FDUtils::SetCloseOnExec(fd)) {
     return -1;
   }
-  int list_events = 0;
+  // Some systems dosn't support setting this as non-blocking. Since watching
+  // internals are kept away from the user, we know it's possible to continue,
+  // even if setting non-blocking fails.
+  FDUtils::SetNonBlocking(fd);
+  int list_events = IN_DELETE_SELF | IN_MOVE_SELF;
   if (events & kCreate) list_events |= IN_CREATE;
   if (events & kModifyContent) list_events |= IN_MODIFY | IN_ATTRIB;
   if (events & kDelete) list_events |= IN_DELETE;
@@ -69,11 +73,13 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
         reinterpret_cast<struct inotify_event*>(buffer + offset);
     Dart_Handle event = Dart_NewList(4);
     int mask = 0;
-    if (e->mask & IN_MODIFY) mask |= kModifyContent;
+    if (e->mask & IN_CLOSE_WRITE) mask |= kModifyContent;
     if (e->mask & IN_ATTRIB) mask |= kModefyAttribute;
     if (e->mask & IN_CREATE) mask |= kCreate;
     if (e->mask & IN_MOVE) mask |= kMove;
     if (e->mask & IN_DELETE) mask |= kDelete;
+    if (e->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) mask |= kDeleteSelf;
+    if (e->mask & IN_ISDIR) mask |= kIsDir;
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));
     if (e->len > 0) {
