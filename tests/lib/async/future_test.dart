@@ -567,6 +567,120 @@ void testCompleteWithError() {
   completer.completeError(error);
 }
 
+void testCompleteWithFutureSuccess() {
+  asyncStart();
+  final completer = new Completer<int>();
+  final completer2 = new Completer<int>();
+  completer.complete(completer2.future);
+  completer.future.then((v) {
+    Expect.equals(42, v);
+    asyncEnd();
+  });
+  completer2.complete(42);
+}
+
+void testCompleteWithFutureSuccess2() {
+  asyncStart();
+  final completer = new Completer<int>();
+  Future result = new Future.value(42);
+  completer.complete(result);
+  completer.future.then((v) {
+    Expect.equals(42, v);
+    asyncEnd();
+  });
+}
+
+void testCompleteWithFutureError() {
+  asyncStart();
+  final completer = new Completer<int>();
+  final completer2 = new Completer<int>();
+  completer.complete(completer2.future);
+  completer.future.then((v) {
+    Expect.fail("Should not happen");
+    asyncEnd();
+  }, onError: (e) {
+    Expect.equals("ERROR-tcwfe", e);
+    asyncEnd();
+  });
+  completer2.completeError("ERROR-tcwfe");
+}
+
+void testCompleteWithFutureError2() {
+  asyncStart();
+  final completer = new Completer<int>();
+  Future result = new Future.error("ERROR-tcwfe2");
+  completer.complete(result);
+  completer.future.then((v) {
+    Expect.fail("Should not happen");
+    asyncEnd();
+  }, onError: (e) {
+    Expect.equals("ERROR-tcwfe2", e);
+    asyncEnd();
+  });
+}
+
+void testCompleteErrorWithFuture() {
+  asyncStart();
+  final completer = new Completer<int>();
+  completer.completeError(new Future.value(42));
+  completer.future.then((_) {
+    Expect.fail("Shouldn't happen");
+  }, onError: (e, s) {
+    Future f = e;
+    f.then((v) {
+      Expect.equals(42, v);
+      asyncEnd();
+    });
+  });
+}
+
+void testCompleteWithCustomFutureSuccess() {
+  asyncStart();
+  final completer = new Completer<int>();
+  final completer2 = new Completer<int>();
+  completer.complete(new CustomFuture(completer2.future));
+  completer.future.then((v) {
+    Expect.equals(42, v);
+    asyncEnd();
+  });
+  completer2.complete(42);
+}
+
+void testCompleteWithCustomFutureError() {
+  asyncStart();
+  final completer = new Completer<int>();
+  final completer2 = new Completer<int>();
+  completer.complete(new CustomFuture(completer2.future));
+  completer.future.then((v) {
+    Expect.fail("Should not happen");
+    asyncEnd();
+  }, onError: (e) {
+    Expect.equals("ERROR-tcwcfe", e);
+    asyncEnd();
+  });
+  completer2.completeError("ERROR-tcwcfe");
+}
+
+void testCompleteErrorWithCustomFuture() {
+  asyncStart();
+  final completer = new Completer<int>();
+  var future = new CustomFuture(new Future.value(42));
+  completer.completeError(future);
+  completer.future.then((_) {
+    Expect.fail("Shouldn't happen");
+  }, onError: (Future f) {
+    f.then((v) {
+      Expect.equals(42, v);
+      asyncEnd();
+    });
+  });
+}
+
+void testCompleteErrorWithNull() {
+  final completer = new Completer<int>();
+  Expect.throws(() => completer.completeError(null));
+}
+
 void testChainedFutureValue() {
   final completer = new Completer();
   final future = completer.future;
@@ -641,6 +755,16 @@ main() {
   testCompleteManySuccessHandlers();
   testCompleteWithError();
 
+  testCompleteWithFutureSuccess();
+  testCompleteWithFutureSuccess2();
+  testCompleteWithFutureError();
+  testCompleteWithFutureError2();
+  testCompleteErrorWithFuture();
+  testCompleteWithCustomFutureSuccess();
+  testCompleteWithCustomFutureError();
+  testCompleteErrorWithCustomFuture();
+  testCompleteErrorWithNull();
+
   testException();
   testExceptionHandler();
   testExceptionHandlerReturnsTrue();
@@ -673,4 +797,18 @@ main() {
   testChainedFutureError();
 
   testSyncFuture_i13368();
+}
+
+/// A Future that isn't recognizable as a _Future.
+class CustomFuture<T> implements Future<T> {
+  Future _realFuture;
+  CustomFuture(this._realFuture);
+  Future then(action(result), {Function onError}) =>
+      _realFuture.then(action, onError: onError);
+  Future catchError(Function onError, {bool test(e)}) =>
+      _realFuture.catchError(onError, test: test);
+  Future whenComplete(action()) => _realFuture.whenComplete(action);
+  Stream asStream() => _realFuture.asStream();
+  String toString() => "CustomFuture@${_realFuture.hashCode}";
+  int get hashCode => _realFuture.hashCode;
 }
