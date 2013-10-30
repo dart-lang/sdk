@@ -207,7 +207,7 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
-        owner, getMetadata(_typeVariable.bound));
+        JS('', 'init.metadata[#]', _typeVariable.bound));
   }
 }
 
@@ -502,7 +502,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   if (constructorOrInterceptor == null) {
     int index = JS('int|Null', 'init.functionAliases[#]', mangledName);
     if (index != null) {
-      mirror = new JsTypedefMirror(symbol, mangledName, getMetadata(index));
+      mirror = new JsTypedefMirror(
+          symbol, mangledName, JS('=Object', 'init.metadata[#]', index));
       JsCache.update(classMirrors, mangledName, mirror);
       return mirror;
     }
@@ -747,7 +748,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
       var defaultValueIndices =
           JS('List|Null', '#[#].\$defaultValues', reflectee, mangledName);
       var defaultValues =
-          defaultValueIndices.map((int i) => getMetadata(i))
+          defaultValueIndices.map((int i) => JS('', 'init.metadata[#]', i))
           .iterator;
       var defaultArguments = new Map();
       reflectiveName = mangledNames[mangledName];
@@ -894,15 +895,13 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
   Map<Symbol, MethodMirror> _cachedSetters;
   Map<Symbol, MethodMirror> _cachedMethodsMap;
   List<JsMethodMirror> _cachedMethods;
-  ClassMirror _superclass;
-  List<ClassMirror> _cachedSuperinterfaces;
 
   JsTypeBoundClassMirror(JsClassMirror originalDeclaration, this._typeArguments)
-      : _class = originalDeclaration,
+      : _class = originalDeclaration, 
         super(originalDeclaration.simpleName);
 
   String get _prettyName => 'ClassMirror';
-
+  
   List<TypeVariableMirror> get typeVariables => _class.typeVariables;
 
   List<TypeMirror> get typeArguments {
@@ -914,7 +913,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
       if (parsedIndex == -1) {
         result.add(reflectClassByMangledName(typeArgument.trim()));
       } else {
-        TypeVariable typeVariable = getMetadata(parsedIndex);
+        TypeVariable typeVariable = JS('', 'init.metadata[#]', parsedIndex);
         TypeMirror owner = reflectClass(typeVariable.owner);
         TypeVariableMirror typeMirror =
             new JsTypeVariableMirror(typeVariable, owner);
@@ -1018,15 +1017,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
 
   List<InstanceMirror> get metadata => _class.metadata;
 
-  ClassMirror get superclass {
-    if (_superclass != null) return _superclass;
-
-    List<int> typeInformation =
-        JS('List|Null', 'init.typeInformation[#]', _class._mangledName);
-    assert(typeInformation != null);
-    var type = getMetadata(typeInformation[0]);
-    return _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
-  }
+  ClassMirror get superclass => _class.superclass;
 
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
@@ -1038,10 +1029,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
 
   ClassMirror get originalDeclaration => _class;
 
-  List<ClassMirror> get superinterfaces {
-    if (_cachedSuperinterfaces != null) return _cachedSuperinterfaces;
-    return _cachedSuperinterfaces = _class._getSuperinterfacesWithOwner(this);
-  }
+  List<ClassMirror> get superinterfaces => _class.superinterfaces;
 
   Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
     return _class.getFieldAsync(fieldName);
@@ -1369,15 +1357,17 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   ClassMirror get superclass {
     if (_superclass == null) {
-      List<int> typeInformation =
-          JS('List|Null', 'init.typeInformation[#]', _mangledName);
-      if (typeInformation != null) {
-        var type = getMetadata(typeInformation[0]);
-        _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
+      var superclassName = _fieldsDescriptor.split(';')[0];
+      var mixins = superclassName.split('+');
+      if (mixins.length > 1) {
+        if (mixins.length != 2) {
+          throw new RuntimeError('Strange mixin: $_fieldsDescriptor');
+        }
+        _superclass = reflectClassByMangledName(mixins[0]);
       } else {
-        // Use _superclass == this to represent class with no superclass
-        // (Object).
-        _superclass = this;
+        // Use _superclass == this to represent class with no superclass (Object).
+        _superclass = (superclassName == '')
+            ? this : reflectClassByMangledName(superclassName);
       }
     }
     return _superclass == this ? null : _superclass;
@@ -1408,26 +1398,19 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   ClassMirror get originalDeclaration => this;
 
-  List<ClassMirror> _getSuperinterfacesWithOwner(DeclarationMirror owner) {
-    List<int> typeInformation =
-        JS('List|Null', 'init.typeInformation[#]', _mangledName);
-    List<ClassMirror> result = const <ClassMirror>[];
-    if (typeInformation != null) {
-      ClassMirror lookupType(int i) {
-        var type = getMetadata(i);
-        return typeMirrorFromRuntimeTypeRepresentation(owner, type);
-      }
-
-      //We skip the first since it is the supertype.
-      result = typeInformation.skip(1).map(lookupType).toList();
-    }
-
-    return new UnmodifiableListView<ClassMirror>(result);
-  }
-
   List<ClassMirror> get superinterfaces {
     if (_cachedSuperinterfaces != null) return _cachedSuperinterfaces;
-    return _cachedSuperinterfaces = _getSuperinterfacesWithOwner(this);
+    List<int> interfaces = JS('List|Null', 'init.interfaces[#]', _mangledName);
+    var result = const [];
+    if (interfaces != null) {
+      ClassMirror lookupType(int i) {
+        var type = JS('=Object', 'init.metadata[#]', i);
+        return typeMirrorFromRuntimeTypeRepresentation(type);
+      }
+      result = interfaces.map(lookupType).toList();
+    }
+    return _cachedSuperinterfaces =
+        new UnmodifiableListView<ClassMirror>(result);
   }
 
   List<TypeVariableMirror> get typeVariables {
@@ -1437,7 +1420,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
         JS('JSExtendableArray|Null', '#.prototype["<>"]', _jsConstructor);
     if (typeVariables == null) return result;
     for (int i = 0; i < typeVariables.length; i++) {
-      TypeVariable typeVariable = getMetadata(typeVariables[i]);
+      TypeVariable typeVariable = JS('', 'init.metadata[#]', typeVariables[i]);
       result.add(new JsTypeVariableMirror(typeVariable, this));
     }
     return _cachedTypeVariables = new UnmodifiableListView(result);
@@ -1680,7 +1663,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
 
   TypeMirror get returnType {
     metadata; // Compute _returnType as a side-effect of extracting metadata.
-    return typeMirrorFromRuntimeTypeRepresentation(owner, _returnType);
+    return computeTypeMirror(owner, _returnType);
   }
 
   List<InstanceMirror> get metadata {
@@ -1779,7 +1762,7 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
   String get _prettyName => 'ParameterMirror';
 
   TypeMirror get type {
-    return typeMirrorFromRuntimeTypeRepresentation(owner, _type);
+    return computeTypeMirror(owner, _type);
   }
 
   // Only true for static fields, never for a parameter.
@@ -1840,14 +1823,13 @@ class JsFunctionTypeMirror implements FunctionTypeMirror {
 
   bool get _hasNamedArguments => JS('bool', '"named" in #', _typeData);
   get _namedArguments => JS('=Object', '#.named', _typeData);
-  bool get isOriginalDeclaration => true;
 
   TypeMirror get returnType {
     if (_cachedReturnType != null) return _cachedReturnType;
     if (_isVoid) return _cachedReturnType = JsMirrorSystem._voidType;
     if (!_hasReturnType) return _cachedReturnType = JsMirrorSystem._dynamicType;
     return _cachedReturnType =
-          typeMirrorFromRuntimeTypeRepresentation(this, _returnType);
+        typeMirrorFromRuntimeTypeRepresentation(_returnType);
   }
 
   List<ParameterMirror> get parameters {
@@ -1920,20 +1902,18 @@ class JsFunctionTypeMirror implements FunctionTypeMirror {
   }
 }
 
-int findTypeVariableIndex(List<TypeVariableMirror> typeVariables, String name) {
-  for (int i = 0; i < typeVariables.length; i++) {
-    if (typeVariables[i].simpleName == s(name)) {
-      return i;
-    }
-  }
-  throw new ArgumentError('Type variable not present in list.');
+TypeMirror typeMirrorFromRuntimeTypeRepresentation(type) {
+  if (type == null) return JsMirrorSystem._dynamicType;
+  String representation = runtimeTypeToString(type);
+  if (representation == null) return reflectClass(Function);
+  return reflectType(createRuntimeType(representation));
 }
 
-getMetadata(int index) => JS('', 'init.metadata[#]', index);
-
-TypeMirror typeMirrorFromRuntimeTypeRepresentation(
-    DeclarationMirror owner,
-    var /*int|List|JsFunction*/ type) {
+TypeMirror computeTypeMirror(DeclarationMirror owner, var type) {
+  if (type is! int) {
+    return typeMirrorFromRuntimeTypeRepresentation(type);
+  }
+  
   ClassMirror ownerClass;
   DeclarationMirror context = owner;
     while(context != null) {
@@ -1943,39 +1923,19 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     }
     context = context.owner;
   }
-
-  String representation;
-  if (type == null){
-    return JsMirrorSystem._dynamicType;
-  } else if (ownerClass == null) {
-    representation = runtimeTypeToString(type);
-  } else if (ownerClass.isOriginalDeclaration) {
-    if (type is int) {
-      // [type] represents a type variable so in the context of an original
-      // declaration the corresponding type variable should be returned.
-      TypeVariable typeVariable = getMetadata(type);
-      List<TypeVariableMirror> typeVariables = ownerClass.typeVariables;
-      int index = findTypeVariableIndex(typeVariables, typeVariable.name);
-      return typeVariables[index];
-    } else {
-      // Nested type variables will be retrieved lazily (the integer
-      // representation is kept in the string) so they are not processed here.
-      representation = runtimeTypeToString(type);
+ 
+  TypeVariable typeVariable = JS('', 'init.metadata[#]', type);
+  Symbol name = new Symbol(typeVariable.name);
+  List<TypeVariableMirror> typeVariables = ownerClass.typeVariables;
+  for (int i = 0; i < typeVariables.length; i++) {
+    if (typeVariables[i].simpleName == name) {
+      if (ownerClass.isOriginalDeclaration) {
+        return typeVariables[i];
+      } else {
+        return ownerClass.typeArguments[i];
+      }
     }
-  } else {
-    String substituteTypeVariable(int index) {
-      TypeVariable typeVariable = getMetadata(index);
-      int variableIndex =
-          findTypeVariableIndex(ownerClass.typeVariables, typeVariable.name);
-      return n(ownerClass.typeArguments[variableIndex].simpleName);
-    }
-    representation =
-        runtimeTypeToString(type, onTypeVariable: substituteTypeVariable);
   }
-  if (representation != null) {
-    return reflectType(createRuntimeType(representation));
-  }
-  return reflectClass(Function);
 }
 
 Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
@@ -1995,7 +1955,7 @@ List extractMetadata(victim) {
   index++;
   int endQuote = source.indexOf('"', index);
   return source.substring(index, endQuote).split(',').map(int.parse).map(
-      (int i) => getMetadata(i)).toList();
+      (int i) => JS('', 'init.metadata[#]', i)).toList();
 }
 
 List<JsVariableMirror> parseCompactFieldSpecification(

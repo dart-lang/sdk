@@ -23,7 +23,7 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
   if (!init.mangledNames) init.mangledNames = map();
   if (!init.mangledGlobalNames) init.mangledGlobalNames = map();
   if (!init.statics) init.statics = map();
-  if (!init.typeInformation) init.typeInformation = map();
+  if (!init.interfaces) init.interfaces = map();
   if (!init.globalFunctions) init.globalFunctions = map();
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
@@ -65,7 +65,7 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
           if (descriptor[property] == 1) ''' // Break long line.
 '''descriptor[previousProperty].$reflectableField = 1;
           if (element && element.length) ''' // Break long line.
-'''init.typeInformation[previousProperty] = element;
+'''init.interfaces[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;

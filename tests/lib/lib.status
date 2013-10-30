@@ -24,12 +24,17 @@ mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
 mirrors/find_in_context_fake_function_test: Fail # Issue 6490
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generics_test/01: RuntimeError # Issue 12087
+mirrors/generic_bounded_test/none: RuntimeError # Issue 12087
+mirrors/generic_bounded_test/01: RuntimeError # Issue 12087
+mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError # Issue 12087
+mirrors/generic_bounded_by_type_parameter_test/01: RuntimeError # Issue 12087
+mirrors/generic_f_bounded_test/01: RuntimeError # Issue 12087
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_interface_test: RuntimeError # Issue 12087
 mirrors/generic_mixin_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
-mirrors/generics_substitution_test/01: RuntimeError # Issue 12087
+mirrors/generics_substitution_test: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/immutable_collections_test: RuntimeError # Issue 14030
 mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
@@ -67,6 +72,10 @@ mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/generic_type_mirror_test/01: RuntimeError # 6490
+
+[ $compiler == dart2js && $unchecked ]
+mirrors/generic_bounded_test/02: RuntimeError # Issue 12087
+mirrors/generic_bounded_by_type_parameter_test/02: RuntimeError # Issue 12087
 
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
@@ -168,9 +177,6 @@ mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ens
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_f_bounded_test/01: RuntimeError # Issue 14000
-mirrors/generic_superclass_test/01: RuntimeError # Issue 14000
-mirrors/generic_type_mirror_test/02: RuntimeError # Issue 14613
-
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)

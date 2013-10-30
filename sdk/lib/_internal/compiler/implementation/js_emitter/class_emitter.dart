@@ -355,15 +355,11 @@ class ClassEmitter extends CodeEmitterHelper {
       if (!backend.isNeededForReflection(classElement)) {
         buffer.write(',$n$n"+$reflectionName": 0');
       } else {
-        List<int> types = <int>[];
-        if (classElement.supertype != null) {
-          types.add(
-              task.metadataEmitter.reifyType(classElement.supertype));
-        }
+        List<int> interfaces = <int>[];
         for (DartType interface in classElement.interfaces) {
-          types.add(task.metadataEmitter.reifyType(interface));
+          interfaces.add(task.metadataEmitter.reifyType(interface));
         }
-        buffer.write(',$n$n"+$reflectionName": $types');
+        buffer.write(',$n$n"+$reflectionName": $interfaces');
       }
     }
   }

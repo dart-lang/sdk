@@ -11,25 +11,27 @@ class Foo<W, V> {
   set bar(V v) {}
   W m() {}
   V n() {}
-  H<V> p() {}
   o(W w) {}
 }
-class H<T> {}
+
 class Bar {}
 class Baz {}
+
+main() {
+  testInstance();
+  testOriginalDeclaration();
+}
 
 void testInstance() {
   ClassMirror foo = reflect((new Foo<Bar, Baz>())).type;
   ClassMirror bar = reflect(new Bar()).type;
   ClassMirror baz = reflect(new Baz()).type;
-  ClassMirror hOfBaz = reflect(new H<Baz>()).type;
   VariableMirror field = foo.variables.values.single;
   MethodMirror getter = foo.getters.values.single;
   MethodMirror setter = foo.setters.values.single;
   MethodMirror m = foo.methods[const Symbol('m')];
   MethodMirror n = foo.methods[const Symbol('n')];
   MethodMirror o = foo.methods[const Symbol('o')];
-  MethodMirror p = foo.methods[const Symbol('p')];
 
   Expect.equals(foo, field.owner);
   Expect.equals(foo, getter.owner);
@@ -37,17 +39,12 @@ void testInstance() {
   Expect.equals(foo, m.owner);
   Expect.equals(foo, n.owner);
   Expect.equals(foo, o.owner);
-  Expect.equals(foo, p.owner);
 
   Expect.equals(baz, field.type); /// 01: ok
   Expect.equals(baz, getter.returnType);
   Expect.equals(bar, m.returnType);
   Expect.equals(baz, n.returnType);
   Expect.equals(bar, o.parameters.single.type);
-  Expect.equals(hOfBaz, p.returnType);  /// 02: ok
-  Expect.equals(1, p.returnType.typeArguments.length);
-  Expect.equals(baz, p.returnType.typeArguments[0]); /// 02: ok
-
   Expect.equals(baz, setter.parameters.single.type);
 
 }
@@ -61,7 +58,6 @@ void testOriginalDeclaration() {
   MethodMirror m = foo.methods[const Symbol('m')];
   MethodMirror n = foo.methods[const Symbol('n')];
   MethodMirror o = foo.methods[const Symbol('o')];
-  MethodMirror p = foo.methods[const Symbol('p')];
   TypeVariableMirror w = foo.typeVariables[0];
   TypeVariableMirror v = foo.typeVariables[1];
 
@@ -71,20 +67,12 @@ void testOriginalDeclaration() {
   Expect.equals(foo, m.owner);
   Expect.equals(foo, n.owner);
   Expect.equals(foo, o.owner);
-  Expect.equals(foo, p.owner);
 
   Expect.equals(v, field.type); /// 01: ok
   Expect.equals(v, getter.returnType);
   Expect.equals(w, m.returnType);
   Expect.equals(v, n.returnType);
   Expect.equals(w, o.parameters.single.type);
-  Expect.equals(1, p.returnType.typeArguments.length);
-  Expect.equals(v, p.returnType.typeArguments[0]);
-
   Expect.equals(v, setter.parameters.single.type);
-}
 
-main() {
-  testInstance();
-  testOriginalDeclaration();
 }
