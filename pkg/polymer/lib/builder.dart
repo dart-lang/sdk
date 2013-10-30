@@ -49,8 +49,8 @@
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
- *     main() {
- *        var options = parseOptions();
+ *     main(args) {
+ *        var options = parseOptions(args);
  *        lint().then((_) {
  *          if (options.forceDeploy) deploy();
  *        });
@@ -62,8 +62,8 @@
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
- *     main() {
- *        build();
+ *     main(args) {
+ *        build(options: parseOptions(args));
  *     }
  *
  * **Example 5**: Like the previous example, but indicates to the linter and
@@ -73,8 +73,8 @@
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
- *     main() {
- *        build(entryPoints: ['web/index.html']);
+ *     main(args) {
+ *        build(entryPoints: ['web/index.html'], options: parseOptions(args));
  *     }
  */
 library polymer.builder;
