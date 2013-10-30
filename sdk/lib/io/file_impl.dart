@@ -90,7 +90,7 @@ class _FileStream extends Stream<List<int>> {
         _readInProgress = false;
         if (!_unsubscribed) {
           _controller.addError(new RangeError("Bad end position: $_end"));
-          _closeFile().then((_) { _controller.close(); });
+          _closeFile();
           _unsubscribed = true;
         }
         return;
@@ -143,6 +143,7 @@ class _FileStream extends Stream<List<int>> {
     } else {
       openFuture = new Future.value(_File._openStdioSync(0));
     }
+    _readInProgress = true;
     openFuture
       .then((RandomAccessFile opened) {
         _openedFile = opened;
@@ -150,10 +151,13 @@ class _FileStream extends Stream<List<int>> {
           return opened.setPosition(_position);
         }
       })
+      .whenComplete(() {
+        _readInProgress = false;
+      })
       .then((_) => _readBlock())
       .catchError((e) {
         _controller.addError(e);
-        _controller.close();
+        _closeFile();
       });
   }
 
