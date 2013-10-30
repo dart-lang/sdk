@@ -7,7 +7,7 @@ library utils;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' show min;
-import 'dart:utf' as utf;
+import 'dart:convert';
 
 part 'legacy_path.dart';
 
@@ -117,14 +117,14 @@ int findBytes(List<int> data, List<int> pattern, [int startPos=0]) {
 }
 
 List<int> encodeUtf8(String string) {
-  return utf.encodeUtf8(string);
+  return UTF8.encode(string);
 }
 
 // TODO(kustermann,ricow): As soon we have a debug log we should log
 // invalid utf8-encoded input to the log.
 // Currently invalid bytes will be replaced by a replacement character.
 String decodeUtf8(List<int> bytes) {
-  return utf.decodeUtf8(bytes);
+  return UTF8.decode(bytes, allowMalformed: true);
 }
 
 class Locations {

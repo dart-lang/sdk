@@ -2544,7 +2544,6 @@ class Library : public Object {
   static RawLibrary* MirrorsLibrary();
   static RawLibrary* NativeWrappersLibrary();
   static RawLibrary* TypedDataLibrary();
-  static RawLibrary* UtfLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();

@@ -112,10 +112,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "svg/dart2js/svg_dart2js.dart"),
 
-  "utf": const LibraryInfo(
-      "utf/utf.dart",
-      maturity: Maturity.DEPRECATED),
-
   "web_audio": const LibraryInfo(
       "web_audio/dartium/web_audio_dartium.dart",
       category: "Client",

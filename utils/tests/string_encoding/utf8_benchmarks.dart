@@ -6,7 +6,7 @@
 library BenchmarkTests;
 import 'dart:io';
 import 'dart:math' as Math;
-import '../../../lib/utf/utf.dart' as SE;
+import '../../../lib/convert/convert.dart' as SE;
 part 'benchmark_runner.dart';
 
 void main() {
@@ -102,25 +102,20 @@ void main() {
       new TimedTestConfig(100, 1 * 1000, blocksize: 1000);
 
   BenchmarkRunner.runTimed("SE_EN1","string_encoding/decodeUtf8-English1",
-      testConfig_1sec, () =>
-          (new SE.Utf8Decoder(testEnglishUtf8)).decodeRest());
+      testConfig_1sec, () => SE.UTF8.decode(testEnglishUtf8));
 
   BenchmarkRunner.runTimed("SE_DA1","string_encoding/decodeUtf8-Danish1",
-      testConfig_1sec, () => (new SE.Utf8Decoder(testDanishUtf8)).decodeRest());
+      testConfig_1sec, () => SE.UTF8.decode(testDanishUtf8));
 
   BenchmarkRunner.runTimed("SE_HE1","string_encoding/decodeUtf8-Hebrew1",
-      testConfig_1sec, () => (new SE.Utf8Decoder(testHebrewUtf8)).decodeRest());
+      testConfig_1sec, () => SE.UTF8.decode(testHebrewUtf8));
 
   BenchmarkRunner.runTimed("SE_RU1","string_encoding/decodeUtf8-Russian1",
-      testConfig_1sec, () =>
-          (new SE.Utf8Decoder(testRussianUtf8)).decodeRest());
+      testConfig_1sec, () => SE.UTF8.decode(testRussianUtf8));
 
   BenchmarkRunner.runTimed("SE_EL1","string_encoding/decodeUtf8-Greek",
-      testConfig_1sec, () =>
-          (new SE.Utf8Decoder(testGreekUtf8)).decodeRest());
+      testConfig_1sec, () => SE.UTF8.decode(testGreekUtf8));
 
   BenchmarkRunner.runTimed("SE_JA1","string_encoding/decodeUtf8-Katakana",
-      testConfig_1sec, () =>
-          (new SE.Utf8Decoder(testKatakanaUtf8)).decodeRest());
+      testConfig_1sec, () => SE.UTF8.decode(testKatakanaUtf8));
 }
-
