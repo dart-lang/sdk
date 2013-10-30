@@ -1527,6 +1527,7 @@ void Simulator::SupervisorCall(Instr* instr) {
               reinterpret_cast<SimulatorRuntimeCall>(external);
           target(arguments);
           set_register(R0, icount_);  // Zap result register from void function.
+          set_register(R1, icount_);
         } else if (redirection->call_kind() == kLeafRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
                  (redirection->argument_count() <= 4));
@@ -1538,19 +1539,37 @@ void Simulator::SupervisorCall(Instr* instr) {
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
           r0 = target(r0, r1, r2, r3);
           set_register(R0, r0);  // Set returned result from function.
+          set_register(R1, icount_);  // Zap unused result register.
         } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
                  (redirection->argument_count() <= 2));
-          // We currently use 'hardfp' ('gnueabihf') rather than 'softfp'
-          // ('gnueabi') float ABI for leaf runtime calls, i.e. double values
-          // are passed and returned in vfp registers rather than in integer
-          // register pairs.
           SimulatorLeafFloatRuntimeCall target =
               reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
+#if defined(ARM_FLOAT_ABI_HARD)
+          // If we're doing "hardfp", the double arguments are already in the
+          // floating point registers.
           double d0 = get_dregister(D0);
           double d1 = get_dregister(D1);
           d0 = target(d0, d1);
           set_dregister(D0, d0);
+#else
+          // If we're not doing "hardfp", we must be doing "soft" or "softfp",
+          // So take the double arguments from the integer registers.
+          uint32_t r0 = get_register(R0);
+          int32_t r1 = get_register(R1);
+          uint32_t r2 = get_register(R2);
+          int32_t r3 = get_register(R3);
+          int64_t a0 = Utils::LowHighTo64Bits(r0, r1);
+          int64_t a1 = Utils::LowHighTo64Bits(r2, r3);
+          double d0 = bit_cast<double, int64_t>(a0);
+          double d1 = bit_cast<double, int64_t>(a1);
+          d0 = target(d0, d1);
+          a0 = bit_cast<int64_t, double>(d0);
+          r0 = Utils::Low32Bits(a0);
+          r1 = Utils::High32Bits(a0);
+          set_register(R0, r0);
+          set_register(R1, r1);
+#endif
         } else if (redirection->call_kind() == kBootstrapNativeCall) {
           NativeArguments* arguments;
           arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
@@ -1567,12 +1586,12 @@ void Simulator::SupervisorCall(Instr* instr) {
               reinterpret_cast<SimulatorNativeCall>(external);
           target(arguments, target_func);
           set_register(R0, icount_);  // Zap result register from void function.
+          set_register(R1, icount_);
         }
         set_top_exit_frame_info(0);
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.
-        set_register(R1, icount_);
         set_register(R2, icount_);
         set_register(R3, icount_);
         set_register(IP, icount_);
