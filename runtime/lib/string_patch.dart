@@ -136,7 +136,7 @@ class _StringBase {
   }
 
   bool startsWith(Pattern pattern, [int index = 0]) {
-    if (index < 0 || index > this.length) {
+    if ((index < 0) || (index > this.length)) {
       throw new RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
@@ -146,7 +146,7 @@ class _StringBase {
   }
 
   int indexOf(Pattern pattern, [int start = 0]) {
-    if (start < 0 || start > this.length) {
+    if ((start < 0) || (start > this.length)) {
       throw new RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
@@ -576,19 +576,24 @@ class _OneByteString extends _StringBase implements String {
   }
 
   int indexOf(Pattern pattern, [int start = 0]) {
-    final len = this.length;
     // Specialize for single character pattern.
-    // TODO(srdjan): Implement for other string classes.
-    if ((pattern._cid == _OneByteString._classId) &&
-        (pattern.length == 1) &&
-        (start >= 0) && (start < len)) {
-      final patternCu0 = pattern.codeUnitAt(0);
-      for (int i = start; i < len; i++) {
-        if (this.codeUnitAt(i) == patternCu0) {
-          return i;
+    final pCid = pattern._cid;
+    if ((pCid == _OneByteString._classId) ||
+        (pCid == _TwoByteString._classId) ||
+        (pCid == _ExternalOneByteString._classId)) {
+      final len = this.length;
+      if ((pattern.length == 1) && (start >= 0) && (start < len)) {
+        final patternCu0 = pattern.codeUnitAt(0);
+        if (patternCu0 > 0xFF) {
+          return -1;
         }
+        for (int i = start; i < len; i++) {
+          if (this.codeUnitAt(i) == patternCu0) {
+            return i;
+          }
+        }
+        return -1;
       }
-      return -1;
     }
     return super.indexOf(pattern, start);
   }
@@ -604,6 +609,8 @@ class _OneByteString extends _StringBase implements String {
 
 
 class _TwoByteString extends _StringBase implements String {
+  static final int _classId = "\u{FFFF}"._cid;
+
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
@@ -620,6 +627,8 @@ class _TwoByteString extends _StringBase implements String {
 
 
 class _ExternalOneByteString extends _StringBase implements String {
+  static final int _classId = _getCid();
+
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalOneByteString can only be allocated by the VM");
@@ -632,6 +641,8 @@ class _ExternalOneByteString extends _StringBase implements String {
   bool operator ==(Object other) {
     return super == other;
   }
+
+  static int _getCid() native "ExternalOneByteString_getCid";
 }
 
 

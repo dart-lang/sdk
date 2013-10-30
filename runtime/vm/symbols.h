@@ -288,6 +288,7 @@ class ObjectPointerVisitor;
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
+  V(ClassId, "get:_classId")                                                   \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

@@ -3124,6 +3124,17 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     InvokeMathCFunctionInstr* invoke =
         new InvokeMathCFunctionInstr(args, call->deopt_id(), recognized_kind);
     ReplaceCall(call, invoke);
+  } else if (Library::PrivateCoreLibName(Symbols::ClassId()).Equals(
+      String::Handle(call->function().name()))) {
+    // Check for core library get:_classId.
+    intptr_t cid = Class::Handle(call->function().Owner()).id();
+    // Currently only implemented for a subset of classes.
+    ASSERT((cid == kOneByteStringCid) || (cid == kTwoByteStringCid) ||
+           (cid == kExternalOneByteStringCid) ||
+           (cid == kGrowableObjectArrayCid) ||
+           (cid == kImmutableArrayCid) || (cid == kArrayCid));
+    ConstantInstr* cid_instr = new ConstantInstr(Smi::Handle(Smi::New(cid)));
+    ReplaceCall(call, cid_instr);
   }
 }
 

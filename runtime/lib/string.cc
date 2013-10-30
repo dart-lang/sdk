@@ -134,6 +134,11 @@ DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
 }
 
 
+DEFINE_NATIVE_ENTRY(ExternalOneByteString_getCid, 0) {
+  return Smi::New(kExternalOneByteStringCid);
+}
+
+
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();
