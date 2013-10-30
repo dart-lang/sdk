@@ -174,6 +174,14 @@ abstract class Backend {
                        Enqueuer enqueuer,
                        TreeElements elements) {}
 
+  /// Register a runtime type variable bound tests between [typeArgument] and
+  /// [bound].
+  void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
+                                              DartType bound) {}
+
+  /// Registers that a type variable bounds check might occur at runtime.
+  void registerTypeVariableBoundCheck(TreeElements elements) {}
+
   /// Register that the application may throw a [NoSuchMethodError].
   void registerThrowNoSuchMethod(TreeElements elements) {}
 

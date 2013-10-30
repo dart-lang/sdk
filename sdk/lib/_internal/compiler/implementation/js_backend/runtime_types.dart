@@ -24,6 +24,10 @@ class RuntimeTypes {
   // The set of classes that use one of their type variables as expressions
   // to get the runtime type.
   final Set<ClassElement> classesUsingTypeVariableExpression;
+  // The set of type arguments tested against type variable bounds.
+  final Set<DartType> checkedTypeArguments;
+  // The set of tested type variable bounds.
+  final Set<DartType> checkedBounds;
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -33,7 +37,9 @@ class RuntimeTypes {
         classesNeedingRti = new Set<ClassElement>(),
         methodsNeedingRti = new Set<Element>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
-        classesUsingTypeVariableExpression = new Set<ClassElement>();
+        classesUsingTypeVariableExpression = new Set<ClassElement>(),
+        checkedTypeArguments = new Set<DartType>(),
+        checkedBounds = new Set<DartType>();
 
   Set<ClassElement> directlyInstantiatedArguments;
   Set<ClassElement> allInstantiatedArguments;
@@ -54,6 +60,12 @@ class RuntimeTypes {
     Set<ClassElement> classes =
         rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
     classes.add(dependency);
+  }
+
+  void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
+                                              DartType bound) {
+    checkedTypeArguments.add(typeArgument);
+    checkedBounds.add(bound);
   }
 
   bool usingFactoryWithTypeArguments = false;
@@ -298,19 +310,29 @@ class RuntimeTypes {
 
     // We need to add classes occuring in function type arguments, like for
     // instance 'I' for [: o is C<f> :] where f is [: typedef I f(); :].
-    for (DartType type in isChecks) {
-      functionArgumentCollector.collect(type);
+    void collectFunctionTypeArguments(Iterable<DartType> types) {
+      for (DartType type in types) {
+        functionArgumentCollector.collect(type);
+      }
     }
+    collectFunctionTypeArguments(isChecks);
+    collectFunctionTypeArguments(checkedBounds);
 
-    for (DartType type in instantiatedTypes) {
-      directCollector.collect(type);
-      if (type.kind == TypeKind.INTERFACE) {
-        ClassElement cls = type.element;
-        for (DartType supertype in cls.allSupertypes) {
-          superCollector.collect(supertype);
+    void collectTypeArguments(Iterable<DartType> types,
+                              {bool isTypeArgument: false}) {
+      for (DartType type in types) {
+        directCollector.collect(type, isTypeArgument: isTypeArgument);
+        if (type.kind == TypeKind.INTERFACE) {
+          ClassElement cls = type.element;
+          for (DartType supertype in cls.allSupertypes) {
+            superCollector.collect(supertype, isTypeArgument: isTypeArgument);
+          }
         }
       }
     }
+    collectTypeArguments(instantiatedTypes);
+    collectTypeArguments(checkedTypeArguments, isTypeArgument: true);
+
     for (ClassElement cls in superCollector.classes.toList()) {
       for (DartType supertype in cls.allSupertypes) {
         superCollector.collect(supertype);
@@ -333,13 +355,22 @@ class RuntimeTypes {
     // We need to add types occuring in function type arguments, like for
     // instance 'J' for [: (J j) {} is f :] where f is
     // [: typedef void f(I i); :] and 'J' is a subtype of 'I'.
-    for (DartType type in instantiatedTypes) {
-      functionArgumentCollector.collect(type);
+    void collectFunctionTypeArguments(Iterable<DartType> types) {
+      for (DartType type in types) {
+        functionArgumentCollector.collect(type);
+      }
     }
+    collectFunctionTypeArguments(instantiatedTypes);
+    collectFunctionTypeArguments(checkedTypeArguments);
 
-    for (DartType type in isChecks) {
-      collector.collect(type);
+    void collectTypeArguments(Iterable<DartType> types,
+                              {bool isTypeArgument: false}) {
+      for (DartType type in types) {
+        collector.collect(type, isTypeArgument: isTypeArgument);
+      }
     }
+    collectTypeArguments(isChecks);
+    collectTypeArguments(checkedBounds, isTypeArgument: true);
 
     checkedArguments =
         collector.classes..addAll(functionArgumentCollector.classes);
@@ -718,8 +749,8 @@ class ArgumentCollector extends DartTypeVisitor {
 
   ArgumentCollector(this.backend);
 
-  collect(DartType type) {
-    type.accept(this, false);
+  collect(DartType type, {bool isTypeArgument: false}) {
+    type.accept(this, isTypeArgument);
   }
 
   /// Collect all types in the list as if they were arguments of an

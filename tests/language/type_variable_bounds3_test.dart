@@ -9,7 +9,7 @@ class A<K extends int> {
 
 class B<X, Y> {
   foo(x) {
-    return x is A<X>;  /// 00: dynamic type error
+    return x is A<X>;  /// 00: dynamic type error, static type warning
   }
 }
 

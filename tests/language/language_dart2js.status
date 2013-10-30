@@ -33,13 +33,9 @@ vm/*: Skip # Issue 12699
 [ $compiler == dart2js && $checked ]
 checked_setter2_test: Fail # Issue 11273
 default_factory2_test/01: Fail # Issue 12700
-type_variable_bounds_test/01: Fail # Issue 12702
 type_variable_bounds_test/02: Fail # Issue 12702
-type_variable_bounds_test/04: Fail # Issue 12702
-type_variable_bounds_test/05: Fail # Issue 12702
-type_variable_bounds2_test/00: Fail # Issue 12702
-type_variable_bounds2_test/03: Fail # Issue 12702
-type_variable_bounds2_test/05: Fail # Issue 12702
+type_variable_bounds2_test/01: Fail # Issue 12702
+type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 f_bounded_quantification_test/01: Fail # Issue 12703

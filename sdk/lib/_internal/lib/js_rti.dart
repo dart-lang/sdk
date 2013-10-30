@@ -286,6 +286,18 @@ Object assertSubtype(Object object, String isField, List checks,
   return object;
 }
 
+/// Checks that the type represented by [subtype] is a subtype of [supertype].
+/// If not a type error with [message] is thrown.
+assertIsSubtype(var subtype, var supertype, String message) {
+  if (!isSubtype(subtype, supertype)) {
+    throwTypeError(message);
+  }
+}
+
+throwTypeError(message) {
+  throw new TypeErrorImplementation.fromMessage(message);
+}
+
 /**
  * Check that the types in the list [arguments] are subtypes of the types in
  * list [checks] (at the respective positions), possibly applying [substitution]

@@ -41,7 +41,7 @@ main() {
     // However, while unsuccessfully trying to prove that A<String> is a K,
     // a malformed type is encountered in checked mode, resulting in a dynamic
     // type error.
-    Expect.isTrue(a is !K);  /// 05: dynamic type error
+    Expect.isTrue(a is !K);  /// 05: dynamic type error, static type warning
   }
 
   a = new A<int>();

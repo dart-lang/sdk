@@ -1078,6 +1078,16 @@ class JavaScriptBackend extends Backend {
     enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, elements);
   }
 
+  void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
+                                              DartType bound) {
+    rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
+  }
+
+  void registerTypeVariableBoundCheck(TreeElements elements) {
+    enqueueInResolution(getThrowTypeError(), elements);
+    enqueueInResolution(getAssertIsSubtype(), elements);
+  }
+
   void registerAbstractClassInstantiation(TreeElements elements) {
     enqueueInResolution(getThrowAbstractClassInstantiationError(), elements);
     // Also register the types of the arguments passed to this method.
@@ -1483,6 +1493,10 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper('throwRuntimeError');
   }
 
+  Element getThrowTypeError() {
+    return compiler.findHelper('throwTypeError');
+  }
+
   Element getThrowAbstractClassInstantiationError() {
     return compiler.findHelper('throwAbstractClassInstantiationError');
   }
@@ -1533,6 +1547,10 @@ class JavaScriptBackend extends Backend {
 
   Element getRuntimeTypeToString() {
     return compiler.findHelper('runtimeTypeToString');
+  }
+
+  Element getAssertIsSubtype() {
+    return compiler.findHelper('assertIsSubtype');
   }
 
   Element getCheckSubtype() {

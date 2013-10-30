@@ -450,8 +450,6 @@ try_catch4_test: StaticWarning
 try_catch5_test: StaticWarning
 type_argument_in_super_type_test: StaticWarning
 typed_selector2_test: StaticWarning
-type_variable_bounds2_test/05: StaticWarning
-type_variable_bounds3_test/00: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
 type_variable_scope2_test: StaticWarning
 unary_plus_negative_test: CompileTimeError

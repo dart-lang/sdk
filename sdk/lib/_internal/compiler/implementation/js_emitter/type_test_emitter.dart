@@ -235,9 +235,10 @@ class TypeTestEmitter extends CodeEmitterHelper {
   Map<FunctionType, bool> getFunctionTypeChecksOn(DartType type) {
     Map<FunctionType, bool> functionTypeMap = new Map<FunctionType, bool>();
     for (FunctionType functionType in checkedFunctionTypes) {
-      if (compiler.types.isSubtype(type, functionType)) {
+      int maybeSubtype = compiler.types.computeSubtypeRelation(type, functionType);
+      if (maybeSubtype == Types.IS_SUBTYPE) {
         functionTypeMap[functionType] = true;
-      } else if (compiler.types.isPotentialSubtype(type, functionType)) {
+      } else if (maybeSubtype == Types.MAYBE_SUBTYPE) {
         functionTypeMap[functionType] = false;
       }
     }
