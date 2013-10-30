@@ -55,9 +55,6 @@ dynamic_prefix_core_test: Fail # Issue 12478
 mixin_illegal_object_test/01: pass # Issue 10952.
 mixin_illegal_object_test/02: pass # Issue 10952.
 
-[ $compiler == none && $runtime == drt && $system == macos ]
-field_type_check_test/none: Pass, Fail # Issue 13266
-
 [ $compiler == dart2js && $runtime == ie9 ]
 lazy_static3_test: Fail # Issue 13469
 
