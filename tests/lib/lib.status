@@ -235,14 +235,11 @@ convert/chunked_conversion1_test: StaticWarning
 convert/chunked_conversion_json_decode1_test: StaticWarning
 math/min_max_test: StaticWarning
 mirrors/equality_test/02: StaticWarning # Issue 14524
-mirrors/function_type_mirror_test: StaticWarning # Issue 14524
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
 mirrors/invoke_named_test: StaticWarning # Issue 14522
-mirrors/mirrors_test: StaticWarning # Issue 14524
 mirrors/private_symbol_test: StaticWarning # Issue 14524
 mirrors/reflect_class_test: StaticWarning # Issue 14524
 mirrors/type_variable_owner_test: StaticWarning # Issue 14524
-mirrors/typedef_test: StaticWarning # Issue 14524
 mirrors/typedef_metadata_test: StaticWarning # Issue 14524
 mirrors/typevariable_mirror_metadata_test: StaticWarning # Issue 14524
 
