@@ -161,11 +161,6 @@ prefix9_test: fail # test issue 14289
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
 
-# test issue 14364, "E<A> << D"
-type_promotion_more_specific_test/09: Fail
-type_promotion_more_specific_test/10: Fail
-type_promotion_more_specific_test/11: Fail
-
 # test issue 14406, setter for final field was removed from spec
 implicit_setter_test/01: fail
 implicit_setter_test/02: fail
