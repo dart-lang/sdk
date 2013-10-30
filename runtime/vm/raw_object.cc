@@ -5,6 +5,7 @@
 #include "vm/raw_object.h"
 
 #include "vm/class_table.h"
+#include "vm/dart.h"
 #include "vm/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -14,12 +15,7 @@
 namespace dart {
 
 bool RawObject::IsVMHeapObject() const {
-  // TODO(asiva): Need a better way to represent VM heap objects, for
-  // now we use the premarked property for identifying objects in the
-  // VM heap.
-  ASSERT(IsHeapObject());
-  ASSERT(!Isolate::Current()->heap()->gc_in_progress());
-  return IsMarked();
+  return Dart::vm_isolate()->heap()->Contains(ToAddr(this));
 }
 
 

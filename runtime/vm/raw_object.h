@@ -376,7 +376,7 @@ class RawObject {
     return reinterpret_cast<RawObject*>(addr + kHeapObjectTag);
   }
 
-  static uword ToAddr(RawObject* raw_obj) {
+  static uword ToAddr(const RawObject* raw_obj) {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
 
