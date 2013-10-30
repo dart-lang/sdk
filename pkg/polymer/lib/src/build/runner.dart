@@ -83,7 +83,7 @@ String readCurrentPackageFromPubspec([String dir]) {
  * list-pacakge-dirs`).
  */
 Map<String, String> _readPackageDirsFromPub(String currentPackage) {
-  var dartExec = new Options().executable;
+  var dartExec = Platform.executable;
   // If dartExec == dart, then dart and pub are in standard PATH.
   var sdkDir = dartExec == 'dart' ? '' : path.dirname(dartExec);
   var pub = path.join(sdkDir, Platform.isWindows ? 'pub.bat' : 'pub');

@@ -31,8 +31,8 @@ import 'src/build/common.dart' show TransformOptions;
 import 'src/build/runner.dart';
 import 'transformer.dart';
 
-main() {
-  var args = _parseArgs(new Options().arguments);
+main(List<String> arguments) {
+  var args = _parseArgs(arguments);
   if (args == null) exit(1);
 
   var test = args['test'];
