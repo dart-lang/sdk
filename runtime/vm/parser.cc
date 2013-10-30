@@ -3748,12 +3748,12 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ConsumeToken();  // extends or =
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    if (super_type.IsDynamicType()) {
-      // The string 'dynamic' is not resolved yet at this point, but a malformed
-      // type mapped to dynamic can be encountered here.
+    if (super_type.IsMalformed() || super_type.IsDynamicType()) {
+      // Unlikely here, since super type is not resolved yet.
       ErrorMsg(type_pos,
-               "class '%s' may not extend a malformed type",
-               class_name.ToCString());
+               "class '%s' may not extend %s",
+               class_name.ToCString(),
+               super_type.IsMalformed() ? "a malformed type" : "'dynamic'");
     }
     if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
@@ -3761,6 +3761,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                class_name.ToCString(),
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
+    // The class finalizer will check whether the super type is malbounded.
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(super_type);
     }
@@ -7430,12 +7431,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
-        // The type is never malformed (mapped to dynamic), but it can be
-        // malbounded in checked mode.
-        ASSERT(!type.IsMalformed());
+        // In production mode, the type may be malformed.
+        // In checked mode, the type may be malformed or malbounded.
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
              (op_kind == Token::kAS)) &&
-            type.IsMalbounded()) {
+            (type.IsMalformed() || type.IsMalbounded())) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test or in a type cast.
           return ThrowTypeError(type_pos, type);
@@ -9193,6 +9193,13 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     // List literals take a single type argument.
     if (list_type_arguments.Length() == 1) {
       element_type = list_type_arguments.TypeAt(0);
+      ASSERT(!element_type.IsMalformed());  // Would be mapped to dynamic.
+      ASSERT(!element_type.IsMalbounded());  // No declared bound in List.
+      if (is_const && !element_type.IsInstantiated()) {
+        ErrorMsg(type_pos,
+                 "the type argument of a constant list literal cannot include "
+                 "a type variable");
+      }
     } else {
       if (FLAG_error_on_bad_type) {
         ErrorMsg(type_pos,
@@ -9202,14 +9209,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       // Ignore type arguments.
       list_type_arguments = AbstractTypeArguments::null();
     }
-    if (is_const && !element_type.IsInstantiated()) {
-      ErrorMsg(type_pos,
-               "the type argument of a constant list literal cannot include "
-               "a type variable");
-    }
   }
-  ASSERT((list_type_arguments.IsNull() && element_type.IsDynamicType()) ||
-         ((list_type_arguments.Length() == 1) && !element_type.IsNull()));
+  ASSERT(list_type_arguments.IsNull() || (list_type_arguments.Length() == 1));
   const Class& array_class = Class::Handle(
       isolate()->object_store()->array_class());
   Type& type = Type::ZoneHandle(
@@ -9386,26 +9387,14 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (map_type_arguments.Length() == 2) {
       key_type = map_type_arguments.TypeAt(0);
       value_type = map_type_arguments.TypeAt(1);
+      // Malformed type arguments are mapped to dynamic.
+      ASSERT(!key_type.IsMalformed() && !value_type.IsMalformed());
+      // No declared bounds in Map.
+      ASSERT(!key_type.IsMalbounded() && !value_type.IsMalbounded());
       if (is_const && !type_arguments.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type arguments of a constant map literal cannot include "
                  "a type variable");
-      }
-      if (key_type.IsMalformed()) {
-        if (FLAG_error_on_bad_type) {
-          ErrorMsg(Error::Handle(key_type.malformed_error()));
-        }
-        // Map malformed key type to dynamic.
-        key_type = Type::DynamicType();
-        map_type_arguments.SetTypeAt(0, key_type);
-      }
-      if (value_type.IsMalformed()) {
-        if (FLAG_error_on_bad_type) {
-          ErrorMsg(Error::Handle(value_type.malformed_error()));
-        }
-        // Map malformed value type to dynamic.
-        value_type = Type::DynamicType();
-        map_type_arguments.SetTypeAt(1, value_type);
       }
     } else {
       if (FLAG_error_on_bad_type) {
@@ -9417,10 +9406,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       map_type_arguments = AbstractTypeArguments::null();
     }
   }
-  ASSERT((map_type_arguments.IsNull() &&
-          key_type.IsDynamicType() && value_type.IsDynamicType()) ||
-         ((map_type_arguments.Length() == 2) &&
-          !key_type.IsMalformed() && !value_type.IsMalformed()));
+  ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
   GrowableArray<AstNode*> kv_pairs_list;
@@ -9604,8 +9590,10 @@ AstNode* Parser::ParseCompoundLiteral() {
   const intptr_t type_pos = TokenPos();
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle(
       ParseTypeArguments(ClassFinalizer::kCanonicalize));
+  // Malformed type arguments are mapped to dynamic, so we will not encounter
+  // them here.
   // Map and List interfaces do not declare bounds on their type parameters, so
-  // we should never see a malformed type argument mapped to dynamic here.
+  // we will not see malbounded type arguments here.
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {

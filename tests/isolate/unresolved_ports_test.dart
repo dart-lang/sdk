@@ -4,6 +4,7 @@
 
 // spawns multiple isolates and sends unresolved ports between them.
 library unresolved_ports;
+import 'dart:async';
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 

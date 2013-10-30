@@ -63,6 +63,7 @@ LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13398
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
 
 [ $compiler == none && $runtime == vm && $checked ]
+Language/14_Libraries_and_Scripts/1_Imports_A03_t31: Fail # Issue 14006, discussion on-going
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
 

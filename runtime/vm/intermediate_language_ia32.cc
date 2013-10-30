@@ -196,7 +196,7 @@ static void EmitAssertBoolean(Register reg,
   __ pushl(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
                                 deopt_id,
-                                kConditionTypeErrorRuntimeEntry,
+                                kNonBoolTypeErrorRuntimeEntry,
                                 1,
                                 locs);
   // We should never return here.

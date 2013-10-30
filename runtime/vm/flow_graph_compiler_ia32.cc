@@ -688,22 +688,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
-    Error& error = Error::Handle();
-    if (dst_type.IsMalformed()) {
-      error = dst_type.malformed_error();
-    } else {
-      const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
-      ASSERT(is_malbounded);
-    }
-    const String& error_message = String::ZoneHandle(
-        Symbols::New(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
-    __ PushObject(error_message);
+    __ PushObject(dst_type);  // Push the type of the destination.
     GenerateRuntimeCall(token_pos,
                         deopt_id,
-                        kMalformedTypeErrorRuntimeEntry,
+                        kBadTypeErrorRuntimeEntry,
                         3,
                         locs);
     // We should never return here.

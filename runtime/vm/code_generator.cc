@@ -638,7 +638,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
 // Report that the type of the given object is not bool in conditional context.
 // Arg0: bad object.
 // Return value: none, throws a TypeError.
-DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
+DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
   const intptr_t location = GetCallerLocation();
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
@@ -659,19 +659,32 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
 // types? Revisit.
 // Report that the type of the type check is malformed.
 // Arg0: src value.
-// Arg1: name of instance being assigned to.
-// Arg2: malformed type error message.
+// Arg1: name of destination being assigned to.
+// Arg2: type of destination being assigned to.
 // Return value: none, throws an exception.
-DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
+DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   const intptr_t location = GetCallerLocation();
   const Instance& src_value = Instance::CheckedHandle(arguments.ArgAt(0));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(1));
-  const String& bound_error = String::CheckedHandle(arguments.ArgAt(2));
+  const AbstractType& dst_type =
+      AbstractType::CheckedHandle(arguments.ArgAt(2));
   const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
-  Exceptions::CreateAndThrowTypeError(location, src_type_name,
-                                      Symbols::Malformed(),
-                                      dst_name, bound_error);
+
+  String& dst_type_name = String::Handle();
+  Error& error = Error::Handle();
+  if (dst_type.IsMalformed()) {
+    error = dst_type.malformed_error();
+    dst_type_name = Symbols::Malformed().raw();
+  } else {
+    const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
+    dst_type_name = Symbols::Malbounded().raw();
+    ASSERT(is_malbounded);
+  }
+  const String& error_message = String::ZoneHandle(
+      Symbols::New(error.ToErrorCString()));
+  Exceptions::CreateAndThrowTypeError(
+      location, src_type_name, dst_type_name, dst_name, error_message);
   UNREACHABLE();
 }
 

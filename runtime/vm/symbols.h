@@ -241,6 +241,7 @@ class ObjectPointerVisitor;
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
+  V(Malbounded, "malbounded")                                                  \
   V(InstanceOf, "InstanceOf")                                                  \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(CommaSpace, ", ")                                                          \
