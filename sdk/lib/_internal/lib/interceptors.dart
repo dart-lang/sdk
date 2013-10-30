@@ -24,6 +24,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               stringReplaceAllFuncUnchecked,
                               stringReplaceAllUnchecked,
                               stringReplaceFirstUnchecked,
+                              lookupAndCacheInterceptor,
                               lookupDispatchRecord,
                               StringMatch,
                               firstMatchAfter;
@@ -135,20 +136,20 @@ getNativeInterceptor(object) {
 
     var extension = dispatchRecordExtension(record);
     if (JS('bool', '# === #', extension, objectProto)) {
-      // The extension handler will do any required patching.  A typical use
-      // case is where one native class represents two Dart classes.  The
-      // extension method will inspect the native object instance to determine
-      // its class and patch the instance.  Needed to fix dartbug.com/9654.
-      return JS('', '(#)(#, #)', proto, object, record);
+      // TODO(sra): The discriminator returns a tag.  The tag is an uncached or
+      // instance-cached tag, defaulting to instance-cached if caching
+      // unspecified.
+      var discriminatedTag = JS('', '(#)(#, #)', proto, object, record);
+      throw new UnimplementedError('Return interceptor for $discriminatedTag');
     }
   }
 
-  record = lookupDispatchRecord(object);
-  if (record == null) {
+  var interceptor = lookupAndCacheInterceptor(object);
+  if (interceptor == null) {
     return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
   }
-  setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', object), record);
-  return getNativeInterceptor(object);
+
+  return interceptor;
 }
 
 /**

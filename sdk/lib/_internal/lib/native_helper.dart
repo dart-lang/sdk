@@ -92,6 +92,7 @@ bool isDartObject(obj) {
 
 /**
  * A JavaScript object mapping tags to the constructors of interceptors.
+ * This is a JavaScript object with no prototype.
  *
  * Example: 'HTMLImageElement' maps to the ImageElement class constructor.
  */
@@ -109,45 +110,144 @@ String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
   return JS('', r'#.$nativeSuperclassTag', interceptorClassConstructor);
 }
 
-lookupInterceptor(var hasOwnPropertyFunction, String tag) {
-  var map = interceptorsByTag;
-  if (map == null) return null;
-  return callHasOwnProperty(hasOwnPropertyFunction, map, tag)
-      ? propertyGet(map, tag)
-      : null;
+/**
+ * Cache of dispatch records for instances.  This is a JavaScript object used as
+ * a map.  Keys are instance tags, e.g. "!SomeThing".  The cache permits the
+ * sharing of one dispatch record between multiple instances.
+ */
+var dispatchRecordsForInstanceTags;
+
+/**
+ * Cache of interceptors indexed by uncacheable tags, e.g. "~SomeThing".
+ * This is a JavaScript object used as a map.
+ */
+var interceptorsForUncacheableTags;
+
+
+lookupInterceptor(String tag) {
+  return propertyGet(interceptorsByTag, tag);
 }
 
-lookupDispatchRecord(obj) {
-  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
-  var interceptorClass = null;
+
+// Dispatch tag marks are optional prefixes for a dispatch tag that direct how
+// the interceptor for the tag may be cached.
+
+/// No caching permitted.
+const UNCACHED_MARK = '~';
+
+/// Dispatch record must be cached per instance
+const INSTANCE_CACHED_MARK = '!';
+
+/// Dispatch record is cached on immediate prototype.
+const LEAF_MARK = '-';
+
+/// Dispatch record is cached on immediate prototype with a prototype
+/// verification to prevent the interceptor being associated with a subclass
+/// before a dispatch record is cached on the subclass.
+const INTERIOR_MARK = '+';
+
+/// A 'discriminator' function is to be used. TBD.
+const DISCRIMINATED_MARK = '*';
+
+
+/**
+ * Returns the interceptor for a native object, or returns `null` if not found.
+ *
+ * A dispatch record is cached according to the specification of the dispatch
+ * tag for [obj].
+ */
+lookupAndCacheInterceptor(obj) {
   assert(!isDartObject(obj));
   String tag = getTagFunction(obj);
 
-  interceptorClass = lookupInterceptor(hasOwnPropertyFunction, tag);
+  // Fast path for instance (and uncached) tags because the lookup is repeated
+  // for each instance (or getInterceptor call).
+  var record = propertyGet(dispatchRecordsForInstanceTags, tag);
+  if (record != null) return patchInstance(obj, record);
+  var interceptor = propertyGet(interceptorsForUncacheableTags, tag);
+  if (interceptor != null) return interceptor;
+
+  // This lookup works for derived dispatch tags because we add them all in
+  // [initNativeDispatch].
+  var interceptorClass = lookupInterceptor(tag);
   if (interceptorClass == null) {
-    String secondTag = alternateTagFunction(obj, tag);
-    if (secondTag != null) {
-      interceptorClass = lookupInterceptor(hasOwnPropertyFunction, secondTag);
+    tag = alternateTagFunction(obj, tag);
+    if (tag != null) {
+      // Fast path for instance and uncached tags again.
+      record = propertyGet(dispatchRecordsForInstanceTags, tag);
+      if (record != null) return patchInstance(obj, record);
+      interceptor = propertyGet(interceptorsForUncacheableTags, tag);
+      if (interceptor != null) return interceptor;
+
+      interceptorClass = lookupInterceptor(tag);
     }
   }
+
   if (interceptorClass == null) {
-    // This object is not known to Dart.  There could be several
-    // reasons for that, including (but not limited to):
+    // This object is not known to Dart.  There could be several reasons for
+    // that, including (but not limited to):
+    //
     // * A bug in native code (hopefully this is caught during development).
     // * An unknown DOM object encountered.
-    // * JavaScript code running in an unexpected context.  For
-    //   example, on node.js.
+    // * JavaScript code running in an unexpected context.  For example, on
+    //   node.js.
     return null;
   }
-  var interceptor = JS('', '#.prototype', interceptorClass);
+
+  interceptor = JS('', '#.prototype', interceptorClass);
+
+  var mark = JS('String|Null', '#[0]', tag);
+
+  if (mark == INSTANCE_CACHED_MARK) {
+    record = makeLeafDispatchRecord(interceptor);
+    propertySet(dispatchRecordsForInstanceTags, tag, record);
+    return patchInstance(obj, record);
+  }
+
+  if (mark == UNCACHED_MARK) {
+    propertySet(interceptorsForUncacheableTags, tag, interceptor);
+    return interceptor;
+  }
+
+  if (mark == LEAF_MARK) {
+    return patchProto(obj, makeLeafDispatchRecord(interceptor));
+  }
+
+  if (mark == INTERIOR_MARK) {
+    return patchInteriorProto(obj, interceptor);
+  }
+
+  if (mark == DISCRIMINATED_MARK) {
+    // TODO(sra): Use discriminator of tag.
+    throw new UnimplementedError(tag);
+  }
+
+  // [tag] was not explicitly an interior or leaf tag, so
   var isLeaf = JS('bool', '(#[#]) === true', leafTags, tag);
   if (isLeaf) {
-    return makeLeafDispatchRecord(interceptor);
+    return patchProto(obj, makeLeafDispatchRecord(interceptor));
   } else {
-    var proto = JS('', 'Object.getPrototypeOf(#)', obj);
-    return makeDispatchRecord(interceptor, proto, null, null);
+    return patchInteriorProto(obj, interceptor);
   }
 }
+
+patchInstance(obj, record) {
+  setDispatchProperty(obj, record);
+  return dispatchRecordInterceptor(record);
+}
+
+patchProto(obj, record) {
+  setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', obj), record);
+  return dispatchRecordInterceptor(record);
+}
+
+patchInteriorProto(obj, interceptor) {
+  var proto = JS('', 'Object.getPrototypeOf(#)', obj);
+  var record = makeDispatchRecord(interceptor, proto, null, null);
+  setDispatchProperty(proto, record);
+  return interceptor;
+}
+
 
 makeLeafDispatchRecord(interceptor) {
   var fieldName = JS_IS_INDEXABLE_FIELD_NAME();
@@ -183,16 +283,24 @@ var initNativeDispatchFlag;  // null or true
 void initNativeDispatch() {
   if (true == initNativeDispatchFlag) return;
   initNativeDispatchFlag = true;
+  initNativeDispatchContinue();
+}
+
+void initNativeDispatchContinue() {
+
+  dispatchRecordsForInstanceTags = JS('', 'Object.create(null)');
+  interceptorsForUncacheableTags = JS('', 'Object.create(null)');
 
   initHooks();
 
   // Try to pro-actively patch prototypes of DOM objects.  For each of our known
   // tags `TAG`, if `window.TAG` is a (constructor) function, set the dispatch
   // property if the function's prototype to a dispatch record.
+  var map = interceptorsByTag;
+  var tags = JS('JSMutableArray', 'Object.getOwnPropertyNames(#)', map);
+
   if (JS('bool', 'typeof window != "undefined"')) {
     var context = JS('=Object', 'window');
-    var map = interceptorsByTag;
-    var tags = JS('JSMutableArray', 'Object.getOwnPropertyNames(#)', map);
     for (int i = 0; i < tags.length; i++) {
       var tag = tags[i];
       if (JS('bool', 'typeof (#[#]) == "function"', context, tag)) {
@@ -206,6 +314,20 @@ void initNativeDispatch() {
           }
         }
       }
+    }
+  }
+
+  // [interceptorsByTag] maps 'plain' dispatch tags.  Add all the derived
+  // dispatch tags to simplify lookup of derived tags.
+  for (int i = 0; i < tags.length; i++) {
+    var tag = JS('String', '#[#]', tags, i);
+    if (JS('bool', '/^[A-Za-z_]/.test(#)', tag)) {
+      var interceptorClass = propertyGet(map, tag);
+      propertySet(map, INSTANCE_CACHED_MARK + tag, interceptorClass);
+      propertySet(map, UNCACHED_MARK + tag, interceptorClass);
+      propertySet(map, LEAF_MARK + tag, interceptorClass);
+      propertySet(map, INTERIOR_MARK + tag, interceptorClass);
+      propertySet(map, DISCRIMINATED_MARK + tag, interceptorClass);
     }
   }
 }

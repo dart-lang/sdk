@@ -2639,8 +2639,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
         } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
           if (!node.argumentsNode.isEmpty) {
             Node argument = node.argumentsNode.nodes.head;
-            if (argumentsToJsInterceptorConstant == null)
+            if (argumentsToJsInterceptorConstant == null) {
               argumentsToJsInterceptorConstant = new Set<Node>();
+            }
             argumentsToJsInterceptorConstant.add(argument);
           }
         }
