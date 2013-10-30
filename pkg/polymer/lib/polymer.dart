@@ -51,7 +51,6 @@ import 'dart:mirrors';
 
 import 'package:custom_element/polyfill.dart' show customElementsReady;
 import 'package:logging/logging.dart' show Logger, Level;
-import 'package:meta/meta.dart' show deprecated;
 import 'package:observe/observe.dart';
 import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:path/path.dart' as path;

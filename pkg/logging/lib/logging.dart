@@ -15,7 +15,6 @@
 library logging;
 
 import 'dart:async';
-import 'package:meta/meta.dart';
 import 'package:unmodifiable_collection/unmodifiable_collection.dart';
 
 /**

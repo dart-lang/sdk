@@ -7,7 +7,6 @@
 library build_utils;
 
 import 'dart:async';
-import 'package:meta/meta.dart';
 
 import 'builder.dart' as builder;
 

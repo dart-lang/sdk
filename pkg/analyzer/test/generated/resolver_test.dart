@@ -2936,7 +2936,6 @@ class NonErrorResolverTest extends ResolverTestCase {
   void test_proxy_annotation_prefixed() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "f(A a) {",
@@ -2947,17 +2946,12 @@ class NonErrorResolverTest extends ResolverTestCase {
         "  a++;",
         "  ++a;",
         "}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }
   void test_proxy_annotation_prefixed2() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "class B {",
@@ -2970,17 +2964,12 @@ class NonErrorResolverTest extends ResolverTestCase {
         "    ++a;",
         "  }",
         "}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }
   void test_proxy_annotation_prefixed3() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "class B {",
         "  f(A a) {",
         "    a.m();",
@@ -2993,17 +2982,12 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "@proxy",
         "class A {}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }
   void test_proxy_annotation_simple() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class B {",
         "  m() {",
@@ -3013,10 +2997,6 @@ class NonErrorResolverTest extends ResolverTestCase {
         "    var y = this + this;",
         "  }",
         "}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }
@@ -18404,7 +18384,6 @@ class NonHintCodeTest extends ResolverTestCase {
   void test_proxy_annotation_prefixed() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "f(var a) {",
@@ -18416,17 +18395,12 @@ class NonHintCodeTest extends ResolverTestCase {
         "  a++;",
         "  ++a;",
         "}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }
   void test_proxy_annotation_prefixed2() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "@proxy",
         "class A {}",
         "class B {",
@@ -18440,17 +18414,12 @@ class NonHintCodeTest extends ResolverTestCase {
         "    ++a;",
         "  }",
         "}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }
   void test_proxy_annotation_prefixed3() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
-        "import 'meta.dart';",
         "class B {",
         "  f(var a) {",
         "    a = new A();",
@@ -18464,10 +18433,6 @@ class NonHintCodeTest extends ResolverTestCase {
         "}",
         "@proxy",
         "class A {}"]));
-    addSource2("/meta.dart", EngineTestCase.createSource([
-        "library meta;",
-        "const proxy = const _Proxy();",
-        "class _Proxy { const _Proxy(); }"]));
     resolve(source);
     assertNoErrors(source);
   }

@@ -5,12 +5,12 @@
 part of dart.core;
 
 /**
- * The annotation "@Deprecated('expires when')" marks a feature as deprecated.
+ * The annotation `@Deprecated('expires when')` marks a feature as deprecated.
  *
- * The annotation "@deprecated" is a shorthand for deprecating until
+ * The annotation `@deprecated` is a shorthand for deprecating until
  * to an unspecified "next release".
  *
- * The intent of the "@Deprecated" annotation is to inform users of a feature
+ * The intent of the `@Deprecated` annotation is to inform users of a feature
  * that they should change their code, even if it is currently still working
  * correctly.
  *
@@ -23,7 +23,7 @@ part of dart.core;
  * A deprecated feature should document how the same effect can be achieved,
  * so the programmer knows how to rewrite the code.
  *
- * The "@Deprecated" annotation applies to libraries, top-level declarations
+ * The `@Deprecated` annotation applies to libraries, top-level declarations
  * (variables, getters, setters, functions, classes and typedefs),
  * class-level declarations (variables, getters, setters, methods, operators or
  * constructors, whether static or not), named optional arguments and
@@ -82,14 +82,14 @@ class _Override {
 const deprecated = const Deprecated("next release");
 
 /*
- * The annotation "@override" marks an instance member as overriding a
+ * The annotation `@override` marks an instance member as overriding a
  * superclass member with the same name.
  *
  * The annotation applies to instance methods, getters and setters, and to
  * instance fields, where it means that the implicit getter and setter of the
  * field is marked as overriding, but the field itself is not.
  *
- * The intent of the "@override" notation is to catch situations where a
+ * The intent of the `@override` notation is to catch situations where a
  * superclass renames a member, and an independent subclass which used to
  * override the member, could silently continue working using the
  * superclass implementation.
@@ -98,12 +98,36 @@ const deprecated = const Deprecated("next release");
  * declaration of an annotated member is inherited by the class from either a
  * superclass or an interface.
  *
- * Use the "@override" annotation judiciously and only for methods where
+ * Use the `@override` annotation judiciously and only for methods where
  * the superclass is not under the programmer's control, the superclass is in a
  * different library or package, and it is not considered stable.
- * In any case, the use of "@override" is optional.
+ * In any case, the use of `@override` is optional.
  *
  * For example, the annotation is intentionally not used in the Dart platform
  * libraries, since they only depend on themselves.
  */
 const override = const _Override();
+
+class _Proxy {
+  const _Proxy();
+}
+
+/**
+ * The annotation `@proxy` marks a class as implementing members through
+ * `noSuchMethod`.
+ *
+ * The annotation applies to concrete classes. It is not inherited by
+ * subclasses.
+ *
+ * The marked class is considerer to implement any method, getter or setter
+ * declared by its interface, even if there is no implementation in the
+ * class. It will not generate the warning that is otherwise specified for an
+ * unimplemented method in a non-abstract class.
+ *
+ * Tools that understand `@proxy` should tell the user if a class using `@proxy`
+ * does not override the `noSuchMethod` declared on [Object].
+ *
+ * The intent of the `@proxy` notation is to avoid irrelevant warnings when
+ * a class implements its interface through `noSuchMethod`.
+ */
+const proxy = const _Proxy();
