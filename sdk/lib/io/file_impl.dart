@@ -25,6 +25,7 @@ class _FileStream extends Stream<List<int>> {
 
   // Is there a read currently in progress?
   bool _readInProgress = false;
+  bool _closed = false;
 
   // Block read but not yet send because stream is paused.
   List<int> _currentBlock;
@@ -59,14 +60,21 @@ class _FileStream extends Stream<List<int>> {
   }
 
   Future _closeFile() {
-    if (_readInProgress) {
+    if (_readInProgress || _closed) {
       return _closeCompleter.future;
+    }
+    _closed = true;
+    void done() {
+      _closeCompleter.complete();
+      _controller.close();
     }
     if (_openedFile != null) {
       _openedFile.close()
-          .then(_closeCompleter.complete,
-                onError: _closeCompleter.completeError);
+          .catchError(_controller.addError)
+          .whenComplete(done);
       _openedFile = null;
+    } else {
+      done();
     }
     return _closeCompleter.future;
   }
@@ -99,7 +107,7 @@ class _FileStream extends Stream<List<int>> {
         }
         if (block.length == 0) {
           if (!_unsubscribed) {
-            _closeFile().then((_) { _controller.close(); });
+            _closeFile();
             _unsubscribed = true;
           }
           return;
@@ -115,7 +123,7 @@ class _FileStream extends Stream<List<int>> {
       .catchError((e) {
         if (!_unsubscribed) {
           _controller.addError(e);
-          _closeFile().then((_) { _controller.close(); });
+          _closeFile();
           _unsubscribed = true;
         }
       });
