@@ -200,6 +200,18 @@ class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
   String toString() => "IsolateMirror on '$debugName'";
 }
 
+class _InvocationTrampoline implements Function {
+  ObjectMirror _receiver;
+  Symbol _selector;
+  _InvocationTrampoline(this._receiver, this._selector);
+  noSuchMethod(Invocation msg) {
+    if (msg.memberName != #call) return super.noSuchMethod(msg);
+    return _receiver.invoke(_selector,
+                            msg.positionalArguments,
+                            msg.namedArguments);
+  }
+}
+
 abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
     implements ObjectMirror {
   _LocalObjectMirrorImpl(this._reflectee);
@@ -346,6 +358,23 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     // Avoid hash collisions with the reflectee. This constant is in Smi range
     // and happens to be the inner padding from RFC 2104.
     return identityHashCode(_reflectee) ^ 0x36363636;
+  }
+
+  Function operator [](Symbol selector) {
+    bool found = false;
+    for (ClassMirror c = type; c != null; c = c.superclass) {
+      var target = c.methods[selector];
+      if (target != null && !target.isStatic && target.isRegularMethod) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      throw new ArgumentError(
+          "${MirrorSystem.getName(type.simpleName)} has no instance method "
+          "${MirrorSystem.getName(selector)}");
+    }
+    return new _InvocationTrampoline(this, selector);
   }
 
   // Override to include the receiver in the arguments.
@@ -710,6 +739,16 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   String toString() => "ClassMirror on '${MirrorSystem.getName(simpleName)}'";
+
+  Function operator [](Symbol selector) {
+    var target = methods[selector];
+    if (target == null || !target.isStatic || !target.isRegularMethod) {
+      throw new ArgumentError(
+          "${MirrorSystem.getName(simpleName)} has no static method "
+          "${MirrorSystem.getName(selector)}");
+    }
+    return new _InvocationTrampoline(this, selector);
+  }
 
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
@@ -1187,6 +1226,16 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   int get hashCode => simpleName.hashCode;
 
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
+
+  Function operator [](Symbol selector) {
+    var target = functions[selector];
+    if (target == null || !target.isRegularMethod) {
+      throw new ArgumentError(
+          "${MirrorSystem.getName(simpleName)} has no top-level method "
+          "${MirrorSystem.getName(selector)}");
+    }
+    return new _InvocationTrampoline(this, selector);
+  }
 
   _invoke(reflectee, memberName, arguments, argumentNames)
       native 'LibraryMirror_invoke';
