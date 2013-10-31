@@ -81,9 +81,8 @@ class TestServer extends TestingServer {
       connection.close();
     }
 
-    void errorHandler(e) {
+    void errorHandler(e, trace) {
       String msg = "Socket error $e";
-      var trace = getAttachedStackTrace(e);
       if (trace != null) msg += "\nStackTrace: $trace";
       print(msg);
       connection.close();

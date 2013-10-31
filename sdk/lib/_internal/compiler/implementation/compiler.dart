@@ -762,7 +762,7 @@ abstract class Compiler implements DiagnosticListener {
   Future<bool> run(Uri uri) {
     totalCompileTime.start();
 
-    return new Future.sync(() => runCompiler(uri)).catchError((error) {
+    return new Future.sync(() => runCompiler(uri)).catchError((error, trace) {
       if (error is CompilerCancelledException) {
         log('Error: $error');
         return false;
@@ -775,7 +775,7 @@ abstract class Compiler implements DiagnosticListener {
                            MessageKind.COMPILER_CRASHED.error().toString(),
                            api.Diagnostic.CRASH);
           String message = 'The compiler crashed.';
-          pleaseReportCrash(getAttachedStackTrace(error), message);
+          pleaseReportCrash(trace, message);
         }
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.

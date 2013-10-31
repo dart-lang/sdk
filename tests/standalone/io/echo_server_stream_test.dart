@@ -55,9 +55,8 @@ class EchoServerGame {
       }
     }
 
-    void errorHandler(e) {
+    void errorHandler(e, trace) {
       String msg = "Socket error $e";
-      var trace = getAttachedStackTrace(e);
       if (trace != null) msg += "\nStackTrace: $trace";
       Expect.fail(msg);
     }
@@ -132,9 +131,8 @@ class EchoServer extends TestingServer {
       }
     }
 
-    void errorHandler(e) {
+    void errorHandler(e, trace) {
       String msg = "Socket error $e";
-      var trace = getAttachedStackTrace(e);
       if (trace != null) msg += "\nStackTrace: $trace";
       Expect.fail(msg);
     }

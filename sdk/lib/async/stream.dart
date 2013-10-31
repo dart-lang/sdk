@@ -402,7 +402,7 @@ abstract class Stream<T> {
         try {
           buffer.write(element);
         } catch (e, s) {
-          _cancelAndError(subscription, result, _asyncError(e, s), s);
+          _cancelAndError(subscription, result, e, s);
         }
       },
       onError: (e) {

@@ -310,11 +310,6 @@ class _Future<T> implements Future<T> {
     assert(_whenCompleteAction == null);
     assert(_errorTest == null);
 
-    if (stackTrace != null) {
-      // Force the stack trace onto the error, even if it already had one.
-      _attachStackTrace(error, stackTrace);
-    }
-
     _Future listeners = _removeListeners();
     _setError(error, stackTrace);
     _propagateToListeners(this, listeners);
@@ -508,7 +503,7 @@ class _Future<T> implements Future<T> {
           if (hasError && identical(source._error.error, e)) {
             listenerValueOrError = source._error;
           } else {
-            listenerValueOrError = new _AsyncError(_asyncError(e, s), s);
+            listenerValueOrError = new _AsyncError(e, s);
           }
           listenerHasValue = false;
         }

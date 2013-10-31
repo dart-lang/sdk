@@ -53,7 +53,7 @@ class JsonBuffer {
     }
     if (i >= buffer.length) {
       return false;
-    } else { 
+    } else {
       return char != "{";
     }
   }
@@ -232,21 +232,21 @@ MatchFrames(List<String> functionNames) {
 
 class LocalsMatcher extends Command {
   Map locals = {};
-  
+
   LocalsMatcher(this.locals) {
     template = {"id": 0, "command": "getStackTrace", "params": {"isolateId": 0}};
   }
 
   void matchResponse(Debugger debugger) {
     super.matchResponse(debugger);
-    
+
     List frames = getJsonValue(debugger.currentMessage, "result:callFrames");
     assert(frames != null);
-    
+
     String functionName = frames[0]['functionName'];
     List localsList = frames[0]['locals'];
     Map reportedLocals = {};
-    localsList.forEach((local) => reportedLocals[local['name']] = local['value']);    
+    localsList.forEach((local) => reportedLocals[local['name']] = local['value']);
     for (String key in locals.keys) {
       if (reportedLocals[key] == null) {
         debugger.error("Error in $functionName(): no value reported for local "
@@ -273,9 +273,9 @@ MatchLocals(Map localValues) {
 class EventMatcher {
   String eventName;
   Map params;
-  
+
   EventMatcher(this.eventName, this.params);
-  
+
   void matchEvent(Debugger debugger) {
     for (Event event in debugger.events) {
       if (event.name == eventName) {
@@ -286,7 +286,7 @@ class EventMatcher {
         }
       }
     }
-    
+
     String msg = params == null ? '' : params.toString();
     debugger.error("Error: could not match event $eventName $msg");
   }
@@ -346,7 +346,7 @@ SetBreakpoint(int line) => new SetBreakpointCommand(line);
 class Event {
   String name;
   Map params;
-  
+
   Event(Map json) {
     name = json['event'];
     params = json['params'];
@@ -414,7 +414,7 @@ class Debugger {
   // Handle debugger events, updating the debugger state.
   void handleEvent(Map<String,dynamic> msg) {
     events.add(new Event(msg));
-    
+
     if (msg["event"] == "isolate") {
       if (msg["params"]["reason"] == "created") {
         isolateId = msg["params"]["id"];
@@ -472,10 +472,10 @@ class Debugger {
   void sendNextCommand() {
     while (script.isNextEventMatcher) {
       EventMatcher matcher = script.currentEntry;
-      script.advance();      
+      script.advance();
       matcher.matchEvent(this);
     }
-    
+
     if (lastCommand == null) {
       if (script.currentEntry is Command) {
         script.currentEntry.send(this);
@@ -554,16 +554,14 @@ class Debugger {
             print("Connection closed by debug target");
             cleanup();
           },
-          onError: (e) {
+          onError: (e, trace) {
             print("Error '$e' detected in input stream from debug target");
-            var trace = getAttachedStackTrace(e);
             if (trace != null) print("StackTrace: $trace");
             cleanup();
           });
       },
-      onError: (e) {
+      onError: (e, trace) {
         String msg = "Error while connecting to debugee: $e";
-        var trace = getAttachedStackTrace(e);
         if (trace != null) msg += "\nStackTrace: $trace";
         error(msg);
         cleanup();

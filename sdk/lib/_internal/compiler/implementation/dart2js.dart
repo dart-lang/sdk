@@ -590,7 +590,7 @@ void helpAndFail(String message) {
 }
 
 void main(List<String> arguments) {
-  runZoned(() => compilerMain(arguments), onError: (exception) {
+  runZoned(() => compilerMain(arguments), onError: (exception, trace) {
     try {
       print('Internal error: $exception');
     } catch (ignored) {
@@ -598,7 +598,6 @@ void main(List<String> arguments) {
     }
 
     try {
-      var trace = getAttachedStackTrace(exception);
       if (trace != null) {
         print(trace);
       }

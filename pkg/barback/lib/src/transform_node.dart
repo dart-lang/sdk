@@ -130,13 +130,13 @@ class TransformNode {
 
     return phase.cascade.graph.transformPool
         .withResource(() => transformer.apply(transform))
-        .catchError((error) {
+        .catchError((error, stack) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
       if (_isDirty) return;
 
       if (error is! MissingInputException) {
-        error = new TransformerException(info, error);
+        error = new TransformerException(info, error, stack);
       }
 
       // Catch all transformer errors and pipe them to the results stream.

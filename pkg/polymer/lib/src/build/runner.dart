@@ -174,7 +174,8 @@ void _initBarback(Barback barback, BarbackOptions options) {
 void _attachListeners(Barback barback) {
   // Listen for errors and results
   barback.errors.listen((e) {
-    var trace = getAttachedStackTrace(e);
+    var trace = null;
+    if (e is Error) trace = e.stackTrace;
     if (trace != null) {
       print(Trace.format(trace));
     }

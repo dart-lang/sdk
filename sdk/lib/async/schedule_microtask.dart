@@ -71,14 +71,6 @@ void scheduleMicrotask(void callback()) {
       Zone.current.bindCallback(callback, runGuarded: true));
 }
 
-/**
- * *DEPRECATED*. Use [scheduleMicrotask] instead.
- */
-@deprecated
-void runAsync(void callback()) {
-  scheduleMicrotask(callback);
-}
-
 class _AsyncRun {
   /** Schedule the given callback before any other event in the event-loop. */
   external static void _scheduleImmediate(void callback());

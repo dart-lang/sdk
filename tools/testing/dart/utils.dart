@@ -35,9 +35,7 @@ class DebugLogger {
     if (error == null) return msg;
     msg += ": $error";
     // TODO(floitsch): once the dart-executable that is bundled
-    // with the Dart sources is updated, uncomment the following
-    // lines.
-    // var trace = getAttachedStackTrace(error);
+    // with the Dart sources is updated, pass a trace parameter too and do:
     // if (trace != null) msg += "\nStackTrace: $trace";
     return msg;
   }

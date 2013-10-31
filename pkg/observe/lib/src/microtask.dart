@@ -11,7 +11,7 @@
  */
 library observe.src.microtask;
 
-import 'dart:async' show Completer, runZonedExperimental;
+import 'dart:async' show Completer, runZoned, ZoneSpecification;
 import 'dart:collection';
 import 'package:observe/observe.dart' show Observable;
 
@@ -61,10 +61,12 @@ wrapMicrotask(body()) => () => runMicrotask(body);
  * Runs the [body] in a zone that supports [performMicrotaskCheckpoint],
  * and returns the result.
  */
-runMicrotask(body()) => runZonedExperimental(() {
+runMicrotask(body()) => runZoned(() {
   try {
     return body();
   } finally {
     performMicrotaskCheckpoint();
   }
-}, onRunAsync: (callback) => _pending.add(callback));
+}, zoneSpecification: new ZoneSpecification(
+    scheduleMicrotask: (self, parent, zone, callback) => _pending.add(callback))
+);

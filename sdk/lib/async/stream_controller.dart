@@ -400,11 +400,6 @@ abstract class _StreamController<T> implements StreamController<T>,
    */
   void addError(Object error, [StackTrace stackTrace]) {
     if (!_mayAddEvent) throw _badEventState();
-    if (stackTrace != null) {
-      // Force stack trace overwrite. Even if the error already contained
-      // a stack trace.
-      _attachStackTrace(error, stackTrace);
-    }
     _addError(error, stackTrace);
   }
 
@@ -609,7 +604,7 @@ Future _runGuarded(_NotificationHandler notificationHandler) {
     if (result is Future) return result;
     return null;
   } catch (e, s) {
-    Zone.current.handleUncaughtError(_asyncError(e, s), s);
+    Zone.current.handleUncaughtError(e, s);
   }
 }
 

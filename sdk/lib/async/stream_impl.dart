@@ -532,7 +532,7 @@ class _IterablePendingEvents<T> extends _PendingEvents {
       isDone = !_iterator.moveNext();
     } catch (e, s) {
       _iterator = null;
-      dispatch._sendError(_asyncError(e, s), s);
+      dispatch._sendError(e, s);
       return;
     }
     if (!isDone) {

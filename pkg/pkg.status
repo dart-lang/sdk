@@ -220,6 +220,7 @@ scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
 
+
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
 # Skip tests on the browser if the test depends on dart:io
@@ -382,3 +383,7 @@ unittest/test/mock_test: StaticWarning
 watcher/test/directory_watcher_test: StaticWarning
 watcher/test/no_subscription_test: StaticWarning
 watcher/test/ready_test: StaticWarning
+
+[ $runtime == vm ]
+# Issue surfaced after removing deprecated async features.
+scheduled_test/test/scheduled_test/nested_task_test: RuntimeError # Issue 14639

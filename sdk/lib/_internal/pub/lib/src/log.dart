@@ -76,7 +76,8 @@ class Entry {
 void error(message, [error]) {
   if (error != null) {
     message = "$message: $error";
-    var trace = getAttachedStackTrace(error);
+    var trace;
+    if (error is Error) trace = error.stackTrace;
     if (trace != null) {
       message = "$message\nStackTrace: $trace";
     }

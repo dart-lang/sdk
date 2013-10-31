@@ -94,8 +94,7 @@ String _findDirWithFile(String dir, String filename) {
   return dir;
 }
 
-void _reportErrorAndExit(e) {
-  var trace = getAttachedStackTrace(e);
+void _reportErrorAndExit(e, trace) {
   print('Uncaught error: $e');
   if (trace != null) print(trace);
   exit(1);

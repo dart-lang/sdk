@@ -418,11 +418,10 @@ class Throws extends Matcher {
       // completes.
       item.then((value) {
         done(() => fail("Expected future to fail, but succeeded with '$value'."));
-      }, onError: (error) {
+      }, onError: (error, trace) {
         done(() {
           if (_matcher == null) return;
           var reason;
-          var trace = getAttachedStackTrace(error);
           if (trace != null) {
             var stackTrace = trace.toString();
             stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";

@@ -46,7 +46,8 @@ class TestHelper implements PackageProvider {
       barback.updateTransformers(p, transformers);
     }
     errorSubscription = barback.errors.listen((e) {
-      var trace = getAttachedStackTrace(e);
+      var trace = null;
+      if (e is Error) trace = e.stackTrace;
       if (trace != null) {
         print(Trace.format(trace));
       }

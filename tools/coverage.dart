@@ -390,9 +390,8 @@ class Debugger {
             cleanup();
           });
       },
-      onError: (e) {
+      onError: (e, trace) {
         String msg = "Error while connecting to coverage target: $e";
-        var trace = getAttachedStackTrace(e);
         if (trace != null) msg += "\nStackTrace: $trace";
         error(msg);
         cleanup();
