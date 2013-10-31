@@ -42,7 +42,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
     var logger = transform.logger;
     return readPrimaryAsHtml(transform).then((document) {
       return transform.readInputAsString(secondaryId).then((libraryIds) {
-        var libraries = JSON.decode(libraryIds).map(
+        var libraries = (JSON.decode(libraryIds) as Iterable).map(
           (data) => new AssetId.deserialize(data)).toList();
         var mainLibraryId;
         var mainScriptTag;
