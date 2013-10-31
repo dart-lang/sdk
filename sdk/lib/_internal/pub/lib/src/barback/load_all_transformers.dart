@@ -23,7 +23,7 @@ import '../utils.dart';
 /// Any [builtInTransformers] that are provided will automatically be added to
 /// the end of every package's cascade.
 Future loadAllTransformers(BarbackServer server, PackageGraph graph,
-                           [Iterable<Transformer> builtInTransformers]) {
+    BarbackMode mode, Iterable<Transformer> builtInTransformers) {
   // In order to determine in what order we should load transformers, we need to
   // know which transformers depend on which others. This is different than
   // normal package dependencies. Let's begin with some terminology:
@@ -62,7 +62,7 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph,
   var orderingDeps = _computeOrderingDeps(graph);
   var packageTransformers = _computePackageTransformers(graph);
 
-  var loader = new _TransformerLoader(server, graph);
+  var loader = new _TransformerLoader(server, mode, graph);
 
   // The packages on which no packages have ordering dependencies -- that is,
   // the packages that don't need to be loaded before any other packages. These
@@ -206,6 +206,9 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
 class _TransformerLoader {
   final BarbackServer _server;
 
+  /// The mode that pub is running barback in.
+  final BarbackMode _mode;
+
   /// The loaded transformers defined in the library identified by each
   /// transformer id.
   final _transformers = new Map<TransformerId, Set<Transformer>>();
@@ -215,7 +218,7 @@ class _TransformerLoader {
   /// Used for error reporting.
   final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
 
-  _TransformerLoader(this._server, PackageGraph graph) {
+  _TransformerLoader(this._server, this._mode, PackageGraph graph) {
     for (var package in graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
         _transformerUsers.putIfAbsent(
@@ -235,7 +238,7 @@ class _TransformerLoader {
 
     // TODO(nweiz): load multiple instances of the same transformer from the
     // same isolate rather than spinning up a separate isolate for each one.
-    return loadTransformers(_server, id).then((transformers) {
+    return loadTransformers(_server, _mode, id).then((transformers) {
       if (!transformers.isEmpty) {
         _transformers[id] = transformers;
         return;

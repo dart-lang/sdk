@@ -108,7 +108,8 @@ class TransformerId {
 /// monitor the app and its dependencies for any updates. Otherwise the state of
 /// the app when the server is started will be maintained.
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
-    {Iterable<Transformer> builtInTransformers, bool watchForUpdates: true}) {
+    BarbackMode mode, {Iterable<Transformer> builtInTransformers,
+    bool watchForUpdates: true}) {
   var provider = new PubPackageProvider(graph);
   var barback = new Barback(provider);
 
@@ -140,7 +141,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
         })
       ];
 
-      loadAllTransformers(server, graph, builtInTransformers).then((_) {
+      loadAllTransformers(server, graph, mode, builtInTransformers).then((_) {
         if (!completer.isCompleted) completer.complete(server);
       }).catchError((error, stackTrace) {
         if (!completer.isCompleted) completer.completeError(error, stackTrace);

@@ -6,6 +6,8 @@ library pub.command.serve;
 
 import 'dart:async';
 
+import 'package:barback/barback.dart';
+
 import '../barback/dart_forwarding_transformer.dart';
 import '../barback/dart2js_transformer.dart';
 import '../barback/pub_package_provider.dart';
@@ -75,7 +77,8 @@ class ServeCommand extends PubCommand {
         ];
       }
 
-      return barback.createServer(hostname, port, graph,
+      // TODO(rnystrom): Allow specifying other modes.
+      return barback.createServer(hostname, port, graph, BarbackMode.DEBUG,
           builtInTransformers: builtInTransformers);
     }).then((server) {
       /// This completer is used to keep pub running (by not completing) and
