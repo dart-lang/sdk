@@ -425,7 +425,7 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
     ASSERT(function.CheckSourceFingerprint(fp));                               \
     return true;                                                               \
   }
-POLYMORPHC_TARGET_LIST(RECOGNIZE_FUNCTION)
+POLYMORPHIC_TARGET_LIST(RECOGNIZE_FUNCTION)
 #undef RECOGNIZE_FUNCTION
   return false;
 }

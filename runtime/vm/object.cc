@@ -8382,6 +8382,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST(CHECK_FINGERPRINTS);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
+  POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));

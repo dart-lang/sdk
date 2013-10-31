@@ -184,7 +184,7 @@ class Range;
   V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)                  \
 
 // A list of core functions that internally dispatch based on received id.
-#define POLYMORPHC_TARGET_LIST(V)                                              \
+#define POLYMORPHIC_TARGET_LIST(V)                                             \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
@@ -194,7 +194,7 @@ class Range;
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
-  V(_TypedList, _getUint32x4, ByteArrayBaseGetUint32x4, 1239681356)          \
+  V(_TypedList, _getUint32x4, ByteArrayBaseGetUint32x4, 1499091330)            \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
