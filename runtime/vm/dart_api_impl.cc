@@ -1080,8 +1080,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
                               class_name,
                               function_name,
                               kNumArguments,
-                              Object::empty_array(),
-                              Resolver::kIsQualified));
+                              Object::empty_array()));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
@@ -3105,8 +3104,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
         Resolver::ResolveStatic(cls,
                                 function_name,
                                 number_of_arguments,
-                                Object::empty_array(),
-                                Resolver::kIsQualified));
+                                Object::empty_array()));
     if (function.IsNull()) {
       const String& cls_name = String::Handle(isolate, cls.Name());
       return Api::NewError("%s: did not find static method '%s.%s'.",

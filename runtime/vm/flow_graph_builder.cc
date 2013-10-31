@@ -3723,8 +3723,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Resolver::ResolveStatic(cls,
                               Library::PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
-                              Object::null_array(),
-                              Resolver::kIsQualified));
+                              Object::null_array()));
   ASSERT(!func.IsNull());
   return new StaticCallInstr(token_pos,
                              func,

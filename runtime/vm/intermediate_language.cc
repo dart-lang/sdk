@@ -2721,8 +2721,7 @@ const Function& StringInterpolateInstr::CallFunction() const {
             cls,
             Library::PrivateCoreLibName(Symbols::Interpolate()),
             kNumberOfArguments,
-            kNoArgumentNames,
-            Resolver::kIsQualified);
+            kNoArgumentNames);
   }
   ASSERT(!function_.IsNull());
   return function_;

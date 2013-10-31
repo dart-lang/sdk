@@ -37,11 +37,6 @@ class Resolver : public AllStatic {
       const Class& receiver_class,
       const String& function_name);
 
-  enum StaticResolveType {
-    kIsQualified,
-    kNotQualified
-  };
-
   // Resolve specified dart static function. If library.IsNull, use
   // either application library or core library if no application library
   // exists. Passing negative num_arguments means that the function
@@ -52,20 +47,13 @@ class Resolver : public AllStatic {
                                     const String& cls_name,
                                     const String& function_name,
                                     intptr_t num_arguments,
-                                    const Array& argument_names,
-                                    StaticResolveType resolve_type);
-
-  // Resolve specified dart static function.
-  static RawFunction* ResolveStaticByName(const Class&  cls,
-                                          const String& function_name,
-                                          StaticResolveType resolve_type);
+                                    const Array& argument_names);
 
   // Resolve specified dart static function with specified arity.
   static RawFunction* ResolveStatic(const Class&  cls,
                                     const String& function_name,
                                     intptr_t num_arguments,
-                                    const Array& argument_names,
-                                    StaticResolveType resolve_type);
+                                    const Array& argument_names);
 };
 
 }  // namespace dart

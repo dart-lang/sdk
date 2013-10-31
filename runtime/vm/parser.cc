@@ -6478,8 +6478,7 @@ AstNode* Parser::MakeStaticCall(const String& cls_name,
       Resolver::ResolveStatic(cls,
                               func_name,
                               arguments->length(),
-                              arguments->names(),
-                              Resolver::kIsQualified));
+                              arguments->names()));
   ASSERT(!func.IsNull());
   return new StaticCallNode(arguments->token_pos(), func, arguments);
 }
@@ -8000,8 +7999,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       Resolver::ResolveStatic(cls,
                               func_name,
                               num_arguments,
-                              arguments->names(),
-                              Resolver::kIsQualified));
+                              arguments->names()));
   if (func.IsNull()) {
     // Check if there is a static field of the same name, it could be a closure
     // and so we try and invoke the closure.
@@ -8016,8 +8014,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       func = Resolver::ResolveStatic(cls,
                                      getter_name,
                                      kNumArguments,
-                                     Object::empty_array(),
-                                     Resolver::kIsQualified);
+                                     Object::empty_array());
       if (!func.IsNull()) {
         ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
         EnsureSavedCurrentContext();
@@ -8125,8 +8122,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
     func = Resolver::ResolveStatic(cls,
                                    getter_name,
                                    kNumArguments,
-                                   Object::empty_array(),
-                                   Resolver::kIsQualified);
+                                   Object::empty_array());
     if (func.IsNull()) {
       // We might be referring to an implicit closure, check to see if
       // there is a function of the same name.
@@ -8696,8 +8692,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
           Function::Handle(Resolver::ResolveStatic(field_owner,
                                                    getter_name,
                                                    kNumArguments,
-                                                   Object::empty_array(),
-                                                   Resolver::kIsQualified));
+                                                   Object::empty_array()));
       ASSERT(!func.IsNull());
       ASSERT(func.kind() == RawFunction::kImplicitStaticFinalGetter);
       Object& const_value = Object::Handle(
