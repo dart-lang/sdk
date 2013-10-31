@@ -27,8 +27,8 @@ DEFINE_NATIVE_ENTRY(Bool_fromEnvironment, 3) {
     if (Dart_IsString(result)) {
       const char *chars;
       Dart_StringToCString(result, &chars);
-      return (strcmp("true", chars) == 0)
-          ? Bool::True().raw() : Bool::False().raw();
+      if (strcmp("true", chars) == 0) return Bool::True().raw();
+      if (strcmp("false", chars) == 0) return Bool::False().raw();
     } else if (Dart_IsError(result)) {
       const Object& error =
           Object::Handle(isolate, Api::UnwrapHandle(result));

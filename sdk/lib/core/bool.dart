@@ -16,14 +16,10 @@ class bool {
    * Returns the boolean value of the environment declaration [name].
    *
    * The boolean value of the declaration is `true` if the declared value is
-   * the string `"true"`. Otherwise it is false.
+   * the string `"true"`, and `false` if the value is `"false"`.
    *
-   * If `name` is not declared, the result is instead [defaultValue].
-   *
-   * This constructor is equivalent to:
-   *
-   *     const String.fromEnvironment(name,
-   *                                  defaultValue: "$defaultValue") == "true"
+   * In all other cases, including when there is no declaration for `name`,
+   * the result is the [defaultValue].
    *
    * Example:
    *
