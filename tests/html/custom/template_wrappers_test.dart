@@ -32,7 +32,6 @@ void customElementsTakeRecords() {
 main() {
   useHtmlConfiguration();
 
-  var registeredTypes = false;
   setUp(loadPolyfills);
 
   test('element is upgraded once', () {
@@ -52,12 +51,30 @@ main() {
       expect(createdCount, 1);
     });
   });
+
+  test('old wrappers do not cause multiple upgrades', () {
+    createdCount = 0;
+    var d1 = document.querySelector('x-custom-two');
+    d1.attributes['foo'] = 'bar';
+    d1 = null;
+
+    document.register('x-custom-two', CustomElement);
+
+    expect(createdCount, 1);
+
+    forceGC();
+
+    return new Future.delayed(new Duration(milliseconds: 50)).then((_) {
+      var d = document.querySelector('x-custom-two');
+      expect(createdCount, 1);
+    });
+  });
 }
 
 
 void forceGC() {
   var N = 1000000;
-  var M = 1000;
+  var M = 100;
   for (var i = 0; i < M; ++i) {
     var l = new List(N);
   }
