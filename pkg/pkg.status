@@ -30,6 +30,9 @@ collection_helpers/test/equality_test/04: Fail # Issue 1533
 collection_helpers/test/equality_test/05: Fail # Issue 1533
 collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
 
+collection_helpers/test/algorithms_test: CompileTimeError # Issue 14654
+collection_helpers/test/wrapper_test: CompileTimeError # Issue 14654
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
