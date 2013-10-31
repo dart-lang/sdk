@@ -25,8 +25,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
-DECLARE_FLAG(bool, print_ast);
-DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -1168,16 +1166,6 @@ void FlowGraphCompiler::CompileGraph() {
       // Subtract index i (locals lie at lower addresses than EBP).
       __ movl(Address(EBP, (slot_base - i) * kWordSize), EAX);
     }
-  }
-
-  if (FLAG_print_scopes) {
-    // Print the function scope (again) after generating the prologue in order
-    // to see annotations such as allocation indices of locals.
-    if (FLAG_print_ast) {
-      // Second printing.
-      OS::Print("Annotated ");
-    }
-    AstPrinter::PrintFunctionScope(parsed_function());
   }
 
   ASSERT(!block_order().is_empty());

@@ -892,7 +892,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     const char* kEvalConst = "eval_const";
     const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(kEvalConst)),
-        RawFunction::kImplicitStaticFinalGetter,
+        RawFunction::kRegularFunction,
         true,  // static function.
         false,  // not const function.
         false,  // not abstract

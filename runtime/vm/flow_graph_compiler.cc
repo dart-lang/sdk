@@ -22,7 +22,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);

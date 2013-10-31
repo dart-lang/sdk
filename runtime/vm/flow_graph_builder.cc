@@ -27,6 +27,7 @@ namespace dart {
 DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
+DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
             "Print the IR flow graph when optimizing.");
@@ -3805,6 +3806,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(*parsed_function());
+  }
+  if (FLAG_print_scopes) {
+    AstPrinter::PrintFunctionScope(*parsed_function());
   }
   const Function& function = parsed_function()->function();
   TargetEntryInstr* normal_entry =

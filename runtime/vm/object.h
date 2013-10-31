@@ -1589,6 +1589,7 @@ class Function : public Object {
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kStaticInitializer:
         return false;
       default:
         UNREACHABLE();
@@ -1606,6 +1607,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kStaticInitializer:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -1809,6 +1811,11 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
+  // Returns true if this function represents an static initializer function.
+  bool IsStaticInitializerFunction() const {
+    return kind() == RawFunction::kStaticInitializer;
+  }
+
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
@@ -1866,6 +1873,13 @@ class Function : public Object {
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          intptr_t token_pos);
+
+  // Creates a new static initializer function which is invoked in the implicit
+  // static getter function.
+  static RawFunction* NewStaticInitializer(const String& field_name,
+                                           const AbstractType& result_type,
+                                           const Class& cls,
+                                           intptr_t token_pos);
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.

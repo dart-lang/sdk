@@ -261,6 +261,7 @@ class ObjectPointerVisitor;
   V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
+  V(InitPrefix, "init:")                                                       \
   V(PrivateGetterPrefix, "get:_")                                              \
   V(PrivateSetterPrefix, "set:_")                                              \
   V(_New, "_new")                                                              \

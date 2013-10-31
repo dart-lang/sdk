@@ -1777,6 +1777,7 @@ bool Debugger::IsDebuggable(const Function& func) {
   if ((fkind == RawFunction::kImplicitGetter) ||
       (fkind == RawFunction::kImplicitSetter) ||
       (fkind == RawFunction::kImplicitStaticFinalGetter) ||
+      (fkind == RawFunction::kStaticInitializer) ||
       (fkind == RawFunction::kMethodExtractor) ||
       (fkind == RawFunction::kNoSuchMethodDispatcher) ||
       (fkind == RawFunction::kInvokeFieldDispatcher)) {

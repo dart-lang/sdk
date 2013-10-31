@@ -781,6 +781,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kImplicitStaticFinalGetter:
       node_sequence = parser.ParseStaticFinalGetter(func);
       break;
+    case RawFunction::kStaticInitializer:
+      node_sequence = parser.ParseStaticInitializer(func);
+      break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
       break;
@@ -907,33 +910,17 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   const Field& field =
       Field::ZoneHandle(field_class.LookupStaticField(field_name));
 
-  if (!field.is_const() &&
-      (field.value() != Object::transition_sentinel().raw()) &&
-      (field.value() != Object::sentinel().raw())) {
-    // The field has already been initialized at compile time (this can
-    // happen, e.g., if we are recompiling for optimization).  There is no
-    // need to check for initialization and compile the potentially very
-    // large initialization code.  By skipping this code, the deoptimization
-    // ids will not line up with the original code, but this is safe because
-    // LoadStaticField does not deoptimize.
-    LoadStaticFieldNode* load_node = new LoadStaticFieldNode(ident_pos, field);
-    ReturnNode* return_node = new ReturnNode(ident_pos, load_node);
-    current_block_->statements->Add(return_node);
-    return CloseBlock();
-  }
-
-  // Static const fields must have an initializer.
+  // Static final fields must have an initializer.
   ExpectToken(Token::kASSIGN);
 
-  // We don't want to use ParseConstExpr() here because we don't want
-  // the constant folding code to create, compile and execute a code
-  // fragment to evaluate the expression. Instead, we just make sure
-  // the static const field initializer is a constant expression and
-  // leave the evaluation to the getter function.
   const intptr_t expr_pos = TokenPos();
-  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
-
   if (field.is_const()) {
+    // We don't want to use ParseConstExpr() here because we don't want
+    // the constant folding code to create, compile and execute a code
+    // fragment to evaluate the expression. Instead, we just make sure
+    // the static const field initializer is a constant expression and
+    // leave the evaluation to the getter function.
+    AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
       ErrorMsg(expr_pos, "initializer is not a valid compile-time constant");
@@ -995,7 +982,19 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
     // we leave the field value as 'transition_sentinel', which is wrong.
     // A second reference to the field later throws a circular dependency
     // exception. The field should instead be set to null after an exception.
-    initialize_field->Add(new StoreStaticFieldNode(ident_pos, field, expr));
+    const String& init_name =
+        String::Handle(Symbols::New(String::Handle(
+        String::Concat(Symbols::InitPrefix(), String::Handle(field.name())))));
+    const Function& init_function = Function::ZoneHandle(
+        field_class.LookupStaticFunction(init_name));
+    ASSERT(!init_function.IsNull());
+    ArgumentListNode* arguments = new ArgumentListNode(expr_pos);
+    StaticCallNode* init_call =
+        new StaticCallNode(expr_pos, init_function, arguments);
+
+    initialize_field->Add(new StoreStaticFieldNode(ident_pos,
+                                                   field,
+                                                   init_call));
     AstNode* uninitialized_check =
         new IfNode(ident_pos, compare_uninitialized, initialize_field, NULL);
     current_block_->statements->Add(uninitialized_check);
@@ -1006,6 +1005,25 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
                        new LoadStaticFieldNode(ident_pos, field));
     current_block_->statements->Add(return_node);
   }
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
+  TRACE_PARSER("ParseStaticInitializer");
+  ParamList params;
+  ASSERT(func.num_fixed_parameters() == 0);  // static.
+  ASSERT(!func.HasOptionalParameters());
+  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+
+  // Build local scope for function and populate with the formal parameters.
+  OpenFunctionBlock(func);
+  AddFormalParamsToScope(&params, current_block_->scope);
+
+  intptr_t expr_pos = func.token_pos();
+  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+  ReturnNode* return_node = new ReturnNode(expr_pos, expr);
+  current_block_->statements->Add(return_node);
   return CloseBlock();
 }
 
@@ -3253,6 +3271,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   Function& setter = Function::Handle();
   Field& class_field = Field::ZoneHandle();
   Instance& init_value = Instance::Handle();
+  intptr_t expr_pos = -1;
   while (true) {
     bool has_initializer = CurrentToken() == Token::kASSIGN;
     bool has_simple_literal = false;
@@ -3277,6 +3296,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
           (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
+      expr_pos = TokenPos();
       SkipExpr();
     } else {
       // Static const and static final fields must have an initializer.
@@ -3320,6 +3340,14 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->name_pos);
         getter.set_result_type(*field->type);
         members->AddFunction(getter);
+
+        // Create initializer function.
+        const Function& init_function = Function::ZoneHandle(
+            Function::NewStaticInitializer(*field->name,
+                                           *field->type,
+                                           current_class(),
+                                           expr_pos));
+        members->AddFunction(init_function);
       }
     }
 
@@ -4429,6 +4457,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
+      const intptr_t expr_pos = TokenPos();
       SkipExpr();
       field.set_value(field_value);
       if (!has_simple_literal) {
@@ -4444,6 +4473,14 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                name_pos);
         getter.set_result_type(type);
         top_level->functions.Add(getter);
+
+        // Create initializer function.
+        const Function& init_function = Function::ZoneHandle(
+            Function::NewStaticInitializer(var_name,
+                                           type,
+                                           current_class(),
+                                           expr_pos));
+        top_level->functions.Add(init_function);
       }
     } else if (is_final) {
       ErrorMsg(name_pos, "missing initializer for final or const variable");

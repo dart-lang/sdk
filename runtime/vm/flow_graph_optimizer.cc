@@ -4194,10 +4194,20 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 }
 
 
+// Load instructions handled by load elimination.
+static bool IsCandidateLoad(Instruction* instr) {
+  return instr->IsLoadField()
+      || instr->IsLoadIndexed()
+      || instr->IsLoadStaticField()
+      || instr->IsCurrentContext();
+}
+
+
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
                                 intptr_t loop_header_index,
                                 Instruction* instr) {
-  return (sets != NULL) &&
+  return IsCandidateLoad(instr) &&
+      (sets != NULL) &&
       instr->HasPlaceId() &&
       ((*sets)[loop_header_index] != NULL) &&
       (*sets)[loop_header_index]->Contains(instr->place_id());
@@ -6482,6 +6492,8 @@ void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   ASSERT(field.is_static());
   if (field.is_final()) {
     Instance& obj = Instance::Handle(field.value());
+    ASSERT(obj.raw() != Object::sentinel().raw());
+    ASSERT(obj.raw() != Object::transition_sentinel().raw());
     if (obj.IsSmi() || obj.IsOld()) {
       SetValue(instr, obj);
       return;

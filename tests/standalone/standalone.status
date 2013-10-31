@@ -9,6 +9,8 @@
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
+issue14236_test: Pass, Fail, Crash # Issue 14516.
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 

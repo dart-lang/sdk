@@ -24,8 +24,6 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
-DECLARE_FLAG(bool, print_ast);
-DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 
@@ -1160,16 +1158,6 @@ void FlowGraphCompiler::CompileGraph() {
       // Subtract index i (locals lie at lower addresses than FP).
       __ str(R0, Address(FP, (slot_base - i) * kWordSize));
     }
-  }
-
-  if (FLAG_print_scopes) {
-    // Print the function scope (again) after generating the prologue in order
-    // to see annotations such as allocation indices of locals.
-    if (FLAG_print_ast) {
-      // Second printing.
-      OS::Print("Annotated ");
-    }
-    AstPrinter::PrintFunctionScope(parsed_function());
   }
 
   VisitBlocks();
