@@ -532,8 +532,10 @@ function(hooks) {
     if (tag == "Document") {
       // IE calls both HTML and XML documents "Document", so we check for the
       // xmlVersion property, which is the empty string on HTML documents.
-      if (!!o.xmlVersion) return "Document";
-      return "HTMLDocument";
+      // Since both dart:html classes Document and HtmlDocument share the same
+      // type, we must patch the instances and not the prototype.
+      if (!!o.xmlVersion) return "!Document";
+      return "!HTMLDocument";
     }
     // Patches for types which report themselves as Objects.
     if (tag == "Object") {
