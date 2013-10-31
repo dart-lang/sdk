@@ -930,7 +930,8 @@ void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
                        for_value.value(),
                        node->type(),
                        node->dst_name())) {
-    checked_value = for_value.value()->definition();  // No check needed.
+    // Drop the value and 0 additional temporaries.
+    checked_value = new DropTempsInstr(0, for_value.value());
   } else {
     checked_value = BuildAssertAssignable(node->expr()->token_pos(),
                                           for_value.value(),
@@ -1301,12 +1302,17 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ValueGraphVisitor for_value(owner(), temp_index());
   node->left()->Visit(&for_value);
+  Append(for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
-  if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
-    Append(for_value);
-    Do(BuildAssertAssignable(
-        node->token_pos(), for_value.value(), type, dst_name));
+  if (CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
+    // Drop the value and 0 additional temporaries.
+    Do(new DropTempsInstr(0, for_value.value()));
+  } else {
+    Do(BuildAssertAssignable(node->token_pos(),
+                             for_value.value(),
+                             type,
+                             dst_name));
   }
 }
 
