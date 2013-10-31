@@ -174,7 +174,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   HInstructionStringifier(this.context, this.currentBlock, this.compiler);
 
-  visit(HInstruction node) => node.accept(this);
+  visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;

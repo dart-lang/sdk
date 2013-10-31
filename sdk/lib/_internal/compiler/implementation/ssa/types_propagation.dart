@@ -309,25 +309,26 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       TypeMask newMask = compiler.world.allFunctions.receiverType(selector);
       newMask = newMask.intersection(oldMask, compiler);
 
-      if (newMask != oldMask) {
-        HType newType = new HType.fromMask(newMask, compiler);
-        var next = instruction.next;
-        if (next is HTypeKnown && next.checkedInput == receiver) {
-          // We already have refined [receiver].
-          HType nextType = next.instructionType;
-          if (nextType != newType) {
-            next.knownType = next.instructionType = newType;
-            addDependentInstructionsToWorkList(next);
-          }
-        } else {
-          // Insert a refinement node after the call and update all
-          // users dominated by the call to use that node instead of
-          // [receiver].
-          HTypeKnown converted = new HTypeKnown(newType, receiver);
-          instruction.block.addBefore(instruction.next, converted);
-          receiver.replaceAllUsersDominatedBy(converted.next, converted);
-          addDependentInstructionsToWorkList(converted);
+      HType newType = new HType.fromMask(newMask, compiler);
+      var next = instruction.next;
+      if (next is HTypeKnown && next.checkedInput == receiver) {
+        // We already have refined [receiver]. We still update the
+        // type of the [HTypeKnown] instruction because it may have
+        // been refined with a correct type at the time, but
+        // incorrect now.
+        HType nextType = next.instructionType;
+        if (nextType != newType) {
+          next.knownType = next.instructionType = newType;
+          addDependentInstructionsToWorkList(next);
         }
+      } else if (newMask != oldMask) {
+        // Insert a refinement node after the call and update all
+        // users dominated by the call to use that node instead of
+        // [receiver].
+        HTypeKnown converted = new HTypeKnown(newType, receiver);
+        instruction.block.addBefore(instruction.next, converted);
+        receiver.replaceAllUsersDominatedBy(converted.next, converted);
+        addDependentInstructionsToWorkList(converted);
       }
     }
 
