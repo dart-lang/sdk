@@ -14,7 +14,7 @@ isolate3_negative_test: Skip  # Issue 12587.
 [ $analyzer ]
 isolate2_negative_test: Fail
 isolate_import_negative_test: Fail
-unresolved_ports_negative_test: Fail
+unresolved_ports_test: Pass
 mandel_isolate_test: Fail # issue 14452
 
 [ $compiler == dart2js && $jscl ]
