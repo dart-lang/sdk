@@ -63,18 +63,6 @@ testInvoke(mirrors) {
          throws);  // Wrong arity.
 }
 
-testInstanceFieldAccess(mirrors) {
-  var instance = new Class();
-  var instMirror = reflect(instance);
-
-  instMirror.setFieldAsync(#field, 44);
-  instMirror.getFieldAsync(#field).then(
-      expectAsync1((resultMirror) {
-        expect(resultMirror.reflectee, equals(44));
-        expect(instance.field, equals(44));
-      }));
-}
-
 /// In dart2js, lists, numbers, and other objects are treated special
 /// and their methods are invoked through a techique called interceptors.
 testIntercepted(mirrors) {
@@ -115,27 +103,6 @@ testFieldAccess(mirrors) {
   expect(libMirror.getField(#topLevelField).reflectee,
          equals([91]));
   expect(topLevelField, equals([91]));
-
-  libMirror.setFieldAsync(#topLevelField, 42);
-  future = libMirror.getFieldAsync(#topLevelField);
-  future.then(expectAsync1((resultMirror) {
-    expect(resultMirror.reflectee, equals(42));
-    expect(topLevelField, equals(42));
-  }));
-
-  classMirror.setFieldAsync(#staticField, 43);
-  future = classMirror.getFieldAsync(#staticField);
-  future.then(expectAsync1((resultMirror) {
-    expect(resultMirror.reflectee, equals(43));
-    expect(Class.staticField, equals(43));
-  }));
-
-  instMirror.setFieldAsync(#field, 44);
-  future = instMirror.getFieldAsync(#field);
-  future.then(expectAsync1((resultMirror) {
-    expect(resultMirror.reflectee, equals(44));
-    expect(instance.field, equals(44));
-  }));
 }
 
 testClosureMirrors(mirrors) {
@@ -150,11 +117,6 @@ testClosureMirrors(mirrors) {
   expect(funcMirror.parameters.length, equals(3));
 
   expect(mirror.apply([7, 8, 9]).reflectee, equals(24));
-
-  var future = mirror.applyAsync([2, 4, 8]);
-  future.then(expectAsync1((resultMirror) {
-    expect(resultMirror.reflectee, equals(14));
-  }));
 }
 
 testInvokeConstructor(mirrors) {
@@ -189,21 +151,6 @@ testInvokeConstructor(mirrors) {
                                            [10]);
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(30));
-
-
-  var future = classMirror.newInstanceAsync(const Symbol(''), []);
-  future.then(expectAsync1((resultMirror) {
-    var instance = resultMirror.reflectee;
-    expect(instance is Class, equals(true));
-    expect(instance.field, equals("default value"));
-  }));
-
-  future = classMirror.newInstanceAsync(#withInitialValue, [45]);
-  future.then(expectAsync1((resultMirror) {
-    var instance = resultMirror.reflectee;
-    expect(instance is Class, equals(true));
-    expect(instance.field, equals(45));
-  }));
 }
 
 testReflectClass(mirrors) {
@@ -265,7 +212,6 @@ testLibraryUri(var value, bool check(Uri)) {
 main() {
   var mirrors = currentMirrorSystem();
   test("Test reflective method invocation", () { testInvoke(mirrors); });
-  test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
   test('Test intercepted objects', () { testIntercepted(mirrors); });
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });

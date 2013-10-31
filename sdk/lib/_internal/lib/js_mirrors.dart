@@ -675,15 +675,6 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
         "Can't instantiate mixin application '${n(qualifiedName)}'");
   }
 
-  Future<InstanceMirror> newInstanceAsync(
-      Symbol constructorName,
-      List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
-    return new Future<InstanceMirror>(
-        () => this.newInstance(
-            constructorName, positionalArguments, namedArguments));
-  }
-
   bool get isOriginalDeclaration => true;
 
   ClassMirror get originalDeclaration => this;
@@ -697,20 +688,6 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
-  Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object value) {
-    return new Future<InstanceMirror>(() => this.setField(fieldName, value));
-  }
-
-  Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
-    return new Future<InstanceMirror>(() => this.getField(fieldName));
-  }
-
-  Future<InstanceMirror> invokeAsync(Symbol memberName,
-                                     List positionalArguments,
-                                     [Map<Symbol, dynamic> namedArguments]) {
-    return new Future<InstanceMirror>(
-        () => this.invoke(memberName, positionalArguments, namedArguments));
-  }
 }
 
 class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
@@ -721,14 +698,6 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   bool get hasReflectee => true;
 
   ClassMirror get type => reflectType(reflectee.runtimeType);
-
-  Future<InstanceMirror> invokeAsync(Symbol memberName,
-                                     List<Object> positionalArguments,
-                                     [Map<Symbol, dynamic> namedArguments]) {
-    return
-        new Future<InstanceMirror>(
-            () => invoke(memberName, positionalArguments, namedArguments));
-  }
 
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
@@ -1004,15 +973,6 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
                               namedArguments);
   }
 
-  Future<InstanceMirror> newInstanceAsync(
-      Symbol constructorName,
-      List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
-    return _class.newInstanceAsync(constructorName,
-                                   positionalArguments,
-                                   namedArguments);
-  }
-
   JsLibraryMirror get owner => _class.owner;
 
   List<InstanceMirror> get metadata => _class.metadata;
@@ -1031,17 +991,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
 
   List<ClassMirror> get superinterfaces => _class.superinterfaces;
 
-  Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
-    return _class.getFieldAsync(fieldName);
-  }
-
   bool get hasReflectedType => _class.hasReflectedType;
-
-  Future<InstanceMirror> invokeAsync(Symbol memberName,
-                                     List positionalArguments,
-                                     [Map<Symbol, dynamic> namedArguments]) {
-    return _class.invokeAsync(memberName, positionalArguments, namedArguments);
-  }
 
   bool get isPrivate => _class.isPrivate;
 
@@ -1054,10 +1004,6 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
   Symbol get qualifiedName => _class.qualifiedName;
 
   Type get reflectedType => _class.reflectedType;
-
-  Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object value) {
-    return _class.setFieldAsync(fieldName, value);
-  }
 
   Symbol get simpleName => _class.simpleName;
 }
@@ -1311,18 +1257,6 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       JsCache.update(_jsConstructorCache, n(constructorName), mirror);
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
-  }
-
-  Future<InstanceMirror> newInstanceAsync(
-      Symbol constructorName,
-      List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
-    }
-    return new Future<InstanceMirror>(
-        () => newInstance(
-            constructorName, positionalArguments, namedArguments));
   }
 
   JsLibraryMirror get owner {
@@ -1581,12 +1515,6 @@ function(reflectee) {
                        [Map<Symbol, dynamic> namedArguments]) {
     return reflect(
         Function.apply(reflectee, positionalArguments, namedArguments));
-  }
-
-  Future<InstanceMirror> applyAsync(List positionalArguments,
-                                    [Map<Symbol, dynamic> namedArguments]) {
-    return new Future<InstanceMirror>(
-        () => apply(positionalArguments, namedArguments));
   }
 
   String toString() => "ClosureMirror on '${Error.safeToString(reflectee)}'";

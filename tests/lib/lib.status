@@ -283,8 +283,6 @@ mirrors/initializing_formals_test/03: StaticWarning, OK # API being removed.
 mirrors/initializing_formals_test/none: StaticWarning, OK # API being removed.
 mirrors/intercepted_class_test: StaticWarning, OK # API being removed.
 mirrors/intercepted_object_test: StaticWarning, OK # API being removed.
-mirrors/invoke_closurization_test: StaticWarning, OK # API being removed.
-mirrors/invoke_test: StaticWarning, OK # API being removed.
 mirrors/lazy_static_test: StaticWarning, OK # API being removed.
 mirrors/libraries_test: StaticWarning, OK # API being removed.
 mirrors/library_metadata_test: StaticWarning, OK # API being removed.

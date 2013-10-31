@@ -121,40 +121,6 @@ String _makeSignatureString(TypeMirror returnType,
 List _metadata(reflectee)
   native 'DeclarationMirror_metadata';
 
-// This will verify the argument types, unwrap them, and ensure we have a fixed
-// array.
-List _unwrapAsyncPositionals(wrappedArgs) {
-  List unwrappedArgs = new List(wrappedArgs.length);
-  for(int i = 0; i < wrappedArgs.length; i++){
-    var wrappedArg = wrappedArgs[i];
-    if(_isSimpleValue(wrappedArg)) {
-      unwrappedArgs[i] = wrappedArg;
-    } else if(wrappedArg is InstanceMirror) {
-      unwrappedArgs[i] = wrappedArg._reflectee;
-    } else {
-      throw "positional argument $i ($wrappedArg) was "
-            "not a simple value or InstanceMirror";
-    }
-  }
-  return unwrappedArgs;
-}
-
-Map _unwrapAsyncNamed(wrappedArgs) {
-  if (wrappedArgs==null) return null;
-  Map unwrappedArgs = new Map();
-  wrappedArgs.forEach((name, wrappedArg){
-    if(_isSimpleValue(wrappedArg)) {
-      unwrappedArgs[name] = wrappedArg;
-    } else if(wrappedArg is InstanceMirror) {
-      unwrappedArgs[name] = wrappedArg._reflectee;
-    } else {
-      throw "named argument ${_n(name)} ($wrappedArg) was "
-            "not a simple value or InstanceMirror";
-    }
-  });
-  return unwrappedArgs;
-}
-
 class _LocalMirrorSystemImpl extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
   _LocalMirrorSystemImpl(List<LibraryMirror> libraries, this.isolate)
@@ -183,11 +149,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
 
-abstract class _LocalMirrorImpl implements Mirror {
-  // Local mirrors always return the same MirrorSystem.  This field
-  // is more interesting once we implement remote mirrors.
-  MirrorSystem get mirrors => _Mirrors.currentMirrorSystem();
-}
+abstract class _LocalMirrorImpl implements Mirror {}
 
 class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
     implements IsolateMirror {
@@ -253,47 +215,6 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
                        _n(memberName),
                        value);
     return reflect(value);
-  }
-
-  Future<InstanceMirror> invokeAsync(Symbol memberName,
-                                     List positionalArguments,
-                                     [Map<Symbol, dynamic> namedArguments]) {
-    return new Future(() {
-      return this.invoke(memberName,
-                         _unwrapAsyncPositionals(positionalArguments),
-                         _unwrapAsyncNamed(namedArguments));
-    });
-  }
-
-  Future<InstanceMirror> getFieldAsync(Symbol memberName) {
-   try {
-      var result = this._invokeGetter(_reflectee,
-                                      _n(memberName));
-      return new Future.value(reflect(result));
-    } catch(e) {
-      return new Future.error(e);
-    }
-  }
-
-  Future<InstanceMirror> setFieldAsync(Symbol memberName, Object value) {
-    try {
-      var unwrappedValue;
-      if(_isSimpleValue(value)) {
-        unwrappedValue = value;
-      } else if(value is InstanceMirror) {
-        unwrappedValue = value._reflectee;
-      } else {
-        throw "setter argument ($value) must be"
-              "a simple value or InstanceMirror";
-      }
-
-      this._invokeSetter(_reflectee,
-                         _n(memberName),
-                         unwrappedValue);
-      return new Future.value(reflect(unwrappedValue));
-    } catch(e) {
-      return new Future.error(e);
-    }
   }
 
   static _validateArgument(int i, Object arg)
@@ -553,11 +474,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   SourceLocation get location {
     throw new UnimplementedError('ClassMirror.location is not implemented');
   }
-
-  // TODO(rmacnak): Remove these left-overs from the days of separate interfaces
-  // once we send out a breaking change.
-  bool get isClass => true;
-  ClassMirror get defaultFactory => null;
 
   ClassMirror _trueSuperclassField;
   ClassMirror get _trueSuperclass {
@@ -1530,21 +1446,6 @@ class _Mirrors {
       _currentMirrorSystem = makeLocalMirrorSystem();
     }
     return _currentMirrorSystem;
-  }
-
-  static Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-    if (isLocalPort(port)) {
-      // Make a local mirror system.
-      try {
-        return new Future<MirrorSystem>.value(currentMirrorSystem());
-      } catch (exception) {
-        return new Future<MirrorSystem>.error(exception);
-      }
-    } else {
-      // Make a remote mirror system
-      throw new UnimplementedError(
-          'Remote mirror support is not implemented');
-    }
   }
 
   // Creates a new local mirror for some Object.
