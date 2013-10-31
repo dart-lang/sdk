@@ -191,8 +191,8 @@ DEFINE_NATIVE_ENTRY(Integer_equalToInteger, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+static RawInteger* ParseInteger(const String& value) {
+  // Used by both Integer_parse and Integer_fromEnvironment.
   if (value.IsOneByteString()) {
     // Quick conversion for unpadded integers in strings.
     const intptr_t len = value.Length();
@@ -225,7 +225,13 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
     return Integer::New(temp);
   }
 
-  return Object::null();
+  return Integer::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
+  return ParseInteger(value);
 }
 
 
@@ -235,47 +241,23 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
   // Call the embedder to supply us with the environment.
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != NULL) {
-    Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
-    if (Dart_IsError(result)) {
+    Dart_Handle response = callback(Api::NewHandle(isolate, name.raw()));
+    if (Dart_IsString(response)) {
+      const String& value = String::Cast(
+          Object::Handle(isolate, Api::UnwrapHandle(response)));
+      const Integer& result = Integer::Handle(ParseInteger(value));
+      if (!result.IsNull()) {
+        if (result.IsSmi()) return result.raw();
+        return Integer::NewCanonical(String::Handle(
+            String::New(result.ToCString())));
+      }
+    } else if (Dart_IsError(response)) {
       const Object& error =
-          Object::Handle(isolate, Api::UnwrapHandle(result));
+          Object::Handle(isolate, Api::UnwrapHandle(response));
       Exceptions::ThrowArgumentError(
           String::Handle(
               String::New(Error::Cast(error).ToErrorCString())));
-    } else if (Dart_IsString(result)) {
-      uint8_t* digits;
-      intptr_t digits_len;
-      Dart_StringToUTF8(result, &digits, &digits_len);
-      if (digits_len > 0) {
-        // Check for valid integer literal before constructing integer object.
-        // Skip leading minus if present.
-        if (digits[0] == '-') {
-          digits++;
-          digits_len--;
-        }
-        // Check remaining string for decimal or hex-decimal literal.
-        bool is_number = true;
-        if (digits_len > 2 &&
-            digits[0] == '0' &&
-            (digits[1] == 'x' || digits[1] == 'X')) {
-          for (int i = 2; i < digits_len && is_number; i++) {
-            is_number = ('0' <= digits[i] && digits[i] <= '9') ||
-                        ('A' <= digits[i] && digits[i] <= 'F') ||
-                        ('a' <= digits[i] && digits[i] <= 'f');
-          }
-        } else {
-          for (int i = 0; i < digits_len && is_number; i++) {
-            is_number = '0' <= digits[i] && digits[i] <= '9';
-          }
-        }
-        if (digits_len > 0 && is_number) {
-          const Object& value =
-              Object::Handle(isolate, Api::UnwrapHandle(result));
-          ASSERT(value.IsString());
-          return Integer::NewCanonical(String::Cast(value));
-        }
-      }
-    } else if (!Dart_IsNull(result)) {
+    } else  if (!Dart_IsNull(response)) {
       Exceptions::ThrowArgumentError(
           String::Handle(String::New("Illegal environment value")));
     }

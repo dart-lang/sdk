@@ -105,7 +105,7 @@ patch class int {
 
   patch factory int.fromEnvironment(String name, {int defaultValue}) {
     throw new UnsupportedError(
-        'int.fromEnvironement can only be used as a const constructor');
+        'int.fromEnvironment can only be used as a const constructor');
   }
 }
 
@@ -227,14 +227,14 @@ patch class String {
 
   patch factory String.fromEnvironment(String name, {String defaultValue}) {
     throw new UnsupportedError(
-        'String.fromEnvironement can only be used as a const constructor');
+        'String.fromEnvironment can only be used as a const constructor');
   }
 }
 
 patch class bool {
   patch factory bool.fromEnvironment(String name, {bool defaultValue: false}) {
     throw new UnsupportedError(
-        'bool.fromEnvironement can only be used as a const constructor');
+        'bool.fromEnvironment can only be used as a const constructor');
   }
 }
 

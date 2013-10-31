@@ -22,16 +22,16 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != NULL) {
     Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
-    if (Dart_IsError(result)) {
+    if (Dart_IsString(result)) {
+      const Object& value =
+          Object::Handle(isolate, Api::UnwrapHandle(result));
+      return Symbols::New(String::Cast(value));
+    } else if (Dart_IsError(result)) {
       const Object& error =
           Object::Handle(isolate, Api::UnwrapHandle(result));
       Exceptions::ThrowArgumentError(
           String::Handle(
               String::New(Error::Cast(error).ToErrorCString())));
-    } else if (Dart_IsString(result)) {
-      const Object& value =
-          Object::Handle(isolate, Api::UnwrapHandle(result));
-      return Symbols::New(String::Cast(value));
     } else if (!Dart_IsNull(result)) {
       Exceptions::ThrowArgumentError(
           String::Handle(String::New("Illegal environment value")));

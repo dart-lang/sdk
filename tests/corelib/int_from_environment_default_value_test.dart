@@ -6,5 +6,6 @@ import "package:expect/expect.dart";
 
 main() {
   Expect.isNull(const int.fromEnvironment('NOT_FOUND'));
-  Expect.equals(12345, const int.fromEnvironment('NOT_FOUND', defaultValue: 12345));
+  Expect.equals(12345, const int.fromEnvironment('NOT_FOUND',
+                                                 defaultValue: 12345));
 }
