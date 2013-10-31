@@ -11,10 +11,10 @@ import 'utils.dart';
 
 main() {
   initConfig();
-  test("fromString() uses canonical instances for DEBUG and RELEASE", () {
+  test("constructor uses canonical instances for DEBUG and RELEASE", () {
     expect(identical(BarbackMode.DEBUG,
-        new BarbackMode.fromString(BarbackMode.DEBUG.name)), isTrue);
+        new BarbackMode(BarbackMode.DEBUG.name)), isTrue);
     expect(identical(BarbackMode.RELEASE,
-        new BarbackMode.fromString(BarbackMode.RELEASE.name)), isTrue);
+        new BarbackMode(BarbackMode.RELEASE.name)), isTrue);
   });
 }
