@@ -5,6 +5,7 @@
 library pub.package_graph;
 
 import 'entrypoint.dart';
+import 'lock_file.dart';
 import 'package.dart';
 
 /// A holistic view of the entire transitive dependency graph for an entrypoint.
