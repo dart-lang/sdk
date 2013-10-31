@@ -161,10 +161,6 @@ prefix9_test: fail # test issue 14289
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
 
-# test issue 14406, setter for final field was removed from spec
-implicit_setter_test/01: fail
-implicit_setter_test/02: fail
-
 # test issue 14410, "typedef C = " is now really illegal syntax
 mixin_illegal_syntax_test/none: fail
 

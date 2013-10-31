@@ -22,7 +22,6 @@ closure_in_initializer_test: Fail # Issue 6422
 lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
-implicit_setter_test: Fail # Issue 13917
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

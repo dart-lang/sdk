@@ -174,10 +174,6 @@ type_promotion_more_specific_test/09: Fail
 type_promotion_more_specific_test/10: Fail
 type_promotion_more_specific_test/11: Fail
 
-# test issue 14406, setter for final field was removed from spec
-implicit_setter_test/01: fail
-implicit_setter_test/02: fail
-
 # test issue 14410, "typedef C = " is now really illegal syntax
 mixin_illegal_syntax_test/none: fail
 
