@@ -1668,7 +1668,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 }
 
 
-// Arg0: Onebyte String
+// Arg0: OneByteString (receiver)
 // Arg1: Start index as Smi.
 // Arg2: End index as Smi.
 // The indexes must be valid.
@@ -1677,7 +1677,12 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
   Label fall_through, ok;
+  __ movl(EAX, Address(ESP, + kStartIndexOffset));
   __ movl(EDI, Address(ESP, + kEndIndexOffset));
+  __ orl(EAX, EDI);
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through);  // 'start', 'end' not Smi.
+
   __ subl(EDI, Address(ESP, + kStartIndexOffset));
   TryAllocateOnebyteString(assembler, &ok, &fall_through, EDI);
   __ Bind(&ok);
