@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Skip these tests until XXX.fromEnvironment in dart2js lands.
 [ $compiler == dart2dart]
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
@@ -42,6 +41,21 @@ string_from_environment3_test/01: Fail
 string_from_environment3_test/02: Fail
 string_from_environment3_test/03: Fail
 string_from_environment3_test/04: Fail
+
+# Skip these tests until we wipe the compilation cache of bots.
+[ $browser ]
+bool_from_environment2_test: Skip
+bool_from_environment_default_value_test: Skip
+bool_from_environment_test: Skip
+int_from_environment2_test: Skip
+int_from_environment3_test: Skip
+int_from_environment_default_value_test: Skip
+int_from_environment_test: Skip
+string_from_environment2_test: Skip
+string_from_environment3_test: Skip
+string_from_environment_default_value: Skip
+string_from_environment_test: Skip
+
 
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
