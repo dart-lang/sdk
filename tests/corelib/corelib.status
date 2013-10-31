@@ -16,7 +16,7 @@ string_from_environment3_test: Skip
 string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip
