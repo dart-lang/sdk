@@ -44,7 +44,6 @@ lib/_internal/pub/lib/src/io: CompileTimeError
 lib/_internal/pub/lib/src/lock_file: CompileTimeError
 lib/_internal/pub/lib/src/oauth2: CompileTimeError
 lib/_internal/pub/lib/src/package: CompileTimeError
-lib/_internal/pub/lib/src/package_graph: CompileTimeError
 lib/_internal/pub/lib/src/pubspec: CompileTimeError
 lib/_internal/pub/lib/src/safe_http_server: CompileTimeError
 lib/_internal/pub/lib/src/sdk: CompileTimeError
