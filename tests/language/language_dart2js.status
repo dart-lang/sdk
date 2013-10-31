@@ -70,6 +70,7 @@ named_parameters_type_test/03: MissingRuntimeError, OK
 positional_parameters_type_test/01: MissingRuntimeError, OK
 positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
+substring_test/01: RuntimeError # Issue 14687
 
 [ $compiler == dart2js && $minified ]
 f_bounded_quantification4_test: Fail # Issue 12605.
@@ -124,7 +125,6 @@ mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
-substring_test: RuntimeError, Pass # Issue 14687
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
