@@ -36,7 +36,8 @@ main() {
                                    diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
-                                   ['--analyze-only']);
+                                   ['--analyze-only'],
+                                   {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.isTrue(compiler.compilationFailed);
     Expect.equals(5, errorCount);
