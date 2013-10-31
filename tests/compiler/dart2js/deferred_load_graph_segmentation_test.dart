@@ -14,7 +14,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as dart2js;
 
 void main() {
-  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri script = currentDirectory.resolveUri(platformScript);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

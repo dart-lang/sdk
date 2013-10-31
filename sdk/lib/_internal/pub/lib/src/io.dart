@@ -381,7 +381,8 @@ void createPackageSymlink(String name, String target, String symlink,
 
 /// Whether pub is running from within the Dart SDK, as opposed to from the Dart
 /// source repository.
-bool get runningFromSdk => path.extension(Platform.script) == '.snapshot';
+bool get runningFromSdk =>
+    path.extension(Platform.script.toFilePath()) == '.snapshot';
 
 /// Resolves [target] relative to the path to pub's `resource` directory.
 String resourcePath(String target) {

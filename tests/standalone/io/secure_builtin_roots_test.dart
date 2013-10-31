@@ -24,7 +24,7 @@ void InitializeSSL({bool useDatabase, bool useBuiltinRoots}) {
   // should signal an error.  Even when an external database is loaded,
   // they should not be loaded.
   if (useDatabase) {
-    var certificateDatabase = join(dirname(Platform.script), 'pkcert');
+    var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
     SecureSocket.initialize(database: certificateDatabase,
                             password: 'dartdart',
                             useBuiltinRoots: useBuiltinRoots);
@@ -66,7 +66,7 @@ void runAllTestsInChildProcesses() {
   Future runChild(List<String> scriptArguments) {
     return Process.run(Platform.executable,
                        []..addAll(Platform.executableArguments)
-                         ..add(Platform.script)
+                         ..add(Platform.script.toFilePath())
                          ..addAll(scriptArguments))
     .then((ProcessResult result) {
       if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {

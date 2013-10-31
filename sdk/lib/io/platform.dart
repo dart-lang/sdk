@@ -80,14 +80,14 @@ class Platform {
   static String get executable => _Platform.executable;
 
   /**
-   * Returns the URI (in String form) of the script being run in this
+   * Returns the URI of the script being run in this
    * isolate. If the URI is relative it is relative to the file URI of
    * the working directory of the VM when it was started.
    *
    * If the executable environment does not support [script] an empty
-   * string is returned.
+   * URI is returned.
    */
-  static String get script => _nativeScript;
+  static Uri get script => _Platform.script;
 
   /**
    * Returns the flags passed to the executable used to run the script in this

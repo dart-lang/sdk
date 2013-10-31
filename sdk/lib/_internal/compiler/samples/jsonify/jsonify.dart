@@ -41,7 +41,7 @@ main(List<String> arguments) {
   output = new File(arguments.first).openSync(mode: FileMode.WRITE);
 
   Uri myLocation =
-      handler.provider.cwd.resolve(nativeToUriPath(Platform.script));
+      handler.provider.cwd.resolveUri(Platform.script);
 
   sdkRoot = myLocation.resolve(SDK_ROOT).resolve('../');
 
