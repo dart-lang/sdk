@@ -19,8 +19,8 @@ class D extends C {
 }
 
 main() {
-  Object oc = new C();
-  Object od = new D();
+  C oc = new C();
+  D od = new D();
 
   (oc as dynamic).bar;  /// 01: runtime error
 
