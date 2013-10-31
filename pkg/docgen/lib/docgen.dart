@@ -249,11 +249,20 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // Finds the root of SDK library based off the location of docgen.
-  var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
-  var sdkRoot = path.relative('../../../sdk', from: scriptDir);
-  sdkRoot = path.normalize(path.absolute(sdkRoot));
+
+  var root = findRootDirectory();
+  var sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
   logger.info('SDK Root: ${sdkRoot}');
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
+}
+
+String findRootDirectory() {
+  var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
+  var root = scriptDir;
+  while(path.basename(root) != 'dart') {
+    root = path.dirname(root);
+  }
+  return root;
 }
 
 /**
@@ -480,9 +489,8 @@ void _mdnComment(Indexable item) {
   //Check if MDN is loaded.
   if (_mdn == null) {
     // Reading in MDN related json file.
-    var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
-    var mdnPath = path.relative('../../../utils/apidoc/mdn/database.json',
-        from: scriptDir);
+    var root = findRootDirectory();
+    var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
     _mdn = JSON.decode(new File(mdnPath).readAsStringSync());
   }
   if (item.comment.isNotEmpty) return;
