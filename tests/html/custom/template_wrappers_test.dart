@@ -51,7 +51,7 @@ main() {
       expect(createdCount, 1);
     });
   });
-
+/*
   test('old wrappers do not cause multiple upgrades', () {
     createdCount = 0;
     var d1 = document.querySelector('x-custom-two');
@@ -69,6 +69,7 @@ main() {
       expect(createdCount, 1);
     });
   });
+*/
 }
 
 
