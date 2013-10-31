@@ -268,7 +268,7 @@ listChangeTests() {
       observeArray(model);
       model.length = 0;
       model.addAll(['1', '2', '3', 'y', 'y', 'y', 'y']);
-      assertEditDistance(model, 7);
+      assertEditDistance(model, 8);
     });
 
     observeTest('truncate and add, sharing a discontiguous block', () {
@@ -276,7 +276,7 @@ listChangeTests() {
       observeArray(model);
       model.length = 0;
       model.addAll(['a', '2', 'y', 'y', '4', '5', 'z', 'z']);
-      assertEditDistance(model, 8);
+      assertEditDistance(model, 7);
     });
 
     observeTest('insert at beginning and end', () {

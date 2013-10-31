@@ -82,7 +82,7 @@ main() {
   });
 
   group('observe index', () {
-    List<ChangeRecord> changes;
+    List<ListChangeRecord> changes;
 
     setUp(() {
       list = toObservable([1, 2, 3]);
@@ -165,7 +165,7 @@ main() {
 
   group('change records', () {
 
-    List<PropertyChangeRecord> propRecords;
+    List<ChangeRecord> propRecords;
     List<ListChangeRecord> listRecords;
 
     setUp(() {
