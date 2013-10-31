@@ -23,6 +23,7 @@ method_override8_test/03: Fail # Issue 11496
 
 built_in_identifier_test/none: Fail # Issue 13023
 
+metadata_syntax_test/04: MissingCompileTimeError # Issue 14653
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

@@ -16,10 +16,27 @@ class Bar {
 
   @Bar()
   @List<String> /// 03: compile-time error
-  final x = '';
+  final x = 'x';
+
+  @unknown /// 04: compile-time error
+  final y = 'y';
+
+  @Bar /// 05: compile-time error
+  final z = 'z';
+
+  @1234 /// 06: compile-time error
+  final w = 'w';
 }
 
 main() {
-  Expect.equals('', new Bar().x);
-  Expect.equals('', const Bar().x);
+  Expect.equals('x', new Bar().x);
+  Expect.equals('x', const Bar().x);
+  Expect.equals('y', new Bar().y);
+  Expect.equals('y', const Bar().y);
+  Expect.equals('z', new Bar().z);
+  Expect.equals('z', const Bar().z);
+  Expect.equals('z', new Bar().z);
+  Expect.equals('z', const Bar().z);
+  Expect.equals('w', new Bar().w);
+  Expect.equals('w', const Bar().w);
 }
