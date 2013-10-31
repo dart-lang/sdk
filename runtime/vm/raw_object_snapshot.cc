@@ -2654,7 +2654,14 @@ RawMirrorReference* MirrorReference::ReadFrom(SnapshotReader* reader,
 void RawMirrorReference::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind) {
-  UNREACHABLE();
+  if (kind == Snapshot::kMessage) {
+    // We do not allow objects with native fields in an isolate message.
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (object is a MirrorReference)");
+  } else {
+    UNREACHABLE();
+  }
 }
 
 }  // namespace dart
