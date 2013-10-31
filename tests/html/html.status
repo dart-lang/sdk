@@ -9,6 +9,7 @@ dromaeo_smoke_test: Fail, Pass # Issue 14521
 
 [ $compiler == dart2js && $browser ]
 element_offset_test/offset: Pass, Fail # Issue 13296
+custom/template_wrappers_test: Pass, Fail # Test is for Dartium GC issues
 
 [ $compiler == dart2js && $runtime != drt && $browser ]
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
@@ -318,6 +319,7 @@ fileapi_test: Skip # Timeout.
 form_data_test: Fail # Issue: 7413
 htmlelement_test: Fail
 isolates_test: Skip # Timeout.
+js_interop_3_test: Skip # Timeout.
 js_interop_4_test: Skip # Timeout.
 keyboard_event_test: Fail # Issue: 7413
 serialized_script_value_test: Fail
@@ -387,6 +389,8 @@ request_animation_frame_test: Skip # Async test hangs.
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 event_customevent_test: Fail       # Test cannot run under CSP restrictions.
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
+js_interop_2_test: Fail, OK        # Test cannot run under CSP restrictions.
+js_interop_3_test: Skip            # Test cannot run under CSP restrictions (times out).
 js_test: Skip                      # Test cannot run under CSP restrictions (times out).
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 
