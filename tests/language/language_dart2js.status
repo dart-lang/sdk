@@ -124,6 +124,7 @@ mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
+substring_test: RuntimeError, Pass # Issue 14687
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
