@@ -94,6 +94,7 @@ namespace dart {
   V(Float32Array)                                                              \
   V(Float64Array)                                                              \
   V(Float32x4Array)                                                            \
+  V(Uint32x4Array)                                                             \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
@@ -1647,9 +1648,10 @@ inline bool RawObject::IsTypedDataClassId(intptr_t index) {
          kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
          kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
          kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
-         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 12);
+         kTypedDataUint32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
+         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 13);
   return (index >= kTypedDataInt8ArrayCid &&
-          index <= kTypedDataFloat32x4ArrayCid);
+          index <= kTypedDataUint32x4ArrayCid);
 }
 
 
@@ -1666,8 +1668,9 @@ inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
          kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
          kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
          kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
-         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 12 &&
-         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 13);
+         kTypedDataUint32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
+         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 13 &&
+         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 14);
   return (index >= kTypedDataInt8ArrayViewCid &&
           index <= kByteDataViewCid);
 }
@@ -1697,9 +1700,11 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
           kExternalTypedDataInt8ArrayCid + 10) &&
          (kExternalTypedDataFloat32x4ArrayCid ==
           kExternalTypedDataInt8ArrayCid + 11) &&
-         (kNullCid == kExternalTypedDataInt8ArrayCid + 12));
+         (kExternalTypedDataUint32x4ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 12) &&
+         (kNullCid == kExternalTypedDataInt8ArrayCid + 13));
   return (index >= kExternalTypedDataInt8ArrayCid &&
-          index <= kExternalTypedDataFloat32x4ArrayCid);
+          index <= kExternalTypedDataUint32x4ArrayCid);
 }
 
 
@@ -1711,9 +1716,9 @@ inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 12);
-  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 13);
-  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 12);
+  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 13);
+  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 14);
+  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 13);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 

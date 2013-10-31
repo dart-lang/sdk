@@ -1050,6 +1050,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
+    case kTypedDataUint32x4ArrayCid:
+      return CompileType::FromCid(kUint32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1101,6 +1103,8 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1124,7 +1128,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
                         ? Location::WritableRegister()
                         : Location::RequiresRegister());
   }
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1156,7 +1162,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
-      (representation() == kUnboxedFloat32x4)) {
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     XmmRegister result = locs()->out().fpu_reg();
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
@@ -1178,6 +1185,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataFloat64ArrayCid:
         __ movsd(result, element_address);
         break;
+      case kTypedDataUint32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         __ movups(result, element_address);
         break;
@@ -1264,6 +1272,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1324,6 +1334,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1444,6 +1455,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       __ movups(element_address, locs()->in(2).fpu_reg());
       break;
@@ -1573,7 +1585,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ cmpl(value_cid_reg, Immediate(kNullCid));
           __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
           // Check for typed data array.
-          __ cmpl(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+          __ cmpl(value_cid_reg, Immediate(kTypedDataUint32x4ArrayCid));
           // Not a typed array or a regular array.
           __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
           __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
@@ -1660,7 +1672,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ cmpl(value_cid_reg, Immediate(kNullCid));
         __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
         // Check for typed data array.
-        __ cmpl(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+        __ cmpl(value_cid_reg, Immediate(kTypedDataUint32x4ArrayCid));
         // Not a typed array or a regular array.
         __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
         __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));

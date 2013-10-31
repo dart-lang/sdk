@@ -812,6 +812,10 @@ static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       return kTypedDataFloat32x4ArrayCid;
 
+    case MethodRecognizer::kUint32x4ArrayGetIndexed:
+    case MethodRecognizer::kUint32x4ArraySetIndexed:
+      return kTypedDataUint32x4ArrayCid;
+
     default:
       break;
   }
@@ -1117,6 +1121,11 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       if (!ShouldInlineSimd()) return false;
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
+                                     ic_data, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetUint32x4:
+      if (!ShouldInlineSimd()) return false;
+      return InlineByteArrayViewLoad(call, receiver, receiver_cid,
+                                     kTypedDataUint32x4ArrayCid,
                                      ic_data, entry, last);
     default:
       return false;
@@ -1917,6 +1926,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
+    case kTypedDataUint32x4ArrayCid:
       return true;
     default:
       return false;
@@ -2090,6 +2100,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return BuildByteArrayViewLoad(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32x4:
         return BuildByteArrayViewLoad(call, kTypedDataFloat32x4ArrayCid);
+      case MethodRecognizer::kByteArrayBaseGetUint32x4:
+        return BuildByteArrayViewLoad(call, kTypedDataUint32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
@@ -2110,6 +2122,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return BuildByteArrayViewStore(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32x4:
         return BuildByteArrayViewStore(call, kTypedDataFloat32x4ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetUint32x4:
+        return BuildByteArrayViewStore(call, kTypedDataUint32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -2616,7 +2630,9 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
 
 bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
                                                 intptr_t view_cid) {
-  if ((view_cid == kTypedDataFloat32x4ArrayCid) && !ShouldInlineSimd()) {
+  bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
+                   (view_cid == kTypedDataUint32x4ArrayCid);
+  if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
 
@@ -2664,7 +2680,9 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
 
 bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
                                                  intptr_t view_cid) {
-  if ((view_cid == kTypedDataFloat32x4ArrayCid) && !ShouldInlineSimd()) {
+  bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
+                   (view_cid == kTypedDataUint32x4ArrayCid);
+  if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
   ASSERT(call->HasICData());
@@ -2716,6 +2734,16 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
                                 Isolate::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, target);
+      break;
+    }
+    case kTypedDataUint32x4ArrayCid: {
+      // Check that value is always Uint32x4.
+      value_check = ICData::New(flow_graph_->parsed_function().function(),
+                                call->function_name(),
+                                Object::empty_array(),  // Dummy args. descr.
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kUint32x4Cid, target);
       break;
     }
     case kTypedDataFloat32x4ArrayCid: {

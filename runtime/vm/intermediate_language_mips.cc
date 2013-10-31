@@ -1039,6 +1039,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
+    case kTypedDataUint32x4ArrayCid:
+      return CompileType::FromCid(kUint32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1088,6 +1090,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -1107,7 +1111,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   // tagged (for all element sizes > 1).
   // TODO(regis): Revisit and see if the index can be immediate.
   locs->set_in(1, Location::WritableRegister());
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1166,7 +1172,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
-      (representation() == kUnboxedFloat32x4)) {
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     DRegister result = locs()->out().fpu_reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
@@ -1184,6 +1191,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadDFromOffset(result, index.reg(),
             FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
         break;
+      case kTypedDataUint32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         UNIMPLEMENTED();
         break;
@@ -1267,6 +1275,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1308,6 +1318,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1447,6 +1458,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
           FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
       break;
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       UNIMPLEMENTED();
       break;
@@ -1574,7 +1586,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ BranchSignedLess(CMPRES1, 0, &skip_length_check);
           __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
           // Check for typed data array.
-          __ BranchSignedGreater(value_cid_reg, kTypedDataFloat32x4ArrayCid,
+          __ BranchSignedGreater(value_cid_reg, kTypedDataUint32x4ArrayCid,
                                  &no_fixed_length);
           __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                               &check_array);
@@ -1650,7 +1662,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label check_array, length_set, no_fixed_length;
         __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
         // Check for typed data array.
-        __ BranchSignedGreater(value_cid_reg, kTypedDataFloat32x4ArrayCid,
+        __ BranchSignedGreater(value_cid_reg, kTypedDataUint32x4ArrayCid,
                                &no_fixed_length);
         __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                             &check_array);

@@ -979,6 +979,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
+    case kTypedDataUint32x4ArrayCid:
+      return CompileType::FromCid(kUint32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1028,6 +1030,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -1047,7 +1051,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   // tagged (for all element sizes > 1).
   // TODO(regis): Revisit and see if the index can be immediate.
   locs->set_in(1, Location::WritableRegister());
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1099,7 +1105,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
-      (representation() == kUnboxedFloat32x4)) {
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     QRegister result = locs()->out().fpu_reg();
     DRegister dresult0 = EvenDRegisterOf(result);
     DRegister dresult1 = OddDRegisterOf(result);
@@ -1124,6 +1131,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         element_address = Address(index.reg(), 0);
         __ vldrd(dresult0, element_address);
         break;
+      case kTypedDataUint32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         __ add(index.reg(), index.reg(), ShifterOperand(array));
         __ LoadDFromOffset(dresult0, index.reg(), 0);
@@ -1209,6 +1217,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNREACHABLE();
       return kTagged;
@@ -1246,6 +1256,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1386,6 +1397,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreDToOffset(in2, index.reg(), 0);
       break;
     }
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
       QRegister in = locs()->in(2).fpu_reg();
       DRegister din0 = EvenDRegisterOf(in);
@@ -1511,7 +1523,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ CompareImmediate(value_cid_reg, kNullCid);
           __ b(&no_fixed_length, EQ);
           // Check for typed data array.
-          __ CompareImmediate(value_cid_reg, kTypedDataFloat32x4ArrayCid);
+          __ CompareImmediate(value_cid_reg, kTypedDataUint32x4ArrayCid);
           __ b(&no_fixed_length, GT);
           __ CompareImmediate(value_cid_reg, kTypedDataInt8ArrayCid);
           // Could still be a regular array.
@@ -1591,7 +1603,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ CompareImmediate(value_cid_reg, kNullCid);
         __ b(&no_fixed_length, EQ);
         // Check for typed data array.
-        __ CompareImmediate(value_cid_reg, kTypedDataFloat32x4ArrayCid);
+        __ CompareImmediate(value_cid_reg, kTypedDataUint32x4ArrayCid);
         __ b(&no_fixed_length, GT);
         __ CompareImmediate(value_cid_reg, kTypedDataInt8ArrayCid);
         // Could still be a regular array.

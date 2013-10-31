@@ -83,7 +83,7 @@ class TypedData native "ArrayBufferView" {
 
   int _checkSublistArguments(int start, int end, int length) {
     // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows incides in the range
+    // [length]. However, [_checkIndex] only allows indices in the range
     // 0 .. length - 1. We therefore increment the [length] argument by one
     // for the [_checkIndex] checks.
     _checkIndex(start, length + 1);
@@ -728,7 +728,7 @@ class Float32x4List
 
   int _checkSublistArguments(int start, int end, int length) {
     // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows incides in the range
+    // [length]. However, [_checkIndex] only allows indices in the range
     // 0 .. length - 1. We therefore increment the [length] argument by one
     // for the [_checkIndex] checks.
     _checkIndex(start, length + 1);
@@ -791,6 +791,103 @@ class Float32x4List
   List<Float32x4> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
     return new Float32x4List._externalStorage(_storage.sublist(start*4, end*4));
+  }
+}
+
+
+class Uint32x4List
+    extends Object with ListMixin<Uint32x4>, FixedLengthListMixin<Uint32x4>
+    implements List<Uint32x4>, TypedData {
+
+  final Uint32List _storage;
+
+  ByteBuffer get buffer => _storage.buffer;
+
+  int get lengthInBytes => _storage.lengthInBytes;
+
+  int get offsetInBytes => _storage.offsetInBytes;
+
+  final int elementSizeInBytes = 16;
+
+  void _invalidIndex(int index, int length) {
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    } else {
+      throw new ArgumentError('Invalid list index $index');
+    }
+  }
+
+  void _checkIndex(int index, int length) {
+    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
+      _invalidIndex(index, length);
+    }
+  }
+
+  int _checkSublistArguments(int start, int end, int length) {
+    // For `sublist` the [start] and [end] indices are allowed to be equal to
+    // [length]. However, [_checkIndex] only allows indices in the range
+    // 0 .. length - 1. We therefore increment the [length] argument by one
+    // for the [_checkIndex] checks.
+    _checkIndex(start, length + 1);
+    if (end == null) return length;
+    _checkIndex(end, length + 1);
+    if (start > end) throw new RangeError.range(start, 0, end);
+    return end;
+  }
+
+  Uint32x4List(int length) : _storage = new Uint32List(length*4);
+
+  Uint32x4List._externalStorage(Uint32List storage) : _storage = storage;
+
+  Uint32x4List._slowFromList(List<Uint32x4> list)
+      : _storage = new Uint32List(list.length * 4) {
+    for (int i = 0; i < list.length; i++) {
+      var e = list[i];
+      _storage[(i*4)+0] = e.x;
+      _storage[(i*4)+1] = e.y;
+      _storage[(i*4)+2] = e.z;
+      _storage[(i*4)+3] = e.w;
+    }
+  }
+
+  factory Uint32x4List.fromList(List<Uint32x4> list) {
+    if (list is Uint32x4List) {
+      Uint32x4List nativeList = list as Uint32x4List;
+      return new Uint32x4List._externalStorage(
+          new Uint32List.fromList(nativeList._storage));
+    } else {
+      return new Uint32x4List._slowFromList(list);
+    }
+  }
+
+  Uint32x4List.view(ByteBuffer buffer,
+                     [int byteOffset = 0, int length])
+      : _storage = new Uint32List.view(buffer, byteOffset, length);
+
+  static const int BYTES_PER_ELEMENT = 16;
+
+  int get length => _storage.length ~/ 4;
+
+  Uint32x4 operator[](int index) {
+    _checkIndex(index, length);
+    double _x = _storage[(index*4)+0];
+    double _y = _storage[(index*4)+1];
+    double _z = _storage[(index*4)+2];
+    double _w = _storage[(index*4)+3];
+    return new Uint32x4(_x, _y, _z, _w);
+  }
+
+  void operator[]=(int index, Uint32x4 value) {
+    _checkIndex(index, length);
+    _storage[(index*4)+0] = value._storage[0];
+    _storage[(index*4)+1] = value._storage[1];
+    _storage[(index*4)+2] = value._storage[2];
+    _storage[(index*4)+3] = value._storage[3];
+  }
+
+  List<Uint32x4> sublist(int start, [int end]) {
+    end = _checkSublistArguments(start, end, length);
+    return new Uint32x4List._externalStorage(_storage.sublist(start*4, end*4));
   }
 }
 
