@@ -4,13 +4,42 @@
 
 #include "vm/bootstrap_natives.h"
 
+#include "include/dart_api.h"
 #include "vm/exceptions.h"
+#include "vm/dart_api_impl.h"
+#include "vm/isolate.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
 
 namespace dart {
+
+DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
+  // Call the embedder to supply us with the environment.
+  Dart_EnvironmentCallback callback = isolate->environment_callback();
+  if (callback != NULL) {
+    Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
+    if (Dart_IsError(result)) {
+      const Object& error =
+          Object::Handle(isolate, Api::UnwrapHandle(result));
+      Exceptions::ThrowArgumentError(
+          String::Handle(
+              String::New(Error::Cast(error).ToErrorCString())));
+    } else if (Dart_IsString(result)) {
+      const Object& value =
+          Object::Handle(isolate, Api::UnwrapHandle(result));
+      return Symbols::New(String::Cast(value));
+    } else if (!Dart_IsNull(result)) {
+      Exceptions::ThrowArgumentError(
+          String::Handle(String::New("Illegal environment value")));
+    }
+  }
+  return default_value.raw();
+}
+
 
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));

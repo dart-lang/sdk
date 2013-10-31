@@ -6,6 +6,10 @@ patch class String {
   /* patch */ factory String.fromCharCodes(Iterable<int> charCodes) {
     return _StringBase.createFromCharCodes(charCodes);
   }
+
+  /* patch */ const factory String.fromEnvironment(String name,
+                                                   {String defaultValue})
+      native "String_fromEnvironment";
 }
 
 

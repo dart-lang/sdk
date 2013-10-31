@@ -17,6 +17,27 @@ class HashMap {
     return key1 == key2;
   }
 
+  static uint32_t StringHash(char* key) {
+    uint32_t hash_ = 0;
+    if (key == NULL) return hash_;
+    int len = strlen(key);
+    for (int i = 0; i < len; i++) {
+      hash_ += key[i];
+      hash_ += hash_ << 10;
+      hash_ ^= hash_ >> 6;
+    }
+    hash_ += hash_ << 3;
+    hash_ ^= hash_ >> 11;
+    hash_ += hash_ << 15;
+    return hash_ == 0 ? 1 : hash_;
+  }
+
+  static bool SameStringValue(void* key1, void* key2) {
+    return strcmp(reinterpret_cast<char*>(key1),
+                  reinterpret_cast<char*>(key2)) == 0;
+  }
+
+
   // initial_capacity is the size of the initial hash map;
   // it must be a power of 2 (and thus must not be 0).
   HashMap(MatchFun match, uint32_t initial_capacity);

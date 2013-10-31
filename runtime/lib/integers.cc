@@ -4,9 +4,12 @@
 
 #include "vm/bootstrap_natives.h"
 
+#include "include/dart_api.h"
 #include "vm/bigint_operations.h"
 #include "vm/dart_entry.h"
+#include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
+#include "vm/isolate.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -223,6 +226,61 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
   }
 
   return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Integer, default_value, arguments->NativeArgAt(2));
+  // Call the embedder to supply us with the environment.
+  Dart_EnvironmentCallback callback = isolate->environment_callback();
+  if (callback != NULL) {
+    Dart_Handle result = callback(Api::NewHandle(isolate, name.raw()));
+    if (Dart_IsError(result)) {
+      const Object& error =
+          Object::Handle(isolate, Api::UnwrapHandle(result));
+      Exceptions::ThrowArgumentError(
+          String::Handle(
+              String::New(Error::Cast(error).ToErrorCString())));
+    } else if (Dart_IsString(result)) {
+      uint8_t* digits;
+      intptr_t digits_len;
+      Dart_StringToUTF8(result, &digits, &digits_len);
+      if (digits_len > 0) {
+        // Check for valid integer literal before constructing integer object.
+        // Skip leading minus if present.
+        if (digits[0] == '-') {
+          digits++;
+          digits_len--;
+        }
+        // Check remaining string for decimal or hex-decimal literal.
+        bool is_number = true;
+        if (digits_len > 2 &&
+            digits[0] == '0' &&
+            (digits[1] == 'x' || digits[1] == 'X')) {
+          for (int i = 2; i < digits_len && is_number; i++) {
+            is_number = ('0' <= digits[i] && digits[i] <= '9') ||
+                        ('A' <= digits[i] && digits[i] <= 'F') ||
+                        ('a' <= digits[i] && digits[i] <= 'f');
+          }
+        } else {
+          for (int i = 0; i < digits_len && is_number; i++) {
+            is_number = '0' <= digits[i] && digits[i] <= '9';
+          }
+        }
+        if (digits_len > 0 && is_number) {
+          const Object& value =
+              Object::Handle(isolate, Api::UnwrapHandle(result));
+          ASSERT(value.IsString());
+          return Integer::NewCanonical(String::Cast(value));
+        }
+      }
+    } else if (!Dart_IsNull(result)) {
+      Exceptions::ThrowArgumentError(
+          String::Handle(String::New("Illegal environment value")));
+    }
+  }
+  return default_value.raw();
 }
 
 

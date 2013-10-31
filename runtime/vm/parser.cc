@@ -3104,9 +3104,13 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "external method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (method->IsFactoryOrConstructor() && method->has_const) {
+    } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor or factory '%s' may not have a function body",
+               "const constructor '%s' may not have a function body",
+               method->name->ToCString());
+    } else if (method->IsFactory() && method->has_const) {
+      ErrorMsg(method->name_pos,
+               "const factory '%s' may not have a function body",
                method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
@@ -3128,9 +3132,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "abstract method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (method->IsFactoryOrConstructor() && method->has_const) {
+    } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor or factory '%s' may not be native",
+               "const constructor '%s' may not be native",
                method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
@@ -8706,21 +8710,28 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const AbstractTypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
-  const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
+  // Factories have one extra argument: the type arguments.
+  // Constructors have 2 extra arguments: rcvr and construction phase.
+  const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
   const Array& arg_values = Array::Handle(Array::New(num_arguments));
   Instance& instance = Instance::Handle();
-  ASSERT(!constructor.IsFactory());
-  instance = Instance::New(type_class, Heap::kOld);
-  if (!type_arguments.IsNull()) {
-    if (!type_arguments.IsInstantiated()) {
-      ErrorMsg("type must be constant in const constructor");
+  if (!constructor.IsFactory()) {
+    instance = Instance::New(type_class, Heap::kOld);
+    if (!type_arguments.IsNull()) {
+      if (!type_arguments.IsInstantiated()) {
+        ErrorMsg("type must be constant in const constructor");
+      }
+      instance.SetTypeArguments(
+          AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
     }
-    instance.SetTypeArguments(
-        AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
+    arg_values.SetAt(0, instance);
+    arg_values.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
+  } else {
+    // Prepend type_arguments to list of arguments to factory.
+    ASSERT(type_arguments.IsZoneHandle());
+    arg_values.SetAt(0, type_arguments);
   }
-  arg_values.SetAt(0, instance);
-  arg_values.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < arguments->length(); i++) {
     AstNode* arg = arguments->NodeAt(i);
     // Arguments have been evaluated to a literal value already.
@@ -8747,6 +8758,10 @@ RawObject* Parser::EvaluateConstConstructorCall(
         return Object::null();
       }
   } else {
+    if (constructor.IsFactory()) {
+      // The factory method returns the allocated object.
+      instance ^= result.raw();
+    }
     return TryCanonicalize(instance, TokenPos());
   }
 }
@@ -9890,7 +9905,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                      new_pos,
                      "error while evaluating const constructor");
     } else {
-      const Instance& const_instance = Instance::Cast(constructor_result);
+      // Const constructors can return null in the case where a const native
+      // factory returns a null value. Thus we cannot use a Instance::Cast here.
+      Instance& const_instance = Instance::Handle();
+      const_instance ^= constructor_result.raw();
       new_object = new LiteralNode(new_pos,
                                    Instance::ZoneHandle(const_instance.raw()));
       if (!type_bound.IsNull()) {

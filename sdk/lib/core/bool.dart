@@ -12,10 +12,11 @@ part of dart.core;
  * bool.
  */
 class bool {
-  factory bool._uninstantiable() {
-    throw new UnsupportedError(
-        "class bool cannot be instantiated");
-  }
+  /**
+   * Returns the boolean for the given environment variable [name] or
+   * [defaultValue] if [name] is not present.
+   */
+  external const factory bool.fromEnvironment(String name, {bool defaultValue});
 
   /**
    * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the

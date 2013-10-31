@@ -174,6 +174,13 @@ class Isolate : public BaseIsolate {
     return init_callback_data_;
   }
 
+  Dart_EnvironmentCallback environment_callback() const {
+    return environment_callback_;
+  }
+  void set_environment_callback(Dart_EnvironmentCallback value) {
+    environment_callback_ = value;
+  }
+
   Dart_LibraryTagHandler library_tag_handler() const {
     return library_tag_handler_;
   }
@@ -393,6 +400,7 @@ class Isolate : public BaseIsolate {
   RawContext* top_context_;
   uword top_exit_frame_info_;
   void* init_callback_data_;
+  Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
   StubCode* stub_code_;

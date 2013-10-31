@@ -37,8 +37,10 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
+  V(Integer_fromEnvironment, 3)                                                \
   V(Integer_parse, 1)                                                          \
   V(Integer_leftShiftWithMask32, 3)                                            \
+  V(Bool_fromEnvironment, 3)                                                   \
   V(RawReceivePortImpl_factory, 1)                                             \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
   V(SendPortImpl_sendInternal_, 3)                                             \
@@ -100,6 +102,7 @@ namespace dart {
   V(String_charAt, 2)                                                          \
   V(String_codeUnitAt, 2)                                                      \
   V(String_concat, 2)                                                          \
+  V(String_fromEnvironment, 3)                                                 \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \

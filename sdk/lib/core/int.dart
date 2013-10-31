@@ -252,4 +252,12 @@ abstract class int extends num {
   external static int parse(String source,
                             { int radix,
                               int onError(String source) });
+
+  /**
+   * Returns the integer value for the given environment variable
+   * [name] or [defaultValue] if [name] is not present. If the value
+   * of the environment variable is not a valid integer literal a
+   * [FormatException] is thrown.
+   */
+  external const factory int.fromEnvironment(String name, {int defaultValue});
 }

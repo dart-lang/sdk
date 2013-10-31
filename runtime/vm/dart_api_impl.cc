@@ -3910,6 +3910,17 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 }
 
 
+// --- Environment ---
+DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
+    Dart_EnvironmentCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  isolate->set_environment_callback(callback);
+  return Api::Success();
+}
+
+
+// --- Scripts and Libraries ---
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
   TRACE_API_CALL(CURRENT_FUNC);
