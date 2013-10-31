@@ -116,6 +116,9 @@ lib/core/set: CompileTimeError
 lib/core/string: CompileTimeError
 lib/core/symbol: CompileTimeError
 lib/core/uri: CompileTimeError
+lib/core/bool: CompileTimeError
+lib/core/int: CompileTimeError
+lib/core/string: CompileTimeError
 lib/html/html_common/conversions: CompileTimeError
 lib/html/html_common/css_class_set: CompileTimeError
 lib/html/html_common/device: CompileTimeError
