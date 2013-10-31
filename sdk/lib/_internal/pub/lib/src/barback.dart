@@ -23,11 +23,10 @@ import 'utils.dart';
 /// It's possible that the library identified by [this] defines multiple
 /// transformers. If so, [configuration] will be passed to all of them.
 class TransformerId {
-  /// The package containing the library that this transformer identifies.
+  /// The package containing the library where the transformer is defined.
   final String package;
 
-  /// The `/`-separated path identifying the library that contains this
-  /// transformer.
+  /// The `/`-separated path to the library that contains this transformer.
   ///
   /// This is relative to the `lib/` directory in [package], and doesn't end in
   /// `.dart`.

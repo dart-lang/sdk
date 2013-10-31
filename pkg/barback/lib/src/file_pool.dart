@@ -32,7 +32,7 @@ class FilePool {
   /// open, this will wait for a previously opened file to be closed and then
   /// try again.
   Stream<List<int>> openRead(File file) {
-    return futureStream(_pool.checkOut().then((resource) {
+    return futureStream(_pool.request().then((resource) {
       return file.openRead().transform(new StreamTransformer.fromHandlers(
           handleDone: (sink) {
         sink.close();
