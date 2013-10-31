@@ -115,8 +115,8 @@ class PhaseInput {
   }
 
   /// Set this input's transformers to [transformers].
-  void updateTransformers(Iterable<Transformer> newTransformers) {
-    newTransformers = newTransformers.toSet();
+  void updateTransformers(Iterable<Transformer> newTransformersIterable) {
+    var newTransformers = newTransformersIterable.toSet();
     var oldTransformers = _transformers.toSet();
     for (var removedTransformer in
          oldTransformers.difference(newTransformers)) {

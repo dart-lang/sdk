@@ -74,11 +74,11 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         if (mainScriptTag == null) {
           // We didn't find any main library, nothing to do.
           transform.addOutput(transform.primaryInput);
-          return;
+          return null;
         }
 
         var bootstrapId = id.addExtension('_bootstrap.dart');
-        mainScriptTag.attributes['src'] = 
+        mainScriptTag.attributes['src'] =
             path.url.basename(bootstrapId.path);
 
         // TODO(sigmund): stop renaming the file (see dartbug.com/14554)

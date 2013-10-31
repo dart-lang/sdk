@@ -83,7 +83,7 @@ class Linter extends Transformer with PolymerTransformer {
   }
 
   Future<List<AssetId>> _getImportedIds(
-      Document document, AssetId sourceId, Tranform transform) {
+      Document document, AssetId sourceId, Transform transform) {
     var importIds = [];
     var logger = transform.logger;
     for (var tag in document.queryAll('link')) {
@@ -253,7 +253,7 @@ class _LinterVisitor extends TreeVisitor {
 
     if (_isEntrypoint && !_dartTagSeen) {
       _logger.error(USE_INIT_DART, span: doc.body.sourceSpan);
-    } 
+    }
 
     if (_isEntrypoint && !_dartJSSeen) {
       // TODO(sigmund): remove this when webkitStartDart is gone.
@@ -541,7 +541,7 @@ const String _RED_COLOR = '\u001b[31m';
 const String _MAGENTA_COLOR = '\u001b[35m';
 const String _NO_COLOR = '\u001b[0m';
 
-const String USE_INIT_DART = 
+const String USE_INIT_DART =
     'To run a polymer applications, you need to call "initPolymer". You can '
     'either include a generic script tag that does this for you:'
     '\'<script type="application/dart">import "package:polymer/init.dart";'
@@ -552,7 +552,7 @@ const String USE_DART_JS =
     'To run a polymer applications in Dartium, make sure to include'
     '\'<script src="packages/browser/dart.js"></script>\' in your page';
 
-const String BOOT_JS_DEPRECATED = 
+const String BOOT_JS_DEPRECATED =
     '"boot.js" is now deprecated. Instead, you can initialize your polymer '
     'application by calling "initPolymer()" in your main. If you don\'t have a '
     'main, then you can include our generic main by adding the following '

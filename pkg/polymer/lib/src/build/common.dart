@@ -115,7 +115,7 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   var uri = Uri.parse(url);
   var urlBuilder = path.url;
   if (uri.host != '' || uri.scheme != '' || urlBuilder.isAbsolute(url)) {
-    logger.error('absolute paths not allowed: "$url"', span);
+    logger.error('absolute paths not allowed: "$url"', span: span);
     return null;
   }
 
@@ -125,7 +125,7 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   if (segments[0] == 'packages') {
     if (segments.length < 3) {
       logger.error("incomplete packages/ path. It should have at least 3 "
-          "segments packages/name/path-from-name's-lib-dir", span);
+          "segments packages/name/path-from-name's-lib-dir", span: span);
       return null;
     }
     package = segments[1];
@@ -134,7 +134,7 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   } else if (segments[0] == 'assets') {
     if (segments.length < 3) {
       logger.error("incomplete assets/ path. It should have at least 3 "
-          "segments assets/name/path-from-name's-asset-dir", span);
+          "segments assets/name/path-from-name's-asset-dir", span: span);
     }
     package = segments[1];
     targetPath = urlBuilder.join('asset',

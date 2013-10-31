@@ -176,7 +176,7 @@ class ScheduledProcess {
       }
 
       wrapFuture(pumpEventQueue().then((_) {
-        if (currentSchedule.currentTask != _taskBeforeEnd) return;
+        if (currentSchedule.currentTask != _taskBeforeEnd) return null;
         // If we're one task before the end was scheduled, wait for that task
         // to complete and pump the event queue so that _endExpected will be
         // set.
@@ -216,7 +216,7 @@ class ScheduledProcess {
       _stdoutCanceller();
       _stderrCanceller();
 
-      if (!_process.hasValue) return;
+      if (!_process.hasValue) return null;
 
       var killedPrematurely = false;
       if (!_exitCode.hasValue) {

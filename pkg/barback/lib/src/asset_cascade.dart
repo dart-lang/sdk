@@ -213,8 +213,8 @@ class AssetCascade {
   ///
   /// Elements of the inner iterable of [transformers] must be either
   /// [Transformer]s or [TransformerGroup]s.
-  void updateTransformers(Iterable<Iterable> transformers) {
-    transformers = transformers.toList();
+  void updateTransformers(Iterable<Iterable> transformersIterable) {
+    var transformers = transformersIterable.toList();
 
     for (var i = 0; i < transformers.length; i++) {
       if (_phases.length > i) {
@@ -301,7 +301,7 @@ class AssetCascade {
         if (_newChanges) return _process();
 
         // Otherwise, everything is done.
-        return;
+        return null;
       }
 
       // Process that phase and then loop onto the next.

@@ -80,7 +80,7 @@ class Task {
       _state = TaskState.RUNNING;
       var future = new Future.value().then((_) => fn())
           .whenComplete(() {
-        if (_childGroup == null || _childGroup.completed) return;
+        if (_childGroup == null || _childGroup.completed) return null;
         return _childGroup.future;
       });
       chainToCompleter(future, _resultCompleter);

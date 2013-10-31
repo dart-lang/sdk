@@ -32,7 +32,7 @@ Clock mock() {
 
 typedef void TimerCallback();
 
-/// Returns a new (possibly mocked) [Timer]. Works the same as [new Timer].
+/// Returns a new (possibly mocked) [Timer]. Works the same as `new Timer`.
 Timer newTimer(Duration duration, TimerCallback callback) =>
   _mocked ? new _MockTimer(duration, callback) : new Timer(duration, callback);
 
@@ -72,7 +72,7 @@ class Clock {
   /// code runs before the next tick.
   void run() {
     pumpEventQueue().then((_) {
-      if (!_broadcastController.hasListener) return;
+      if (!_broadcastController.hasListener) return null;
       tick();
       return run();
     });
@@ -100,5 +100,10 @@ class _MockTimer implements Timer {
     });
   }
 
-  void cancel() => _subscription.cancel();
+  bool get isActive => _subscription != null;
+
+  void cancel() {
+    _subscription.cancel();
+    _subscription = null;
+  }
 }
