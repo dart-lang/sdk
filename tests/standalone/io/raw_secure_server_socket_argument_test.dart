@@ -55,7 +55,7 @@ void testArguments() {
 
 
 main() {
-  var certificateDatabase = join(dirname(Platform.script), 'pkcert');
+  var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);

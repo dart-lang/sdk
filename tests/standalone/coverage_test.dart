@@ -52,7 +52,7 @@ void checkSuccess() {
 void main() {
   // Compute paths for coverage tool and coverage target relative
   // the the path of this script.
-  var scriptPath = dirname(Platform.script);
+  var scriptPath = dirname(Platform.script.toFilePath());
   var toolPath = normalize(join(scriptPath, coverageToolScript));
   targPath = normalize(join(scriptPath, coverageTargetScript));
 

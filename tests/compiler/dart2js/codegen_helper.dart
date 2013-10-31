@@ -9,7 +9,7 @@ import 'memory_source_file_helper.dart';
 
 Future<Map<String, String>> generate(String code,
     [List<String> options = const []]) {
-  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

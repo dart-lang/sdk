@@ -24,9 +24,8 @@ void main() {
                     request.response.close();
                   });
             });
-        var path = new Uri.file(Platform.script);
         Process.run(Platform.executable,
-                    [path.resolve(CLIENT_SCRIPT).toString(),
+                    [Platform.script.resolve(CLIENT_SCRIPT).toString(),
                      server.port.toString()])
             .then((result) {
               if (result.exitCode != 0) throw "Bad exit code";

@@ -46,7 +46,7 @@ Function test() {
 }
 
 void InitializeSSL() {
-  var testPkcertDatabase = join(dirname(Platform.script), 'pkcert');
+  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: testPkcertDatabase,
                           password: 'dartdart');
 }

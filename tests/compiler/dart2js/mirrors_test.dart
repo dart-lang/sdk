@@ -8,7 +8,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart'
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
-       show currentDirectory, nativeToUriPath;
+       show currentDirectory;
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 
 import 'dart:io';
@@ -42,8 +42,7 @@ DeclarationMirror findMirror(Iterable<DeclarationMirror> list, String name) {
 }
 
 main() {
-  Uri scriptUri =
-      currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri scriptUri = currentDirectory.resolveUri(Platform.script);
   Uri libUri = scriptUri.resolve('../../../sdk/');
   Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
   var provider = new CompilerSourceFileProvider();

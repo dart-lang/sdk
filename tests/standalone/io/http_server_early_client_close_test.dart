@@ -118,7 +118,7 @@ testEarlyClose2() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
       (request) {
-        String name = Platform.script;
+        String name = Platform.script.toFilePath();
         new File(name).openRead().pipe(request.response)
             .catchError((e) { /* ignore */ });
       });

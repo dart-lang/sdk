@@ -12,7 +12,7 @@ import 'package:path/path.dart' as path;
 import '../bin/docs.dart';
 import '../lib/docs.dart';
 
-final testJsonPath = path.normalize(path.join(scriptDir, 'test.json'));
+final testJsonPath = Platform.script.resolve('test.json').toFilePath();
 
 main() {
   // Some tests take more than the default 20 second unittest timeout.
@@ -40,7 +40,7 @@ main() {
       if (testJson.existsSync()) testJson.deleteSync();
       assert(!testJson.existsSync());
 
-      expect(convert(lib_path, testJsonPath)
+      expect(convert(lib_uri, testJsonPath)
           .then((bool anyErrors) {
         expect(anyErrors, isFalse);
 

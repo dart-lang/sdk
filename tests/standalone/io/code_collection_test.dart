@@ -51,7 +51,7 @@ main(List<String> arguments) {
          "--log-code-drop",
          "--optimization-counter-threshold=-1",
          "--package-root=${Platform.packageRoot}",
-         Platform.script,
+         Platform.script.toFilePath(),
          "--run"]);
 
     // Code drops are logged with --log-code-drop. Look through stdout for the

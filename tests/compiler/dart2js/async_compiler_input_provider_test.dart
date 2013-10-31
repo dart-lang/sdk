@@ -42,7 +42,7 @@ main() {
   var entrypoint = Uri.parse("file:///main.dart");
 
   // Find the path to sdk/ in the repo relative to this script.
-  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

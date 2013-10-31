@@ -196,7 +196,7 @@ void _testRunDartDoc(List<String> libraryPaths, void eval(ProcessResult)) {
 
 /// The path to the root directory of the dartdoc entrypoint.
 String get _dartdocDir {
-  var dir = path.absolute(Platform.script);
+  var dir = path.absolute(Platform.script.toFilePath());
   while (path.basename(dir) != 'dartdoc') {
     if (!path.absolute(dir).contains('dartdoc') || dir == path.dirname(dir)) {
       fail('Unable to find root dartdoc directory.');
