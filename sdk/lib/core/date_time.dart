@@ -48,7 +48,7 @@ part of dart.core;
  * unless explicitly created in the UTC time zone.
  *
  *     DateTime dDay = new DateTime.utc(1944, 6, 6);
- *    
+ *
  * Use [isUtc] to determine whether a DateTime object is based in UTC.
  * Use the methods [toLocal] and [toUtc]
  * to get the equivalent date/time value specified in the other time zone.
@@ -199,13 +199,33 @@ class DateTime implements Comparable {
    * * `"20120227"`
    * * `"+20120227"`
    * * `"2012-02-27T14Z"`
+   * * `"2012-02-27T14+00:00"`
    * * `"-123450101 00:00:00 Z"`: in the year -12345.
    */
   // TODO(floitsch): specify grammar.
   static DateTime parse(String formattedString) {
+    /*
+     * date ::= yeardate time_opt timezone_opt
+     * yeardate ::= year colon_opt month colon_opt day
+     * year ::= sign_opt digit{4,5}
+     * colon_opt :: <empty> | ':'
+     * sign_opt ::=  <empty> | '+' | '-'
+     * month ::= digit{2}
+     * day ::= digit{2}
+     * time_opt ::= <empty> | (' ' | 'T') hour minutes_opt
+     * minutes_opt ::= <empty> | ':' digit{2} seconds_opt
+     * seconds_opt ::= <empty> | ':' digit{2} millis_opt
+     * millis_opt ::= <empty> | '.' digit{1,6}
+     * timezone_opt ::= <empty> | space_opt timezone
+     * space_opt :: ' ' | <empty>
+     * timezone ::= 'z' | 'Z' | '+' '0' '0' timezonemins_opt
+     * timezonemins_opt ::= <empty> | colon_opt '0' '0'
+     */
     final RegExp re = new RegExp(
         r'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
-        r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
+        r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)?' // The time part
+        r'( ?[zZ]| ?\+00(?::?00)?)?)?$'); // The timezone part
+
     Match match = re.firstMatch(formattedString);
     if (match != null) {
       int parseIntOrZero(String matched) {
@@ -230,8 +250,7 @@ class DateTime implements Comparable {
         addOneMillisecond = true;
         millisecond = 999;
       }
-      // TODO(floitsch): we should not need to test against the empty string.
-      bool isUtc = (match[8] != null) && (match[8] != "");
+      bool isUtc = (match[8] != null);
       int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hour, minute, second, millisecond, isUtc);
       if (millisecondsSinceEpoch == null) {
