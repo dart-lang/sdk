@@ -445,7 +445,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t11: fail # co19-roll r546: Please 
 Language/14_Libraries_and_Scripts/5_URIs_A01_t21: fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: crash # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please triage this failure
-Language/15_Types/4_Interface_Types_A11_t04: fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A12_t10: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
@@ -599,6 +598,7 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # c
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/14_Libraries_and_Scripts/2_Exports_A05_t03: MissingCompileTimeError # co19-roll r623: Please triage this failure
+Language/15_Types/4_Interface_Types_A11_t04: fail # Issue 14654
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js ]
