@@ -20,6 +20,9 @@ DEFINE_FLAG(bool, use_mirrored_compilation_error, false,
     "Wrap compilation errors that occur during reflective access in a "
     "MirroredCompilationError, rather than suspending the isolate.");
 
+DEFINE_FLAG(bool, support_find_in_context, false,
+    "Experimental support for ClosureMirror.findInContext.");
+
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -721,12 +724,8 @@ static RawInstance* LookupStaticFunctionOrFieldInClass(
     return result.raw();
   }
 
-  Function& func = Function::Handle();
-  Class& lookup_class = Class::Handle(klass.raw());
-  while (func.IsNull() && !lookup_class.IsNull()) {
-    func ^= lookup_class.LookupStaticFunction(lookup_name);
-    lookup_class = lookup_class.SuperClass();
-  }
+  const Function& func =
+      Function::Handle(klass.LookupStaticFunction(lookup_name));
   if (!func.IsNull()) {
     const Function& closure_function = Function::Handle(
         func.ImplicitClosureFunction());
@@ -1424,6 +1423,10 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_apply, 2) {
 
 
 DEFINE_NATIVE_ENTRY(ClosureMirror_find_in_context, 2) {
+  if (!FLAG_support_find_in_context) {
+    return Object::empty_array().raw();
+  }
+
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, lookup_parts, arguments->NativeArgAt(1));
   ASSERT(lookup_parts.Length() >= 1 && lookup_parts.Length() <= 3);

@@ -469,6 +469,10 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
       throw new ArgumentError("Invalid symbol: ${name}");
     }
     List tuple = _computeFindInContext(_reflectee, parts);
+    if (tuple.length == 0) {
+      throw new UnsupportedError(
+          "ClosureMirror.findInContext not yet supported");
+    }
     if (tuple[0]) {
       return reflect(tuple[1]);
     }

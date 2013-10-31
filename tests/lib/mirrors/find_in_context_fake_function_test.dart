@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--support_find_in_context=true
+
 // Regression test: this used to crash the VM.
 
 library test.find_in_context_fake_function;

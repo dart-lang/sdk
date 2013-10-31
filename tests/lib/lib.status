@@ -16,11 +16,12 @@ math/random_test: RuntimeError
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 14025
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/closures_test/none: RuntimeError # Issue 6490
-mirrors/closure_mirror_find_in_context_test: Fail # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/equality_test/02: RuntimeError # Issue 12333
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
+mirrors/find_in_context_test: Fail # Issue 6490
+mirrors/find_in_context_private_test: Fail # Issue 6490
 mirrors/find_in_context_fake_function_test: Fail # Issue 6490
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generics_test/01: RuntimeError # Issue 12087
