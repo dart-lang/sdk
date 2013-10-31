@@ -135,7 +135,6 @@ map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
 
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
-static_final_field2_test/02: MissingCompileTimeError # Issue 13017
 
 numbers_test: RuntimeError, OK # Issue 1533
 canonical_const2_test: RuntimeError, OK # Issue 1533
@@ -235,7 +234,6 @@ list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
-static_final_field2_test/02: Fail # Issue 13017
 scope_variable_test/01: Fail # Issue 13016
 factory_redirection_test/01: Fail # Issue 12753
 factory_redirection_test/02: Crash # Issue 12753
