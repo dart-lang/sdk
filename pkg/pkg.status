@@ -310,16 +310,6 @@ custom_element/test/analyzer_test: fail
 custom_element/test/analyzer_test: fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-csslib/test/big_1_test: StaticWarning
-csslib/test/compiler_test: StaticWarning
-csslib/test/declaration_test: StaticWarning
-csslib/test/error_test: StaticWarning
-csslib/test/extend_test: StaticWarning
-csslib/test/mixin_test: StaticWarning
-csslib/test/nested_test: StaticWarning
-csslib/test/selector_test: StaticWarning
-csslib/test/var_test: StaticWarning
-csslib/test/visitor_test: StaticWarning
 docgen/test/single_library_test: StaticWarning
 http_server/test/http_body_test: StaticWarning
 http_server/test/http_multipart_test: StaticWarning
@@ -336,11 +326,8 @@ intl/test/date_time_format_file_odd_test: StaticWarning
 intl/test/date_time_format_http_request_test: StaticWarning
 intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
-unittest/test/matchers_test: StaticWarning
-unittest/test/mock_test: StaticWarning
-watcher/test/directory_watcher_test: StaticWarning
-watcher/test/no_subscription_test: StaticWarning
-watcher/test/ready_test: StaticWarning
+unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
+unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
 
 [ $runtime == vm ]
 # Issue surfaced after removing deprecated async features.
