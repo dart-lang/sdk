@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 
 main() {
   try {
-    print("abcdef".substring(1.5, 3.5));
-    Expect.fail("Should have thrown an exception");
+    print("abcdef".substring(1.5, 3.5));    /// 01: static type warning
+    Expect.fail("Should have thrown an exception");  /// 01: continued
   } on TypeError catch (e) {
     // OK.
   } on ArgumentError catch (e) {
