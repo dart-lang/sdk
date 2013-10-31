@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="dart.unittest" content="full-stack-traces">
+  <title> template_wrappers_test </title>
+  <style>
+     .unittest-table { font-family:monospace; border:1px; }
+     .unittest-pass { background: #6b3;}
+     .unittest-fail { background: #d55;}
+     .unittest-error { background: #a11;}
+  </style>
+</head>
+<body>
+  <h1> Running template_wrappers_test </h1>
+  <template class='t1'>
+    <x-custom></x-custom>
+  </template>
+  <script type="text/javascript"
+      src="/packages/unittest/test_controller.js"></script>
+  %TEST_SCRIPTS%
+</body>
+</html>
