@@ -244,7 +244,7 @@ class _TemplateIterator {
   Object repeatModel, bindModel, ifModel;
   String repeatPath, bindPath, ifPath;
 
-  StreamSubscription _valueSub, _arraySub;
+  StreamSubscription _valueSub, _listSub;
 
   bool _initPrepareFunctions = false;
   PrepareInstanceModelFunction _instanceModelFn;
@@ -313,14 +313,13 @@ class _TemplateIterator {
       iteratedValue = null;
     }
 
-    if (iteratedValue != null && newValue is Observable) {
-      _arraySub = (newValue as Observable).changes.listen(
-          _handleSplices);
+    if (iteratedValue != null && newValue is ObservableList) {
+      _listSub = newValue.listChanges.listen(_handleSplices);
     }
 
-    var splices = calculateSplices(
-        iteratedValue != null ? iteratedValue : [],
-        oldValue != null ? oldValue : []);
+    var splices = ObservableList.calculateChangeRecords(
+        oldValue != null ? oldValue : [],
+        iteratedValue != null ? iteratedValue : []);
 
     if (splices.isNotEmpty) _handleSplices(splices);
   }
@@ -383,10 +382,8 @@ class _TemplateIterator {
     return new _BoundNodes(instanceNodes, bound);
   }
 
-  void _handleSplices(Iterable<ChangeRecord> splices) {
+  void _handleSplices(List<ListChangeRecord> splices) {
     if (closed) return;
-
-    splices = splices.where((s) => s is ListChangeRecord);
 
     final template = _templateElement;
     final delegate = _templateExt._self.bindingDelegate;
@@ -410,11 +407,8 @@ class _TemplateIterator {
     var instanceCache = new HashMap<Object, _BoundNodes>(equals: identical);
     var removeDelta = 0;
     for (var splice in splices) {
-      for (int i = 0; i < splice.removedCount; i++) {
-        var instance = extractInstanceAt(splice.index + removeDelta);
-        if (instance.nodes.length == 0) continue;
-        var model = nodeBind(instance.nodes.first).templateInstance.model;
-        instanceCache[model] = instance;
+      for (var model in splice.removed) {
+        instanceCache[model] = extractInstanceAt(splice.index + removeDelta);
       }
 
       removeDelta -= splice.addedCount;
@@ -469,10 +463,10 @@ class _TemplateIterator {
     _instancePositionChangedFn(instance, index);
   }
 
-  void reportInstancesMoved(Iterable<ChangeRecord> splices) {
+  void reportInstancesMoved(List<ListChangeRecord> splices) {
     var index = 0;
     var offset = 0;
-    for (ListChangeRecord splice in splices) {
+    for (var splice in splices) {
       if (offset != 0) {
         while (index < splice.index) {
           reportInstanceMoved(index);
@@ -487,7 +481,7 @@ class _TemplateIterator {
         index++;
       }
 
-      offset += splice.addedCount - splice.removedCount;
+      offset += splice.addedCount - splice.removed.length;
     }
 
     if (offset == 0) return;
@@ -504,9 +498,9 @@ class _TemplateIterator {
   }
 
   void unobserve() {
-    if (_arraySub == null) return;
-    _arraySub.cancel();
-    _arraySub = null;
+    if (_listSub == null) return;
+    _listSub.cancel();
+    _listSub = null;
   }
 
   void close() {

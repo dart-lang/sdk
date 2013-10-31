@@ -574,7 +574,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
         _observeLog.fine('[$localName] observeArrayValue: register observer '
             '$name');
       }
-      var sub = (value as ObservableList).changes.listen((changes) {
+      var sub = value.listChanges.listen((changes) {
         invokeMethod(callbackName, [old]);
       });
       registerObserver('${MirrorSystem.getName(name)}__array', sub);

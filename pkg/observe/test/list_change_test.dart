@@ -18,15 +18,21 @@ main() {
 // TODO(jmesserly): port or write array fuzzer tests
 listChangeTests() {
   StreamSubscription sub;
+  var model;
 
-  tearDown(() { sub.cancel(); });
+  tearDown(() {
+    sub.cancel();
+    model = null;
+  });
+
+  _delta(i, r, a) => new ListChangeRecord(model, i, removed: r, addedCount: a);
 
   observeTest('sequential adds', () {
-    var model = toObservable([]);
+    model = toObservable([]);
     model.add(0);
 
     var summary;
-    sub = model.changes.listen((r) { summary = _filter(r); });
+    sub = model.listChanges.listen((r) { summary = r; });
 
     model.add(1);
     model.add(2);
@@ -34,25 +40,25 @@ listChangeTests() {
     expect(summary, null);
     performMicrotaskCheckpoint();
 
-    expectChanges(summary, [_delta(1, 0, 2)]);
+    expectChanges(summary, [_delta(1, [], 2)]);
   });
 
   observeTest('List Splice Truncate And Expand With Length', () {
-    var model = toObservable(['a', 'b', 'c', 'd', 'e']);
+    model = toObservable(['a', 'b', 'c', 'd', 'e']);
 
     var summary;
-    sub = model.changes.listen((r) { summary = _filter(r); });
+    sub = model.listChanges.listen((r) { summary = r; });
 
     model.length = 2;
 
     performMicrotaskCheckpoint();
-    expectChanges(summary, [_delta(2, 3, 0)]);
+    expectChanges(summary, [_delta(2, ['c', 'd', 'e'], 0)]);
     summary = null;
 
     model.length = 5;
 
     performMicrotaskCheckpoint();
-    expectChanges(summary, [_delta(2, 0, 3)]);
+    expectChanges(summary, [_delta(2, [], 3)]);
   });
 
   group('List deltas can be applied', () {
@@ -60,7 +66,7 @@ listChangeTests() {
     var summary = null;
 
     observeArray(model) {
-      sub = model.changes.listen((records) { summary = _filter(records); });
+      sub = model.listChanges.listen((r) { summary = r; });
     }
 
     applyAndCheckDeltas(model, copy) {
@@ -69,7 +75,7 @@ listChangeTests() {
 
       // apply deltas to the copy
       for (var delta in summary) {
-        copy.removeRange(delta.index, delta.index + delta.removedCount);
+        copy.removeRange(delta.index, delta.index + delta.removed.length);
         for (int i = delta.addedCount - 1; i >= 0; i--) {
           copy.insert(delta.index, model[delta.index + i]);
         }
@@ -233,7 +239,7 @@ listChangeTests() {
     var summary = null;
 
     observeArray(model) {
-      sub = model.changes.listen((records) { summary = _filter(records); });
+      sub = model.listChanges.listen((r) { summary = r; });
     }
 
     assertEditDistance(orig, expectDistance) {
@@ -243,7 +249,7 @@ listChangeTests() {
 
       if (summary != null) {
         for (var delta in summary) {
-          actualDistance += delta.addedCount + delta.removedCount;
+          actualDistance += delta.addedCount + delta.removed.length;
         }
       }
 
@@ -262,10 +268,7 @@ listChangeTests() {
       observeArray(model);
       model.length = 0;
       model.addAll(['1', '2', '3', 'y', 'y', 'y', 'y']);
-      // Note: unlike the JS implementation, we don't perform a full diff.
-      // The change records are computed with no regards to the *contents* of
-      // the array. Thus, we get 14 instead of 8.
-      assertEditDistance(model, 14);
+      assertEditDistance(model, 7);
     });
 
     observeTest('truncate and add, sharing a discontiguous block', () {
@@ -273,10 +276,7 @@ listChangeTests() {
       observeArray(model);
       model.length = 0;
       model.addAll(['a', '2', 'y', 'y', '4', '5', 'z', 'z']);
-      // Note: unlike the JS implementation, we don't perform a full diff.
-      // The change records are computed with no regards to the *contents* of
-      // the array. Thus, we get 13 instead of 7.
-      assertEditDistance(model, 13);
+      assertEditDistance(model, 8);
     });
 
     observeTest('insert at beginning and end', () {
@@ -289,6 +289,3 @@ listChangeTests() {
     });
   });
 }
-
-_delta(i, r, a) => new ListChangeRecord(i, removedCount: r, addedCount: a);
-_filter(records) => records.where((r) => r is ListChangeRecord).toList();

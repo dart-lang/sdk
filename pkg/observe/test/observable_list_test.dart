@@ -10,9 +10,16 @@ import 'observe_test_utils.dart';
 main() {
   // TODO(jmesserly): need all standard List API tests.
 
-  StreamSubscription sub;
+  StreamSubscription sub, sub2;
 
-  sharedTearDown() { sub.cancel(); }
+  sharedTearDown() {
+    list = null;
+    sub.cancel();
+    if (sub2 != null) {
+      sub2.cancel();
+      sub2 = null;
+    }
+  }
 
   group('observe length', () {
 
@@ -33,7 +40,7 @@ main() {
       list.add(4);
       expect(list, [1, 2, 3, 4]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(list, 3, 4)]);
+      expectChanges(changes, [_lengthChange(3, 4)]);
     });
 
     observeTest('removeObject', () {
@@ -41,7 +48,7 @@ main() {
       expect(list, orderedEquals([1, 3]));
 
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(list, 3, 2)]);
+      expectChanges(changes, [_lengthChange(3, 2)]);
     });
 
     observeTest('removeRange changes length', () {
@@ -49,39 +56,38 @@ main() {
       list.removeRange(1, 3);
       expect(list, [1, 4]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(list, 3, 2)]);
+      expectChanges(changes, [_lengthChange(3, 4), _lengthChange(4, 2)]);
     });
 
     observeTest('length= changes length', () {
       list.length = 5;
       expect(list, [1, 2, 3, null, null]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(list, 3, 5)]);
+      expectChanges(changes, [_lengthChange(3, 5)]);
     });
 
     observeTest('[]= does not change length', () {
       list[2] = 9000;
       expect(list, [1, 2, 9000]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, []);
+      expectChanges(changes, null);
     });
 
     observeTest('clear changes length', () {
       list.clear();
       expect(list, []);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(list, 3, 0)]);
+      expectChanges(changes, [_lengthChange(3, 0)]);
     });
   });
 
   group('observe index', () {
-    ObservableList list;
     List<ChangeRecord> changes;
 
     setUp(() {
       list = toObservable([1, 2, 3]);
       changes = null;
-      sub = list.changes.listen((records) {
+      sub = list.listChanges.listen((records) {
         changes = getListChangeRecords(records, 1);
       });
     });
@@ -99,7 +105,7 @@ main() {
       list[1] = 777;
       expect(list, [1, 777, 3]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_change(1, addedCount: 1, removedCount: 1)]);
+      expectChanges(changes, [_change(1, addedCount: 1, removed: [2])]);
     });
 
     observeTest('[]= on a different item does not fire change', () {
@@ -115,7 +121,7 @@ main() {
       expect(list, [1, 42, 3]);
       performMicrotaskCheckpoint();
       expectChanges(changes, [
-        _change(1, addedCount: 1, removedCount: 1),
+        _change(1, addedCount: 1, removed: [2]),
       ]);
     });
 
@@ -130,7 +136,7 @@ main() {
       list.length = 1;
       expect(list, [1]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [_change(1, removedCount: 2)]);
+      expectChanges(changes, [_change(1, removed: [2, 3])]);
     });
 
     observeTest('truncate and add new item', () {
@@ -139,7 +145,7 @@ main() {
       expect(list, [1, 42]);
       performMicrotaskCheckpoint();
       expectChanges(changes, [
-        _change(1, removedCount: 2, addedCount: 1)
+        _change(1, removed: [2, 3], addedCount: 1)
       ]);
     });
 
@@ -148,9 +154,7 @@ main() {
       list.add(2);
       expect(list, [1, 2]);
       performMicrotaskCheckpoint();
-      expectChanges(changes, [
-        _change(1, removedCount: 2, addedCount: 1)
-      ]);
+      expectChanges(changes, []);
     });
   });
 
@@ -161,13 +165,15 @@ main() {
 
   group('change records', () {
 
-    List<ChangeRecord> records;
-    ObservableList list;
+    List<PropertyChangeRecord> propRecords;
+    List<ListChangeRecord> listRecords;
 
     setUp(() {
       list = toObservable([1, 2, 3, 1, 3, 4]);
-      records = null;
-      sub = list.changes.listen((r) { records = r; });
+      propRecords = null;
+      listRecords = null;
+      sub = list.changes.listen((r) { propRecords = r; });
+      sub2 = list.listChanges.listen((r) { listRecords = r; });
     });
 
     tearDown(sharedTearDown);
@@ -186,7 +192,8 @@ main() {
       performMicrotaskCheckpoint();
 
       // no change from read-only operators
-      expectChanges(records, null);
+      expectChanges(propRecords, null);
+      expectChanges(listRecords, null);
     });
 
     observeTest('add', () {
@@ -195,10 +202,11 @@ main() {
       expect(list, orderedEquals([1, 2, 3, 1, 3, 4, 5, 6]));
 
       performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _lengthChange(list, 6, 8),
-        _change(6, addedCount: 2)
+      expectChanges(propRecords, [
+        _lengthChange(6, 7),
+        _lengthChange(7, 8),
       ]);
+      expectChanges(listRecords, [ _change(6, addedCount: 2) ]);
     });
 
     observeTest('[]=', () {
@@ -206,7 +214,8 @@ main() {
       expect(list, orderedEquals([1, 4, 3, 1, 3, 4]));
 
       performMicrotaskCheckpoint();
-      expectChanges(records, [ _change(1, addedCount: 1, removedCount: 1) ]);
+      expectChanges(propRecords, null);
+      expectChanges(listRecords, [ _change(1, addedCount: 1, removed: [2]) ]);
     });
 
     observeTest('removeLast', () {
@@ -214,10 +223,8 @@ main() {
       expect(list, orderedEquals([1, 2, 3, 1, 3]));
 
       performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _lengthChange(list, 6, 5),
-        _change(5, removedCount: 1)
-      ]);
+      expectChanges(propRecords, [_lengthChange(6, 5)]);
+      expectChanges(listRecords, [_change(5, removed: [4])]);
     });
 
     observeTest('removeRange', () {
@@ -225,10 +232,8 @@ main() {
       expect(list, orderedEquals([1, 3, 4]));
 
       performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _lengthChange(list, 6, 3),
-        _change(1, removedCount: 3),
-      ]);
+      expectChanges(propRecords, [_lengthChange(6, 3)]);
+      expectChanges(listRecords, [_change(1, removed: [2, 3, 1])]);
     });
 
     observeTest('sort', () {
@@ -236,8 +241,10 @@ main() {
       expect(list, orderedEquals([1, 1, 2, 3, 3, 4]));
 
       performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _change(1, addedCount: 5, removedCount: 5),
+      expectChanges(propRecords, null);
+      expectChanges(listRecords, [
+        _change(1, addedCount: 1),
+        _change(4, removed: [1])
       ]);
     });
 
@@ -246,16 +253,16 @@ main() {
       expect(list, []);
 
       performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _lengthChange(list, 6, 0),
-        _change(0, removedCount: 6)
-      ]);
+      expectChanges(propRecords, [_lengthChange(6, 0)]);
+      expectChanges(listRecords, [_change(0, removed: [1, 2, 3, 1, 3, 4])]);
     });
   });
 }
 
-_lengthChange(list, int oldValue, int newValue) =>
+ObservableList list;
+
+_lengthChange(int oldValue, int newValue) =>
     new PropertyChangeRecord(list, #length, oldValue, newValue);
 
-_change(index, {removedCount: 0, addedCount: 0}) => new ListChangeRecord(
-    index, removedCount: removedCount, addedCount: addedCount);
+_change(index, {removed: const [], addedCount: 0}) => new ListChangeRecord(
+    list, index, removed: removed, addedCount: addedCount);

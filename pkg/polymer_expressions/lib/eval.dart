@@ -589,12 +589,7 @@ class InObserver extends ExpressionObserver<InExpression>
     }
 
     if (iterable is ObservableList) {
-      _subscription = (iterable as ObservableList).changes.listen(
-          (List<ChangeRecord> changes) {
-            if (changes.any((c) => c is ListChangeRecord)) {
-              _invalidate(scope);
-            }
-          });
+      _subscription = iterable.listChanges.listen((_) => _invalidate(scope));
     }
 
     // TODO: make Comprehension observable and update it

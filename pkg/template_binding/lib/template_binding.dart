@@ -26,7 +26,6 @@ import 'package:observe/observe.dart';
 
 import 'src/binding_delegate.dart';
 import 'src/node_binding.dart';
-import 'src/list_diff.dart' show calculateSplices, ListChangeDelta;
 
 export 'src/binding_delegate.dart';
 export 'src/node_binding.dart' show NodeBinding;
