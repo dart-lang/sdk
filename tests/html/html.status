@@ -7,6 +7,9 @@ event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Fail, Pass # Issue 14521
 
+[ $compiler=dart2js && $csp ]
+custom/js_custom_test: Fail # Issue 14643
+
 [ $compiler == dart2js && $browser ]
 element_offset_test/offset: Pass, Fail # Issue 13296
 custom/template_wrappers_test: Pass, Fail # Test is for Dartium GC issues
