@@ -1376,31 +1376,12 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
 
-  String& internal_setter_name =
+  const Class& klass = Class::Handle(reflectee.clazz());
+  const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
-  Function& setter = Function::Handle();
+  const Function& setter = Function::Handle(
+      Resolver::ResolveDynamicAnyArgs(klass, internal_setter_name));
 
-  Class& klass = Class::Handle(reflectee.clazz());
-  Field& field = Field::Handle();
-
-  while (!klass.IsNull()) {
-    field = klass.LookupInstanceField(setter_name);
-    if (!field.IsNull() && field.is_final()) {
-      const String& message = String::Handle(
-          String::NewFormatted("%s: cannot set final field '%s'.",
-                               "InstanceMirror_invokeSetter",
-                               setter_name.ToCString()));
-      ThrowMirroredCompilationError(message);
-      UNREACHABLE();
-    }
-    setter = klass.LookupDynamicFunction(internal_setter_name);
-    if (!setter.IsNull()) {
-      break;
-    }
-    klass = klass.SuperClass();
-  }
-
-  // Invoke the setter and return the result.
   const int kNumArgs = 2;
   const Array& args = Array::Handle(Array::New(kNumArgs));
   args.SetAt(0, reflectee);
@@ -1596,11 +1577,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
 
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
+  Function& setter = Function::Handle();
   if (field.IsNull()) {
     const String& internal_setter_name = String::Handle(
       Field::SetterName(setter_name));
-    const Function& setter = Function::Handle(
-      klass.LookupStaticFunction(internal_setter_name));
+
+    setter = klass.LookupStaticFunction(internal_setter_name);
 
     if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
@@ -1626,11 +1608,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   }
 
   if (field.is_final()) {
-    const String& message = String::Handle(
-        String::NewFormatted("%s: cannot set final field '%s'.",
-                             "ClassMirror_invokeSetter",
-                             setter_name.ToCString()));
-    ThrowMirroredCompilationError(message);
+    ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
+                      setter_name,
+                      setter,
+                      InvocationMirror::kStatic,
+                      InvocationMirror::kSetter);
     UNREACHABLE();
   }
 
@@ -1848,12 +1830,13 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   // library or in the field's owner class, depending.
   const Field& field = Field::Handle(
       library.LookupLocalField(setter_name));
+  Function& setter = Function::Handle();
 
   if (field.IsNull()) {
     const String& internal_setter_name =
         String::Handle(Field::SetterName(setter_name));
-    const Function& setter = Function::Handle(
-        library.LookupLocalFunction(internal_setter_name));
+
+    setter = library.LookupLocalFunction(internal_setter_name);
     if (setter.IsNull() || !setter.is_visible()) {
       ThrowNoSuchMethod(Instance::null_instance(),
                         setter_name,
@@ -1877,11 +1860,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   }
 
   if (field.is_final()) {
-    const String& message = String::Handle(
-      String::NewFormatted("%s: cannot set final top-level variable '%s'.",
-                           "LibraryMirror_invokeSetter",
-                           setter_name.ToCString()));
-    ThrowMirroredCompilationError(message);
+    ThrowNoSuchMethod(Instance::null_instance(),
+                      setter_name,
+                      setter,
+                      InvocationMirror::kTopLevel,
+                      InvocationMirror::kSetter);
     UNREACHABLE();
   }
 

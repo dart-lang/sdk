@@ -70,6 +70,7 @@ mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_test: RuntimeError # Issue 12607
 mirrors/static_members_test: CompileTimeError # Issue 14633, Issue 12164
+mirrors/set_field_with_final_inheritance_test: RuntimeError # Issue 13919
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
 mirrors/toplevel_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
