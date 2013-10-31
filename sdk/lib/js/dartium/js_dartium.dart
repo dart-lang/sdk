@@ -60,11 +60,15 @@
  *
  * * "Basic" types: `null`, `bool`, `num`, `String`, `DateTime`
  * * `Blob`
- * * `KeyRange`
+ * * `Event`
+ * * `HtmlCollection`
  * * `ImageData`
+ * * `KeyRange`
+ * * `Node`
+ * * `NodeList`
  * * `TypedData`, including its subclasses like `Int32List`, but _not_
  *   `ByteBuffer`
- * * `Node`
+ * * `Window`
  *
  * ## Converting collections with JsObject.jsify()
  *
@@ -149,7 +153,7 @@ class JsObject extends NativeFieldWrapperClass2 {
     return _jsify(object);
   }
 
-  static JSObject _jsify(object) native "JsObject_jsify";
+  static JsObject _jsify(object) native "JsObject_jsify";
 
   static JsObject _fromBrowserObject(object) native "JsObject_fromBrowserObject";
 

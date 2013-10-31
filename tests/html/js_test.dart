@@ -111,6 +111,10 @@ function getNewDivElement() {
   return document.createElement("div");
 }
 
+function getNewEvent() {
+  return new CustomEvent('test');
+}
+
 function getNewBlob() {
   var fileParts = ['<a id="a"><b id="b">hey!</b></a>'];
   return new Blob(fileParts, {type : 'text/html'});
@@ -145,6 +149,12 @@ function testJsMap(callback) {
 
 function addTestProperty(o) {
   o.testProperty = "test";
+}
+
+function fireClickEvent(w) {
+  var event = w.document.createEvent('Events');
+  event.initEvent('click', true, false);
+  w.document.body.dispatchEvent(event);
 }
 
 function Bar() {
@@ -824,7 +834,34 @@ main() {
       });
 
       test('window', () {
-        expect(context['window'] is Window, isFalse);
+        expect(context['window'] is Window, isTrue);
+      });
+
+      test('foreign browser objects should be proxied', () {
+        var iframe = new IFrameElement();
+        document.body.children.add(iframe);
+        var proxy = new JsObject.fromBrowserObject(iframe);
+
+        // Window
+        var contentWindow = proxy['contentWindow'];
+        expect(contentWindow, isNot(new isInstanceOf<Window>()));
+        expect(contentWindow, new isInstanceOf<JsObject>());
+
+        // Node
+        var foreignDoc = contentWindow['document'];
+        expect(foreignDoc, isNot(new isInstanceOf<Node>()));
+        expect(foreignDoc, new isInstanceOf<JsObject>());
+
+        // Event
+        var clicked = false;
+        foreignDoc['onclick'] = (e) {
+          expect(e, isNot(new isInstanceOf<Event>()));
+          expect(e, new isInstanceOf<JsObject>());
+          clicked = true;
+        };
+
+        context.callMethod('fireClickEvent', [contentWindow]);
+        expect(clicked, isTrue);
       });
 
       test('document', () {
@@ -840,6 +877,11 @@ main() {
       test('unattached DivElement', () {
         var node = context.callMethod('getNewDivElement');
         expect(node is DivElement, isTrue);
+      });
+
+      test('Event', () {
+        var event = context.callMethod('getNewEvent');
+        expect(event is Event, true);
       });
 
       test('KeyRange', () {
@@ -879,7 +921,7 @@ main() {
         context['o'] = window;
         var windowType = context['Window'];
         expect(context.callMethod('isPropertyInstanceOf', ['o', windowType]),
-            isFalse);
+            isTrue);
         context.deleteProperty('o');
       });
 
@@ -904,6 +946,14 @@ main() {
         context['o'] = new DivElement();
         var divType = context['HTMLDivElement'];
         expect(context.callMethod('isPropertyInstanceOf', ['o', divType]),
+            isTrue);
+        context.deleteProperty('o');
+      });
+
+      test('Event', () {
+        context['o'] = new CustomEvent('test');
+        var eventType = context['Event'];
+        expect(context.callMethod('isPropertyInstanceOf', ['o', eventType]),
             isTrue);
         context.deleteProperty('o');
       });

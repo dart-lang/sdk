@@ -60,11 +60,15 @@
  *
  * * "Basic" types: `null`, `bool`, `num`, `String`, `DateTime`
  * * `Blob`
- * * `KeyRange`
+ * * `Event`
+ * * `HtmlCollection`
  * * `ImageData`
+ * * `KeyRange`
+ * * `Node`
+ * * `NodeList`
  * * `TypedData`, including its subclasses like `Int32List`, but _not_
  *   `ByteBuffer`
- * * `Node`
+ * * `Window`
  *
  * ## Converting collections with JsObject.jsify()
  *
@@ -83,7 +87,7 @@
  */
 library dart.js;
 
-import 'dart:html' show Blob, ImageData, Node;
+import 'dart:html' show Blob, Event, ImageData, Node, Window;
 import 'dart:collection' show HashMap, ListMixin;
 import 'dart:indexed_db' show KeyRange;
 import 'dart:typed_data' show TypedData;
@@ -467,12 +471,14 @@ bool _defineProperty(o, String name, value) {
   return false;
 }
 
+bool _isLocalObject(o) => JS('bool', '# instanceof Object', o);
+
 dynamic _convertToJS(dynamic o) {
   if (o == null) {
     return null;
   } else if (o is String || o is num || o is bool
-      || o is Blob || o is KeyRange || o is ImageData || o is Node
-      || o is TypedData) {
+      || o is Blob || o is Event || o is KeyRange || o is ImageData
+      || o is Node || o is TypedData || o is Window) {
     return o;
   } else if (o is DateTime) {
     return Primitives.lazyAsJsDate(o);
@@ -503,15 +509,16 @@ Object _getJsProxy(o, String propertyName, createProxy(o)) {
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
 Object _convertToDart(o) {
-  var isArray = JS('bool', '# instanceof Array', o);
   if (JS('bool', '# == null', o) ||
       JS('bool', 'typeof # == "string"', o) ||
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o)) {
     return o;
-  } else if (o is Blob || o is KeyRange || o is ImageData || o is Node
-      || o is TypedData) {
-    return JS('Blob|KeyRange|ImageData|Node|TypedData', '#', o);
+  } else if (_isLocalObject(o)
+      && (o is Blob || o is Event || o is KeyRange || o is ImageData
+      || o is Node || o is TypedData || o is Window)) {
+    // long line: dart2js doesn't allow string concatenation in the JS() form
+    return JS('Blob|Event|KeyRange|ImageData|Node|TypedData|Window', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getMilliseconds()', o);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
