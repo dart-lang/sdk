@@ -232,7 +232,7 @@ patch class String {
 }
 
 patch class bool {
-  patch factory bool.fromEnvironment(String name, {bool defaultValue}) {
+  patch factory bool.fromEnvironment(String name, {bool defaultValue: false}) {
     throw new UnsupportedError(
         'bool.fromEnvironement can only be used as a const constructor');
   }
