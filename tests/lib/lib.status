@@ -263,7 +263,7 @@ mirrors/fake_function_without_call_test: StaticWarning, OK # Implements Function
 mirrors/find_in_context_fake_function_test: StaticWarning, OK # Implements Function without defining call.
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
-mirrors/library_metadata2_test/01: StaticWarning, OK # Compile-time or run-time
+mirrors/library_metadata2_test/01: CompileTimeError # Test issue 14682
 
 mirrors/basic_types_in_dart_core_test: StaticWarning, OK # API being removed.
 mirrors/constructor_kinds_test/01: StaticWarning, OK # API being removed.
