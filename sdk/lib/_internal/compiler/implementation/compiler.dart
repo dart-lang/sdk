@@ -174,6 +174,14 @@ abstract class Backend {
                        Enqueuer enqueuer,
                        TreeElements elements) {}
 
+  /// Register a runtime type variable bound tests between [typeArgument] and
+  /// [bound].
+  void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
+                                              DartType bound) {}
+
+  /// Registers that a type variable bounds check might occur at runtime.
+  void registerTypeVariableBoundCheck(TreeElements elements) {}
+
   /// Register that the application may throw a [NoSuchMethodError].
   void registerThrowNoSuchMethod(TreeElements elements) {}
 
@@ -754,7 +762,7 @@ abstract class Compiler implements DiagnosticListener {
   Future<bool> run(Uri uri) {
     totalCompileTime.start();
 
-    return new Future.sync(() => runCompiler(uri)).catchError((error) {
+    return new Future.sync(() => runCompiler(uri)).catchError((error, trace) {
       if (error is CompilerCancelledException) {
         log('Error: $error');
         return false;
@@ -767,7 +775,7 @@ abstract class Compiler implements DiagnosticListener {
                            MessageKind.COMPILER_CRASHED.error().toString(),
                            api.Diagnostic.CRASH);
           String message = 'The compiler crashed.';
-          pleaseReportCrash(getAttachedStackTrace(error), message);
+          pleaseReportCrash(trace, message);
         }
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.

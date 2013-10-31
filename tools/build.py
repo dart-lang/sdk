@@ -119,6 +119,8 @@ def ProcessOptions(options, args):
 def SetTools(arch, toolchainprefix):
   toolsOverride = None
   if arch == 'arm' and toolchainprefix == None:
+    # Here, we specify the hf compiler. If this changes, we must also remove
+    # the ARM_FLOAT_ABI_HARD define in configurations_make.gypi.
     toolchainprefix = (DEFAULT_ARM_CROSS_COMPILER_PATH +
                        "/bin/arm-linux-gnueabihf")
   if toolchainprefix:

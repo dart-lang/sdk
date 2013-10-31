@@ -82,18 +82,6 @@ class BidiFormatter {
   bool get isRTL => contextDirection == TextDirection.RTL;
 
   /**
-   * Escapes HTML-special characters of [text] so that the result can be
-   * included verbatim in HTML source code, either in an element body or in an
-   * attribute value.
-   *
-   * *htmlEscape* is deprecated. Use [HtmlEscape] from the `dart:convert`
-   * package. *htmlEscape* will be removed the 30th of September 2013.
-   */
-  // TODO(kevmoo) Remove this!
-  @deprecated
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
-
-  /**
    * Formats a string of a given (or estimated, if not provided)
    * [direction] for use in HTML output of the context directionality, so
    * an opposite-directionality string is neither garbled nor garbles what

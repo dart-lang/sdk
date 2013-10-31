@@ -16,7 +16,7 @@ part of dart.convert;
  *     var decoded = LATIN1.decode([0x62, 0x6c, 0xe5, 0x62, 0xe6,
  *                                  0x72, 0x67, 0x72, 0xf8, 0x64]);
  */
-const LATIN1 = const Latin1Codec();
+const Latin1Codec LATIN1 = const Latin1Codec();
 
 const int _LATIN1_MASK = 0xFF;
 

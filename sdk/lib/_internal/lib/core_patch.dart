@@ -102,6 +102,11 @@ patch class int {
                            int onError(String source) }) {
     return Primitives.parseInt(source, radix, onError);
   }
+
+  patch factory int.fromEnvironment(String name, {int defaultValue}) {
+    throw new UnsupportedError(
+        'int.fromEnvironement can only be used as a const constructor');
+  }
 }
 
 patch class double {
@@ -218,6 +223,18 @@ patch class String {
       charCodes = new List.from(charCodes);
     }
     return Primitives.stringFromCharCodes(charCodes);
+  }
+
+  patch factory String.fromEnvironment(String name, {String defaultValue}) {
+    throw new UnsupportedError(
+        'String.fromEnvironement can only be used as a const constructor');
+  }
+}
+
+patch class bool {
+  patch factory bool.fromEnvironment(String name, {bool defaultValue}) {
+    throw new UnsupportedError(
+        'bool.fromEnvironement can only be used as a const constructor');
   }
 }
 

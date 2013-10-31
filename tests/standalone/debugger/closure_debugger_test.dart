@@ -15,8 +15,8 @@ bar(x) {
   print(x);
 }
 
-main() {
-  if (RunScript(testScript)) return;
+main(List<String> arguments) {
+  if (RunScript(testScript, arguments)) return;
   print("Hello from debuggee");
   var f = bar;
   f("closure call");

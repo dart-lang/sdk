@@ -468,6 +468,10 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     return _dataSink.addStream(stream);
   }
 
+  Future flush() {
+    return _dataSink.flush();
+  }
+
   Future close() {
     return _dataSink.close();
   }
@@ -2253,6 +2257,8 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   }
 
   void destroy() => _socket.destroy();
+
+  Future flush() => _socket.flush();
 
   Future close() => _socket.close();
 

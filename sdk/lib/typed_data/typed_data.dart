@@ -827,6 +827,46 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
 
 
 /**
+ * A fixed-length list of Uint32x4 numbers that is viewable as a
+ * [TypedData]. For long lists, this implementation will be considerably more
+ * space- and time-efficient than the default [List] implementation.
+ */
+abstract class Uint32x4List implements List<Uint32x4>, TypedData {
+  /**
+   * Creates a [Uint32x4List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
+  external factory Uint32x4List(int length);
+
+  /**
+   * Creates a [Uint32x4List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Uint32x4List.fromList(List<Uint32x4> elements);
+
+  /**
+   * Creates a [Uint32x4List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Uint32x4List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
+  external factory Uint32x4List.view(ByteBuffer buffer,
+                                      [int offsetInBytes = 0, int length]);
+
+  static const int BYTES_PER_ELEMENT = 16;
+}
+
+
+/**
  * Interface of Dart Float32x4 immutable value type and operations.
  * Float32x4 stores 4 32-bit floating point values in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.

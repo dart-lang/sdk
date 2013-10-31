@@ -25,7 +25,7 @@ test() {
   var environment = Platform.environment;
   Expect.isTrue(environment is Map<String, String>);
   Expect.isTrue(Platform.executable.contains('dart'));
-  Expect.isTrue(Platform.script.replaceAll('\\', '/').
+  Expect.isTrue(Platform.script.path.
                 endsWith('tests/standalone/io/platform_test.dart'));
   Directory packageRoot = new Directory(Platform.packageRoot);
   Expect.isTrue(packageRoot.existsSync());
@@ -48,10 +48,10 @@ testIsolate() {
   port.first.then((results) {
     Expect.equals(Platform.executable, results["Platform.executable"]);
 
-    Uri uri = Uri.parse(results["Platform.script"]);
+    Uri uri = results["Platform.script"];
     // SpawnFunction retains the script url of the parent which in this
     // case was a relative path.
-    Expect.equals("", uri.scheme);
+    Expect.equals("file", uri.scheme);
     Expect.isTrue(uri.path.endsWith('tests/standalone/io/platform_test.dart'));
     Expect.equals(Platform.packageRoot, results["Platform.packageRoot"]);
     Expect.listEquals(Platform.executableArguments,

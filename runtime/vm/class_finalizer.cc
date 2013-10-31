@@ -474,23 +474,14 @@ void ClassFinalizer::ResolveType(const Class& cls,
     // Replace unresolved class with resolved type class.
     const Type& parameterized_type = Type::Cast(type);
     if (type_class.IsNull()) {
-      if ((finalization == kCanonicalizeWellFormed) ||
-          FLAG_error_on_bad_type) {
-        // The type class could not be resolved. The type is malformed.
-        FinalizeMalformedType(
-            Error::Handle(),  // No previous error.
-            Script::Handle(cls.script()),
-            parameterized_type,
-            "cannot resolve class '%s' from '%s'",
-            String::Handle(unresolved_class.Name()).ToCString(),
-            String::Handle(cls.Name()).ToCString());
-      } else {
-        // Map the malformed type to dynamic and ignore type arguments.
-        parameterized_type.set_type_class(Class::Handle(
-            Object::dynamic_class()));
-        parameterized_type.set_arguments(
-            Object::null_abstract_type_arguments());
-      }
+      // The type class could not be resolved. The type is malformed.
+      FinalizeMalformedType(
+          Error::Handle(),  // No previous error.
+          Script::Handle(cls.script()),
+          parameterized_type,
+          "cannot resolve class '%s' from '%s'",
+          String::Handle(unresolved_class.Name()).ToCString(),
+          String::Handle(cls.Name()).ToCString());
       return;
     }
     parameterized_type.set_type_class(type_class);
@@ -983,8 +974,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   // interface.
   ResolveType(cls, type, kCanonicalize);
   type = FinalizeType(cls, type, kCanonicalize);
-  // A malformed result type is mapped to dynamic.
-  ASSERT(!type.IsMalformed());
+  // The result type may be malformed or malbounded.
   function.set_result_type(type);
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumParameters();
@@ -992,8 +982,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kCanonicalize);
     type = FinalizeType(cls, type, kCanonicalize);
-    // A malformed parameter type is mapped to dynamic.
-    ASSERT(!type.IsMalformed());
+    // The parameter type may be malformed or malbounded.
     function.SetParameterTypeAt(i, type);
   }
 }

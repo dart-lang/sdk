@@ -66,10 +66,6 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                typed_data,
                Bootstrap::typed_data_source_paths_,
                Bootstrap::typed_data_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kUtf,
-               utf,
-               Bootstrap::utf_source_paths_,
-               NULL),
 
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };

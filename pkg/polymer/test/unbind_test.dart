@@ -63,7 +63,7 @@ Future testAsync(List<Function> tests, int delayMs, [List args]) {
 delay(x) => new Future.delayed(new Duration(milliseconds: 50), () => x);
 
 // TODO(jmesserly): fix this when it's easier to get a private symbol.
-final unboundSymbol = reflectClass(Polymer).variables.keys
+final unboundSymbol = reflectClass(Polymer).declarations.keys
     .firstWhere((s) => MirrorSystem.getName(s) == '_unbound');
 
 _unbound(node) => reflect(node).getField(unboundSymbol).reflectee;

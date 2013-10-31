@@ -5,9 +5,9 @@
 part of observatory;
 
 /// State for a running isolate.
-class Isolate {
-  final int id;
-  final String name;
+class Isolate extends Observable {
+  @observable final int id;
+  @observable final String name;
 
   Isolate(this.id, this.name);
 

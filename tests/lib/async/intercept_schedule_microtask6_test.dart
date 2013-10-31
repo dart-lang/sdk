@@ -34,7 +34,8 @@ onErrorHandler(e) {
 main() {
   asyncStart();
 
-  // Test that runZonedExperimental works when async, error and done are used.
+  // Test that runZonedScheduleMicrotask works when async, error and done
+  // are used.
   var result = runZonedScheduleMicrotask(
       body,
       onScheduleMicrotask: onAsyncHandler,

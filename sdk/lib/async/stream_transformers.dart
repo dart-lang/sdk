@@ -115,7 +115,7 @@ class _SinkTransformerStreamSubscription<S, T>
     try {
       _transformerSink.add(data);
     } catch (e, s) {
-      _addError(_asyncError(e, s), s);
+      _addError(e, s);
     }
   }
 
@@ -126,7 +126,7 @@ class _SinkTransformerStreamSubscription<S, T>
       if (identical(e, error)) {
         _addError(error, stackTrace);
       } else {
-        _addError(_asyncError(e, s), s);
+        _addError(e, s);
       }
     }
   }
@@ -136,7 +136,7 @@ class _SinkTransformerStreamSubscription<S, T>
       _subscription = null;
       _transformerSink.close();
     } catch (e, s) {
-      _addError(_asyncError(e, s), s);
+      _addError(e, s);
     }
   }
 }

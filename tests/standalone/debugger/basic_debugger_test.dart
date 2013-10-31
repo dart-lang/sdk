@@ -15,7 +15,7 @@ bar(x) {
   var localStr = "foo";
   int localInt = 1;
   double localDouble = 1.1;
-  
+
   print(x);
 }
 
@@ -26,8 +26,8 @@ foo(i) {
   print(i);
 }
 
-main() {
-  if (RunScript(testScript)) return;
+main(List<String> arguments) {
+  if (RunScript(testScript, arguments)) return;
   print("Hello from debuggee");
   foo(42);
   bam("bam");

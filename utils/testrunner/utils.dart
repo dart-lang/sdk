@@ -93,7 +93,7 @@ List buildFileList(List dirs, RegExp filePat, bool recurse,
  */
 
 String get runnerDirectory {
-  var libDirectory = makePathAbsolute(new Options().script);
+  var libDirectory = makePathAbsolute(new Platform.script);
   return libDirectory.substring(0,
       libDirectory.lastIndexOf(Platform.pathSeparator));
 }

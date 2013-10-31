@@ -1,7 +1,12 @@
 <head>
-  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="class_view.html">
+  <link rel="import" href="code_view.html">
   <link rel="import" href="error_view.html">
+  <link rel="import" href="field_view.html">
+  <link rel="import" href="function_view.html">
   <link rel="import" href="isolate_list.html">
+  <link rel="import" href="library_view.html">
+  <link rel="import" href="observatory_element.html">
   <link rel="import" href="stack_trace.html">
 </head>
 <polymer-element name="message-viewer" extends="observatory-element">
@@ -21,6 +26,21 @@
     <!-- If the message type is a RequestError -->
     <template if="{{ messageType == 'RequestError' }}">
       <error-view app="{{ app }}" error="{{ message['error'] }}"></error-view>
+    </template>
+    <template if="{{ messageType == 'Library' }}">
+      <library-view app="{{ app }}" library="{{ message }}"></library-view>
+    </template>
+    <template if="{{ messageType == 'Class' }}">
+      <class-view app="{{ app }}" cls="{{ message }}"></class-view>
+    </template>
+    <template if="{{ messageType == 'Field' }}">
+      <field-view app="{{ app }}" field="{{ message }}"></field-view>
+    </template>
+    <template if="{{ messageType == 'Function' }}">
+      <function-view app="{{ app }}" function="{{ message }}"></function-view>
+    </template>
+    <template if="{{ messageType == 'Code' }}">
+      <code-view app="{{ app }}" code="{{ message }}"></code-view>
     </template>
     <!-- Add new views and message types in the future here. -->
   </template>

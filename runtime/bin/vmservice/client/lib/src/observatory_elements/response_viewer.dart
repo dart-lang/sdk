@@ -9,4 +9,5 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('response-viewer')
 class ResponseViewerElement extends ObservatoryElement {
+  ResponseViewerElement.created() : super.created();
 }

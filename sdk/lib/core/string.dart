@@ -125,6 +125,13 @@ abstract class String implements Comparable<String>, Pattern {
   }
 
   /**
+   * Returns the string for the given environment variable [name] or
+   * [defaultValue] if [name] is not present.
+   */
+  external const factory String.fromEnvironment(String name,
+                                                {String defaultValue});
+
+  /**
    * Gets the character (as a single-code-unit [String]) at the given [index].
    *
    * The returned string represents exactly one UTF-16 code unit, which may be

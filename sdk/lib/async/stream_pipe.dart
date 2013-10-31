@@ -4,17 +4,6 @@
 
 part of dart.async;
 
-/**
- * Utility function to attach a stack trace to an [error]  if it doesn't have
- * one already.
- */
-_asyncError(Object error, StackTrace stackTrace) {
-  if (stackTrace == null) return error;
-  if (getAttachedStackTrace(error) != null) return error;
-  _attachStackTrace(error, stackTrace);
-  return error;
-}
-
 /** Runs user code and takes actions depending on success or failure. */
 _runUserCode(userCode(),
              onSuccess(value),
@@ -22,7 +11,7 @@ _runUserCode(userCode(),
   try {
     onSuccess(userCode());
   } catch (e, s) {
-    onError(_asyncError(e, s), s);
+    onError(e, s);
   }
 }
 
@@ -188,7 +177,7 @@ class _WhereStream<T> extends _ForwardingStream<T, T> {
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      sink._addError(_asyncError(e, s), s);
+      sink._addError(e, s);
       return;
     }
     if (satisfies) {
@@ -214,7 +203,7 @@ class _MapStream<S, T> extends _ForwardingStream<S, T> {
     try {
       outputEvent = _transform(inputEvent);
     } catch (e, s) {
-      sink._addError(_asyncError(e, s), s);
+      sink._addError(e, s);
       return;
     }
     sink._add(outputEvent);
@@ -238,7 +227,7 @@ class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
     } catch (e, s) {
       // If either _expand or iterating the generated iterator throws,
       // we abort the iteration.
-      sink._addError(_asyncError(e, s), s);
+      sink._addError(e, s);
     }
   }
 }
@@ -265,7 +254,7 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
       try {
         matches = _test(error);
       } catch (e, s) {
-        sink._addError(_asyncError(e, s), s);
+        sink._addError(e, s);
         return;
       }
     }
@@ -276,7 +265,7 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
         if (identical(e, error)) {
           sink._addError(error, stackTrace);
         } else {
-          sink._addError(_asyncError(e, s), s);
+          sink._addError(e, s);
         }
         return;
       }
@@ -322,7 +311,7 @@ class _TakeWhileStream<T> extends _ForwardingStream<T, T> {
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      sink._addError(_asyncError(e, s), s);
+      sink._addError(e, s);
       // The test didn't say true. Didn't say false either, but we stop anyway.
       sink._close();
       return;
@@ -370,7 +359,7 @@ class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      sink._addError(_asyncError(e, s), s);
+      sink._addError(e, s);
       // A failure to return a boolean is considered "not matching".
       _hasFailed = true;
       return;
@@ -406,7 +395,7 @@ class _DistinctStream<T> extends _ForwardingStream<T, T> {
           isEqual = _equals(_previous, inputEvent);
         }
       } catch (e, s) {
-        sink._addError(_asyncError(e, s), s);
+        sink._addError(e, s);
         return null;
       }
       if (!isEqual) {

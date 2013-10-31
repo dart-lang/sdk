@@ -14,7 +14,7 @@ typedef _FutureAction();
 abstract class _Completer<T> implements Completer<T> {
   final _Future<T> future = new _Future<T>();
 
-  void complete([T value]);
+  void complete([value]);
 
   void completeError(Object error, [StackTrace stackTrace]);
 
@@ -25,12 +25,13 @@ abstract class _Completer<T> implements Completer<T> {
 
 class _AsyncCompleter<T> extends _Completer<T> {
 
-  void complete([T value]) {
+  void complete([value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._asyncComplete(value);
   }
 
   void completeError(Object error, [StackTrace stackTrace]) {
+    if (error == null) throw new ArgumentError("Error must not be null");
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._asyncCompleteError(error, stackTrace);
   }
@@ -38,7 +39,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 
 class _SyncCompleter<T> extends _Completer<T> {
 
-  void complete([T value]) {
+  void complete([value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._complete(value);
   }
@@ -309,12 +310,7 @@ class _Future<T> implements Future<T> {
     assert(_whenCompleteAction == null);
     assert(_errorTest == null);
 
-    if (stackTrace != null) {
-      // Force the stack trace onto the error, even if it already had one.
-      _attachStackTrace(error, stackTrace);
-    }
-
-    _Future listeners = _isChained ? null : _removeListeners();
+    _Future listeners = _removeListeners();
     _setError(error, stackTrace);
     _propagateToListeners(this, listeners);
   }
@@ -507,7 +503,7 @@ class _Future<T> implements Future<T> {
           if (hasError && identical(source._error.error, e)) {
             listenerValueOrError = source._error;
           } else {
-            listenerValueOrError = new _AsyncError(_asyncError(e, s), s);
+            listenerValueOrError = new _AsyncError(e, s);
           }
           listenerHasValue = false;
         }

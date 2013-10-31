@@ -28,8 +28,7 @@ printStats(num elapsed, [String filename = '']) {
 /**
  * Run from the `utils/css` directory.
  */
-void main() {
-  var optionArgs = new Options().arguments;
+void main(List<String> optionsArgs) {
   assert(optionArgs.length == 2);
 
   String sourceFullFn = optionArgs[0];

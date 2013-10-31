@@ -16,7 +16,7 @@ part of dart.convert;
  *     var decoded = ASCII.decode([0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
  *                                 0x20, 0x41, 0x53, 0x43, 0x49, 0x49, 0x21]);
  */
-const ASCII = const AsciiCodec();
+const AsciiCodec ASCII = const AsciiCodec();
 
 const int _ASCII_MASK = 0x7F;
 

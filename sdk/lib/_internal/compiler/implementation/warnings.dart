@@ -644,7 +644,7 @@ main() {
 }"""]);
 
   static const MessageKind FUNCTION_TYPE_FORMAL_WITH_DEFAULT = const MessageKind(
-      "Error: A function type parameters can't specify a default value.",
+      "Error: A function type parameter can't specify a default value.",
       howToFix:
         "Try removing the default value.",
       examples: const ["""
@@ -657,6 +657,29 @@ foo(f(int i, {a: 1})) {}
 
 main() {
   foo(1, a: 2);
+}"""]);
+
+  static const MessageKind REDIRECTING_FACTORY_WITH_DEFAULT = const MessageKind(
+      "Error: A parameter of a redirecting factory constructor can't specify a "
+      "default value.",
+      howToFix:
+        "Try removing the default value.",
+      examples: const ["""
+class A {
+  A([a]);
+  factory A.foo([a = 1]) = A;
+}
+
+main() {
+  new A.foo(1);
+}""", """
+class A {
+  A({a});
+  factory A.foo({a: 1}) = A;
+}
+
+main() {
+  new A.foo(a: 1);
 }"""]);
 
   static const MessageKind FORMAL_DECLARED_CONST = const MessageKind(

@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_mips.h"
+#include "vm/object.h"
 #include "vm/simulator.h"
 
 // References to documentation in this file refer to:
@@ -1126,6 +1127,11 @@ class Assembler : public ValueObject {
   // The frame layout is a normal Dart frame, but the frame is partially set
   // up on entry (it is the frame of the unoptimized code).
   void EnterOsrFrame(intptr_t extra_size);
+
+  // On some other platforms, we draw a distinction between safe and unsafe
+  // smis.
+  static bool IsSafe(const Object& object) { return true; }
+  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
  private:
   AssemblerBuffer buffer_;

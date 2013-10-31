@@ -22,6 +22,7 @@
 #include "bin/process.h"
 #include "bin/vmservice_impl.h"
 #include "platform/globals.h"
+#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -72,6 +73,8 @@ static bool start_vm_service = false;
 static int vm_service_server_port = -1;
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 
+// The environment provided through the command line using -D options.
+static dart::HashMap* environment = NULL;
 
 static bool IsValidFlag(const char* name,
                         const char* prefix,
@@ -128,6 +131,48 @@ static bool ProcessPackageRootOption(const char* arg) {
     return false;
   }
   package_root = arg;
+  return true;
+}
+
+
+static void* GetHashmapKeyFromString(char* key) {
+  return reinterpret_cast<void*>(key);
+}
+
+static bool ProcessEnvironmentOption(const char* arg) {
+  ASSERT(arg != NULL);
+  if (*arg == '\0') {
+    // Ignore empty -D option.
+    Log::PrintErr("No arguments given to -D option\n");
+    return true;
+  }
+  if (environment == NULL) {
+    environment = new HashMap(&HashMap::SameStringValue, 4);
+  }
+  // Split the name=value part of the -Dname=value argument.
+  char* name;
+  char* value = NULL;
+  const char* equals_pos = strchr(arg, '=');
+  if (equals_pos == NULL) {
+    // No equal sign (name without value) currently not supported.
+    Log::PrintErr("No value given to -D option\n");
+    return false;
+  } else {
+    int name_len = equals_pos - arg;
+    if (name_len == 0) {
+      Log::PrintErr("No name given to -D option\n");
+      return false;
+    }
+    // Split name=value into name and value.
+    name = reinterpret_cast<char*>(malloc(name_len + 1));
+    strncpy(name, arg, name_len);
+    name[name_len] = '\0';
+    value = strdup(equals_pos + 1);
+  }
+  HashMap::Entry* entry = environment->Lookup(
+      GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
+  ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
+  entry->value = value;
   return true;
 }
 
@@ -246,6 +291,7 @@ static struct {
   { "--verbose", ProcessVerboseOption },
   { "-v", ProcessVerboseOption },
   { "--package-root=", ProcessPackageRootOption },
+  { "-D", ProcessEnvironmentOption },
   // VM specific options to the standalone dart program.
   { "--break-at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
@@ -392,37 +438,6 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
 }
 
 
-static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
-  Dart_Handle dart_arguments = CreateRuntimeOptions(options);
-  if (Dart_IsError(dart_arguments)) {
-    return dart_arguments;
-  }
-  Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
-  if (Dart_IsError(io_lib_url)) {
-    return io_lib_url;
-  }
-  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
-  if (Dart_IsError(io_lib)) {
-    return io_lib;
-  }
-  Dart_Handle runtime_options_class_name = DartUtils::NewString("_OptionsImpl");
-  if (Dart_IsError(runtime_options_class_name)) {
-    return runtime_options_class_name;
-  }
-  Dart_Handle runtime_options_type = Dart_GetType(
-      io_lib, runtime_options_class_name, 0, NULL);
-  if (Dart_IsError(runtime_options_type)) {
-    return runtime_options_type;
-  }
-  Dart_Handle native_name = DartUtils::NewString("_nativeArguments");
-  if (Dart_IsError(native_name)) {
-    return native_name;
-  }
-
-  return Dart_SetField(runtime_options_type, native_name, dart_arguments);
-}
-
-
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     *error = strdup(Dart_GetError(result));                                    \
@@ -431,6 +446,38 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
     Dart_ShutdownIsolate();                                                    \
     return NULL;                                                               \
   }                                                                            \
+
+
+static Dart_Handle EnvironmentCallback(Dart_Handle name) {
+  uint8_t* utf8_array;
+  intptr_t utf8_len;
+  Dart_Handle result = Dart_Null();
+  Dart_Handle handle = Dart_StringToUTF8(name, &utf8_array, &utf8_len);
+  if (Dart_IsError(handle)) {
+    handle = Dart_ThrowException(
+        DartUtils::NewDartArgumentError(Dart_GetError(handle)));
+  } else {
+    char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
+    memmove(name_chars, utf8_array, utf8_len);
+    name_chars[utf8_len] = '\0';
+    const char* value = NULL;
+    if (environment != NULL) {
+      HashMap::Entry* entry = environment->Lookup(
+          GetHashmapKeyFromString(name_chars),
+          HashMap::StringHash(name_chars),
+          false);
+      if (entry != NULL) {
+        value = reinterpret_cast<char*>(entry->value);
+      }
+    }
+    if (value != NULL) {
+      result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
+                                      strlen(value));
+    }
+    free(name_chars);
+  }
+  return result;
+}
 
 
 // Returns true on success, false on failure.
@@ -455,6 +502,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  CHECK_RESULT(result);
+
+  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
   // Load the specified application script into the newly created isolate.
@@ -861,11 +911,6 @@ int main(int argc, char** argv) {
       }
     }
 
-    // Create a dart options object that can be accessed from dart code.
-    Dart_Handle options_result = SetupRuntimeOptions(&dart_options);
-    if (Dart_IsError(options_result)) {
-      return DartErrorExit(options_result);
-    }
     // Lookup the library of the root script.
     Dart_Handle library = Dart_RootLibrary();
     if (Dart_IsNull(library)) {
@@ -940,6 +985,17 @@ int main(int argc, char** argv) {
   // Free copied argument strings if converted.
   if (argv_converted) {
     for (int i = 0; i < argc; i++) free(argv[i]);
+  }
+
+  // Free environment if any.
+  if (environment != NULL) {
+    for (HashMap::Entry* p = environment->Start();
+         p != NULL;
+         p = environment->Next(p)) {
+      free(p->key);
+      free(p->value);
+    }
+    free(environment);
   }
 
   return Process::GlobalExitCode();

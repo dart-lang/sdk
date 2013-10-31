@@ -18,9 +18,8 @@ import 'span_test.dart' as span_test;
 import 'utils_test.dart' as utils_test;
 import 'vlq_test.dart' as vlq_test;
 
-main() {
-  var args = new Options().arguments;
-  var pattern = new RegExp(args.length > 0 ? args[0] : '.');
+main(List<String> arguments) {
+  var pattern = new RegExp(arguments.length > 0 ? arguments[0] : '.');
   useCompactVMConfiguration();
 
   void addGroup(testFile, testMain) {

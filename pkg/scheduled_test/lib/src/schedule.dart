@@ -439,7 +439,7 @@ class TaskQueue {
     return Future.forEach(_contents, (task) {
       _schedule._currentTask = task;
       if (_error != null) throw _error;
-      if (_aborted) return;
+      if (_aborted) return null;
 
       _taskFuture = new SubstituteFuture(task.fn());
       return _taskFuture.whenComplete(() {
@@ -458,7 +458,7 @@ class TaskQueue {
       _onTasksCompleteCompleter.completeError(e, stackTrace);
       throw e;
     }).whenComplete(() {
-      if (pendingCallbacks.isEmpty) return;
+      if (pendingCallbacks.isEmpty) return null;
       return _noPendingCallbacks.catchError((e, stackTrace) {
         // Signal the error rather than passing it through directly so that if a
         // timeout happens after an in-task error, both are reported.
@@ -518,7 +518,7 @@ class TaskQueue {
           _schedule.signalError(error);
         }
       } finally {
-        if (_timedOut()) return;
+        if (_timedOut()) return null;
 
         _pendingCallbacks.remove(pendingCallback);
         if (_pendingCallbacks.isEmpty && !isRunningTasks) {

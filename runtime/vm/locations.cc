@@ -60,7 +60,7 @@ LocationSummary* LocationSummary::Make(
 
 Location Location::RegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return (constant != NULL)
+  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
       ? Location::Constant(constant->value())
       : Location::RequiresRegister();
 }
@@ -68,7 +68,7 @@ Location Location::RegisterOrConstant(Value* value) {
 
 Location Location::RegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && constant->value().IsSmi())
+  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
       ? Location::Constant(constant->value())
       : Location::RequiresRegister();
 }
@@ -76,7 +76,7 @@ Location Location::RegisterOrSmiConstant(Value* value) {
 
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return (constant != NULL)
+  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
       ? Location::Constant(constant->value())
       : Location::RegisterLocation(reg);
 }
@@ -84,7 +84,7 @@ Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
 
 Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && constant->value().IsSmi())
+  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
       ? Location::Constant(constant->value())
       : Location::RegisterLocation(reg);
 }
@@ -92,7 +92,7 @@ Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
 
 Location Location::AnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return (constant != NULL)
+  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
       ? Location::Constant(constant->value())
       : Location::Any();
 }

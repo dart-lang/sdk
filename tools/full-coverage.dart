@@ -300,8 +300,8 @@ class Message {
 
 final env = new Environment();
 
-main() {
-  parseArgs();
+main(List<String> arguments) {
+  parseArgs(arguments);
 
   List files = filesToProcess(env.input);
   int filesPerWorker = files.length ~/ env.workers;
@@ -399,7 +399,7 @@ main() {
 
 /// Checks the validity of the provided arguments. Does not initialize actual
 /// processing.
-parseArgs() {
+parseArgs(List<String> arguments) {
   var parser = new ArgParser();
 
   parser.addOption("sdk-root", abbr: "s",
@@ -427,7 +427,7 @@ parseArgs() {
                  help: "show this help",
                  negatable: false);
 
-  var args = parser.parse(new Options().arguments);
+  var args = parser.parse(arguments);
 
   printUsage() {
     print("Usage: dart full-coverage.dart [OPTION...]\n");

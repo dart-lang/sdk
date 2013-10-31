@@ -15,6 +15,6 @@ bool fisk(a) => a is int;
 
 main() {
   Expect.isTrue(fisk(1));
-  var lm = currentMirrorSystem().findLibrary(const Symbol('test')).single;
+  var lm = currentMirrorSystem().findLibrary(const Symbol('test'));
   Expect.isFalse(lm.invoke(const Symbol('fisk'), ['hest']).reflectee);
 }

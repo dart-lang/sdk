@@ -18,8 +18,9 @@ set SCRIPTDIR=%~dp0
 %1 %2
       """);
   var dart = Platform.executable;
-  var script = join(dirname(Platform.script),
-                    'windows_environment_script.dart');
+  var script = Platform.script
+                       .resolve('windows_environment_script.dart')
+                       .toFilePath();
   Process.run('cmd',
               ['/c', funkyFile.path, dart, script]).then((p) {
     if (0 != p.exitCode) throw "Exit code not 0";

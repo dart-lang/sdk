@@ -19,4 +19,8 @@ main() {
   check(new DateTime(2012, 02, 27), "+20120227");
   check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14Z");
   check(new DateTime.utc(-12345, 1, 1), "-123450101 00:00:00 Z");
+  check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14+00");
+  check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14+0000");
+  check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14+00:00");
+  check(new DateTime.utc(2012, 02, 27, 14), "2012-02-27T14 +00:00");
 }

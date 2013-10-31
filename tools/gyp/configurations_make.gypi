@@ -42,6 +42,9 @@
       'Dart_simarm_Base': {
         'cflags': [ '-O3', '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
+        'defines': [
+          'ARM_FLOAT_ABI_HARD',
+        ],
       },
 
       'Dart_arm_Base': {
@@ -53,6 +56,10 @@
             '-mfpu=vfp',
             '-Wno-psabi', # suppresses va_list warning
             '-fno-strict-overflow',
+          ],
+          'defines': [
+            # In build.py, we specify the hf compiler.
+            'ARM_FLOAT_ABI_HARD',
           ],
         }],
         ['_toolset=="host"', {

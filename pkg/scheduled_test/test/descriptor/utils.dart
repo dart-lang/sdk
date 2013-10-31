@@ -24,7 +24,7 @@ void scheduleSandbox() {
 
   currentSchedule.onComplete.schedule(() {
     d.defaultRoot = null;
-    if (sandbox == null) return;
+    if (sandbox == null) return null;
     var oldSandbox = sandbox;
     sandbox = null;
     return new Directory(oldSandbox).delete(recursive: true);

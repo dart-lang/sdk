@@ -220,7 +220,6 @@ abstract class _BroadcastStreamController<T>
 
   void addError(Object error, [StackTrace stackTrace]) {
     if (!_mayAddEvent) throw _addEventError();
-    if (stackTrace != null) _attachStackTrace(error, stackTrace);
     _sendError(error, stackTrace);
   }
 

@@ -5,8 +5,9 @@
 library observe.src.observable_list;
 
 import 'dart:async';
-import 'dart:collection' show ListBase;
+import 'dart:collection' show ListBase, UnmodifiableListView;
 import 'package:observe/observe.dart';
+import 'list_diff.dart' show projectListSplices, calcSplices;
 
 /**
  * Represents an observable list of model values. If any items are added,
@@ -15,6 +16,8 @@ import 'package:observe/observe.dart';
  */
 class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   List<ListChangeRecord> _listRecords;
+
+  StreamController _listChanges;
 
   /** The inner [List<E>] with the actual storage. */
   final List<E> _list;
@@ -38,6 +41,40 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   factory ObservableList.from(Iterable<E> other) =>
       new ObservableList<E>()..addAll(other);
 
+  /**
+   * The stream of summarized list changes, delivered asynchronously.
+   *
+   * Each list change record contains information about an individual mutation.
+   * The records are projected so they can be applied sequentially. For example,
+   * this set of mutations:
+   *
+   *     var model = new ObservableList.from(['a', 'b']);
+   *     model.listChanges.listen((records) => records.forEach(print));
+   *     model.removeAt(1);
+   *     model.insertAll(0, ['c', 'd', 'e']);
+   *     model.removeRange(1, 3);
+   *     model.insert(1, 'f');
+   *
+   * The change records will be summarized so they can be "played back", using
+   * the final list positions to figure out which item was added:
+   *
+   *     #<ListChangeRecord index: 0, removed: [], addedCount: 2>
+   *     #<ListChangeRecord index: 3, removed: [b], addedCount: 0>
+   *
+   * [deliverChanges] can be called to force synchronous delivery.
+   */
+  Stream<List<ListChangeRecord>> get listChanges {
+    if (_listChanges == null) {
+      // TODO(jmesserly): split observed/unobserved notions?
+      _listChanges = new StreamController.broadcast(sync: true,
+          onCancel: () { _listChanges = null; });
+    }
+    return _listChanges.stream;
+  }
+
+  bool get _hasListObservers =>
+      _listChanges != null && _listChanges.hasListener;
+
   @reflectable int get length => _list.length;
 
   @reflectable set length(int value) {
@@ -45,13 +82,13 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     if (len == value) return;
 
     // Produce notifications if needed
-    if (hasObservers) {
+    notifyPropertyChange(#length, len, value);
+    if (_hasListObservers) {
       if (value < len) {
-        // Remove items, then adjust length. Note the reverse order.
-        _recordChange(new ListChangeRecord(value, removedCount: len - value));
+        _recordChange(new ListChangeRecord(this, value,
+            removed: _list.getRange(value, len).toList()));
       } else {
-        // Adjust length then add items
-        _recordChange(new ListChangeRecord(len, addedCount: value - len));
+        _recordChange(new ListChangeRecord(this, len, addedCount: value - len));
       }
     }
 
@@ -62,9 +99,9 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
 
   @reflectable void operator []=(int index, E value) {
     var oldValue = _list[index];
-    if (hasObservers) {
-      _recordChange(new ListChangeRecord(index, addedCount: 1,
-                                                removedCount: 1));
+    if (_hasListObservers) {
+      _recordChange(new ListChangeRecord(this, index, addedCount: 1,
+          removed: [oldValue]));
     }
     _list[index] = value;
   }
@@ -76,17 +113,18 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
       iterable = iterable.toList();
     }
     var len = iterable.length;
-    _list.setAll(index, iterable);
-    if (hasObservers && len > 0) {
-      _recordChange(
-          new ListChangeRecord(index, addedCount: len, removedCount: len));
+    if (_hasListObservers && len > 0) {
+      _recordChange(new ListChangeRecord(this, index, addedCount: len,
+          removed: _list.getRange(index, len).toList()));
     }
+    _list.setAll(index, iterable);
   }
 
   void add(E value) {
     int len = _list.length;
-    if (hasObservers) {
-      _recordChange(new ListChangeRecord(len, addedCount: 1));
+    notifyPropertyChange(#length, len, len + 1);
+    if (_hasListObservers) {
+      _recordChange(new ListChangeRecord(this, len, addedCount: 1));
     }
 
     _list.add(value);
@@ -95,9 +133,12 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   void addAll(Iterable<E> iterable) {
     int len = _list.length;
     _list.addAll(iterable);
+
+    notifyPropertyChange(#length, len, _list.length);
+
     int added = _list.length - len;
-    if (hasObservers && added > 0) {
-      _recordChange(new ListChangeRecord(len, addedCount: added));
+    if (_hasListObservers && added > 0) {
+      _recordChange(new ListChangeRecord(this, len, addedCount: added));
     }
   }
 
@@ -113,14 +154,16 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
 
   void removeRange(int start, int end) {
     _rangeCheck(start, end);
-    int length = end - start;
-    _list.setRange(start, this.length - length, this, end);
-
+    int rangeLength = end - start;
     int len = _list.length;
-    _list.length -= length;
-    if (hasObservers && length > 0) {
-      _recordChange(new ListChangeRecord(start, removedCount: length));
+
+    notifyPropertyChange(#length, len, len - rangeLength);
+    if (_hasListObservers && rangeLength > 0) {
+      _recordChange(new ListChangeRecord(this, start,
+          removed: _list.getRange(start, end).toList()));
     }
+
+    _list.removeRange(start, end);
   }
 
   void insertAll(int index, Iterable<E> iterable) {
@@ -141,8 +184,11 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     _list.setRange(index + insertionLength, this.length, this, index);
     _list.setAll(index, iterable);
 
-    if (hasObservers && insertionLength > 0) {
-      _recordChange(new ListChangeRecord(index, addedCount: insertionLength));
+    notifyPropertyChange(#length, len, _list.length);
+
+    if (_hasListObservers && insertionLength > 0) {
+      _recordChange(new ListChangeRecord(this, index,
+          addedCount: insertionLength));
     }
   }
 
@@ -160,8 +206,10 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     if (index is! int) throw new ArgumentError(index);
     _list.length++;
     _list.setRange(index + 1, length, this, index);
-    if (hasObservers) {
-      _recordChange(new ListChangeRecord(index, addedCount: 1));
+
+    notifyPropertyChange(#length, _list.length - 1, _list.length);
+    if (_hasListObservers) {
+      _recordChange(new ListChangeRecord(this, index, addedCount: 1));
     }
     _list[index] = element;
   }
@@ -183,102 +231,42 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   }
 
   void _recordChange(ListChangeRecord record) {
+    if (!_hasListObservers) return;
+
     if (_listRecords == null) {
       _listRecords = [];
-      scheduleMicrotask(deliverChanges);
+      scheduleMicrotask(deliverListChanges);
     }
     _listRecords.add(record);
   }
 
-  bool deliverChanges() {
+  bool deliverListChanges() {
     if (_listRecords == null) return false;
-    _summarizeRecords();
-    return super.deliverChanges();
+    var records = projectListSplices(this, _listRecords);
+    _listRecords = null;
+
+    if (_hasListObservers) {
+      _listChanges.add(new UnmodifiableListView<ListChangeRecord>(records));
+      return true;
+    }
+    return false;
   }
 
   /**
-   * We need to summarize change records. Consumers of these records want to
-   * apply the batch sequentially, and ensure that they can find inserted
-   * items by looking at that position in the list. This property does not
-   * hold in our record-as-you-go records. Consider:
+   * Calculates the changes to the list, if lacking individual splice mutation
+   * information.
    *
-   *     var model = toObservable(['a', 'b']);
-   *     model.removeAt(1);
-   *     model.insertAll(0, ['c', 'd', 'e']);
-   *     model.removeRange(1, 3);
-   *     model.insert(1, 'f');
+   * This is not needed for change records produced by [ObservableList] itself,
+   * but it can be used if the list instance was replaced by another list.
    *
-   * Here, we inserted some records and then removed some of them.
-   * If someone processed these records naively, they would "play back" the
-   * insert incorrectly, because those items will be shifted.
+   * The minimal set of splices can be synthesized given the previous state and
+   * final state of a list. The basic approach is to calculate the edit distance
+   * matrix and choose the shortest path through it.
    *
-   * We summarize changes using a straightforward technique:
-   * Simulate the moves and use the final item positions to synthesize a
-   * new list of changes records. This has the advantage of not depending
-   * on the actual *values*, so we don't need to perform N^2 edit
+   * Complexity is `O(l * p)` where `l` is the length of the current list and
+   * `p` is the length of the old list.
    */
-  // TODO(jmesserly): there's probably something smarter here, but this
-  // algorithm is pretty simple. It has complexity equivalent to the original
-  // list modifications.
-  // One simple idea: we can simply update the index map as we do the operations
-  // to the list, then produce the records at the end.
-  void _summarizeRecords() {
-    int oldLength = length;
-    for (var r in _listRecords) {
-      oldLength += r.removedCount - r.addedCount;
-    }
-
-    if (length != oldLength) {
-      notifyPropertyChange(#length, oldLength, length);
-    }
-
-    if (_listRecords.length == 1) {
-      notifyChange(_listRecords[0]);
-      _listRecords = null;
-      return;
-    }
-
-    var items = [];
-    for (int i = 0; i < oldLength; i++) items.add(i);
-    for (var r in _listRecords) {
-      items.removeRange(r.index, r.index + r.removedCount);
-
-      // Represent inserts with -1.
-      items.insertAll(r.index, new List.filled(r.addedCount, -1));
-    }
-    assert(items.length == length);
-
-    _listRecords = null;
-
-    int index = 0;
-    int offset = 0;
-    while (index < items.length) {
-      // Skip unchanged items.
-      while (index < items.length && items[index] == index + offset) {
-        index++;
-      }
-
-      // Find inserts
-      int startIndex = index;
-      while (index < items.length && items[index] == -1) {
-        index++;
-      }
-
-      int added = index - startIndex;
-
-      // Use the delta between our actual and expected position to determine
-      // how much was removed.
-      int actualItem = index < items.length ? items[index] : oldLength;
-      int expectedItem = startIndex + offset;
-
-      int removed = actualItem - expectedItem;
-
-      if (added > 0 || removed > 0) {
-        notifyChange(new ListChangeRecord(startIndex, addedCount: added,
-            removedCount: removed));
-      }
-
-      offset += removed - added;
-    }
-  }
+  static List<ListChangeRecord> calculateChangeRecords(
+      List<Object> oldValue, List<Object> newValue) =>
+      calcSplices(newValue, 0, newValue.length, oldValue, 0, oldValue.length);
 }

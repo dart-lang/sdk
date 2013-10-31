@@ -9,5 +9,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('stack-trace')
 class StackTraceElement extends ObservatoryElement {
-  @published Map get trace => __$trace; Map __$trace = toObservable({}); set trace(Map value) { __$trace = notifyPropertyChange(#trace, __$trace, value); }
+  @published Map trace = toObservable({});
+
+  StackTraceElement.created() : super.created();
 }

@@ -47,11 +47,10 @@ class ScheduleError {
                              {StackTrace stackTrace}) {
     if (error is ScheduleError) return error;
 
-    var attachedTrace = getAttachedStackTrace(error);
-    if (attachedTrace != null) {
+    if (stackTrace == null && error is Error) {
       // Overwrite the explicit stack trace, because it probably came from a
       // rethrow in the first place.
-      stackTrace = attachedTrace;
+      stackTrace = error.stackTrace;
     }
 
     if (stackTrace == null) stackTrace = new Trace.current();

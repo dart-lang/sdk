@@ -31,8 +31,8 @@ import 'src/build/common.dart' show TransformOptions;
 import 'src/build/runner.dart';
 import 'transformer.dart';
 
-main() {
-  var args = _parseArgs(new Options().arguments);
+main(List<String> arguments) {
+  var args = _parseArgs(arguments);
   if (args == null) exit(1);
 
   var test = args['test'];
@@ -94,8 +94,7 @@ String _findDirWithFile(String dir, String filename) {
   return dir;
 }
 
-void _reportErrorAndExit(e) {
-  var trace = getAttachedStackTrace(e);
+void _reportErrorAndExit(e, trace) {
   print('Uncaught error: $e');
   if (trace != null) print(trace);
   exit(1);

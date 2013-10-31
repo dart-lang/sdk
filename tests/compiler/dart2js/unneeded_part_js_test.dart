@@ -17,7 +17,7 @@ import '../../../sdk/lib/_internal/compiler/compiler.dart'
 import 'dart:async';
 
 main() {
-  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

@@ -36,7 +36,7 @@ String getExtensionPath(String buildDirectory) {
 }
 
 void main() {
-  String scriptDirectory = dirname(Platform.script);
+  String scriptDirectory = dirname(Platform.script.toFilePath());
   String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory =
       Directory.systemTemp.createTempSync('dart_test_extension_fail');

@@ -1943,6 +1943,8 @@ class TypeErrorImplementation extends Error implements TypeError {
       : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
                   "of type '$type'";
 
+  TypeErrorImplementation.fromMessage(String this.message);
+
   String toString() => message;
 }
 

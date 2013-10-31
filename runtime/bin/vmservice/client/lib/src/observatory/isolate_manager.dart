@@ -5,7 +5,7 @@
 part of observatory;
 
 /// Collection of isolates which are running in the VM. Updated
-class IsolateManager extends ObservableMixin {
+class IsolateManager extends Observable {
   ObservatoryApplication _application;
   ObservatoryApplication get application => _application;
 
@@ -34,7 +34,6 @@ class IsolateManager extends ObservableMixin {
     });
     // Remove them.
     deadIsolates.forEach((k) {
-      print('Removing ${isolates[k]}');
       isolates.remove(k);
     });
     // Add new isolates.
@@ -43,7 +42,6 @@ class IsolateManager extends ObservableMixin {
       var name = k['name'];
       if (isolates[id] == null) {
         var isolate = new Isolate(id, name);
-        print('Adding $isolate');
         isolates[id] = isolate;
       }
     });

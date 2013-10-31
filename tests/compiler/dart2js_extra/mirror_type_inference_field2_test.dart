@@ -16,7 +16,7 @@ var fisk = 1;
 var otherFisk = 42;
 
 main() {
-  var lm = currentMirrorSystem().findLibrary(const Symbol('test')).single;
+  var lm = currentMirrorSystem().findLibrary(const Symbol('test'));
   lm.setField(const Symbol('fisk'), 'hest');
   otherFisk = fisk;
   Expect.isTrue(otherFisk is String);

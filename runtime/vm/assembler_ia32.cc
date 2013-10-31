@@ -1945,6 +1945,17 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 }
 
 
+void Assembler::LoadObjectSafely(Register dst, const Object& object) {
+  if (Assembler::IsSafe(object)) {
+    LoadObject(dst, object);
+  } else {
+    movl(dst,
+         Immediate(reinterpret_cast<int32_t>(object.raw()) ^ jit_cookie_));
+    xorl(dst, Immediate(jit_cookie_));
+  }
+}
+
+
 void Assembler::PushObject(const Object& object) {
   if (object.IsSmi() || object.InVMHeap()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));

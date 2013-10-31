@@ -10,14 +10,13 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
-main() {
-  var args = new Options().arguments;
-  if (args.length != 1) {
+main(List<String> arguments) {
+  if (arguments.length != 1) {
     print("Usage: watch <directory path>");
     return;
   }
 
-  var watcher = new DirectoryWatcher(p.absolute(args[0]));
+  var watcher = new DirectoryWatcher(p.absolute(arguments[0]));
   watcher.events.listen((event) {
     print(event);
   });

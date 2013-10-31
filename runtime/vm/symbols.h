@@ -156,6 +156,8 @@ class ObjectPointerVisitor;
   V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
   V(Float32x4ListFactory, "Float32x4List.")                                    \
+  V(Uint32x4List, "Uint32x4List")                                              \
+  V(Uint32x4ListFactory, "Uint32x4List.")                                      \
   V(Float32List, "Float32List")                                                \
   V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \
@@ -180,6 +182,8 @@ class ObjectPointerVisitor;
   V(_Uint64ArrayFactory, "_Uint64Array.")                                      \
   V(_Float32x4Array, "_Float32x4Array")                                        \
   V(_Float32x4ArrayFactory, "_Float32x4Array.")                                \
+  V(_Uint32x4Array, "_Uint32x4Array")                                          \
+  V(_Uint32x4ArrayFactory, "_Uint32x4Array.")                                  \
   V(_Float32Array, "_Float32Array")                                            \
   V(_Float32ArrayFactory, "_Float32Array.")                                    \
   V(_Float64Array, "_Float64Array")                                            \
@@ -196,6 +200,7 @@ class ObjectPointerVisitor;
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float64ArrayView, "_Float64ArrayView")                                    \
   V(_Float32x4ArrayView, "_Float32x4ArrayView")                                \
+  V(_Uint32x4ArrayView, "_Uint32x4ArrayView")                                  \
   V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
@@ -206,6 +211,7 @@ class ObjectPointerVisitor;
   V(_ExternalInt64Array, "_ExternalInt64Array")                                \
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
+  V(_ExternalUint32x4Array, "_ExternalUint32x4Array")                          \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
   V(ByteData, "ByteData")                                                      \
@@ -241,6 +247,7 @@ class ObjectPointerVisitor;
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
+  V(Malbounded, "malbounded")                                                  \
   V(InstanceOf, "InstanceOf")                                                  \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(CommaSpace, ", ")                                                          \
@@ -269,7 +276,6 @@ class ObjectPointerVisitor;
   V(DartMath, "dart:math")                                                     \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
-  V(DartUtf, "dart:utf")                                                       \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
@@ -288,6 +294,7 @@ class ObjectPointerVisitor;
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
+  V(ClassId, "get:_classId")                                                   \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

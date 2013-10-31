@@ -58,8 +58,7 @@ void subroutine() {
 main() {
   LibraryMirror thisLibrary =
       currentMirrorSystem()
-      .findLibrary(const Symbol('test.class_equality_test'))
-      .single;
+      .findLibrary(const Symbol('test.class_equality_test'));
 
   var o1 = new Object();
   var o2 = new Object();

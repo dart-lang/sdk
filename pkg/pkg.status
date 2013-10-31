@@ -29,7 +29,6 @@ collection_helpers/test/equality_test/03: Fail # Issue 1533
 collection_helpers/test/equality_test/04: Fail # Issue 1533
 collection_helpers/test/equality_test/05: Fail # Issue 1533
 collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
-intl/test/number_closure_test: Pass, CompileTimeError # Issue 14603
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -221,6 +220,7 @@ scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
 
+
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
 # Skip tests on the browser if the test depends on dart:io
@@ -310,33 +310,6 @@ custom_element/test/analyzer_test: fail
 custom_element/test/analyzer_test: fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-barback/test/asset_id_test: StaticWarning
-barback/test/asset_set_test: StaticWarning
-barback/test/asset_test: StaticWarning
-barback/test/cancelable_future_test: StaticWarning
-barback/test/mutliset_test: StaticWarning
-barback/test/package_graph/add_remove_transform_test: StaticWarning
-barback/test/package_graph/errors_test: StaticWarning
-barback/test/package_graph/get_all_assets_test: StaticWarning
-barback/test/package_graph/group_test: StaticWarning
-barback/test/package_graph/many_parallel_transformers_test: StaticWarning
-barback/test/package_graph/repetition_test: StaticWarning
-barback/test/package_graph/source_test: StaticWarning
-barback/test/package_graph/transform_test: StaticWarning
-barback/test/stream_pool_test: StaticWarning
-barback/test/stream_replayer_test: StaticWarning
-barback/test/too_many_open_files_test: StaticWarning
-barback/test/transformer_test: StaticWarning
-csslib/test/big_1_test: StaticWarning
-csslib/test/compiler_test: StaticWarning
-csslib/test/declaration_test: StaticWarning
-csslib/test/error_test: StaticWarning
-csslib/test/extend_test: StaticWarning
-csslib/test/mixin_test: StaticWarning
-csslib/test/nested_test: StaticWarning
-csslib/test/selector_test: StaticWarning
-csslib/test/var_test: StaticWarning
-csslib/test/visitor_test: StaticWarning
 docgen/test/single_library_test: StaticWarning
 http_server/test/http_body_test: StaticWarning
 http_server/test/http_multipart_test: StaticWarning
@@ -353,33 +326,9 @@ intl/test/date_time_format_file_odd_test: StaticWarning
 intl/test/date_time_format_http_request_test: StaticWarning
 intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
-observe/test/transform_test: StaticWarning
-polymer/test/build/*: StaticWarning
-polymer/test/build/utils_test: Pass
-scheduled_test/test/descriptor/async_test: StaticWarning
-scheduled_test/test/descriptor/directory_test: StaticWarning
-scheduled_test/test/descriptor/file_test: StaticWarning
-scheduled_test/test/descriptor/nothing_test: StaticWarning
-scheduled_test/test/descriptor/pattern_test: StaticWarning
-scheduled_test/test/scheduled_future_matchers_test: StaticWarning
-scheduled_test/test/scheduled_process_test: StaticWarning
-scheduled_test/test/scheduled_test/abort_test: StaticWarning
-scheduled_test/test/scheduled_test/current_schedule_current_task_test: StaticWarning
-scheduled_test/test/scheduled_test/current_schedule_errors_test: StaticWarning
-scheduled_test/test/scheduled_test/current_schedule_state_test: StaticWarning
-scheduled_test/test/scheduled_test/nested_task_test: StaticWarning
-scheduled_test/test/scheduled_test/on_complete_test: StaticWarning
-scheduled_test/test/scheduled_test/on_exception_test: StaticWarning
-scheduled_test/test/scheduled_test/out_of_band_task_test: StaticWarning
-scheduled_test/test/scheduled_test/set_up_test: StaticWarning
-scheduled_test/test/scheduled_test/signal_error_test: StaticWarning
-scheduled_test/test/scheduled_test/simple_test: StaticWarning
-scheduled_test/test/scheduled_test/task_return_value_test: StaticWarning
-scheduled_test/test/scheduled_test/timeout_test: StaticWarning
-scheduled_test/test/scheduled_test/wrap_async_test: StaticWarning
-scheduled_test/test/scheduled_test/wrap_future_test: StaticWarning
-unittest/test/matchers_test: StaticWarning
-unittest/test/mock_test: StaticWarning
-watcher/test/directory_watcher_test: StaticWarning
-watcher/test/no_subscription_test: StaticWarning
-watcher/test/ready_test: StaticWarning
+unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
+unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
+
+[ $runtime == vm ]
+# Issue surfaced after removing deprecated async features.
+scheduled_test/test/scheduled_test/nested_task_test: RuntimeError # Issue 14639

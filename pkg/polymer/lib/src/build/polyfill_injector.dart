@@ -11,7 +11,8 @@ library polymer.src.build.polyfill_injector;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:html5lib/dom.dart' show Document, Node, DocumentFragment;
+import 'package:html5lib/dom.dart' show
+    Document, DocumentFragment, Element, Node;
 import 'package:html5lib/parser.dart' show parseFragment;
 import 'common.dart';
 

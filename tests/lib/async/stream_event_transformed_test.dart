@@ -39,8 +39,8 @@ class ZoneTransformerSink implements EventSink {
   }
 }
 
-class TypeChangingSink implements EventSink<int, String> {
-  final Sink<String> outSink;
+class TypeChangingSink implements EventSink<int> {
+  final EventSink<String> outSink;
   TypeChangingSink(this.outSink);
 
   void add(int data) { outSink.add(data.toString()); }

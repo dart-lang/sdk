@@ -570,7 +570,7 @@ class _Parser {
                   pseudoPage.name == 'first')) {
               _warning("Pseudo page must be left, top or first",
                   pseudoPage.span);
-              return;
+              return null;
             }
           }
         }
@@ -742,8 +742,9 @@ class _Parser {
       case TokenKind.DIRECTIVE_CONTENT:
         // TODO(terry): TBD
         _warning("@content not implemented.", _makeSpan(start));
-        return;
+        return null;
     }
+    return null;
   }
 
   /**
@@ -1890,7 +1891,7 @@ class _Parser {
         break;
       default:
         // Don't handle it.
-        return;
+        return null;
     }
   }
 
@@ -1979,7 +1980,7 @@ class _Parser {
         left = marginValue(exprs.expressions[3]);
         break;
       default:
-        return;
+        return null;
     }
 
     return new BoxEdge.clockwiseFromTop(top, right, bottom, left);

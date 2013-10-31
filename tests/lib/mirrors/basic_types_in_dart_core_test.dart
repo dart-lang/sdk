@@ -8,7 +8,7 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 main() {
-  LibraryMirror dartcore = currentMirrorSystem().findLibrary(#dart.core).single;
+  LibraryMirror dartcore = currentMirrorSystem().findLibrary(#dart.core);
   ClassMirror cm;
 
   cm = dartcore.classes[#int];

@@ -308,6 +308,11 @@ def GetSVNRevision():
   if revision:
     return revision
 
+  # Only fail on the buildbot in case of a SVN client version mismatch.
+  user = GetUserName()
+  if user != 'chrome-bot':
+    return '0'
+
   return None
 
 def ParseSvnInfoOutput(output):

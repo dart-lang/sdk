@@ -32,9 +32,8 @@ void testHttp10NoKeepAlive() {
           response.close();
           response.write("x");
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });
@@ -82,9 +81,8 @@ void testHttp10ServerClose() {
             response.close();
           });
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });
@@ -134,9 +132,8 @@ void testHttp10KeepAlive() {
           response.write("Z");
           response.close();
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });
@@ -189,9 +186,8 @@ void testHttp10KeepAliveServerCloses() {
           response.write("Z");
           response.close();
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });

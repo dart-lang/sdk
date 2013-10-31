@@ -10,8 +10,7 @@ import "package:async_helper/async_helper.dart";
 void main() {
   asyncStart();
   Process.run(Platform.executable,
-              [new Uri.file(Platform.script)
-                   .resolve('print_sync_script.dart').toString()])
+              [Platform.script.resolve('print_sync_script.dart').toFilePath()])
       .then((out) {
         asyncEnd();
         Expect.equals(1002, out.stdout.split('\n').length);

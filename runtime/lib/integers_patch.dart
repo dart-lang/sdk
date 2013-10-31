@@ -87,6 +87,10 @@ patch class int {
     return _slowParse(source, radix, onError);
   }
 
+  /* patch */ const factory int.fromEnvironment(String name,
+                                                {int defaultValue})
+      native "Integer_fromEnvironment";
+
   static int _slowParse(String source, int radix, int onError(String str)) {
     if (source is! String) throw new ArgumentError(source);
     if (radix is! int) throw new ArgumentError("Radix is not an integer");

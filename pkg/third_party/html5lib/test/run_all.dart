@@ -15,8 +15,7 @@ import 'parser_test.dart' as parser_test;
 import 'tokenizer_test.dart' as tokenizer_test;
 import 'dom_compat_test.dart' as dom_compat_test;
 
-main() {
-  var args = new Options().arguments;
+main(List<String> args) {
   var pattern = new RegExp(args.length > 0 ? args[0] : '.');
   useCompactVMConfiguration();
 

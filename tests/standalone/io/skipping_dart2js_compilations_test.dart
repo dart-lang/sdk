@@ -107,7 +107,8 @@ class FileUtils {
 
   void _writeToFile(File file, String content) {
     if (content != null) {
-      var fd = new File(file.fullPathSync()).openSync(mode: FileMode.WRITE);
+      var fd = new File(file.resolveSymbolicLinksSync())
+                   .openSync(mode: FileMode.WRITE);
       fd.writeStringSync(content);
       fd.closeSync();
     }
@@ -147,8 +148,8 @@ class CommandCompletedHandler {
 
 runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
-  var createFileScript = join(dirname(Platform.script),
-      'skipping_dart2js_compilations_helper.dart');
+  var createFileScript = Platform.script
+      .resolve('skipping_dart2js_compilations_helper.dart').toFilePath();
   var executable = Platform.executable;
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [

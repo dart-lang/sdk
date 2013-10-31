@@ -130,7 +130,7 @@ void main() {
     // we want from the mirror.
     // TODO(alanknight): Either delete this test and decide we shouldn't
     // attempt to access private variables or fix this properly.
-    var _collectionSym = reflect(stream).type.variables.keys.firstWhere(
+    var _collectionSym = reflect(stream).type.declarations.keys.firstWhere(
         (x) => MirrorSystem.getName(x) == "_collection");
     var s = new Serialization()
       ..addRuleFor(Stream,

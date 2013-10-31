@@ -24,34 +24,22 @@ type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
 implicit_setter_test: Fail # Issue 13919
-redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 13663
-redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 13663
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && $checked ]
 checked_setter2_test: Fail # Issue 11273
-default_factory2_test/01: Fail # Issue 12700
-type_variable_bounds_test/01: Fail # Issue 12702
 type_variable_bounds_test/02: Fail # Issue 12702
-type_variable_bounds_test/04: Fail # Issue 12702
-type_variable_bounds_test/05: Fail # Issue 12702
-type_variable_bounds2_test/00: Fail # Issue 12702
-type_variable_bounds2_test/03: Fail # Issue 12702
-type_variable_bounds2_test/05: Fail # Issue 12702
+type_variable_bounds2_test/01: Fail # Issue 12702
+type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
-f_bounded_quantification_test/01: Fail # Issue 12703
-f_bounded_quantification_test/02: Fail # Issue 12703
-f_bounded_quantification5_test: Fail # Issue 12703
 closure_type_test: Fail # Issue 12745
 function_subtype_setter0_test: Fail # Issue 11273
 redirecting_factory_malbounded_test/01: Fail # Issue 12825
-malbounded_instantiation_test/02: Fail # Issue 14121
-malbounded_instantiation_test/03: Fail # Issue 14121
+malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_type_cast_test: Fail # Issue 14121
-malbounded_type_test_test/01: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
 
@@ -61,6 +49,8 @@ assertion_test: RuntimeError # Issue 12748
 double_to_string_as_exponential2_test: RuntimeError # Issue 12749
 double_to_string_as_fixed2_test: RuntimeError # Issue 12749
 double_to_string_as_precision2_test: RuntimeError # Issue 12749
+list_literal1_test/01: MissingCompileTimeError, OK # Checked mode test.
+map_literal1_test/01: MissingCompileTimeError, OK # Checked mode test.
 compile_time_constant_checked_test/02: MissingCompileTimeError, OK
 compile_time_constant_checked2_test/01: MissingCompileTimeError, OK
 compile_time_constant_checked2_test/02: MissingCompileTimeError, OK
@@ -145,8 +135,6 @@ list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
 
-list_literal1_test/01: MissingCompileTimeError # Issue 12993
-map_literal1_test/01: MissingCompileTimeError # Issue 12993
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 static_final_field2_test/02: MissingCompileTimeError # Issue 13017
 

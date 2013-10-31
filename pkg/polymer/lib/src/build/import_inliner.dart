@@ -10,8 +10,10 @@ import 'dart:convert';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:html5lib/dom.dart' show Document, Node, DocumentFragment;
+import 'package:html5lib/dom.dart' show
+    Document, DocumentFragment, Element, Node;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
+import 'package:source_maps/span.dart' show Span;
 
 import 'code_extractor.dart'; // import just for documentation.
 import 'common.dart';
@@ -95,7 +97,7 @@ class ImportInliner extends Transformer with PolymerTransformer {
           if (src == null) {
             logger.warning('unexpected script without a src url. The '
               'ImportInliner transformer should run after running the '
-              'InlineCodeExtractor', script.sourceSpan);
+              'InlineCodeExtractor', span: script.sourceSpan);
             continue;
           }
           scriptIds.add(resolve(id, src, logger, script.sourceSpan));
@@ -207,10 +209,11 @@ class _UrlNormalizer extends TreeVisitor {
 
     if (primaryId.package != id.package) {
       // Techincally we shouldn't get there
-      logger.error("don't know how to include $id from $primaryId", span);
+      transform.logger.error("don't know how to include $id from $primaryId",
+          span: span);
       return null;
     }
-    
+
     var builder = path.url;
     return builder.relative(builder.join('/', id.path),
         from: builder.join('/', builder.dirname(primaryId.path)));

@@ -688,22 +688,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
-    Error& error = Error::Handle();
-    if (dst_type.IsMalformed()) {
-      error = dst_type.malformed_error();
-    } else {
-      const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
-      ASSERT(is_malbounded);
-    }
-    const String& error_message = String::ZoneHandle(
-        Symbols::New(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
-    __ PushObject(error_message);
+    __ PushObject(dst_type);  // Push the type of the destination.
     GenerateRuntimeCall(token_pos,
                         deopt_id,
-                        kMalformedTypeErrorRuntimeEntry,
+                        kBadTypeErrorRuntimeEntry,
                         3,
                         locs);
     // We should never return here.
@@ -1770,7 +1761,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
         __ xorl(destination.reg(), destination.reg());
       } else {
-        __ LoadObject(destination.reg(), constant);
+        __ LoadObjectSafely(destination.reg(), constant);
       }
     } else {
       ASSERT(destination.IsStackSlot());
@@ -1869,11 +1860,11 @@ void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  if (obj.IsSmi() || obj.IsNull()) {
+  if (Assembler::IsSafeSmi(obj) || obj.IsNull()) {
     __ movl(dst, Immediate(reinterpret_cast<int32_t>(obj.raw())));
   } else {
     ScratchRegisterScope ensure_scratch(this, kNoRegister);
-    __ LoadObject(ensure_scratch.reg(), obj);
+    __ LoadObjectSafely(ensure_scratch.reg(), obj);
     __ movl(dst, ensure_scratch.reg());
   }
 }

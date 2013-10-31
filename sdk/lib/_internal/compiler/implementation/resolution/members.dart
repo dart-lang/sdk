@@ -1084,11 +1084,19 @@ class ResolverTask extends CompilerTask {
   }
 
   FunctionSignature resolveSignature(FunctionElement element) {
+    MessageKind defaultValuesError = null;
+    if (element.isFactoryConstructor()) {
+      FunctionExpression body = element.parseNode(compiler);
+      if (body.isRedirectingFactory) {
+        defaultValuesError = MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT;
+      }
+    }
     return compiler.withCurrentElement(element, () {
       FunctionExpression node =
           compiler.parser.measure(() => element.parseNode(compiler));
       return measure(() => SignatureResolver.analyze(
-          compiler, node.parameters, node.returnType, element));
+          compiler, node.parameters, node.returnType, element,
+          defaultValuesError: defaultValuesError));
     });
   }
 
@@ -1779,7 +1787,7 @@ class TypeResolver {
           addTypeVariableBoundsCheck) {
         visitor.addDeferredAction(
             visitor.enclosingElement,
-            () => checkTypeVariableBounds(node, type));
+            () => checkTypeVariableBounds(visitor.mapping, node, type));
       }
     }
     visitor.useType(node, type);
@@ -1787,26 +1795,23 @@ class TypeResolver {
   }
 
   /// Checks the type arguments of [type] against the type variable bounds.
-  void checkTypeVariableBounds(TypeAnnotation node, GenericType type) {
-    TypeDeclarationElement element = type.element;
-    Link<DartType> typeArguments = type.typeArguments;
-    Link<DartType> typeVariables = element.typeVariables;
-    while (!typeVariables.isEmpty && !typeArguments.isEmpty) {
-      TypeVariableType typeVariable = typeVariables.head;
-      DartType bound = typeVariable.element.bound.subst(
-          type.typeArguments, element.typeVariables);
-      DartType typeArgument = typeArguments.head;
+  void checkTypeVariableBounds(TreeElements elements,
+                               TypeAnnotation node, GenericType type) {
+    void checkTypeVariableBound(_, DartType typeArgument,
+                                   TypeVariableType typeVariable,
+                                   DartType bound) {
+      compiler.backend.registerTypeVariableBoundCheck(elements);
       if (!compiler.types.isSubtype(typeArgument, bound)) {
         compiler.reportWarningCode(node,
             MessageKind.INVALID_TYPE_VARIABLE_BOUND,
             {'typeVariable': typeVariable,
              'bound': bound,
              'typeArgument': typeArgument,
-             'thisType': element.thisType});
+             'thisType': type.element.thisType});
       }
-      typeVariables = typeVariables.tail;
-      typeArguments = typeArguments.tail;
-    }
+    };
+
+    compiler.types.checkTypeVariableBounds(type, checkTypeVariableBound);
   }
 
   /**
@@ -2634,8 +2639,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
         } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
           if (!node.argumentsNode.isEmpty) {
             Node argument = node.argumentsNode.nodes.head;
-            if (argumentsToJsInterceptorConstant == null)
+            if (argumentsToJsInterceptorConstant == null) {
               argumentsToJsInterceptorConstant = new Set<Node>();
+            }
             argumentsToJsInterceptorConstant.add(argument);
           }
         }

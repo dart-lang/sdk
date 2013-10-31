@@ -1,0 +1,54 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="function-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          {{ function['user_name'] }} ({{ function['name'] }}) 
+          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(function['class']['id'])}}">
+            {{ function['class']['name'] }}
+          </a>
+        </div>
+        <div class="panel-body">
+          <div>
+          <a class="btn btn-primary" href="{{ app.locationManager.currentIsolateObjectLink(function['code']['id'])}}">Current Code</a>
+          <a class="btn btn-info" href="{{ app.locationManager.currentIsolateObjectLink(function['unoptimized_code']['id'])}}">Unoptimized Code</a>
+          </div>
+          <table class="table table-hover">
+            <tbody>
+              <tr>
+                <td>static</td><td>{{ function['is_static'] }}</td>
+              </tr>
+              <tr>
+                <td>Const</td><td>{{ function['is_const'] }}</td>
+              </tr>
+              <tr>
+                <td>Optimizable</td><td>{{ function['is_optimizable'] }}</td>
+              </tr>
+              <tr>
+                <td>Inlinable</td><td>{{ function['is_inlinable'] }}</td>
+              </tr>
+              <tr>
+                <td>Kind</td><td>{{ function['kind'] }}</td>
+              </tr>
+              <tr>
+                <td>Usage Count</td><td>{{ function['usage_counter'] }}</td>
+              </tr>
+              <tr>
+                <td>Optimized Call Site Count</td><td>{{ function['optimized_call_site_count'] }}</td>
+              </tr>
+              <tr>
+                <td>Deoptimizations</td><td>{{ function['deoptimizations'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script type="application/dart" src="function_view.dart"></script>
+</polymer-element>

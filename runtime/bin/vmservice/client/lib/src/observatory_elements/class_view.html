@@ -1,0 +1,77 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="class-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          {{ cls['user_name'] }} ({{ cls['name'] }}) 
+          <template if="{{ cls['super']['type'] != 'Null' }}">
+            extends
+            <a href="{{ app.locationManager.currentIsolateClassLink(cls['super']['id'])}}">
+              {{ cls['super']['user_name'] }}
+            </a> 
+          </template>
+          <a class="pull-right" href="{{ app.locationManager.currentIsolateObjectLink(cls['library']['id'])}}">
+            {{ cls['library']['name'] }}
+          </a>
+        </div>
+        <div class="panel-body">
+          <table class="table table-hover">
+            <tbody>
+              <tr>
+                <td>Abstract</td><td>{{ cls['abstract'] }}</td>
+              </tr>
+              <tr>
+                <td>Const</td><td>{{ cls['const'] }}</td>
+              </tr>
+              <tr>
+                <td>Finalized</td><td>{{ cls['const'] }}</td>
+              </tr>
+              <tr>
+                <td>Implemented</td><td>{{ cls['implemented'] }}</td>
+              </tr>
+              <tr>
+                <td>Patch</td><td>{{ cls['patch'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <blockquote><strong>Fields</strong></blockquote>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>User Name</th>
+                <th>VM Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr template repeat="{{ field in cls['fields'] }}">
+                <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['user_name'] }}</a></td>
+                <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['name'] }}</a></td>
+              </tr>
+            </tbody>
+          </table>
+          <blockquote><strong>Functions</strong></blockquote>
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>User Name</th>
+                <th>VM Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr template repeat="{{ function in cls['functions'] }}">
+                <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['user_name'] }}</a></td>
+                <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['name'] }}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  <script type="application/dart" src="class_view.dart"></script>
+</polymer-element>

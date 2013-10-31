@@ -102,7 +102,7 @@ testIntercepted(mirrors) {
 testFieldAccess(mirrors) {
   var instance = new Class();
 
-  var libMirror = mirrors.findLibrary(#MirrorsTest).single;
+  var libMirror = mirrors.findLibrary(#MirrorsTest);
   var classMirror = libMirror.classes[#Class];
   var instMirror = reflect(instance);
   var fieldMirror = classMirror.members[#field];
@@ -218,7 +218,7 @@ testReflectClass(mirrors) {
 }
 
 testNames(mirrors) {
-  var libMirror = mirrors.findLibrary(#MirrorsTest).single;
+  var libMirror = mirrors.findLibrary(#MirrorsTest);
   var classMirror = libMirror.classes[#Class];
   var typedefMirror = libMirror.members[#Typedef];
   var methodMirror = libMirror.functions[#testNames];

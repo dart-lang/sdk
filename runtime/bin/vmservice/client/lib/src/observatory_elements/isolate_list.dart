@@ -10,4 +10,5 @@ import 'observatory_element.dart';
 /// Displays an IsolateList response.
 @CustomTag('isolate-list')
 class IsolateListElement extends ObservatoryElement {
+  IsolateListElement.created() : super.created();
 }

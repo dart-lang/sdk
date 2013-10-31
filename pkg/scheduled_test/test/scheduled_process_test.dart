@@ -365,7 +365,6 @@ ScheduledProcess startDartProcess(String script) {
                          'create temp dir');
   var dartPath = schedule(() {
     return tempDir.then((dir) {
-      var utilsPath = path.absolute(path.join(Platform.script, 'utils.dart'));
       return new File(path.join(dir, 'test.dart')).writeAsString('''
           import 'dart:async';
           import 'dart:convert';
@@ -384,7 +383,7 @@ ScheduledProcess startDartProcess(String script) {
 
   currentSchedule.onComplete.schedule(() {
     return tempDir.catchError((_) => null).then((dir) {
-      if (dir == null) return;
+      if (dir == null) return null;
       return new Directory(dir).delete(recursive: true);
     });
   }, 'clean up temp dir');

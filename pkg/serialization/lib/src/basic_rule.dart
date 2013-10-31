@@ -574,7 +574,7 @@ class _FieldList extends IterableBase<_Field> {
     var fields = publicFields(mirror);
     var getters = publicGetters(mirror);
     var gettersWithSetters = getters.where( (each)
-        => mirror.setters[
+        => mirror.declarations[
             new Symbol("${MirrorSystem.getName(each.simpleName)}=")] != null);
     var gettersThatMatchConstructor = getters.where((each)
         => (named(each.simpleName) != null) &&
@@ -630,15 +630,7 @@ class Constructor {
     // TODO(alanknight): Handle named parameters
     Iterable inflated = fieldNumbers.map(
         (x) => (x is int) ? r.inflateReference(state[x]) : x);
-    var result;
-    try {
-      result = type.newInstance(nameSymbol, inflated.toList());
-    } on MirroredError catch (e) {
-      // Mirrored "compile-time" errors do not get treated as exceptions
-      // in the debugger, so explicitly re-throw. Issue dartbug.com/10054.
-      throw e;
-    }
-    return result;
+    return type.newInstance(nameSymbol, inflated.toList());
   }
 }
 

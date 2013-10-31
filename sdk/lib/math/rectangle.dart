@@ -5,6 +5,13 @@ part of dart.math;
 
 /**
  * A base class for representing two-dimensional axis-aligned rectangles.
+ *
+ * This rectangle uses a left-handed Cartesian coordinate system, with x
+ * directed to the right and y directed down, as per the convention in 2D
+ * computer graphics.
+ *
+ * See also:
+ *    [W3C Coordinate Systems Specification](http://www.w3.org/TR/SVG/coords.html#InitialCoordinateSystem).
  */
 abstract class _RectangleBase<T extends num> {
   const _RectangleBase();

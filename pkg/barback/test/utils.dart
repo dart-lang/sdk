@@ -466,7 +466,7 @@ class MockProvider implements PackageProvider {
   void _modifyAsset(String name, String contents) {
     var id = new AssetId.parse(name);
     _errors.remove(id);
-    _assets[id.package][id].contents = contents;
+    (_assets[id.package][id] as _MockAsset).contents = contents;
   }
 
   void _setAssetError(String name) {

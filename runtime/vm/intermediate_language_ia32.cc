@@ -150,7 +150,7 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out().IsInvalid()) {
     Register result = locs()->out().reg();
-    __ LoadObject(result, value());
+    __ LoadObjectSafely(result, value());
   }
 }
 
@@ -196,7 +196,7 @@ static void EmitAssertBoolean(Register reg,
   __ pushl(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
                                 deopt_id,
-                                kConditionTypeErrorRuntimeEntry,
+                                kNonBoolTypeErrorRuntimeEntry,
                                 1,
                                 locs);
   // We should never return here.
@@ -941,15 +941,16 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
-  if (!index->definition()->IsConstant()) return false;
-  const Object& constant = index->definition()->AsConstant()->value();
-  if (!constant.IsSmi()) return false;
-  const Smi& smi_const = Smi::Cast(constant);
+static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  if ((constant == NULL) || !Assembler::IsSafeSmi(constant->value())) {
+    return false;
+  }
+  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
   const intptr_t scale = FlowGraphCompiler::ElementSizeFor(cid);
-  const intptr_t data_offset = FlowGraphCompiler::DataOffsetFor(cid);
-  const int64_t disp = smi_const.AsInt64Value() * scale + data_offset;
-  return Utils::IsInt(32, disp);
+  const intptr_t offset = FlowGraphCompiler::DataOffsetFor(cid);
+  const int64_t displacement = index * scale + offset;
+  return Utils::IsInt(32, displacement);
 }
 
 
@@ -1049,6 +1050,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
+    case kTypedDataUint32x4ArrayCid:
+      return CompileType::FromCid(kUint32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1100,6 +1103,8 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1113,20 +1118,19 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  if (index_scale() == 1) {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::WritableRegister());
+  if (CanBeImmediateIndex(index(), class_id())) {
+    // CanBeImmediateIndex must return false for unsafe smis.
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
   } else {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::RequiresRegister());
+    // The index is either untagged (element size == 1) or a smi (for all
+    // element sizes > 1).
+    locs->set_in(1, (index_scale() == 1)
+                        ? Location::WritableRegister()
+                        : Location::RequiresRegister());
   }
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1158,7 +1162,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
-      (representation() == kUnboxedFloat32x4)) {
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     XmmRegister result = locs()->out().fpu_reg();
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
@@ -1180,6 +1185,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case kTypedDataFloat64ArrayCid:
         __ movsd(result, element_address);
         break;
+      case kTypedDataUint32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         __ movups(result, element_address);
         break;
@@ -1266,6 +1272,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1279,18 +1287,15 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged (element size == 1), or it is left smi
-  // tagged (for all element sizes > 1).
-  if (index_scale() == 1) {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::WritableRegister());
+  if (CanBeImmediateIndex(index(), class_id())) {
+    // CanBeImmediateIndex must return false for unsafe smis.
+    locs->set_in(1, Location::Constant(index()->BoundConstant()));
   } else {
-    locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                      ? Location::Constant(
-                          index()->definition()->AsConstant()->value())
-                      : Location::RequiresRegister());
+    // The index is either untagged (element size == 1) or a smi (for all
+    // element sizes > 1).
+    locs->set_in(1, (index_scale() == 1)
+                        ? Location::WritableRegister()
+                        : Location::RequiresRegister());
   }
   switch (class_id()) {
     case kArrayCid:
@@ -1329,6 +1334,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1449,6 +1455,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       __ movups(element_address, locs()->in(2).fpu_reg());
       break;
@@ -1578,7 +1585,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ cmpl(value_cid_reg, Immediate(kNullCid));
           __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
           // Check for typed data array.
-          __ cmpl(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+          __ cmpl(value_cid_reg, Immediate(kTypedDataUint32x4ArrayCid));
           // Not a typed array or a regular array.
           __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
           __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
@@ -1665,7 +1672,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ cmpl(value_cid_reg, Immediate(kNullCid));
         __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
         // Check for typed data array.
-        __ cmpl(value_cid_reg, Immediate(kTypedDataFloat32x4ArrayCid));
+        __ cmpl(value_cid_reg, Immediate(kTypedDataUint32x4ArrayCid));
         // Not a typed array or a regular array.
         __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
         __ cmpl(value_cid_reg, Immediate(kTypedDataInt8ArrayCid));
@@ -2434,6 +2441,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     if (RightIsPowerOfTwoConstant()) {
       summary->set_in(0, Location::RequiresRegister());
       ConstantInstr* right_constant = right()->definition()->AsConstant();
+      // The programmer only controls one bit, so the constant is safe.
       summary->set_in(1, Location::Constant(right_constant->value()));
       summary->set_temp(0, Location::RequiresRegister());
       summary->set_out(Location::SameAsFirstInput());

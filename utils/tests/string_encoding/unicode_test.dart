@@ -5,7 +5,6 @@
 
 library unicode_tests;
 import 'dunit.dart';
-import '../../../sdk/lib/utf/utf.dart';
 
 void main() {
   TestSuite suite = new TestSuite();

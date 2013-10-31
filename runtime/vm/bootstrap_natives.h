@@ -37,8 +37,10 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
+  V(Integer_fromEnvironment, 3)                                                \
   V(Integer_parse, 1)                                                          \
   V(Integer_leftShiftWithMask32, 3)                                            \
+  V(Bool_fromEnvironment, 3)                                                   \
   V(RawReceivePortImpl_factory, 1)                                             \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
   V(SendPortImpl_sendInternal_, 3)                                             \
@@ -94,11 +96,13 @@ namespace dart {
   V(OneByteString_splitWithCharCode, 2)                                        \
   V(OneByteString_allocate, 1)                                                 \
   V(OneByteString_setAt, 3)                                                    \
+  V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
   V(String_codeUnitAt, 2)                                                      \
   V(String_concat, 2)                                                          \
+  V(String_fromEnvironment, 3)                                                 \
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
@@ -140,6 +144,7 @@ namespace dart {
   V(TypedData_Float32Array_new, 1)                                             \
   V(TypedData_Float64Array_new, 1)                                             \
   V(TypedData_Float32x4Array_new, 1)                                           \
+  V(TypedData_Uint32x4Array_new, 1)                                            \
   V(ExternalTypedData_Int8Array_new, 1)                                        \
   V(ExternalTypedData_Uint8Array_new, 1)                                       \
   V(ExternalTypedData_Uint8ClampedArray_new, 1)                                \
@@ -152,6 +157,7 @@ namespace dart {
   V(ExternalTypedData_Float32Array_new, 1)                                     \
   V(ExternalTypedData_Float64Array_new, 1)                                     \
   V(ExternalTypedData_Float32x4Array_new, 1)                                   \
+  V(ExternalTypedData_Uint32x4Array_new, 1)                                    \
   V(TypedData_length, 1)                                                       \
   V(TypedData_setRange, 5)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
@@ -176,6 +182,8 @@ namespace dart {
   V(TypedData_SetFloat64, 3)                                                   \
   V(TypedData_GetFloat32x4, 2)                                                 \
   V(TypedData_SetFloat32x4, 3)                                                 \
+  V(TypedData_GetUint32x4, 2)                                                  \
+  V(TypedData_SetUint32x4, 3)                                                  \
   V(ByteData_ToEndianInt16, 2)                                                 \
   V(ByteData_ToEndianUint16, 2)                                                \
   V(ByteData_ToEndianInt32, 2)                                                 \

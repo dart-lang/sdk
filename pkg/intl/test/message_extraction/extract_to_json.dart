@@ -27,8 +27,7 @@ import 'package:path/path.dart' as path;
 import 'package:intl/src/intl_message.dart';
 import 'package:args/args.dart';
 
-main() {
-  var args = new Options().arguments;
+main(List<String> args) {
   var targetDir;
   var parser = new ArgParser();
   parser.addFlag("suppress-warnings", defaultsTo: false,

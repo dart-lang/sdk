@@ -172,7 +172,7 @@ class CrossIsolateException implements Exception {
   /// Serializes [error] to an object that can safely be passed across isolate
   /// boundaries.
   static Map serialize(error, [StackTrace stack]) {
-    if (stack == null) stack = getAttachedStackTrace(error);
+    if (stack == null && error is Error) stack = error.stackTrace;
     return {
       'type': error.runtimeType.toString(),
       'message': getErrorMessage(error),

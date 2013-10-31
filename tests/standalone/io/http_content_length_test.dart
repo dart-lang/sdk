@@ -42,9 +42,8 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
           response.close();
           response.write("x");
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected server error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });
@@ -63,9 +62,8 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
             Expect.equals(0, response.contentLength);
             response.drain();
           })
-          .catchError((e) {
+          .catchError((e, trace) {
             String msg = "Unexpected error $e";
-            var trace = getAttachedStackTrace(e);
             if (trace != null) msg += "\nStackTrace: $trace";
             Expect.fail(msg);
          });
@@ -108,9 +106,8 @@ void testBody(int totalConnections, bool useHeader) {
                 response.write("x");
               });
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });
@@ -142,7 +139,7 @@ void testBody(int totalConnections, bool useHeader) {
                     client.close();
                   }
                 },
-                onError: (error) {
+                onError: (error, trace) {
                   // Undefined what server response sends.
                 });
           });
@@ -177,9 +174,8 @@ void testBodyChunked(int totalConnections, bool useHeader) {
                 response.write("x");
               });
         },
-        onError: (e) {
+        onError: (e, trace) {
           String msg = "Unexpected error $e";
-          var trace = getAttachedStackTrace(e);
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
         });
@@ -215,9 +211,8 @@ void testBodyChunked(int totalConnections, bool useHeader) {
                   }
                 });
           })
-          .catchError((e) {
+          .catchError((e, trace) {
             String msg = "Unexpected error $e";
-            var trace = getAttachedStackTrace(e);
             if (trace != null) msg += "\nStackTrace: $trace";
             Expect.fail(msg);
           });

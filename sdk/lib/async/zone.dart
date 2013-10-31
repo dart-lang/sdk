@@ -23,9 +23,6 @@ typedef ZoneBinaryCallback RegisterBinaryCallbackHandler(
     Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2));
 typedef void ScheduleMicrotaskHandler(
     Zone self, ZoneDelegate parent, Zone zone, f());
-@deprecated
-typedef void RunAsyncHandler(
-    Zone self, ZoneDelegate parent, Zone zone, f());
 typedef Timer CreateTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
 typedef Timer CreatePeriodicTimerHandler(
@@ -55,8 +52,6 @@ typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
  * Handlers can either stop propagation the request (by simply not calling the
  * parent handler), or forward to the parent zone, potentially modifying the
  * arguments on the way.
- *
- * *The `runAsync` handler is deprecated. Use `scheduleMicrotask` instead.*
  */
 abstract class ZoneSpecification {
   /**
@@ -77,8 +72,6 @@ abstract class ZoneSpecification {
     ZoneBinaryCallback registerBinaryCallback(
         Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)),
     void scheduleMicrotask(
-        Zone self, ZoneDelegate parent, Zone zone, f()),
-    void runAsync(
         Zone self, ZoneDelegate parent, Zone zone, f()),
     Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
                       Duration duration, void f()),
@@ -109,8 +102,6 @@ abstract class ZoneSpecification {
         Zone self, ZoneDelegate parent, Zone zone, f(arg1, arg2)): null,
     void scheduleMicrotask(
         Zone self, ZoneDelegate parent, Zone zone, f()): null,
-    void runAsync(
-        Zone self, ZoneDelegate parent, Zone zone, f()): null,
     Timer createTimer(Zone self, ZoneDelegate parent, Zone zone,
                       Duration duration, void f()): null,
     Timer createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
@@ -138,9 +129,7 @@ abstract class ZoneSpecification {
                          : other.registerBinaryCallback,
       scheduleMicrotask: scheduleMicrotask != null
                          ? scheduleMicrotask
-                         : (runAsync != null
-                            ? runAsync
-                            : other.scheduleMicrotask),
+                         : other.scheduleMicrotask,
       createTimer : createTimer != null ? createTimer : other.createTimer,
       createPeriodicTimer: createPeriodicTimer != null
                            ? createPeriodicTimer
@@ -157,8 +146,6 @@ abstract class ZoneSpecification {
   RegisterUnaryCallbackHandler get registerUnaryCallback;
   RegisterBinaryCallbackHandler get registerBinaryCallback;
   ScheduleMicrotaskHandler get scheduleMicrotask;
-  @deprecated
-  RunAsyncHandler get runAsync;
   CreateTimerHandler get createTimer;
   CreatePeriodicTimerHandler get createPeriodicTimer;
   PrintHandler get print;
@@ -182,7 +169,6 @@ class _ZoneSpecification implements ZoneSpecification {
     this.registerUnaryCallback: null,
     this.registerBinaryCallback: null,
     this.scheduleMicrotask: null,
-    this.runAsync: null,
     this.createTimer: null,
     this.createPeriodicTimer: null,
     this.print: null,
@@ -198,8 +184,6 @@ class _ZoneSpecification implements ZoneSpecification {
   final /*RegisterUnaryCallbackHandler*/ registerUnaryCallback;
   final /*RegisterBinaryCallbackHandler*/ registerBinaryCallback;
   final /*ScheduleMicrotaskHandler*/ scheduleMicrotask;
-  @deprecated
-  final /*RunAsyncHandler*/ runAsync;
   final /*CreateTimerHandler*/ createTimer;
   final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
   final /*PrintHandler*/ print;
@@ -227,8 +211,6 @@ abstract class ZoneDelegate {
   ZoneCallback registerCallback(Zone zone, f());
   ZoneUnaryCallback registerUnaryCallback(Zone zone, f(arg));
   ZoneBinaryCallback registerBinaryCallback(Zone zone, f(arg1, arg2));
-  @deprecated
-  void runAsync(Zone zone, f());
   void scheduleMicrotask(Zone zone, f());
   Timer createTimer(Zone zone, Duration duration, void f());
   Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
@@ -381,9 +363,6 @@ abstract class Zone {
    */
   void scheduleMicrotask(void f());
 
-  @deprecated
-  void runAsync(void f());
-
   /**
    * Creates a Timer where the callback is executed in this zone.
    */
@@ -486,21 +465,12 @@ class _ZoneDelegate implements ZoneDelegate {
 
   void scheduleMicrotask(Zone zone, f()) {
     _BaseZone parent = _degelationTarget;
-    while (parent._specification.scheduleMicrotask == null &&
-           parent._specification.runAsync == null) {
+    while (parent._specification.scheduleMicrotask == null) {
       parent = parent.parent;
     }
     _ZoneDelegate grandParent = new _ZoneDelegate(parent.parent);
     Function scheduleMicrotask = parent._specification.scheduleMicrotask;
-    if (scheduleMicrotask == null) {
-      scheduleMicrotask = parent._specification.runAsync;
-    }
     scheduleMicrotask(parent, grandParent, zone, f);
-  }
-
-  @deprecated
-  void runAsync(Zone zone, f()) {
-    scheduleMicrotask(zone, f());
   }
 
   Timer createTimer(Zone zone, Duration duration, void f()) {
@@ -681,11 +651,6 @@ class _CustomizedZone extends _BaseZone {
     new _ZoneDelegate(this).scheduleMicrotask(this, f);
   }
 
-  @deprecated
-  void runAsync(void f()) {
-    scheduleMicrotask(f);
-  }
-
   Timer createTimer(Duration duration, void f()) {
     return new _ZoneDelegate(this).createTimer(this, duration, f);
   }
@@ -705,9 +670,7 @@ void _rootHandleUncaughtError(
     _scheduleAsyncCallback(() {
       print("Uncaught Error: ${error}");
       var trace = stackTrace;
-      if (trace == null) trace = getAttachedStackTrace(error);
-      // Clear the attached stack trace (if any).
-      _attachStackTrace(error, null);
+      if (trace == null && error is Error) trace = error.stackTrace;
       if (trace != null) {
         print("Stack Trace: \n$trace\n");
       }
@@ -781,8 +744,8 @@ Timer _rootCreatePeriodicTimer(
     Zone self, ZoneDelegate parent, Zone zone,
     Duration duration, void callback(Timer timer)) {
   return _createPeriodicTimer(duration, callback);
-}
 
+}
 void _rootPrint(Zone self, ZoneDelegate parent, Zone zone, String line) {
   printToConsole(line);
 }
@@ -831,8 +794,6 @@ class _RootZoneSpecification implements ZoneSpecification {
   RegisterBinaryCallbackHandler get registerBinaryCallback =>
       _rootRegisterBinaryCallback;
   ScheduleMicrotaskHandler get scheduleMicrotask => _rootScheduleMicrotask;
-  @deprecated
-  RunAsyncHandler get runAsync => null;
   CreateTimerHandler get createTimer => _rootCreateTimer;
   CreatePeriodicTimerHandler get createPeriodicTimer =>
       _rootCreatePeriodicTimer;
@@ -879,11 +840,6 @@ class _RootZone extends _BaseZone {
     _rootScheduleMicrotask(this, null, this, f);
   }
 
-  @deprecated
-  void runAsync(void f()) {
-    scheduleMicrotask(f);
-  }
-
   Timer createTimer(Duration duration, void f()) =>
       _rootCreateTimer(this, null, this, duration, f);
 
@@ -908,16 +864,16 @@ const _ROOT_ZONE = const _RootZone();
  * Errors that try to cross error-zone boundaries are considered uncaught.
  *
  *     var future = new Future.value(499);
- *     runZonedExperimental(() {
+ *     runZoned(() {
  *       future = future.then((_) { throw "error in first error-zone"; });
- *       runZonedExperimental(() {
+ *       runZoned(() {
  *         future = future.catchError((e) { print("Never reached!"); });
  *       }, onError: (e) { print("unused error handler"); });
  *     }, onError: (e) { print("catches error of first error-zone."); });
  *
  * Example:
  *
- *     runZonedExperimental(() {
+ *     runZoned(() {
  *       new Future(() { throw "asynchronous error"; });
  *     }, onError: print);  // Will print "asynchronous error".
  */
@@ -953,67 +909,6 @@ dynamic runZoned(body(),
   }
   Zone zone = Zone.current.fork(specification: zoneSpecification,
                                 zoneValues: zoneValues);
-  if (onError != null) {
-    return zone.runGuarded(body);
-  } else {
-    return zone.run(body);
-  }
-}
-
-/**
- * Deprecated. Use `runZoned` instead or create your own [ZoneSpecification].
- *
- * The [onScheduleMicrotask] handler (if non-null) is invoked when the [body]
- * executes [scheduleMicrotask]. The handler is invoked in the outer zone and
- * can therefore execute [scheduleMicrotask] without recursing. The given
- * callback must be executed eventually. Otherwise the nested zone will not
- * complete. It must be executed only once.
- *
- * The following example prints the stack trace whenever a callback is
- * registered using [scheduleMicrotask] (which is also used by [Completer]s and
- * [StreamController]s.
- *
- *     printStackTrace() { try { throw 0; } catch(e, s) { print(s); } }
- *     runZonedExperimental(body, onRunAsync: (callback) {
- *       printStackTrace();
- *       scheduleMicrotask(callback);
- *     });
- *
- * Note: the `onDone` handler is ignored.
- */
-@deprecated
-runZonedExperimental(body(),
-                     { void onRunAsync(void callback()),
-                       void onError(error),
-                       void onDone() }) {
-  if (onRunAsync == null) {
-    return runZoned(body, onError: onError);
-  }
-  HandleUncaughtErrorHandler errorHandler;
-  if (onError != null) {
-    errorHandler = (Zone self, ZoneDelegate parent, Zone zone,
-                    error, StackTrace stackTrace) {
-      try {
-        return self.parent.runUnary(onError, error);
-      } catch(e, s) {
-        if (identical(e, error)) {
-          return parent.handleUncaughtError(zone, error, stackTrace);
-        } else {
-          return parent.handleUncaughtError(zone, _asyncError(e, s), s);
-        }
-      }
-    };
-  }
-  ScheduleMicrotaskHandler asyncHandler;
-  if (onRunAsync != null) {
-    asyncHandler = (Zone self, ZoneDelegate parent, Zone zone, f()) {
-      self.parent.runUnary(onRunAsync, () => zone.runGuarded(f));
-    };
-  }
-  ZoneSpecification specification =
-    new ZoneSpecification(handleUncaughtError: errorHandler,
-                          scheduleMicrotask: asyncHandler);
-  Zone zone = Zone.current.fork(specification: specification);
   if (onError != null) {
     return zone.runGuarded(body);
   } else {

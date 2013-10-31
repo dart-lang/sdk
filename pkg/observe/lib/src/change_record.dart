@@ -30,37 +30,3 @@ class PropertyChangeRecord<T> extends ChangeRecord {
   String toString() =>
       '#<PropertyChangeRecord $name from: $oldValue to: $newValue>';
 }
-
-/** A change record for an observable list. */
-class ListChangeRecord extends ChangeRecord {
-  /** The starting index of the change. */
-  final int index;
-
-  /** The number of items removed. */
-  final int removedCount;
-
-  /** The number of items added. */
-  final int addedCount;
-
-  ListChangeRecord(this.index, {this.removedCount: 0, this.addedCount: 0}) {
-    if (addedCount == 0 && removedCount == 0) {
-      throw new ArgumentError('added and removed counts should not both be '
-          'zero. Use 1 if this was a single item update.');
-    }
-  }
-
-  /** Returns true if the provided index was changed by this operation. */
-  bool indexChanged(otherIndex) {
-    // If key isn't an int, or before the index, then it wasn't changed.
-    if (otherIndex is! int || otherIndex < index) return false;
-
-    // If this was a shift operation, anything after index is changed.
-    if (addedCount != removedCount) return true;
-
-    // Otherwise, anything in the update range was changed.
-    return otherIndex < index + addedCount;
-  }
-
-  String toString() => '#<ListChangeRecord index: $index, '
-      'removed: $removedCount, addedCount: $addedCount>';
-}

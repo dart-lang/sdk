@@ -7262,6 +7262,7 @@ static void A_change_str_native(Dart_NativeArguments args) {
                               str_data,
                               &ExternalStringDeoptimize_Finalize);
   EXPECT_VALID(result);
+  EXPECT(Dart_IsExternalString(result));
   Dart_ExitScope();
 }
 
@@ -7403,6 +7404,35 @@ TEST_CASE(ExternalStringDoubleParse) {
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(8, value);
+}
+
+
+TEST_CASE(ExternalStringIndexOf) {
+    const char* kScriptChars =
+      "main(String pattern) {\n"
+      "  var str = 'Hello World';\n"
+      "  return str.indexOf(pattern);\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, NULL);
+
+  uint8_t data8[] = { 'W' };
+  Dart_Handle ext8 = Dart_NewExternalLatin1String(data8, ARRAY_SIZE(data8),
+                                                  data8, NULL);
+  EXPECT_VALID(ext8);
+  EXPECT(Dart_IsString(ext8));
+  EXPECT(Dart_IsExternalString(ext8));
+
+  Dart_Handle dart_args[1];
+  dart_args[0] = ext8;
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   1,
+                                   dart_args);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(6, value);
 }
 
 }  // namespace dart

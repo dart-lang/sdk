@@ -15,6 +15,7 @@
 library mime;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 part 'src/mime_type.dart';

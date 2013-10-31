@@ -339,8 +339,7 @@ void sanitizeConfig(Map config, ArgParser parser) {
   var pathSep = Platform.pathSeparator;
 
   if (dartsdk == null) {
-    var opt = new Options();
-    var runner = opt.executable;
+    var runner = Platform.executable;
     var idx = runner.indexOf('dart-sdk');
     if (idx < 0) {
       print("Please use --dartsdk option or run using the dart executable "
@@ -354,7 +353,7 @@ void sanitizeConfig(Map config, ArgParser parser) {
         '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js';
     config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
     config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub';
-    config['drt'] = 
+    config['drt'] =
       '$dartsdk/chromium/Content Shell.app/Contents/MacOS/Content Shell';
   } else if (Platform.operatingSystem == 'linux') {
     config['dart2js'] =
@@ -378,9 +377,9 @@ void sanitizeConfig(Map config, ArgParser parser) {
   config['exclude'] = normalizeFilter(config['exclude']);
 }
 
-main() {
+main(List<String> arguments) {
   var optionsParser = getOptionParser();
-  var options = loadConfiguration(optionsParser);
+  var options = loadConfiguration(optionsParser, arguments);
   if (isSane(options)) {
     if (options['list-options']) {
       printOptions(optionsParser, options, false, stdout);

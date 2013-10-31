@@ -404,12 +404,11 @@ class Traverser {
 
         return _solver.cache.getVersions(dep.toRef()).then((versions) {
           return new Pair<PackageDep, int>(dep, versions.length);
-        }).catchError((error) {
+        }).catchError((error, trace) {
           // If it fails for any reason, just treat that as no versions. This
           // will sort this reference higher so that we can traverse into it
           // and report the error more properly.
-          log.solver("Could not get versions for $dep:\n$error\n\n"
-              "${getAttachedStackTrace(error)}");
+          log.solver("Could not get versions for $dep:\n$error\n\n$trace");
           return new Pair<PackageDep, int>(dep, 0);
         });
       }

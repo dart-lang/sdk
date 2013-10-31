@@ -88,9 +88,7 @@ abstract class PubCommand {
 
     cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
 
-    handleError(error) {
-      var trace = getAttachedStackTrace(error);
-
+    handleError(error, trace) {
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
       var message;

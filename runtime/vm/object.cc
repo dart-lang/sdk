@@ -7951,11 +7951,6 @@ RawLibrary* Library::TypedDataLibrary() {
 }
 
 
-RawLibrary* Library::UtfLibrary() {
-  return Isolate::Current()->object_store()->utf_library();
-}
-
-
 const char* Library::ToCString() const {
   const char* kFormat = "Library:'%s'";
   const String& name = String::Handle(url());
@@ -15056,6 +15051,7 @@ const intptr_t TypedData::element_size[] = {
   4,   // kTypedDataFloat32ArrayCid.
   8,   // kTypedDataFloat64ArrayCid.
   16,  // kTypedDataFloat32x4ArrayCid.
+  16,  // kTypedDataUint32x4ArrayCid.
 };
 
 

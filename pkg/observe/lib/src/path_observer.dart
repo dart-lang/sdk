@@ -184,15 +184,28 @@ class PathObserver extends ChangeNotifier {
 
   void _observeIndex(int i) {
     final object = _values[i];
-    if (object is Observable) {
+    final segment = _segments[i];
+    if (segment is int) {
+      if (object is ObservableList) {
+        _subs[i] = object.listChanges.listen((List<ListChangeRecord> records) {
+          for (var record in records) {
+            if (record.indexChanged(segment)) {
+              _updateObservedValues(start: i);
+              return;
+            }
+          }
+        });
+      }
+    } else if (object is Observable) {
       // TODO(jmesserly): rather than allocating a new closure for each
       // property, we could try and have one for the entire path. However we'd
       // need to do a linear scan to find the index as soon as we got a change.
       // Also we need to fix ListChangeRecord and MapChangeRecord to contain
       // the target. Not sure if it's worth it.
+
       _subs[i] = object.changes.listen((List<ChangeRecord> records) {
         for (var record in records) {
-          if (_changeRecordMatches(record, _segments[i])) {
+          if (_changeRecordMatches(record, segment)) {
             _updateObservedValues(start: i);
             return;
           }
@@ -203,9 +216,6 @@ class PathObserver extends ChangeNotifier {
 }
 
 bool _changeRecordMatches(record, key) {
-  if (record is ListChangeRecord) {
-    return key is int && (record as ListChangeRecord).indexChanged(key);
-  }
   if (record is PropertyChangeRecord) {
     return (record as PropertyChangeRecord).name == key;
   }
@@ -244,7 +254,7 @@ _getObjectProperty(object, property) {
   }
 
   if (_logger.isLoggable(Level.FINER)) {
-    _logger.log("can't get $property in $object");
+    _logger.finer("can't get $property in $object");
   }
   return null;
 }
@@ -276,14 +286,14 @@ bool _setObjectProperty(object, property, value) {
   }
 
   if (_logger.isLoggable(Level.FINER)) {
-    _logger.log("can't set $property in $object");
+    _logger.finer("can't set $property in $object");
   }
   return false;
 }
 
 bool _maybeHasGetter(ClassMirror type, Symbol name) {
   while (type != objectType) {
-    final members = type.members;
+    final members = type.declarations;
     if (members.containsKey(name)) return true;
     if (members.containsKey(#noSuchMethod)) return true;
     type = _safeSuperclass(type);
@@ -299,7 +309,7 @@ Symbol _setterName(Symbol getter) =>
 bool _maybeHasSetter(ClassMirror type, Symbol name) {
   var setterName = _setterName(name);
   while (type != objectType) {
-    final members = type.members;
+    final members = type.declarations;
     if (members[name] is VariableMirror) return true;
     if (members.containsKey(setterName)) return true;
     if (members.containsKey(#noSuchMethod)) return true;
@@ -314,7 +324,7 @@ bool _maybeHasSetter(ClassMirror type, Symbol name) {
  */
 bool _hasMethod(ClassMirror type, Symbol name) {
   while (type != objectType) {
-    final member = type.members[name];
+    final member = type.declarations[name];
     if (member is MethodMirror && member.isRegularMethod) return true;
     type = _safeSuperclass(type);
   }
@@ -353,4 +363,4 @@ bool _isPathValid(String s) {
   return _pathRegExp.hasMatch(s);
 }
 
-final _logger = new Logger('observe.PathObserver');
+final Logger _logger = new Logger('observe.PathObserver');

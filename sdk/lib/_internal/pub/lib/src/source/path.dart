@@ -21,8 +21,8 @@ class PathSource extends Source {
 
   Future<Pubspec> describeUncached(PackageId id) {
     return new Future.sync(() {
-      _validatePath(id.name, id.description);
-      return new Pubspec.load(id.description["path"], systemCache.sources,
+      var dir = _validatePath(id.name, id.description);
+      return new Pubspec.load(dir, systemCache.sources,
           expectedName: id.name);
     });
   }
@@ -37,23 +37,19 @@ class PathSource extends Source {
   Future<bool> get(PackageId id, String destination) {
     return new Future.sync(() {
       try {
-        _validatePath(id.name, id.description);
+        var dir = _validatePath(id.name, id.description);
+        createPackageSymlink(id.name, dir, destination,
+            relative: id.description["relative"]);
       } on FormatException catch(err) {
         return false;
       }
 
-      createPackageSymlink(id.name, id.description["path"], destination,
-          relative: id.description["relative"]);
       return true;
     });
   }
 
-  Future<String> getDirectory(PackageId id) {
-    return newFuture(() {
-      _validatePath(id.name, id.description);
-      return id.description["path"];
-    });
-  }
+  Future<String> getDirectory(PackageId id) =>
+      newFuture(() => _validatePath(id.name, id.description));
 
   /// Parses a path dependency. This takes in a path string and returns a map.
   /// The "path" key will be the original path but resolved relative to the
@@ -103,13 +99,16 @@ class PathSource extends Source {
     };
   }
 
-  /// Ensures that [description] is a valid path description. It must be a map,
-  /// with a "path" key containing a path that points to an existing directory.
-  /// Throws an [ApplicationException] if the path is invalid.
-  void _validatePath(String name, description) {
-    var dir = description["path"];
+  /// Ensures that [description] is a valid path description and returns a
+  /// normalized path to the package.
+  ///
+  /// It must be a map, with a "path" key containing a path that points to an
+  /// existing directory. Throws an [ApplicationException] if the path is
+  /// invalid.
+  String _validatePath(String name, description) {
+    var dir = path.normalize(description["path"]);
 
-    if (dirExists(dir)) return;
+    if (dirExists(dir)) return dir;
 
     if (fileExists(dir)) {
       fail("Path dependency for package '$name' must refer to a "

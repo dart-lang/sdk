@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_arm.h"
+#include "vm/object.h"
 #include "vm/simulator.h"
 
 namespace dart {
@@ -732,6 +733,11 @@ class Assembler : public ValueObject {
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
+
+  // On some other platforms, we draw a distinction between safe and unsafe
+  // smis.
+  static bool IsSafe(const Object& object) { return true; }
+  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.

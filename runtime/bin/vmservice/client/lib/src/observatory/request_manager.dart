@@ -7,15 +7,15 @@ part of observatory;
 /// A request response interceptor is called for each response.
 typedef void RequestResponseInterceptor();
 
-abstract class RequestManager extends Object with ChangeNotifierMixin {
+abstract class RequestManager extends Observable {
   ObservatoryApplication _application;
   ObservatoryApplication get application => _application;
   RequestResponseInterceptor interceptor;
 
   /// The default request prefix is 127.0.0.1 on port 8181.
-  @observable String get prefix => __$prefix; String __$prefix = 'http://127.0.0.1:8181'; set prefix(String value) { __$prefix = notifyPropertyChange(#prefix, __$prefix, value); }
+  @observable String prefix = 'http://127.0.0.1:8181';
   /// List of responses.
-  @observable List<Map> get responses => __$responses; List<Map> __$responses = toObservable([]); set responses(List<Map> value) { __$responses = notifyPropertyChange(#responses, __$responses, value); }
+  @observable List<Map> responses = toObservable([]);
 
   /// Parse
   void parseResponses(String responseString) {
@@ -34,7 +34,11 @@ abstract class RequestManager extends Object with ChangeNotifierMixin {
     }
   }
 
-  void setResponseError(String error) {
+  void setResponseError(HttpRequest request) {
+    String error = '${request.status} ${request.statusText}';
+    if (request.status == 0) {
+      error = 'No service found. Did you run with --enable-vm-service ?';
+    }
     setResponses([{
       'type': 'RequestError',
       'error': error
@@ -47,7 +51,7 @@ abstract class RequestManager extends Object with ChangeNotifierMixin {
     request(requestString).then((responseString) {
       parseResponses(responseString);
     }).catchError((e) {
-      setResponseError(e.toString());
+      setResponseError(e.target);
     });
   }
 

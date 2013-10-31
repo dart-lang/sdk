@@ -284,6 +284,7 @@ Isolate::Isolate()
       top_context_(Context::null()),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),
+      environment_callback_(NULL),
       library_tag_handler_(NULL),
       api_state_(NULL),
       stub_code_(NULL),

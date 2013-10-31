@@ -26,13 +26,13 @@ _getSuperclass(ClassMirror mirror) {
  * fields.
  */
 Iterable<VariableMirror> publicFields(ClassMirror mirror) {
-  var mine = mirror.variables.values.where(
-      (x) => !(x.isPrivate || x.isStatic));
+  var mine = mirror.declarations.values.where(
+      (x) => x is VariableMirror && !(x.isPrivate || x.isStatic));
   var mySuperclass = _getSuperclass(mirror);
   if (mySuperclass != null) {
     return append(publicFields(mySuperclass), mine);
   } else {
-    return mine;
+    return new List<VariableMirror>.from(mine);
   }
 }
 
@@ -40,8 +40,8 @@ Iterable<VariableMirror> publicFields(ClassMirror mirror) {
  * includes private fields, but excludes statics. */
 bool hasField(Symbol name, ClassMirror mirror) {
   if (name == null) return false;
-  var field = mirror.variables[name];
-  if (field != null && !field.isStatic) return true;
+  var field = mirror.declarations[name];
+  if (field is VariableMirror && !field.isStatic) return true;
   var superclass = _getSuperclass(mirror);
   if (superclass == null) return false;
   return hasField(name, superclass);
@@ -52,20 +52,23 @@ bool hasField(Symbol name, ClassMirror mirror) {
  * getters. Note that this allows private getters, but excludes statics.
  */
 Iterable<MethodMirror> publicGetters(ClassMirror mirror) {
-  var mine = mirror.getters.values.where((x) => !(x.isPrivate || x.isStatic));
+  var mine = mirror.declarations.values.where(
+      (x) => x is MethodMirror && x.isGetter && !(x.isPrivate || x.isStatic));
   var mySuperclass = _getSuperclass(mirror);
   if (mySuperclass != null) {
     return append(publicGetters(mySuperclass), mine);
   } else {
-    return mine.toList();
+    return new List<MethodMirror>.from(mine);
   }
 }
 
 /** Return true if the class has a getter named [name] */
 bool hasGetter(Symbol name, ClassMirror mirror) {
   if (name == null) return false;
-  var getter = mirror.getters[name];
-  if (getter != null && !getter.isStatic) return true;
+  var getter = mirror.declarations[name];
+  if (getter is MethodMirror && getter.isGetter && !getter.isStatic) {
+    return true;
+  }
   var superclass = _getSuperclass(mirror);
   if (superclass == null) return false;
   return hasField(name, superclass);
@@ -76,9 +79,10 @@ bool hasGetter(Symbol name, ClassMirror mirror) {
  * setters.
  */
 Iterable<MethodMirror> publicGettersWithMatchingSetters(ClassMirror mirror) {
-  var setters = mirror.setters;
+  var declarations = mirror.declarations;
   return publicGetters(mirror).where((each) =>
-    setters["${each.simpleName}="] != null);
+    // TODO(alanknight): Use new Symbol here?
+    declarations["${each.simpleName}="] != null);
 }
 
 /**

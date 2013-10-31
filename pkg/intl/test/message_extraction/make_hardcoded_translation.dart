@@ -223,8 +223,7 @@ void translate(List originals, String locale, Map translations) {
   file.writeAsStringSync(JSON.encode(translated));
 }
 
-main() {
-  var args = new Options().arguments;
+main(List<String> args) {
   if (args.length == 0) {
     print('Usage: generate_hardcoded_translation [--output-dir=<dir>] '
         '[originalFile.json]');

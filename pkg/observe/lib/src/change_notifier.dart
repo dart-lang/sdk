@@ -40,7 +40,10 @@ abstract class ChangeNotifier implements Observable {
    * Override this method to be called when the [changes] are no longer being
    * observed.
    */
-  void unobserved() {}
+  void unobserved() {
+    // Free some memory
+    _changes = null;
+  }
 
   bool deliverChanges() {
     var records = _records;

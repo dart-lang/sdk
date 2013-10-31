@@ -50,9 +50,8 @@ class WebSocketMessageCollector {
     data = buffer;
   }
 
-  void onError(e) {
+  void onError(e, trace) {
     String msg = "Unexpected error $e";
-    var trace = getAttachedStackTrace(e);
     if (trace != null) msg += "\nStackTrace: $trace";
     Expect.fail(msg);
   }

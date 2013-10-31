@@ -17,7 +17,7 @@ expectChanges(actual, expected, {reason}) =>
     expect('$actual', '$expected', reason: reason);
 
 List getListChangeRecords(List changes, int index) => changes
-    .where((c) => c is ListChangeRecord && c.indexChanged(index)).toList();
+    .where((c) => c.indexChanged(index)).toList();
 
 List getPropertyChangeRecords(List changes, Symbol property) => changes
     .where((c) => c is PropertyChangeRecord && c.name == property).toList();

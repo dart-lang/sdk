@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library observatory_main;
+import "package:expect/expect.dart";
 
 main() {
+  Expect.isNull(const String.fromEnvironment('NOT_FOUND'));
+  Expect.equals('x',
+                const String.fromEnvironment('NOT_FOUND', defaultValue: 'x'));
 }

@@ -23,7 +23,6 @@
     'io_sink.dart',
     'io_service.dart',
     'link.dart',
-    'options.dart',
     'platform.dart',
     'platform_impl.dart',
     'process.dart',

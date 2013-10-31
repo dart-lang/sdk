@@ -19,7 +19,7 @@ set accessor(value) {
 
 main() {
   LibraryMirror library = currentMirrorSystem()
-      .findLibrary(#test.top_level_accessors_test).single;
+      .findLibrary(#test.top_level_accessors_test);
   field = 42;
   Expect.equals(42, library.getField(#accessor).reflectee);
   Expect.equals(87, library.setField(#accessor, 87).reflectee);

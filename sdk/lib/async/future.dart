@@ -487,17 +487,35 @@ abstract class Completer<T> {
   /**
    * Completes [future] with the supplied values.
    *
+   * If the value is itself a future, the completer will wait for that future
+   * to complete, and complete with the same result, whether it is a success
+   * or an error.
+   *
+   * Calling `complete` or [completeError] must not be done more than once.
+   *
    * All listeners on the future are informed about the value.
    */
-  void complete([T value]);
+  void complete([value]);
 
   /**
    * Complete [future] with an error.
+   *
+   * Calling [complete] or `completeError` must not be done more than once.
    *
    * Completing a future with an error indicates that an exception was thrown
    * while trying to produce a value.
    *
    * The argument [error] must not be `null`.
+   *
+   * If `error` is a `Future`, the future itself is used as the error value.
+   * If you want to complete with the result of the future, you can use:
+   *
+   *     thisCompleter.complete(theFuture)
+   *
+   * or if you only want to handle an error from the future:
+   *
+   *     theFuture.catchError(thisCompleter.completeError);
+   *
    */
   void completeError(Object error, [StackTrace stackTrace]);
 

@@ -15,7 +15,10 @@
   	  <div class="col-md-1">
   	  	<a href="{{ app.locationManager.relativeLink(isolate, 'stacktrace') }}">Stacktrace</a>
   	  </div>
-  	  <div class="col-md-9"></div>
+      <div class="col-md-1">
+        <a href="{{ app.locationManager.relativeLink(isolate, 'library') }}">Library</a>
+      </div>
+  	  <div class="col-md-8"></div>
     </div>
   </template>
   <script type="application/dart" src="isolate_summary.dart"></script>

@@ -5,7 +5,7 @@
 
 library utf8_tests;
 import 'dunit.dart';
-import '../../../lib/utf/utf.dart';
+import '../../../lib/convert/convert.dart';
 
 void main() {
   TestSuite suite = new TestSuite();
@@ -148,6 +148,10 @@ class Utf8Tests extends TestClass {
     Expect.listEquals(testKatakanaUtf8, encodeUtf8(testKatakanaPhrase),
         "Katakana to utf8");
   }
+
+  List encodeUtf8(String text) => UTF8.encode(text);
+  String decodeUtf8(List bytes) => UTF8.decode(bytes);
+  List utf8ToCodePoints(List bytes) => UTF8.decode(bytes).runes.toList();
 
   void testUtf8bytesToCodepoints() {
     Expect.listEquals([954, 972, 963, 956, 949],

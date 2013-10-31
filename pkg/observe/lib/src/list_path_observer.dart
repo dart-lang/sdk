@@ -26,11 +26,10 @@ class ListPathObserver<E, P> extends ChangeNotifier {
   ListPathObserver(this.list, String path)
       : _itemPath = path {
 
-    _sub = list.changes.listen((records) {
+    // TODO(jmesserly): delay observation until we are observed.
+    _sub = list.listChanges.listen((records) {
       for (var record in records) {
-        if (record is ListChangeRecord) {
-          _observeItems(record.addedCount - record.removedCount);
-        }
+        _observeItems(record.addedCount - record.removed.length);
       }
       _scheduleReduce(null);
     });

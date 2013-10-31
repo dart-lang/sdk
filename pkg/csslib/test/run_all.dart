@@ -23,10 +23,8 @@ import 'mixin_test.dart' as mixin_test;
 import 'extend_test.dart' as extend_test;
 import 'big_1_test.dart' as big_1_test;
 
-main() {
-  var args = new Options().arguments;
-
-  var pattern = new RegExp(args.length > 0 ? args[0] : '.');
+main(List<String> arguments) {
+  var pattern = new RegExp(arguments.length > 0 ? arguments[0] : '.');
 
   useCompactVMConfiguration();
   useMockMessages();

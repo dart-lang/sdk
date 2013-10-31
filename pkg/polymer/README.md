@@ -48,26 +48,53 @@ project broken on each release. Using a version range lets you upgrade your
 package at your own pace. You can find the latest version number at
 <https://pub.dartlang.org/packages/polymer>.
 
+Building and Deploying
+----------------------
 
-Running Tests
--------------
+To build a deployable version of your app, add the polymer transformers to your
+pubspec.yaml file:
 
-Install dependencies using the [Pub Package Manager][pub].
-```bash
-pub install
-
-# Run command line tests and automated end-to-end tests. It needs two
-# executables on your path: `dart` and `content_shell` (see below
-# for links to download `content_shell`)
-test/run.sh
+```yaml
+transformers:
+- polymer
 ```
-Note: To run browser tests you will need to have [content_shell][cs],
-which can be downloaded prebuilt for [Ubuntu Lucid][cs_lucid],
-[Windows][cs_win], or [Mac][cs_mac]. You can also build it from the
-[Dartium and content_shell sources][dartium_src].
 
-For Linux users all the necessary fonts must be installed see
-<https://code.google.com/p/chromium/wiki/LayoutTestsLinux>.
+Then, run `pub build`.  The polymer transformers assume all files under `web`
+are possible entry points, this can be adjusted with arguments in your
+pubspec.yaml file. For example, you can say only `web/index.html` is an entry
+point as follows:
+
+```yaml
+transformers:
+- polymer:
+    entry_points: web/index.html
+```
+
+Here is a list of arguments used by the polymer transformers:
+* js: whether to load JS code directly. By default polymer converts your app's
+  html file to load the compiled JS code directly. Setting this parameter to
+  false will keep a dart script tag and the `dart.js` script tag on the page.
+
+* csp: whether to load a Content Security Policy (CSP) compliant JS file.
+  Dart2js generates two JS files, one that is not CSP compilant and one that is.
+  By default, polymer uses the former becuase it's likely more efficient, but
+  you can choose the latter by setting this flag.
+
+* entry_points: can be a list of entry points or, for convenience, a single
+  entry point as shown above.
+
+For example, this specification includes 2 entrypoints and chooses the CSP
+compliant JS file:
+
+```yaml
+transformers:
+- polymer:
+    entry_points:
+    - web/index.html
+    - web/index2.html
+    csp: true
+```
+
 
 Contacting Us
 -------------

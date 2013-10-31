@@ -11,7 +11,7 @@ import 'other_library.dart';
 
 main() {
   LibraryMirror thisLibrary =
-      currentMirrorSystem().findLibrary(#test.invoke_import_test).single;
+      currentMirrorSystem().findLibrary(#test.invoke_import_test);
 
   Expect.throws(() => thisLibrary.invoke(#topLevelMethod, []),
                 (e) => e is NoSuchMethodError,

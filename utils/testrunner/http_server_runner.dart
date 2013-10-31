@@ -6,10 +6,10 @@ library http_server_runner;
 import 'dart:io';
 import 'http_server.dart';
 
-main() {
+main(List<String> arguments) {
   var optionsParser = getOptionParser();
   try {
-    var argResults = optionsParser.parse(new Options().arguments);
+    var argResults = optionsParser.parse(arguments);
     var server = new HttpTestServer(
         int.parse(argResults['port']),
         argResults['root']);

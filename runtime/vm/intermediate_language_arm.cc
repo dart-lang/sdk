@@ -248,7 +248,7 @@ static void EmitAssertBoolean(Register reg,
   __ Push(reg);  // Push the source object.
   compiler->GenerateRuntimeCall(token_pos,
                                 deopt_id,
-                                kConditionTypeErrorRuntimeEntry,
+                                kNonBoolTypeErrorRuntimeEntry,
                                 1,
                                 locs);
   // We should never return here.
@@ -979,6 +979,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
+    case kTypedDataUint32x4ArrayCid:
+      return CompileType::FromCid(kUint32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1028,6 +1030,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -1047,7 +1051,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   // tagged (for all element sizes > 1).
   // TODO(regis): Revisit and see if the index can be immediate.
   locs->set_in(1, Location::WritableRegister());
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -1099,7 +1105,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
-      (representation() == kUnboxedFloat32x4)) {
+      (representation() == kUnboxedFloat32x4) ||
+      (representation() == kUnboxedUint32x4)) {
     QRegister result = locs()->out().fpu_reg();
     DRegister dresult0 = EvenDRegisterOf(result);
     DRegister dresult1 = OddDRegisterOf(result);
@@ -1124,6 +1131,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         element_address = Address(index.reg(), 0);
         __ vldrd(dresult0, element_address);
         break;
+      case kTypedDataUint32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         __ add(index.reg(), index.reg(), ShifterOperand(array));
         __ LoadDFromOffset(dresult0, index.reg(), 0);
@@ -1209,6 +1217,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
+    case kTypedDataUint32x4ArrayCid:
+      return kUnboxedUint32x4;
     default:
       UNREACHABLE();
       return kTagged;
@@ -1246,6 +1256,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1386,6 +1397,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreDToOffset(in2, index.reg(), 0);
       break;
     }
+    case kTypedDataUint32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
       QRegister in = locs()->in(2).fpu_reg();
       DRegister din0 = EvenDRegisterOf(in);
@@ -1511,7 +1523,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ CompareImmediate(value_cid_reg, kNullCid);
           __ b(&no_fixed_length, EQ);
           // Check for typed data array.
-          __ CompareImmediate(value_cid_reg, kTypedDataFloat32x4ArrayCid);
+          __ CompareImmediate(value_cid_reg, kTypedDataUint32x4ArrayCid);
           __ b(&no_fixed_length, GT);
           __ CompareImmediate(value_cid_reg, kTypedDataInt8ArrayCid);
           // Could still be a regular array.
@@ -1591,7 +1603,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ CompareImmediate(value_cid_reg, kNullCid);
         __ b(&no_fixed_length, EQ);
         // Check for typed data array.
-        __ CompareImmediate(value_cid_reg, kTypedDataFloat32x4ArrayCid);
+        __ CompareImmediate(value_cid_reg, kTypedDataUint32x4ArrayCid);
         __ b(&no_fixed_length, GT);
         __ CompareImmediate(value_cid_reg, kTypedDataInt8ArrayCid);
         // Could still be a regular array.
@@ -3770,8 +3782,15 @@ LocationSummary* MathUnaryInstr::MakeLocationSummary() const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::FpuRegisterLocation(Q0));
     summary->set_out(Location::FpuRegisterLocation(Q0));
+#if !defined(ARM_FLOAT_ABI_HARD)
+    summary->AddTemp(Location::RegisterLocation(R0));
+    summary->AddTemp(Location::RegisterLocation(R1));
+    summary->AddTemp(Location::RegisterLocation(R2));
+    summary->AddTemp(Location::RegisterLocation(R3));
+#endif
     return summary;
   }
+  // Sqrt.
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3788,7 +3807,18 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     DRegister result = EvenDRegisterOf(locs()->out().fpu_reg());
     __ vsqrtd(result, val);
   } else {
+#if defined(ARM_FLOAT_ABI_HARD)
     __ CallRuntime(TargetFunction(), InputCount());
+#else
+    // If we aren't doing "hardfp", then we have to move the double arguments
+    // to the integer registers, and take the results from the integer
+    // registers.
+    __ vmovrrd(R0, R1, D0);
+    __ vmovrrd(R2, R3, D1);
+    __ CallRuntime(TargetFunction(), InputCount());
+    __ vmovdrr(D0, R0, R1);
+    __ vmovdrr(D1, R2, R3);
+#endif
   }
 }
 
@@ -4079,6 +4109,15 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
     result->AddTemp(Location::RegisterLocation(R2));
     result->AddTemp(Location::FpuRegisterLocation(Q2));
   }
+#if !defined(ARM_FLOAT_ABI_HARD)
+  result->AddTemp(Location::RegisterLocation(R0));
+  result->AddTemp(Location::RegisterLocation(R1));
+  // Check if R2 is already added.
+  if (recognized_kind() != MethodRecognizer::kMathDoublePow) {
+    result->AddTemp(Location::RegisterLocation(R2));
+  }
+  result->AddTemp(Location::RegisterLocation(R3));
+#endif
   result->set_out(Location::FpuRegisterLocation(Q0));
   return result;
 }
@@ -4121,15 +4160,22 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ vmovd(base, saved_base);  // Restore base.
   }
   __ Bind(&do_call);
-  // We currently use 'hardfp' ('gnueabihf') rather than 'softfp'
-  // ('gnueabi') float ABI for leaf runtime calls, i.e. double values
-  // are passed and returned in vfp registers rather than in integer
-  // register pairs.
   if (InputCount() == 2) {
     // Args must be in D0 and D1, so move arg from Q1(== D3:D2) to D1.
     __ vmovd(D1, D2);
   }
+#if defined(ARM_FLOAT_ABI_HARD)
   __ CallRuntime(TargetFunction(), InputCount());
+#else
+  // If the ABI is not "hardfp", then we have to move the double arguments
+  // to the integer registers, and take the results from the integer
+  // registers.
+  __ vmovrrd(R0, R1, D0);
+  __ vmovrrd(R2, R3, D1);
+  __ CallRuntime(TargetFunction(), InputCount());
+  __ vmovdrr(D0, R0, R1);
+  __ vmovdrr(D1, R2, R3);
+#endif
   __ Bind(&skip_call);
 }
 

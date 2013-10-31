@@ -14,8 +14,8 @@ class CollapsibleContentElement extends ObservatoryElement {
   static const String _openIconClass = 'glyphicon glyphicon-chevron-down';
   static const String _closeIconClass = 'glyphicon glyphicon-chevron-up';
 
-  @observable String get iconClass => __$iconClass; String __$iconClass = _openIconClass; set iconClass(String value) { __$iconClass = notifyPropertyChange(#iconClass, __$iconClass, value); }
-  @observable String get displayValue => __$displayValue; String __$displayValue = 'none'; set displayValue(String value) { __$displayValue = notifyPropertyChange(#displayValue, __$displayValue, value); }
+  @observable String iconClass = _openIconClass;
+  @observable String displayValue = 'none';
 
   bool _collapsed = true;
   bool get collapsed => _collapsed;
@@ -24,15 +24,19 @@ class CollapsibleContentElement extends ObservatoryElement {
     _refresh();
   }
 
+  CollapsibleContentElement.created() : super.created();
+
+  void enteredView() {
+    super.enteredView();
+    _refresh();
+  }
+
   void toggleDisplay(Event e, var detail, Node target) {
     collapsed = !collapsed;
     _refresh();
   }
 
-  void inserted() {
-    super.inserted();
-    _refresh();
-  }
+
 
   void _refresh() {
     if (_collapsed) {

@@ -11,8 +11,7 @@ import 'metadata_test.dart';
 
 main() {
   MirrorSystem mirrors = currentMirrorSystem();
-  checkMetadata(mirrors.findLibrary(#test.library_metadata_test).first,
+  checkMetadata(mirrors.findLibrary(#test.library_metadata_test),
                 [string, symbol]);
-  checkMetadata(mirrors.findLibrary(#test.metadata_test).first,
-                []);
+  checkMetadata(mirrors.findLibrary(#test.metadata_test), []);
 }

@@ -12,8 +12,9 @@ test(int blockCount,
      int exitCode,
      [int nonWindowsExitCode]) {
   // Get the Dart script file that generates output.
-  var scriptFile = new File(join(dirname(Platform.script),
-                                 "process_sync_script.dart"));
+  var scriptFile = new File(Platform.script
+                                    .resolve("process_sync_script.dart")
+                                    .toFilePath());
   var args = [scriptFile.path,
               blockCount.toString(),
               stdoutBlockSize.toString(),

@@ -14,9 +14,11 @@ class MessageViewerElement extends ObservatoryElement {
 
   @published set message(Map m) {
     _message = m;
-    notifyProperty(this, #messageType);
-    notifyProperty(this, #members);
+    notifyPropertyChange(#messageType, "", messageType);
+    notifyPropertyChange(#members, [], members);
   }
+
+  MessageViewerElement.created() : super.created();
 
   String get messageType {
     if (message == null || message['type'] == null) {

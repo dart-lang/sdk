@@ -34,7 +34,7 @@ main() {
   });
 }
 """);
-  String executable = new File(Platform.executable).fullPathSync();
+  String executable = new File(Platform.executable).resolveSymbolicLinksSync();
   Process.run(executable, ['script.dart'], workingDirectory: temp.path)
       .then((result) {
         temp.deleteSync(recursive: true);

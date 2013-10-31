@@ -10,7 +10,7 @@ import 'dart:async';
 Future testOneScheduleMicrotask() {
   var completer = new Completer();
   Timer.run(() {
-    runAsync(completer.complete);
+    scheduleMicrotask(completer.complete);
   });
   return completer.future;
 }
@@ -22,7 +22,7 @@ Future testMultipleScheduleMicrotask() {
     const TOTAL = 10;
     int done = 0;
     for (int i = 0; i < TOTAL; i++) {
-      runAsync(() {
+      scheduleMicrotask(() {
         done++;
         if (done == TOTAL) completer.complete();;
       });
@@ -36,7 +36,7 @@ Future testScheduleMicrotaskThenTimer() {
   var completer = new Completer();
   Timer.run(() {
     bool scheduleMicrotaskDone = false;
-    runAsync(() {
+    scheduleMicrotask(() {
       Expect.isFalse(scheduleMicrotaskDone);
       scheduleMicrotaskDone = true;
     });
@@ -57,7 +57,7 @@ Future testTimerThenScheduleMicrotask() {
       Expect.isTrue(scheduleMicrotaskDone);
       completer.complete();
     });
-    runAsync(() {
+    scheduleMicrotask(() {
       Expect.isFalse(scheduleMicrotaskDone);
       scheduleMicrotaskDone = true;
     });
@@ -78,10 +78,10 @@ Future testTimerThenScheduleMicrotaskChain() {
     Future scheduleMicrotaskCallback() {
       scheduleMicrotaskDone++;
       if (scheduleMicrotaskDone != TOTAL) {
-        runAsync(scheduleMicrotaskCallback);
+        scheduleMicrotask(scheduleMicrotaskCallback);
       }
     }
-    runAsync(scheduleMicrotaskCallback);
+    scheduleMicrotask(scheduleMicrotaskCallback);
   });
   return completer.future;
 }

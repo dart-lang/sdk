@@ -10,5 +10,7 @@ import 'observatory_element.dart';
 /// Displays an Error response.
 @CustomTag('error-view')
 class ErrorViewElement extends ObservatoryElement {
-  @published String get error => __$error; String __$error = ''; set error(String value) { __$error = notifyPropertyChange(#error, __$error, value); }
+  @published String error = '';
+
+  ErrorViewElement.created() : super.created();
 }

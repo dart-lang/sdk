@@ -19,7 +19,6 @@ library custom_element;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:meta/meta.dart';
 import 'src/custom_tag_name.dart';
 
 /**

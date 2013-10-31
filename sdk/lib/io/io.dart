@@ -43,7 +43,6 @@ part 'http_session.dart';
 part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
-part 'options.dart';
 part 'platform.dart';
 part 'platform_impl.dart';
 part 'process.dart';

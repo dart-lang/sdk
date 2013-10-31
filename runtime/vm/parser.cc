@@ -3104,9 +3104,13 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "external method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (method->IsFactoryOrConstructor() && method->has_const) {
+    } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor or factory '%s' may not have a function body",
+               "const constructor '%s' may not have a function body",
+               method->name->ToCString());
+    } else if (method->IsFactory() && method->has_const) {
+      ErrorMsg(method->name_pos,
+               "const factory '%s' may not have a function body",
                method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
@@ -3128,9 +3132,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "abstract method '%s' may not have a function body",
                method->name->ToCString());
-    } else if (method->IsFactoryOrConstructor() && method->has_const) {
+    } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor or factory '%s' may not be native",
+               "const constructor '%s' may not be native",
                method->name->ToCString());
     }
     if (method->redirect_name != NULL) {
@@ -3748,12 +3752,12 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ConsumeToken();  // extends or =
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    if (super_type.IsDynamicType()) {
-      // The string 'dynamic' is not resolved yet at this point, but a malformed
-      // type mapped to dynamic can be encountered here.
+    if (super_type.IsMalformed() || super_type.IsDynamicType()) {
+      // Unlikely here, since super type is not resolved yet.
       ErrorMsg(type_pos,
-               "class '%s' may not extend a malformed type",
-               class_name.ToCString());
+               "class '%s' may not extend %s",
+               class_name.ToCString(),
+               super_type.IsMalformed() ? "a malformed type" : "'dynamic'");
     }
     if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
@@ -3761,6 +3765,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                class_name.ToCString(),
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
+    // The class finalizer will check whether the super type is malbounded.
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(super_type);
     }
@@ -7430,12 +7435,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
-        // The type is never malformed (mapped to dynamic), but it can be
-        // malbounded in checked mode.
-        ASSERT(!type.IsMalformed());
+        // In production mode, the type may be malformed.
+        // In checked mode, the type may be malformed or malbounded.
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
              (op_kind == Token::kAS)) &&
-            type.IsMalbounded()) {
+            (type.IsMalformed() || type.IsMalbounded())) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test or in a type cast.
           return ThrowTypeError(type_pos, type);
@@ -8706,21 +8710,28 @@ RawObject* Parser::EvaluateConstConstructorCall(
     const AbstractTypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
-  const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
+  // Factories have one extra argument: the type arguments.
+  // Constructors have 2 extra arguments: rcvr and construction phase.
+  const int kNumExtraArgs = constructor.IsFactory() ? 1 : 2;
   const int num_arguments = arguments->length() + kNumExtraArgs;
   const Array& arg_values = Array::Handle(Array::New(num_arguments));
   Instance& instance = Instance::Handle();
-  ASSERT(!constructor.IsFactory());
-  instance = Instance::New(type_class, Heap::kOld);
-  if (!type_arguments.IsNull()) {
-    if (!type_arguments.IsInstantiated()) {
-      ErrorMsg("type must be constant in const constructor");
+  if (!constructor.IsFactory()) {
+    instance = Instance::New(type_class, Heap::kOld);
+    if (!type_arguments.IsNull()) {
+      if (!type_arguments.IsInstantiated()) {
+        ErrorMsg("type must be constant in const constructor");
+      }
+      instance.SetTypeArguments(
+          AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
     }
-    instance.SetTypeArguments(
-        AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
+    arg_values.SetAt(0, instance);
+    arg_values.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
+  } else {
+    // Prepend type_arguments to list of arguments to factory.
+    ASSERT(type_arguments.IsZoneHandle());
+    arg_values.SetAt(0, type_arguments);
   }
-  arg_values.SetAt(0, instance);
-  arg_values.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   for (int i = 0; i < arguments->length(); i++) {
     AstNode* arg = arguments->NodeAt(i);
     // Arguments have been evaluated to a literal value already.
@@ -8747,6 +8758,10 @@ RawObject* Parser::EvaluateConstConstructorCall(
         return Object::null();
       }
   } else {
+    if (constructor.IsFactory()) {
+      // The factory method returns the allocated object.
+      instance ^= result.raw();
+    }
     return TryCanonicalize(instance, TokenPos());
   }
 }
@@ -9193,6 +9208,13 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     // List literals take a single type argument.
     if (list_type_arguments.Length() == 1) {
       element_type = list_type_arguments.TypeAt(0);
+      ASSERT(!element_type.IsMalformed());  // Would be mapped to dynamic.
+      ASSERT(!element_type.IsMalbounded());  // No declared bound in List.
+      if (is_const && !element_type.IsInstantiated()) {
+        ErrorMsg(type_pos,
+                 "the type argument of a constant list literal cannot include "
+                 "a type variable");
+      }
     } else {
       if (FLAG_error_on_bad_type) {
         ErrorMsg(type_pos,
@@ -9202,14 +9224,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       // Ignore type arguments.
       list_type_arguments = AbstractTypeArguments::null();
     }
-    if (is_const && !element_type.IsInstantiated()) {
-      ErrorMsg(type_pos,
-               "the type argument of a constant list literal cannot include "
-               "a type variable");
-    }
   }
-  ASSERT((list_type_arguments.IsNull() && element_type.IsDynamicType()) ||
-         ((list_type_arguments.Length() == 1) && !element_type.IsNull()));
+  ASSERT(list_type_arguments.IsNull() || (list_type_arguments.Length() == 1));
   const Class& array_class = Class::Handle(
       isolate()->object_store()->array_class());
   Type& type = Type::ZoneHandle(
@@ -9386,26 +9402,14 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (map_type_arguments.Length() == 2) {
       key_type = map_type_arguments.TypeAt(0);
       value_type = map_type_arguments.TypeAt(1);
+      // Malformed type arguments are mapped to dynamic.
+      ASSERT(!key_type.IsMalformed() && !value_type.IsMalformed());
+      // No declared bounds in Map.
+      ASSERT(!key_type.IsMalbounded() && !value_type.IsMalbounded());
       if (is_const && !type_arguments.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type arguments of a constant map literal cannot include "
                  "a type variable");
-      }
-      if (key_type.IsMalformed()) {
-        if (FLAG_error_on_bad_type) {
-          ErrorMsg(Error::Handle(key_type.malformed_error()));
-        }
-        // Map malformed key type to dynamic.
-        key_type = Type::DynamicType();
-        map_type_arguments.SetTypeAt(0, key_type);
-      }
-      if (value_type.IsMalformed()) {
-        if (FLAG_error_on_bad_type) {
-          ErrorMsg(Error::Handle(value_type.malformed_error()));
-        }
-        // Map malformed value type to dynamic.
-        value_type = Type::DynamicType();
-        map_type_arguments.SetTypeAt(1, value_type);
       }
     } else {
       if (FLAG_error_on_bad_type) {
@@ -9417,10 +9421,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       map_type_arguments = AbstractTypeArguments::null();
     }
   }
-  ASSERT((map_type_arguments.IsNull() &&
-          key_type.IsDynamicType() && value_type.IsDynamicType()) ||
-         ((map_type_arguments.Length() == 2) &&
-          !key_type.IsMalformed() && !value_type.IsMalformed()));
+  ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
   GrowableArray<AstNode*> kv_pairs_list;
@@ -9604,8 +9605,10 @@ AstNode* Parser::ParseCompoundLiteral() {
   const intptr_t type_pos = TokenPos();
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle(
       ParseTypeArguments(ClassFinalizer::kCanonicalize));
+  // Malformed type arguments are mapped to dynamic, so we will not encounter
+  // them here.
   // Map and List interfaces do not declare bounds on their type parameters, so
-  // we should never see a malformed type argument mapped to dynamic here.
+  // we will not see malbounded type arguments here.
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
@@ -9902,7 +9905,10 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                      new_pos,
                      "error while evaluating const constructor");
     } else {
-      const Instance& const_instance = Instance::Cast(constructor_result);
+      // Const constructors can return null in the case where a const native
+      // factory returns a null value. Thus we cannot use a Instance::Cast here.
+      Instance& const_instance = Instance::Handle();
+      const_instance ^= constructor_result.raw();
       new_object = new LiteralNode(new_pos,
                                    Instance::ZoneHandle(const_instance.raw()));
       if (!type_bound.IsNull()) {

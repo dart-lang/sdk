@@ -195,7 +195,7 @@ printOptions(ArgParser parser, ArgResults arguments,
  * current directory, a test config file specified with --configfile on
  * the command line, and other arguments specified on the command line.
  */
-ArgResults loadConfiguration(optionsParser) {
+ArgResults loadConfiguration(optionsParser, List<String> commandLineArgs) {
   var options = new List();
   // We first load options from a test.config file in the working directory.
   options.addAll(getFileContents('test.config', false).
@@ -203,7 +203,6 @@ ArgResults loadConfiguration(optionsParser) {
   // Next we look to see if the command line included a -testconfig argument,
   // and if so, load options from that file too; where these are not
   // multi-valued they will take precedence over the ones in test.config.
-  var commandLineArgs = new Options().arguments;
   var cfgarg = '--configfile';
   var cfgarge = '--configfile=';
   for (var i = 0; i < commandLineArgs.length; i++) {

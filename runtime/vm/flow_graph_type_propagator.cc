@@ -622,7 +622,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
 
 bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
-  if (IsNone()) {
+  if (IsNone() || other.IsMalformed()) {
     return false;
   }
 

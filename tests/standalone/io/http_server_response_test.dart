@@ -63,7 +63,7 @@ void testResponseDone() {
   });
 
   testServerRequest((server, request) {
-    new File("__not_exitsing_file_").openRead().pipe(request.response)
+    new File("__nonexistent_file_").openRead().pipe(request.response)
         .catchError((e) {
           server.close();
         });
@@ -80,10 +80,11 @@ void testResponseDone() {
 
 
 void testResponseAddStream() {
-  int bytes = new File(Platform.script).lengthSync();
+  File file = new File(Platform.script.toFilePath());
+  int bytes = file.lengthSync();
 
   testServerRequest((server, request) {
-    request.response.addStream(new File(Platform.script).openRead())
+    request.response.addStream(file.openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -91,9 +92,9 @@ void testResponseAddStream() {
   }, bytes: bytes);
 
   testServerRequest((server, request) {
-    request.response.addStream(new File(Platform.script).openRead())
+    request.response.addStream(file.openRead())
         .then((response) {
-          request.response.addStream(new File(Platform.script).openRead())
+          request.response.addStream(file.openRead())
               .then((response) {
                 response.close();
                 response.done.then((_) => server.close());
@@ -112,14 +113,14 @@ void testResponseAddStream() {
   }, bytes: 0);
 
   testServerRequest((server, request) {
-    request.response.addStream(new File("__not_exitsing_file_").openRead())
+    request.response.addStream(new File("__nonexistent_file_").openRead())
         .catchError((e) {
           server.close();
         });
   });
 
   testServerRequest((server, request) {
-    new File("__not_exitsing_file_").openRead().pipe(request.response)
+    new File("__nonexistent_file_").openRead().pipe(request.response)
         .catchError((e) {
           server.close();
         });
@@ -128,8 +129,9 @@ void testResponseAddStream() {
 
 
 void testResponseAddStreamClosed() {
+  File file = new File(Platform.script.toFilePath());
   testServerRequest((server, request) {
-    request.response.addStream(new File(Platform.script).openRead())
+    request.response.addStream(file.openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -139,7 +141,7 @@ void testResponseAddStreamClosed() {
   testServerRequest((server, request) {
     int count = 0;
     write() {
-      request.response.addStream(new File(Platform.script).openRead())
+      request.response.addStream(file.openRead())
           .then((response) {
             request.response.write("sync data");
             count++;
@@ -157,15 +159,16 @@ void testResponseAddStreamClosed() {
 
 
 void testResponseAddClosed() {
+  File file = new File(Platform.script.toFilePath());
   testServerRequest((server, request) {
-    request.response.add(new File(Platform.script).readAsBytesSync());
+    request.response.add(file.readAsBytesSync());
     request.response.close();
     request.response.done.then((_) => server.close());
   }, closeClient: true);
 
   testServerRequest((server, request) {
     for (int i = 0; i < 1000; i++) {
-      request.response.add(new File(Platform.script).readAsBytesSync());
+      request.response.add(file.readAsBytesSync());
     }
     request.response.close();
     request.response.done.then((_) => server.close());
@@ -174,7 +177,7 @@ void testResponseAddClosed() {
   testServerRequest((server, request) {
     int count = 0;
     write() {
-      request.response.add(new File(Platform.script).readAsBytesSync());
+      request.response.add(file.readAsBytesSync());
       Timer.run(() {
         count++;
         if (count < 1000) {

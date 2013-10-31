@@ -1,8 +1,0 @@
-name: meta
-author: "Dart Team <misc@dartlang.org>"
-homepage: http://www.dartlang.org
-documentation: http://api.dartlang.org/docs/pkg/meta
-description: >
- This library contains the definitions of annotations that provide additional
- semantic information about the program being annotated. These annotations are
- intended to be used by tools to provide a better user experience.

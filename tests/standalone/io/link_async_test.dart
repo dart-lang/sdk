@@ -104,7 +104,7 @@ Future testCreate() {
       .then((linkTarget) => FutureExpect.isTrue(FileSystemEntity.identical(
           target,
           linkTarget)))
-      .then((_) => new File(".").fullPath())
+      .then((_) => new File(".").resolveSymbolicLinks())
       .then((fullCurrentDir) => FutureExpect.isTrue(FileSystemEntity.identical(
           ".",
           fullCurrentDir)))

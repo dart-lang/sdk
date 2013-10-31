@@ -25,7 +25,6 @@
     'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
     'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
-    'utf_cc_file': '<(gen_source_dir)/utf_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
@@ -111,7 +110,6 @@
         'generate_mirrors_patch_cc_file#host',
         'generate_typed_data_cc_file#host',
         'generate_typed_data_patch_cc_file#host',
-        'generate_utf_cc_file#host',
       ],
       'includes': [
         '../lib/async_sources.gypi',
@@ -143,7 +141,6 @@
         '<(mirrors_patch_cc_file)',
         '<(typed_data_cc_file)',
         '<(typed_data_patch_cc_file)',
-        '<(utf_cc_file)',
       ],
       'include_dirs': [
         '..',
@@ -885,39 +882,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_utf_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the shared utf sources.
-        '../../sdk/lib/utf/utf_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_utf_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(utf_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(utf_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::utf_source_paths_',
-            '--library_name', 'dart:utf',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(utf_cc_file)'' file.'
         },
       ]
     },

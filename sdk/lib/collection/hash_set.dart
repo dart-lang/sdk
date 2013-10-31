@@ -85,7 +85,7 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
  * constant time: [add], [contains], [remove], and [length], provided the hash
  * codes of objects are well distributed.
  */
-class HashSet<E> implements Set<E> {
+abstract class HashSet<E> implements Set<E> {
   /**
    * Create a hash set using the provided [equals] as equality.
    *

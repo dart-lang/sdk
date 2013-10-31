@@ -388,7 +388,7 @@ class CodeEmitterTask extends CompilerTask {
       js('constructors = null'),
 
       js('var finishedClasses = {}'),
-      js('init.interceptorsByTag = {}'),
+      js('init.interceptorsByTag = Object.create(null)'),
       js('init.leafTags = {}'),
 
       buildFinishClass(),

@@ -36,7 +36,7 @@ Predicate<List> somePredicateOfList;
 
 testTypeVariableOfTypedef() {
   LibraryMirror thisLibrary =
-      currentMirrorSystem().findLibrary(#test.type_variable_owner).single;
+      currentMirrorSystem().findLibrary(#test.type_variable_owner);
 
   TypedefMirror predicateOfDynamic = reflectType(Predicate);
   TypedefMirror predicateOfList =

@@ -626,12 +626,10 @@ void debuggerMain() {
   });
 }
 
-void main() {
-  Options options = new Options();
-  List<String> arguments = options.arguments;
+void main(List<String> arguments) {
   if (arguments.length > 0) {
     arguments = <String>['--debug', '--verbose_debug']..addAll(arguments);
-    Process.start(options.executable, arguments).then((Process process) {
+    Process.start(Platform.executable, arguments).then((Process process) {
       process.stdin.close();
       process.exitCode.then((int exitCode) {
         print('${arguments.join(" ")} exited with $exitCode');

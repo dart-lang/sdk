@@ -6,7 +6,7 @@ library record_and_replay;
 
 import 'dart:io';
 import 'dart:convert';
-import 'dart:utf';
+import 'dart:convert';
 
 import 'test_runner.dart';
 import 'utils.dart' show Path;
@@ -123,8 +123,8 @@ class TestCaseOutputArchive {
         command,
         command_output['exit_code'],
         command_output['did_timeout'],
-        encodeUtf8(command_output['stdout']),
-        encodeUtf8(command_output['stderr']),
+        UTF8.encode(command_output['stdout']),
+        UTF8.encode(command_output['stderr']),
         duration,
         false);
     return commandOutput;

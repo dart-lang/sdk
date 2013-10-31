@@ -90,57 +90,35 @@ class _Directory extends FileSystemEntity implements Directory {
     }
   }
 
-  Future<Directory> createRecursively() {
-    var dirsToCreate = [];
-    var dir = this;
-    while (dir.path != dir.parent.path) {
-      dirsToCreate.add(dir);
-      dir = dir.parent;
-    }
-    return _computeExistingIndex(dirsToCreate).then((index) {
-      var future;
-      for (var i = index - 1; i >= 0 ; i--) {
-        if (future == null) {
-          future = dirsToCreate[i].create();
-        } else {
-          future = future.then((_) {
-            return dirsToCreate[i].create();
-          });
-        }
-      }
-      if (future == null) {
-        return new Future.value(this);
-      } else {
-        return future.then((_) => this);
-      }
-    });
-  }
-
   Future<Directory> create({bool recursive: false}) {
-    if (recursive) return createRecursively();
-    return _IOService.dispatch(_DIRECTORY_CREATE, [path]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionOrErrorFromResponse(response, "Creation failed");
-      }
-      return this;
-    });
-  }
-
-  void createRecursivelySync() {
-    var dir = this;
-    var dirsToCreate = [];
-    while (dir.path != dir.parent.path) {
-      if (dir.existsSync()) break;
-      dirsToCreate.add(dir);
-      dir = dir.parent;
-    }
-    for (var i = dirsToCreate.length - 1; i >= 0; i--) {
-      dirsToCreate[i].createSync();
+    if (recursive) {
+      return exists().then((exists) {
+        if (exists) return this;
+        if (path != parent.path) {
+          return parent.create(recursive: true).then((_) {
+            return create();
+          });
+        } else {
+          return create();
+        }
+      });
+    } else {
+      return _IOService.dispatch(_DIRECTORY_CREATE, [path]).then((response) {
+        if (_isErrorResponse(response)) {
+          throw _exceptionOrErrorFromResponse(response, "Creation failed");
+        }
+        return this;
+      });
     }
   }
 
   void createSync({bool recursive: false}) {
-    if (recursive) return createRecursivelySync();
+    if (recursive) {
+      if (existsSync()) return;
+      if (path != parent.path) {
+        parent.createSync(recursive: true);
+      }
+    }
     var result = _create(path);
     if (result is OSError) {
       throw new FileSystemException("Creation failed", path, result);

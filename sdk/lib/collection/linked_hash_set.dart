@@ -22,7 +22,7 @@ part of dart.collection;
  * constant time: [add], [contains], [remove], and [length], provided the hash
  * codes of objects are well distributed..
  */
-class LinkedHashSet<E> implements HashSet<E> {
+abstract class LinkedHashSet<E> implements HashSet<E> {
 
   external factory LinkedHashSet({ bool equals(E e1, E e2),
                                    int hashCode(E e),

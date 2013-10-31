@@ -49,7 +49,8 @@ class PatternDescriptor extends Descriptor {
     if (parent == null) parent = defaultRoot;
     // TODO(nweiz): make sure this works with symlinks.
     var matchingEntries = new Directory(parent).listSync()
-        .map((entry) => entry is File ? entry.fullPathSync() : entry.path)
+        .map((entry) => entry is File ? entry.resolveSymbolicLinksSync()
+                                      : entry.path)
         .where((entry) => fullMatch(path.basename(entry), pattern))
         .toList();
     matchingEntries.sort();

@@ -13,6 +13,7 @@
 #include "platform/utils.h"
 #include "vm/constants_x64.h"
 #include "vm/hash_map.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -846,6 +847,11 @@ class Assembler : public ValueObject {
   static const char* RegisterName(Register reg);
 
   static const char* FpuRegisterName(FpuRegister reg);
+
+  // On some other platforms, we draw a distinction between safe and unsafe
+  // smis.
+  static bool IsSafe(const Object& object) { return true; }
+  static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
  private:
   AssemblerBuffer buffer_;

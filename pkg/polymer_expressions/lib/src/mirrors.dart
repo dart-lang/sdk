@@ -18,8 +18,8 @@ import 'dart:mirrors';
  * noSuchMethod().
  */
 Mirror getMemberMirror(ClassMirror classMirror, Symbol name) {
-  if (classMirror.members.containsKey(name)) {
-    return classMirror.members[name];
+  if (classMirror.declarations.containsKey(name)) {
+    return classMirror.declarations[name];
   }
   if (hasSuperclass(classMirror)) {
     var mirror = getMemberMirror(classMirror.superclass, name);

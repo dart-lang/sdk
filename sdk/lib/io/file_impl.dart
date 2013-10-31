@@ -25,6 +25,7 @@ class _FileStream extends Stream<List<int>> {
 
   // Is there a read currently in progress?
   bool _readInProgress = false;
+  bool _closed = false;
 
   // Block read but not yet send because stream is paused.
   List<int> _currentBlock;
@@ -54,19 +55,26 @@ class _FileStream extends Stream<List<int>> {
         onResume: _resume,
         onCancel: () {
           _unsubscribed = true;
-          _closeFile();
+          return _closeFile();
         });
   }
 
   Future _closeFile() {
-    if (_readInProgress) {
+    if (_readInProgress || _closed) {
       return _closeCompleter.future;
+    }
+    _closed = true;
+    void done() {
+      _closeCompleter.complete();
+      _controller.close();
     }
     if (_openedFile != null) {
       _openedFile.close()
-          .then(_closeCompleter.complete,
-                onError: _closeCompleter.completeError);
+          .catchError(_controller.addError)
+          .whenComplete(done);
       _openedFile = null;
+    } else {
+      done();
     }
     return _closeCompleter.future;
   }
@@ -82,7 +90,7 @@ class _FileStream extends Stream<List<int>> {
         _readInProgress = false;
         if (!_unsubscribed) {
           _controller.addError(new RangeError("Bad end position: $_end"));
-          _closeFile().then((_) { _controller.close(); });
+          _closeFile();
           _unsubscribed = true;
         }
         return;
@@ -99,7 +107,7 @@ class _FileStream extends Stream<List<int>> {
         }
         if (block.length == 0) {
           if (!_unsubscribed) {
-            _closeFile().then((_) { _controller.close(); });
+            _closeFile();
             _unsubscribed = true;
           }
           return;
@@ -115,7 +123,7 @@ class _FileStream extends Stream<List<int>> {
       .catchError((e) {
         if (!_unsubscribed) {
           _controller.addError(e);
-          _closeFile().then((_) { _controller.close(); });
+          _closeFile();
           _unsubscribed = true;
         }
       });
@@ -135,6 +143,7 @@ class _FileStream extends Stream<List<int>> {
     } else {
       openFuture = new Future.value(_File._openStdioSync(0));
     }
+    _readInProgress = true;
     openFuture
       .then((RandomAccessFile opened) {
         _openedFile = opened;
@@ -142,10 +151,13 @@ class _FileStream extends Stream<List<int>> {
           return opened.setPosition(_position);
         }
       })
+      .whenComplete(() {
+        _readInProgress = false;
+      })
       .then((_) => _readBlock())
       .catchError((e) {
         _controller.addError(e);
-        _controller.close();
+        _closeFile();
       });
   }
 
@@ -244,13 +256,16 @@ class _File extends FileSystemEntity implements File {
 
   FileStat statSync() => FileStat.statSync(path);
 
-  Future<File> create() {
-    return _IOService.dispatch(_FILE_CREATE, [path]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Cannot create file", path);
-      }
-      return this;
-    });
+  Future<File> create({bool recursive: false}) {
+    return (recursive ? parent.create(recursive: true)
+                      : new Future.value(null))
+      .then((_) => _IOService.dispatch(_FILE_CREATE, [path]))
+      .then((response) {
+        if (_isErrorResponse(response)) {
+          throw _exceptionFromResponse(response, "Cannot create file", path);
+        }
+        return this;
+      });
   }
 
   external static _create(String path);
@@ -259,7 +274,10 @@ class _File extends FileSystemEntity implements File {
 
   external static _linkTarget(String path);
 
-  void createSync() {
+  void createSync({bool recursive: false}) {
+    if (recursive) {
+      parent.createSync(recursive: true);
+    }
     var result = _create(path);
     throwIfError(result, "Cannot create file", path);
   }
@@ -307,8 +325,6 @@ class _File extends FileSystemEntity implements File {
     throwIfError(result, "Cannot rename file to '$newPath'", path);
     return new File(newPath);
   }
-
-  Directory get directory => super.parent;
 
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&
@@ -387,10 +403,6 @@ class _File extends FileSystemEntity implements File {
     }
     return new _RandomAccessFile(id, "");
   }
-
-  Future<String> fullPath() => resolveSymbolicLinks();
-
-  String fullPathSync() => resolveSymbolicLinksSync();
 
   Stream<List<int>> openRead([int start, int end]) {
     return new _FileStream(path, start, end);

@@ -79,7 +79,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                       List<String> options: const [],
                       Compiler cachedCompiler,
                       bool showDiagnostics: true}) {
-  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
@@ -136,7 +136,7 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                      {DiagnosticHandler diagnosticHandler,
                                       List<String> options: const [],
                                       bool showDiagnostics: true}) {
-  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
+  Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

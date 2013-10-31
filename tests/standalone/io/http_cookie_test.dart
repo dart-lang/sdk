@@ -51,9 +51,8 @@ void testCookies() {
                   }
                 });
           })
-          .catchError((e) {
+          .catchError((e, trace) {
             String msg = "Unexpected error $e";
-            var trace = getAttachedStackTrace(e);
             if (trace != null) msg += "\nStackTrace: $trace";
             Expect.fail(msg);
          });

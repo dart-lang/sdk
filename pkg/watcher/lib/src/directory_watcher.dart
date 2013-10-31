@@ -156,7 +156,7 @@ class DirectoryWatcher {
     if (file == null) return _completePoll();
 
     return getModificationTime(file).then((modified) {
-      if (_checkForCancel()) return;
+      if (_checkForCancel()) return null;
 
       var lastStatus = _statuses[file];
 
@@ -164,7 +164,7 @@ class DirectoryWatcher {
       if (lastStatus != null && lastStatus.modified == modified) {
         // The file is still here.
         _polledFiles.add(file);
-        return;
+        return null;
       }
 
       return _hashFile(file).then((hash) {

@@ -265,10 +265,11 @@ class PolymerDeclaration extends HtmlElement {
         }
 
         var property = new Symbol(attr);
-        var mirror = cls.variables[property];
-        if (mirror == null) {
-          mirror = cls.getters[property];
-          if (mirror != null && !_hasSetter(cls, mirror)) mirror = null;
+        var mirror = cls.declarations[property];
+        if (mirror is MethodMirror) {
+          if (!mirror.isGetter || !_hasSetter(cls, mirror)) mirror = null;
+        } else if (mirror is! VariableMirror) {
+          mirror = null;
         }
         if (mirror == null) {
           window.console.warn('property for attribute $attr of polymer-element '
@@ -436,8 +437,9 @@ class PolymerDeclaration extends HtmlElement {
   // If an element may take 6us to create, getCustomPropertyNames might
   // cost 1.6us more.
   void inferObservers(ClassMirror cls) {
-    for (var method in cls.methods.values) {
-      if (method.isStatic || !method.isRegularMethod) continue;
+    for (var method in cls.declarations.values) {
+      if (method is! MethodMirror || method.isStatic
+          || !method.isRegularMethod) continue;
 
       String name = MirrorSystem.getName(method.simpleName);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
@@ -498,8 +500,9 @@ final _objectType = reflectClass(Object);
 Map _getPublishedProperties(ClassMirror cls, Map props) {
   if (cls == _objectType) return props;
   props = _getPublishedProperties(cls.superclass, props);
-  for (var field in cls.variables.values) {
-    if (field.isFinal || field.isStatic || field.isPrivate) continue;
+  for (var field in cls.declarations.values) {
+    if (field is! VariableMirror ||
+        field.isFinal || field.isStatic || field.isPrivate) continue;
 
     for (var meta in field.metadata) {
       if (meta.reflectee is PublishedProperty) {
@@ -510,8 +513,9 @@ Map _getPublishedProperties(ClassMirror cls, Map props) {
     }
   }
 
-  for (var getter in cls.getters.values) {
-    if (getter.isStatic || getter.isPrivate) continue;
+  for (var getter in cls.declarations.values) {
+    if (getter is! MethodMirror || !getter.isGetter ||
+        getter.isStatic || getter.isPrivate) continue;
 
     for (var meta in getter.metadata) {
       if (meta.reflectee is PublishedProperty) {
@@ -529,7 +533,8 @@ Map _getPublishedProperties(ClassMirror cls, Map props) {
 
 bool _hasSetter(ClassMirror cls, MethodMirror getter) {
   var setterName = new Symbol('${MirrorSystem.getName(getter.simpleName)}=');
-  return cls.setters.containsKey(setterName);
+  var mirror = cls.declarations[setterName];
+  return mirror is MethodMirror && mirror.isSetter;
 }
 
 

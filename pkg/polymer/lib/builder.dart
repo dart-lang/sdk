@@ -49,8 +49,8 @@
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
- *     main() {
- *        var options = parseOptions();
+ *     main(args) {
+ *        var options = parseOptions(args);
  *        lint().then((_) {
  *          if (options.forceDeploy) deploy();
  *        });
@@ -62,8 +62,8 @@
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
- *     main() {
- *        build();
+ *     main(args) {
+ *        build(options: parseOptions(args));
  *     }
  *
  * **Example 5**: Like the previous example, but indicates to the linter and
@@ -73,8 +73,8 @@
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
- *     main() {
- *        build(entryPoints: ['web/index.html']);
+ *     main(args) {
+ *        build(entryPoints: ['web/index.html'], options: parseOptions(args));
  *     }
  */
 library polymer.builder;
@@ -101,7 +101,7 @@ import 'transformer.dart';
  * root (for example 'web/index.html'). If null, all files under 'web/' are
  * treated as possible entry points.
  *
- * Options are read from the command line arguments, but you can override them
+ * Options must be passed by
  * passing the [options] argument. The deploy operation is run only when the
  * command-line argument `--deploy` is present, or equivalently when
  * `options.forceDeploy` is true.
@@ -113,7 +113,11 @@ import 'transformer.dart';
  */
 Future build({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
-  if (options == null) options = _options;
+  if (options == null) {
+    print('warning: now that main takes arguments, you need to explicitly pass'
+        ' options to build(). Running as if no options were passed.');
+    options = parseOptions([]);
+  }
   return lint(entryPoints: entryPoints, options: options,
       currentPackage: currentPackage, packageDirs: packageDirs).then((res) {
     if (options.forceDeploy) {
@@ -133,8 +137,7 @@ Future build({List<String> entryPoints, CommandLineOptions options,
  * root (for example 'web/index.html'). If null, all files under 'web/' are
  * treated as possible entry points.
  *
- * Options are read from the command line arguments, but you can override them
- * passing the [options] argument.
+ * Options must be passed by passing the [options] argument.
  *
  * The linter needs to know the name of the [currentPackage] and the location
  * where to find the code for any package it depends on ([packageDirs]). This is
@@ -142,7 +145,11 @@ Future build({List<String> entryPoints, CommandLineOptions options,
  */
 Future lint({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
-  if (options == null) options = _options;
+  if (options == null) {
+    print('warning: now that main takes arguments, you need to explicitly pass'
+        ' options to lint(). Running as if no options were passed.');
+    options = parseOptions([]);
+  }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
   var linterOptions = new TransformOptions(entryPoints: entryPoints);
   var formatter = options.machineFormat ? jsonFormatter : consoleFormatter;
@@ -188,8 +195,7 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
  * root (for example 'web/index.html'). If null, all files under 'web/' are
  * treated as possible entry points.
  *
- * Options are read from the command line arguments, but you can override them
- * passing the [options] list.
+ * Options must be passed by passing the [options] list.
  *
  * The deploy step needs to know the name of the [currentPackage] and the
  * location where to find the code for any package it depends on
@@ -198,7 +204,11 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
  */
 Future deploy({List<String> entryPoints, CommandLineOptions options,
     String currentPackage, Map<String, String> packageDirs}) {
-  if (options == null) options = _options;
+  if (options == null) {
+    print('warning: now that main takes arguments, you need to explicitly pass'
+        ' options to deploy(). Running as if no options were passed.');
+    options = parseOptions([]);
+  }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
 
   var transformOptions = new TransformOptions(
@@ -255,9 +265,6 @@ class CommandLineOptions {
       this.directlyIncludeJS, this.contentSecurityPolicy);
 }
 
-/** Options parsed directly from the command line arguments. */
-CommandLineOptions _options = parseOptions();
-
 /**
  * Parse command-line arguments and return a [CommandLineOptions] object. The
  * following flags are parsed by this method.
@@ -285,6 +292,11 @@ CommandLineOptions _options = parseOptions();
  * it with the `--help` command-line flag.
  */
 CommandLineOptions parseOptions([List<String> args]) {
+  if (args == null) {
+    print('warning: the list of arguments from main(List<String> args) now '
+        'needs to be passed explicitly to parseOptions.');
+    args = [];
+  }
   var parser = new ArgParser()
     ..addOption('changed', help: 'The file has changed since the last build.',
         allowMultiple: true)
@@ -317,7 +329,7 @@ CommandLineOptions parseOptions([List<String> args]) {
 
   var res;
   try {
-    res = parser.parse(args == null ? new Options().arguments : args);
+    res = parser.parse(args);
   } on FormatException catch (e) {
     print(e.message);
     showUsage();

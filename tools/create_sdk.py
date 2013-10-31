@@ -39,7 +39,6 @@
 # ......js/
 # ......math/
 # ......mirrors/
-# ......utf/
 # ......typed_data/
 # ....util/
 # ......dartanalyzer/
@@ -188,7 +187,7 @@ def Main(argv):
   os.makedirs(LIB)
 
   #
-  # Create and populate lib/{core, crypto, isolate, utf, ...}.
+  # Create and populate lib/{core, crypto, isolate, ...}.
   #
 
   os.makedirs(join(LIB, 'html'))
@@ -205,7 +204,6 @@ def Main(argv):
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
                   'js', 'math', 'mirrors', 'typed_data',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
-                  'utf',
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
                   join('web_gl', 'dart2js'), join('web_gl', 'dartium'),
                   join('web_sql', 'dart2js'), join('web_sql', 'dartium')]:

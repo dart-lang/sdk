@@ -767,10 +767,12 @@ class StandardTestSuite extends TestSuite {
 
   List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
     var compiler = configuration['compiler'];
+    List<String> sharedOptions = info.optionsFromFile['sharedOptions'];
     switch (compiler) {
     case 'dart2js':
       args = new List.from(args);
       String tempDir = createCompilationOutputDirectory(info.filePath);
+      args.addAll(sharedOptions);
       args.add('--out=$tempDir/out.js');
 
       var command = CommandBuilder.instance.getCompilationCommand(
@@ -791,6 +793,7 @@ class StandardTestSuite extends TestSuite {
       return commands;
     case 'dart2dart':
       args = new List.from(args);
+      args.addAll(sharedOptions);
       args.add('--output-type=dart');
       String tempDir = createCompilationOutputDirectory(info.filePath);
       args.add('--out=$tempDir/out.dart');
@@ -817,6 +820,7 @@ class StandardTestSuite extends TestSuite {
 
     case 'none':
       var arguments = new List.from(vmOptions);
+      arguments.addAll(sharedOptions);
       arguments.addAll(args);
       return <Command>[CommandBuilder.instance.getVmCommand(
           dartShellFileName, arguments, configurationDir)];
@@ -1352,6 +1356,11 @@ class StandardTestSuite extends TestSuite {
    *
    *     // VMOptions=--flag1 --flag2
    *
+   *   - Flags can be passed to dart2js, dart2dart or vm by adding a comment
+   *   to the test file:
+   *
+   *     // SharedOptions=--flag1 --flag2
+   *
    *   - Flags can be passed to the dart script that contains the test also
    *   using comments, as follows:
    *
@@ -1406,6 +1415,7 @@ class StandardTestSuite extends TestSuite {
       return readOptionsFromCo19File(filePath);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
+    RegExp sharedOptionsRegExp = new RegExp(r"// SharedOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
@@ -1424,6 +1434,7 @@ class StandardTestSuite extends TestSuite {
     // Find the options in the file.
     List<List> result = new List<List>();
     List<String> dartOptions;
+    List<String> sharedOptions;
     String packageRoot;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
@@ -1439,6 +1450,15 @@ class StandardTestSuite extends TestSuite {
             'More than one "// DartOptions=" line in test $filePath');
       }
       dartOptions = match[1].split(' ').where((e) => e != '').toList();
+    }
+
+    matches = sharedOptionsRegExp.allMatches(contents);
+    for (var match in matches) {
+      if (sharedOptions != null) {
+        throw new Exception(
+            'More than one "// SharedOptions=" line in test $filePath');
+      }
+      sharedOptions = match[1].split(' ').where((e) => e != '').toList();
     }
 
     matches = packageRootRegExp.allMatches(contents);
@@ -1481,6 +1501,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     return { "vmOptions": result,
+             "sharedOptions": sharedOptions == null ? [] : sharedOptions,
              "dartOptions": dartOptions,
              "packageRoot": packageRoot,
              "hasCompileError": false,
@@ -1549,6 +1570,7 @@ class StandardTestSuite extends TestSuite {
 
     return {
       "vmOptions": <List>[[]],
+      "sharedOptions": <String>[],
       "dartOptions": null,
       "packageRoot": null,
       "hasCompileError": hasCompileError,

@@ -31,18 +31,16 @@ const List<String> COMMON_ARGUMENTS =
     const <String>['--report', '--progress=diff', 'co19'];
 
 const List<List<String>> COMMAND_LINES = const <List<String>>[
-    //const <String>['-mrelease,debug', '-rvm', '-cnone'],
-    //const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
-    //const <String>['-mrelease', '-rnone', '-cdartanalyzer'],
-    //const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
-    //const <String>['-mrelease', '-rvm', '-cdart2dart', '--use-sdk'],
-    //const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
-    //const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
-                   //'--minified'],
-    //const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
-                   //'--checked'],
-    const <String>['-mrelease', '-rdartium', '-cnone', '--use-sdk',
-                   '--use_browser_controller', '--write-debug-log'],
+    const <String>['-mrelease,debug', '-rvm', '-cnone'],
+    const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
+    const <String>['-mrelease', '-rnone', '-cdartanalyzer'],
+    const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
+    const <String>['-mrelease', '-rvm', '-cdart2dart', '--use-sdk'],
+    const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
+    const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
+                   '--minified'],
+    const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
+                   '--checked'],
 ];
 
 void main() {

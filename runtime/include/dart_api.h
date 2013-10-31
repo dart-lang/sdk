@@ -1477,7 +1477,7 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
 /**
  * Gets the data corresponding to the string object. This function returns
  * the data only for Latin-1 (ISO-8859-1) string objects. For all other
- * string objects it return and error.
+ * string objects it returns an error.
  *
  * \param str A string.
  * \param latin1_array An array allocated by the caller, used to return
@@ -2105,6 +2105,32 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
                                                         int num_of_arguments);
 /* TODO(turnidge): Consider renaming to NativeFunctionResolver or
  * NativeResolver. */
+
+/*
+ * ===========
+ * Environment
+ * ===========
+ */
+
+/**
+ * An environment lookup callback function.
+ *
+ * \param name The name of the value to lookup in the environment.
+ *
+ * \return A valid handle to a string if the name exists in the
+ * current environment or Dart_Null() if not.
+ */
+typedef Dart_Handle (*Dart_EnvironmentCallback)(Dart_Handle name);
+
+/**
+ * Sets the environment callback for the current isolate. This
+ * callback is used to lookup environment values by name in the
+ * current environment. This enables the embedder to supply values for
+ * the const constructors bool.fromEnvironment, int.fromEnvironment
+ * and String.fromEnvironment.
+ */
+DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
+    Dart_EnvironmentCallback callback);
 
 /**
  * Sets the callback used to resolve native functions for a library.

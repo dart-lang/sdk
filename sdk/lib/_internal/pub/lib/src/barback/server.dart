@@ -104,7 +104,7 @@ class BarbackServer {
           _logRequest(request, "Served $id");
           request.response.close();
         });
-      }).catchError((error) {
+      }).catchError((error, trace) {
         _resultsController.add(
             new BarbackServerResult._failure(request.uri, id, error));
 
@@ -116,7 +116,7 @@ class BarbackServer {
           return;
         }
 
-        var trace = new Trace.from(getAttachedStackTrace(error));
+        trace = new Trace.from(trace);
         _logRequest(request, "$error\n$trace");
 
         // Otherwise, it's some internal error.
@@ -125,9 +125,9 @@ class BarbackServer {
         request.response.write(error);
         request.response.close();
       });
-    }).catchError((error) {
+    }).catchError((error, trace) {
       if (error is! AssetNotFoundException) {
-        var trace = new Trace.from(getAttachedStackTrace(error));
+        trace = new Trace.from(trace);
         _logRequest(request, "$error\n$trace");
 
         _resultsController.addError(error);

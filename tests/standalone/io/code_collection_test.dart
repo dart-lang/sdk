@@ -40,9 +40,8 @@ doTest() {
 }
 
 
-main() {
-  var opts = new Options();
-  if (opts.arguments.contains("--run")) {
+main(List<String> arguments) {
+  if (arguments.contains("--run")) {
     doTest();
   } else {
     // Run the test and capture stdout.
@@ -52,7 +51,7 @@ main() {
          "--log-code-drop",
          "--optimization-counter-threshold=-1",
          "--package-root=${Platform.packageRoot}",
-         Platform.script,
+         Platform.script.toFilePath(),
          "--run"]);
 
     // Code drops are logged with --log-code-drop. Look through stdout for the

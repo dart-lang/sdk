@@ -60,7 +60,7 @@ main(List<String> arguments) {
   output = new File(arguments.first).openSync(mode: FileMode.WRITE);
 
   Uri myLocation =
-      handler.provider.cwd.resolve(nativeToUriPath(Platform.script));
+      handler.provider.cwd.resolveUri(Platform.script);
 
   // Get the names of public dart2js libraries.
   Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);

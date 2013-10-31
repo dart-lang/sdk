@@ -30,9 +30,7 @@ import 'package:path/path.dart' as path;
 
 HtmlDiff _diff;
 
-void main() {
-  final args = new Options().arguments;
-
+void main(List<String> args) {
   int mode = MODE_STATIC;
   String outputDir = 'docs';
   bool generateAppCache = false;
@@ -182,9 +180,8 @@ void main() {
             packageRoot))
       .then((_) => compileScript(mode, outputDir, libPath, apidoc.tmpPath))
       .then((_) => print(apidoc.status))
-      .catchError((e) {
+      .catchError((e, trace) {
         print('Error: generation failed: ${e}');
-        var trace = getAttachedStackTrace(e);
         if (trace != null) print("StackTrace: $trace");
         apidoc.cleanup();
         exit(1);

@@ -1207,6 +1207,16 @@ class SubtypeVisitor extends MoreSpecificVisitor {
   }
 }
 
+/**
+ * Callback used to check whether the [typeArgument] of [type] is a valid
+ * substitute for the bound of [typeVariable]. [bound] holds the bound against
+ * which [typeArgument] should be checked.
+ */
+typedef void CheckTypeVariableBound(GenericType type,
+                                    DartType typeArgument,
+                                    TypeVariableType typeVariable,
+                                    DartType bound);
+
 class Types {
   final Compiler compiler;
   // TODO(karlklose): should we have a class Void?
@@ -1250,10 +1260,42 @@ class Types {
     return subtypeVisitor.isAssignable(r, s);
   }
 
+  static const int IS_SUBTYPE = 1;
+  static const int MAYBE_SUBTYPE = 0;
+  static const int NOT_SUBTYPE = -1;
+
+  int computeSubtypeRelation(DartType t, DartType s) {
+    // TODO(johnniwinther): Compute this directly in [isPotentialSubtype].
+    if (isSubtype(t, s)) return IS_SUBTYPE;
+    return isPotentialSubtype(t, s) ? MAYBE_SUBTYPE : NOT_SUBTYPE;
+  }
+
   bool isPotentialSubtype(DartType t, DartType s) {
     // TODO(johnniwinther): Return a set of variable points in the positive
     // cases.
     return potentialSubtypeVisitor.isSubtype(t, s);
+  }
+
+  /**
+   * Checks the type arguments of [type] against the type variable bounds
+   * declared on [element]. Calls [checkTypeVariableBound] on each type
+   * argument and bound.
+   */
+  void checkTypeVariableBounds(GenericType type,
+                               CheckTypeVariableBound checkTypeVariableBound) {
+    TypeDeclarationElement element = type.element;
+    Link<DartType> typeArguments = type.typeArguments;
+    Link<DartType> typeVariables = element.typeVariables;
+    while (!typeVariables.isEmpty && !typeArguments.isEmpty) {
+      TypeVariableType typeVariable = typeVariables.head;
+      DartType bound = typeVariable.element.bound.subst(
+          type.typeArguments, element.typeVariables);
+      DartType typeArgument = typeArguments.head;
+      checkTypeVariableBound(type, typeArgument, typeVariable, bound);
+      typeVariables = typeVariables.tail;
+      typeArguments = typeArguments.tail;
+    }
+    assert(typeVariables.isEmpty && typeArguments.isEmpty);
   }
 
   /**

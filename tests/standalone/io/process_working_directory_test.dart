@@ -14,7 +14,7 @@ class ProcessWorkingDirectoryTest {
     // Extract full path, since we run processes from another directory.
     File path = new File(getProcessTestFileName());
     Expect.isTrue(path.existsSync());
-    return path.fullPathSync();
+    return path.resolveSymbolicLinksSync();
   }
 
   static void testValidDirectory() {

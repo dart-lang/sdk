@@ -6,6 +6,10 @@
 
 patch class bool {
 
+  /* patch */ const factory bool.fromEnvironment(String name,
+                                                 {bool defaultValue})
+      native "Bool_fromEnvironment";
+
   int get _identityHashCode {
     return this ? 1231 : 1237;
   }

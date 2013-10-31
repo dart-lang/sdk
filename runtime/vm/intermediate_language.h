@@ -53,6 +53,7 @@ class Range;
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
+  V(_TypedList, _getUint32x4, ByteArrayBaseGetUint32x4, 1499091330)            \
   V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1443265945)                    \
   V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 1864204733)                  \
   V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 1807419109)                  \
@@ -62,6 +63,7 @@ class Range;
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1457395244)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 49127618)                \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1261559935)          \
+  V(_TypedList, _setUint32x4, ByteArrayBaseSetUint32x4, 691480480)             \
   V(_GrowableList, get:length, GrowableArrayLength, 1654225242)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 817090003)            \
   V(_GrowableList, _setData, GrowableArraySetData, 1375509957)                 \
@@ -166,6 +168,8 @@ class Range;
   V(_Uint32Array, []=, Uint32ArraySetIndexed, 1980947178)                      \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 1901126825)                 \
   V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1419416331)                \
+  V(_Uint32x4Array, [], Uint32x4ArrayGetIndexed, 1340743913)                   \
+  V(_Uint32x4Array, []=, Uint32x4ArraySetIndexed, 1326924628)                  \
 
 
 // A list of core function that should always be inlined.
@@ -190,6 +194,7 @@ class Range;
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
+  V(_TypedList, _getUint32x4, ByteArrayBaseGetUint32x4, 1239681356)          \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable

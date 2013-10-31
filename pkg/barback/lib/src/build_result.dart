@@ -47,8 +47,10 @@ class BuildResult {
     if (succeeded) return "success";
 
     return "errors:\n" + errors.map((error) {
-      var stackTrace = getAttachedStackTrace(error);
-      if (stackTrace != null) stackTrace = new Trace.from(stackTrace);
+      var stackTrace = null;
+      if (error is TransformerException || error is AssetLoadException) {
+        stackTrace = new Trace.from(error.stackTrace);
+      }
 
       var msg = new StringBuffer();
       msg.write(prefixLines(error.toString()));

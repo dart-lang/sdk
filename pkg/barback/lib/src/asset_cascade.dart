@@ -122,8 +122,9 @@ class AssetCascade {
     // Keep track of logged errors so we can know that the build failed.
     onLog.listen((entry) {
       if (entry.level == LogLevel.ERROR) {
+        // TODO(nweiz): keep track of stack trace.
         _accumulatedErrors.add(
-            new TransformerException(entry.transform, entry.message));
+            new TransformerException(entry.transform, entry.message, null));
       }
     });
   }
@@ -187,8 +188,8 @@ class AssetCascade {
         _loadingSources.remove(id);
       }).then((asset) {
         var controller = _sourceControllerMap[id].setAvailable(asset);
-      }).catchError((error) {
-        reportError(new AssetLoadException(id, error));
+      }).catchError((error, stack) {
+        reportError(new AssetLoadException(id, error, stack));
 
         // TODO(nweiz): propagate error information through asset nodes.
         _sourceControllerMap.remove(id).setRemoved();
@@ -212,8 +213,8 @@ class AssetCascade {
   ///
   /// Elements of the inner iterable of [transformers] must be either
   /// [Transformer]s or [TransformerGroup]s.
-  void updateTransformers(Iterable<Iterable> transformers) {
-    transformers = transformers.toList();
+  void updateTransformers(Iterable<Iterable> transformersIterable) {
+    var transformers = transformersIterable.toList();
 
     for (var i = 0; i < transformers.length; i++) {
       if (_phases.length > i) {
@@ -300,7 +301,7 @@ class AssetCascade {
         if (_newChanges) return _process();
 
         // Otherwise, everything is done.
-        return;
+        return null;
       }
 
       // Process that phase and then loop onto the next.

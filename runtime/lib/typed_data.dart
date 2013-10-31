@@ -244,6 +244,26 @@ patch class Float32x4List {
 }
 
 
+patch class Uint32x4List {
+  /* patch */ factory Uint32x4List(int length) {
+    return new _Uint32x4Array(length);
+  }
+
+  /* patch */ factory Uint32x4List.fromList(List<Uint32x4> elements) {
+    var result = new _Uint32x4Array(elements.length);
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
+    return result;
+  }
+
+  /* patch */ factory Uint32x4List.view(ByteBuffer buffer,
+                                        [int offsetInBytes = 0, int length]) {
+    return new _Uint32x4ArrayView(buffer, offsetInBytes, length);
+  }
+}
+
+
 patch class Float32x4 {
   /* patch */ factory Float32x4(double x, double y, double z, double w) {
     return new _Float32x4(x, y, z, w);
@@ -590,6 +610,10 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
   Float32x4 _getFloat32x4(int offsetInBytes) native "TypedData_GetFloat32x4";
   void _setFloat32x4(int offsetInBytes, Float32x4 value)
       native "TypedData_SetFloat32x4";
+
+  Uint32x4 _getUint32x4(int offsetInBytes) native "TypedData_GetUint32x4";
+  void _setUint32x4(int offsetInBytes, Uint32x4 value)
+      native "TypedData_SetUint32x4";
 }
 
 
@@ -1256,6 +1280,7 @@ class _Float64Array extends _TypedList implements Float64List {
   static _Float64Array _new(int length) native "TypedData_Float64Array_new";
 }
 
+
 class _Float32x4Array extends _TypedList implements Float32x4List {
   // Factory constructors.
 
@@ -1314,6 +1339,67 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
   }
 
   static _Float32x4Array _new(int length) native "TypedData_Float32x4Array_new";
+}
+
+
+class _Uint32x4Array extends _TypedList implements Uint32x4List {
+  // Factory constructors.
+
+  factory _Uint32x4Array(int length) {
+    return _new(length);
+  }
+
+  factory _Uint32x4Array.view(ByteBuffer buffer,
+                              [int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (buffer.lengthInBytes - offsetInBytes) ~/
+               Uint32x4List.BYTES_PER_ELEMENT;
+    }
+    return new _Uint32x4ArrayView(buffer, offsetInBytes, length);
+  }
+
+
+  Uint32x4 operator[](int index) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    return _getIndexedUint32x4(index);
+  }
+
+  void operator[]=(int index, Uint32x4 value) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    _setIndexedUint32x4(index, value);
+  }
+
+  Iterator<Uint32x4> get iterator {
+    return new _TypedListIterator<Uint32x4>(this);
+  }
+
+
+  // Method(s) implementing the TypedData interface.
+
+  int get elementSizeInBytes {
+    return Uint32x4List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  _Uint32x4Array _createList(int length) {
+    return _new(length);
+  }
+
+  Uint32x4 _getIndexedUint32x4(int index) {
+    return _getUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT);
+  }
+
+  void _setIndexedUint32x4(int index, Uint32x4 value) {
+    _setUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT, value);
+  }
+
+  static _Uint32x4Array _new(int length) native "TypedData_Uint32x4Array_new";
 }
 
 
@@ -1949,6 +2035,61 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
 
   static _ExternalFloat32x4Array _new(int length) native
       "ExternalTypedData_Float32x4Array_new";
+}
+
+
+class _ExternalUint32x4Array extends _TypedList implements Uint32x4List {
+  // Factory constructors.
+
+  factory _ExternalUint32x4Array(int length) {
+    return _new(length);
+  }
+
+
+  // Method(s) implementing the List interface.
+
+  Uint32x4 operator[](int index) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    return _getIndexedUint32x4(index);
+  }
+
+  void operator[]=(int index, Uint32x4 value) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    _setIndexedUint32x4(index, value);
+  }
+
+  Iterator<Uint32x4> get iterator {
+    return new _TypedListIterator<Uint32x4>(this);
+  }
+
+
+  // Method(s) implementing the TypedData interface.
+
+  int get elementSizeInBytes {
+    return Uint32x4List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint32x4List _createList(int length) {
+    return new Uint32x4List(length);
+  }
+
+  Uint32x4 _getIndexedUint32x4(int index) {
+    return _getUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT);
+  }
+
+  void _setIndexedUint32x4(int index, Uint32x4 value) {
+    _setUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT, value);
+  }
+
+  static _ExternalUint32x4Array _new(int length) native
+      "ExternalTypedData_Uint32x4Array_new";
 }
 
 
@@ -2785,6 +2926,58 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
 
   Float32x4List _createList(int length) {
     return new Float32x4List(length);
+  }
+}
+
+
+class _Uint32x4ArrayView extends _TypedListView implements Uint32x4List {
+  // Constructor.
+  _Uint32x4ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
+    : super(buffer, _offsetInBytes,
+            _defaultIfNull(_length,
+                           ((buffer.lengthInBytes - _offsetInBytes) ~/
+                            Uint32x4List.BYTES_PER_ELEMENT))) {
+    _rangeCheck(buffer.lengthInBytes,
+                offsetInBytes,
+                length * Uint32x4List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Uint32x4List.BYTES_PER_ELEMENT);
+  }
+
+
+  // Method(s) implementing List interface.
+
+  Uint32x4 operator[](int index) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    return _typedData._getUint32x4(offsetInBytes +
+                                   (index * Uint32x4List.BYTES_PER_ELEMENT));
+  }
+
+  void operator[]=(int index, Uint32x4 value) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    _typedData._setUint32x4(offsetInBytes +
+                            (index * Uint32x4List.BYTES_PER_ELEMENT), value);
+  }
+
+  Iterator<Uint32x4> get iterator {
+    return new _TypedListIterator<Uint32x4>(this);
+  }
+
+
+  // Method(s) implementing TypedData interface.
+
+  int get elementSizeInBytes {
+    return Uint32x4List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint32x4List _createList(int length) {
+    return new Uint32x4List(length);
   }
 }
 

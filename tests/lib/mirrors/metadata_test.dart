@@ -53,7 +53,7 @@ main() {
   MirrorSystem mirrors = currentMirrorSystem();
   ClassMirror myClassMirror = reflectClass(MyClass);
   checkMetadata(myClassMirror, [symbol, string]);
-  LibraryMirror lib = mirrors.findLibrary(#test.metadata_test).first;
+  LibraryMirror lib = mirrors.findLibrary(#test.metadata_test);
   MethodMirror function = lib.functions[#main];
   checkMetadata(function, [symbol, string, symbol]);
   MethodMirror method = myClassMirror.methods[#myMethod];

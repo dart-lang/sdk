@@ -42,11 +42,10 @@ class _Completes extends Matcher {
 
     item.then((value) {
       done(() { if (_matcher != null) expect(value, _matcher); });
-    }, onError: (error) {
+    }, onError: (error, trace) {
       var id = _id == '' ? '' : '${_id} ';
       var reason = 'Expected future ${id}to complete successfully, '
                    'but it failed with ${error}';
-      var trace = getAttachedStackTrace(error);
       if (trace != null) {
         var stackTrace = trace.toString();
         stackTrace = '  ${stackTrace.replaceAll('\n', '\n  ')}';

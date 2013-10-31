@@ -84,8 +84,8 @@
  *
  *     var results = parser.parse(['some', 'command', 'line', 'args']);
  *
- * These arguments usually come from dart:io's Options class
- * (`new Options().arguments`), but you can pass in any list of strings.
+ * These arguments usually come from the arguments to main
+ * (`main(List<String> arguments`), but you can pass in any list of strings.
  * The parse() method returns an instance of [ArgResults], a map-like
  * object that contains the values of the parsed options.
  *

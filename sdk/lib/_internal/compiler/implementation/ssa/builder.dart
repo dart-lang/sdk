@@ -1932,6 +1932,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return other;
   }
 
+  void assertIsSubtype(Node node, DartType subtype, DartType supertype,
+                       String message) {
+    HInstruction subtypeInstruction = analyzeTypeArgument(subtype);
+    HInstruction supertypeInstruction = analyzeTypeArgument(supertype);
+    HInstruction messageInstruction =
+        graph.addConstantString(new DartString.literal(message),
+                                node, compiler);
+    Element element = backend.getAssertIsSubtype();
+    var inputs = <HInstruction>[subtypeInstruction, supertypeInstruction,
+                                messageInstruction];
+    HInstruction assertIsSubtype = new HInvokeStatic(
+        element, inputs, subtypeInstruction.instructionType);
+    compiler.backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+    add(assertIsSubtype);
+  }
+
   HGraph closeFunction() {
     // TODO(kasperl): Make this goto an implicit return.
     if (!isAborted()) closeAndGotoExit(new HGoto());
@@ -3689,6 +3705,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       type = functionElement.computeTargetType(compiler, type);
     }
 
+    if (checkTypeVariableBounds(node, type)) return;
+
     var inputs = <HInstruction>[];
     if (constructor.isGenerativeConstructor() &&
         Elements.isNativeOrExtendsNative(constructor.getEnclosingClass())) {
@@ -3744,6 +3762,62 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         stack.add(checked);
       }
     }
+  }
+
+  /// In checked mode checks the [type] of [node] to be well-bounded. The method
+  /// returns [:true:] if an error can be statically determined.
+  bool checkTypeVariableBounds(NewExpression node, InterfaceType type) {
+    if (!compiler.enableTypeAssertions) return false;
+
+    Map<DartType, Set<DartType>> seenChecksMap =
+        new Map<DartType, Set<DartType>>();
+    bool definitelyFails = false;
+
+    addTypeVariableBoundCheck(GenericType instance,
+                              DartType typeArgument,
+                              TypeVariableType typeVariable,
+                              DartType bound) {
+      if (definitelyFails) return;
+
+      int subtypeRelation = compiler.types.computeSubtypeRelation(typeArgument, bound);
+      if (subtypeRelation == Types.IS_SUBTYPE) return;
+
+      String message =
+          "Can't create an instance of malbounded type '$type': "
+          "'${typeArgument}' is not a subtype of bound '${bound}' for "
+          "type variable '${typeVariable}' of type "
+          "${type == instance
+              ? "'${type.element.thisType}'"
+              : "'${instance.element.thisType}' on the supertype "
+                "'${instance}' of '${type}'"
+            }.";
+      if (subtypeRelation == Types.NOT_SUBTYPE) {
+        generateTypeError(node, message);
+        definitelyFails = true;
+        return;
+      } else if (subtypeRelation == Types.MAYBE_SUBTYPE) {
+        Set<DartType> seenChecks =
+            seenChecksMap.putIfAbsent(typeArgument, () => new Set<DartType>());
+        if (!seenChecks.contains(bound)) {
+          seenChecks.add(bound);
+          assertIsSubtype(node, typeArgument, bound, message);
+        }
+      }
+    }
+
+    compiler.types.checkTypeVariableBounds(type, addTypeVariableBoundCheck);
+    if (definitelyFails) {
+      return true;
+    }
+    for (InterfaceType supertype in type.element.allSupertypes) {
+      DartType instance = type.asInstanceOf(supertype.element);
+      compiler.types.checkTypeVariableBounds(instance,
+          addTypeVariableBoundCheck);
+      if (definitelyFails) {
+        return true;
+      }
+    }
+    return false;
   }
 
   visitAssert(node) {
@@ -3858,6 +3932,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateRuntimeError(Node node, String message) {
     generateError(node, message, backend.getThrowRuntimeError());
+  }
+
+  void generateTypeError(Node node, String message) {
+    generateError(node, message, backend.getThrowTypeError());
   }
 
   void generateAbstractClassInstantiationError(Node node, String message) {

@@ -15,7 +15,7 @@ const CERTIFICATE = "localhost_cert";
 
 Future<SecureServerSocket> runServer() {
   SecureSocket.initialize(
-      database: join(dirname(Platform.script), 'pkcert'),
+      database: Platform.script.resolve('pkcert').toFilePath(),
       password: 'dartdart');
 
   return HttpServer.bindSecure(
@@ -29,9 +29,9 @@ Future<SecureServerSocket> runServer() {
 }
 
 void main() {
-  var clientScript = join(dirname(Platform.script),
-                          'https_unauthorized_client.dart');
-
+  var clientScript = Platform.script
+                             .resolve('https_unauthorized_client.dart')
+                             .toFilePath();
   Future clientProcess(int port) {
     return Process.run(Platform.executable,
         [clientScript, port.toString()])

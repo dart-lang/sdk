@@ -572,8 +572,8 @@ Future awaitObject(object) {
 /// Returns the path to the library named [libraryName]. The library name must
 /// be globally unique, or the wrong library path may be returned.
 String libraryPath(String libraryName) {
-  var libraries = currentMirrorSystem().findLibrary(new Symbol(libraryName));
-  return path.fromUri(libraries.single.uri);
+  var lib = currentMirrorSystem().findLibrary(new Symbol(libraryName));
+  return path.fromUri(lib.uri);
 }
 
 /// Gets a "special" string (ANSI escape or Unicode). On Windows, returns

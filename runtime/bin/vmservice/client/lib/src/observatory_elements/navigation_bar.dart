@@ -9,4 +9,5 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('navigation-bar')
 class NavigationBarElement extends ObservatoryElement {
+  NavigationBarElement.created() : super.created();
 }

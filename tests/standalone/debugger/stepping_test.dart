@@ -4,9 +4,9 @@
 
 import "debug_lib.dart";
 
-main() {
-  if (RunScript(testScript)) return;
-  
+main(List<String> arguments) {
+  if (RunScript(testScript, arguments)) return;
+
   bar();
 }
 
