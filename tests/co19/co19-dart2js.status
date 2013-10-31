@@ -99,6 +99,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 LibTest/isolate/ReceivePort/toSendPort_A01_t01: Pass, Fail # Issue: 8920
 LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # http://dartbug.com/12635
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Timeout # co19-roll r651: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
