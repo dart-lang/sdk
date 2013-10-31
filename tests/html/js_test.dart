@@ -154,7 +154,7 @@ function addTestProperty(o) {
 function fireClickEvent(w) {
   var event = w.document.createEvent('Events');
   event.initEvent('click', true, false);
-  w.document.body.dispatchEvent(event);
+  w.document.dispatchEvent(event);
 }
 
 function Bar() {
