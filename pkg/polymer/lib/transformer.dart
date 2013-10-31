@@ -35,11 +35,14 @@ class PolymerTransformerGroup implements TransformerGroup {
 }
 
 TransformOptions _parseSettings(BarbackSettings settings) {
-  var args = settings.transformer;
+  var args = settings.configuration;
+  bool release = settings.mode == BarbackMode.RELEASE;
+  bool jsOption = args['js'];
+  bool csp = args['csp'] == true; // defaults to false
   return new TransformOptions(
       entryPoints: _readEntrypoints(args['entry_points']),
-      directlyIncludeJS: args['js'] != false, // default to true
-      contentSecurityPolicy: args['csp'] == true); // default to false
+      directlyIncludeJS: jsOption == null ? release : jsOption,
+      contentSecurityPolicy: csp);
 }
 
 _readEntrypoints(value) {
