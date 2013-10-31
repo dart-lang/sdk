@@ -870,10 +870,10 @@ class Uint32x4List
 
   Uint32x4 operator[](int index) {
     _checkIndex(index, length);
-    double _x = _storage[(index*4)+0];
-    double _y = _storage[(index*4)+1];
-    double _z = _storage[(index*4)+2];
-    double _w = _storage[(index*4)+3];
+    int _x = _storage[(index*4)+0];
+    int _y = _storage[(index*4)+1];
+    int _z = _storage[(index*4)+2];
+    int _w = _storage[(index*4)+3];
     return new Uint32x4(_x, _y, _z, _w);
   }
 
