@@ -55,7 +55,6 @@ main() {
       prototype: Object.create(HTMLElement.prototype, {
         createdCallback: {
           value: function() {
-            window.console.log('Foo created!');
             this.setAttribute('fromJS', 'true');
           }
         }
