@@ -369,8 +369,12 @@ class LocalsHandler {
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
-      HInstruction fieldGet = new HFieldGet(
-          redirect, receiver, builder.getTypeOfCapturedVariable(redirect));
+      HType type = (element.kind == ElementKind.VARIABLE_LIST)
+          ? builder.backend.nonNullType
+          : builder.getTypeOfCapturedVariable(redirect);
+      assert(element.kind != ElementKind.VARIABLE_LIST
+             || element is BoxElement);
+      HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -380,7 +384,7 @@ class LocalsHandler {
       // accessed through a closure-field.
       // Calling [readLocal] makes sure we generate the correct code to get
       // the box.
-      assert(redirect.enclosingElement.isVariable());
+      assert(redirect.enclosingElement is BoxElement);
       HInstruction box = readLocal(redirect.enclosingElement);
       HInstruction lookup = new HFieldGet(
           redirect, box, builder.getTypeOfCapturedVariable(redirect));
@@ -434,7 +438,7 @@ class LocalsHandler {
       // is captured will be boxed, but the box itself will be a local.
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
-      assert(redirect.enclosingElement.isVariable());
+      assert(redirect.enclosingElement is BoxElement);
       HInstruction box = readLocal(redirect.enclosingElement);
       builder.add(new HFieldSet(redirect, box, value));
     } else {

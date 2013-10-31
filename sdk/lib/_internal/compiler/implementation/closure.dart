@@ -149,7 +149,7 @@ class ClosureClassElement extends ClassElementX {
 // more general solution.
 class BoxElement extends ElementX {
   BoxElement(String name, Element enclosingElement)
-      : super(name, ElementKind.VARIABLE, enclosingElement);
+      : super(name, ElementKind.VARIABLE_LIST, enclosingElement);
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 }
@@ -389,7 +389,7 @@ class ClosureTranslator extends Visitor {
           // A boxed element.
           freeVariableMapping[fromElement] = updatedElement;
           Element boxElement = updatedElement.enclosingElement;
-          assert(boxElement.kind == ElementKind.VARIABLE);
+          assert(boxElement is BoxElement);
           boxes.add(boxElement);
         }
       });
