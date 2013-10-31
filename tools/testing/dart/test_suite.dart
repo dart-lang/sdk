@@ -1175,6 +1175,7 @@ class StandardTestSuite extends TestSuite {
     }
     args.add('--out=$outputFile');
     args.add(inputFile);
+    args.addAll(optionsFromFile['sharedOptions']);
     if (executable.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
       args.insert(0, executable);
