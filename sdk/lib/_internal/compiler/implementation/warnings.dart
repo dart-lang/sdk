@@ -979,6 +979,9 @@ main() => new C();"""]);
           "foo(void x) {} main() { foo(null); }",
       ]);
 
+  static const MessageKind NULL_NOT_ALLOWED = const MessageKind(
+      "Error: `null` can't be used here.");
+
   static const MessageKind BEFORE_TOP_LEVEL = const MessageKind(
       "Error: Part header must come before top-level definitions.");
 

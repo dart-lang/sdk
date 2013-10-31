@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Skip these tests until XXX.fromEnvironment in dart2js lands.
-[ $compiler == dart2js || $compiler == dart2dart]
+[ $compiler == dart2dart]
 bool_from_environment2_test: Skip
 bool_from_environment_default_value_test: Skip
 bool_from_environment_test: Skip

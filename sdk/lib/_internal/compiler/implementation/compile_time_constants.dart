@@ -634,7 +634,77 @@ class CompileTimeConstantEvaluator extends Visitor {
       return evaluateArgumentsToConstructor(
           node, selector, send.arguments, constructor);
     }
-    return makeConstructedConstant(node, type, constructor, evaluateArguments);
+
+    if (constructor == compiler.intEnvironment
+        || constructor == compiler.boolEnvironment
+        || constructor == compiler.stringEnvironment) {
+      List<Constant> arguments = evaluateArguments(constructor);
+      var firstArgument = arguments[0];
+      Constant defaultValue = arguments[1];
+
+      if (firstArgument is NullConstant) {
+        compiler.reportFatalError(
+            send.arguments.head, MessageKind.NULL_NOT_ALLOWED);
+      }
+
+      if (firstArgument is! StringConstant) {
+        DartType type = defaultValue.computeType(compiler);
+        compiler.reportFatalError(
+            send.arguments.head, MessageKind.NOT_ASSIGNABLE.error,
+            {'fromType': type, 'toType': compiler.stringClass.rawType});
+      }
+
+      if (constructor == compiler.intEnvironment
+          && !(defaultValue is NullConstant || defaultValue is IntConstant)) {
+        DartType type = defaultValue.computeType(compiler);
+        compiler.reportFatalError(
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            {'fromType': type, 'toType': compiler.intClass.rawType});
+      }
+
+      if (constructor == compiler.boolEnvironment
+          && !(defaultValue is NullConstant || defaultValue is BoolConstant)) {
+        DartType type = defaultValue.computeType(compiler);
+        compiler.reportFatalError(
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            {'fromType': type, 'toType': compiler.boolClass.rawType});
+      }
+
+      if (constructor == compiler.stringEnvironment
+          && !(defaultValue is NullConstant
+               || defaultValue is StringConstant)) {
+        DartType type = defaultValue.computeType(compiler);
+        compiler.reportFatalError(
+            send.arguments.tail.head, MessageKind.NOT_ASSIGNABLE.error,
+            {'fromType': type, 'toType': compiler.stringClass.rawType});
+      }
+
+      String value =
+          compiler.fromEnvironment(firstArgument.value.slowToString());
+
+      if (value == null) {
+        return defaultValue;
+      } else if (constructor == compiler.intEnvironment) {
+        int number = int.parse(value, onError: (_) => null);
+        return (number == null)
+            ? defaultValue
+            : constantSystem.createInt(number);
+      } else if (constructor == compiler.boolEnvironment) {
+        if (value == 'true') {
+          return constantSystem.createBool(true);
+        } else if (value == 'false') {
+          return constantSystem.createBool(false);
+        } else {
+          return defaultValue;
+        }
+      } else {
+        assert(constructor == compiler.stringEnvironment);
+        return constantSystem.createString(new DartString.literal(value), node);
+      }
+    } else {
+      return makeConstructedConstant(
+          node, type, constructor, evaluateArguments);
+    }
   }
 
   Constant makeConstructedConstant(

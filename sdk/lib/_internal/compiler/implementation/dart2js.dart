@@ -112,6 +112,7 @@ Future compile(List<String> argv) {
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider = new CompilerSourceFileProvider();
   diagnosticHandler = new FormattingDiagnosticHandler(inputProvider);
+  Map<String, dynamic> environment = new Map<String, dynamic>();
 
   passThrough(String argument) => options.add(argument);
 
@@ -172,6 +173,13 @@ Future compile(List<String> argv) {
   setVerbose(_) {
     diagnosticHandler.verbose = true;
     passThrough('--verbose');
+  }
+
+  addInEnvironment(String argument) {
+    int eqIndex = argument.indexOf('=');
+    String name = argument.substring(2, eqIndex);
+    String value = argument.substring(eqIndex + 1);
+    environment[name] = value;
   }
 
   setCategories(String argument) {
@@ -275,6 +283,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--terse', passThrough),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
+    new OptionHandler('-D.+=.*', addInEnvironment),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -411,7 +420,7 @@ Future compile(List<String> argv) {
 
   return api.compile(uri, libraryRoot, packageRoot,
               inputProvider, diagnosticHandler,
-              options, outputProvider)
+              options, outputProvider, environment)
             .then(compilationDone);
 }
 
@@ -493,6 +502,9 @@ Supported options:
 
   -v, --verbose
     Display verbose information.
+
+  -D<name>=<value>
+    Define an environment variable.
 
   --version
     Display version information.

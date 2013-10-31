@@ -197,7 +197,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  * return type.
  *
  * Note that a few elements of these kinds must be treated specially,
- * and they are dealt in [ElementTypeInformation.handleSpecialCase]:
+ * and they are dealt in [ElementTypeInformation.handleSpecialCases]:
  *
  * - Parameters of closures, [noSuchMethod] and [call] instance
  *   methods: we currently do not infer types for those.
@@ -297,6 +297,18 @@ class ElementTypeInformation extends TypeInformation {
               native.NativeBehavior.ofMethod(element, inferrer.compiler)).type;
         }
       }
+    }
+
+    Compiler compiler = inferrer.compiler;
+    if (element.declaration == compiler.intEnvironment) {
+      giveUp(inferrer);
+      return compiler.typesTask.intType.nullable();
+    } else if (element.declaration == compiler.boolEnvironment) {
+      giveUp(inferrer);
+      return compiler.typesTask.boolType.nullable();
+    } else if (element.declaration == compiler.stringEnvironment) {
+      giveUp(inferrer);
+      return compiler.typesTask.stringType.nullable();
     }
     return null;
   }

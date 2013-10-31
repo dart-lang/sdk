@@ -85,8 +85,9 @@ Future<String> compile(Uri script,
                        Uri packageRoot,
                        CompilerInputProvider inputProvider,
                        DiagnosticHandler handler,
-                       [List<String> options = const [],
-                        CompilerOutputProvider outputProvider]) {
+                       [List<String> options = const [], 
+                        CompilerOutputProvider outputProvider,
+                        Map<String, dynamic> environment = const {}]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -100,7 +101,8 @@ Future<String> compile(Uri script,
                                    handler,
                                    libraryRoot,
                                    packageRoot,
-                                   options);
+                                   options,
+                                   environment);
   // TODO(ahe): Use the value of the future (which signals success or failure).
   return compiler.run(script).then((_) {
     String code = compiler.assembledCode;
