@@ -1460,14 +1460,18 @@ void PolymorphicInliner::Inline() {
 }
 
 
+static uint16_t ClampUint16(intptr_t v) {
+  return (v > 0xFFFF) ? 0xFFFF : static_cast<uint16_t>(v);
+}
+
+
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph) {
   GraphInfoCollector info;
   info.Collect(*flow_graph);
   const Function& function = flow_graph->parsed_function().function();
   function.set_optimized_instruction_count(
-    static_cast<uint16_t>(info.instruction_count()));
-  function.set_optimized_call_site_count(
-    static_cast<uint16_t>(info.call_site_count()));
+      ClampUint16(info.instruction_count()));
+  function.set_optimized_call_site_count(ClampUint16(info.call_site_count()));
 }
 
 

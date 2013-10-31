@@ -1005,6 +1005,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // LR: return address.
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
+  __ Comment("Inlined Getter");
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadFromOffset(kWord, R0, R0, offset - kHeapObjectTag);
   __ Ret();
@@ -1016,6 +1017,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   // SP+1: receiver.
   // SP+0: value.
   // Sequence node has one store node and one return NULL node.
+  __ Comment("Inlined Setter");
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Receiver.
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObject(R0, FieldAddress(R0, offset), R1);

@@ -644,7 +644,7 @@ void FlowGraphCompiler::TryIntrinsify() {
   }
   // Even if an intrinsified version of the function was successfully
   // generated, it may fall through to the non-intrinsified method body.
-  return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
+  Intrinsifier::Intrinsify(parsed_function().function(), assembler());
 }
 
 
