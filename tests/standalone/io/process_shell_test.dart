@@ -11,7 +11,7 @@ import "dart:isolate";
 void testRunShell() {
   test(args) {
     asyncStart();
-    var path = Platform.script.resolve("process_echo_util.dart").toFilePath();
+    var path = join(dirname(Platform.script), "process_echo_util.dart");
     Process.run(Platform.executable,
                 [path]..addAll(args),
                 runInShell: true)

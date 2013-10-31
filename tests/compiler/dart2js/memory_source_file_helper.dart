@@ -12,7 +12,7 @@ export '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart'
        show Compiler;
 
 export '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
-       show currentDirectory;
+       show currentDirectory, nativeToUriPath;
 
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart'
        show StringSourceFile;

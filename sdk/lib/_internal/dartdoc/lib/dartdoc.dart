@@ -70,7 +70,7 @@ const API_LOCATION = 'http://api.dartlang.org/';
  */
 // TODO(johnniwinther): Convert to final (lazily initialized) variables when
 // the feature is supported.
-String get scriptDir => path.dirname(Platform.script.toFilePath());
+String get scriptDir => path.dirname(Platform.script);
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
@@ -776,7 +776,7 @@ class Dartdoc {
   /// Whether dartdoc is running from within the Dart SDK or the
   /// Dart source repository.
   bool get runningFromSdk =>
-      path.extension(Platform.script.toFilePath()) == '.snapshot';
+    path.extension(Platform.script) == '.snapshot';
 
   /// Gets the path to the root directory of the SDK.
   String get sdkDir =>

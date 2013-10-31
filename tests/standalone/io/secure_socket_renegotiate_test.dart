@@ -17,7 +17,7 @@ const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 
-String certificateDatabase() => Platform.script.resolve('pkcert').toFilePath();
+String certificateDatabase() => join(dirname(Platform.script), 'pkcert');
 
 
 Future<SecureServerSocket> runServer() {
@@ -65,9 +65,8 @@ Future<SecureServerSocket> runServer() {
 void main() {
   runServer()
     .then((SecureServerSocket server) {
-      var clientScript = Platform.script
-                                 .toFilePath()
-                                 .replaceFirst("_test.dart", "_client.dart");
+      var clientScript =
+          Platform.script.replaceFirst("_test.dart", "_client.dart");
       Expect.isTrue(clientScript.endsWith("_client.dart"));
       Process.run(Platform.executable,
                   [clientScript,

@@ -175,7 +175,7 @@ class CommandLineOptions {
 
   static String _getVersion() {
     try {
-      String versionPath = Platform.script.resolve('../version').toFilePath();
+      String versionPath = join(dirname(Platform.script), '..', 'version');;
       File versionFile = new File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {

@@ -20,7 +20,7 @@ Map<String, TreeBuilderFactory> get treeTypes {
   return _treeTypes;
 }
 
-final testDataDir = Platform.script.resolve('data').toFilePath();
+final testDataDir = path.join(path.dirname(Platform.script), 'data');
 
 Iterable<String> getDataFiles(String subdirectory) {
   var dir = new Directory(path.join(testDataDir, subdirectory));

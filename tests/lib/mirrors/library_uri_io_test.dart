@@ -23,7 +23,10 @@ testLibraryUri(var value, Uri expectedUri) {
 main() {
   var mirrors = currentMirrorSystem();
   test("Test current library uri", () {
-    Uri uri = Uri.base.resolveUri(Platform.script);
+    String appendSlash(String path) => path.endsWith('/') ? path : '$path/';
+    Uri cwd =
+        new Uri.file(appendSlash(new File('.').resolveSymbolicLinksSync()));
+    Uri uri = cwd.resolveUri(new Uri.file(Platform.script));
     testLibraryUri(new Class(), uri);
   });
 }

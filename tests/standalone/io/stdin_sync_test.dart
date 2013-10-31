@@ -9,7 +9,7 @@ import "package:path/path.dart";
 
 void testReadByte() {
   void test(String line, List<String> expected) {
-    var script = Platform.script.resolve("stdin_sync_script.dart").toFilePath();
+    var script = join(dirname(Platform.script), "stdin_sync_script.dart");
     Process.start(Platform.executable,
                   ["--checked", script]..addAll(
                       expected.map(JSON.encode))).then((process) {

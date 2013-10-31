@@ -10,7 +10,7 @@ import '../../../sdk/lib/_internal/compiler/compiler.dart'
        show Diagnostic;
 
 main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
+  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

@@ -36,7 +36,7 @@ Future makeServer() {
 Future runClientProcess(int port) {
   return Process.run(Platform.executable,
                      []..addAll(Platform.executableArguments)
-                       ..add(Platform.script.toFilePath())
+                       ..add(Platform.script)
                        ..add('--client')
                        ..add(port.toString())).then((ProcessResult result) {
     if (result.exitCode != 0 || !result.stdout.contains('SUCCESS')) {

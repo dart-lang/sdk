@@ -16,7 +16,7 @@ main() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
       (request) {
-        String name = Platform.script.toFilePath();
+        String name = Platform.script;
         new File(name).openRead().pipe(request.response)
             .catchError((e) { /* ignore */ });
       });

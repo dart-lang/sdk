@@ -408,7 +408,7 @@ class SecurityConfiguration {
 
 
 void initializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
+  var testPkcertDatabase = join(dirname(Platform.script), 'pkcert');
   SecureSocket.initialize(database: testPkcertDatabase,
                           password: "dartdart");
 }

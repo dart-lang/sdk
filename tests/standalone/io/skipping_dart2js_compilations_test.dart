@@ -148,8 +148,8 @@ class CommandCompletedHandler {
 
 runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
-  var createFileScript = Platform.script
-      .resolve('skipping_dart2js_compilations_helper.dart').toFilePath();
+  var createFileScript = join(dirname(Platform.script),
+      'skipping_dart2js_compilations_helper.dart');
   var executable = Platform.executable;
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [

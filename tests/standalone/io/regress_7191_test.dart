@@ -18,7 +18,7 @@ import 'package:path/path.dart';
 main() {
   asyncStart();
   var executable = Platform.executable;
-  var script = Platform.script.resolve('regress_7191_script.dart').toFilePath();
+  var script = join(dirname(Platform.script), 'regress_7191_script.dart');
   Process.start(executable, [script]).then((process) {
     process.stdin.add([0]);
     process.stdout.listen((_) { },

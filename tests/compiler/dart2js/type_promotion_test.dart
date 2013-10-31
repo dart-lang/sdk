@@ -28,8 +28,8 @@ const List<String> TESTS = const [
 ];
 
 void main() {
-  bool isWindows = Platform.isWindows;
-  Uri script = currentDirectory.resolveUri(Platform.script);
+  bool isWindows = (Platform.operatingSystem == 'windows');
+  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   bool warningsMismatch = false;
   Future.forEach(TESTS, (String test) {
     Uri uri = script.resolve('../../$test');

@@ -83,7 +83,7 @@ class CustomTestSuite extends TestSuite {
 
   TestCase _makeNormalTestCase(name, expectations) {
     var command = CommandBuilder.instance.getCommand(
-        'custom', Platform.executable, [Platform.script.toFilePath(), name],
+        'custom', Platform.executable, [Platform.script, name],
         'ReleaseIA32');
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }

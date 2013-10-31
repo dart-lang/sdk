@@ -365,6 +365,7 @@ ScheduledProcess startDartProcess(String script) {
                          'create temp dir');
   var dartPath = schedule(() {
     return tempDir.then((dir) {
+      var utilsPath = path.absolute(path.join(Platform.script, 'utils.dart'));
       return new File(path.join(dir, 'test.dart')).writeAsString('''
           import 'dart:async';
           import 'dart:convert';

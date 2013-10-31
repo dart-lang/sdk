@@ -119,7 +119,7 @@ void initMetatest(message) {
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   var replyPort = new ReceivePort();
-  return Isolate.spawnUri(Platform.script, [], {
+  return Isolate.spawnUri(Uri.parse(Platform.script), [], {
     'testToRun': description,
     'replyTo': replyPort.sendPort
   }).then((_) {

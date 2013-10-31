@@ -19,7 +19,8 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 String pathToExecutable = Platform.executable;
-Uri pathOfData = Platform.script.resolve('http_launch_data/');
+String pathOfData = new File(Platform.script).parent.path +
+                    '/http_launch_data';
 int port;
 
 _sendNotFound(HttpResponse response) {
@@ -28,9 +29,9 @@ _sendNotFound(HttpResponse response) {
 }
 
 handleRequest(HttpRequest request) {
-  final String path = request.uri.path.substring(1);
-  final Uri requestPath = pathOfData.resolve(path);
-  final File file = new File(requestPath.toFilePath());
+  final String path = request.uri.path;
+  final String requestPath = '$pathOfData$path';
+  final File file = new File(requestPath);
   file.exists().then((bool found) {
     if (found) {
       file.openRead()
@@ -46,8 +47,7 @@ serverRunning(HttpServer server) {
   port = server.port;
   server.listen(handleRequest);
   Future<ProcessResult> no_http_run =
-    Process.run(pathToExecutable,
-                [pathOfData.resolve('http_launch_main.dart').toFilePath()]);
+      Process.run(pathToExecutable, ['${pathOfData}/http_launch_main.dart']);
   Future<ProcessResult> http_run =
     Process.run(pathToExecutable,
                 ['http://127.0.0.1:$port/http_launch_main.dart']);

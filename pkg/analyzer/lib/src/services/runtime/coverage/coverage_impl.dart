@@ -190,7 +190,7 @@ class CoverageServer extends RewriteServer {
   String rewritePathContent(String path) {
     if (path.endsWith('__coverage_lib.dart')) {
       String implPath = pathos.joinAll([
-          pathos.dirname(Platform.script.toFilePath()),
+          pathos.dirname(Platform.script),
           '..', 'lib', 'src', 'services', 'runtime', 'coverage',
           'coverage_lib.dart']);
       var content = new File(implPath).readAsStringSync();

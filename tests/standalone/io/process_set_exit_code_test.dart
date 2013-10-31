@@ -12,9 +12,8 @@ import "dart:io";
 
 main() {
   var executable = Platform.executable;
-  var exitCodeScript = Platform.script
-                               .resolve('process_set_exit_code_script.dart')
-                               .toFilePath();
+  var exitCodeScript = join(dirname(Platform.script),
+                            'process_set_exit_code_script.dart');
   Process.run(executable, [exitCodeScript]).then((result) {
     Expect.equals("standard out", result.stdout);
     Expect.equals("standard error", result.stderr);

@@ -161,7 +161,7 @@ Future test(bool hostnameInConnect) {
 
 
 main() {
-  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
+  String certificateDatabase = join(dirname(Platform.script), 'pkcert');
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);

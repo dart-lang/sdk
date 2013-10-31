@@ -31,7 +31,7 @@ main() {}
 };
 
 void runCompiler(Uri main, String expectedMessage) {
-  Uri script = currentDirectory.resolveUri(Platform.script);
+  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
 
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);

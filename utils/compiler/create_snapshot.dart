@@ -83,7 +83,8 @@ void main(List<String> arguments) {
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
   if (!args.containsKey("package_root")) throw "Please specify package_root";
 
-  var scriptFile = Uri.base.resolveUri(Platform.script);
+  var scriptFile =
+      new Uri.file(new File(Platform.script).resolveSymbolicLinksSync());
   var path = scriptFile.resolve(".");
   var rootPath = path.resolve("../..");
   getSnapshotGenerationFile(args, rootPath).then((result) {

@@ -454,8 +454,8 @@ void fail(String message) {
 
 Future compilerMain(List<String> arguments) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
-  arguments = <String>['--library-root=${Platform.script.toFilePath()}$root']
-      ..addAll(arguments);
+  arguments =
+      <String>['--library-root=${Platform.script}$root']..addAll(arguments);
   return compile(arguments);
 }
 

@@ -473,7 +473,7 @@ void testSimpleReadWrite({bool listenSecure,
 }
 
 main() {
-  var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
+  var certificateDatabase = join(dirname(Platform.script), 'pkcert');
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart',
                           useBuiltinRoots: false);

@@ -14,15 +14,24 @@ import 'package:path/path.dart' as path;
 
 import '../lib/docs.dart';
 
-final String json_path = Platform.script.resolve('../docs.json').toFilePath();
-final String lib_uri = Platform.script.resolve('../../../../sdk').toString();
+final String json_path =
+    path.normalize(path.join(scriptDir, '..', 'docs.json'));
+final String lib_path =
+    path.toUri(path.normalize(
+      path.join(scriptDir, '..', '..', '..', '..', 'sdk'))).toString();
 
 main() {
-  print('Converting HTML docs from $lib_uri to $json_path.');
+  print('Converting HTML docs from $lib_path to $json_path.');
 
-  convert(lib_uri, json_path)
+  convert(lib_path, json_path)
     .then((bool anyErrors) {
       print('Converted HTML docs ${anyErrors ? "with": "without"}'
         ' errors.');
     });
 }
+
+/**
+ * Gets the full path to the directory containing the entrypoint of the current
+ * script.
+ */
+String get scriptDir => path.dirname(Platform.script);

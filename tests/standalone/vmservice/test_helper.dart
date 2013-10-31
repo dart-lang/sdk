@@ -80,7 +80,7 @@ class TestLauncher {
   TestLauncher(this.script);
 
   String get scriptPath {
-    var dartScript = Platform.script.toFilePath();
+    var dartScript = Platform.script;
     var splitPoint = dartScript.lastIndexOf(Platform.pathSeparator);
     var scriptDirectory = dartScript.substring(0, splitPoint);
     return scriptDirectory + Platform.pathSeparator + script;

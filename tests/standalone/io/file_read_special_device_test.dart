@@ -7,7 +7,7 @@ import 'package:path/path.dart';
 import 'dart:io';
 
 void openAndWriteScript(String script) {
-  script = Platform.script.resolve(script).toFilePath();
+  script = join(dirname(Platform.script), script);
   var executable = Platform.executable;
   var file = script;  // Use script as file.
   Process.start("bash", ["-c", "$executable $script < $file"]).then((process) {

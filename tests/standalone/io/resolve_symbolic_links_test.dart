@@ -11,7 +11,7 @@ import 'dart:async';
 import 'dart:io';
 
 main() {
-  String testsDir = Platform.script.resolve('../..').toFilePath();
+  String testsDir = dirname(dirname(dirname(Platform.script)));
   // All of these tests test that resolveSymbolicLinks gives a path
   // that points to the same place as the original, and that it removes
   // all links, .., and . segments, and that it produces an absolute path.
