@@ -1,0 +1,31 @@
+<head>
+  <link rel="import" href="disassembly_entry.html">
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="code-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="{{ cssPanelClass }}">
+        <div class="panel-heading">
+          <a href="{{ app.locationManager.currentIsolateObjectLink(code['function']['id'])}}">
+            {{ code['function']['user_name'] }} ({{ code['function']['name'] }})
+          </a>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+              <div class="col-md-2"><strong>Samples</strong></div>
+              <div class="col-md-2"><strong>Address</strong></div>
+              <div><strong>Instruction</strong></div>
+          </div>
+          <template repeat="{{ instruction in code['disassembly'] }}">
+            <disassembly-entry instruction="{{ instruction }}">
+            </disassembly-entry>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script type="application/dart" src="code_view.dart"></script>
+</polymer-element>

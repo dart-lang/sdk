@@ -12,6 +12,16 @@ export 'package:observatory/observatory.dart';
 /// [ObservableApplication] and applies author styles.
 @CustomTag('observatory-element')
 class ObservatoryElement extends PolymerElement {
-  @published ObservatoryApplication get app => __$app; ObservatoryApplication __$app; set app(ObservatoryApplication value) { __$app = notifyPropertyChange(#app, __$app, value); }
+  ObservatoryElement.created() : super.created();
+
+  void enteredView() {
+    super.enteredView();
+  }
+
+  void leftView() {
+    super.leftView();
+  }
+
+  @published ObservatoryApplication app;
   bool get applyAuthorStyles => true;
 }

@@ -6,6 +6,7 @@ export 'package:observatory/src/observatory_elements/error_view.dart';
 export 'package:observatory/src/observatory_elements/isolate_list.dart';
 export 'package:observatory/src/observatory_elements/isolate_summary.dart';
 export 'package:observatory/src/observatory_elements/json_view.dart';
+export 'package:observatory/src/observatory_elements/library_view.dart';
 export 'package:observatory/src/observatory_elements/message_viewer.dart';
 export 'package:observatory/src/observatory_elements/navigation_bar.dart';
 export

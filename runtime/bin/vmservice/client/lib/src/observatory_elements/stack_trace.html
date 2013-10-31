@@ -16,7 +16,7 @@
     <tbody>
       <tr template repeat="{{ frame in trace['members'] }}">
         <td>{{$index}}</td>
-        <td>{{ frame['name'] }}</td>
+        <td><a href="{{app.locationManager.currentIsolateObjectLink(frame['function']['id'])}}">{{ frame['name'] }}</a></td>
         <td>{{ frame['url'] }}</td>
         <td>{{ frame['line'] }}</td>
       </tr>

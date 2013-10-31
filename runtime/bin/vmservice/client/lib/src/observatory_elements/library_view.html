@@ -1,0 +1,44 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="library-view" extends="observatory-element">
+  <template>
+  <div class="alert alert-success">Library {{ library['name'] }}</div>
+  <div class="alert alert-info">Imported Libraries</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template repeat="{{ lib in library['libraries'] }}">
+        <td>
+          <a href="{{ app.locationManager.currentIsolateObjectLink(lib['id'])}}">
+            {{ lib['name'] }}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Classes</div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Internal Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr template repeat="{{ cls in library['classes'] }}">
+        <td>
+          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
+            {{ cls['user_name'] }}
+          </a>
+        </td>
+        <td>
+          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
+            {{ cls['name'] }}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </template>
+  <script type="application/dart" src="library_view.dart"></script>
+</polymer-element>

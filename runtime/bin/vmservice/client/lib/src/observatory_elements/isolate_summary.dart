@@ -9,6 +9,8 @@ import 'observatory_element.dart';
 
 @CustomTag('isolate-summary')
 class IsolateSummaryElement extends ObservatoryElement {
-  @published int get isolate => __$isolate; int __$isolate; set isolate(int value) { __$isolate = notifyPropertyChange(#isolate, __$isolate, value); }
-  @published String get name => __$name; String __$name = 'Funky'; set name(String value) { __$name = notifyPropertyChange(#name, __$name, value); }
+  @published int isolate;
+  @published String name = '';
+
+  IsolateSummaryElement.created() : super.created();
 }

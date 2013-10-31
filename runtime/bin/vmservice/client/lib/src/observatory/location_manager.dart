@@ -7,7 +7,7 @@ part of observatory;
 /// The LocationManager class observes and parses the hash ('#') portion of the
 /// URL in window.location. The text after the '#' is used as the request
 /// string for the VM service.
-class LocationManager extends Object with ChangeNotifierMixin {
+class LocationManager extends Observable {
   static const int InvalidIsolateId = 0;
   static const String defaultHash = '#/isolates/';
   static final RegExp currentIsolateMatcher = new RegExp(r"#/isolates/\d+/");
@@ -15,7 +15,7 @@ class LocationManager extends Object with ChangeNotifierMixin {
   ObservatoryApplication _application;
   ObservatoryApplication get application => _application;
 
-  @observable String get currentHash => __$currentHash; String __$currentHash = ''; set currentHash(String value) { __$currentHash = notifyPropertyChange(#currentHash, __$currentHash, value); }
+  @observable String currentHash = '';
 
   void init() {
     window.onHashChange.listen((event) {
@@ -80,6 +80,7 @@ class LocationManager extends Object with ChangeNotifierMixin {
   }
 
   /// Create a request for [l] on the current isolate.
+  @observable
   String currentIsolateRelativeLink(String l) {
     var isolateId = currentIsolateId();
     if (isolateId == LocationManager.InvalidIsolateId) {
@@ -89,6 +90,7 @@ class LocationManager extends Object with ChangeNotifierMixin {
   }
 
   /// Create a request for [objectId] on the current isolate.
+  @observable
   String currentIsolateObjectLink(int objectId) {
     var isolateId = currentIsolateId();
     if (isolateId == LocationManager.InvalidIsolateId) {
@@ -98,6 +100,7 @@ class LocationManager extends Object with ChangeNotifierMixin {
   }
 
   /// Create a request for [cid] on the current isolate.
+  @observable
   String currentIsolateClassLink(int cid) {
     var isolateId = currentIsolateId();
     if (isolateId == LocationManager.InvalidIsolateId) {
@@ -107,16 +110,19 @@ class LocationManager extends Object with ChangeNotifierMixin {
   }
 
   /// Create a request for [l] on [isolateId].
+  @observable
   String relativeLink(int isolateId, String l) {
     return '#/isolates/$isolateId/$l';
   }
 
   /// Create a request for [objectId] on [isolateId].
+  @observable
   String objectLink(int isolateId, int objectId) {
     return '#/isolates/$isolateId/objects/$objectId';
   }
 
   /// Create a request for [cid] on [isolateId].
+  @observable
   String classLink(int isolateId, int cid) {
     return '#/isolates/$isolateId/classes/$cid';
   }

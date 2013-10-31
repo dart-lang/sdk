@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library navigation_bar_element;
+library class_view_element;
 
-import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
+import 'observatory_element.dart';
 
-@CustomTag('navigation-bar')
-class NavigationBarElement extends ObservatoryElement {
-  NavigationBarElement.created() : super.created();
+@CustomTag('class-view')
+class ClassViewElement extends ObservatoryElement {
+  @published Map cls;
+  ClassViewElement.created() : super.created();
 }

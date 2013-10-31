@@ -1,0 +1,22 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="disassembly-entry" extends="observatory-element">
+  <template>
+  <div class="row">
+    <template if="{{ instruction['type'] == 'DisassembledInstructionComment' }}">
+      <div class="col-md-2"></div>
+      <div class="col-md-2"></div>
+      <div class="col-md-4"><code>{{ instruction['comment'] }}</code></div>
+    </template>
+    <template if="{{ instruction['type'] == 'DisassembledInstruction' }}">
+      <div class="col-md-2"></div>
+      <div class="col-md-2">{{ instruction['pc'] }}</div>
+      <div class="col-md-4">
+        <code>{{ instruction['hex'] }} {{ instruction['human'] }}</code>
+      </div>
+    </template>
+  </div>
+  </template>
+  <script type="application/dart" src="disassembly_entry.dart"></script>
+</polymer-element>

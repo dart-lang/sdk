@@ -6,12 +6,15 @@ part of observatory;
 
 /// The observatory application. Instances of this are created and owned
 /// by the observatory_application custom element.
-class ObservatoryApplication {
-  final LocationManager locationManager = new LocationManager();
-  final RequestManager requestManager = new HttpRequestManager();
-  final IsolateManager isolateManager = new IsolateManager();
+class ObservatoryApplication extends Observable {
+  @observable final LocationManager locationManager;
+  @observable final RequestManager requestManager;
+  @observable final IsolateManager isolateManager;
 
-  ObservatoryApplication() {
+  ObservatoryApplication() :
+      locationManager = new LocationManager(),
+      requestManager = new HttpRequestManager(),
+      isolateManager = new IsolateManager() {
     locationManager._application = this;
     requestManager._application = this;
     isolateManager._application = this;

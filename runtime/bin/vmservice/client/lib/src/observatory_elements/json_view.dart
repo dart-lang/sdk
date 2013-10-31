@@ -9,14 +9,18 @@ import 'observatory_element.dart';
 
 @CustomTag('json-view')
 class JsonViewElement extends ObservatoryElement {
-  @published dynamic get json => __$json; dynamic __$json = null; set json(dynamic value) { __$json = notifyPropertyChange(#json, __$json, value); }
+  @published var json = null;
   var _count = 0;
 
-  JsonViewElement() : super() {
+  JsonViewElement.created() : super.created();
+
+  void enteredView() {
+    super.enteredView();
+    _count = 0;
   }
 
   void jsonChanged(oldValue) {
-    this.notifyPropertyChange(#valueType, null, null);
+    notifyPropertyChange(#valueType, "a", "b");
   }
 
   String get primitiveString {

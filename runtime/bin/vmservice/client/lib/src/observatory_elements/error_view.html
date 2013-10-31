@@ -3,10 +3,15 @@
 </head>
 <polymer-element name="error-view" extends="observatory-element">
   <template>
-    <div class="alert alert-danger">Error!</div>
-    <div class="alert alert-info">
-      <p>Error message:</p>
-      <p>{{ error }}</p>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-danger">
+        <div class="panel-heading">Error</div>
+        <div class="panel-body">
+          <p>{{ error }}</p>
+        </div>
+      </div>
+    </div>
     </div>
   </template>
   <script type="application/dart" src="error_view.dart"></script>

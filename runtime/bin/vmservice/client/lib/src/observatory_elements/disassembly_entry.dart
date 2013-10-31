@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library error_view_element;
+library disassembly_entry_element;
 
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
-/// Displays an Error response.
-@CustomTag('error-view')
-class ErrorViewElement extends ObservatoryElement {
-  @published String error = '';
-
-  ErrorViewElement.created() : super.created();
+@CustomTag('disassembly-entry')
+class DisassemblyEntryElement extends ObservatoryElement {
+  @published Map instruction = toObservable({});
+  DisassemblyEntryElement.created() : super.created();
 }

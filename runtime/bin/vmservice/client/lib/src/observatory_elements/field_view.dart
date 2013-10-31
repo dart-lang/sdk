@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library navigation_bar_element;
+library field_view_element;
 
-import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
+import 'observatory_element.dart';
 
-@CustomTag('navigation-bar')
-class NavigationBarElement extends ObservatoryElement {
-  NavigationBarElement.created() : super.created();
+@CustomTag('field-view')
+class FieldViewElement extends ObservatoryElement {
+  @published Map field;
+  FieldViewElement.created() : super.created();
 }

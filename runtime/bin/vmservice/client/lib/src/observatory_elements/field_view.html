@@ -1,0 +1,46 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="field-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          <template if="{{ field['static'] }}">static</template>
+          <template if="{{ field['final'] }}">final</template>
+          <template if="{{ field['const'] }}">const</template>
+          {{ field['user_name'] }} ({{ field['name'] }}) 
+          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(field['class']['id'])}}">
+            {{ field['class']['user_name'] }}
+          </a>
+        </div>
+        <div class="panel-body">
+        <template if="{{ field['guard_class'] == 'dynamic'}}">
+          <div class="alert alert-danger">
+            Field has been assigned multiple types. If a field is only ever
+            assigned a single type, performance may improve.
+          </div>
+        </template>
+        <template if="{{ field['guard_class'] != 'dynamic'}}">
+          <div class="alert alert-success">Field has monomorphic type</div>
+          <template if="{{ (field['guard_class'] != 'dynamic') && 
+                        field['guard_nullable'] }}">
+            <div class="alert alert-info">
+              Field has been assigned null. If a field is never assigned null,
+              performance may improve.
+            </div>
+          </template>
+          <blockquote>
+            <a href="{{ app.locationManager.currentIsolateClassLink(field['guard_class']['id'])}}">
+            {{ field['guard_class']['user_name'] }}
+          </a>
+          </blockquote>
+        </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script type="application/dart" src="field_view.dart"></script>
+</polymer-element>
