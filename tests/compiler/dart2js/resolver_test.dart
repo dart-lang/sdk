@@ -114,8 +114,9 @@ class Bar extends Foo implements X<Bar> {}
 """);
   compiler.resolveStatement("Bar bar;");
   ClassElement classBar = compiler.mainApp.find("Bar");
-  Expect.equals('[ Foo, X<Bar>, X<Foo>, Object ]',
-                classBar.allSupertypes.toString());
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(MessageKind.MULTI_INHERITANCE, compiler.errors[0].message.kind);
 }
 
 testTypeVariables() {

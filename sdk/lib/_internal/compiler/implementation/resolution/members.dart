@@ -4073,30 +4073,38 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    * first.
    */
   void calculateAllSupertypes(ClassElement cls) {
-    // TODO(karlklose): Check if type arguments match, if a class
-    // element occurs more than once in the supertypes.
     if (cls.allSupertypes != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
+      Map<Element, DartType> instantiations = new Map<Element, DartType>();
       LinkBuilder<DartType> allSupertypes = new LinkBuilder<DartType>();
 
-      void add(DartType type) {
+      void addSupertype(DartType type) {
+        DartType existing =
+            instantiations.putIfAbsent(type.element, () => type);
+        if (existing != null && existing != type) {
+          compiler.reportError(cls,
+              MessageKind.MULTI_INHERITANCE,
+              {'thisType': cls.computeType(compiler),
+               'firstType': existing,
+               'secondType': type});
+        }
         if (type.element != compiler.objectClass) {
           allSupertypes.addLast(type);
         }
       }
 
-      add(supertype);
+      addSupertype(supertype);
       for (Link<DartType> interfaces = cls.interfaces;
           !interfaces.isEmpty;
           interfaces = interfaces.tail) {
-        add(interfaces.head);
+        addSupertype(interfaces.head);
       }
-      addAllSupertypes(allSupertypes, supertype);
+      addAllSupertypes(addSupertype, supertype);
       for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty;
            interfaces = interfaces.tail) {
-        addAllSupertypes(allSupertypes, interfaces.head);
+        addAllSupertypes(addSupertype, interfaces.head);
       }
 
       allSupertypes.addLast(compiler.objectClass.rawType);
@@ -4111,7 +4119,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    * Adds [type] and all supertypes of [type] to [allSupertypes] while
    * substituting type variables.
    */
-  void addAllSupertypes(LinkBuilder<DartType> allSupertypes,
+  void addAllSupertypes(void addSupertype(DartType supertype),
                         InterfaceType type) {
     Link<DartType> typeArguments = type.typeArguments;
     ClassElement classElement = type.element;
@@ -4124,7 +4132,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       DartType supertype = supertypes.head;
       if (supertype.element != compiler.objectClass) {
         DartType substituted = supertype.subst(typeArguments, typeVariables);
-        allSupertypes.addLast(substituted);
+        addSupertype(substituted);
       }
       supertypes = supertypes.tail;
     }
