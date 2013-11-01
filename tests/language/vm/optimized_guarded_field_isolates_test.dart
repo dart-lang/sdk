@@ -7,6 +7,7 @@
 // multiple isolates.
 
 import "dart:isolate";
+import "dart:async";
 import "package:expect/expect.dart";
 
 class A {
