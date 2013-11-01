@@ -753,17 +753,10 @@ class BeforeLoadEvent extends Event {
 
 @DocsEditable()
 @DomName('BeforeUnloadEvent')
+@Experimental() // untriaged
 class BeforeUnloadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('BeforeUnloadEvent.returnValue')
-  @DocsEditable()
-  String get returnValue native "BeforeUnloadEvent_returnValue_Getter";
-
-  @DomName('BeforeUnloadEvent.returnValue')
-  @DocsEditable()
-  void set returnValue(String value) native "BeforeUnloadEvent_returnValue_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25633,13 +25626,13 @@ class Url extends NativeFieldWrapperClass2 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -27056,6 +27049,17 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
 }
 
+class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
+  String _returnValue;
+
+  _BeforeUnloadEvent(Event base): super(base);
+
+  String get returnValue => _returnValue;
+
+  void set returnValue(String value) {
+    _returnValue = value;
+  }
+}
 
 class _BeforeUnloadEventStreamProvider implements
     EventStreamProvider<BeforeUnloadEvent> {
@@ -27064,8 +27068,15 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
-    return stream;
+    stream.listen((event) {
+      var wrapped = new _BeforeUnloadEvent(event);
+      controller.add(wrapped);
+      return wrapped.returnValue;
+    });
+
+    return controller.stream;
   }
 
   String getEventType(EventTarget target) {
