@@ -82,6 +82,20 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
+  bool isInMask(other, Compiler compiler) {
+    if (isEmpty) {
+      return isNullable ? other.isNullable : true;
+    }
+    if (other.isEmpty) return false;
+    if (isNullable && !other.isNullable) return false;
+    if (other is! FlatTypeMask) return other.containsMask(this, compiler);
+    return satisfies(other.base, compiler);
+  }
+
+  bool containsMask(TypeMask other, Compiler compiler) {
+    return other.isInMask(this, compiler);
+  }
+
   bool containsOnlyInt(Compiler compiler) {
     return base == compiler.intClass
         || base == compiler.backend.intImplementation;
@@ -122,7 +136,19 @@ class FlatTypeMask implements TypeMask {
   bool satisfies(ClassElement cls, Compiler compiler) {
     assert(cls.isDeclaration);
     if (isEmpty) return false;
-    return base == cls || isSubtypeOf(base, cls, compiler);
+    if (base == cls) return true;
+    if (isSubtypeOf(base, cls, compiler)) return true;
+    if (isSubtype) {
+      Set<ClassElement> subtypes = compiler.world.subtypesOf(base);
+      if (subtypes == null) return false;
+      return subtypes.length == 1 && subtypes.first == cls.declaration;
+    }
+    if (isSubclass) {
+      Set<ClassElement> subclasses = compiler.world.subclassesOf(base);
+      if (subclasses == null) return false;
+      return subclasses.length == 1 && subclasses.first == cls.declaration;
+    }
+    return false;
   }
 
   /**
@@ -194,7 +220,7 @@ class FlatTypeMask implements TypeMask {
   TypeMask unionSubclass(FlatTypeMask other, Compiler compiler) {
     assert(isSubclassOf(other.base, base, compiler));
     int combined;
-    if (isExact && other.isExact) {
+    if ((isExact && other.isExact) || base == compiler.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
       // resulting union to be a subclass too. If either one of the
       // masks are nullable the result should be nullable too.

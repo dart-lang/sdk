@@ -197,6 +197,14 @@ class UnionTypeMask implements TypeMask {
   bool get isContainer => false;
   bool get isForwarding => false;
 
+  bool isInMask(TypeMask other, Compiler compiler) {
+    return disjointMasks.every((mask) => mask.isInMask(other, compiler));
+  }
+
+  bool containsMask(TypeMask other, Compiler compiler) {
+    return disjointMasks.any((mask) => mask.containsMask(other, compiler));
+  }
+
   bool containsOnlyInt(Compiler compiler) {
     return disjointMasks.every((mask) => mask.containsOnlyInt(compiler));
   }

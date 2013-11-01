@@ -63,6 +63,16 @@ abstract class TypeMask {
   bool containsOnly(ClassElement element);
 
   /**
+   * Returns whether this type mask is a subtype of [other].
+   */
+  bool isInMask(TypeMask other, Compiler compiler);
+
+  /**
+   * Returns whether [other] is a subtype of this type mask.
+   */
+  bool containsMask(TypeMask other, Compiler compiler);
+
+  /**
    * Returns whether this type mask is an instance of [cls].
    */
   bool satisfies(ClassElement cls, Compiler compiler);

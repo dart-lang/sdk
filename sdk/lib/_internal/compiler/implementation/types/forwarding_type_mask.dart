@@ -22,6 +22,14 @@ abstract class ForwardingTypeMask implements TypeMask {
   bool get isContainer => false;
   bool get isForwarding => true;
 
+  bool isInMask(TypeMask other, Compiler compiler) {
+    return forwardTo.isInMask(other, compiler);
+  }
+
+  bool containsMask(TypeMask other, Compiler compiler) {
+    return forwardTo.containsMask(other, compiler);
+  }
+
   bool containsOnlyInt(Compiler compiler) {
     return forwardTo.containsOnlyInt(compiler);
   }

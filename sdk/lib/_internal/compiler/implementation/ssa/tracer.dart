@@ -178,32 +178,31 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    HType type = instruction.instructionType;
-    if (type.isNull()) {
+    if (instruction.isNull()) {
       prefix = 'u';
-    } else if (type.isConflicting()) {
+    } else if (instruction.isConflicting()) {
       prefix = 'c';
-    } else if (type.isExtendableArray(compiler)) {
+    } else if (instruction.isExtendableArray(compiler)) {
       prefix = 'e';
-    } else if (type.isFixedArray(compiler)) {
+    } else if (instruction.isFixedArray(compiler)) {
       prefix = 'f';
-    } else if (type.isMutableArray(compiler)) {
+    } else if (instruction.isMutableArray(compiler)) {
       prefix = 'm';
-    } else if (type.isReadableArray(compiler)) {
+    } else if (instruction.isReadableArray(compiler)) {
       prefix = 'a';
-    } else if (type.isString(compiler)) {
+    } else if (instruction.isString(compiler)) {
       prefix = 's';
-    } else if (type.isIndexable(compiler)) {
+    } else if (instruction.isIndexablePrimitive(compiler)) {
       prefix = 'r';
-    } else if (type.isBoolean(compiler)) {
+    } else if (instruction.isBoolean(compiler)) {
       prefix = 'b';
-    } else if (type.isInteger(compiler)) {
+    } else if (instruction.isInteger(compiler)) {
       prefix = 'i';
-    } else if (type.isDouble(compiler)) {
+    } else if (instruction.isDouble(compiler)) {
       prefix = 'd';
-    } else if (type.isNumber(compiler)) {
+    } else if (instruction.isNumber(compiler)) {
       prefix = 'n';
-    } else if (type.containsAll(compiler)) {
+    } else if (instruction.instructionType.containsAll(compiler)) {
       prefix = 'v';
     } else {
       prefix = 'U';

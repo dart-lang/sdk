@@ -109,7 +109,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
-        HType newType = replacement.instructionType.intersection(
+        TypeMask newType = replacement.instructionType.intersection(
             instruction.instructionType, compiler);
         replacement.instructionType = newType;
 
@@ -145,13 +145,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
-    HType type = input.instructionType;
-    if (type.isBoolean(compiler)) return input;
+    if (input.isBoolean(compiler)) return input;
     // All values that cannot be 'true' are boolified to false.
-    TypeMask mask = type.computeMask(compiler);
-    // TODO(kasperl): Get rid of the null check here once all HTypes
-    // have a proper mask.
-    if (mask != null && !mask.contains(backend.jsBoolClass, compiler)) {
+    TypeMask mask = input.instructionType;
+    if (!mask.contains(backend.jsBoolClass, compiler)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -188,7 +185,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexable(compiler)) {
+    if (actualReceiver.isIndexablePrimitive(compiler)) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstant constant = constantInput.constant;
@@ -292,8 +289,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
 
-    HType receiverType = node.getDartReceiver(compiler).instructionType;
-    Selector selector = receiverType.refine(node.selector, compiler);
+    TypeMask receiverType = node.getDartReceiver(compiler).instructionType;
+    Selector selector = new TypedSelector(receiverType, node.selector);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null
@@ -368,12 +365,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!canInline) return null;
 
-
     // Strengthen instruction type from annotations to help optimize
     // dependent instructions.
     native.NativeBehavior nativeBehavior =
         native.NativeBehavior.ofMethod(method, compiler);
-    HType returnType = new HType.fromNativeBehavior(nativeBehavior, compiler);
+    TypeMask returnType =
+        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     HInvokeDynamicMethod result =
         new HInvokeDynamicMethod(node.selector, inputs, returnType);
     result.element = method;
@@ -437,14 +434,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction handleIdentityCheck(HRelational node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
-    HType leftType = left.instructionType;
-    HType rightType = right.instructionType;
+    TypeMask leftType = left.instructionType;
+    TypeMask rightType = right.instructionType;
 
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
-    if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler)) &&
-        leftType.intersection(rightType, compiler).isConflicting()) {
-      return graph.addConstantBool(false, compiler);
+    if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
+      TypeMask intersection = leftType.intersection(rightType, compiler);
+      if (intersection.isEmpty && !intersection.isNullable) {
+        return graph.addConstantBool(false, compiler);
+      }
     }
 
     if (left.isNull() && right.isNull()) {
@@ -527,8 +526,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    HType expressionType = node.expression.instructionType;
-    if (expressionType.isInteger(compiler)) {
+    HInstruction expression = node.expression;
+    if (expression.isInteger(compiler)) {
       if (identical(element, compiler.intClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -540,7 +539,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return graph.addConstantBool(false, compiler);
       }
-    } else if (expressionType.isDouble(compiler)) {
+    } else if (expression.isDouble(compiler)) {
       if (identical(element, compiler.doubleClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -553,14 +552,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else {
         return graph.addConstantBool(false, compiler);
       }
-    } else if (expressionType.isNumber(compiler)) {
+    } else if (expression.isNumber(compiler)) {
       if (identical(element, compiler.numClass)) {
         return graph.addConstantBool(true, compiler);
       } else {
         // We cannot just return false, because the expression may be of
         // type int or double.
       }
-    } else if (expressionType.canBePrimitiveNumber(compiler)
+    } else if (expression.canBePrimitiveNumber(compiler)
                && identical(element, compiler.intClass)) {
       // We let the JS semantics decide for that check.
       return node;
@@ -569,7 +568,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // a class [:A<T>:], is currently always considered to have the
     // raw type.
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
-      TypeMask expressionMask = expressionType.computeMask(compiler);
+      TypeMask expressionMask = expression.instructionType;
       TypeMask typeMask = (element == compiler.nullClass)
           ? new TypeMask.subtype(element)
           : new TypeMask.nonNullSubtype(element);
@@ -601,19 +600,18 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return removeIfCheckAlwaysSucceeds(node, node.knownType);
   }
 
-  HInstruction removeIfCheckAlwaysSucceeds(HCheck node, HType checkedType) {
+  HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
     if (checkedType.containsAll(compiler)) return node;
     HInstruction input = node.checkedInput;
-    HType inputType = input.instructionType;
-    HType filteredType = inputType.intersection(checkedType, compiler);
-    return (inputType == filteredType) ? input : node;
+    TypeMask inputType = input.instructionType;
+    return inputType.isInMask(checkedType, compiler) ? input : node;
   }
 
   Element findConcreteFieldForDynamicAccess(HInstruction receiver,
                                             Selector selector) {
-    HType receiverType = receiver.instructionType;
+    TypeMask receiverType = receiver.instructionType;
     return compiler.world.locateSingleField(
-        receiverType.refine(selector, compiler));
+        new TypedSelector(receiverType, selector));
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
@@ -635,7 +633,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       } else if (receiver.isConstantList() || receiver.isConstantString()) {
         return graph.addConstantInt(receiver.constant.length, compiler);
       } else {
-        var type = receiver.instructionType.computeMask(compiler);
+        var type = receiver.instructionType;
         if (type.isContainer && type.length != null) {
           HInstruction constant = graph.addConstantInt(type.length, compiler);
           if (type.isNullable) {
@@ -694,13 +692,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       isAssignable = true;
     }
 
-    HType type;
+    TypeMask type;
     if (field.getEnclosingClass().isNative()) {
-      type = new HType.fromNativeBehavior(
+      type = TypeMaskFactory.fromNativeBehavior(
           native.NativeBehavior.ofFieldLoad(field, compiler),
           compiler);
     } else {
-      type = new HType.inferredTypeForElement(field, compiler);
+      type = TypeMaskFactory.inferredTypeForElement(field, compiler);
     }
 
     return new HFieldGet(
@@ -1467,7 +1465,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
   // to use [newInput] instead.
   void changeUsesDominatedBy(HBasicBlock dominator,
                              HInstruction input,
-                             HType convertedType) {
+                             TypeMask convertedType) {
     Setlet<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
     if (dominatedUsers.isEmpty) return;
 
@@ -1501,7 +1499,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
-    HType convertedType = new HType.nonNullSubtype(element, compiler);
+    TypeMask convertedType = new TypeMask.nonNullSubtype(element);
     HInstruction input = instruction.expression;
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);

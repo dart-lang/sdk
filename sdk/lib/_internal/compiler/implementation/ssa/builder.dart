@@ -239,7 +239,7 @@ class LocalsHandler {
         }
         HInstruction parameter = builder.addParameter(
             parameterElement,
-            new HType.inferredTypeForElement(parameterElement, compiler));
+            TypeMaskFactory.inferredTypeForElement(parameterElement, compiler));
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
       });
@@ -303,7 +303,7 @@ class LocalsHandler {
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
-          new HParameterValue(parameter, new HType.exact(cls, compiler));
+          new HParameterValue(parameter, new TypeMask.exact(cls));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
     }
@@ -369,7 +369,7 @@ class LocalsHandler {
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
-      HType type = (element.kind == ElementKind.VARIABLE_LIST)
+      TypeMask type = (element.kind == ElementKind.VARIABLE_LIST)
           ? builder.backend.nonNullType
           : builder.getTypeOfCapturedVariable(redirect);
       assert(element.kind != ElementKind.VARIABLE_LIST
@@ -1004,10 +1004,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return initialValue == null;
   }
 
-  HType cachedTypeOfThis;
+  TypeMask cachedTypeOfThis;
 
-  HType getTypeOfThis() {
-    HType result = cachedTypeOfThis;
+  TypeMask getTypeOfThis() {
+    TypeMask result = cachedTypeOfThis;
     if (result == null) {
       Element element = localsHandler.closureData.thisElement;
       ClassElement cls = element.enclosingElement.getEnclosingClass();
@@ -1016,22 +1016,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new HType.nonNullSubtype(cls, compiler);
+        result = new TypeMask.nonNullSubtype(cls.declaration);
       } else {
-        result = new HType.nonNullSubclass(cls, compiler);
+        result = new TypeMask.nonNullSubclass(cls.declaration);
       }
       cachedTypeOfThis = result;
     }
     return result;
   }
 
-  Map<Element, HType> cachedTypesOfCapturedVariables =
-      new Map<Element, HType>();
+  Map<Element, TypeMask> cachedTypesOfCapturedVariables =
+      new Map<Element, TypeMask>();
 
-  HType getTypeOfCapturedVariable(Element element) {
+  TypeMask getTypeOfCapturedVariable(Element element) {
     assert(element.isField());
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
-      return new HType.inferredTypeForElement(element, compiler);
+      return TypeMaskFactory.inferredTypeForElement(element, compiler);
     });
   }
 
@@ -1126,7 +1126,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return bodyElement;
   }
 
-  HParameterValue addParameter(Element element, HType type) {
+  HParameterValue addParameter(Element element, TypeMask type) {
     assert(inliningStack.isEmpty);
     HParameterValue result = new HParameterValue(element, type);
     if (lastAddedParameter == null) {
@@ -1717,7 +1717,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.computeType(compiler);
-    HType ssaType = new HType.nonNullExact(classElement, compiler);
+    TypeMask ssaType = new TypeMask.nonNullExact(classElement.declaration);
     List<DartType> instantiatedTypes;
     addInlinedInstantiation(type);
     if (!currentInlinedInstantiations.isEmpty) {
@@ -1890,13 +1890,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (type == null) return original;
     type = type.unalias(compiler);
     if (type.kind == TypeKind.INTERFACE && !type.treatAsRaw) {
-      HType subtype = new HType.subtype(type.element, compiler);
+      TypeMask subtype = new TypeMask.subtype(type.element);
       HInstruction representations = buildTypeArgumentRepresentations(type);
       add(representations);
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, representations);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
-      HType subtype = original.instructionType;
+      TypeMask subtype = original.instructionType;
       HInstruction typeVariable = addTypeVariableReference(type);
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, typeVariable);
@@ -1904,7 +1904,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (backend.rti.isSimpleFunctionType(type)) {
         return original.convertType(compiler, type, kind);
       }
-      HType subtype = original.instructionType;
+      TypeMask subtype = original.instructionType;
       if (type.containsTypeVariables) {
         bool contextIsTypeArguments = false;
         HInstruction context;
@@ -2604,7 +2604,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    HType type = new HType.nonNullExact(compiler.functionClass, compiler);
+    TypeMask type = new TypeMask.nonNullExact(compiler.functionClass);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
 
     Element methodElement = nestedClosureData.closureElement;
@@ -2744,12 +2744,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // The inferrer may have found a better type than the constant
         // handler in the case of lists, because the constant handler
         // does not look at elements in the list.
-        HType type = new HType.inferredTypeForElement(element, compiler);
+        TypeMask type =
+            TypeMaskFactory.inferredTypeForElement(element, compiler);
         if (!type.containsAll(compiler)) instruction.instructionType = type;
       } else if (element.isField() && isLazilyInitialized(element)) {
         HInstruction instruction = new HLazyStatic(
             element,
-            new HType.inferredTypeForElement(element, compiler));
+            TypeMaskFactory.inferredTypeForElement(element, compiler));
         push(instruction);
       } else {
         if (element.isGetter()) {
@@ -2759,7 +2760,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           // creating an [HStatic].
           HInstruction instruction = new HStatic(
               element.declaration,
-              new HType.inferredTypeForElement(element, compiler));
+              TypeMaskFactory.inferredTypeForElement(element, compiler));
           push(instruction);
         }
       }
@@ -2852,7 +2853,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HForeign createForeign(js.Expression code,
-                         HType type,
+                         TypeMask type,
                          List<HInstruction> inputs) {
     return new HForeign(code, type, inputs);
   }
@@ -3155,7 +3156,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
-    HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
+    TypeMask ssaType =
+        TypeMaskFactory.fromNativeBehavior(nativeBehavior, compiler);
     push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
                       effects: nativeBehavior.sideEffects,
                       nativeBehavior: nativeBehavior));
@@ -3657,30 +3659,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Send send = node.send;
     bool isListConstructor = false;
 
-    HType computeType(element) {
+    TypeMask computeType(element) {
       Element originalElement = elements[send];
       if (Elements.isFixedListConstructorCall(originalElement, send, compiler)
           || Elements.isFilledListConstructorCall(
                   originalElement, send, compiler)) {
         isListConstructor = true;
-        HType inferred =
-            new HType.inferredForNode(currentElement, send, compiler);
+        TypeMask inferred =
+            TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
             ? backend.fixedArrayType
             : inferred;
       } else if (Elements.isGrowableListConstructorCall(
                     originalElement, send, compiler)) {
         isListConstructor = true;
-        HType inferred =
-            new HType.inferredForNode(currentElement, send, compiler);
+        TypeMask inferred =
+            TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
             ? backend.extendableArrayType
             : inferred;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
-        return new HType.nonNullExact(cls.thisType.element, compiler);
+        return new TypeMask.nonNullExact(cls.thisType.element);
       } else {
-        return new HType.inferredReturnTypeForElement(
+        return TypeMaskFactory.inferredReturnTypeForElement(
             originalElement, compiler);
       }
     }
@@ -3744,7 +3746,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
-    HType elementType = computeType(constructor);
+    TypeMask elementType = computeType(constructor);
     addInlinedInstantiation(expectedType);
     pushInvokeStatic(node, constructor, inputs, elementType);
     removeInlinedInstantiation(expectedType);
@@ -4053,13 +4055,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool isLength = selector.isGetter()
           && selector.name == "length";
       if (isLength || selector.isIndex()) {
-        HType type = new HType.nonNullExact(
-            element.getEnclosingClass(), compiler);
-        return type.isIndexable(compiler);
+        TypeMask type = new TypeMask.nonNullExact(
+            element.getEnclosingClass().declaration);
+        return type.satisfies(backend.jsIndexableClass, compiler);
       } else if (selector.isIndexSet()) {
-        HType type = new HType.nonNullExact(
-            element.getEnclosingClass(), compiler);
-        return type.isMutableIndexable(compiler);
+        TypeMask type = new TypeMask.nonNullExact(
+            element.getEnclosingClass().declaration);
+        return type.satisfies(backend.jsMutableIndexableClass, compiler);
       } else {
         return false;
       }
@@ -4099,7 +4101,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(invokeInterceptor(receiver));
     }
     inputs.addAll(arguments);
-    HType type = new HType.inferredTypeForSelector(selector, compiler);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (selector.isGetter()) {
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       pushWithPosition(
@@ -4120,13 +4122,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void pushInvokeStatic(Node location,
                         Element element,
                         List<HInstruction> arguments,
-                        [HType type = null]) {
+                        [TypeMask type = null]) {
     if (tryInlineMethod(element, null, arguments, location)) {
       return;
     }
 
     if (type == null) {
-      type = new HType.inferredReturnTypeForElement(element, compiler);
+      type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
     }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].
@@ -4156,11 +4158,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
-    HType type;
+    TypeMask type;
     if (!element.isGetter() && selector.isGetter()) {
-      type = new HType.inferredTypeForElement(element, compiler);
+      type = TypeMaskFactory.inferredTypeForElement(element, compiler);
     } else {
-      type = new HType.inferredReturnTypeForElement(element, compiler);
+      type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
     }
     HInstruction instruction = new HInvokeSuper(
         element,
@@ -4518,7 +4520,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(instruction);
     }
 
-    HType type = new HType.inferredForNode(currentElement, node, compiler);
+    TypeMask type =
+        TypeMaskFactory.inferredForNode(currentElement, node, compiler);
     if (!type.containsAll(compiler)) instruction.instructionType = type;
     stack.add(instruction);
   }
@@ -4715,7 +4718,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = buildLiteralList(inputs);
     add(keyValuePairs);
-    HType mapType = new HType.nonNullSubtype(backend.mapLiteralClass, compiler);
+    TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
     pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
   }
 

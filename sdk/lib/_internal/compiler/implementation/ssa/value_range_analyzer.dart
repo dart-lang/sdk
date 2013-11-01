@@ -677,7 +677,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitFieldGet(HFieldGet fieldGet) {
     if (!fieldGet.isInteger(compiler)) return info.newUnboundRange();
-    if (!fieldGet.receiver.isIndexable(compiler)) {
+    if (!fieldGet.receiver.isIndexablePrimitive(compiler)) {
       return visitInstruction(fieldGet);
     }
     JavaScriptBackend backend = compiler.backend;
