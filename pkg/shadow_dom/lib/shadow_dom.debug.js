@@ -32,24 +32,66 @@ if (!HTMLElement.prototype.createShadowRoot
 (function(global) {
   'use strict';
 
+  var PROP_ADD_TYPE = 'add';
+  var PROP_UPDATE_TYPE = 'update';
+  var PROP_RECONFIGURE_TYPE = 'reconfigure';
+  var PROP_DELETE_TYPE = 'delete';
+  var ARRAY_SPLICE_TYPE = 'splice';
+
+  // Detect and do basic sanity checking on Object/Array.observe.
   function detectObjectObserve() {
     if (typeof Object.observe !== 'function' ||
         typeof Array.observe !== 'function') {
       return false;
     }
 
-    var gotSplice = false;
-    function callback(records) {
-      if (records[0].type === 'splice' && records[1].type === 'splice')
-        gotSplice = true;
+    var records = [];
+
+    function callback(recs) {
+      records = recs;
     }
 
-    var test = [0];
+    var test = {};
+    Object.observe(test, callback);
+    test.id = 1;
+    test.id = 2;
+    delete test.id;
+    Object.deliverChangeRecords(callback);
+    if (records.length !== 3)
+      return false;
+
+    // TODO(rafaelw): Remove this when new change record type names make it to
+    // chrome release.
+    if (records[0].type == 'new' &&
+        records[1].type == 'updated' &&
+        records[2].type == 'deleted') {
+      PROP_ADD_TYPE = 'new';
+      PROP_UPDATE_TYPE = 'updated';
+      PROP_RECONFIGURE_TYPE = 'reconfigured';
+      PROP_DELETE_TYPE = 'deleted';
+    } else if (records[0].type != 'add' ||
+               records[1].type != 'update' ||
+               records[2].type != 'delete') {
+      console.error('Unexpected change record names for Object.observe. ' +
+                    'Using dirty-checking instead');
+      return false;
+    }
+    Object.unobserve(test, callback);
+
+    test = [0];
     Array.observe(test, callback);
     test[1] = 1;
     test.length = 0;
     Object.deliverChangeRecords(callback);
-    return gotSplice;
+    if (records.length != 2)
+      return false;
+    if (records[0].type != ARRAY_SPLICE_TYPE ||
+        records[1].type != ARRAY_SPLICE_TYPE) {
+      return false;
+    }
+    Array.unobserve(test, callback);
+
+    return true;
   }
 
   var hasObserve = detectObjectObserve();
@@ -836,11 +878,10 @@ if (!HTMLElement.prototype.createShadowRoot
     }
   });
 
-  var knownRecordTypes = {
-    'new': true,
-    'updated': true,
-    'deleted': true
-  };
+  var expectedRecordTypes = {};
+  expectedRecordTypes[PROP_ADD_TYPE] = true;
+  expectedRecordTypes[PROP_UPDATE_TYPE] = true;
+  expectedRecordTypes[PROP_DELETE_TYPE] = true;
 
   function notifyFunction(object, name) {
     if (typeof Object.observe !== 'function')
@@ -872,7 +913,7 @@ if (!HTMLElement.prototype.createShadowRoot
     var observer = new PathObserver(obj, descriptor.path,
         function(newValue, oldValue) {
           if (notify)
-            notify('updated', oldValue);
+            notify(PROP_UPDATE_TYPE, oldValue);
         }
     );
 
@@ -907,7 +948,7 @@ if (!HTMLElement.prototype.createShadowRoot
 
     for (var i = 0; i < changeRecords.length; i++) {
       var record = changeRecords[i];
-      if (!knownRecordTypes[record.type]) {
+      if (!expectedRecordTypes[record.type]) {
         console.error('Unknown changeRecord type: ' + record.type);
         console.error(record);
         continue;
@@ -916,10 +957,10 @@ if (!HTMLElement.prototype.createShadowRoot
       if (!(record.name in oldValues))
         oldValues[record.name] = record.oldValue;
 
-      if (record.type == 'updated')
+      if (record.type == PROP_UPDATE_TYPE)
         continue;
 
-      if (record.type == 'new') {
+      if (record.type == PROP_ADD_TYPE) {
         if (record.name in removed)
           delete removed[record.name];
         else
@@ -928,7 +969,7 @@ if (!HTMLElement.prototype.createShadowRoot
         continue;
       }
 
-      // type = 'deleted'
+      // type = 'delete'
       if (record.name in added) {
         delete added[record.name];
         delete oldValues[record.name];
@@ -1316,12 +1357,12 @@ if (!HTMLElement.prototype.createShadowRoot
     for (var i = 0; i < changeRecords.length; i++) {
       var record = changeRecords[i];
       switch(record.type) {
-        case 'splice':
+        case ARRAY_SPLICE_TYPE:
           mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
           break;
-        case 'new':
-        case 'updated':
-        case 'deleted':
+        case PROP_ADD_TYPE:
+        case PROP_UPDATE_TYPE:
+        case PROP_DELETE_TYPE:
           if (!isIndex(record.name))
             continue;
           var index = toNumber(record.name);
@@ -1368,6 +1409,16 @@ if (!HTMLElement.prototype.createShadowRoot
   global.PathObserver = PathObserver;
   global.CompoundPathObserver = CompoundPathObserver;
   global.Path = Path;
+
+  // TODO(rafaelw): Only needed for testing until new change record names
+  // make it to release.
+  global.Observer.changeRecordTypes = {
+    add: PROP_ADD_TYPE,
+    update: PROP_UPDATE_TYPE,
+    reconfigure: PROP_RECONFIGURE_TYPE,
+    'delete': PROP_DELETE_TYPE,
+    splice: ARRAY_SPLICE_TYPE
+  };
 })(typeof global !== 'undefined' && global ? global : this);
 
 /*
@@ -1430,6 +1481,7 @@ var ShadowDOMPolyfill = {};
       var f = new Function('', 'return true;');
       hasEval = f();
     } catch (ex) {
+      hasEval = false;
     }
   }
 
@@ -1780,6 +1832,7 @@ var ShadowDOMPolyfill = {};
   scope.wrappers = wrappers;
 
 })(this.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4872,6 +4925,7 @@ var ShadowDOMPolyfill = {};
       });
 
       var nativeConstructor = originalRegister.call(unwrap(this), tagName,
+          object.extends ? {prototype: newPrototype, extends: object.extends} :
           {prototype: newPrototype});
 
       function GeneratedWrapper(node) {
