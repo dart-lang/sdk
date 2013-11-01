@@ -88,14 +88,6 @@ LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail, OK
 # co19 issue #623: main() { {}; } is block and empty statement, not a map
 Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
 
-# co19 issue #650: two argument shuffles have been refactored.
-
-LibTest/typed_data/Float32x4/interleaveZWPairs_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
-
 # co19 issue #626: StreamTransformers have been refactored.
 LibTest/async/EventTransformStream/EventTransformStream_A01_t01: Fail
 LibTest/async/EventTransformStream/EventTransformStream_A01_t02: Fail
