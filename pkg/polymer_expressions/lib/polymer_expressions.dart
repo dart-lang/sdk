@@ -70,17 +70,6 @@ class PolymerExpressions extends BindingDelegate {
   prepareBinding(String path, name, node) {
     if (path == null) return null;
     var expr = new Parser(path).parse();
-
-    // For template bind/repeat to an empty path, just pass through the model.
-    // We don't want to unwrap the Scope.
-    // TODO(jmesserly): a custom element extending <template> could notice this
-    // behavior. An alternative is to associate the Scope with the node via an
-    // Expando, which is what the JavaScript PolymerExpressions does.
-    if (isSemanticTemplate(node) && (name == 'bind' || name == 'repeat') &&
-        expr is EmptyExpression) {
-      return null;
-    }
-
     return (model, node) {
       if (model is! Scope) {
         model = new Scope(model: model, variables: globals);
