@@ -1739,6 +1739,31 @@ void Class::InitEmptyFields() {
 }
 
 
+RawArray* Class::OffsetToFieldMap() const {
+  Array& array = Array::Handle(raw_ptr()->offset_in_words_to_field_);
+  if (array.IsNull()) {
+    ASSERT(is_finalized());
+    const intptr_t length = raw_ptr()->instance_size_in_words_;
+    array = Array::New(length, Heap::kOld);
+    Class& cls = Class::Handle(this->raw());
+    Array& fields = Array::Handle();
+    Field& f = Field::Handle();
+    while (!cls.IsNull()) {
+      fields = cls.fields();
+      for (intptr_t i = 0; i < fields.Length(); ++i) {
+        f ^= fields.At(i);
+        if (!f.is_static()) {
+          array.SetAt(f.Offset() >> kWordSizeLog2, f);
+        }
+      }
+      cls = cls.SuperClass();
+    }
+    StorePointer(&raw_ptr()->offset_in_words_to_field_, array.raw());
+  }
+  return array.raw();
+}
+
+
 bool Class::HasInstanceFields() const {
   const Array& field_array = Array::Handle(fields());
   Field& field = Field::Handle();
@@ -5997,17 +6022,58 @@ bool Field::IsUninitialized() const {
 }
 
 
-void Field::UpdateCid(intptr_t cid) const {
+static intptr_t GetListLength(const Object& value) {
+  const intptr_t cid = value.GetClassId();
+  ASSERT(RawObject::IsBuiltinListClassId(cid));
+  // Extract list length.
+  if (value.IsTypedData()) {
+    const TypedData& list = TypedData::Cast(value);
+    return list.Length();
+  } else if (value.IsArray()) {
+    const Array& list = Array::Cast(value);
+    return list.Length();
+  } else if (value.IsGrowableObjectArray()) {
+    // List length is variable.
+    return Field::kNoFixedLength;
+  } else if (value.IsExternalTypedData()) {
+    // TODO(johnmccutchan): Enable for external typed data.
+    return Field::kNoFixedLength;
+  } else if (RawObject::IsTypedDataViewClassId(cid)) {
+    // TODO(johnmccutchan): Enable for typed data views.
+    return Field::kNoFixedLength;
+  }
+  UNIMPLEMENTED();
+  return Field::kNoFixedLength;
+}
+
+
+bool Field::UpdateGuardedCidAndLength(const Object& value) const {
+  const intptr_t cid = value.GetClassId();
+  bool deoptimize = UpdateCid(cid);
+  intptr_t list_length = Field::kNoFixedLength;
+  if ((guarded_cid() != kDynamicCid) &&
+      is_final() && RawObject::IsBuiltinListClassId(cid)) {
+    list_length = GetListLength(value);
+  }
+  deoptimize = UpdateLength(list_length) || deoptimize;
+  if (deoptimize) {
+    DeoptimizeDependentCode();
+  }
+  return deoptimize;
+}
+
+
+bool Field::UpdateCid(intptr_t cid) const {
   if (guarded_cid() == kIllegalCid) {
     // Field is assigned first time.
     set_guarded_cid(cid);
     set_is_nullable(cid == kNullCid);
-    return;
+    return false;
   }
 
   if ((cid == guarded_cid()) || ((cid == kNullCid) && is_nullable())) {
     // Class id of the assigned value matches expected class id and nullability.
-    return;
+    return false;
   }
 
   if ((cid == kNullCid) && !is_nullable()) {
@@ -6026,11 +6092,11 @@ void Field::UpdateCid(intptr_t cid) const {
   }
 
   // Expected class id or nullability of the field changed.
-  DeoptimizeDependentCode();
+  return true;
 }
 
 
-void Field::UpdateLength(intptr_t list_length) const {
+bool Field::UpdateLength(intptr_t list_length) const {
   ASSERT(is_final() || (!is_final() &&
                         (list_length < Field::kUnknownFixedLength)));
   ASSERT((list_length == Field::kNoFixedLength) ||
@@ -6047,16 +6113,16 @@ void Field::UpdateLength(intptr_t list_length) const {
   if (list_length_unknown && list_length_changed && !force_invalidate) {
     // List length set for first time.
     set_guarded_list_length(list_length);
-    return;
+    return false;
   }
 
   if (!list_length_changed && !force_invalidate) {
     // List length unchanged.
-    return;
+    return false;
   }
   // Multiple list lengths assigned here, stop tracking length.
   set_guarded_list_length(Field::kNoFixedLength);
-  DeoptimizeDependentCode();
+  return true;
 }
 
 

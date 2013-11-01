@@ -150,6 +150,8 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       isolate_(isolate),
       cls_(Class::Handle()),
       obj_(Object::Handle()),
+      array_(Array::Handle()),
+      field_(Field::Handle()),
       str_(String::Handle()),
       library_(Library::Handle()),
       type_(AbstractType::Handle()),
@@ -789,9 +791,26 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       instance_size = cls_.instance_size();
     }
     intptr_t offset = Object::InstanceSize();
+    intptr_t result_cid = result->GetClassId();
     while (offset < instance_size) {
       obj_ = ReadObjectRef();
       result->SetFieldAtOffset(offset, obj_);
+      if (kind_ == Snapshot::kMessage) {
+        // TODO(fschneider): Consider hoisting these lookups out of the loop.
+        // This would involve creating a handle, since cls_ can't be reused
+        // across the call to ReadObjectRef.
+        cls_ = isolate()->class_table()->At(result_cid);
+        array_ = cls_.OffsetToFieldMap();
+        field_ ^= array_.At(offset >> kWordSizeLog2);
+        // Entries can be null because offset can be outside of instance fields
+        // due to rounded allocation size.
+        if (!field_.IsNull()) {
+          ASSERT(field_.Offset() == offset);
+          field_.UpdateGuardedCidAndLength(obj_);
+        }
+      }
+      // TODO(fschneider): Verify the guarded cid and length for other kinds of
+      // snapshot (kFull, kScript) with asserts.
       offset += kWordSize;
     }
     if (kind_ == Snapshot::kFull) {

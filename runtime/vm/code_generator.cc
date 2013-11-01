@@ -1694,31 +1694,6 @@ double DartModulo(double left, double right) {
 }
 
 
-static intptr_t GetListLength(const Object& value) {
-  const intptr_t cid = value.GetClassId();
-  ASSERT(RawObject::IsBuiltinListClassId(cid));
-  // Extract list length.
-  if (value.IsTypedData()) {
-    const TypedData& list = TypedData::Cast(value);
-    return list.Length();
-  } else if (value.IsArray()) {
-    const Array& list = Array::Cast(value);
-    return list.Length();
-  } else if (value.IsGrowableObjectArray()) {
-    // List length is variable.
-    return Field::kNoFixedLength;
-  } else if (value.IsExternalTypedData()) {
-    // TODO(johnmccutchan): Enable for external typed data.
-    return Field::kNoFixedLength;
-  } else if (RawObject::IsTypedDataViewClassId(cid)) {
-    // TODO(johnmccutchan): Enable for typed data views.
-    return Field::kNoFixedLength;
-  }
-  UNIMPLEMENTED();
-  return Field::kNoFixedLength;
-}
-
-
 // Update global type feedback recorded for a field recording the assignment
 // of the given value.
 //   Arg0: Field object;
@@ -1726,14 +1701,7 @@ static intptr_t GetListLength(const Object& value) {
 DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
-  const intptr_t cid = value.GetClassId();
-  field.UpdateCid(cid);
-  intptr_t list_length = Field::kNoFixedLength;
-  if ((field.guarded_cid() != kDynamicCid) &&
-      field.is_final() && RawObject::IsBuiltinListClassId(cid)) {
-    list_length = GetListLength(value);
-  }
-  field.UpdateLength(list_length);
+  field.UpdateGuardedCidAndLength(value);
 }
 
 }  // namespace dart

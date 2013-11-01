@@ -320,6 +320,8 @@ class SnapshotReader : public BaseReader {
   Isolate* isolate_;  // Current isolate.
   Class& cls_;  // Temporary Class handle.
   Object& obj_;  // Temporary Object handle.
+  Array& array_;  // Temporary Array handle.
+  Field& field_;  // Temporary Field handle.
   String& str_;  // Temporary String handle.
   Library& library_;  // Temporary library handle.
   AbstractType& type_;  // Temporary type handle.

@@ -2146,8 +2146,7 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
 
     if (found) continue;
 
-    field.UpdateCid(kNullCid);
-    field.UpdateLength(Field::kNoFixedLength);
+    field.UpdateGuardedCidAndLength(Object::Handle());
   }
 }
 
