@@ -216,11 +216,7 @@ namespace dart {
   V(Float32x4_getW, 1)                                                         \
   V(Float32x4_getSignMask, 1)                                                  \
   V(Float32x4_shuffle, 2)                                                      \
-  V(Float32x4_withZWInXY, 2)                                                   \
-  V(Float32x4_interleaveXY, 2)                                                 \
-  V(Float32x4_interleaveZW, 2)                                                 \
-  V(Float32x4_interleaveXYPairs, 2)                                            \
-  V(Float32x4_interleaveZWPairs, 2)                                            \
+  V(Float32x4_shuffleMix, 3)                                                   \
   V(Float32x4_setX, 2)                                                         \
   V(Float32x4_setY, 2)                                                         \
   V(Float32x4_setZ, 2)                                                         \
@@ -247,6 +243,8 @@ namespace dart {
   V(Uint32x4_setZ, 2)                                                          \
   V(Uint32x4_setW, 2)                                                          \
   V(Uint32x4_getSignMask, 1)                                                   \
+  V(Uint32x4_shuffle, 2)                                                       \
+  V(Uint32x4_shuffleMix, 3)                                                    \
   V(Uint32x4_getFlagX, 1)                                                      \
   V(Uint32x4_getFlagY, 1)                                                      \
   V(Uint32x4_getFlagZ, 1)                                                      \

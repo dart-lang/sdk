@@ -3043,7 +3043,7 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
+LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3055,7 +3055,7 @@ LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
 }
 
 
-void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   QRegister value = locs()->in(0).fpu_reg();
   QRegister result = locs()->out().fpu_reg();
   DRegister dresult0 = EvenDRegisterOf(result);
@@ -3073,6 +3073,7 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // For some cases the vdup instruction requires fewer
   // instructions. For arbitrary shuffles, use vtbl.
+
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleX:
       __ vdup(kWord, result, dvalue0, 0);
@@ -3090,6 +3091,7 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ vdup(kWord, result, dvalue1, 1);
       __ vcvtds(dresult0, sresult0);
       break;
+    case MethodRecognizer::kUint32x4Shuffle:
     case MethodRecognizer::kFloat32x4Shuffle:
       if (mask_ == 0x00) {
         __ vdup(kWord, result, dvalue0, 0);
@@ -3100,6 +3102,8 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       } else  if (mask_ == 0xFF) {
         __ vdup(kWord, result, dvalue1, 1);
       } else {
+        // TODO(zra): Investigate better instruction sequences for other
+        // shuffle masks.
         SRegister svalues[4];
 
         svalues[0] = EvenSRegisterOf(dtemp0);
@@ -3113,6 +3117,62 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ vmovs(sresult2, svalues[(mask_ >> 4) & 0x3]);
         __ vmovs(sresult3, svalues[(mask_ >> 6) & 0x3]);
       }
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Simd32x4ShuffleMixInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  // Low (< Q7) Q registers are needed for the vcvtds and vmovs instructions.
+  summary->set_in(0, Location::FpuRegisterLocation(Q4));
+  summary->set_in(1, Location::FpuRegisterLocation(Q5));
+  summary->set_out(Location::FpuRegisterLocation(Q6));
+  return summary;
+}
+
+
+void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  QRegister left = locs()->in(0).fpu_reg();
+  QRegister right = locs()->in(1).fpu_reg();
+  QRegister result = locs()->out().fpu_reg();
+
+  DRegister dresult0 = EvenDRegisterOf(result);
+  DRegister dresult1 = OddDRegisterOf(result);
+  SRegister sresult0 = EvenSRegisterOf(dresult0);
+  SRegister sresult1 = OddSRegisterOf(dresult0);
+  SRegister sresult2 = EvenSRegisterOf(dresult1);
+  SRegister sresult3 = OddSRegisterOf(dresult1);
+
+  DRegister dleft0 = EvenDRegisterOf(left);
+  DRegister dleft1 = OddDRegisterOf(left);
+  DRegister dright0 = EvenDRegisterOf(right);
+  DRegister dright1 = OddDRegisterOf(right);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4ShuffleMix:
+    case MethodRecognizer::kUint32x4ShuffleMix:
+      // TODO(zra): Investigate better instruction sequences for shuffle masks.
+      SRegister left_svalues[4];
+      SRegister right_svalues[4];
+
+      left_svalues[0] = EvenSRegisterOf(dleft0);
+      left_svalues[1] = OddSRegisterOf(dleft0);
+      left_svalues[2] = EvenSRegisterOf(dleft1);
+      left_svalues[3] = OddSRegisterOf(dleft1);
+      right_svalues[0] = EvenSRegisterOf(dright0);
+      right_svalues[1] = OddSRegisterOf(dright0);
+      right_svalues[2] = EvenSRegisterOf(dright1);
+      right_svalues[3] = OddSRegisterOf(dright1);
+
+      __ vmovs(sresult0, left_svalues[mask_ & 0x3]);
+      __ vmovs(sresult1, left_svalues[(mask_ >> 2) & 0x3]);
+      __ vmovs(sresult2, right_svalues[(mask_ >> 4) & 0x3]);
+      __ vmovs(sresult3, right_svalues[(mask_ >> 6) & 0x3]);
       break;
     default: UNREACHABLE();
   }
@@ -3481,56 +3541,6 @@ void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (value != result) {
     __ vmovq(result, value);
-  }
-}
-
-
-LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  return summary;
-}
-
-
-void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  QRegister left = locs()->in(0).fpu_reg();
-  QRegister right = locs()->in(1).fpu_reg();
-  QRegister result = locs()->out().fpu_reg();
-
-  ASSERT(result == left);
-
-  DRegister dleft0 = EvenDRegisterOf(left);
-  DRegister dleft1 = OddDRegisterOf(left);
-  DRegister dright0 = EvenDRegisterOf(right);
-  DRegister dright1 = OddDRegisterOf(right);
-
-  switch (op_kind()) {
-    case MethodRecognizer::kFloat32x4WithZWInXY:
-      __ vmovd(dleft0, dright1);
-      break;
-    case MethodRecognizer::kFloat32x4InterleaveXY:
-      __ vmovq(QTMP, right);
-      __ vzipqw(left, QTMP);
-      break;
-    case MethodRecognizer::kFloat32x4InterleaveZW:
-      __ vmovq(QTMP, right);
-      __ vzipqw(left, QTMP);
-      __ vmovq(left, QTMP);
-      break;
-    case MethodRecognizer::kFloat32x4InterleaveXYPairs:
-      __ vmovd(dleft1, dright0);
-      break;
-    case MethodRecognizer::kFloat32x4InterleaveZWPairs:
-      __ vmovq(QTMP, right);
-      __ vmovd(EvenDRegisterOf(QTMP), dleft1);
-      __ vmovq(result, QTMP);
-      break;
-    default: UNREACHABLE();
   }
 }
 

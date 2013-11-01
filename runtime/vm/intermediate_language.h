@@ -95,6 +95,7 @@ class Range;
   V(Float32x4, Float32x4.fromUint32x4Bits, Float32x4FromUint32x4Bits,          \
       770033146)                                                               \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1178727105)                         \
+  V(_Float32x4, shuffleMix, Float32x4ShuffleMix, 927956119)                    \
   V(_Float32x4, get:x, Float32x4ShuffleX, 1351717838)                          \
   V(_Float32x4, get:y, Float32x4ShuffleY, 217386410)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 2144923721)                          \
@@ -119,11 +120,6 @@ class Range;
   V(_Float32x4, withY, Float32x4WithY, 1806065938)                             \
   V(_Float32x4, withZ, Float32x4WithZ, 320659034)                              \
   V(_Float32x4, withW, Float32x4WithW, 1108437255)                             \
-  V(_Float32x4, withZWInXY, Float32x4WithZWInXY, 1198101679)                   \
-  V(_Float32x4, interleaveXY, Float32x4InterleaveXY, 2001324072)               \
-  V(_Float32x4, interleaveZW, Float32x4InterleaveZW, 928280031)                \
-  V(_Float32x4, interleaveXYPairs, Float32x4InterleaveXYPairs, 1046078993)     \
-  V(_Float32x4, interleaveZWPairs, Float32x4InterleaveZWPairs, 1001751955)     \
   V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 517444095)               \
   V(Uint32x4, Uint32x4.fromFloat32x4Bits, Uint32x4FromFloat32x4Bits,           \
       1080034855)                                                              \
@@ -132,6 +128,8 @@ class Range;
   V(_Uint32x4, get:flagZ, Uint32x4GetFlagZ, 944733935)                         \
   V(_Uint32x4, get:flagW, Uint32x4GetFlagW, 22746169)                          \
   V(_Uint32x4, get:signMask, Uint32x4GetSignMask, 1858144083)                  \
+  V(_Uint32x4, shuffle, Uint32x4Shuffle, 146209630)                            \
+  V(_Uint32x4, shuffleMix, Uint32x4ShuffleMix, 1251494596)                     \
   V(_Uint32x4, select, Uint32x4Select, 72244182)                               \
   V(_Uint32x4, withFlagX, Uint32x4WithFlagX, 1475542073)                       \
   V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 830610988)                        \
@@ -677,7 +675,8 @@ class EmbeddedArray<T, 0> {
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
-  M(Float32x4Shuffle)                                                          \
+  M(Simd32x4Shuffle)                                                           \
+  M(Simd32x4ShuffleMix)                                                        \
   M(Simd32x4GetSignMask)                                                       \
   M(Float32x4Constructor)                                                      \
   M(Float32x4Zero)                                                             \
@@ -690,7 +689,6 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
   M(Float32x4ToUint32x4)                                                       \
-  M(Float32x4TwoArgShuffle)                                                    \
   M(MaterializeObject)                                                         \
   M(Uint32x4BoolConstructor)                                                   \
   M(Uint32x4GetFlag)                                                           \
@@ -967,7 +965,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class BinaryFloat32x4OpInstr;
   friend class Float32x4ZeroInstr;
   friend class Float32x4SplatInstr;
-  friend class Float32x4ShuffleInstr;
+  friend class Simd32x4ShuffleInstr;
+  friend class Simd32x4ShuffleMixInstr;
   friend class Simd32x4GetSignMaskInstr;
   friend class Float32x4ConstructorInstr;
   friend class Float32x4ComparisonInstr;
@@ -978,7 +977,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ClampInstr;
   friend class Float32x4WithInstr;
   friend class Float32x4ToUint32x4Instr;
-  friend class Float32x4TwoArgShuffleInstr;
   friend class Uint32x4BoolConstructorInstr;
   friend class Uint32x4GetFlagInstr;
   friend class Uint32x4SetFlagInstr;
@@ -4996,11 +4994,11 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
 };
 
 
-class Float32x4ShuffleInstr : public TemplateDefinition<1> {
+class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
  public:
-  Float32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
-                        intptr_t mask,
-                        intptr_t deopt_id)
+  Simd32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
+                       intptr_t mask,
+                       intptr_t deopt_id)
       : op_kind_(op_kind), mask_(mask) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
@@ -5023,11 +5021,88 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
         (op_kind_ == MethodRecognizer::kFloat32x4ShuffleW)) {
       return kUnboxedDouble;
     }
+    if ((op_kind_ == MethodRecognizer::kUint32x4Shuffle)) {
+      return kUnboxedUint32x4;
+    }
+    ASSERT((op_kind_ == MethodRecognizer::kFloat32x4Shuffle));
     return kUnboxedFloat32x4;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
+    if ((op_kind_ == MethodRecognizer::kFloat32x4ShuffleX) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleY) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleZ) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleW) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4Shuffle)) {
+      return kUnboxedFloat32x4;
+    }
+    ASSERT((op_kind_ == MethodRecognizer::kUint32x4Shuffle));
+    return kUnboxedUint32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Simd32x4Shuffle)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return (op_kind() == other->AsSimd32x4Shuffle()->op_kind()) &&
+           (mask() == other->AsSimd32x4Shuffle()->mask());
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+  const intptr_t mask_;
+
+  DISALLOW_COPY_AND_ASSIGN(Simd32x4ShuffleInstr);
+};
+
+
+class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
+ public:
+  Simd32x4ShuffleMixInstr(MethodRecognizer::Kind op_kind, Value* xy,
+                           Value* zw, intptr_t mask, intptr_t deopt_id)
+      : op_kind_(op_kind), mask_(mask) {
+    SetInputAt(0, xy);
+    SetInputAt(1, zw);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* xy() const { return inputs_[0]; }
+  Value* zw() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  intptr_t mask() const { return mask_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    if (op_kind() == MethodRecognizer::kUint32x4ShuffleMix) {
+      return kUnboxedUint32x4;
+    }
+    ASSERT(op_kind() == MethodRecognizer::kFloat32x4ShuffleMix);
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    if (op_kind() == MethodRecognizer::kUint32x4ShuffleMix) {
+      return kUnboxedUint32x4;
+    }
+    ASSERT(op_kind() == MethodRecognizer::kFloat32x4ShuffleMix);
     return kUnboxedFloat32x4;
   }
 
@@ -5037,15 +5112,15 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Float32x4Shuffle)
+  DECLARE_INSTRUCTION(Simd32x4ShuffleMix)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsFloat32x4Shuffle()->op_kind() &&
-           mask() == other->AsFloat32x4Shuffle()->mask();
+    return (op_kind() == other->AsSimd32x4ShuffleMix()->op_kind()) &&
+           (mask() == other->AsSimd32x4ShuffleMix()->mask());
   }
 
   virtual bool MayThrow() const { return false; }
@@ -5054,7 +5129,7 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind op_kind_;
   const intptr_t mask_;
 
-  DISALLOW_COPY_AND_ASSIGN(Float32x4ShuffleInstr);
+  DISALLOW_COPY_AND_ASSIGN(Simd32x4ShuffleMixInstr);
 };
 
 
@@ -5754,59 +5829,6 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Simd32x4GetSignMaskInstr);
-};
-
-
-class Float32x4TwoArgShuffleInstr : public TemplateDefinition<2> {
- public:
-  Float32x4TwoArgShuffleInstr(MethodRecognizer::Kind op_kind, Value* left,
-                              Value* right, intptr_t deopt_id)
-      : op_kind_(op_kind) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-    deopt_id_ = deopt_id;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  MethodRecognizer::Kind op_kind() const { return op_kind_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual Representation representation() const {
-    return kUnboxedFloat32x4;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedFloat32x4;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return deopt_id_;
-  }
-
-  DECLARE_INSTRUCTION(Float32x4TwoArgShuffle)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsFloat32x4TwoArgShuffle()->op_kind();
-  }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const MethodRecognizer::Kind op_kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(Float32x4TwoArgShuffleInstr);
 };
 
 

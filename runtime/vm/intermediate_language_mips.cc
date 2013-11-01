@@ -2969,13 +2969,25 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
+LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+
+LocationSummary* Simd32x4ShuffleMixInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -3097,17 +3109,6 @@ LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
 
 
 void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

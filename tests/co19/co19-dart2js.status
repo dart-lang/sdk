@@ -53,6 +53,11 @@ LibTest/typed_data/Uint16List/Uint16List_A02_t01: fail # co19-roll r576: Please 
 LibTest/typed_data/Uint32List/Uint32List_A02_t01: fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A02_t01: fail # co19-roll r576: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List_A02_t01: fail # co19-roll r576: Please triage this failure
+LibTest/typed_data/Float32x4/interleaveZWPairs_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
 
 [ $compiler == dart2js && $runtime != ie9 ]
 LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure

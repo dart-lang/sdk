@@ -2168,14 +2168,7 @@ class _Float32x4 implements Float32x4 {
   int get signMask native "Float32x4_getSignMask";
 
   Float32x4 shuffle(int mask) native "Float32x4_shuffle";
-
-  Float32x4 withZWInXY(Float32x4 other) native "Float32x4_withZWInXY";
-  Float32x4 interleaveXY(Float32x4 other) native "Float32x4_interleaveXY";
-  Float32x4 interleaveZW(Float32x4 other) native "Float32x4_interleaveZW";
-  Float32x4 interleaveXYPairs(Float32x4 other)
-      native "Float32x4_interleaveXYPairs";
-  Float32x4 interleaveZWPairs(Float32x4 other)
-      native "Float32x4_interleaveZWPairs";
+  Float32x4 shuffleMix(Float32x4 zw, int mask) native "Float32x4_shuffleMix";
 
   Float32x4 withX(double x) native "Float32x4_setX";
   Float32x4 withY(double y) native "Float32x4_setY";
@@ -2236,6 +2229,8 @@ class _Uint32x4 implements Uint32x4 {
   int get z native "Uint32x4_getZ";
   int get w native "Uint32x4_getW";
   int get signMask native "Uint32x4_getSignMask";
+  Uint32x4 shuffle(int mask) native "Uint32x4_shuffle";
+  Uint32x4 shuffleMix(Uint32x4 zw, int mask) native "Uint32x4_shuffleMix";
   Uint32x4 withX(int x) native "Uint32x4_setX";
   Uint32x4 withY(int y) native "Uint32x4_setY";
   Uint32x4 withZ(int z) native "Uint32x4_setZ";

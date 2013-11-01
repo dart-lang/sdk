@@ -607,10 +607,17 @@ void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void Float32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
+void Simd32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
   // TODO(johnmccutchan): Add proper string enumeration of shuffle.
-  f->Print("SHUFFLE ");
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
   value()->PrintTo(f);
+}
+
+void Simd32x4ShuffleMixInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  xy()->PrintTo(f);
+  f->Print(", ");
+  zw()->PrintTo(f);
 }
 
 
@@ -706,12 +713,7 @@ void Float32x4ToUint32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void Float32x4TwoArgShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
-  left()->PrintTo(f);
-  f->Print(", ");
-  right()->PrintTo(f);
-}
+
 
 
 void Uint32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
