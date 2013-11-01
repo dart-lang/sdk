@@ -137,15 +137,13 @@ class KeywordState {
  * @coverage dart.engine.parser
  */
 class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
-  static final ScannerErrorCode CHARACTER_EXPECTED_AFTER_SLASH = new ScannerErrorCode.con1('CHARACTER_EXPECTED_AFTER_SLASH', 0, "Character expected after slash");
-  static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode.con1('ILLEGAL_CHARACTER', 1, "Illegal character %x");
-  static final ScannerErrorCode MISSING_DIGIT = new ScannerErrorCode.con1('MISSING_DIGIT', 2, "Decimal digit expected");
-  static final ScannerErrorCode MISSING_HEX_DIGIT = new ScannerErrorCode.con1('MISSING_HEX_DIGIT', 3, "Hexidecimal digit expected");
-  static final ScannerErrorCode MISSING_QUOTE = new ScannerErrorCode.con1('MISSING_QUOTE', 4, "Expected quote (' or \")");
-  static final ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = new ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 5, "Unterminated multi-line comment");
-  static final ScannerErrorCode UNTERMINATED_STRING_LITERAL = new ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 6, "Unterminated string literal");
+  static final ScannerErrorCode ILLEGAL_CHARACTER = new ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
+  static final ScannerErrorCode MISSING_DIGIT = new ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
+  static final ScannerErrorCode MISSING_HEX_DIGIT = new ScannerErrorCode.con1('MISSING_HEX_DIGIT', 2, "Hexidecimal digit expected");
+  static final ScannerErrorCode MISSING_QUOTE = new ScannerErrorCode.con1('MISSING_QUOTE', 3, "Expected quote (' or \")");
+  static final ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = new ScannerErrorCode.con1('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
+  static final ScannerErrorCode UNTERMINATED_STRING_LITERAL = new ScannerErrorCode.con1('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
   static final List<ScannerErrorCode> values = [
-      CHARACTER_EXPECTED_AFTER_SLASH,
       ILLEGAL_CHARACTER,
       MISSING_DIGIT,
       MISSING_HEX_DIGIT,
@@ -469,7 +467,19 @@ class IncrementalScanner extends Scanner {
   /**
    * A map from tokens that were copied to the copies of the tokens.
    */
-  TokenMap _tokenMap = new TokenMap();
+  final TokenMap tokenMap = new TokenMap();
+
+  /**
+   * The first token in the range of tokens that are different from the tokens in the original token
+   * stream.
+   */
+  Token _firstToken;
+
+  /**
+   * The last token in the range of tokens that are different from the tokens in the original token
+   * stream.
+   */
+  Token lastToken;
 
   /**
    * Initialize a newly created scanner.
@@ -481,6 +491,15 @@ class IncrementalScanner extends Scanner {
   IncrementalScanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) : super(source, reader, errorListener) {
     this._reader = reader;
   }
+
+  /**
+   * Return the first token in the range of tokens that are different from the tokens in the
+   * original token stream or `null` if the new tokens are the same as the original tokens
+   * except for offset.
+   *
+   * @return the first token in the range of new tokens
+   */
+  Token get firstToken => _firstToken;
 
   /**
    * Given the stream of tokens scanned from the original source, the modified source (the result of
@@ -495,16 +514,32 @@ class IncrementalScanner extends Scanner {
    * @param insertedLength the number of characters added to the modified source
    */
   Token rescan(Token originalStream, int index, int removedLength, int insertedLength) {
-    while (originalStream.end < index) {
+    while (originalStream.type != TokenType.EOF && originalStream.end < index) {
       originalStream = copyAndAdvance(originalStream, 0);
     }
+    Token lastCopied = tail;
     int modifiedEnd = index + insertedLength - 1;
+    if (originalStream.offset < index) {
+      modifiedEnd += originalStream.end - index - removedLength;
+    }
     _reader.offset = Math.min(originalStream.offset, index) - 1;
     int next = _reader.advance();
     while (next != -1 && _reader.offset <= modifiedEnd) {
       next = bigSwitch(next);
     }
-    int removedEnd = index + removedLength - 1;
+    _firstToken = lastCopied.next;
+    lastToken = tail;
+    if (_firstToken == null || identical(_firstToken.type, TokenType.EOF)) {
+      _firstToken = null;
+      lastToken = null;
+    } else if (originalStream.end == index && _firstToken.end == index) {
+      tokenMap.put(originalStream, _firstToken);
+      if (identical(lastToken, _firstToken)) {
+        lastToken = lastToken.next;
+      }
+      _firstToken = _firstToken.next;
+    }
+    int removedEnd = index + removedLength - 1 + Math.max(0, tail.end - index - insertedLength);
     while (originalStream.offset <= removedEnd) {
       originalStream = originalStream.next;
     }
@@ -512,18 +547,19 @@ class IncrementalScanner extends Scanner {
     while (originalStream.type != TokenType.EOF) {
       originalStream = copyAndAdvance(originalStream, delta);
     }
-    copyAndAdvance(originalStream, delta);
-    return firstToken();
+    Token eof = copyAndAdvance(originalStream, delta);
+    eof.setNextWithoutSettingPrevious(eof);
+    return super.firstToken;
   }
   Token copyAndAdvance(Token originalToken, int delta) {
     Token copiedToken = originalToken.copy();
-    _tokenMap.put(originalToken, copiedToken);
+    tokenMap.put(originalToken, copiedToken);
     copiedToken.applyDelta(delta);
     appendToken(copiedToken);
     Token originalComment = originalToken.precedingComments;
     Token copiedComment = originalToken.precedingComments;
     while (originalComment != null) {
-      _tokenMap.put(originalComment, copiedComment);
+      tokenMap.put(originalComment, copiedComment);
       originalComment = originalComment.next;
       copiedComment = copiedComment.next;
     }
@@ -566,7 +602,7 @@ class Scanner {
   /**
    * The last token that was scanned.
    */
-  Token _tail;
+  Token tail;
 
   /**
    * The first token in the list of comment tokens found since the last non-comment token.
@@ -617,7 +653,7 @@ class Scanner {
     this._errorListener = errorListener;
     _tokens = new Token(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
-    _tail = _tokens;
+    tail = _tokens;
     _tokenStart = -1;
     _lineStarts.add(0);
   }
@@ -674,7 +710,7 @@ class Scanner {
       }
       appendEofToken();
       instrumentation.metric2("tokensCount", tokenCounter);
-      return firstToken();
+      return firstToken;
     } finally {
       instrumentation.log2(2);
     }
@@ -688,7 +724,7 @@ class Scanner {
    * @param token the token to be appended
    */
   void appendToken(Token token) {
-    _tail = _tail.setNext(token);
+    tail = tail.setNext(token);
   }
   int bigSwitch(int next) {
     beginToken();
@@ -836,7 +872,7 @@ class Scanner {
    *
    * @return the first token in the token stream that was scanned
    */
-  Token firstToken() => _tokens.next;
+  Token get firstToken => _tokens.next;
 
   /**
    * Record the fact that we are at the beginning of a new line in the source.
@@ -853,7 +889,7 @@ class Scanner {
       _firstComment = null;
       _lastComment = null;
     }
-    _tail = _tail.setNext(token);
+    tail = tail.setNext(token);
     _groupingStack.add(token);
     _stackEnd++;
   }
@@ -874,7 +910,7 @@ class Scanner {
       _firstComment = null;
       _lastComment = null;
     }
-    _tail = _tail.setNext(token);
+    tail = tail.setNext(token);
     if (_stackEnd >= 0) {
       BeginToken begin = _groupingStack[_stackEnd];
       if (identical(begin.type, beginType)) {
@@ -893,52 +929,52 @@ class Scanner {
       _lastComment = null;
     }
     eofToken.setNext(eofToken);
-    _tail = _tail.setNext(eofToken);
+    tail = tail.setNext(eofToken);
     if (_stackEnd >= 0) {
       _hasUnmatchedGroups2 = true;
     }
   }
   void appendKeywordToken(Keyword keyword) {
     if (_firstComment == null) {
-      _tail = _tail.setNext(new KeywordToken(keyword, _tokenStart));
+      tail = tail.setNext(new KeywordToken(keyword, _tokenStart));
     } else {
-      _tail = _tail.setNext(new KeywordTokenWithComment(keyword, _tokenStart, _firstComment));
+      tail = tail.setNext(new KeywordTokenWithComment(keyword, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
   }
   void appendStringToken(TokenType type, String value) {
     if (_firstComment == null) {
-      _tail = _tail.setNext(new StringToken(type, value, _tokenStart));
+      tail = tail.setNext(new StringToken(type, value, _tokenStart));
     } else {
-      _tail = _tail.setNext(new StringTokenWithComment(type, value, _tokenStart, _firstComment));
+      tail = tail.setNext(new StringTokenWithComment(type, value, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
   }
   void appendStringToken2(TokenType type, String value, int offset) {
     if (_firstComment == null) {
-      _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
+      tail = tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
-      _tail = _tail.setNext(new StringTokenWithComment(type, value, _tokenStart + offset, _firstComment));
+      tail = tail.setNext(new StringTokenWithComment(type, value, _tokenStart + offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
   }
   void appendToken2(TokenType type) {
     if (_firstComment == null) {
-      _tail = _tail.setNext(new Token(type, _tokenStart));
+      tail = tail.setNext(new Token(type, _tokenStart));
     } else {
-      _tail = _tail.setNext(new TokenWithComment(type, _tokenStart, _firstComment));
+      tail = tail.setNext(new TokenWithComment(type, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
   }
   void appendToken3(TokenType type, int offset) {
     if (_firstComment == null) {
-      _tail = _tail.setNext(new Token(type, offset));
+      tail = tail.setNext(new Token(type, offset));
     } else {
-      _tail = _tail.setNext(new TokenWithComment(type, offset, _firstComment));
+      tail = tail.setNext(new TokenWithComment(type, offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1337,23 +1373,17 @@ class Scanner {
         if (next == -1) {
           break;
         }
-        bool missingCharacter = false;
         if (next == 0xD) {
-          missingCharacter = true;
           next = _reader.advance();
           if (next == 0xA) {
             next = _reader.advance();
           }
           recordStartOfLine();
         } else if (next == 0xA) {
-          missingCharacter = true;
           recordStartOfLine();
           next = _reader.advance();
         } else {
           next = _reader.advance();
-        }
-        if (missingCharacter) {
-          _errorListener.onError(new AnalysisError.con2(source, _reader.offset - 1, 1, ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, []));
         }
       } else if (next == 0xD) {
         next = _reader.advance();
@@ -1740,6 +1770,7 @@ class Token {
     token = token.next;
     while (token != null) {
       tail = tail.setNext(token.copy());
+      token = token.next;
     }
     return head;
   }

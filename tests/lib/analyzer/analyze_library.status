@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2analyzer ]
+lib: Skip # Slow like a hell - timeouts.
+
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 lib/core/bool: CompileTimeError, OK # Issue 14684. Only redirecting factory constructors can be declared to be 'const'
 lib/core/int: CompileTimeError, OK # Issue 14684. Only redirecting factory constructors can be declared to be 'const'

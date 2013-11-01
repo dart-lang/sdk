@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 
@@ -14,6 +15,22 @@ Language/12_Expressions/01_Constants_A17_t03: fail
 
 # TBF: malformed or malbounded type in "conts" is static warning
 Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
+
+# TBF: it seems that "12.15.3 Unqualied Invocation" was changed, so it may be not an error anymore to call unknown function from top-level
+Language/13_Statements/04_Local_Function_Declaration_A04_t02: Fail # co19-roll r641: Please triage this failure
+
+# TBF: when we override "foo([x = 0]) {}" with "foo([x]) {}" we should report warning - different default value
+Language/07_Classes/1_Instance_Methods_A04_t02: MissingStaticWarning
+Language/07_Classes/4_Abstract_Instance_Members_A07_t04: MissingStaticWarning
+
+# TBF: It is a static warning if a class C declares an instance method named n and has a setter named n=.
+Language/07_Classes/1_Instance_Methods_A07_t01: MissingStaticWarning
+Language/07_Classes/1_Instance_Methods_A07_t02: MissingStaticWarning
+
+# TBF: Static members should not be accessible via subclasses.
+Language/07_Classes/7_Static_Methods_A01_t03: MissingStaticWarning
+Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
+Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: MissingStaticWarning
 
 
 
@@ -70,13 +87,6 @@ LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail, OK
 
 # co19 issue #623: main() { {}; } is block and empty statement, not a map
 Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
-
-# co19 issue #650: two argument shuffles have been refactored.
-LibTest/typed_data/Float32x4/interleaveZWPairs_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
 
 # co19 issue #626: StreamTransformers have been refactored.
 LibTest/async/EventTransformStream/EventTransformStream_A01_t01: Fail
@@ -234,28 +244,23 @@ Language/13_Statements/03_Variable_Declaration_A01_t16: Fail
 
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
 
-Language/12_Expressions/05_Strings_A20_t01: Fail # co19-roll r623: Please triage this failure
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
-LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
-LibTest/collection/Queue/Queue_class_A01_t01: Fail # co19-roll r623: Please triage this failure
 
-Language/13_Statements/04_Local_Function_Declaration_A04_t02: Fail # co19-roll r641: Please triage this failure
 
-Language/06_Functions/06_Functions_A04_t01: MissingStaticWarning
-Language/07_Classes/1_Instance_Methods_A04_t02: MissingStaticWarning
-Language/07_Classes/1_Instance_Methods_A07_t01: MissingStaticWarning
-Language/07_Classes/1_Instance_Methods_A07_t02: MissingStaticWarning
-Language/07_Classes/4_Abstract_Instance_Members_A07_t04: MissingStaticWarning
-Language/07_Classes/7_Static_Methods_A01_t03: MissingStaticWarning
-Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: MissingStaticWarning
+
+# co19 issue 642, The argument type 'int' cannot be assigned to the parameter type 'Iterable'
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK
+LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail, OK
+LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
+
+# co19 issue 644, The argument type 'int' cannot be assigned to the parameter type '(String, Object) -> void'
+LibTest/collection/LinkedHashMap/allTests_A01_t01: Fail, OK
+
+# co19 issue 645, "15.7 Type Void". Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
+Language/06_Functions/06_Functions_A04_t01: Fail, OK
+
+# co19 issue 646, I don't see where Spec requires any warning for boolean conversion
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: MissingStaticWarning
-Language/12_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A05_t02: MissingStaticWarning
-Language/12_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t02: MissingStaticWarning
-Language/12_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t06: MissingStaticWarning
-Language/12_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A07_t02: MissingStaticWarning
-Language/12_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A08_t02: MissingStaticWarning
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A04_t02: MissingStaticWarning
+
 Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t02: MissingStaticWarning
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: MissingStaticWarning
