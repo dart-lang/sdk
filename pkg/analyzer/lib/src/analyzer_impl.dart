@@ -12,6 +12,7 @@ import 'generated/error.dart';
 import 'generated/source_io.dart';
 import 'generated/sdk.dart';
 import 'generated/sdk_io.dart';
+import 'generated/ast.dart';
 import 'generated/element.dart';
 import '../options.dart';
 
@@ -50,8 +51,22 @@ class AnalyzerImpl {
     var sourceFile = new JavaFile(sourcePath);
     var uriKind = getUriKind(sourceFile);
     var librarySource = new FileBasedSource.con2(contentCache, sourceFile, uriKind);
-    // resolve library
+    // prepare context
     prepareAnalysisContext(sourceFile);
+    // don't try to analyzer parts
+    var unit = context.parseCompilationUnit(librarySource);
+    var hasLibraryDirective = false;
+    var hasPartOfDirective = false;
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) hasLibraryDirective = true;
+      if (directive is PartOfDirective) hasPartOfDirective = true;
+    }
+    if (hasPartOfDirective && !hasLibraryDirective) {
+      print("Only libraries can be analyzed.");
+      print("$sourceFile is a part and can not be analyzed.");
+      return;
+    }
+    // resolve library
     var libraryElement = context.computeLibraryElement(librarySource);
     // prepare source and errors
     prepareSources(libraryElement);
