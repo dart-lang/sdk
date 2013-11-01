@@ -151,7 +151,8 @@ class ListEquality<E> implements Equality<List<E>> {
   bool isValidKey(Object o) => o is List<E>;
 }
 
-abstract class _UnorderedEquality<T> implements Equality<T> {
+abstract class _UnorderedEquality<E, T extends Iterable<E>>
+    implements Equality<T> {
   final Equality<E> _elementEquality;
 
   const _UnorderedEquality(this._elementEquality);
@@ -181,7 +182,7 @@ abstract class _UnorderedEquality<T> implements Equality<T> {
 
   int hash(T e) {
     int hash = 0;
-    for (var element in e) {
+    for (E element in e) {
       int c = _elementEquality.hash(element);
       hash = (hash + c) & _HASH_MASK;
     }
@@ -199,7 +200,7 @@ abstract class _UnorderedEquality<T> implements Equality<T> {
  * and the elements of one set can be paired with the elements
  * of the other iterable, so that each pair are equal.
  */
-class UnorderedIterableEquality<E> extends _UnorderedEquality<Iterable<E>> {
+class UnorderedIterableEquality<E> extends _UnorderedEquality<E, Iterable<E>> {
   const UnorderedIterableEquality(
       [Equality<E> elementEquality = const DefaultEquality()])
       : super(elementEquality);
@@ -217,7 +218,7 @@ class UnorderedIterableEquality<E> extends _UnorderedEquality<Iterable<E>> {
  * This equality behaves the same as [UnorderedIterableEquality] except that
  * it expects sets instead of iterables as arguments.
  */
-class SetEquality<E> extends _UnorderedEquality<Set<E>> {
+class SetEquality<E> extends _UnorderedEquality<E, Set<E>> {
   const SetEquality(
       [Equality<E> elementEquality = const DefaultEquality()])
       : super(elementEquality);
