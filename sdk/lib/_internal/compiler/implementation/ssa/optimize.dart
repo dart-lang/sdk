@@ -196,10 +196,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantInt(constant.length, compiler);
       }
       Element element = backend.jsIndexableLength;
-      bool isAssignable = !actualReceiver.isFixedArray(compiler) &&
-          !actualReceiver.isString(compiler);
+      var mask = actualReceiver.instructionType;
+      bool isFixedLength = false;
+      if (mask.isContainer && mask.length != null) {
+        // A container on which we have inferred the length.
+        isFixedLength = true;
+      } else if (mask.containsOnly(backend.jsFixedArrayClass)
+                 || mask.containsOnlyString(compiler)
+                 || backend.isTypedArray(mask)) {
+        isFixedLength = true;
+      }
       HFieldGet result = new HFieldGet(
-          element, actualReceiver, backend.intType, isAssignable: isAssignable);
+          element, actualReceiver, backend.intType,
+          isAssignable: !isFixedLength);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -617,17 +626,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitFieldGet(HFieldGet node) {
     var receiver = node.receiver;
     if (node.element == backend.jsIndexableLength) {
-      if (receiver is HInvokeStatic) {
-        // Try to recognize the length getter with input
-        // [:new List(int):].
-        Element element = receiver.element;
+      JavaScriptItemCompilationContext context = work.compilationContext;
+      if (context.allocatedFixedLists.contains(receiver)) {
         // TODO(ngeoffray): checking if the second input is an integer
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
         // that we know takes an int.
-        if (element == compiler.unnamedListConstructor
-            && receiver.inputs.length == 1
-            && receiver.inputs[0].isInteger(compiler)) {
+        if (receiver.inputs[0].isInteger(compiler)) {
           return receiver.inputs[0];
         }
       } else if (receiver.isConstantList() || receiver.isConstantString()) {

@@ -3658,6 +3658,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   handleNewSend(NewExpression node) {
     Send send = node.send;
     bool isListConstructor = false;
+    bool isFixedList = false;
 
     TypeMask computeType(element) {
       Element originalElement = elements[send];
@@ -3665,6 +3666,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           || Elements.isFilledListConstructorCall(
                   originalElement, send, compiler)) {
         isListConstructor = true;
+        isFixedList = true;
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
@@ -3677,6 +3679,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
             ? backend.extendableArrayType
+            : inferred;
+      } else if (Elements.isConstructorOfTypedArraySubclass(
+                    originalElement, compiler)) {
+        isFixedList = true;
+        TypeMask inferred =
+            TypeMaskFactory.inferredForNode(currentElement, send, compiler);
+        ClassElement cls = element.getEnclosingClass();
+        return inferred.containsAll(compiler)
+            ? new TypeMask.nonNullExact(cls.thisType.element)
             : inferred;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
@@ -3751,6 +3762,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushInvokeStatic(node, constructor, inputs, elementType);
     removeInlinedInstantiation(expectedType);
     HInstruction newInstance = stack.last;
+
+    if (isFixedList) {
+      JavaScriptItemCompilationContext context = work.compilationContext;
+      context.allocatedFixedLists.add(newInstance);
+    }
 
     // The List constructor forwards to a Dart static method that does
     // not know about the type argument. Therefore we special case

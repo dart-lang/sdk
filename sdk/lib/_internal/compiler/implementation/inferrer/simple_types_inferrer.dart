@@ -149,6 +149,11 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   T typeOfElement(Element element);
 
   /**
+   * Returns the return type of [element].
+   */
+  T returnTypeOfElement(Element element);
+
+  /**
    * Records that [node] sets final field [element] to be of type [type].
    *
    * [nodeHolder] is the element holder of [node].
@@ -845,6 +850,18 @@ class SimpleTypeInferrerVisitor<T>
           node, () => types.allocateContainer(
               types.fixedListType, node, outermostElement,
               elementType, initialLength));
+    } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
+      int initialLength;
+      LiteralInt length = node.arguments.head.asLiteralInt();
+      if (length != null) {
+        initialLength = length.value;
+      }
+      T elementType = inferrer.returnTypeOfElement(
+          element.getEnclosingClass().lookupMember('[]'));
+      return inferrer.concreteTypes.putIfAbsent(
+        node, () => types.allocateContainer(
+          types.nonNullExact(element.getEnclosingClass()), node,
+          outermostElement, elementType, initialLength));
     } else if (element.isFunction() || element.isConstructor()) {
       return returnType;
     } else {

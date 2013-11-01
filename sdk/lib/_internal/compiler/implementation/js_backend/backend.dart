@@ -5,10 +5,8 @@
 part of js_backend;
 
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
-  final Set<HInstruction> boundsChecked;
-
-  JavaScriptItemCompilationContext()
-      : boundsChecked = new Set<HInstruction>();
+  final Set<HInstruction> boundsChecked = new Set<HInstruction>();
+  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
 }
 
 class CheckedModeHelper {

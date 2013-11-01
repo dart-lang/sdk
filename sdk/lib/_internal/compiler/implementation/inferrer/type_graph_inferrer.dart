@@ -253,16 +253,23 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
                                     Node node,
                                     Element enclosing,
                                     [TypeInformation elementType, int length]) {
+    bool isTypedArray = (compiler.typedDataClass != null)
+        && type.type.satisfies(compiler.typedDataClass, compiler);
     bool isConst = (type.type == compiler.typesTask.constListType);
-    bool isFixed = (type.type == compiler.typesTask.fixedListType) || isConst;
+    bool isFixed = (type.type == compiler.typesTask.fixedListType)
+        || isConst
+        || isTypedArray;
+    bool isElementInferred = isConst || isTypedArray;
 
     int inferredLength = isFixed ? length : null;
-    TypeMask elementTypeMask = isConst ? elementType.type : dynamicType.type;
+    TypeMask elementTypeMask = isElementInferred
+        ? elementType.type
+        : dynamicType.type;
     ContainerTypeMask mask = new ContainerTypeMask(
         type.type, node, enclosing, elementTypeMask, inferredLength);
     ElementInContainerTypeInformation element =
         new ElementInContainerTypeInformation(elementType);
-    element.inferred = isConst;
+    element.inferred = isElementInferred;
 
     allocatedTypes.add(element);
     return allocatedContainers[node] =

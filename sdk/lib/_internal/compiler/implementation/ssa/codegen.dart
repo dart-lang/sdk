@@ -1668,14 +1668,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Do a call to `fetchLength` instead of accessing `length`
         // directly. Because `fetchLength` is a constant we use its
         // constant value instead.
-        Element element = compiler.findRequiredElement(
-            compiler.typedDataLibrary, 'fetchLength');
-        Constant constant =
-            compiler.constantHandler.getConstantForVariable(element);
-        assert(invariant(element, constant != null,
-            message: 'No constant computed for $element'));
-        var jsConstant = backend.emitter.constantReference(constant);
-        push(new js.Call(jsConstant, [pop()]), node);
+        if (node.usedBy.isEmpty) {
+          // The length access has not been removed because it is
+          // acting as a null check. For a faster null check, we use
+          // toString.
+          push(new js.PropertyAccess.field(pop(), 'toString'), node);
+        } else {
+          Element element = compiler.findRequiredElement(
+              compiler.typedDataLibrary, 'fetchLength');
+          Constant constant =
+              compiler.constantHandler.getConstantForVariable(element);
+          assert(invariant(element, constant != null,
+              message: 'No constant computed for $element'));
+          var jsConstant = backend.emitter.constantReference(constant);
+          push(new js.Call(jsConstant, [pop()]), node);
+        }
       } else {
         push(new js.PropertyAccess.field(pop(), 'length'), node);
       }
