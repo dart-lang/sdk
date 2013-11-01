@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# 
+#
 # Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import hashlib
 import imp
 import optparse
 import os
@@ -258,7 +257,7 @@ def main():
             copy_file(from_path, to_path)
       elif options.deploy:
         copy_tree(destination_dir, deploy_dir)
-  
+
         for name in ['editor', 'chrome', 'content_shell']:
           from_path = os.path.join(
               postsign_dir, locations[system]['%s_scratch' % name] % config)

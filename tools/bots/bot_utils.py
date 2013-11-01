@@ -77,6 +77,7 @@ class GCSNamer(object):
     - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
     - /editor/darteditor-{linux,macos,windows}-{ia32,x64}.zip
     - /editor/darteditor-installer-macos-{ia32,x64}.dmg
+    - /editor/darteditor-installer-windows-{ia32,x64}.msi
     - /editor-eclipse-update
          /{index.html,features/,plugins/,artifacts.jar,content.jar}
   """
