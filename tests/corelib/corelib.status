@@ -74,8 +74,8 @@ collection_length_test: Pass, Timeout # Issue 12844
 [ $runtime == opera ]
 core_runtime_types_test: Fail
 null_nosuchmethod_test: Fail # Issue: 7413
-date_time7_test: Fail
-unicode_test: Fail
+date_time7_test: Fail # Issue 14691
+unicode_test: Fail # Issue 14694
 
 [ $compiler == dart2js ]
 error_stack_trace1_test: RuntimeError # Issue 12399
