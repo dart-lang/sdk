@@ -2024,8 +2024,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(attachPosition(instruction, node));
   }
 
-  HInstruction peek() => stack.last;
-
   HInstruction pop() {
     return stack.removeLast();
   }
@@ -4521,16 +4519,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  void setRtiIfNeeded(HInstruction object, Node node) {
-    InterfaceType type = elements.getType(node);
-    if (!backend.classNeedsRti(type.element)) return;
-    List<HInstruction> arguments = <HInstruction>[];
-    for (DartType argument in type.typeArguments) {
-      arguments.add(analyzeTypeArgument(argument));
-    }
-    callSetRuntimeTypeInfo(type.element, arguments, object);
-  }
-
   visitLiteralList(LiteralList node) {
     HInstruction instruction;
 
@@ -4546,7 +4534,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       instruction = buildLiteralList(inputs);
       add(instruction);
-      setRtiIfNeeded(instruction, node);
     }
 
     TypeMask type =
@@ -4749,7 +4736,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(keyValuePairs);
     TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
     pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
-    setRtiIfNeeded(peek(), node);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {

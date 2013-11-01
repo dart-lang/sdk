@@ -130,6 +130,7 @@ const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
 external_test/13: CompileTimeError # Issue 12887
+instanceof4_test/01: RuntimeError # Issue 12889
 list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022
