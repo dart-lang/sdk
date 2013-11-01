@@ -27,7 +27,7 @@ class _Platform {
         s.startsWith('file:')) {
       return Uri.parse(s);
     } else {
-      return Uri.base.resolveUri(new Uri.file(s));
+      return new Uri.file(s);
     }
   }
 
