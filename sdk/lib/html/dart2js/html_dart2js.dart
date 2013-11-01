@@ -2071,19 +2071,14 @@ class CloseEvent extends Event native "CloseEvent" {
 @DocsEditable()
 @DomName('Comment')
 class Comment extends CharacterData native "Comment" {
-  // To suppress missing implicit constructor warnings.
-  factory Comment._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Comment.Comment')
-  @DocsEditable()
   factory Comment([String data]) {
     if (data != null) {
-      return Comment._create_1(data);
+      return JS('Comment', '#.createComment(#)', document, data);
     }
-    return Comment._create_2();
+    return JS('Comment', '#.createComment("")', document);
   }
-  static Comment _create_1(data) => JS('Comment', 'new Comment(#)', data);
-  static Comment _create_2() => JS('Comment', 'new Comment()');
+  // To suppress missing implicit constructor warnings.
+  factory Comment._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

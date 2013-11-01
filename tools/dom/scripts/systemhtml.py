@@ -98,6 +98,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
 _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'AudioContext',
     'Blob',
+    'Comment',
     'MutationObserver',
     'RTCIceCandidate',
     'RTCPeerConnection',
