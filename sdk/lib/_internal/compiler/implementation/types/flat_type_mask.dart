@@ -138,15 +138,25 @@ class FlatTypeMask implements TypeMask {
     if (isEmpty) return false;
     if (base == cls) return true;
     if (isSubtypeOf(base, cls, compiler)) return true;
-    if (isSubtype) {
-      Set<ClassElement> subtypes = compiler.world.subtypesOf(base);
-      if (subtypes == null) return false;
-      return subtypes.length == 1 && subtypes.first == cls.declaration;
+
+    // Special case basic types so that, for example, String satisfies
+    // JSString.
+    // The general optimization is to realize there is only one class that
+    // implements [base] and [base] is not instantiated. We however do
+    // not track correctly the list of truly instantiated classes.
+    Backend backend = compiler.backend;
+    if (containsOnlyString(compiler)) {
+      return cls == compiler.stringClass || cls == backend.stringImplementation;
     }
-    if (isSubclass) {
-      Set<ClassElement> subclasses = compiler.world.subclassesOf(base);
-      if (subclasses == null) return false;
-      return subclasses.length == 1 && subclasses.first == cls.declaration;
+    if (containsOnlyBool(compiler)) {
+      return cls == compiler.boolClass || cls == backend.boolImplementation;
+    }
+    if (containsOnlyInt(compiler)) {
+      return cls == compiler.intClass || cls == backend.intImplementation;
+    }
+    if (containsOnlyDouble(compiler)) {
+      return cls == compiler.doubleClass
+          || cls == compiler.backend.doubleImplementation;
     }
     return false;
   }
