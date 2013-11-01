@@ -514,7 +514,7 @@ class _Future<T> implements Future<T> {
         Future chainSource = listenerValueOrError;
         // Shortcut if the chain-source is already completed. Just continue the
         // loop.
-        if (chainSource is _Future && (chainSource as _Future)._isComplete) {
+        if (chainSource is _Future && chainSource._isComplete) {
           // propagate the value (simulating a tail call).
           listener._isChained = true;
           source = chainSource;
