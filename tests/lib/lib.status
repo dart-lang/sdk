@@ -54,6 +54,12 @@ mirrors/invoke_throws_test: RuntimeError # Issue 11954
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
 mirrors/library_metadata2_test/01: CompileTimeError # Issue 13633
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
+mirrors/metadata_allowed_values_test/05: MissingCompileTimeError # Issue 14548
+mirrors/metadata_allowed_values_test/10: MissingCompileTimeError # Issue 14548
+mirrors/metadata_allowed_values_test/11: MissingCompileTimeError # Issue 14548
+mirrors/metadata_allowed_values_test/13: MissingCompileTimeError # Issue 14548
+mirrors/metadata_allowed_values_test/14: MissingCompileTimeError # Issue 14548
 mirrors/method_mirror_name_test: RuntimeError # Issue 6335
 mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
 mirrors/method_mirror_returntype_test : RuntimeError # Issue 11928
@@ -253,6 +259,7 @@ math/min_max_test: StaticWarning
 mirrors/equality_test/02: StaticWarning # Issue 14524
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
 mirrors/invoke_named_test: StaticWarning # Issue 14522
+mirrors/metadata_allowed_values_test/none: CompileTimeError # Issue 14688
 mirrors/private_symbol_test: StaticWarning # Issue 14524
 mirrors/reflect_class_test: StaticWarning # Issue 14524
 mirrors/type_variable_owner_test: StaticWarning # Issue 14524

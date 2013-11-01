@@ -881,7 +881,44 @@ RawArray* Parser::EvaluateMetadata() {
             (LookaheadToken(5) == Token::kLPAREN))) {
       expr = ParseNewOperator(Token::kCONST);
     } else {
-      expr = ParsePrimary();
+      // Can be x, C.x, or L.C.x.
+      expr = ParsePrimary();  // Consumes x, C or L.C.
+      Class& cls = Class::Handle();
+      if (expr->IsPrimaryNode()) {
+        PrimaryNode* primary_node = expr->AsPrimaryNode();
+        if (primary_node->primary().IsClass()) {
+          // If the primary node referred to a class we are loading a
+          // qualified static field.
+          cls ^= primary_node->primary().raw();
+        } else {
+          ErrorMsg(expr_pos, "Metadata expressions must refer to a const field "
+                             "or constructor");
+        }
+      }
+      if (CurrentToken() == Token::kPERIOD) {
+        // C.x or L.C.X.
+        if (cls.IsNull()) {
+          ErrorMsg(expr_pos, "Metadata expressions must refer to a const field "
+                             "or constructor");
+        }
+        ConsumeToken();
+        const intptr_t ident_pos = TokenPos();
+        String* ident = ExpectIdentifier("identifier expected");
+        const Field& field = Field::Handle(cls.LookupStaticField(*ident));
+        if (field.IsNull()) {
+          ErrorMsg(ident_pos,
+                   "Class '%s' has no field '%s'",
+                   cls.ToCString(),
+                   ident->ToCString());
+        }
+        if (!field.is_const()) {
+          ErrorMsg(ident_pos,
+                   "Field '%s' of class '%s' is not const",
+                   ident->ToCString(),
+                   cls.ToCString());
+        }
+        expr = GenerateStaticFieldLookup(field, TokenPos());
+      }
     }
     if (expr->EvalConstExpr() == NULL) {
       ErrorMsg(expr_pos, "expression must be a compile-time constant");
