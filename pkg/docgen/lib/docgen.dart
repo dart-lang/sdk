@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * **docgen** is a tool for creating machine readable representations of Dart
- * code metadata, including: classes, members, comments and annotations.
- *
- * docgen is run on a `.dart` file or a directory containing `.dart` files.
- *
- *      $ dart docgen.dart [OPTIONS] [FILE/DIR]
- *
- * This creates files called `docs/<library_name>.yaml` in your current
- * working directory.
- */
+/// **docgen** is a tool for creating machine readable representations of Dart
+/// code metadata, including: classes, members, comments and annotations.
+///
+/// docgen is run on a `.dart` file or a directory containing `.dart` files.
+///
+///      $ dart docgen.dart [OPTIONS] [FILE/DIR]
+///
+/// This creates files called `docs/<library_name>.yaml` in your current
+/// working directory.
 library docgen;
 
 import 'dart:convert';
@@ -36,12 +34,11 @@ import '../../../sdk/lib/_internal/libraries.dart';
 
 var logger = new Logger('Docgen');
 
-const String USAGE = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
+const String USAGE = 'Usage: dart docgen.dart [OPTIONS] fooDir/barFile';
 
 
-List<String> validAnnotations = const ['metadata.Experimental',
-    'metadata.DomName', 'metadata.Deprecated', 'metadata.Unstable',
-    'meta.deprecated', 'metadata.SupportedBrowser'];
+List<String> skippedAnnotations = const [
+    'metadata.DocsEditable', 'metadata.DomName'];
 
 /// Current library being documented to be used for comment links.
 LibraryMirror _currentLibrary;
@@ -71,18 +68,16 @@ bool _includePrivate = false;
 /// Map of all the comments for dom elements from MDN.
 Map _mdn;
 
-/**
- * Docgen constructor initializes the link resolver for markdown parsing.
- * Also initializes the command line arguments.
- *
- * [packageRoot] is the packages directory of the directory being analyzed.
- * If [includeSdk] is `true`, then any SDK libraries explicitly imported will
- * also be documented.
- * If [parseSdk] is `true`, then all Dart SDK libraries will be documented.
- * This option is useful when only the SDK libraries are needed.
- *
- * Returns `true` if docgen sucessfuly completes.
- */
+/// Docgen constructor initializes the link resolver for markdown parsing.
+/// Also initializes the command line arguments.
+///
+/// [packageRoot] is the packages directory of the directory being analyzed.
+/// If [includeSdk] is `true`, then any SDK libraries explicitly imported will
+/// also be documented.
+/// If [parseSdk] is `true`, then all Dart SDK libraries will be documented.
+/// This option is useful when only the SDK libraries are needed.
+///
+/// Returned Future completes with true if document generation is successful.
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introduction: ''}) {
@@ -111,16 +106,16 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         throw new StateError('No library mirrors were created.');
       }
       var librariesWeAskedFor = _listLibraries(files);
-      var librariesWeGot = mirrorSystem.libraries.values.where((each)
-          => each.uri.scheme == 'file');
+      var librariesWeGot = mirrorSystem.libraries.values.where(
+          (each) => each.uri.scheme == 'file');
       var sdkLibraries = mirrorSystem.libraries.values.where(
           (each) => each.uri.scheme == 'dart');
       var librariesWeGotByPath = new Map.fromIterables(
           librariesWeGot.map((each) => each.uri.toFilePath()),
           librariesWeGot);
-      var librariesToDocument = librariesWeAskedFor.map((each) =>
-        librariesWeGotByPath
-            .putIfAbsent(each, () => throw "Missing library $each")).toList();
+      var librariesToDocument = librariesWeAskedFor.map(
+          (each) => librariesWeGotByPath.putIfAbsent(each,
+              () => throw "Missing library $each")).toList();
       librariesToDocument.addAll((includeSdk || parseSdk) ? sdkLibraries : []);
       _documentLibraries(librariesToDocument, includeSdk: includeSdk,
           outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
@@ -218,9 +213,7 @@ String _findPackageRoot(String directory) {
   return packageRoot;
 }
 
-/**
- * Read a pubspec and return the library name.
- */
+/// Read a pubspec and return the library name.
 String _packageName(String pubspecName) {
   File pubspec = new File(pubspecName);
   if (!pubspec.existsSync()) return '';
@@ -240,10 +233,8 @@ List<String> _listSdk() {
   return sdk;
 }
 
-/**
- * Analyzes set of libraries by getting a mirror system and triggers the
- * documentation of the libraries.
- */
+/// Analyzes set of libraries by getting a mirror system and triggers the
+/// documentation of the libraries.
 Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
     bool parseSdk: false}) {
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
@@ -265,10 +256,8 @@ String findRootDirectory() {
   return root;
 }
 
-/**
- * Analyzes set of libraries and provides a mirror system which can be used
- * for static inspection of the source code.
- */
+/// Analyzes set of libraries and provides a mirror system which can be used
+/// for static inspection of the source code.
 Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       String libraryRoot, {String packageRoot}) {
   SourceFileProvider provider = new CompilerSourceFileProvider();
@@ -299,9 +288,7 @@ Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       });
 }
 
-/**
- * Creates documentation for filtered libraries.
- */
+/// Creates documentation for filtered libraries.
 void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
     bool outputToYaml: true, bool append: false, bool parseSdk: false,
     String introduction: ''}) {
@@ -399,13 +386,11 @@ void _writeIndexableToFile(Indexable result, bool outputToYaml) {
   _writeToFile(output, outputFile);
 }
 
-/**
- * Returns true if a library name starts with an underscore, and false
- * otherwise.
- *
- * An example that starts with _ is _js_helper.
- * An example that contains ._ is dart._collection.dev
- */
+/// Returns true if a library name starts with an underscore, and false
+/// otherwise.
+///
+/// An example that starts with _ is _js_helper.
+/// An example that contains ._ is dart._collection.dev
 // This is because LibraryMirror.isPrivate returns `false` all the time.
 bool _isLibraryPrivate(LibraryMirror mirror) {
   var sdkLibrary = LIBRARIES[mirror.simpleName];
@@ -418,9 +403,7 @@ bool _isLibraryPrivate(LibraryMirror mirror) {
   return false;
 }
 
-/**
- * A declaration is private if itself is private, or the owner is private.
- */
+/// A declaration is private if itself is private, or the owner is private.
 // Issue(12202) - A declaration is public even if it's owner is private.
 bool _isHidden(DeclarationMirror mirror) {
   if (mirror is LibraryMirror) {
@@ -436,9 +419,7 @@ bool _isVisible(Indexable item) {
   return _includePrivate || !item.isPrivate;
 }
 
-/**
- * Returns a list of meta annotations assocated with a mirror.
- */
+/// Returns a list of meta annotations assocated with a mirror.
 List<Annotation> _annotations(DeclarationMirror mirror) {
   var annotationMirrors = mirror.metadata.where((e) =>
       e is dart2js.Dart2JsConstructedConstantMirror);
@@ -449,7 +430,7 @@ List<Annotation> _annotations(DeclarationMirror mirror) {
       .map((e) => annotation.getField(e.simpleName).reflectee)
       .where((e) => e != null)
       .toList();
-    if (validAnnotations.contains(docName(annotation.type))) {
+    if (!skippedAnnotations.contains(docName(annotation.type))) {
       annotations.add(new Annotation(docName(annotation.type),
           parameterList));
     }
@@ -457,10 +438,8 @@ List<Annotation> _annotations(DeclarationMirror mirror) {
   return annotations;
 }
 
-/**
- * Returns any documentation comments associated with a mirror with
- * simple markdown converted to html.
- */
+/// Returns any documentation comments associated with a mirror with
+/// simple markdown converted to html.
 String _commentToHtml(DeclarationMirror mirror) {
   String commentText;
   mirror.metadata.forEach((metadata) {
@@ -482,9 +461,7 @@ String _commentToHtml(DeclarationMirror mirror) {
   return commentText;
 }
 
-/**
- * Generates MDN comments from database.json.
- */
+/// Generates MDN comments from database.json.
 void _mdnComment(Indexable item) {
   //Check if MDN is loaded.
   if (_mdn == null) {
@@ -503,9 +480,7 @@ void _mdnComment(Indexable item) {
   if (parts.length == 1) item.comment = _mdnTypeComment(parts[0]);
 }
 
-/**
- * Generates the MDN Comment for variables and method DOM elements.
- */
+/// Generates the MDN Comment for variables and method DOM elements.
 String _mdnMemberComment(String type, String member) {
   var mdnType = _mdn[type];
   if (mdnType == null) return '';
@@ -517,9 +492,7 @@ String _mdnMemberComment(String type, String member) {
   return _htmlMdn(mdnMember['help'], mdnMember['url']);
 }
 
-/**
- * Generates the MDN Comment for class DOM elements.
- */
+/// Generates the MDN Comment for class DOM elements.
 String _mdnTypeComment(String type) {
   var mdnType = _mdn[type];
   if (mdnType == null) return '';
@@ -533,9 +506,7 @@ String _htmlMdn(String content, String url) {
       '<a href="' + url.trim() + '">from Mdn</a></p></div>';
 }
 
-/**
- * Converts all [foo] references in comments to <a>libraryName.foo</a>.
- */
+/// Converts all [foo] references in comments to <a>libraryName.foo</a>.
 markdown.Node fixReference(String name, LibraryMirror currentLibrary,
     ClassMirror currentClass, MemberMirror currentMember) {
   var reference;
@@ -557,9 +528,7 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
   return new markdown.Element.text('a', reference);
 }
 
-/**
- * Returns a map of [Variable] objects constructed from [mirrorMap].
- */
+/// Returns a map of [Variable] objects constructed from [mirrorMap].
 Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
   var data = {};
   // TODO(janicejl): When map to map feature is created, replace the below with
@@ -577,9 +546,7 @@ Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
   return data;
 }
 
-/**
- * Returns a map of [Method] objects constructed from [mirrorMap].
- */
+/// Returns a map of [Method] objects constructed from [mirrorMap].
 MethodGroup _methods(Map<String, MethodMirror> mirrorMap) {
   var group = new MethodGroup();
   mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
@@ -590,10 +557,8 @@ MethodGroup _methods(Map<String, MethodMirror> mirrorMap) {
   return group;
 }
 
-/**
- * Returns the [Class] for the given [mirror] has already been created, and if
- * it does not exist, creates it.
- */
+/// Returns the [Class] for the given [mirror] has already been created, and if
+/// it does not exist, creates it.
 Class _class(ClassMirror mirror) {
   var clazz = entityMap[docName(mirror)];
   if (clazz == null) {
@@ -613,9 +578,7 @@ Class _class(ClassMirror mirror) {
   return clazz;
 }
 
-/**
- * Returns a map of [Class] objects constructed from [mirrorMap].
- */
+/// Returns a map of [Class] objects constructed from [mirrorMap].
 ClassGroup _classes(Map<String, ClassMirror> mirrorMap) {
   var group = new ClassGroup();
   mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
@@ -624,9 +587,7 @@ ClassGroup _classes(Map<String, ClassMirror> mirrorMap) {
   return group;
 }
 
-/**
- * Returns a map of [Parameter] objects constructed from [mirrorList].
- */
+/// Returns a map of [Parameter] objects constructed from [mirrorList].
 Map<String, Parameter> _parameters(List<ParameterMirror> mirrorList) {
   var data = {};
   mirrorList.forEach((ParameterMirror mirror) {
@@ -639,26 +600,20 @@ Map<String, Parameter> _parameters(List<ParameterMirror> mirrorList) {
   return data;
 }
 
-/**
- * Returns a map of [Generic] objects constructed from the class mirror.
- */
+/// Returns a map of [Generic] objects constructed from the class mirror.
 Map<String, Generic> _generics(ClassMirror mirror) {
   return new Map.fromIterable(mirror.typeVariables,
       key: (e) => e.toString(),
       value: (e) => new Generic(e.toString(), e.upperBound.qualifiedName));
 }
 
-/**
- * Returns a single [Type] object constructed from the Method.returnType
- * Type mirror.
- */
+/// Returns a single [Type] object constructed from the Method.returnType
+/// Type mirror.
 Type _type(TypeMirror mirror) {
   return new Type(docName(mirror), _typeGenerics(mirror));
 }
 
-/**
- * Returns a list of [Type] objects constructed from TypeMirrors.
- */
+/// Returns a list of [Type] objects constructed from TypeMirrors.
 List<Type> _typeGenerics(TypeMirror mirror) {
   if (mirror is ClassMirror && !mirror.isTypedef) {
     var innerList = [];
@@ -670,9 +625,7 @@ List<Type> _typeGenerics(TypeMirror mirror) {
   return [];
 }
 
-/**
- * Writes text to a file in the 'docs' directory.
- */
+/// Writes text to a file in the 'docs' directory.
 void _writeToFile(String text, String filename, {bool append: false}) {
   Directory dir = new Directory('docs');
   if (!dir.existsSync()) {
@@ -693,9 +646,7 @@ void _writeToFile(String text, String filename, {bool append: false}) {
   file.writeAsStringSync(text, mode: append ? FileMode.APPEND : FileMode.WRITE);
 }
 
-/**
- * Transforms the map by calling toMap on each value in it.
- */
+/// Transforms the map by calling toMap on each value in it.
 Map recurseMap(Map inputMap) {
   var outputMap = {};
   inputMap.forEach((key, value) {
@@ -708,9 +659,7 @@ Map recurseMap(Map inputMap) {
   return outputMap;
 }
 
-/**
- * A class representing all programming constructs, like library or class.
- */
+/// A class representing all programming constructs, like library or class.
 class Indexable {
   String name;
   String get qualifiedName => fileName;
@@ -742,9 +691,7 @@ class Indexable {
   /// The type of this member to be used in index.txt.
   String get typeName => '';
 
-  /**
-   * Creates a [Map] with this [Indexable]'s name and a preview comment.
-   */
+  /// Creates a [Map] with this [Indexable]'s name and a preview comment.
   Map get previewMap {
     var finalMap = { 'name' : name, 'qualifiedName' : qualifiedName };
     if (comment != '') {
@@ -761,9 +708,7 @@ class Indexable {
   Map toMap() {}
 }
 
-/**
- * A class containing contents of a Dart library.
- */
+/// A class containing contents of a Dart library.
 class Library extends Indexable {
 
   /// Top-level variables in the library.
@@ -811,9 +756,7 @@ class Library extends Indexable {
   String get typeName => 'library';
 }
 
-/**
- * A class containing contents of a Dart class.
- */
+/// A class containing contents of a Dart class.
 class Class extends Indexable {
 
   /// List of the names of interfaces that this class implements.
@@ -852,32 +795,26 @@ class Class extends Indexable {
 
   String get typeName => 'class';
 
-  /**
-   * Returns a list of all the parent classes.
-   */
+  /// Returns a list of all the parent classes.
   List<Class> parent() {
     var parent = superclass == null ? [] : [superclass];
     parent.addAll(interfaces);
     return parent;
   }
 
-  /**
-   * Add all inherited variables and methods from the provided superclass.
-   * If [_includePrivate] is true, it also adds the variables and methods from
-   * the superclass.
-   */
+  /// Add all inherited variables and methods from the provided superclass.
+  /// If [_includePrivate] is true, it also adds the variables and methods from
+  /// the superclass.
   void addInherited(Class superclass) {
     inheritedVariables.addAll(superclass.inheritedVariables);
     inheritedVariables.addAll(superclass.variables);
     inheritedMethods.addInherited(superclass);
   }
 
-  /**
-   * Add the subclass to the class.
-   *
-   * If [this] is private, it will add the subclass to the list of subclasses in
-   * the superclasses.
-   */
+  /// Add the subclass to the class.
+  ///
+  /// If [this] is private, it will add the subclass to the list of subclasses in
+  /// the superclasses.
   void addSubclass(Class subclass) {
     if (!_includePrivate && isPrivate) {
       if (superclass != null) superclass.addSubclass(subclass);
@@ -889,9 +826,7 @@ class Class extends Indexable {
     }
   }
 
-  /**
-   * Check if this [Class] is an error or exception.
-   */
+  /// Check if this [Class] is an error or exception.
   bool isError() {
     if (qualifiedName == 'dart-core.Error' ||
         qualifiedName == 'dart-core.Exception')
@@ -903,12 +838,10 @@ class Class extends Indexable {
     return superclass.isError();
   }
 
-  /**
-   * Check that the class exists in the owner library.
-   *
-   * If it does not exist in the owner library, it is a mixin applciation and
-   * should be removed.
-   */
+  /// Check that the class exists in the owner library.
+  ///
+  /// If it does not exist in the owner library, it is a mixin applciation and
+  /// should be removed.
   void makeValid() {
     var library = entityMap[owner];
     if (library != null && !library.classes.containsKey(name)) {
@@ -922,9 +855,7 @@ class Class extends Indexable {
     }
   }
 
-  /**
-   * Makes sure that all methods with inherited equivalents have comments.
-   */
+  /// Makes sure that all methods with inherited equivalents have comments.
   void ensureComments() {
     inheritedMethods.forEach((qualifiedName, inheritedMethod) {
       var method = methods[qualifiedName];
@@ -932,10 +863,8 @@ class Class extends Indexable {
     });
   }
 
-  /**
-   * If a class extends a private superclass, find the closest public superclass
-   * of the private superclass.
-   */
+  /// If a class extends a private superclass, find the closest public superclass
+  /// of the private superclass.
   String validSuperclass() {
     if (superclass == null) return 'dart.core.Object';
     if (_isVisible(superclass)) return superclass.qualifiedName;
@@ -961,10 +890,8 @@ class Class extends Indexable {
   };
 }
 
-/**
- * A container to categorize classes into the following groups: abstract
- * classes, regular classes, typedefs, and errors.
- */
+/// A container to categorize classes into the following groups: abstract
+/// classes, regular classes, typedefs, and errors.
 class ClassGroup {
   Map<String, Class> classes = {};
   Map<String, Typedef> typedefs = {};
@@ -1006,9 +933,7 @@ class ClassGroup {
     }
   }
 
-  /**
-   * Checks if the given name is a key for any of the Class Maps.
-   */
+  /// Checks if the given name is a key for any of the Class Maps.
   bool containsKey(String name) {
     return classes.containsKey(name) || errors.containsKey(name);
   }
@@ -1051,9 +976,7 @@ class Typedef extends Indexable {
   String get typeName => 'typedef';
 }
 
-/**
- * A class containing properties of a Dart variable.
- */
+/// A class containing properties of a Dart variable.
 class Variable extends Indexable {
 
   bool isFinal;
@@ -1085,9 +1008,7 @@ class Variable extends Indexable {
   String get typeName => 'property';
 }
 
-/**
- * A class containing properties of a Dart method.
- */
+/// A class containing properties of a Dart method.
 class Method extends Indexable {
 
   /// Parameters for this method.
@@ -1116,9 +1037,7 @@ class Method extends Indexable {
     _mdnComment(this);
   }
 
-  /**
-   * Makes sure that the method with an inherited equivalent have comments.
-   */
+  /// Makes sure that the method with an inherited equivalent have comments.
   void ensureCommentFor(Method inheritedMethod) {
     if (comment.isNotEmpty) return;
     (entityMap[inheritedMethod.owner] as Class).ensureComments();
@@ -1146,10 +1065,8 @@ class Method extends Indexable {
     isOperator ? 'operator' : 'method';
 }
 
-/**
- * A container to categorize methods into the following groups: setters,
- * getters, constructors, operators, regular methods.
- */
+/// A container to categorize methods into the following groups: setters,
+/// getters, constructors, operators, regular methods.
 class MethodGroup {
   Map<String, Method> setters = {};
   Map<String, Method> getters = {};
@@ -1218,9 +1135,7 @@ class MethodGroup {
   }
 }
 
-/**
- * A class containing properties of a Dart method/function parameter.
- */
+/// A class containing properties of a Dart method/function parameter.
 class Parameter {
 
   String name;
@@ -1248,9 +1163,7 @@ class Parameter {
   };
 }
 
-/**
- * A class containing properties of a Generic.
- */
+/// A class containing properties of a Generic.
 class Generic {
   String name;
   String type;
@@ -1263,36 +1176,34 @@ class Generic {
   };
 }
 
-/**
- * Holds the name of a return type, and its generic type parameters.
- *
- * Return types are of a form [outer]<[inner]>.
- * If there is no [inner] part, [inner] will be an empty list.
- *
- * For example:
- *        int size()
- *          "return" :
- *            - "outer" : "dart-core.int"
- *              "inner" :
- *
- *        List<String> toList()
- *          "return" :
- *            - "outer" : "dart-core.List"
- *              "inner" :
- *                - "outer" : "dart-core.String"
- *                  "inner" :
- *
- *        Map<String, List<int>>
- *          "return" :
- *            - "outer" : "dart-core.Map"
- *              "inner" :
- *                - "outer" : "dart-core.String"
- *                  "inner" :
- *                - "outer" : "dart-core.List"
- *                  "inner" :
- *                    - "outer" : "dart-core.int"
- *                      "inner" :
- */
+/// Holds the name of a return type, and its generic type parameters.
+///
+/// Return types are of a form [outer]<[inner]>.
+/// If there is no [inner] part, [inner] will be an empty list.
+///
+/// For example:
+///        int size()
+///          "return" :
+///            - "outer" : "dart-core.int"
+///              "inner" :
+///
+///        List<String> toList()
+///          "return" :
+///            - "outer" : "dart-core.List"
+///              "inner" :
+///                - "outer" : "dart-core.String"
+///                  "inner" :
+///
+///        Map<String, List<int>>
+///          "return" :
+///            - "outer" : "dart-core.Map"
+///              "inner" :
+///                - "outer" : "dart-core.String"
+///                  "inner" :
+///                - "outer" : "dart-core.List"
+///                  "inner" :
+///                    - "outer" : "dart-core.int"
+///                      "inner" :
 class Type {
   String outer;
   List<Type> inner;
@@ -1305,9 +1216,7 @@ class Type {
   };
 }
 
-/**
- * Holds the name of the annotation, and its parameters.
- */
+/// Holds the name of the annotation, and its parameters.
 class Annotation {
   String qualifiedName;
   List<String> parameters;
