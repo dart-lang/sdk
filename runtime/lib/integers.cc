@@ -248,8 +248,7 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
       const Integer& result = Integer::Handle(ParseInteger(value));
       if (!result.IsNull()) {
         if (result.IsSmi()) return result.raw();
-        return Integer::NewCanonical(String::Handle(
-            String::New(result.ToCString())));
+        return result.CheckAndCanonicalize(NULL);
       }
     } else if (Dart_IsError(response)) {
       const Object& error =
