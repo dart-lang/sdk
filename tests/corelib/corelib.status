@@ -107,18 +107,10 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
-# Library changes
-[ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
-map_keys2_test: RuntimeError # Generic types aren't right.
-
 [ $compiler == dart2js ]
-map_values2_test: RuntimeError # Generic types aren't right
-
-## Tests failing after merge of experimental library branch.
-[ $compiler == dart2js ]
-# Tests fail due to bug in generics on constants, issue 6827
-iterable_to_list_test: RuntimeError
-iterable_to_set_test: RuntimeError
+map_values2_test: RuntimeError # Issue 8210
+iterable_to_list_test: RuntimeError # Issue 8210
+iterable_to_set_test: RuntimeError # Issue 8210
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
@@ -155,12 +147,8 @@ collection_length_test: Pass, Timeout
 collection_to_string_test: Pass, Crash # Issue: 11207
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-collection_to_string_test: StaticWarning
-error_stack_trace_test: StaticWarning
-iterable_element_at_test: StaticWarning
-iterable_test: StaticWarning
-list_map_test: StaticWarning
-num_clamp_test: StaticWarning
-queue_test: StaticWarning
-string_codeunits_test: StaticWarning
-string_test: StaticWarning
+error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
+iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
+num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
+queue_test: StaticWarning # Issue 12274.
+string_test: StaticWarning, OK # Test generates error on purpose.

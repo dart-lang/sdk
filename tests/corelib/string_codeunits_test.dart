@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 main() {
   test(String s) {
-    Iterable<int> units = s.codeUnits;
+    List<int> units = s.codeUnits;
     List<int> expectedUnits = <int>[];
     for (int i = 0; i < s.length; i++) {
       expectedUnits.add(s.codeUnitAt(i));
