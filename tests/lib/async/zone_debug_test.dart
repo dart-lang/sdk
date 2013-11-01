@@ -28,7 +28,7 @@ debugZoneRegisterCallback(Zone self, ZoneDelegate parent, Zone origin, f()) {
 debugZoneRegisterUnaryCallback(Zone self, ZoneDelegate parent, Zone origin,
                                f(arg)) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
-  return parent.registerCallback(origin, (arg) {
+  return parent.registerUnaryCallback(origin, (arg) {
     restoredStackTrace = savedTrace;
     return f(arg);
   });
@@ -43,7 +43,7 @@ debugZoneRun(Zone self, ZoneDelegate parent, Zone origin, f()) {
 debugZoneRunUnary(Zone self, ZoneDelegate parent, Zone origin, f(arg), arg) {
   stackTrace++;
   restoredStackTrace = [];
-  return parent.run1(origin, f, arg);
+  return parent.runUnary(origin, f, arg);
 }
 
 List expectedDebugTrace;

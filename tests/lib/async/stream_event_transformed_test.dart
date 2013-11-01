@@ -13,7 +13,7 @@ class DecrementingTransformerSink implements EventSink {
   DecrementingTransformerSink(this.outSink);
 
   void add(int i) => outSink.add(i - 1);
-  void addError(int e, st) => outSink.addError(e - 1, st);
+  void addError(int e, [st]) => outSink.addError(e - 1, st);
   void close() => outSink.close();
 }
 
@@ -23,7 +23,7 @@ class FutureWaitingTransformerSink implements EventSink {
   FutureWaitingTransformerSink(this.outSink, this.closeFuture);
 
   void add(Future future) { future.then(outSink.add); }
-  void addError(Future e, st) { e.then((val) { outSink.addError(val, st); }); }
+  void addError(Future e, [st]) { e.then((val) { outSink.addError(val, st); }); }
   void close() { closeFuture.whenComplete(outSink.close); }
 }
 
@@ -32,7 +32,7 @@ class ZoneTransformerSink implements EventSink {
   ZoneTransformerSink(this.outSink);
 
   void add(_) { outSink.add(Zone.current); }
-  void addError(_, st) { outSink.add(Zone.current); }
+  void addError(_, [st]) { outSink.add(Zone.current); }
   void close() {
     outSink.add(Zone.current);
     outSink.close();
@@ -44,7 +44,7 @@ class TypeChangingSink implements EventSink<int> {
   TypeChangingSink(this.outSink);
 
   void add(int data) { outSink.add(data.toString()); }
-  void addError(error, st) { outSink.addError(error, st); }
+  void addError(error, [st]) { outSink.addError(error, st); }
   void close() { outSink.close(); }
 }
 

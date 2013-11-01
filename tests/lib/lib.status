@@ -6,7 +6,6 @@
 mirrors/delegate_test: RuntimeError # Issue 13864
 
 [ $compiler == dart2js ]
-async/schedule_microtask3_test: RuntimeError # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
 
 math/double_pow_test: RuntimeError
@@ -134,7 +133,6 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
 async/schedule_microtask6_test: Fail             # Issue 10957 - may be related to issue 10910
-async/schedule_microtask3_test: RuntimeError # Issue 13719: Please triage this failure.
 
 [ $compiler == dart2dart && $minified ]
 json/json_test: Fail                            # Issue 10961
@@ -175,7 +173,6 @@ async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 
 [ $compiler == none  ]
-async/schedule_microtask3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
 mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
@@ -231,25 +228,6 @@ async/timer_isolate_test: Fail
 async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-async/future_test: StaticWarning
-async/future_value_chain4_test: StaticWarning
-async/schedule_microtask3_test: StaticWarning
-async/stream_controller_async_test: StaticWarning
-async/stream_controller_test: StaticWarning
-async/stream_event_transformed_test: StaticWarning
-async/stream_first_where_test: StaticWarning
-async/stream_from_iterable_test: StaticWarning
-async/stream_join_test: StaticWarning
-async/stream_last_where_test: StaticWarning
-async/stream_single_test: StaticWarning
-async/stream_single_to_multi_subscriber_test: StaticWarning
-async/stream_transform_test: StaticWarning
-async/stream_transformer_from_handlers_test: StaticWarning
-async/stream_transformer_test: StaticWarning
-async/zone_debug_test: StaticWarning
-convert/chunked_conversion1_test: StaticWarning
-convert/chunked_conversion_json_decode1_test: StaticWarning
-math/min_max_test: StaticWarning
 mirrors/equality_test/02: StaticWarning # Issue 14524
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
 mirrors/invoke_named_test: StaticWarning # Issue 14522

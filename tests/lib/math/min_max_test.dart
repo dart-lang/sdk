@@ -15,12 +15,12 @@ var nan = double.NAN;
 class Wrap implements Comparable {
   final value;
   Wrap(this.value);
-  int compare(Wrap other) => value.compare(other.value);
-  bool operator<(Wrap other) => compare(other) < 0;
-  bool operator<=(Wrap other) => compare(other) <= 0;
-  bool operator>(Wrap other) => compare(other) > 0;
-  bool operator>=(Wrap other) => compare(other) >= 0;
-  bool operator==(other) => other is Wrap && compare(other) == 0;
+  int compareTo(Wrap other) => value.compareTo(other.value);
+  bool operator<(Wrap other) => compareTo(other) < 0;
+  bool operator<=(Wrap other) => compareTo(other) <= 0;
+  bool operator>(Wrap other) => compareTo(other) > 0;
+  bool operator>=(Wrap other) => compareTo(other) >= 0;
+  bool operator==(other) => other is Wrap && compareTo(other) == 0;
   String toString() => 'Wrap($value)';
   int get hashCode => value.hashCode;
 }

@@ -21,7 +21,7 @@ class MyStreamSubscription<T> implements StreamSubscription<T> {
 
   MyStreamSubscription(this.stream, this.cancelOnError);
 
-  void cancel() {}
+  Future cancel() => null;
   void onData(void handleData(T data)) {
     this.handleData = handleData == null ? _defaultData: handleData;
   }
@@ -33,6 +33,8 @@ class MyStreamSubscription<T> implements StreamSubscription<T> {
   }
 
   void pause([Future resumeSignal]) {}
+  void resume() {}
+
   final isPaused = false;
   Future asFuture([var futureValue]) => null;
 }

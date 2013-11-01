@@ -32,7 +32,7 @@ class IntAdapterSink extends MyChunkedIntSink {
   specialI(o) => add(o);
 }
 
-class MyChunkedBoolSink extends ChunkedConversionSink<bool> {
+abstract class MyChunkedBoolSink extends ChunkedConversionSink<bool> {
   MyChunkedBoolSink();
   factory MyChunkedBoolSink.from(sink) = BoolAdapterSink;
   factory MyChunkedBoolSink.withCallback(callback) {

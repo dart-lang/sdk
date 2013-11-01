@@ -18,7 +18,7 @@ void testMultiController() {
       ..error("error!")
       ..error("error too!")
       ..close();
-  Events actualEvents = new Events.capture(c.stream.asBroadcastStream());
+  CaptureEvents actualEvents = new Events.capture(c.stream.asBroadcastStream());
   expectedEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -167,7 +167,7 @@ testSingleController() {
       ..error("error!")
       ..error("error too!")
       ..close();
-  Events actualEvents = new Events.capture(c.stream);
+  CaptureEvents actualEvents = new Events.capture(c.stream);
   expectedEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 

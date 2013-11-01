@@ -55,8 +55,8 @@ void testSync() {
 void testNeverComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
-  future.then((v) => Expect.fails("Value not expected"));
-  future.catchError((e) => Expect.fails("Value not expected"));
+  future.then((v) => Expect.fail("Value not expected"));
+  future.catchError((e) => Expect.fail("Value not expected"));
 }
 
 void testComplete() {
