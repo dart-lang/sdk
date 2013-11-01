@@ -55,6 +55,7 @@ export 'dart:math' show Rectangle, Point;
 
 
 
+// Issue 14721, order important for WrappedEvent.
 
 
 Window _window;
@@ -816,10 +817,17 @@ class BeforeLoadEvent extends Event {
 
 @DocsEditable()
 @DomName('BeforeUnloadEvent')
-@Experimental() // untriaged
 class BeforeUnloadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BeforeUnloadEvent.returnValue')
+  @DocsEditable()
+  String get returnValue native "BeforeUnloadEvent_returnValue_Getter";
+
+  @DomName('BeforeUnloadEvent.returnValue')
+  @DocsEditable()
+  void set returnValue(String value) native "BeforeUnloadEvent_returnValue_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29009,17 +29017,6 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
 }
 
-class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
-  String _returnValue;
-
-  _BeforeUnloadEvent(Event base): super(base);
-
-  String get returnValue => _returnValue;
-
-  void set returnValue(String value) {
-    _returnValue = value;
-  }
-}
 
 class _BeforeUnloadEventStreamProvider implements
     EventStreamProvider<BeforeUnloadEvent> {
@@ -29028,15 +29025,8 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
-    stream.listen((event) {
-      var wrapped = new _BeforeUnloadEvent(event);
-      controller.add(wrapped);
-      return wrapped.returnValue;
-    });
-
-    return controller.stream;
+    return stream;
   }
 
   String getEventType(EventTarget target) {
@@ -31253,6 +31243,54 @@ abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Helper class to implement custom events which wrap DOM events.
+ */
+class _WrappedEvent implements Event {
+  final Event wrapped;
+  _WrappedEvent(this.wrapped);
+
+  bool get bubbles => wrapped.bubbles;
+
+  bool get cancelable => wrapped.cancelable;
+
+  DataTransfer get clipboardData => wrapped.clipboardData;
+
+  EventTarget get currentTarget => wrapped.currentTarget;
+
+  bool get defaultPrevented => wrapped.defaultPrevented;
+
+  int get eventPhase => wrapped.eventPhase;
+
+  EventTarget get target => wrapped.target;
+
+  int get timeStamp => wrapped.timeStamp;
+
+  String get type => wrapped.type;
+
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError(
+        'Cannot initialize this Event.');
+  }
+
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
+
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
+
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35447,54 +35485,6 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       default:
         node.remove();
     }
-  }
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
- * Helper class to implement custom events which wrap DOM events.
- */
-class _WrappedEvent implements Event {
-  final Event wrapped;
-  _WrappedEvent(this.wrapped);
-
-  bool get bubbles => wrapped.bubbles;
-
-  bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
-
-  EventTarget get currentTarget => wrapped.currentTarget;
-
-  bool get defaultPrevented => wrapped.defaultPrevented;
-
-  int get eventPhase => wrapped.eventPhase;
-
-  EventTarget get target => wrapped.target;
-
-  int get timeStamp => wrapped.timeStamp;
-
-  String get type => wrapped.type;
-
-  void _initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
-  }
-
-  void preventDefault() {
-    wrapped.preventDefault();
-  }
-
-  void stopImmediatePropagation() {
-    wrapped.stopImmediatePropagation();
-  }
-
-  void stopPropagation() {
-    wrapped.stopPropagation();
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file

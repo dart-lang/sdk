@@ -689,10 +689,16 @@ class BeforeLoadEvent extends Event native "BeforeLoadEvent" {
 
 @DocsEditable()
 @DomName('BeforeUnloadEvent')
-@Experimental() // untriaged
 class BeforeUnloadEvent extends Event native "BeforeUnloadEvent" {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
+
+  // Shadowing definition.
+  String get returnValue => JS("String", "#.returnValue", this);
+
+  void set returnValue(String value) {
+    JS("void", "#.returnValue = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27347,8 +27353,9 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
+    var controller = new StreamController(sync: true);
+
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
       controller.add(wrapped);

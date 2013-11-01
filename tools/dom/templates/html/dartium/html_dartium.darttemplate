@@ -54,6 +54,8 @@ export 'dart:math' show Rectangle, Point;
 
 $!GENERATED_DART_FILES
 
+// Issue 14721, order important for WrappedEvent.
+part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/AttributeMap.dart';
 part '$AUXILIARY_DIR/CanvasImageSource.dart';
 part '$AUXILIARY_DIR/CrossFrameTypes.dart';
@@ -73,7 +75,6 @@ part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/Validators.dart';
-part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';

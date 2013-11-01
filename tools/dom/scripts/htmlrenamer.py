@@ -474,6 +474,8 @@ for member in convert_to_future_members:
 # Syntax is: ClassName.(get\:|set\:|call\:|on\:)?MemberName
 # Using get: and set: is optional and should only be used when a getter needs
 # to be suppressed but not the setter, etc.
+# Prepending ClassName with = will only match against direct class, not for
+# subclasses.
 # TODO(jacobr): cleanup and augment this list.
 removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
@@ -594,7 +596,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.webkitCreateShadowRoot',
     'Element.webkitPseudo',
     'Element.webkitShadowRoot',
-    'Event.returnValue',
+    '=Event.returnValue', # Only suppress on Event, allow for BeforeUnloadEvnt.
     'Event.srcElement',
     'EventSource.URL',
     'FontFaceSet.load',
@@ -845,16 +847,26 @@ class HtmlRenamer(object):
       return True
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
+    def find_match(interface_id):
+      member_name = interface_id + '.' + member
+      if member_name in candidates:
+        return member_name
+      member_name = interface_id + '.' + member_prefix + member
+      if member_name in candidates:
+        return member_name
+      member_name = interface_id + '.*'
+      if member_name in candidates:
+        return member_name
+
+    # Check direct matches first
+    match = find_match('=%s' % interface.id)
+    if match:
+      return match
+
     for interface in self._database.Hierarchy(interface):
-      member_name = interface.id + '.' + member
-      if member_name in candidates:
-        return member_name
-      member_name = interface.id + '.' + member_prefix + member
-      if member_name in candidates:
-        return member_name
-      member_name = interface.id + '.*'
-      if member_name in candidates:
-        return member_name
+      match = find_match(interface.id)
+      if match:
+        return match
 
   def GetLibraryName(self, interface):
     # Some types have attributes merged in from many other interfaces.

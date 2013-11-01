@@ -297,6 +297,7 @@ $if DART2JS
 $endif
 }
 
+$if DART2JS
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
@@ -306,15 +307,14 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
 
   void set returnValue(String value) {
     _returnValue = value;
-$if DART2JS
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
     if (JS('bool', '("returnValue" in #)', wrapped)) {
       JS('void', '#.returnValue = #', wrapped, value);
     }
-$endif
   }
 }
+$endif
 
 class _BeforeUnloadEventStreamProvider implements
     EventStreamProvider<BeforeUnloadEvent> {
@@ -323,8 +323,10 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
+$if DART2JS
+    var controller = new StreamController(sync: true);
+
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
       controller.add(wrapped);
@@ -332,6 +334,9 @@ class _BeforeUnloadEventStreamProvider implements
     });
 
     return controller.stream;
+$else
+    return stream;
+$endif
   }
 
   String getEventType(EventTarget target) {
