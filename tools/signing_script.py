@@ -136,6 +136,12 @@ def download_from_new_location(channel, config, destination):
                                     config['bits'])
   run([GSUTIL, 'cp', bucket, destination])
 
+def download_msi_installer_from_new_location(channel, config, destination):
+  namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.RAW)
+  bucket = namer.editor_installer_filepath(
+      config['revision'], config['system'], config['bits'], 'msi')
+  run([GSUTIL, 'cp', bucket, destination])
+
 def upload_to_new_location(channel, config, source_zip):
   namer = bot_utils.GCSNamer(channel,
                              bot_utils.ReleaseType.SIGNED)
@@ -151,6 +157,12 @@ def upload_to_new_location(channel, config, source_zip):
   run([GSUTIL, 'cp', md5_zip_file, bucket + '.md5sum'])
   run([GSUTIL, 'setacl', 'public-read', bucket])
   run([GSUTIL, 'setacl', 'public-read', bucket + '.md5sum'])
+
+def upload_msi_installer_to_new_location(channel, config, signed_msi):
+  namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.SIGNED)
+  bucket = namer.editor_installer_filepath(
+      config['revision'], config['system'], config['bits'], 'msi')
+  run([GSUTIL, 'cp', '-a', 'public-read', signed_msi, bucket])
 
 def main():
   if sys.platform != 'linux2':
@@ -212,6 +224,7 @@ def main():
       'content_shell' : os.path.join('dart', 'chromium',
                                      'content_shell.exe'),
 
+      'msi_scratch' : 'darteditor-installer-windows-%(bits)s.exe',
       'editor_scratch' : 'DartEditor%(bits)s.exe',
       'chrome_scratch' : 'chromium%(bits)s.exe',
       'content_shell_scratch' : 'content_shell%(bits)s.exe',
@@ -255,6 +268,13 @@ def main():
           else:
             # We copy an .exe file
             copy_file(from_path, to_path)
+
+        # Download .*msi installer from GCS to presign directory
+        if system == 'win32':
+          presign_msi = os.path.join(
+              presign_dir, locations[system]['msi_scratch'] % config)
+          download_msi_installer_from_new_location(
+              options.channel, config, presign_msi)
       elif options.deploy:
         copy_tree(destination_dir, deploy_dir)
 
@@ -279,6 +299,13 @@ def main():
           upload_to_new_location(options.channel, config, deploy_zip_file)
         else:
           upload_to_old_location(config, deploy_zip_file)
+
+        # Upload *.msi installer and set 'public-read ACL
+        if system == 'win32':
+          postsign_msi = os.path.join(
+              postsign_dir, locations[system]['msi_scratch'] % config)
+          upload_msi_installer_to_new_location(
+              options.channel, config, postsign_msi)
 
 if __name__ == '__main__':
   main()
