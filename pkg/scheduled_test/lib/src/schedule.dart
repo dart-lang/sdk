@@ -134,26 +134,26 @@ class Schedule {
 
       _state = ScheduleState.RUNNING;
       return tasks._run();
-    }).catchError((e) {
-      _addError(e);
-      return onException._run().catchError((innerError) {
+    }).catchError((error, stackTrace) {
+      _addError(error, stackTrace);
+      return onException._run().catchError((innerError, innerTrace) {
         // If an error occurs in a task in the onException queue, make sure it's
         // registered in the error list and re-throw it. We could also re-throw
-        // `e`; ultimately, all the errors will be shown to the user if any
+        // `error`; ultimately, all the errors will be shown to the user if any
         // ScheduleError is thrown.
-        _addError(innerError);
+        _addError(innerError, innerTrace);
         throw innerError;
       }).then((_) {
         // If there are no errors in the onException queue, re-throw the
         // original error that caused it to run.
-        throw e;
+        throw error;
       });
     }).whenComplete(() {
-      return onComplete._run().catchError((e) {
+      return onComplete._run().catchError((error, stackTrace) {
         // If an error occurs in a task in the onComplete queue, make sure it's
         // registered in the error list and re-throw it.
-        _addError(e);
-        throw e;
+        _addError(error, stackTrace);
+        throw error;
       });
     }).whenComplete(() {
       if (_timeoutTimer != null) _timeoutTimer.cancel();
@@ -255,13 +255,14 @@ class Schedule {
   Future wrapFuture(Future future, [String description]) {
     var done = wrapAsync((fn) => fn(), description);
 
-    future = future.then((result) => done(() => result)).catchError((e) {
+    future = future.then((result) => done(() => result))
+        .catchError((error, stackTrace) {
       done(() {
-        throw e;
+        throw new ScheduleError.from(this, error, stackTrace: stackTrace);
       });
       // wrapAsync will catch the first throw, so we throw [e] again so it
       // propagates through the Future chain.
-      throw e;
+      throw error;
     });
 
     // Don't top-level the error, since it's already been signaled to the
@@ -307,9 +308,10 @@ class Schedule {
   /// Register an error in the schedule's error list. This ensures that there
   /// are no duplicate errors, and that all errors are wrapped in
   /// [ScheduleError].
-  void _addError(error) {
-    if (error is ScheduleError && errors.contains(error)) return;
-    _errors.add(new ScheduleError.from(this, error));
+  void _addError(error, [StackTrace stackTrace]) {
+    error = new ScheduleError.from(this, error, stackTrace: stackTrace);
+    if (errors.contains(error)) return;
+    _errors.add(error);
   }
 }
 
@@ -424,8 +426,8 @@ class TaskQueue {
     }
 
     var task = new Task(() {
-      return new Future.sync(fn).catchError((e) {
-        throw new ScheduleError.from(_schedule, e);
+      return new Future.sync(fn).catchError((e, stackTrace) {
+        throw new ScheduleError.from(_schedule, e, stackTrace: stackTrace);
       });
     }, description, this);
     _contents.add(task);
@@ -546,8 +548,9 @@ class TaskQueue {
     } else if (_taskFuture != null) {
       // Catch errors coming off the old task future, in case it completes after
       // timing out.
-      _taskFuture.substitute(new Future.error(error)).catchError((e) {
-        _schedule._signalPostTimeoutError(e);
+      _taskFuture.substitute(new Future.error(error))
+          .catchError((e, stackTrace) {
+        _schedule._signalPostTimeoutError(e, stackTrace);
       });
     } else {
       // This branch probably won't be reached, but it's conceivable that the

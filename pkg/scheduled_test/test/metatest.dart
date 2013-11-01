@@ -119,7 +119,9 @@ void initMetatest(message) {
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
   var replyPort = new ReceivePort();
-  return Isolate.spawnUri(Platform.script, [], {
+  // TODO(nweiz): Don't use path here once issue 8440 is fixed.
+  var uri = path.toUri(path.absolute(path.fromUri(Platform.script)));
+  return Isolate.spawnUri(uri, [], {
     'testToRun': description,
     'replyTo': replyPort.sendPort
   }).then((_) {
