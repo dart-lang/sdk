@@ -66,14 +66,12 @@ part '$AUXILIARY_DIR/EventListener.dart';
 part '$AUXILIARY_DIR/EventStreamProvider.dart';
 part '$AUXILIARY_DIR/Html5NodeValidator.dart';
 part '$AUXILIARY_DIR/ImmutableListMixin.dart';
-part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/KeyboardEventStream.dart';
 part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
-part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/Validators.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
@@ -118,23 +116,4 @@ HtmlDocument get document {
   }
   _document = window.document;
   return _document;
-}
-
-int _getNewIsolateId() => _Utils._getNewIsolateId();
-
-bool _callPortInitialized = false;
-var _callPortLastResult = null;
-
-_callPortSync(num id, var message) {
-  if (!_callPortInitialized) {
-    window.on['js-result'].listen((event) {
-      _callPortLastResult = JSON.decode(_getPortSyncEventData(event));
-    });
-    _callPortInitialized = true;
-  }
-  assert(_callPortLastResult == null);
-  _dispatchEvent('js-sync-message', {'id': id, 'message': message});
-  var result = _callPortLastResult;
-  _callPortLastResult = null;
-  return result;
 }

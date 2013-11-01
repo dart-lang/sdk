@@ -12,39 +12,6 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $endif
 
   /**
-   * Lookup a port by its [name].  Return null if no port is
-   * registered under [name].
-   */
-  SendPortSync lookupPort(String name) {
-    var portStr = document.documentElement.attributes['dart-port:$name'];
-    if (portStr == null) {
-      return null;
-    }
-    var port = JSON.decode(portStr);
-    return _deserialize(port);
-  }
-
-  /**
-   * Register a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void registerPort(String name, var port) {
-    var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] =
-        JSON.encode(serialized);
-  }
-
-  /**
-   * Deregister a [port] on this window under the given [name].  This
-   * port may be retrieved by any isolate (or JavaScript script)
-   * running in this window.
-   */
-  void deregisterPort(String name) {
-    document.documentElement.attributes.remove('dart-port:$name');
-  }
-
-  /**
    * Returns a Future that completes just before the window is about to
    * repaint so the user can draw an animation frame.
    *

@@ -1133,7 +1133,6 @@ class _MessageTraverser {
     if (x is List) return visitList(x);
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
-    if (x is SendPortSync) return visitSendPortSync(x);
 
     // Overridable fallback.
     return visitObject(x);
@@ -1143,7 +1142,6 @@ class _MessageTraverser {
   visitList(List x);
   visitMap(Map x);
   visitSendPort(SendPort x);
-  visitSendPortSync(SendPortSync x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?

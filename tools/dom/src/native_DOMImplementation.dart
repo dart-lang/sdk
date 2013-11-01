@@ -125,7 +125,6 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static int _getNewIsolateId() native "Utils_getNewIsolateId";
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
