@@ -184,8 +184,7 @@ abstract class HType {
   }
 
   bool implementsInterface(ClassElement interfaceElement, Compiler compiler) {
-    TypeMask mask = new TypeMask.subtype(interfaceElement);
-    return mask == mask.union(computeMask(compiler), compiler);
+    return computeMask(compiler).satisfies(interfaceElement, compiler);
   }
 
   bool canBeNull() => false;
