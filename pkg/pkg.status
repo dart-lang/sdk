@@ -54,6 +54,7 @@ polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
 polymer/test/events_test: Skip #uses dart:html
 polymer/test/instance_attrs_test: Skip #uses dart:html
+polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
@@ -101,6 +102,7 @@ polymer/test/event_handlers_test: Pass, Timeout # Issue 13260
 polymer/test/event_path_declarative_test: Pass, Timeout # Issue 13260
 polymer/test/event_path_test: Pass, Timeout # Issue 13260
 polymer/test/events_test: Pass, Timeout # Issue 13260
+polymer/test/nested_binding_test: Pass, Timeout # Issue 13260
 polymer/test/noscript_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
