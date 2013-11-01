@@ -9669,8 +9669,17 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   String get localName => _localName;
 
+  /**
+   * A URI that identifies the XML namespace of this element.
+   *
+   * `null` if no namespace URI is specified.
+   *
+   * ## Other resources
+   *
+   * * [Node.namespaceURI]
+   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   */
   @DomName('Element.namespaceUri')
-  @DocsEditable()
   String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
@@ -9882,6 +9891,17 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     return false;
   }
 
+  /**
+   * Creates a new shadow root for this shadow host.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM 101]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   * from HTML5Rocks.
+   * * [Shadow DOM specification]
+   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   */
   @DomName('Element.createShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
@@ -9891,6 +9911,17 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
       this, this, this);
   }
 
+  /**
+   * The shadow root of this shadow host.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM 101]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   * from HTML5Rocks.
+   * * [Shadow DOM specification]
+   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   */
   @DomName('Element.shadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
@@ -10733,6 +10764,15 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   bool draggable;
 
+  /**
+   * Indicates whether the element is not relevant to the page's current state.
+   *
+   * ## Other resources
+   *
+   * * [Hidden attribute specification]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/editing.html#the-hidden-attribute)
+   * from WHATWG.
+   */
   @DomName('Element.hidden')
   @DocsEditable()
   bool hidden;
@@ -10742,6 +10782,14 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   String _innerHtml;
 
+  /**
+   * The current state of IME composition.
+   *
+   * ## Other resources
+   *
+   * * [Input method editor specification]
+   * (http://www.w3.org/TR/ime-api/) from W3C.
+   */
   @DomName('Element.inputMethodContext')
   @DocsEditable()
   @Experimental() // untriaged
@@ -10774,6 +10822,16 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   String title;
 
+  /**
+   * Specifies whether this element's text content changes when the page is
+   * localized.
+   *
+   * ## Other resources
+   *
+   * * [The translate attribute]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute)
+   * from WHATWG.
+   */
   @DomName('Element.translate')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute
@@ -10781,6 +10839,20 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   bool translate;
 
   @JSName('webkitdropzone')
+  /**
+   * A set of space-separated keywords that specify what kind of data this
+   * Element accepts on drop and what to do with that data.
+   *
+   * ## Other resources
+   *
+   * * [Drag and drop sample]
+   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
+   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   * from HTML5Rocks.
+   * * [Drag and drop specification]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
+   * from WHATWG.
+   */
   @DomName('Element.webkitdropzone')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -10848,6 +10920,19 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   final int offsetWidth;
 
+  /**
+   * The name of this element's custom pseudo-element.
+   *
+   * This value must begin with an x and a hyphen, `x-`, to be considered valid.
+   *
+   * ## Other resources
+   *
+   * * [Using custom pseudo elements]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)
+   * from HTML5Rocks.
+   * * [Custom pseudo-elements]
+   * (http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements) from W3C.
+   */
   @DomName('Element.pseudo')
   @DocsEditable()
   @Experimental() // untriaged
@@ -10878,6 +10963,22 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   final String tagName;
 
   @JSName('webkitRegionOverset')
+  /**
+   * The current state of this region.
+   *
+   * If `"empty"`, then there is no content in this region.
+   * If `"fit"`, then content fits into this region, and more content can be
+   * added. If `"overset"`, then there is more content than can be fit into this
+   * region.
+   *
+   * ## Other resources
+   *
+   * * [CSS regions and exclusions tutorial]
+   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.
+   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.
+   * * [CSS regions specification]
+   * (http://www.w3.org/TR/css3-regions/) from W3C.
+   */
   @DomName('Element.webkitRegionOverset')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -10904,10 +11005,33 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @Experimental() // untriaged
   String getAttributeNS(String namespaceURI, String localName) native;
 
+  /**
+   * The smallest bounding rectangle that encompasses this element's padding,
+   * scrollbar, and border.
+   *
+   * ## Other resources
+   *
+   * * [Element.getBoundingClientRect]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
+   * from MDN.
+   * * [The getBoundingClientRect() method]
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
   Rectangle getBoundingClientRect() native;
 
+  /**
+   * A list of bounding rectangles for each box associated with this element.
+   *
+   * ## Other resources
+   *
+   * * [Element.getClientRects]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
+   * from MDN.
+   * * [The getClientRects() method]
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   */
   @DomName('Element.getClientRects')
   @DocsEditable()
   @Returns('_ClientRectList')

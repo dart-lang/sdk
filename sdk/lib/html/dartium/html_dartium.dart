@@ -10063,8 +10063,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   String get localName => _localName;
 
+  /**
+   * A URI that identifies the XML namespace of this element.
+   *
+   * `null` if no namespace URI is specified.
+   *
+   * ## Other resources
+   *
+   * * [Node.namespaceURI]
+   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   */
   @DomName('Element.namespaceUri')
-  @DocsEditable()
   String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
@@ -11039,11 +11048,37 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   int get offsetWidth native "Element_offsetWidth_Getter";
 
+  /**
+   * The name of this element's custom pseudo-element.
+   *
+   * This value must begin with an x and a hyphen, `x-`, to be considered valid.
+   *
+   * ## Other resources
+   *
+   * * [Using custom pseudo elements]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)
+   * from HTML5Rocks.
+   * * [Custom pseudo-elements]
+   * (http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements) from W3C.
+   */
   @DomName('Element.pseudo')
   @DocsEditable()
   @Experimental() // untriaged
   String get pseudo native "Element_pseudo_Getter";
 
+  /**
+   * The name of this element's custom pseudo-element.
+   *
+   * This value must begin with an x and a hyphen, `x-`, to be considered valid.
+   *
+   * ## Other resources
+   *
+   * * [Using custom pseudo elements]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)
+   * from HTML5Rocks.
+   * * [Custom pseudo-elements]
+   * (http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements) from W3C.
+   */
   @DomName('Element.pseudo')
   @DocsEditable()
   @Experimental() // untriaged
@@ -11087,6 +11122,22 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   String get tagName native "Element_tagName_Getter";
 
+  /**
+   * The current state of this region.
+   *
+   * If `"empty"`, then there is no content in this region.
+   * If `"fit"`, then content fits into this region, and more content can be
+   * added. If `"overset"`, then there is more content than can be fit into this
+   * region.
+   *
+   * ## Other resources
+   *
+   * * [CSS regions and exclusions tutorial]
+   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.
+   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.
+   * * [CSS regions specification]
+   * (http://www.w3.org/TR/css3-regions/) from W3C.
+   */
   @DomName('Element.webkitRegionOverset')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -11120,10 +11171,33 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @Experimental() // untriaged
   String getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
+  /**
+   * The smallest bounding rectangle that encompasses this element's padding,
+   * scrollbar, and border.
+   *
+   * ## Other resources
+   *
+   * * [Element.getBoundingClientRect]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
+   * from MDN.
+   * * [The getBoundingClientRect() method]
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
   Rectangle getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
+  /**
+   * A list of bounding rectangles for each box associated with this element.
+   *
+   * ## Other resources
+   *
+   * * [Element.getClientRects]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
+   * from MDN.
+   * * [The getClientRects() method]
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   */
   @DomName('Element.getClientRects')
   @DocsEditable()
   List<Rectangle> getClientRects() native "Element_getClientRects_Callback";

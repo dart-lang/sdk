@@ -783,8 +783,17 @@ $endif
   @DocsEditable()
   String get localName => _localName;
 
+  /**
+   * A URI that identifies the XML namespace of this element.
+   *
+   * `null` if no namespace URI is specified.
+   *
+   * ## Other resources
+   *
+   * * [Node.namespaceURI]
+   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   */
   @DomName('Element.namespaceUri')
-  @DocsEditable()
   String get namespaceUri => _namespaceUri;
 
   String toString() => localName;
@@ -1002,6 +1011,17 @@ $endif
   }
 
 $if DART2JS
+  /**
+   * Creates a new shadow root for this shadow host.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM 101]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   * from HTML5Rocks.
+   * * [Shadow DOM specification]
+   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   */
   @DomName('Element.createShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
@@ -1011,6 +1031,17 @@ $if DART2JS
       this, this, this);
   }
 
+  /**
+   * The shadow root of this shadow host.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM 101]
+   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   * from HTML5Rocks.
+   * * [Shadow DOM specification]
+   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   */
   @DomName('Element.shadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
