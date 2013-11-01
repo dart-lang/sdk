@@ -101,6 +101,7 @@ Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
+Language/05_Variables/05_Variables_A11_t01: fail
 Language/07_Classes/1_Instance_Methods_A01_t01: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t02: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # co19-roll r559: Please triage this failure

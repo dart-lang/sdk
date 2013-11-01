@@ -117,6 +117,21 @@ class LocalVariable : public ZoneAllocated {
 };
 
 
+class NameReference : public ZoneAllocated {
+ public:
+  NameReference(intptr_t token_pos, const String& name)
+    : token_pos_(token_pos),
+      name_(name) {
+  }
+  const String& name() const { return name_; }
+  intptr_t token_pos() const { return token_pos_; }
+  void set_token_pos(intptr_t value) { token_pos_ = value; }
+ private:
+  intptr_t token_pos_;
+  const String& name_;
+};
+
+
 class SourceLabel : public ZoneAllocated {
  public:
   enum Kind {
@@ -306,6 +321,12 @@ class LocalScope : public ZoneAllocated {
   // this local scope.
   int NumCapturedVariables() const;
 
+  // Add a reference to the given name into this scope and the enclosing
+  // scopes that do not have a local variable declaration for this name
+  // already.
+  void AddReferencedName(intptr_t token_pos, const String& name);
+  intptr_t PreviousReferencePos(const String& name) const;
+
   // Allocate both captured and non-captured variables declared in this scope
   // and in its children scopes of the same function level. Allocating means
   // assigning a frame slot index or a context slot index.
@@ -354,6 +375,8 @@ class LocalScope : public ZoneAllocated {
 
   void CollectLocalVariables(GrowableArray<VarDesc>* vars, int16_t* scope_id);
 
+  NameReference* FindReference(const String& name) const;
+
   static const int kUnitializedContextLevel = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
@@ -366,6 +389,10 @@ class LocalScope : public ZoneAllocated {
   intptr_t end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
+
+  // List of names referenced in this scope and its children that
+  // are not resolved to local variables.
+  GrowableArray<NameReference*> referenced_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalScope);
 };

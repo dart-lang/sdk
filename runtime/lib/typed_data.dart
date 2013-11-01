@@ -511,7 +511,7 @@ abstract class _TypedListBase {
   }
 
   List sublist(int start, [int end]) {
-    if (end == null) end = length;
+    if (end == null) end = this.length;
     int length = end - start;
     _rangeCheck(this.length, start, length);
     List result = _createList(length);

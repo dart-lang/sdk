@@ -57,6 +57,7 @@ LibTest/json/stringify_A04_t01: Fail, OK # Issue 637
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok # co19 issue 634
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok # co19 issue 634
+Language/12_Expressions/30_Identifier_Reference_A02_t01: fail, pass, ok # co19 issue 649
 
 Language/05_Variables/05_Variables_A06_t01: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t02: fail, pass, ok # co19 issue 624
@@ -66,7 +67,6 @@ Language/05_Variables/05_Variables_A06_t05: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t06: fail, pass, ok # co19 issue 624
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
-Language/05_Variables/05_Variables_A11_t01: Fail, MissingCompileTimeError # co19-roll r641: Please triage this failure
 
 # Maybe we should wait until isolate library is sealed before triaging these.
 LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r546: Please triage this failure

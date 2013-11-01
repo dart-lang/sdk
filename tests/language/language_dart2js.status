@@ -24,6 +24,13 @@ type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
 
+ref_before_declaration_test/00: MissingCompileTimeError
+ref_before_declaration_test/01: MissingCompileTimeError
+ref_before_declaration_test/02: MissingCompileTimeError
+ref_before_declaration_test/03: MissingCompileTimeError
+ref_before_declaration_test/04: MissingCompileTimeError
+ref_before_declaration_test/05: MissingCompileTimeError
+
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 

@@ -5333,10 +5333,21 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   TRACE_PARSER("ParseVariableDeclaration");
   ASSERT(IsIdentifier());
   const intptr_t ident_pos = TokenPos();
-  LocalVariable* variable =
-      new LocalVariable(ident_pos, *CurrentLiteral(), type);
+  const String& ident = *CurrentLiteral();
+  LocalVariable* variable = new LocalVariable(ident_pos, ident, type);
   ASSERT(current_block_ != NULL);
   ASSERT(current_block_->scope != NULL);
+  const intptr_t previous_pos =
+      current_block_->scope->PreviousReferencePos(ident);
+  if (previous_pos >= 0) {
+    ASSERT(!script_.IsNull());
+    intptr_t line_number;
+    script_.GetTokenLocation(previous_pos, &line_number, NULL);
+    ErrorMsg(ident_pos,
+             "identifier '%s' previously used in line %" Pd "",
+             ident.ToCString(),
+             line_number);
+  }
   ConsumeToken();  // Variable identifier.
   AstNode* initialization = NULL;
   if (CurrentToken() == Token::kASSIGN) {
@@ -8844,6 +8855,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   TRACE_PARSER("ResolveIdentInLocalScope");
   // First try to find the identifier in the nested local scopes.
   LocalVariable* local = LookupLocalScope(ident);
+  if (current_block_ != NULL) {
+    current_block_->scope->AddReferencedName(ident_pos, ident);
+  }
   if (local != NULL) {
     if (node != NULL) {
       if (local->IsConst()) {
@@ -9188,6 +9202,11 @@ RawAbstractType* Parser::ParseType(
   }
   QualIdent type_name;
   if (finalization == ClassFinalizer::kIgnore) {
+    if (!is_top_level_ && (current_block_ != NULL)) {
+      // Add the library prefix or type class name to the list of referenced
+      // names of this scope, even if the type is ignored.
+      current_block_->scope->AddReferencedName(TokenPos(), *CurrentLiteral());
+    }
     SkipQualIdent();
   } else {
     ParseQualIdent(&type_name);
