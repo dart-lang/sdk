@@ -638,7 +638,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     if (constructor == compiler.intEnvironment
         || constructor == compiler.boolEnvironment
         || constructor == compiler.stringEnvironment) {
-      List<Constant> arguments = evaluateArguments(constructor);
+      List<Constant> arguments = evaluateArguments(constructor.implementation);
       var firstArgument = arguments[0];
       Constant defaultValue = arguments[1];
 
