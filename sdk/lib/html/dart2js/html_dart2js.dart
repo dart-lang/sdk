@@ -126,10 +126,17 @@ class AbstractWorker extends Interceptor implements EventTarget native "Abstract
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [AbstractWorker].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
+  /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
   @DocsEditable()
   Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
@@ -305,34 +312,82 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
   // To suppress missing implicit constructor warnings.
   factory ApplicationCache._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `cached` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.cachedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
 
+  /**
+   * Static factory designed to expose `checking` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.checkingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
 
+  /**
+   * Static factory designed to expose `downloading` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.downloadingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `noupdate` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.noupdateEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
 
+  /**
+   * Static factory designed to expose `obsolete` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.obsoleteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
 
+  /**
+   * Static factory designed to expose `progress` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  /**
+   * Static factory designed to expose `updateready` events to event
+   * handlers that are not necessarily instances of [ApplicationCache].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ApplicationCache.updatereadyEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
@@ -380,34 +435,42 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
   @DocsEditable()
   void update() native;
 
+  /// Stream of `cached` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.oncached')
   @DocsEditable()
   Stream<Event> get onCached => cachedEvent.forTarget(this);
 
+  /// Stream of `checking` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.onchecking')
   @DocsEditable()
   Stream<Event> get onChecking => checkingEvent.forTarget(this);
 
+  /// Stream of `downloading` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.ondownloading')
   @DocsEditable()
   Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `noupdate` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.onnoupdate')
   @DocsEditable()
   Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
 
+  /// Stream of `obsolete` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.onobsolete')
   @DocsEditable()
   Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
 
+  /// Stream of `progress` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
+  /// Stream of `updateready` events handled by this [ApplicationCache].
   @DomName('ApplicationCache.onupdateready')
   @DocsEditable()
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
@@ -684,50 +747,122 @@ class BodyElement extends HtmlElement native "HTMLBodyElement" {
   // To suppress missing implicit constructor warnings.
   factory BodyElement._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `blur` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.blurEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `focus` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.focusEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
+  /**
+   * Static factory designed to expose `hashchange` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.hashchangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
+  /**
+   * Static factory designed to expose `load` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.loadEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  /**
+   * Static factory designed to expose `offline` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.offlineEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
+  /**
+   * Static factory designed to expose `online` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.onlineEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
+  /**
+   * Static factory designed to expose `popstate` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.popstateEvent')
   @DocsEditable()
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
+  /**
+   * Static factory designed to expose `resize` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.resizeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
+  /**
+   * Static factory designed to expose `storage` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.storageEvent')
   @DocsEditable()
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
+  /**
+   * Static factory designed to expose `unload` events to event
+   * handlers that are not necessarily instances of [BodyElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLBodyElement.unloadEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
@@ -742,50 +877,62 @@ class BodyElement extends HtmlElement native "HTMLBodyElement" {
    */
   BodyElement.created() : super.created();
 
+  /// Stream of `blur` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
   ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
+  /// Stream of `error` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onerror')
   @DocsEditable()
   ElementStream<Event> get onError => errorEvent.forElement(this);
 
+  /// Stream of `focus` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onfocus')
   @DocsEditable()
   ElementStream<Event> get onFocus => focusEvent.forElement(this);
 
+  /// Stream of `hashchange` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onhashchange')
   @DocsEditable()
   ElementStream<Event> get onHashChange => hashChangeEvent.forElement(this);
 
+  /// Stream of `load` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad => loadEvent.forElement(this);
 
+  /// Stream of `message` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onmessage')
   @DocsEditable()
   ElementStream<MessageEvent> get onMessage => messageEvent.forElement(this);
 
+  /// Stream of `offline` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onoffline')
   @DocsEditable()
   ElementStream<Event> get onOffline => offlineEvent.forElement(this);
 
+  /// Stream of `online` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.ononline')
   @DocsEditable()
   ElementStream<Event> get onOnline => onlineEvent.forElement(this);
 
+  /// Stream of `popstate` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onpopstate')
   @DocsEditable()
   ElementStream<PopStateEvent> get onPopState => popStateEvent.forElement(this);
 
+  /// Stream of `resize` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onresize')
   @DocsEditable()
   ElementStream<Event> get onResize => resizeEvent.forElement(this);
 
+  /// Stream of `storage` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onstorage')
   @DocsEditable()
   ElementStream<StorageEvent> get onStorage => storageEvent.forElement(this);
 
+  /// Stream of `unload` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onunload')
   @DocsEditable()
   ElementStream<Event> get onUnload => unloadEvent.forElement(this);
@@ -922,10 +1069,22 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
   // To suppress missing implicit constructor warnings.
   factory CanvasElement._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `webglcontextlost` events to event
+   * handlers that are not necessarily instances of [CanvasElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLCanvasElement.webglcontextlostEvent')
   @DocsEditable()
   static const EventStreamProvider<gl.ContextEvent> webGlContextLostEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextlost');
 
+  /**
+   * Static factory designed to expose `webglcontextrestored` events to event
+   * handlers that are not necessarily instances of [CanvasElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLCanvasElement.webglcontextrestoredEvent')
   @DocsEditable()
   static const EventStreamProvider<gl.ContextEvent> webGlContextRestoredEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextrestored');
@@ -978,10 +1137,12 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
   @DocsEditable()
   String _toDataUrl(String type, [num quality]) native;
 
+  /// Stream of `webglcontextlost` events handled by this [CanvasElement].
   @DomName('HTMLCanvasElement.onwebglcontextlost')
   @DocsEditable()
   ElementStream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forElement(this);
 
+  /// Stream of `webglcontextrestored` events handled by this [CanvasElement].
   @DomName('HTMLCanvasElement.onwebglcontextrestored')
   @DocsEditable()
   ElementStream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forElement(this);
@@ -6354,6 +6515,12 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope native "DedicatedWork
   // To suppress missing implicit constructor warnings.
   factory DedicatedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [DedicatedWorkerGlobalScope].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('DedicatedWorkerGlobalScope.messageEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -6364,6 +6531,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope native "DedicatedWork
   @Experimental() // untriaged
   void postMessage(Object message, [List messagePorts]) native;
 
+  /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
   @DocsEditable()
   @Experimental() // untriaged
@@ -6824,20 +6992,44 @@ class Document extends Node  native "Document"
   // To suppress missing implicit constructor warnings.
   factory Document._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `readystatechange` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.readystatechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
+  /**
+   * Static factory designed to expose `securitypolicyviolation` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.securitypolicyviolationEvent')
   @DocsEditable()
   // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#widl-Document-onsecuritypolicyviolation
   @Experimental()
   static const EventStreamProvider<SecurityPolicyViolationEvent> securityPolicyViolationEvent = const EventStreamProvider<SecurityPolicyViolationEvent>('securitypolicyviolation');
 
+  /**
+   * Static factory designed to expose `selectionchange` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.selectionchangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
+  /**
+   * Static factory designed to expose `pointerlockchange` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.webkitpointerlockchangeEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -6846,6 +7038,12 @@ class Document extends Node  native "Document"
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockchange
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
+  /**
+   * Static factory designed to expose `pointerlockerror` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.webkitpointerlockerrorEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7193,230 +7391,282 @@ class Document extends Node  native "Document"
   @DocsEditable()
   final Element _lastElementChild;
 
+  /// Stream of `abort` events handled by this [Document].
   @DomName('Document.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
+  /// Stream of `beforecopy` events handled by this [Document].
   @DomName('Document.onbeforecopy')
   @DocsEditable()
   Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
+  /// Stream of `beforecut` events handled by this [Document].
   @DomName('Document.onbeforecut')
   @DocsEditable()
   Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
+  /// Stream of `beforepaste` events handled by this [Document].
   @DomName('Document.onbeforepaste')
   @DocsEditable()
   Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
+  /// Stream of `blur` events handled by this [Document].
   @DomName('Document.onblur')
   @DocsEditable()
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
+  /// Stream of `change` events handled by this [Document].
   @DomName('Document.onchange')
   @DocsEditable()
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
+  /// Stream of `click` events handled by this [Document].
   @DomName('Document.onclick')
   @DocsEditable()
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
+  /// Stream of `contextmenu` events handled by this [Document].
   @DomName('Document.oncontextmenu')
   @DocsEditable()
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
+  /// Stream of `copy` events handled by this [Document].
   @DomName('Document.oncopy')
   @DocsEditable()
   Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
+  /// Stream of `cut` events handled by this [Document].
   @DomName('Document.oncut')
   @DocsEditable()
   Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
+  /// Stream of `doubleclick` events handled by this [Document].
   @DomName('Document.ondblclick')
   @DocsEditable()
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
+  /// Stream of `drag` events handled by this [Document].
   @DomName('Document.ondrag')
   @DocsEditable()
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
+  /// Stream of `dragend` events handled by this [Document].
   @DomName('Document.ondragend')
   @DocsEditable()
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
+  /// Stream of `dragenter` events handled by this [Document].
   @DomName('Document.ondragenter')
   @DocsEditable()
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
+  /// Stream of `dragleave` events handled by this [Document].
   @DomName('Document.ondragleave')
   @DocsEditable()
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
+  /// Stream of `dragover` events handled by this [Document].
   @DomName('Document.ondragover')
   @DocsEditable()
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
+  /// Stream of `dragstart` events handled by this [Document].
   @DomName('Document.ondragstart')
   @DocsEditable()
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
+  /// Stream of `drop` events handled by this [Document].
   @DomName('Document.ondrop')
   @DocsEditable()
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [Document].
   @DomName('Document.onerror')
   @DocsEditable()
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
+  /// Stream of `focus` events handled by this [Document].
   @DomName('Document.onfocus')
   @DocsEditable()
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
+  /// Stream of `input` events handled by this [Document].
   @DomName('Document.oninput')
   @DocsEditable()
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
+  /// Stream of `invalid` events handled by this [Document].
   @DomName('Document.oninvalid')
   @DocsEditable()
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
+  /// Stream of `keydown` events handled by this [Document].
   @DomName('Document.onkeydown')
   @DocsEditable()
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
+  /// Stream of `keypress` events handled by this [Document].
   @DomName('Document.onkeypress')
   @DocsEditable()
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
+  /// Stream of `keyup` events handled by this [Document].
   @DomName('Document.onkeyup')
   @DocsEditable()
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
+  /// Stream of `load` events handled by this [Document].
   @DomName('Document.onload')
   @DocsEditable()
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
+  /// Stream of `mousedown` events handled by this [Document].
   @DomName('Document.onmousedown')
   @DocsEditable()
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
+  /// Stream of `mouseenter` events handled by this [Document].
   @DomName('Document.onmouseenter')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent.forTarget(this);
 
+  /// Stream of `mouseleave` events handled by this [Document].
   @DomName('Document.onmouseleave')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent.forTarget(this);
 
+  /// Stream of `mousemove` events handled by this [Document].
   @DomName('Document.onmousemove')
   @DocsEditable()
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
+  /// Stream of `mouseout` events handled by this [Document].
   @DomName('Document.onmouseout')
   @DocsEditable()
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
+  /// Stream of `mouseover` events handled by this [Document].
   @DomName('Document.onmouseover')
   @DocsEditable()
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
+  /// Stream of `mouseup` events handled by this [Document].
   @DomName('Document.onmouseup')
   @DocsEditable()
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
+  /// Stream of `mousewheel` events handled by this [Document].
   @DomName('Document.onmousewheel')
   @DocsEditable()
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
+  /// Stream of `paste` events handled by this [Document].
   @DomName('Document.onpaste')
   @DocsEditable()
   Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
+  /// Stream of `readystatechange` events handled by this [Document].
   @DomName('Document.onreadystatechange')
   @DocsEditable()
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
+  /// Stream of `reset` events handled by this [Document].
   @DomName('Document.onreset')
   @DocsEditable()
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
+  /// Stream of `scroll` events handled by this [Document].
   @DomName('Document.onscroll')
   @DocsEditable()
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
+  /// Stream of `search` events handled by this [Document].
   @DomName('Document.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
+  /// Stream of `securitypolicyviolation` events handled by this [Document].
   @DomName('Document.onsecuritypolicyviolation')
   @DocsEditable()
   // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#widl-Document-onsecuritypolicyviolation
   @Experimental()
   Stream<SecurityPolicyViolationEvent> get onSecurityPolicyViolation => securityPolicyViolationEvent.forTarget(this);
 
+  /// Stream of `select` events handled by this [Document].
   @DomName('Document.onselect')
   @DocsEditable()
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
+  /// Stream of `selectionchange` events handled by this [Document].
   @DomName('Document.onselectionchange')
   @DocsEditable()
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
+  /// Stream of `selectstart` events handled by this [Document].
   @DomName('Document.onselectstart')
   @DocsEditable()
   Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
+  /// Stream of `submit` events handled by this [Document].
   @DomName('Document.onsubmit')
   @DocsEditable()
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
+  /// Stream of `touchcancel` events handled by this [Document].
   @DomName('Document.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
+  /// Stream of `touchend` events handled by this [Document].
   @DomName('Document.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
+  /// Stream of `touchmove` events handled by this [Document].
   @DomName('Document.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
+  /// Stream of `touchstart` events handled by this [Document].
   @DomName('Document.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  /// Stream of `fullscreenchange` events handled by this [Document].
   @DomName('Document.onwebkitfullscreenchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
+  /// Stream of `fullscreenerror` events handled by this [Document].
   @DomName('Document.onwebkitfullscreenerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
+  /// Stream of `pointerlockchange` events handled by this [Document].
   @DomName('Document.onwebkitpointerlockchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockchange
   @Experimental()
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
+  /// Stream of `pointerlockerror` events handled by this [Document].
   @DomName('Document.onwebkitpointerlockerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
@@ -8138,213 +8388,261 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @Experimental()
   CssRect get marginEdge;
 
+  /// Stream of `abort` events handled by this [Element].
   @DomName('Element.onabort')
   @DocsEditable()
   ElementStream<Event> get onAbort;
 
+  /// Stream of `beforecopy` events handled by this [Element].
   @DomName('Element.onbeforecopy')
   @DocsEditable()
   ElementStream<Event> get onBeforeCopy;
 
+  /// Stream of `beforecut` events handled by this [Element].
   @DomName('Element.onbeforecut')
   @DocsEditable()
   ElementStream<Event> get onBeforeCut;
 
+  /// Stream of `beforepaste` events handled by this [Element].
   @DomName('Element.onbeforepaste')
   @DocsEditable()
   ElementStream<Event> get onBeforePaste;
 
+  /// Stream of `blur` events handled by this [Element].
   @DomName('Element.onblur')
   @DocsEditable()
   ElementStream<Event> get onBlur;
 
+  /// Stream of `change` events handled by this [Element].
   @DomName('Element.onchange')
   @DocsEditable()
   ElementStream<Event> get onChange;
 
+  /// Stream of `click` events handled by this [Element].
   @DomName('Element.onclick')
   @DocsEditable()
   ElementStream<MouseEvent> get onClick;
 
+  /// Stream of `contextmenu` events handled by this [Element].
   @DomName('Element.oncontextmenu')
   @DocsEditable()
   ElementStream<MouseEvent> get onContextMenu;
 
+  /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
   ElementStream<Event> get onCopy;
 
+  /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
   ElementStream<Event> get onCut;
 
+  /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
   @DocsEditable()
   ElementStream<Event> get onDoubleClick;
 
+  /// Stream of `drag` events handled by this [Element].
   @DomName('Element.ondrag')
   @DocsEditable()
   ElementStream<MouseEvent> get onDrag;
 
+  /// Stream of `dragend` events handled by this [Element].
   @DomName('Element.ondragend')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragEnd;
 
+  /// Stream of `dragenter` events handled by this [Element].
   @DomName('Element.ondragenter')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragEnter;
 
+  /// Stream of `dragleave` events handled by this [Element].
   @DomName('Element.ondragleave')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragLeave;
 
+  /// Stream of `dragover` events handled by this [Element].
   @DomName('Element.ondragover')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragOver;
 
+  /// Stream of `dragstart` events handled by this [Element].
   @DomName('Element.ondragstart')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragStart;
 
+  /// Stream of `drop` events handled by this [Element].
   @DomName('Element.ondrop')
   @DocsEditable()
   ElementStream<MouseEvent> get onDrop;
 
+  /// Stream of `error` events handled by this [Element].
   @DomName('Element.onerror')
   @DocsEditable()
   ElementStream<Event> get onError;
 
+  /// Stream of `focus` events handled by this [Element].
   @DomName('Element.onfocus')
   @DocsEditable()
   ElementStream<Event> get onFocus;
 
+  /// Stream of `input` events handled by this [Element].
   @DomName('Element.oninput')
   @DocsEditable()
   ElementStream<Event> get onInput;
 
+  /// Stream of `invalid` events handled by this [Element].
   @DomName('Element.oninvalid')
   @DocsEditable()
   ElementStream<Event> get onInvalid;
 
+  /// Stream of `keydown` events handled by this [Element].
   @DomName('Element.onkeydown')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyDown;
 
+  /// Stream of `keypress` events handled by this [Element].
   @DomName('Element.onkeypress')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyPress;
 
+  /// Stream of `keyup` events handled by this [Element].
   @DomName('Element.onkeyup')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyUp;
 
+  /// Stream of `load` events handled by this [Element].
   @DomName('Element.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad;
 
+  /// Stream of `mousedown` events handled by this [Element].
   @DomName('Element.onmousedown')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseDown;
 
+  /// Stream of `mouseenter` events handled by this [Element].
   @DomName('Element.onmouseenter')
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<MouseEvent> get onMouseEnter;
 
+  /// Stream of `mouseleave` events handled by this [Element].
   @DomName('Element.onmouseleave')
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<MouseEvent> get onMouseLeave;
 
+  /// Stream of `mousemove` events handled by this [Element].
   @DomName('Element.onmousemove')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseMove;
 
+  /// Stream of `mouseout` events handled by this [Element].
   @DomName('Element.onmouseout')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseOut;
 
+  /// Stream of `mouseover` events handled by this [Element].
   @DomName('Element.onmouseover')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseOver;
 
+  /// Stream of `mouseup` events handled by this [Element].
   @DomName('Element.onmouseup')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseUp;
 
+  /// Stream of `mousewheel` events handled by this [Element].
   @DomName('Element.onmousewheel')
   @DocsEditable()
   // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
   @Experimental() // non-standard
   ElementStream<WheelEvent> get onMouseWheel;
 
+  /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
   ElementStream<Event> get onPaste;
 
+  /// Stream of `reset` events handled by this [Element].
   @DomName('Element.onreset')
   @DocsEditable()
   ElementStream<Event> get onReset;
 
+  /// Stream of `scroll` events handled by this [Element].
   @DomName('Element.onscroll')
   @DocsEditable()
   ElementStream<Event> get onScroll;
 
+  /// Stream of `search` events handled by this [Element].
   @DomName('Element.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
   ElementStream<Event> get onSearch;
 
+  /// Stream of `select` events handled by this [Element].
   @DomName('Element.onselect')
   @DocsEditable()
   ElementStream<Event> get onSelect;
 
+  /// Stream of `selectstart` events handled by this [Element].
   @DomName('Element.onselectstart')
   @DocsEditable()
   @Experimental() // nonstandard
   ElementStream<Event> get onSelectStart;
 
+  /// Stream of `submit` events handled by this [Element].
   @DomName('Element.onsubmit')
   @DocsEditable()
   ElementStream<Event> get onSubmit;
 
+  /// Stream of `touchcancel` events handled by this [Element].
   @DomName('Element.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchCancel;
 
+  /// Stream of `touchend` events handled by this [Element].
   @DomName('Element.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchEnd;
 
+  /// Stream of `touchenter` events handled by this [Element].
   @DomName('Element.ontouchenter')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchEnter;
 
+  /// Stream of `touchleave` events handled by this [Element].
   @DomName('Element.ontouchleave')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchLeave;
 
+  /// Stream of `touchmove` events handled by this [Element].
   @DomName('Element.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchMove;
 
+  /// Stream of `touchstart` events handled by this [Element].
   @DomName('Element.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchStart;
 
+  /// Stream of `transitionend` events handled by this [Element].
   @DomName('Element.ontransitionend')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -8353,12 +8651,14 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   ElementStream<TransitionEvent> get onTransitionEnd;
 
+  /// Stream of `fullscreenchange` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   ElementStream<Event> get onFullscreenChange;
 
+  /// Stream of `fullscreenerror` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
@@ -8427,213 +8727,261 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   List<Node> get rawList => _nodeList;
 
 
+  /// Stream of `abort` events handled by this [Element].
   @DomName('Element.onabort')
   @DocsEditable()
   ElementStream<Event> get onAbort => Element.abortEvent._forElementList(this);
 
+  /// Stream of `beforecopy` events handled by this [Element].
   @DomName('Element.onbeforecopy')
   @DocsEditable()
   ElementStream<Event> get onBeforeCopy => Element.beforeCopyEvent._forElementList(this);
 
+  /// Stream of `beforecut` events handled by this [Element].
   @DomName('Element.onbeforecut')
   @DocsEditable()
   ElementStream<Event> get onBeforeCut => Element.beforeCutEvent._forElementList(this);
 
+  /// Stream of `beforepaste` events handled by this [Element].
   @DomName('Element.onbeforepaste')
   @DocsEditable()
   ElementStream<Event> get onBeforePaste => Element.beforePasteEvent._forElementList(this);
 
+  /// Stream of `blur` events handled by this [Element].
   @DomName('Element.onblur')
   @DocsEditable()
   ElementStream<Event> get onBlur => Element.blurEvent._forElementList(this);
 
+  /// Stream of `change` events handled by this [Element].
   @DomName('Element.onchange')
   @DocsEditable()
   ElementStream<Event> get onChange => Element.changeEvent._forElementList(this);
 
+  /// Stream of `click` events handled by this [Element].
   @DomName('Element.onclick')
   @DocsEditable()
   ElementStream<MouseEvent> get onClick => Element.clickEvent._forElementList(this);
 
+  /// Stream of `contextmenu` events handled by this [Element].
   @DomName('Element.oncontextmenu')
   @DocsEditable()
   ElementStream<MouseEvent> get onContextMenu => Element.contextMenuEvent._forElementList(this);
 
+  /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
   ElementStream<Event> get onCopy => Element.copyEvent._forElementList(this);
 
+  /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
   ElementStream<Event> get onCut => Element.cutEvent._forElementList(this);
 
+  /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
   @DocsEditable()
   ElementStream<Event> get onDoubleClick => Element.doubleClickEvent._forElementList(this);
 
+  /// Stream of `drag` events handled by this [Element].
   @DomName('Element.ondrag')
   @DocsEditable()
   ElementStream<MouseEvent> get onDrag => Element.dragEvent._forElementList(this);
 
+  /// Stream of `dragend` events handled by this [Element].
   @DomName('Element.ondragend')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragEnd => Element.dragEndEvent._forElementList(this);
 
+  /// Stream of `dragenter` events handled by this [Element].
   @DomName('Element.ondragenter')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragEnter => Element.dragEnterEvent._forElementList(this);
 
+  /// Stream of `dragleave` events handled by this [Element].
   @DomName('Element.ondragleave')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragLeave => Element.dragLeaveEvent._forElementList(this);
 
+  /// Stream of `dragover` events handled by this [Element].
   @DomName('Element.ondragover')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragOver => Element.dragOverEvent._forElementList(this);
 
+  /// Stream of `dragstart` events handled by this [Element].
   @DomName('Element.ondragstart')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragStart => Element.dragStartEvent._forElementList(this);
 
+  /// Stream of `drop` events handled by this [Element].
   @DomName('Element.ondrop')
   @DocsEditable()
   ElementStream<MouseEvent> get onDrop => Element.dropEvent._forElementList(this);
 
+  /// Stream of `error` events handled by this [Element].
   @DomName('Element.onerror')
   @DocsEditable()
   ElementStream<Event> get onError => Element.errorEvent._forElementList(this);
 
+  /// Stream of `focus` events handled by this [Element].
   @DomName('Element.onfocus')
   @DocsEditable()
   ElementStream<Event> get onFocus => Element.focusEvent._forElementList(this);
 
+  /// Stream of `input` events handled by this [Element].
   @DomName('Element.oninput')
   @DocsEditable()
   ElementStream<Event> get onInput => Element.inputEvent._forElementList(this);
 
+  /// Stream of `invalid` events handled by this [Element].
   @DomName('Element.oninvalid')
   @DocsEditable()
   ElementStream<Event> get onInvalid => Element.invalidEvent._forElementList(this);
 
+  /// Stream of `keydown` events handled by this [Element].
   @DomName('Element.onkeydown')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyDown => Element.keyDownEvent._forElementList(this);
 
+  /// Stream of `keypress` events handled by this [Element].
   @DomName('Element.onkeypress')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyPress => Element.keyPressEvent._forElementList(this);
 
+  /// Stream of `keyup` events handled by this [Element].
   @DomName('Element.onkeyup')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyUp => Element.keyUpEvent._forElementList(this);
 
+  /// Stream of `load` events handled by this [Element].
   @DomName('Element.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad => Element.loadEvent._forElementList(this);
 
+  /// Stream of `mousedown` events handled by this [Element].
   @DomName('Element.onmousedown')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseDown => Element.mouseDownEvent._forElementList(this);
 
+  /// Stream of `mouseenter` events handled by this [Element].
   @DomName('Element.onmouseenter')
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent._forElementList(this);
 
+  /// Stream of `mouseleave` events handled by this [Element].
   @DomName('Element.onmouseleave')
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent._forElementList(this);
 
+  /// Stream of `mousemove` events handled by this [Element].
   @DomName('Element.onmousemove')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseMove => Element.mouseMoveEvent._forElementList(this);
 
+  /// Stream of `mouseout` events handled by this [Element].
   @DomName('Element.onmouseout')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseOut => Element.mouseOutEvent._forElementList(this);
 
+  /// Stream of `mouseover` events handled by this [Element].
   @DomName('Element.onmouseover')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseOver => Element.mouseOverEvent._forElementList(this);
 
+  /// Stream of `mouseup` events handled by this [Element].
   @DomName('Element.onmouseup')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseUp => Element.mouseUpEvent._forElementList(this);
 
+  /// Stream of `mousewheel` events handled by this [Element].
   @DomName('Element.onmousewheel')
   @DocsEditable()
   // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
   @Experimental() // non-standard
   ElementStream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent._forElementList(this);
 
+  /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
   ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
 
+  /// Stream of `reset` events handled by this [Element].
   @DomName('Element.onreset')
   @DocsEditable()
   ElementStream<Event> get onReset => Element.resetEvent._forElementList(this);
 
+  /// Stream of `scroll` events handled by this [Element].
   @DomName('Element.onscroll')
   @DocsEditable()
   ElementStream<Event> get onScroll => Element.scrollEvent._forElementList(this);
 
+  /// Stream of `search` events handled by this [Element].
   @DomName('Element.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
   ElementStream<Event> get onSearch => Element.searchEvent._forElementList(this);
 
+  /// Stream of `select` events handled by this [Element].
   @DomName('Element.onselect')
   @DocsEditable()
   ElementStream<Event> get onSelect => Element.selectEvent._forElementList(this);
 
+  /// Stream of `selectstart` events handled by this [Element].
   @DomName('Element.onselectstart')
   @DocsEditable()
   @Experimental() // nonstandard
   ElementStream<Event> get onSelectStart => Element.selectStartEvent._forElementList(this);
 
+  /// Stream of `submit` events handled by this [Element].
   @DomName('Element.onsubmit')
   @DocsEditable()
   ElementStream<Event> get onSubmit => Element.submitEvent._forElementList(this);
 
+  /// Stream of `touchcancel` events handled by this [Element].
   @DomName('Element.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchCancel => Element.touchCancelEvent._forElementList(this);
 
+  /// Stream of `touchend` events handled by this [Element].
   @DomName('Element.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchEnd => Element.touchEndEvent._forElementList(this);
 
+  /// Stream of `touchenter` events handled by this [Element].
   @DomName('Element.ontouchenter')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchEnter => Element.touchEnterEvent._forElementList(this);
 
+  /// Stream of `touchleave` events handled by this [Element].
   @DomName('Element.ontouchleave')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchLeave => Element.touchLeaveEvent._forElementList(this);
 
+  /// Stream of `touchmove` events handled by this [Element].
   @DomName('Element.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchMove => Element.touchMoveEvent._forElementList(this);
 
+  /// Stream of `touchstart` events handled by this [Element].
   @DomName('Element.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchStart => Element.touchStartEvent._forElementList(this);
 
+  /// Stream of `transitionend` events handled by this [Element].
   @DomName('Element.ontransitionend')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -8642,12 +8990,14 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @SupportedBrowser(SupportedBrowser.SAFARI)
   ElementStream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent._forElementList(this);
 
+  /// Stream of `fullscreenchange` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   ElementStream<Event> get onFullscreenChange => Element.fullscreenChangeEvent._forElementList(this);
 
+  /// Stream of `fullscreenerror` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
@@ -9167,6 +9517,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     }
   }
 
+  /**
+   * Static factory designed to expose `mousewheel` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
@@ -9185,6 +9541,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
     }
   }
 
+  /**
+   * Static factory designed to expose `transitionend` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.transitionEndEvent')
   static const EventStreamProvider<TransitionEvent> transitionEndEvent =
       const _CustomEventStreamProvider<TransitionEvent>(
@@ -9589,207 +9951,489 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `abort` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.abortEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
+  /**
+   * Static factory designed to expose `beforecopy` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.beforecopyEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
+  /**
+   * Static factory designed to expose `beforecut` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.beforecutEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
+  /**
+   * Static factory designed to expose `beforepaste` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.beforepasteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
+  /**
+   * Static factory designed to expose `blur` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.blurEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
+  /**
+   * Static factory designed to expose `change` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.changeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
+  /**
+   * Static factory designed to expose `click` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.clickEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
+  /**
+   * Static factory designed to expose `contextmenu` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.contextmenuEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
+  /**
+   * Static factory designed to expose `copy` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.copyEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
+  /**
+   * Static factory designed to expose `cut` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.cutEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
+  /**
+   * Static factory designed to expose `doubleclick` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dblclickEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
+  /**
+   * Static factory designed to expose `drag` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dragEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
+  /**
+   * Static factory designed to expose `dragend` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dragendEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
+  /**
+   * Static factory designed to expose `dragenter` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dragenterEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
+  /**
+   * Static factory designed to expose `dragleave` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dragleaveEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
+  /**
+   * Static factory designed to expose `dragover` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dragoverEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
+  /**
+   * Static factory designed to expose `dragstart` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dragstartEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
+  /**
+   * Static factory designed to expose `drop` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.dropEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `focus` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.focusEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
+  /**
+   * Static factory designed to expose `input` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.inputEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
+  /**
+   * Static factory designed to expose `invalid` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.invalidEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
 
+  /**
+   * Static factory designed to expose `keydown` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.keydownEvent')
   @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
+  /**
+   * Static factory designed to expose `keypress` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.keypressEvent')
   @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
+  /**
+   * Static factory designed to expose `keyup` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.keyupEvent')
   @DocsEditable()
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
+  /**
+   * Static factory designed to expose `load` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.loadEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
+  /**
+   * Static factory designed to expose `mousedown` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mousedownEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
+  /**
+   * Static factory designed to expose `mouseenter` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseenterEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<MouseEvent> mouseEnterEvent = const EventStreamProvider<MouseEvent>('mouseenter');
 
+  /**
+   * Static factory designed to expose `mouseleave` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseleaveEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<MouseEvent> mouseLeaveEvent = const EventStreamProvider<MouseEvent>('mouseleave');
 
+  /**
+   * Static factory designed to expose `mousemove` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mousemoveEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
+  /**
+   * Static factory designed to expose `mouseout` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseoutEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
+  /**
+   * Static factory designed to expose `mouseover` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseoverEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
+  /**
+   * Static factory designed to expose `mouseup` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseupEvent')
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
+  /**
+   * Static factory designed to expose `paste` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.pasteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
+  /**
+   * Static factory designed to expose `reset` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.resetEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
+  /**
+   * Static factory designed to expose `scroll` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.scrollEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
+  /**
+   * Static factory designed to expose `search` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.searchEvent')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
+  /**
+   * Static factory designed to expose `select` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.selectEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
+  /**
+   * Static factory designed to expose `selectstart` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.selectstartEvent')
   @DocsEditable()
   @Experimental() // nonstandard
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
+  /**
+   * Static factory designed to expose `submit` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.submitEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
+  /**
+   * Static factory designed to expose `touchcancel` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.touchcancelEvent')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
 
+  /**
+   * Static factory designed to expose `touchend` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.touchendEvent')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
 
+  /**
+   * Static factory designed to expose `touchenter` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.touchenterEvent')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
 
+  /**
+   * Static factory designed to expose `touchleave` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.touchleaveEvent')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
 
+  /**
+   * Static factory designed to expose `touchmove` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.touchmoveEvent')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
 
+  /**
+   * Static factory designed to expose `touchstart` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.touchstartEvent')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
+  /**
+   * Static factory designed to expose `fullscreenchange` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9798,6 +10442,12 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
+  /**
+   * Static factory designed to expose `fullscreenerror` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.webkitfullscreenerrorEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -10156,213 +10806,261 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @DocsEditable()
   final Element _lastElementChild;
 
+  /// Stream of `abort` events handled by this [Element].
   @DomName('Element.onabort')
   @DocsEditable()
   ElementStream<Event> get onAbort => abortEvent.forElement(this);
 
+  /// Stream of `beforecopy` events handled by this [Element].
   @DomName('Element.onbeforecopy')
   @DocsEditable()
   ElementStream<Event> get onBeforeCopy => beforeCopyEvent.forElement(this);
 
+  /// Stream of `beforecut` events handled by this [Element].
   @DomName('Element.onbeforecut')
   @DocsEditable()
   ElementStream<Event> get onBeforeCut => beforeCutEvent.forElement(this);
 
+  /// Stream of `beforepaste` events handled by this [Element].
   @DomName('Element.onbeforepaste')
   @DocsEditable()
   ElementStream<Event> get onBeforePaste => beforePasteEvent.forElement(this);
 
+  /// Stream of `blur` events handled by this [Element].
   @DomName('Element.onblur')
   @DocsEditable()
   ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
+  /// Stream of `change` events handled by this [Element].
   @DomName('Element.onchange')
   @DocsEditable()
   ElementStream<Event> get onChange => changeEvent.forElement(this);
 
+  /// Stream of `click` events handled by this [Element].
   @DomName('Element.onclick')
   @DocsEditable()
   ElementStream<MouseEvent> get onClick => clickEvent.forElement(this);
 
+  /// Stream of `contextmenu` events handled by this [Element].
   @DomName('Element.oncontextmenu')
   @DocsEditable()
   ElementStream<MouseEvent> get onContextMenu => contextMenuEvent.forElement(this);
 
+  /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
   ElementStream<Event> get onCopy => copyEvent.forElement(this);
 
+  /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
   ElementStream<Event> get onCut => cutEvent.forElement(this);
 
+  /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
   @DocsEditable()
   ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
 
+  /// Stream of `drag` events handled by this [Element].
   @DomName('Element.ondrag')
   @DocsEditable()
   ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);
 
+  /// Stream of `dragend` events handled by this [Element].
   @DomName('Element.ondragend')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragEnd => dragEndEvent.forElement(this);
 
+  /// Stream of `dragenter` events handled by this [Element].
   @DomName('Element.ondragenter')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragEnter => dragEnterEvent.forElement(this);
 
+  /// Stream of `dragleave` events handled by this [Element].
   @DomName('Element.ondragleave')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragLeave => dragLeaveEvent.forElement(this);
 
+  /// Stream of `dragover` events handled by this [Element].
   @DomName('Element.ondragover')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragOver => dragOverEvent.forElement(this);
 
+  /// Stream of `dragstart` events handled by this [Element].
   @DomName('Element.ondragstart')
   @DocsEditable()
   ElementStream<MouseEvent> get onDragStart => dragStartEvent.forElement(this);
 
+  /// Stream of `drop` events handled by this [Element].
   @DomName('Element.ondrop')
   @DocsEditable()
   ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
 
+  /// Stream of `error` events handled by this [Element].
   @DomName('Element.onerror')
   @DocsEditable()
   ElementStream<Event> get onError => errorEvent.forElement(this);
 
+  /// Stream of `focus` events handled by this [Element].
   @DomName('Element.onfocus')
   @DocsEditable()
   ElementStream<Event> get onFocus => focusEvent.forElement(this);
 
+  /// Stream of `input` events handled by this [Element].
   @DomName('Element.oninput')
   @DocsEditable()
   ElementStream<Event> get onInput => inputEvent.forElement(this);
 
+  /// Stream of `invalid` events handled by this [Element].
   @DomName('Element.oninvalid')
   @DocsEditable()
   ElementStream<Event> get onInvalid => invalidEvent.forElement(this);
 
+  /// Stream of `keydown` events handled by this [Element].
   @DomName('Element.onkeydown')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyDown => keyDownEvent.forElement(this);
 
+  /// Stream of `keypress` events handled by this [Element].
   @DomName('Element.onkeypress')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyPress => keyPressEvent.forElement(this);
 
+  /// Stream of `keyup` events handled by this [Element].
   @DomName('Element.onkeyup')
   @DocsEditable()
   ElementStream<KeyboardEvent> get onKeyUp => keyUpEvent.forElement(this);
 
+  /// Stream of `load` events handled by this [Element].
   @DomName('Element.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad => loadEvent.forElement(this);
 
+  /// Stream of `mousedown` events handled by this [Element].
   @DomName('Element.onmousedown')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseDown => mouseDownEvent.forElement(this);
 
+  /// Stream of `mouseenter` events handled by this [Element].
   @DomName('Element.onmouseenter')
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<MouseEvent> get onMouseEnter => mouseEnterEvent.forElement(this);
 
+  /// Stream of `mouseleave` events handled by this [Element].
   @DomName('Element.onmouseleave')
   @DocsEditable()
   @Experimental() // untriaged
   ElementStream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forElement(this);
 
+  /// Stream of `mousemove` events handled by this [Element].
   @DomName('Element.onmousemove')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseMove => mouseMoveEvent.forElement(this);
 
+  /// Stream of `mouseout` events handled by this [Element].
   @DomName('Element.onmouseout')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseOut => mouseOutEvent.forElement(this);
 
+  /// Stream of `mouseover` events handled by this [Element].
   @DomName('Element.onmouseover')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseOver => mouseOverEvent.forElement(this);
 
+  /// Stream of `mouseup` events handled by this [Element].
   @DomName('Element.onmouseup')
   @DocsEditable()
   ElementStream<MouseEvent> get onMouseUp => mouseUpEvent.forElement(this);
 
+  /// Stream of `mousewheel` events handled by this [Element].
   @DomName('Element.onmousewheel')
   @DocsEditable()
   // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
   @Experimental() // non-standard
   ElementStream<WheelEvent> get onMouseWheel => mouseWheelEvent.forElement(this);
 
+  /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
   ElementStream<Event> get onPaste => pasteEvent.forElement(this);
 
+  /// Stream of `reset` events handled by this [Element].
   @DomName('Element.onreset')
   @DocsEditable()
   ElementStream<Event> get onReset => resetEvent.forElement(this);
 
+  /// Stream of `scroll` events handled by this [Element].
   @DomName('Element.onscroll')
   @DocsEditable()
   ElementStream<Event> get onScroll => scrollEvent.forElement(this);
 
+  /// Stream of `search` events handled by this [Element].
   @DomName('Element.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
   ElementStream<Event> get onSearch => searchEvent.forElement(this);
 
+  /// Stream of `select` events handled by this [Element].
   @DomName('Element.onselect')
   @DocsEditable()
   ElementStream<Event> get onSelect => selectEvent.forElement(this);
 
+  /// Stream of `selectstart` events handled by this [Element].
   @DomName('Element.onselectstart')
   @DocsEditable()
   @Experimental() // nonstandard
   ElementStream<Event> get onSelectStart => selectStartEvent.forElement(this);
 
+  /// Stream of `submit` events handled by this [Element].
   @DomName('Element.onsubmit')
   @DocsEditable()
   ElementStream<Event> get onSubmit => submitEvent.forElement(this);
 
+  /// Stream of `touchcancel` events handled by this [Element].
   @DomName('Element.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchCancel => touchCancelEvent.forElement(this);
 
+  /// Stream of `touchend` events handled by this [Element].
   @DomName('Element.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchEnd => touchEndEvent.forElement(this);
 
+  /// Stream of `touchenter` events handled by this [Element].
   @DomName('Element.ontouchenter')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchEnter => touchEnterEvent.forElement(this);
 
+  /// Stream of `touchleave` events handled by this [Element].
   @DomName('Element.ontouchleave')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchLeave => touchLeaveEvent.forElement(this);
 
+  /// Stream of `touchmove` events handled by this [Element].
   @DomName('Element.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchMove => touchMoveEvent.forElement(this);
 
+  /// Stream of `touchstart` events handled by this [Element].
   @DomName('Element.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   ElementStream<TouchEvent> get onTouchStart => touchStartEvent.forElement(this);
 
+  /// Stream of `transitionend` events handled by this [Element].
   @DomName('Element.ontransitionend')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -10371,12 +11069,14 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
   @SupportedBrowser(SupportedBrowser.SAFARI)
   ElementStream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forElement(this);
 
+  /// Stream of `fullscreenchange` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   @Experimental()
   ElementStream<Event> get onFullscreenChange => fullscreenChangeEvent.forElement(this);
 
+  /// Stream of `fullscreenerror` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
@@ -10834,14 +11534,32 @@ class EventSource extends EventTarget native "EventSource" {
   // To suppress missing implicit constructor warnings.
   factory EventSource._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [EventSource].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('EventSource.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [EventSource].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('EventSource.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  /**
+   * Static factory designed to expose `open` events to event
+   * handlers that are not necessarily instances of [EventSource].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('EventSource.openEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
@@ -10885,14 +11603,17 @@ class EventSource extends EventTarget native "EventSource" {
   @DocsEditable()
   void close() native;
 
+  /// Stream of `error` events handled by this [EventSource].
   @DomName('EventSource.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `message` events handled by this [EventSource].
   @DomName('EventSource.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  /// Stream of `open` events handled by this [EventSource].
   @DomName('EventSource.onopen')
   @DocsEditable()
   Stream<Event> get onOpen => openEvent.forTarget(this);
@@ -11306,26 +12027,62 @@ class FileReader extends EventTarget native "FileReader" {
   // To suppress missing implicit constructor warnings.
   factory FileReader._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `abort` events to event
+   * handlers that are not necessarily instances of [FileReader].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileReader.abortEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [FileReader].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileReader.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `load` events to event
+   * handlers that are not necessarily instances of [FileReader].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileReader.loadEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
+  /**
+   * Static factory designed to expose `loadend` events to event
+   * handlers that are not necessarily instances of [FileReader].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileReader.loadendEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
+  /**
+   * Static factory designed to expose `loadstart` events to event
+   * handlers that are not necessarily instances of [FileReader].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileReader.loadstartEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
+  /**
+   * Static factory designed to expose `progress` events to event
+   * handlers that are not necessarily instances of [FileReader].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileReader.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
@@ -11379,26 +12136,32 @@ class FileReader extends EventTarget native "FileReader" {
   @DocsEditable()
   void readAsText(Blob blob, [String encoding]) native;
 
+  /// Stream of `abort` events handled by this [FileReader].
   @DomName('FileReader.onabort')
   @DocsEditable()
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [FileReader].
   @DomName('FileReader.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `load` events handled by this [FileReader].
   @DomName('FileReader.onload')
   @DocsEditable()
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
+  /// Stream of `loadend` events handled by this [FileReader].
   @DomName('FileReader.onloadend')
   @DocsEditable()
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
+  /// Stream of `loadstart` events handled by this [FileReader].
   @DomName('FileReader.onloadstart')
   @DocsEditable()
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
+  /// Stream of `progress` events handled by this [FileReader].
   @DomName('FileReader.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
@@ -11469,26 +12232,62 @@ class FileWriter extends EventTarget native "FileWriter" {
   // To suppress missing implicit constructor warnings.
   factory FileWriter._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `abort` events to event
+   * handlers that are not necessarily instances of [FileWriter].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileWriter.abortEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [FileWriter].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileWriter.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `progress` events to event
+   * handlers that are not necessarily instances of [FileWriter].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileWriter.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  /**
+   * Static factory designed to expose `write` events to event
+   * handlers that are not necessarily instances of [FileWriter].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileWriter.writeEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> writeEvent = const EventStreamProvider<ProgressEvent>('write');
 
+  /**
+   * Static factory designed to expose `writeend` events to event
+   * handlers that are not necessarily instances of [FileWriter].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileWriter.writeendEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> writeEndEvent = const EventStreamProvider<ProgressEvent>('writeend');
 
+  /**
+   * Static factory designed to expose `writestart` events to event
+   * handlers that are not necessarily instances of [FileWriter].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('FileWriter.writestartEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
@@ -11537,26 +12336,32 @@ class FileWriter extends EventTarget native "FileWriter" {
   @DocsEditable()
   void write(Blob data) native;
 
+  /// Stream of `abort` events handled by this [FileWriter].
   @DomName('FileWriter.onabort')
   @DocsEditable()
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [FileWriter].
   @DomName('FileWriter.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `progress` events handled by this [FileWriter].
   @DomName('FileWriter.onprogress')
   @DocsEditable()
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
+  /// Stream of `write` events handled by this [FileWriter].
   @DomName('FileWriter.onwrite')
   @DocsEditable()
   Stream<ProgressEvent> get onWrite => writeEvent.forTarget(this);
 
+  /// Stream of `writeend` events handled by this [FileWriter].
   @DomName('FileWriter.onwriteend')
   @DocsEditable()
   Stream<ProgressEvent> get onWriteEnd => writeEndEvent.forTarget(this);
 
+  /// Stream of `writestart` events handled by this [FileWriter].
   @DomName('FileWriter.onwritestart')
   @DocsEditable()
   Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
@@ -11727,12 +12532,24 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
   // To suppress missing implicit constructor warnings.
   factory FormElement._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `autocomplete` events to event
+   * handlers that are not necessarily instances of [FormElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLFormElement.autocompleteEvent')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
   static const EventStreamProvider<Event> autocompleteEvent = const EventStreamProvider<Event>('autocomplete');
 
+  /**
+   * Static factory designed to expose `autocompleteerror` events to event
+   * handlers that are not necessarily instances of [FormElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLFormElement.autocompleteerrorEvent')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
@@ -11813,12 +12630,14 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
   @DocsEditable()
   void submit() native;
 
+  /// Stream of `autocomplete` events handled by this [FormElement].
   @DomName('HTMLFormElement.onautocomplete')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
   ElementStream<Event> get onAutocomplete => autocompleteEvent.forElement(this);
 
+  /// Stream of `autocompleteerror` events handled by this [FormElement].
   @DomName('HTMLFormElement.onautocompleteerror')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
@@ -12519,6 +13338,12 @@ class HtmlDocument extends Document native "HTMLDocument" {
         extendsTag);
   }
 
+  /**
+   * Static factory designed to expose `visibilitychange` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.visibilityChange')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -12910,6 +13735,12 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `readystatechange` events to event
+   * handlers that are not necessarily instances of [HttpRequest].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
@@ -13188,7 +14019,8 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
   @DocsEditable()
   void setRequestHeader(String header, String value) native;
 
-  /**
+  /// Stream of `readystatechange` events handled by this [HttpRequest].
+/**
    * Event listeners to be notified every time the [HttpRequest]
    * object's `readyState` changes values.
    */
@@ -13209,56 +14041,102 @@ class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarg
   // To suppress missing implicit constructor warnings.
   factory HttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `abort` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.abortEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
+  /**
+   * Static factory designed to expose `load` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.loadEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
+  /**
+   * Static factory designed to expose `loadend` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.loadendEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
+  /**
+   * Static factory designed to expose `loadstart` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.loadstartEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
+  /**
+   * Static factory designed to expose `progress` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.progressEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  /**
+   * Static factory designed to expose `timeout` events to event
+   * handlers that are not necessarily instances of [HttpRequestEventTarget].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('XMLHttpRequestEventTarget.timeoutEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
 
+  /// Stream of `abort` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onabort')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onerror')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `load` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onload')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
+  /// Stream of `loadend` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onloadend')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -13268,11 +14146,13 @@ class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarg
   @Experimental() // untriaged
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
+  /// Stream of `loadstart` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onloadstart')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
+  /// Stream of `progress` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.onprogress')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -13282,6 +14162,7 @@ class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarg
   @Experimental() // untriaged
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
+  /// Stream of `timeout` events handled by this [HttpRequestEventTarget].
   @DomName('XMLHttpRequestEventTarget.ontimeout')
   @DocsEditable()
   @Experimental() // untriaged
@@ -13522,6 +14403,12 @@ class InputElement extends HtmlElement implements
   // To suppress missing implicit constructor warnings.
   factory InputElement._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `speechchange` events to event
+   * handlers that are not necessarily instances of [InputElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLInputElement.webkitSpeechChangeEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -13801,6 +14688,7 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   void stepUp([int n]) native;
 
+  /// Stream of `speechchange` events handled by this [InputElement].
   @DomName('HTMLInputElement.onwebkitSpeechChange')
   @DocsEditable()
   // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements
@@ -14994,92 +15882,224 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   // To suppress missing implicit constructor warnings.
   factory MediaElement._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `canplay` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.canplayEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
 
+  /**
+   * Static factory designed to expose `canplaythrough` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.canplaythroughEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
 
+  /**
+   * Static factory designed to expose `durationchange` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.durationchangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
 
+  /**
+   * Static factory designed to expose `emptied` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.emptiedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
 
+  /**
+   * Static factory designed to expose `ended` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.endedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  /**
+   * Static factory designed to expose `loadeddata` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.loadeddataEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
 
+  /**
+   * Static factory designed to expose `loadedmetadata` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.loadedmetadataEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
 
+  /**
+   * Static factory designed to expose `loadstart` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.loadstartEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
 
+  /**
+   * Static factory designed to expose `pause` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.pauseEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
+  /**
+   * Static factory designed to expose `play` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.playEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
 
+  /**
+   * Static factory designed to expose `playing` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.playingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
 
+  /**
+   * Static factory designed to expose `progress` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.progressEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
+  /**
+   * Static factory designed to expose `ratechange` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.ratechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
 
+  /**
+   * Static factory designed to expose `seeked` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.seekedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
 
+  /**
+   * Static factory designed to expose `seeking` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.seekingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
 
+  /**
+   * Static factory designed to expose `show` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.showEvent')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart
   @Experimental()
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
+  /**
+   * Static factory designed to expose `stalled` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.stalledEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
 
+  /**
+   * Static factory designed to expose `suspend` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.suspendEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
 
+  /**
+   * Static factory designed to expose `timeupdate` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.timeupdateEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
 
+  /**
+   * Static factory designed to expose `volumechange` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.volumechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
 
+  /**
+   * Static factory designed to expose `waiting` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.waitingEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
+  /**
+   * Static factory designed to expose `keyadded` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.webkitkeyaddedEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15088,6 +16108,12 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
+  /**
+   * Static factory designed to expose `keyerror` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.webkitkeyerrorEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15096,6 +16122,12 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
+  /**
+   * Static factory designed to expose `keymessage` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.webkitkeymessageEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15104,6 +16136,12 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
+  /**
+   * Static factory designed to expose `needkey` events to event
+   * handlers that are not necessarily instances of [MediaElement].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('HTMLMediaElement.webkitneedkeyEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15368,110 +16406,135 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#extensions
   void generateKeyRequest(String keySystem, [Uint8List initData]) native;
 
+  /// Stream of `canplay` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.oncanplay')
   @DocsEditable()
   ElementStream<Event> get onCanPlay => canPlayEvent.forElement(this);
 
+  /// Stream of `canplaythrough` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.oncanplaythrough')
   @DocsEditable()
   ElementStream<Event> get onCanPlayThrough => canPlayThroughEvent.forElement(this);
 
+  /// Stream of `durationchange` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.ondurationchange')
   @DocsEditable()
   ElementStream<Event> get onDurationChange => durationChangeEvent.forElement(this);
 
+  /// Stream of `emptied` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onemptied')
   @DocsEditable()
   ElementStream<Event> get onEmptied => emptiedEvent.forElement(this);
 
+  /// Stream of `ended` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onended')
   @DocsEditable()
   ElementStream<Event> get onEnded => endedEvent.forElement(this);
 
+  /// Stream of `loadeddata` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onloadeddata')
   @DocsEditable()
   ElementStream<Event> get onLoadedData => loadedDataEvent.forElement(this);
 
+  /// Stream of `loadedmetadata` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onloadedmetadata')
   @DocsEditable()
   ElementStream<Event> get onLoadedMetadata => loadedMetadataEvent.forElement(this);
 
+  /// Stream of `loadstart` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onloadstart')
   @DocsEditable()
   ElementStream<Event> get onLoadStart => loadStartEvent.forElement(this);
 
+  /// Stream of `pause` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onpause')
   @DocsEditable()
   ElementStream<Event> get onPause => pauseEvent.forElement(this);
 
+  /// Stream of `play` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onplay')
   @DocsEditable()
   ElementStream<Event> get onPlay => playEvent.forElement(this);
 
+  /// Stream of `playing` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onplaying')
   @DocsEditable()
   ElementStream<Event> get onPlaying => playingEvent.forElement(this);
 
+  /// Stream of `progress` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onprogress')
   @DocsEditable()
   ElementStream<Event> get onProgress => progressEvent.forElement(this);
 
+  /// Stream of `ratechange` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onratechange')
   @DocsEditable()
   ElementStream<Event> get onRateChange => rateChangeEvent.forElement(this);
 
+  /// Stream of `seeked` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onseeked')
   @DocsEditable()
   ElementStream<Event> get onSeeked => seekedEvent.forElement(this);
 
+  /// Stream of `seeking` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onseeking')
   @DocsEditable()
   ElementStream<Event> get onSeeking => seekingEvent.forElement(this);
 
+  /// Stream of `show` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onshow')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart
   @Experimental()
   ElementStream<Event> get onShow => showEvent.forElement(this);
 
+  /// Stream of `stalled` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onstalled')
   @DocsEditable()
   ElementStream<Event> get onStalled => stalledEvent.forElement(this);
 
+  /// Stream of `suspend` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onsuspend')
   @DocsEditable()
   ElementStream<Event> get onSuspend => suspendEvent.forElement(this);
 
+  /// Stream of `timeupdate` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.ontimeupdate')
   @DocsEditable()
   ElementStream<Event> get onTimeUpdate => timeUpdateEvent.forElement(this);
 
+  /// Stream of `volumechange` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onvolumechange')
   @DocsEditable()
   ElementStream<Event> get onVolumeChange => volumeChangeEvent.forElement(this);
 
+  /// Stream of `waiting` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onwaiting')
   @DocsEditable()
   ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
+  /// Stream of `keyadded` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
   ElementStream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forElement(this);
 
+  /// Stream of `keyerror` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
   ElementStream<MediaKeyEvent> get onKeyError => keyErrorEvent.forElement(this);
 
+  /// Stream of `keymessage` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   @Experimental()
   ElementStream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forElement(this);
 
+  /// Stream of `needkey` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable()
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
@@ -15656,6 +16719,12 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
   // To suppress missing implicit constructor warnings.
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `keyadded` events to event
+   * handlers that are not necessarily instances of [MediaKeySession].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaKeySession.webkitkeyaddedEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15663,6 +16732,12 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
   @Experimental()
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
+  /**
+   * Static factory designed to expose `keyerror` events to event
+   * handlers that are not necessarily instances of [MediaKeySession].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaKeySession.webkitkeyerrorEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15670,6 +16745,12 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
   @Experimental()
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
+  /**
+   * Static factory designed to expose `keymessage` events to event
+   * handlers that are not necessarily instances of [MediaKeySession].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaKeySession.webkitkeymessageEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -15697,14 +16778,17 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
   @DocsEditable()
   void update(Uint8List key) native;
 
+  /// Stream of `keyadded` events handled by this [MediaKeySession].
   @DomName('MediaKeySession.onwebkitkeyadded')
   @DocsEditable()
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
+  /// Stream of `keyerror` events handled by this [MediaKeySession].
   @DomName('MediaKeySession.onwebkitkeyerror')
   @DocsEditable()
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
+  /// Stream of `keymessage` events handled by this [MediaKeySession].
   @DomName('MediaKeySession.onwebkitkeymessage')
   @DocsEditable()
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
@@ -15876,14 +16960,32 @@ class MediaStream extends EventTarget native "MediaStream" {
   // To suppress missing implicit constructor warnings.
   factory MediaStream._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `addtrack` events to event
+   * handlers that are not necessarily instances of [MediaStream].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaStream.addtrackEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> addTrackEvent = const EventStreamProvider<Event>('addtrack');
 
+  /**
+   * Static factory designed to expose `ended` events to event
+   * handlers that are not necessarily instances of [MediaStream].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaStream.endedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  /**
+   * Static factory designed to expose `removetrack` events to event
+   * handlers that are not necessarily instances of [MediaStream].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaStream.removetrackEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> removeTrackEvent = const EventStreamProvider<Event>('removetrack');
@@ -15947,14 +17049,17 @@ class MediaStream extends EventTarget native "MediaStream" {
   @DocsEditable()
   void stop() native;
 
+  /// Stream of `addtrack` events handled by this [MediaStream].
   @DomName('MediaStream.onaddtrack')
   @DocsEditable()
   Stream<Event> get onAddTrack => addTrackEvent.forTarget(this);
 
+  /// Stream of `ended` events handled by this [MediaStream].
   @DomName('MediaStream.onended')
   @DocsEditable()
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
+  /// Stream of `removetrack` events handled by this [MediaStream].
   @DomName('MediaStream.onremovetrack')
   @DocsEditable()
   Stream<Event> get onRemoveTrack => removeTrackEvent.forTarget(this);
@@ -16010,14 +17115,32 @@ class MediaStreamTrack extends EventTarget native "MediaStreamTrack" {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamTrack._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `ended` events to event
+   * handlers that are not necessarily instances of [MediaStreamTrack].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaStreamTrack.endedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  /**
+   * Static factory designed to expose `mute` events to event
+   * handlers that are not necessarily instances of [MediaStreamTrack].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaStreamTrack.muteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> muteEvent = const EventStreamProvider<Event>('mute');
 
+  /**
+   * Static factory designed to expose `unmute` events to event
+   * handlers that are not necessarily instances of [MediaStreamTrack].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MediaStreamTrack.unmuteEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
@@ -16059,14 +17182,17 @@ class MediaStreamTrack extends EventTarget native "MediaStreamTrack" {
     return completer.future;
   }
 
+  /// Stream of `ended` events handled by this [MediaStreamTrack].
   @DomName('MediaStreamTrack.onended')
   @DocsEditable()
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
+  /// Stream of `mute` events handled by this [MediaStreamTrack].
   @DomName('MediaStreamTrack.onmute')
   @DocsEditable()
   Stream<Event> get onMute => muteEvent.forTarget(this);
 
+  /// Stream of `unmute` events handled by this [MediaStreamTrack].
   @DomName('MediaStreamTrack.onunmute')
   @DocsEditable()
   Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
@@ -16248,6 +17374,12 @@ class MessagePort extends EventTarget native "MessagePort" {
   // To suppress missing implicit constructor warnings.
   factory MessagePort._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [MessagePort].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MessagePort.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
@@ -16281,6 +17413,7 @@ class MessagePort extends EventTarget native "MessagePort" {
   @DocsEditable()
   void start() native;
 
+  /// Stream of `message` events handled by this [MessagePort].
   @DomName('MessagePort.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -16427,10 +17560,22 @@ class MidiAccess extends EventTarget native "MIDIAccess" {
   // To suppress missing implicit constructor warnings.
   factory MidiAccess._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `connect` events to event
+   * handlers that are not necessarily instances of [MidiAccess].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MIDIAccess.connectEvent')
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> connectEvent = const EventStreamProvider<MidiConnectionEvent>('connect');
 
+  /**
+   * Static factory designed to expose `disconnect` events to event
+   * handlers that are not necessarily instances of [MidiAccess].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MIDIAccess.disconnectEvent')
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
@@ -16443,10 +17588,12 @@ class MidiAccess extends EventTarget native "MIDIAccess" {
   @DocsEditable()
   List<MidiOutput> outputs() native;
 
+  /// Stream of `connect` events handled by this [MidiAccess].
   @DomName('MIDIAccess.onconnect')
   @DocsEditable()
   Stream<MidiConnectionEvent> get onConnect => connectEvent.forTarget(this);
 
+  /// Stream of `disconnect` events handled by this [MidiAccess].
   @DomName('MIDIAccess.ondisconnect')
   @DocsEditable()
   Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
@@ -16498,10 +17645,17 @@ class MidiInput extends MidiPort native "MIDIInput" {
   // To suppress missing implicit constructor warnings.
   factory MidiInput._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `midimessage` events to event
+   * handlers that are not necessarily instances of [MidiInput].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MIDIInput.midimessageEvent')
   @DocsEditable()
   static const EventStreamProvider<MidiMessageEvent> midiMessageEvent = const EventStreamProvider<MidiMessageEvent>('midimessage');
 
+  /// Stream of `midimessage` events handled by this [MidiInput].
   @DomName('MIDIInput.onmidimessage')
   @DocsEditable()
   Stream<MidiMessageEvent> get onMidiMessage => midiMessageEvent.forTarget(this);
@@ -16557,6 +17711,12 @@ class MidiPort extends EventTarget native "MIDIPort" {
   // To suppress missing implicit constructor warnings.
   factory MidiPort._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `disconnect` events to event
+   * handlers that are not necessarily instances of [MidiPort].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('MIDIPort.disconnectEvent')
   @DocsEditable()
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
@@ -16581,6 +17741,7 @@ class MidiPort extends EventTarget native "MIDIPort" {
   @DocsEditable()
   final String version;
 
+  /// Stream of `disconnect` events handled by this [MidiPort].
   @DomName('MIDIPort.ondisconnect')
   @DocsEditable()
   Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
@@ -18007,23 +19168,53 @@ class Notification extends EventTarget native "Notification" {
   // To suppress missing implicit constructor warnings.
   factory Notification._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `click` events to event
+   * handlers that are not necessarily instances of [Notification].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Notification.clickEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
 
+  /**
+   * Static factory designed to expose `close` events to event
+   * handlers that are not necessarily instances of [Notification].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Notification.closeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
+  /**
+   * Static factory designed to expose `display` events to event
+   * handlers that are not necessarily instances of [Notification].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Notification.displayEvent')
   @DocsEditable()
   @Experimental() // nonstandard
   static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [Notification].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Notification.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `show` events to event
+   * handlers that are not necessarily instances of [Notification].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Notification.showEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
@@ -18087,23 +19278,28 @@ class Notification extends EventTarget native "Notification" {
   @Experimental() // nonstandard
   void show() native;
 
+  /// Stream of `click` events handled by this [Notification].
   @DomName('Notification.onclick')
   @DocsEditable()
   Stream<Event> get onClick => clickEvent.forTarget(this);
 
+  /// Stream of `close` events handled by this [Notification].
   @DomName('Notification.onclose')
   @DocsEditable()
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
+  /// Stream of `display` events handled by this [Notification].
   @DomName('Notification.ondisplay')
   @DocsEditable()
   @Experimental() // nonstandard
   Stream<Event> get onDisplay => displayEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [Notification].
   @DomName('Notification.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `show` events handled by this [Notification].
   @DomName('Notification.onshow')
   @DocsEditable()
   Stream<Event> get onShow => showEvent.forTarget(this);
@@ -18614,6 +19810,12 @@ class Performance extends EventTarget native "Performance" {
   // To suppress missing implicit constructor warnings.
   factory Performance._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `resourcetimingbufferfull` events to event
+   * handlers that are not necessarily instances of [Performance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Performance.webkitresourcetimingbufferfullEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -18702,6 +19904,7 @@ class Performance extends EventTarget native "Performance" {
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void setResourceTimingBufferSize(int maxSize) native;
 
+  /// Stream of `resourcetimingbufferfull` events handled by this [Performance].
   @DomName('Performance.onwebkitresourcetimingbufferfull')
   @DocsEditable()
   // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
@@ -19615,18 +20818,42 @@ class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
   // To suppress missing implicit constructor warnings.
   factory RtcDataChannel._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `close` events to event
+   * handlers that are not necessarily instances of [RtcDataChannel].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCDataChannel.closeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [RtcDataChannel].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCDataChannel.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [RtcDataChannel].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCDataChannel.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  /**
+   * Static factory designed to expose `open` events to event
+   * handlers that are not necessarily instances of [RtcDataChannel].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCDataChannel.openEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
@@ -19709,18 +20936,22 @@ class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
   @DocsEditable()
   void sendTypedData(TypedData data) native;
 
+  /// Stream of `close` events handled by this [RtcDataChannel].
   @DomName('RTCDataChannel.onclose')
   @DocsEditable()
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [RtcDataChannel].
   @DomName('RTCDataChannel.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `message` events handled by this [RtcDataChannel].
   @DomName('RTCDataChannel.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  /// Stream of `open` events handled by this [RtcDataChannel].
   @DomName('RTCDataChannel.onopen')
   @DocsEditable()
   Stream<Event> get onOpen => openEvent.forTarget(this);
@@ -19755,6 +20986,12 @@ class RtcDtmfSender extends EventTarget native "RTCDTMFSender" {
   // To suppress missing implicit constructor warnings.
   factory RtcDtmfSender._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `tonechange` events to event
+   * handlers that are not necessarily instances of [RtcDtmfSender].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCDTMFSender.tonechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<RtcDtmfToneChangeEvent> toneChangeEvent = const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
@@ -19785,6 +21022,7 @@ class RtcDtmfSender extends EventTarget native "RTCDTMFSender" {
   @DocsEditable()
   void insertDtmf(String tones, [int duration, int interToneGap]) native;
 
+  /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   @DomName('RTCDTMFSender.ontonechange')
   @DocsEditable()
   Stream<RtcDtmfToneChangeEvent> get onToneChange => toneChangeEvent.forTarget(this);
@@ -19923,30 +21161,72 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   // To suppress missing implicit constructor warnings.
   factory RtcPeerConnection._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `addstream` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.addstreamEvent')
   @DocsEditable()
   static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
 
+  /**
+   * Static factory designed to expose `datachannel` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.datachannelEvent')
   @DocsEditable()
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
+  /**
+   * Static factory designed to expose `icecandidate` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.icecandidateEvent')
   @DocsEditable()
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
 
+  /**
+   * Static factory designed to expose `iceconnectionstatechange` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.iceconnectionstatechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> iceConnectionStateChangeEvent = const EventStreamProvider<Event>('iceconnectionstatechange');
 
+  /**
+   * Static factory designed to expose `negotiationneeded` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.negotiationneededEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
 
+  /**
+   * Static factory designed to expose `removestream` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.removestreamEvent')
   @DocsEditable()
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
 
+  /**
+   * Static factory designed to expose `signalingstatechange` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('RTCPeerConnection.signalingstatechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> signalingStateChangeEvent = const EventStreamProvider<Event>('signalingstatechange');
@@ -20145,30 +21425,37 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DocsEditable()
   void _updateIce_3() native;
 
+  /// Stream of `addstream` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onaddstream')
   @DocsEditable()
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
 
+  /// Stream of `datachannel` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.ondatachannel')
   @DocsEditable()
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
 
+  /// Stream of `icecandidate` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onicecandidate')
   @DocsEditable()
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
 
+  /// Stream of `iceconnectionstatechange` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.oniceconnectionstatechange')
   @DocsEditable()
   Stream<Event> get onIceConnectionStateChange => iceConnectionStateChangeEvent.forTarget(this);
 
+  /// Stream of `negotiationneeded` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onnegotiationneeded')
   @DocsEditable()
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
 
+  /// Stream of `removestream` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onremovestream')
   @DocsEditable()
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
 
+  /// Stream of `signalingstatechange` events handled by this [RtcPeerConnection].
   @DomName('RTCPeerConnection.onsignalingstatechange')
   @DocsEditable()
   Stream<Event> get onSignalingStateChange => signalingStateChangeEvent.forTarget(this);
@@ -20893,6 +22180,12 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope native "SharedWorkerGlob
   // To suppress missing implicit constructor warnings.
   factory SharedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `connect` events to event
+   * handlers that are not necessarily instances of [SharedWorkerGlobalScope].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SharedWorkerGlobalScope.connectEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -20903,6 +22196,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope native "SharedWorkerGlob
   @Experimental() // untriaged
   final String name;
 
+  /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   @DomName('SharedWorkerGlobalScope.onconnect')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21281,46 +22575,112 @@ class SpeechRecognition extends EventTarget native "SpeechRecognition" {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognition._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `audioend` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.audioendEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
 
+  /**
+   * Static factory designed to expose `audiostart` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.audiostartEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> audioStartEvent = const EventStreamProvider<Event>('audiostart');
 
+  /**
+   * Static factory designed to expose `end` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.endEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> endEvent = const EventStreamProvider<Event>('end');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechRecognitionError> errorEvent = const EventStreamProvider<SpeechRecognitionError>('error');
 
+  /**
+   * Static factory designed to expose `nomatch` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.nomatchEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechRecognitionEvent> noMatchEvent = const EventStreamProvider<SpeechRecognitionEvent>('nomatch');
 
+  /**
+   * Static factory designed to expose `result` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.resultEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechRecognitionEvent> resultEvent = const EventStreamProvider<SpeechRecognitionEvent>('result');
 
+  /**
+   * Static factory designed to expose `soundend` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.soundendEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> soundEndEvent = const EventStreamProvider<Event>('soundend');
 
+  /**
+   * Static factory designed to expose `soundstart` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.soundstartEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> soundStartEvent = const EventStreamProvider<Event>('soundstart');
 
+  /**
+   * Static factory designed to expose `speechend` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.speechendEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> speechEndEvent = const EventStreamProvider<Event>('speechend');
 
+  /**
+   * Static factory designed to expose `speechstart` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.speechstartEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> speechStartEvent = const EventStreamProvider<Event>('speechstart');
 
+  /**
+   * Static factory designed to expose `start` events to event
+   * handlers that are not necessarily instances of [SpeechRecognition].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechRecognition.startEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
@@ -21360,46 +22720,57 @@ class SpeechRecognition extends EventTarget native "SpeechRecognition" {
   @DocsEditable()
   void stop() native;
 
+  /// Stream of `audioend` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onaudioend')
   @DocsEditable()
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
 
+  /// Stream of `audiostart` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onaudiostart')
   @DocsEditable()
   Stream<Event> get onAudioStart => audioStartEvent.forTarget(this);
 
+  /// Stream of `end` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onend')
   @DocsEditable()
   Stream<Event> get onEnd => endEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onerror')
   @DocsEditable()
   Stream<SpeechRecognitionError> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `nomatch` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onnomatch')
   @DocsEditable()
   Stream<SpeechRecognitionEvent> get onNoMatch => noMatchEvent.forTarget(this);
 
+  /// Stream of `result` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onresult')
   @DocsEditable()
   Stream<SpeechRecognitionEvent> get onResult => resultEvent.forTarget(this);
 
+  /// Stream of `soundend` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onsoundend')
   @DocsEditable()
   Stream<Event> get onSoundEnd => soundEndEvent.forTarget(this);
 
+  /// Stream of `soundstart` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onsoundstart')
   @DocsEditable()
   Stream<Event> get onSoundStart => soundStartEvent.forTarget(this);
 
+  /// Stream of `speechend` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onspeechend')
   @DocsEditable()
   Stream<Event> get onSpeechEnd => speechEndEvent.forTarget(this);
 
+  /// Stream of `speechstart` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onspeechstart')
   @DocsEditable()
   Stream<Event> get onSpeechStart => speechStartEvent.forTarget(this);
 
+  /// Stream of `start` events handled by this [SpeechRecognition].
   @DomName('SpeechRecognition.onstart')
   @DocsEditable()
   Stream<Event> get onStart => startEvent.forTarget(this);
@@ -21594,30 +22965,72 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisUtterance._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `boundary` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.boundaryEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechSynthesisEvent> boundaryEvent = const EventStreamProvider<SpeechSynthesisEvent>('boundary');
 
+  /**
+   * Static factory designed to expose `end` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.endEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechSynthesisEvent> endEvent = const EventStreamProvider<SpeechSynthesisEvent>('end');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `mark` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.markEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechSynthesisEvent> markEvent = const EventStreamProvider<SpeechSynthesisEvent>('mark');
 
+  /**
+   * Static factory designed to expose `pause` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.pauseEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
+  /**
+   * Static factory designed to expose `resume` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.resumeEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechSynthesisEvent> resumeEvent = const EventStreamProvider<SpeechSynthesisEvent>('resume');
 
+  /**
+   * Static factory designed to expose `start` events to event
+   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('SpeechSynthesisUtterance.startEvent')
   @DocsEditable()
   static const EventStreamProvider<SpeechSynthesisEvent> startEvent = const EventStreamProvider<SpeechSynthesisEvent>('start');
@@ -21657,30 +23070,37 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
   @DocsEditable()
   num volume;
 
+  /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable()
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
 
+  /// Stream of `end` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onend')
   @DocsEditable()
   Stream<SpeechSynthesisEvent> get onEnd => endEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `mark` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onmark')
   @DocsEditable()
   Stream<SpeechSynthesisEvent> get onMark => markEvent.forTarget(this);
 
+  /// Stream of `pause` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onpause')
   @DocsEditable()
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
+  /// Stream of `resume` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onresume')
   @DocsEditable()
   Stream<SpeechSynthesisEvent> get onResume => resumeEvent.forTarget(this);
 
+  /// Stream of `start` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onstart')
   @DocsEditable()
   Stream<SpeechSynthesisEvent> get onStart => startEvent.forTarget(this);
@@ -22755,6 +24175,12 @@ class TextTrack extends EventTarget native "TextTrack" {
   // To suppress missing implicit constructor warnings.
   factory TextTrack._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `cuechange` events to event
+   * handlers that are not necessarily instances of [TextTrack].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('TextTrack.cuechangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
@@ -22791,6 +24217,7 @@ class TextTrack extends EventTarget native "TextTrack" {
   @DocsEditable()
   void removeCue(TextTrackCue cue) native;
 
+  /// Stream of `cuechange` events handled by this [TextTrack].
   @DomName('TextTrack.oncuechange')
   @DocsEditable()
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
@@ -22808,10 +24235,22 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCue._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `enter` events to event
+   * handlers that are not necessarily instances of [TextTrackCue].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('TextTrackCue.enterEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
 
+  /**
+   * Static factory designed to expose `exit` events to event
+   * handlers that are not necessarily instances of [TextTrackCue].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('TextTrackCue.exitEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
@@ -22884,10 +24323,12 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
   @Experimental() // nonstandard
   DocumentFragment getCueAsHtml() native;
 
+  /// Stream of `enter` events handled by this [TextTrackCue].
   @DomName('TextTrackCue.onenter')
   @DocsEditable()
   Stream<Event> get onEnter => enterEvent.forTarget(this);
 
+  /// Stream of `exit` events handled by this [TextTrackCue].
   @DomName('TextTrackCue.onexit')
   @DocsEditable()
   Stream<Event> get onExit => exitEvent.forTarget(this);
@@ -22974,6 +24415,12 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `addtrack` events to event
+   * handlers that are not necessarily instances of [TextTrackList].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('TextTrackList.addtrackEvent')
   @DocsEditable()
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
@@ -23030,6 +24477,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DocsEditable()
   TextTrack item(int index) native;
 
+  /// Stream of `addtrack` events handled by this [TextTrackList].
   @DomName('TextTrackList.onaddtrack')
   @DocsEditable()
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
@@ -23872,18 +25320,42 @@ class WebSocket extends EventTarget native "WebSocket" {
   // To suppress missing implicit constructor warnings.
   factory WebSocket._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `close` events to event
+   * handlers that are not necessarily instances of [WebSocket].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('WebSocket.closeEvent')
   @DocsEditable()
   static const EventStreamProvider<CloseEvent> closeEvent = const EventStreamProvider<CloseEvent>('close');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [WebSocket].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('WebSocket.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [WebSocket].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('WebSocket.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  /**
+   * Static factory designed to expose `open` events to event
+   * handlers that are not necessarily instances of [WebSocket].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('WebSocket.openEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
@@ -24012,18 +25484,22 @@ class WebSocket extends EventTarget native "WebSocket" {
   @DocsEditable()
   void sendTypedData(TypedData data) native;
 
+  /// Stream of `close` events handled by this [WebSocket].
   @DomName('WebSocket.onclose')
   @DocsEditable()
   Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [WebSocket].
   @DomName('WebSocket.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `message` events handled by this [WebSocket].
   @DomName('WebSocket.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  /// Stream of `open` events handled by this [WebSocket].
   @DomName('WebSocket.onopen')
   @DocsEditable()
   Stream<Event> get onOpen => openEvent.forTarget(this);
@@ -24559,62 +26035,146 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   // To suppress missing implicit constructor warnings.
   factory Window._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `contentloaded` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.DOMContentLoadedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
+  /**
+   * Static factory designed to expose `devicemotion` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.devicemotionEvent')
   @DocsEditable()
   // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
   @Experimental()
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
+  /**
+   * Static factory designed to expose `deviceorientation` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.deviceorientationEvent')
   @DocsEditable()
   // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
   @Experimental()
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
+  /**
+   * Static factory designed to expose `hashchange` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.hashchangeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  /**
+   * Static factory designed to expose `offline` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.offlineEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
+  /**
+   * Static factory designed to expose `online` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.onlineEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
+  /**
+   * Static factory designed to expose `pagehide` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.pagehideEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
 
+  /**
+   * Static factory designed to expose `pageshow` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.pageshowEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
+  /**
+   * Static factory designed to expose `popstate` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.popstateEvent')
   @DocsEditable()
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
+  /**
+   * Static factory designed to expose `resize` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.resizeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
+  /**
+   * Static factory designed to expose `storage` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.storageEvent')
   @DocsEditable()
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
+  /**
+   * Static factory designed to expose `unload` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.unloadEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
+  /**
+   * Static factory designed to expose `animationend` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.webkitAnimationEndEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -24622,6 +26182,12 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental()
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
+  /**
+   * Static factory designed to expose `animationiteration` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.webkitAnimationIterationEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -24629,6 +26195,12 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental()
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
+  /**
+   * Static factory designed to expose `animationstart` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.webkitAnimationStartEvent')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -25079,253 +26651,313 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   int _setTimeout(Object handler, int timeout) native;
 
+  /// Stream of `contentloaded` events handled by this [Window].
   @DomName('Window.onDOMContentLoaded')
   @DocsEditable()
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
+  /// Stream of `abort` events handled by this [Window].
   @DomName('Window.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
+  /// Stream of `blur` events handled by this [Window].
   @DomName('Window.onblur')
   @DocsEditable()
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
+  /// Stream of `change` events handled by this [Window].
   @DomName('Window.onchange')
   @DocsEditable()
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
+  /// Stream of `click` events handled by this [Window].
   @DomName('Window.onclick')
   @DocsEditable()
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
+  /// Stream of `contextmenu` events handled by this [Window].
   @DomName('Window.oncontextmenu')
   @DocsEditable()
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
+  /// Stream of `doubleclick` events handled by this [Window].
   @DomName('Window.ondblclick')
   @DocsEditable()
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
+  /// Stream of `devicemotion` events handled by this [Window].
   @DomName('Window.ondevicemotion')
   @DocsEditable()
   // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
   @Experimental()
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
+  /// Stream of `deviceorientation` events handled by this [Window].
   @DomName('Window.ondeviceorientation')
   @DocsEditable()
   // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
   @Experimental()
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
+  /// Stream of `drag` events handled by this [Window].
   @DomName('Window.ondrag')
   @DocsEditable()
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
+  /// Stream of `dragend` events handled by this [Window].
   @DomName('Window.ondragend')
   @DocsEditable()
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
+  /// Stream of `dragenter` events handled by this [Window].
   @DomName('Window.ondragenter')
   @DocsEditable()
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
+  /// Stream of `dragleave` events handled by this [Window].
   @DomName('Window.ondragleave')
   @DocsEditable()
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
+  /// Stream of `dragover` events handled by this [Window].
   @DomName('Window.ondragover')
   @DocsEditable()
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
+  /// Stream of `dragstart` events handled by this [Window].
   @DomName('Window.ondragstart')
   @DocsEditable()
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
+  /// Stream of `drop` events handled by this [Window].
   @DomName('Window.ondrop')
   @DocsEditable()
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [Window].
   @DomName('Window.onerror')
   @DocsEditable()
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
+  /// Stream of `focus` events handled by this [Window].
   @DomName('Window.onfocus')
   @DocsEditable()
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
+  /// Stream of `hashchange` events handled by this [Window].
   @DomName('Window.onhashchange')
   @DocsEditable()
   Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
+  /// Stream of `input` events handled by this [Window].
   @DomName('Window.oninput')
   @DocsEditable()
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
+  /// Stream of `invalid` events handled by this [Window].
   @DomName('Window.oninvalid')
   @DocsEditable()
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
+  /// Stream of `keydown` events handled by this [Window].
   @DomName('Window.onkeydown')
   @DocsEditable()
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
+  /// Stream of `keypress` events handled by this [Window].
   @DomName('Window.onkeypress')
   @DocsEditable()
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
+  /// Stream of `keyup` events handled by this [Window].
   @DomName('Window.onkeyup')
   @DocsEditable()
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
+  /// Stream of `load` events handled by this [Window].
   @DomName('Window.onload')
   @DocsEditable()
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
+  /// Stream of `message` events handled by this [Window].
   @DomName('Window.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  /// Stream of `mousedown` events handled by this [Window].
   @DomName('Window.onmousedown')
   @DocsEditable()
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
+  /// Stream of `mouseenter` events handled by this [Window].
   @DomName('Window.onmouseenter')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<MouseEvent> get onMouseEnter => Element.mouseEnterEvent.forTarget(this);
 
+  /// Stream of `mouseleave` events handled by this [Window].
   @DomName('Window.onmouseleave')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<MouseEvent> get onMouseLeave => Element.mouseLeaveEvent.forTarget(this);
 
+  /// Stream of `mousemove` events handled by this [Window].
   @DomName('Window.onmousemove')
   @DocsEditable()
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
+  /// Stream of `mouseout` events handled by this [Window].
   @DomName('Window.onmouseout')
   @DocsEditable()
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
+  /// Stream of `mouseover` events handled by this [Window].
   @DomName('Window.onmouseover')
   @DocsEditable()
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
+  /// Stream of `mouseup` events handled by this [Window].
   @DomName('Window.onmouseup')
   @DocsEditable()
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
+  /// Stream of `mousewheel` events handled by this [Window].
   @DomName('Window.onmousewheel')
   @DocsEditable()
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
+  /// Stream of `offline` events handled by this [Window].
   @DomName('Window.onoffline')
   @DocsEditable()
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
+  /// Stream of `online` events handled by this [Window].
   @DomName('Window.ononline')
   @DocsEditable()
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
+  /// Stream of `pagehide` events handled by this [Window].
   @DomName('Window.onpagehide')
   @DocsEditable()
   Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
 
+  /// Stream of `pageshow` events handled by this [Window].
   @DomName('Window.onpageshow')
   @DocsEditable()
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
+  /// Stream of `popstate` events handled by this [Window].
   @DomName('Window.onpopstate')
   @DocsEditable()
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
+  /// Stream of `reset` events handled by this [Window].
   @DomName('Window.onreset')
   @DocsEditable()
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
+  /// Stream of `resize` events handled by this [Window].
   @DomName('Window.onresize')
   @DocsEditable()
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
+  /// Stream of `scroll` events handled by this [Window].
   @DomName('Window.onscroll')
   @DocsEditable()
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
+  /// Stream of `search` events handled by this [Window].
   @DomName('Window.onsearch')
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
+  /// Stream of `select` events handled by this [Window].
   @DomName('Window.onselect')
   @DocsEditable()
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
+  /// Stream of `storage` events handled by this [Window].
   @DomName('Window.onstorage')
   @DocsEditable()
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
+  /// Stream of `submit` events handled by this [Window].
   @DomName('Window.onsubmit')
   @DocsEditable()
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
+  /// Stream of `touchcancel` events handled by this [Window].
   @DomName('Window.ontouchcancel')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
+  /// Stream of `touchend` events handled by this [Window].
   @DomName('Window.ontouchend')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
+  /// Stream of `touchmove` events handled by this [Window].
   @DomName('Window.ontouchmove')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
+  /// Stream of `touchstart` events handled by this [Window].
   @DomName('Window.ontouchstart')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  /// Stream of `transitionend` events handled by this [Window].
   @DomName('Window.ontransitionend')
   @DocsEditable()
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
+  /// Stream of `unload` events handled by this [Window].
   @DomName('Window.onunload')
   @DocsEditable()
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
+  /// Stream of `animationend` events handled by this [Window].
   @DomName('Window.onwebkitAnimationEnd')
   @DocsEditable()
   @Experimental()
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
+  /// Stream of `animationiteration` events handled by this [Window].
   @DomName('Window.onwebkitAnimationIteration')
   @DocsEditable()
   @Experimental()
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
+  /// Stream of `animationstart` events handled by this [Window].
   @DomName('Window.onwebkitAnimationStart')
   @DocsEditable()
   @Experimental()
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
 
+  /**
+   * Static factory designed to expose `beforeunload` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.beforeunloadEvent')
-  @DocsEditable()
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
       const _BeforeUnloadEventStreamProvider('beforeunload');
 
+  /// Stream of `beforeunload` events handled by this [Window].
   @DomName('Window.onbeforeunload')
-  @DocsEditable()
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   void moveTo(Point p) {
@@ -25410,11 +27042,23 @@ class Worker extends EventTarget implements AbstractWorker native "Worker" {
   // To suppress missing implicit constructor warnings.
   factory Worker._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [Worker].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Worker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `message` events to event
+   * handlers that are not necessarily instances of [Worker].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Worker.messageEvent')
   @DocsEditable()
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
@@ -25437,11 +27081,13 @@ class Worker extends EventTarget implements AbstractWorker native "Worker" {
   @DocsEditable()
   void terminate() native;
 
+  /// Stream of `error` events handled by this [Worker].
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `message` events handled by this [Worker].
   @DomName('Worker.onmessage')
   @DocsEditable()
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -25489,6 +27135,12 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   // To suppress missing implicit constructor warnings.
   factory WorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [WorkerGlobalScope].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('WorkerGlobalScope.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -25651,6 +27303,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @Experimental() // untriaged
   int setTimeout(Object handler, int timeout) native;
 
+  /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
   @DocsEditable()
   @Experimental() // untriaged

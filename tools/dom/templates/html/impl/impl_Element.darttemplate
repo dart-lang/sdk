@@ -828,6 +828,12 @@ $endif
   }
 
 $if DART2JS
+  /**
+   * Static factory designed to expose `mousewheel` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
@@ -846,6 +852,12 @@ $if DART2JS
     }
   }
 
+  /**
+   * Static factory designed to expose `transitionend` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Element.transitionEndEvent')
   static const EventStreamProvider<TransitionEvent> transitionEndEvent =
       const _CustomEventStreamProvider<TransitionEvent>(

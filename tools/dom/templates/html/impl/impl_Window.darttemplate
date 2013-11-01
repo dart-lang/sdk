@@ -271,13 +271,18 @@ $endif
   static bool get supportsPointConversions => _DomPoint.supported;
 $!MEMBERS
 
+  /**
+   * Static factory designed to expose `beforeunload` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Window.beforeunloadEvent')
-  @DocsEditable()
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
       const _BeforeUnloadEventStreamProvider('beforeunload');
 
+  /// Stream of `beforeunload` events handled by this [Window].
   @DomName('Window.onbeforeunload')
-  @DocsEditable()
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   void moveTo(Point p) {

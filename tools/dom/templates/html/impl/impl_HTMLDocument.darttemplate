@@ -238,6 +238,12 @@ $else
   }
 $endif
 
+  /**
+   * Static factory designed to expose `visibilitychange` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('Document.visibilityChange')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)

@@ -1,5 +1,112 @@
 {
   "dart.dom.html": {
+    "AbstractWorker": {
+      "members": {
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [AbstractWorker].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [AbstractWorker]."
+        ]
+      }
+    },
+    "ApplicationCache": {
+      "members": {
+        "cachedEvent": [
+          "/**",
+          "   * Static factory designed to expose `cached` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "checkingEvent": [
+          "/**",
+          "   * Static factory designed to expose `checking` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "downloadingEvent": [
+          "/**",
+          "   * Static factory designed to expose `downloading` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "noupdateEvent": [
+          "/**",
+          "   * Static factory designed to expose `noupdate` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "obsoleteEvent": [
+          "/**",
+          "   * Static factory designed to expose `obsolete` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "oncached": [
+          "/// Stream of `cached` events handled by this [ApplicationCache]."
+        ],
+        "onchecking": [
+          "/// Stream of `checking` events handled by this [ApplicationCache]."
+        ],
+        "ondownloading": [
+          "/// Stream of `downloading` events handled by this [ApplicationCache]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [ApplicationCache]."
+        ],
+        "onnoupdate": [
+          "/// Stream of `noupdate` events handled by this [ApplicationCache]."
+        ],
+        "onobsolete": [
+          "/// Stream of `obsolete` events handled by this [ApplicationCache]."
+        ],
+        "onprogress": [
+          "/// Stream of `progress` events handled by this [ApplicationCache]."
+        ],
+        "onupdateready": [
+          "/// Stream of `updateready` events handled by this [ApplicationCache]."
+        ],
+        "progressEvent": [
+          "/**",
+          "   * Static factory designed to expose `progress` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "updatereadyEvent": [
+          "/**",
+          "   * Static factory designed to expose `updateready` events to event",
+          "   * handlers that are not necessarily instances of [ApplicationCache].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
     "CanvasGradient": {
       "comment": [
         "/**",
@@ -114,6 +221,21 @@
         ]
       }
     },
+    "DedicatedWorkerGlobalScope": {
+      "members": {
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [DedicatedWorkerGlobalScope].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [DedicatedWorkerGlobalScope]."
+        ]
+      }
+    },
     "Document": {
       "comment": [
         "/**",
@@ -127,6 +249,162 @@
         " */"
       ],
       "members": {
+        "onabort": [
+          "/// Stream of `abort` events handled by this [Document]."
+        ],
+        "onbeforecopy": [
+          "/// Stream of `beforecopy` events handled by this [Document]."
+        ],
+        "onbeforecut": [
+          "/// Stream of `beforecut` events handled by this [Document]."
+        ],
+        "onbeforepaste": [
+          "/// Stream of `beforepaste` events handled by this [Document]."
+        ],
+        "onblur": [
+          "/// Stream of `blur` events handled by this [Document]."
+        ],
+        "onchange": [
+          "/// Stream of `change` events handled by this [Document]."
+        ],
+        "onclick": [
+          "/// Stream of `click` events handled by this [Document]."
+        ],
+        "oncontextmenu": [
+          "/// Stream of `contextmenu` events handled by this [Document]."
+        ],
+        "oncopy": [
+          "/// Stream of `copy` events handled by this [Document]."
+        ],
+        "oncut": [
+          "/// Stream of `cut` events handled by this [Document]."
+        ],
+        "ondblclick": [
+          "/// Stream of `doubleclick` events handled by this [Document]."
+        ],
+        "ondrag": [
+          "/// Stream of `drag` events handled by this [Document]."
+        ],
+        "ondragend": [
+          "/// Stream of `dragend` events handled by this [Document]."
+        ],
+        "ondragenter": [
+          "/// Stream of `dragenter` events handled by this [Document]."
+        ],
+        "ondragleave": [
+          "/// Stream of `dragleave` events handled by this [Document]."
+        ],
+        "ondragover": [
+          "/// Stream of `dragover` events handled by this [Document]."
+        ],
+        "ondragstart": [
+          "/// Stream of `dragstart` events handled by this [Document]."
+        ],
+        "ondrop": [
+          "/// Stream of `drop` events handled by this [Document]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Document]."
+        ],
+        "onfocus": [
+          "/// Stream of `focus` events handled by this [Document]."
+        ],
+        "oninput": [
+          "/// Stream of `input` events handled by this [Document]."
+        ],
+        "oninvalid": [
+          "/// Stream of `invalid` events handled by this [Document]."
+        ],
+        "onkeydown": [
+          "/// Stream of `keydown` events handled by this [Document]."
+        ],
+        "onkeypress": [
+          "/// Stream of `keypress` events handled by this [Document]."
+        ],
+        "onkeyup": [
+          "/// Stream of `keyup` events handled by this [Document]."
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [Document]."
+        ],
+        "onmousedown": [
+          "/// Stream of `mousedown` events handled by this [Document]."
+        ],
+        "onmouseenter": [
+          "/// Stream of `mouseenter` events handled by this [Document]."
+        ],
+        "onmouseleave": [
+          "/// Stream of `mouseleave` events handled by this [Document]."
+        ],
+        "onmousemove": [
+          "/// Stream of `mousemove` events handled by this [Document]."
+        ],
+        "onmouseout": [
+          "/// Stream of `mouseout` events handled by this [Document]."
+        ],
+        "onmouseover": [
+          "/// Stream of `mouseover` events handled by this [Document]."
+        ],
+        "onmouseup": [
+          "/// Stream of `mouseup` events handled by this [Document]."
+        ],
+        "onmousewheel": [
+          "/// Stream of `mousewheel` events handled by this [Document]."
+        ],
+        "onpaste": [
+          "/// Stream of `paste` events handled by this [Document]."
+        ],
+        "onreadystatechange": [
+          "/// Stream of `readystatechange` events handled by this [Document]."
+        ],
+        "onreset": [
+          "/// Stream of `reset` events handled by this [Document]."
+        ],
+        "onscroll": [
+          "/// Stream of `scroll` events handled by this [Document]."
+        ],
+        "onsearch": [
+          "/// Stream of `search` events handled by this [Document]."
+        ],
+        "onsecuritypolicyviolation": [
+          "/// Stream of `securitypolicyviolation` events handled by this [Document]."
+        ],
+        "onselect": [
+          "/// Stream of `select` events handled by this [Document]."
+        ],
+        "onselectionchange": [
+          "/// Stream of `selectionchange` events handled by this [Document]."
+        ],
+        "onselectstart": [
+          "/// Stream of `selectstart` events handled by this [Document]."
+        ],
+        "onsubmit": [
+          "/// Stream of `submit` events handled by this [Document]."
+        ],
+        "ontouchcancel": [
+          "/// Stream of `touchcancel` events handled by this [Document]."
+        ],
+        "ontouchend": [
+          "/// Stream of `touchend` events handled by this [Document]."
+        ],
+        "ontouchmove": [
+          "/// Stream of `touchmove` events handled by this [Document]."
+        ],
+        "ontouchstart": [
+          "/// Stream of `touchstart` events handled by this [Document]."
+        ],
+        "onwebkitfullscreenchange": [
+          "/// Stream of `fullscreenchange` events handled by this [Document]."
+        ],
+        "onwebkitfullscreenerror": [
+          "/// Stream of `fullscreenerror` events handled by this [Document]."
+        ],
+        "onwebkitpointerlockchange": [
+          "/// Stream of `pointerlockchange` events handled by this [Document]."
+        ],
+        "onwebkitpointerlockerror": [
+          "/// Stream of `pointerlockerror` events handled by this [Document]."
+        ],
         "querySelector": [
           "/**",
           "   * Finds the first descendant element of this document that matches the",
@@ -144,6 +422,46 @@
           "   * For details about CSS selector syntax, see the",
           "   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).",
           "   */"
+        ],
+        "readystatechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `readystatechange` events to event",
+          "   * handlers that are not necessarily instances of [Document].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "securitypolicyviolationEvent": [
+          "/**",
+          "   * Static factory designed to expose `securitypolicyviolation` events to event",
+          "   * handlers that are not necessarily instances of [Document].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "selectionchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `selectionchange` events to event",
+          "   * handlers that are not necessarily instances of [Document].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitpointerlockchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `pointerlockchange` events to event",
+          "   * handlers that are not necessarily instances of [Document].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitpointerlockerrorEvent": [
+          "/**",
+          "   * Static factory designed to expose `pointerlockerror` events to event",
+          "   * handlers that are not necessarily instances of [Document].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
         ]
       }
     },
@@ -154,6 +472,428 @@
         " */"
       ],
       "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "beforecopyEvent": [
+          "/**",
+          "   * Static factory designed to expose `beforecopy` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "beforecutEvent": [
+          "/**",
+          "   * Static factory designed to expose `beforecut` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "beforepasteEvent": [
+          "/**",
+          "   * Static factory designed to expose `beforepaste` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "blurEvent": [
+          "/**",
+          "   * Static factory designed to expose `blur` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "changeEvent": [
+          "/**",
+          "   * Static factory designed to expose `change` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "clickEvent": [
+          "/**",
+          "   * Static factory designed to expose `click` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "contextmenuEvent": [
+          "/**",
+          "   * Static factory designed to expose `contextmenu` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "copyEvent": [
+          "/**",
+          "   * Static factory designed to expose `copy` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "cutEvent": [
+          "/**",
+          "   * Static factory designed to expose `cut` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dblclickEvent": [
+          "/**",
+          "   * Static factory designed to expose `doubleclick` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragendEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragend` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragenterEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragenter` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragEvent": [
+          "/**",
+          "   * Static factory designed to expose `drag` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragleaveEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragleave` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragoverEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragover` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragstart` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dropEvent": [
+          "/**",
+          "   * Static factory designed to expose `drop` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "focusEvent": [
+          "/**",
+          "   * Static factory designed to expose `focus` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "inputEvent": [
+          "/**",
+          "   * Static factory designed to expose `input` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "invalidEvent": [
+          "/**",
+          "   * Static factory designed to expose `invalid` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "keydownEvent": [
+          "/**",
+          "   * Static factory designed to expose `keydown` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "keypressEvent": [
+          "/**",
+          "   * Static factory designed to expose `keypress` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "keyupEvent": [
+          "/**",
+          "   * Static factory designed to expose `keyup` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadEvent": [
+          "/**",
+          "   * Static factory designed to expose `load` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mousedownEvent": [
+          "/**",
+          "   * Static factory designed to expose `mousedown` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseenterEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseenter` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseleaveEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseleave` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mousemoveEvent": [
+          "/**",
+          "   * Static factory designed to expose `mousemove` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseoutEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseout` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseoverEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseover` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseupEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseup` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [Element]."
+        ],
+        "onbeforecopy": [
+          "/// Stream of `beforecopy` events handled by this [Element]."
+        ],
+        "onbeforecut": [
+          "/// Stream of `beforecut` events handled by this [Element]."
+        ],
+        "onbeforepaste": [
+          "/// Stream of `beforepaste` events handled by this [Element]."
+        ],
+        "onblur": [
+          "/// Stream of `blur` events handled by this [Element]."
+        ],
+        "onchange": [
+          "/// Stream of `change` events handled by this [Element]."
+        ],
+        "onclick": [
+          "/// Stream of `click` events handled by this [Element]."
+        ],
+        "oncontextmenu": [
+          "/// Stream of `contextmenu` events handled by this [Element]."
+        ],
+        "oncopy": [
+          "/// Stream of `copy` events handled by this [Element]."
+        ],
+        "oncut": [
+          "/// Stream of `cut` events handled by this [Element]."
+        ],
+        "ondblclick": [
+          "/// Stream of `doubleclick` events handled by this [Element]."
+        ],
+        "ondrag": [
+          "/// Stream of `drag` events handled by this [Element]."
+        ],
+        "ondragend": [
+          "/// Stream of `dragend` events handled by this [Element]."
+        ],
+        "ondragenter": [
+          "/// Stream of `dragenter` events handled by this [Element]."
+        ],
+        "ondragleave": [
+          "/// Stream of `dragleave` events handled by this [Element]."
+        ],
+        "ondragover": [
+          "/// Stream of `dragover` events handled by this [Element]."
+        ],
+        "ondragstart": [
+          "/// Stream of `dragstart` events handled by this [Element]."
+        ],
+        "ondrop": [
+          "/// Stream of `drop` events handled by this [Element]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Element]."
+        ],
+        "onfocus": [
+          "/// Stream of `focus` events handled by this [Element]."
+        ],
+        "oninput": [
+          "/// Stream of `input` events handled by this [Element]."
+        ],
+        "oninvalid": [
+          "/// Stream of `invalid` events handled by this [Element]."
+        ],
+        "onkeydown": [
+          "/// Stream of `keydown` events handled by this [Element]."
+        ],
+        "onkeypress": [
+          "/// Stream of `keypress` events handled by this [Element]."
+        ],
+        "onkeyup": [
+          "/// Stream of `keyup` events handled by this [Element]."
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [Element]."
+        ],
+        "onmousedown": [
+          "/// Stream of `mousedown` events handled by this [Element]."
+        ],
+        "onmouseenter": [
+          "/// Stream of `mouseenter` events handled by this [Element]."
+        ],
+        "onmouseleave": [
+          "/// Stream of `mouseleave` events handled by this [Element]."
+        ],
+        "onmousemove": [
+          "/// Stream of `mousemove` events handled by this [Element]."
+        ],
+        "onmouseout": [
+          "/// Stream of `mouseout` events handled by this [Element]."
+        ],
+        "onmouseover": [
+          "/// Stream of `mouseover` events handled by this [Element]."
+        ],
+        "onmouseup": [
+          "/// Stream of `mouseup` events handled by this [Element]."
+        ],
+        "onmousewheel": [
+          "/// Stream of `mousewheel` events handled by this [Element]."
+        ],
+        "onpaste": [
+          "/// Stream of `paste` events handled by this [Element]."
+        ],
+        "onreset": [
+          "/// Stream of `reset` events handled by this [Element]."
+        ],
+        "onscroll": [
+          "/// Stream of `scroll` events handled by this [Element]."
+        ],
+        "onsearch": [
+          "/// Stream of `search` events handled by this [Element]."
+        ],
+        "onselect": [
+          "/// Stream of `select` events handled by this [Element]."
+        ],
+        "onselectstart": [
+          "/// Stream of `selectstart` events handled by this [Element]."
+        ],
+        "onsubmit": [
+          "/// Stream of `submit` events handled by this [Element]."
+        ],
+        "ontouchcancel": [
+          "/// Stream of `touchcancel` events handled by this [Element]."
+        ],
+        "ontouchend": [
+          "/// Stream of `touchend` events handled by this [Element]."
+        ],
+        "ontouchenter": [
+          "/// Stream of `touchenter` events handled by this [Element]."
+        ],
+        "ontouchleave": [
+          "/// Stream of `touchleave` events handled by this [Element]."
+        ],
+        "ontouchmove": [
+          "/// Stream of `touchmove` events handled by this [Element]."
+        ],
+        "ontouchstart": [
+          "/// Stream of `touchstart` events handled by this [Element]."
+        ],
+        "ontransitionend": [
+          "/// Stream of `transitionend` events handled by this [Element]."
+        ],
+        "onwebkitfullscreenchange": [
+          "/// Stream of `fullscreenchange` events handled by this [Element]."
+        ],
+        "onwebkitfullscreenerror": [
+          "/// Stream of `fullscreenerror` events handled by this [Element]."
+        ],
+        "pasteEvent": [
+          "/**",
+          "   * Static factory designed to expose `paste` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
         "querySelector": [
           "/**",
           "   * Finds the first descendant element of this element that matches the",
@@ -172,6 +912,295 @@
           "   *",
           "   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)",
           "   */"
+        ],
+        "resetEvent": [
+          "/**",
+          "   * Static factory designed to expose `reset` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "scrollEvent": [
+          "/**",
+          "   * Static factory designed to expose `scroll` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "searchEvent": [
+          "/**",
+          "   * Static factory designed to expose `search` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "selectEvent": [
+          "/**",
+          "   * Static factory designed to expose `select` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "selectstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `selectstart` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "submitEvent": [
+          "/**",
+          "   * Static factory designed to expose `submit` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "touchcancelEvent": [
+          "/**",
+          "   * Static factory designed to expose `touchcancel` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "touchendEvent": [
+          "/**",
+          "   * Static factory designed to expose `touchend` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "touchenterEvent": [
+          "/**",
+          "   * Static factory designed to expose `touchenter` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "touchleaveEvent": [
+          "/**",
+          "   * Static factory designed to expose `touchleave` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "touchmoveEvent": [
+          "/**",
+          "   * Static factory designed to expose `touchmove` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "touchstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `touchstart` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitfullscreenchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `fullscreenchange` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitfullscreenerrorEvent": [
+          "/**",
+          "   * Static factory designed to expose `fullscreenerror` events to event",
+          "   * handlers that are not necessarily instances of [Element].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "EventSource": {
+      "members": {
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [EventSource].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [EventSource].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [EventSource]."
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [EventSource]."
+        ],
+        "onopen": [
+          "/// Stream of `open` events handled by this [EventSource]."
+        ],
+        "openEvent": [
+          "/**",
+          "   * Static factory designed to expose `open` events to event",
+          "   * handlers that are not necessarily instances of [EventSource].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "FileReader": {
+      "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [FileReader].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [FileReader].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadendEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadend` events to event",
+          "   * handlers that are not necessarily instances of [FileReader].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadEvent": [
+          "/**",
+          "   * Static factory designed to expose `load` events to event",
+          "   * handlers that are not necessarily instances of [FileReader].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadstart` events to event",
+          "   * handlers that are not necessarily instances of [FileReader].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [FileReader]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [FileReader]."
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [FileReader]."
+        ],
+        "onloadend": [
+          "/// Stream of `loadend` events handled by this [FileReader]."
+        ],
+        "onloadstart": [
+          "/// Stream of `loadstart` events handled by this [FileReader]."
+        ],
+        "onprogress": [
+          "/// Stream of `progress` events handled by this [FileReader]."
+        ],
+        "progressEvent": [
+          "/**",
+          "   * Static factory designed to expose `progress` events to event",
+          "   * handlers that are not necessarily instances of [FileReader].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "FileWriter": {
+      "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [FileWriter].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [FileWriter].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [FileWriter]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [FileWriter]."
+        ],
+        "onprogress": [
+          "/// Stream of `progress` events handled by this [FileWriter]."
+        ],
+        "onwrite": [
+          "/// Stream of `write` events handled by this [FileWriter]."
+        ],
+        "onwriteend": [
+          "/// Stream of `writeend` events handled by this [FileWriter]."
+        ],
+        "onwritestart": [
+          "/// Stream of `writestart` events handled by this [FileWriter]."
+        ],
+        "progressEvent": [
+          "/**",
+          "   * Static factory designed to expose `progress` events to event",
+          "   * handlers that are not necessarily instances of [FileWriter].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "writeendEvent": [
+          "/**",
+          "   * Static factory designed to expose `writeend` events to event",
+          "   * handlers that are not necessarily instances of [FileWriter].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "writeEvent": [
+          "/**",
+          "   * Static factory designed to expose `write` events to event",
+          "   * handlers that are not necessarily instances of [FileWriter].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "writestartEvent": [
+          "/**",
+          "   * Static factory designed to expose `writestart` events to event",
+          "   * handlers that are not necessarily instances of [FileWriter].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
         ]
       }
     },
@@ -189,10 +1218,168 @@
         " */"
       ]
     },
+    "HTMLBodyElement": {
+      "members": {
+        "blurEvent": [
+          "/**",
+          "   * Static factory designed to expose `blur` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "focusEvent": [
+          "/**",
+          "   * Static factory designed to expose `focus` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "hashchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `hashchange` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadEvent": [
+          "/**",
+          "   * Static factory designed to expose `load` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "offlineEvent": [
+          "/**",
+          "   * Static factory designed to expose `offline` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onblur": [
+          "/// Stream of `blur` events handled by this [BodyElement]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [BodyElement]."
+        ],
+        "onfocus": [
+          "/// Stream of `focus` events handled by this [BodyElement]."
+        ],
+        "onhashchange": [
+          "/// Stream of `hashchange` events handled by this [BodyElement]."
+        ],
+        "onlineEvent": [
+          "/**",
+          "   * Static factory designed to expose `online` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [BodyElement]."
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [BodyElement]."
+        ],
+        "onoffline": [
+          "/// Stream of `offline` events handled by this [BodyElement]."
+        ],
+        "ononline": [
+          "/// Stream of `online` events handled by this [BodyElement]."
+        ],
+        "onpopstate": [
+          "/// Stream of `popstate` events handled by this [BodyElement]."
+        ],
+        "onresize": [
+          "/// Stream of `resize` events handled by this [BodyElement]."
+        ],
+        "onstorage": [
+          "/// Stream of `storage` events handled by this [BodyElement]."
+        ],
+        "onunload": [
+          "/// Stream of `unload` events handled by this [BodyElement]."
+        ],
+        "popstateEvent": [
+          "/**",
+          "   * Static factory designed to expose `popstate` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "resizeEvent": [
+          "/**",
+          "   * Static factory designed to expose `resize` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "storageEvent": [
+          "/**",
+          "   * Static factory designed to expose `storage` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "unloadEvent": [
+          "/**",
+          "   * Static factory designed to expose `unload` events to event",
+          "   * handlers that are not necessarily instances of [BodyElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
     "HTMLCanvasElement": {
       "members": {
         "height": [
           "/// The height of this canvas element in CSS pixels."
+        ],
+        "onwebglcontextlost": [
+          "/// Stream of `webglcontextlost` events handled by this [CanvasElement]."
+        ],
+        "onwebglcontextrestored": [
+          "/// Stream of `webglcontextrestored` events handled by this [CanvasElement]."
+        ],
+        "webglcontextlostEvent": [
+          "/**",
+          "   * Static factory designed to expose `webglcontextlost` events to event",
+          "   * handlers that are not necessarily instances of [CanvasElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webglcontextrestoredEvent": [
+          "/**",
+          "   * Static factory designed to expose `webglcontextrestored` events to event",
+          "   * handlers that are not necessarily instances of [CanvasElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
         ],
         "width": [
           "/// The width of this canvas element in CSS pixels."
@@ -225,12 +1412,332 @@
         " */"
       ]
     },
+    "HTMLFormElement": {
+      "members": {
+        "autocompleteerrorEvent": [
+          "/**",
+          "   * Static factory designed to expose `autocompleteerror` events to event",
+          "   * handlers that are not necessarily instances of [FormElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "autocompleteEvent": [
+          "/**",
+          "   * Static factory designed to expose `autocomplete` events to event",
+          "   * handlers that are not necessarily instances of [FormElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onautocomplete": [
+          "/// Stream of `autocomplete` events handled by this [FormElement]."
+        ],
+        "onautocompleteerror": [
+          "/// Stream of `autocompleteerror` events handled by this [FormElement]."
+        ]
+      }
+    },
     "HTMLHRElement": {
       "comment": [
         "/**",
         " * An `<hr>` tag.",
         " */"
       ]
+    },
+    "HTMLInputElement": {
+      "members": {
+        "onwebkitSpeechChange": [
+          "/// Stream of `speechchange` events handled by this [InputElement]."
+        ],
+        "webkitSpeechChangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `speechchange` events to event",
+          "   * handlers that are not necessarily instances of [InputElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "HTMLMediaElement": {
+      "members": {
+        "canplayEvent": [
+          "/**",
+          "   * Static factory designed to expose `canplay` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "canplaythroughEvent": [
+          "/**",
+          "   * Static factory designed to expose `canplaythrough` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "durationchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `durationchange` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "emptiedEvent": [
+          "/**",
+          "   * Static factory designed to expose `emptied` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "endedEvent": [
+          "/**",
+          "   * Static factory designed to expose `ended` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadeddataEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadeddata` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadedmetadataEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadedmetadata` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadstart` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "oncanplay": [
+          "/// Stream of `canplay` events handled by this [MediaElement]."
+        ],
+        "oncanplaythrough": [
+          "/// Stream of `canplaythrough` events handled by this [MediaElement]."
+        ],
+        "ondurationchange": [
+          "/// Stream of `durationchange` events handled by this [MediaElement]."
+        ],
+        "onemptied": [
+          "/// Stream of `emptied` events handled by this [MediaElement]."
+        ],
+        "onended": [
+          "/// Stream of `ended` events handled by this [MediaElement]."
+        ],
+        "onloadeddata": [
+          "/// Stream of `loadeddata` events handled by this [MediaElement]."
+        ],
+        "onloadedmetadata": [
+          "/// Stream of `loadedmetadata` events handled by this [MediaElement]."
+        ],
+        "onloadstart": [
+          "/// Stream of `loadstart` events handled by this [MediaElement]."
+        ],
+        "onpause": [
+          "/// Stream of `pause` events handled by this [MediaElement]."
+        ],
+        "onplay": [
+          "/// Stream of `play` events handled by this [MediaElement]."
+        ],
+        "onplaying": [
+          "/// Stream of `playing` events handled by this [MediaElement]."
+        ],
+        "onprogress": [
+          "/// Stream of `progress` events handled by this [MediaElement]."
+        ],
+        "onratechange": [
+          "/// Stream of `ratechange` events handled by this [MediaElement]."
+        ],
+        "onseeked": [
+          "/// Stream of `seeked` events handled by this [MediaElement]."
+        ],
+        "onseeking": [
+          "/// Stream of `seeking` events handled by this [MediaElement]."
+        ],
+        "onshow": [
+          "/// Stream of `show` events handled by this [MediaElement]."
+        ],
+        "onstalled": [
+          "/// Stream of `stalled` events handled by this [MediaElement]."
+        ],
+        "onsuspend": [
+          "/// Stream of `suspend` events handled by this [MediaElement]."
+        ],
+        "ontimeupdate": [
+          "/// Stream of `timeupdate` events handled by this [MediaElement]."
+        ],
+        "onvolumechange": [
+          "/// Stream of `volumechange` events handled by this [MediaElement]."
+        ],
+        "onwaiting": [
+          "/// Stream of `waiting` events handled by this [MediaElement]."
+        ],
+        "onwebkitkeyadded": [
+          "/// Stream of `keyadded` events handled by this [MediaElement]."
+        ],
+        "onwebkitkeyerror": [
+          "/// Stream of `keyerror` events handled by this [MediaElement]."
+        ],
+        "onwebkitkeymessage": [
+          "/// Stream of `keymessage` events handled by this [MediaElement]."
+        ],
+        "onwebkitneedkey": [
+          "/// Stream of `needkey` events handled by this [MediaElement]."
+        ],
+        "pauseEvent": [
+          "/**",
+          "   * Static factory designed to expose `pause` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "playEvent": [
+          "/**",
+          "   * Static factory designed to expose `play` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "playingEvent": [
+          "/**",
+          "   * Static factory designed to expose `playing` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "progressEvent": [
+          "/**",
+          "   * Static factory designed to expose `progress` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "ratechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `ratechange` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "seekedEvent": [
+          "/**",
+          "   * Static factory designed to expose `seeked` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "seekingEvent": [
+          "/**",
+          "   * Static factory designed to expose `seeking` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "showEvent": [
+          "/**",
+          "   * Static factory designed to expose `show` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "stalledEvent": [
+          "/**",
+          "   * Static factory designed to expose `stalled` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "suspendEvent": [
+          "/**",
+          "   * Static factory designed to expose `suspend` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "timeupdateEvent": [
+          "/**",
+          "   * Static factory designed to expose `timeupdate` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "volumechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `volumechange` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "waitingEvent": [
+          "/**",
+          "   * Static factory designed to expose `waiting` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitkeyaddedEvent": [
+          "/**",
+          "   * Static factory designed to expose `keyadded` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitkeyerrorEvent": [
+          "/**",
+          "   * Static factory designed to expose `keyerror` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitkeymessageEvent": [
+          "/**",
+          "   * Static factory designed to expose `keymessage` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitneedkeyEvent": [
+          "/**",
+          "   * Static factory designed to expose `needkey` events to event",
+          "   * handlers that are not necessarily instances of [MediaElement].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
     },
     "HTMLMenuElement": {
       "comment": [
@@ -246,6 +1753,188 @@
         " */"
       ]
     },
+    "MediaKeySession": {
+      "members": {
+        "onwebkitkeyadded": [
+          "/// Stream of `keyadded` events handled by this [MediaKeySession]."
+        ],
+        "onwebkitkeyerror": [
+          "/// Stream of `keyerror` events handled by this [MediaKeySession]."
+        ],
+        "onwebkitkeymessage": [
+          "/// Stream of `keymessage` events handled by this [MediaKeySession]."
+        ],
+        "webkitkeyaddedEvent": [
+          "/**",
+          "   * Static factory designed to expose `keyadded` events to event",
+          "   * handlers that are not necessarily instances of [MediaKeySession].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitkeyerrorEvent": [
+          "/**",
+          "   * Static factory designed to expose `keyerror` events to event",
+          "   * handlers that are not necessarily instances of [MediaKeySession].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitkeymessageEvent": [
+          "/**",
+          "   * Static factory designed to expose `keymessage` events to event",
+          "   * handlers that are not necessarily instances of [MediaKeySession].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "MediaStream": {
+      "members": {
+        "addtrackEvent": [
+          "/**",
+          "   * Static factory designed to expose `addtrack` events to event",
+          "   * handlers that are not necessarily instances of [MediaStream].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "endedEvent": [
+          "/**",
+          "   * Static factory designed to expose `ended` events to event",
+          "   * handlers that are not necessarily instances of [MediaStream].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onaddtrack": [
+          "/// Stream of `addtrack` events handled by this [MediaStream]."
+        ],
+        "onended": [
+          "/// Stream of `ended` events handled by this [MediaStream]."
+        ],
+        "onremovetrack": [
+          "/// Stream of `removetrack` events handled by this [MediaStream]."
+        ],
+        "removetrackEvent": [
+          "/**",
+          "   * Static factory designed to expose `removetrack` events to event",
+          "   * handlers that are not necessarily instances of [MediaStream].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "MediaStreamTrack": {
+      "members": {
+        "endedEvent": [
+          "/**",
+          "   * Static factory designed to expose `ended` events to event",
+          "   * handlers that are not necessarily instances of [MediaStreamTrack].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "muteEvent": [
+          "/**",
+          "   * Static factory designed to expose `mute` events to event",
+          "   * handlers that are not necessarily instances of [MediaStreamTrack].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onended": [
+          "/// Stream of `ended` events handled by this [MediaStreamTrack]."
+        ],
+        "onmute": [
+          "/// Stream of `mute` events handled by this [MediaStreamTrack]."
+        ],
+        "onunmute": [
+          "/// Stream of `unmute` events handled by this [MediaStreamTrack]."
+        ],
+        "unmuteEvent": [
+          "/**",
+          "   * Static factory designed to expose `unmute` events to event",
+          "   * handlers that are not necessarily instances of [MediaStreamTrack].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "MessagePort": {
+      "members": {
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [MessagePort].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [MessagePort]."
+        ]
+      }
+    },
+    "MIDIAccess": {
+      "members": {
+        "connectEvent": [
+          "/**",
+          "   * Static factory designed to expose `connect` events to event",
+          "   * handlers that are not necessarily instances of [MidiAccess].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "disconnectEvent": [
+          "/**",
+          "   * Static factory designed to expose `disconnect` events to event",
+          "   * handlers that are not necessarily instances of [MidiAccess].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onconnect": [
+          "/// Stream of `connect` events handled by this [MidiAccess]."
+        ],
+        "ondisconnect": [
+          "/// Stream of `disconnect` events handled by this [MidiAccess]."
+        ]
+      }
+    },
+    "MIDIInput": {
+      "members": {
+        "midimessageEvent": [
+          "/**",
+          "   * Static factory designed to expose `midimessage` events to event",
+          "   * handlers that are not necessarily instances of [MidiInput].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onmidimessage": [
+          "/// Stream of `midimessage` events handled by this [MidiInput]."
+        ]
+      }
+    },
+    "MIDIPort": {
+      "members": {
+        "disconnectEvent": [
+          "/**",
+          "   * Static factory designed to expose `disconnect` events to event",
+          "   * handlers that are not necessarily instances of [MidiPort].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "ondisconnect": [
+          "/// Stream of `disconnect` events handled by this [MidiPort]."
+        ]
+      }
+    },
     "Node": {
       "members": {
         "appendChild": [
@@ -258,6 +1947,501 @@
           "   * This method is more efficient than `nodes.add`, and is the preferred",
           "   * way of appending a child node.",
           "   */"
+        ]
+      }
+    },
+    "Notification": {
+      "members": {
+        "clickEvent": [
+          "/**",
+          "   * Static factory designed to expose `click` events to event",
+          "   * handlers that are not necessarily instances of [Notification].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "closeEvent": [
+          "/**",
+          "   * Static factory designed to expose `close` events to event",
+          "   * handlers that are not necessarily instances of [Notification].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "displayEvent": [
+          "/**",
+          "   * Static factory designed to expose `display` events to event",
+          "   * handlers that are not necessarily instances of [Notification].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [Notification].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onclick": [
+          "/// Stream of `click` events handled by this [Notification]."
+        ],
+        "onclose": [
+          "/// Stream of `close` events handled by this [Notification]."
+        ],
+        "ondisplay": [
+          "/// Stream of `display` events handled by this [Notification]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Notification]."
+        ],
+        "onshow": [
+          "/// Stream of `show` events handled by this [Notification]."
+        ],
+        "showEvent": [
+          "/**",
+          "   * Static factory designed to expose `show` events to event",
+          "   * handlers that are not necessarily instances of [Notification].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "Performance": {
+      "members": {
+        "onwebkitresourcetimingbufferfull": [
+          "/// Stream of `resourcetimingbufferfull` events handled by this [Performance]."
+        ],
+        "webkitresourcetimingbufferfullEvent": [
+          "/**",
+          "   * Static factory designed to expose `resourcetimingbufferfull` events to event",
+          "   * handlers that are not necessarily instances of [Performance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "RTCDataChannel": {
+      "members": {
+        "closeEvent": [
+          "/**",
+          "   * Static factory designed to expose `close` events to event",
+          "   * handlers that are not necessarily instances of [RtcDataChannel].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [RtcDataChannel].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [RtcDataChannel].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onclose": [
+          "/// Stream of `close` events handled by this [RtcDataChannel]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [RtcDataChannel]."
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [RtcDataChannel]."
+        ],
+        "onopen": [
+          "/// Stream of `open` events handled by this [RtcDataChannel]."
+        ],
+        "openEvent": [
+          "/**",
+          "   * Static factory designed to expose `open` events to event",
+          "   * handlers that are not necessarily instances of [RtcDataChannel].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "RTCDTMFSender": {
+      "members": {
+        "ontonechange": [
+          "/// Stream of `tonechange` events handled by this [RtcDtmfSender]."
+        ],
+        "tonechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `tonechange` events to event",
+          "   * handlers that are not necessarily instances of [RtcDtmfSender].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "RTCPeerConnection": {
+      "members": {
+        "addstreamEvent": [
+          "/**",
+          "   * Static factory designed to expose `addstream` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "datachannelEvent": [
+          "/**",
+          "   * Static factory designed to expose `datachannel` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "icecandidateEvent": [
+          "/**",
+          "   * Static factory designed to expose `icecandidate` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "iceconnectionstatechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `iceconnectionstatechange` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "negotiationneededEvent": [
+          "/**",
+          "   * Static factory designed to expose `negotiationneeded` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onaddstream": [
+          "/// Stream of `addstream` events handled by this [RtcPeerConnection]."
+        ],
+        "ondatachannel": [
+          "/// Stream of `datachannel` events handled by this [RtcPeerConnection]."
+        ],
+        "onicecandidate": [
+          "/// Stream of `icecandidate` events handled by this [RtcPeerConnection]."
+        ],
+        "oniceconnectionstatechange": [
+          "/// Stream of `iceconnectionstatechange` events handled by this [RtcPeerConnection]."
+        ],
+        "onnegotiationneeded": [
+          "/// Stream of `negotiationneeded` events handled by this [RtcPeerConnection]."
+        ],
+        "onremovestream": [
+          "/// Stream of `removestream` events handled by this [RtcPeerConnection]."
+        ],
+        "onsignalingstatechange": [
+          "/// Stream of `signalingstatechange` events handled by this [RtcPeerConnection]."
+        ],
+        "removestreamEvent": [
+          "/**",
+          "   * Static factory designed to expose `removestream` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "signalingstatechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `signalingstatechange` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "SharedWorkerGlobalScope": {
+      "members": {
+        "connectEvent": [
+          "/**",
+          "   * Static factory designed to expose `connect` events to event",
+          "   * handlers that are not necessarily instances of [SharedWorkerGlobalScope].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onconnect": [
+          "/// Stream of `connect` events handled by this [SharedWorkerGlobalScope]."
+        ]
+      }
+    },
+    "SpeechRecognition": {
+      "members": {
+        "audioendEvent": [
+          "/**",
+          "   * Static factory designed to expose `audioend` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "audiostartEvent": [
+          "/**",
+          "   * Static factory designed to expose `audiostart` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "endEvent": [
+          "/**",
+          "   * Static factory designed to expose `end` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "nomatchEvent": [
+          "/**",
+          "   * Static factory designed to expose `nomatch` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onaudioend": [
+          "/// Stream of `audioend` events handled by this [SpeechRecognition]."
+        ],
+        "onaudiostart": [
+          "/// Stream of `audiostart` events handled by this [SpeechRecognition]."
+        ],
+        "onend": [
+          "/// Stream of `end` events handled by this [SpeechRecognition]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [SpeechRecognition]."
+        ],
+        "onnomatch": [
+          "/// Stream of `nomatch` events handled by this [SpeechRecognition]."
+        ],
+        "onresult": [
+          "/// Stream of `result` events handled by this [SpeechRecognition]."
+        ],
+        "onsoundend": [
+          "/// Stream of `soundend` events handled by this [SpeechRecognition]."
+        ],
+        "onsoundstart": [
+          "/// Stream of `soundstart` events handled by this [SpeechRecognition]."
+        ],
+        "onspeechend": [
+          "/// Stream of `speechend` events handled by this [SpeechRecognition]."
+        ],
+        "onspeechstart": [
+          "/// Stream of `speechstart` events handled by this [SpeechRecognition]."
+        ],
+        "onstart": [
+          "/// Stream of `start` events handled by this [SpeechRecognition]."
+        ],
+        "resultEvent": [
+          "/**",
+          "   * Static factory designed to expose `result` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "soundendEvent": [
+          "/**",
+          "   * Static factory designed to expose `soundend` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "soundstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `soundstart` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "speechendEvent": [
+          "/**",
+          "   * Static factory designed to expose `speechend` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "speechstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `speechstart` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "startEvent": [
+          "/**",
+          "   * Static factory designed to expose `start` events to event",
+          "   * handlers that are not necessarily instances of [SpeechRecognition].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "SpeechSynthesisUtterance": {
+      "members": {
+        "boundaryEvent": [
+          "/**",
+          "   * Static factory designed to expose `boundary` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "endEvent": [
+          "/**",
+          "   * Static factory designed to expose `end` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "markEvent": [
+          "/**",
+          "   * Static factory designed to expose `mark` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onboundary": [
+          "/// Stream of `boundary` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "onend": [
+          "/// Stream of `end` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "onmark": [
+          "/// Stream of `mark` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "onpause": [
+          "/// Stream of `pause` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "onresume": [
+          "/// Stream of `resume` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "onstart": [
+          "/// Stream of `start` events handled by this [SpeechSynthesisUtterance]."
+        ],
+        "pauseEvent": [
+          "/**",
+          "   * Static factory designed to expose `pause` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "resumeEvent": [
+          "/**",
+          "   * Static factory designed to expose `resume` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "startEvent": [
+          "/**",
+          "   * Static factory designed to expose `start` events to event",
+          "   * handlers that are not necessarily instances of [SpeechSynthesisUtterance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "TextTrack": {
+      "members": {
+        "cuechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `cuechange` events to event",
+          "   * handlers that are not necessarily instances of [TextTrack].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "oncuechange": [
+          "/// Stream of `cuechange` events handled by this [TextTrack]."
+        ]
+      }
+    },
+    "TextTrackCue": {
+      "members": {
+        "enterEvent": [
+          "/**",
+          "   * Static factory designed to expose `enter` events to event",
+          "   * handlers that are not necessarily instances of [TextTrackCue].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "exitEvent": [
+          "/**",
+          "   * Static factory designed to expose `exit` events to event",
+          "   * handlers that are not necessarily instances of [TextTrackCue].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onenter": [
+          "/// Stream of `enter` events handled by this [TextTrackCue]."
+        ],
+        "onexit": [
+          "/// Stream of `exit` events handled by this [TextTrackCue]."
+        ]
+      }
+    },
+    "TextTrackList": {
+      "members": {
+        "addtrackEvent": [
+          "/**",
+          "   * Static factory designed to expose `addtrack` events to event",
+          "   * handlers that are not necessarily instances of [TextTrackList].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onaddtrack": [
+          "/// Stream of `addtrack` events handled by this [TextTrackList]."
         ]
       }
     },
@@ -299,6 +2483,50 @@
         " */"
       ],
       "members": {
+        "closeEvent": [
+          "/**",
+          "   * Static factory designed to expose `close` events to event",
+          "   * handlers that are not necessarily instances of [WebSocket].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [WebSocket].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [WebSocket].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onclose": [
+          "/// Stream of `close` events handled by this [WebSocket]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [WebSocket]."
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [WebSocket]."
+        ],
+        "onopen": [
+          "/// Stream of `open` events handled by this [WebSocket]."
+        ],
+        "openEvent": [
+          "/**",
+          "   * Static factory designed to expose `open` events to event",
+          "   * handlers that are not necessarily instances of [WebSocket].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
         "send": [
           "/**",
           "   * Transmit data to the server over this connection.",
@@ -339,7 +2567,343 @@
         " * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.",
         " * * [Window](http://www.w3.org/TR/Window/) from the W3C.",
         " */"
-      ]
+      ],
+      "members": {
+        "devicemotionEvent": [
+          "/**",
+          "   * Static factory designed to expose `devicemotion` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "deviceorientationEvent": [
+          "/**",
+          "   * Static factory designed to expose `deviceorientation` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "DOMContentLoadedEvent": [
+          "/**",
+          "   * Static factory designed to expose `contentloaded` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "hashchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `hashchange` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "offlineEvent": [
+          "/**",
+          "   * Static factory designed to expose `offline` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [Window]."
+        ],
+        "onblur": [
+          "/// Stream of `blur` events handled by this [Window]."
+        ],
+        "onchange": [
+          "/// Stream of `change` events handled by this [Window]."
+        ],
+        "onclick": [
+          "/// Stream of `click` events handled by this [Window]."
+        ],
+        "oncontextmenu": [
+          "/// Stream of `contextmenu` events handled by this [Window]."
+        ],
+        "ondblclick": [
+          "/// Stream of `doubleclick` events handled by this [Window]."
+        ],
+        "ondevicemotion": [
+          "/// Stream of `devicemotion` events handled by this [Window]."
+        ],
+        "ondeviceorientation": [
+          "/// Stream of `deviceorientation` events handled by this [Window]."
+        ],
+        "onDOMContentLoaded": [
+          "/// Stream of `contentloaded` events handled by this [Window]."
+        ],
+        "ondrag": [
+          "/// Stream of `drag` events handled by this [Window]."
+        ],
+        "ondragend": [
+          "/// Stream of `dragend` events handled by this [Window]."
+        ],
+        "ondragenter": [
+          "/// Stream of `dragenter` events handled by this [Window]."
+        ],
+        "ondragleave": [
+          "/// Stream of `dragleave` events handled by this [Window]."
+        ],
+        "ondragover": [
+          "/// Stream of `dragover` events handled by this [Window]."
+        ],
+        "ondragstart": [
+          "/// Stream of `dragstart` events handled by this [Window]."
+        ],
+        "ondrop": [
+          "/// Stream of `drop` events handled by this [Window]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Window]."
+        ],
+        "onfocus": [
+          "/// Stream of `focus` events handled by this [Window]."
+        ],
+        "onhashchange": [
+          "/// Stream of `hashchange` events handled by this [Window]."
+        ],
+        "oninput": [
+          "/// Stream of `input` events handled by this [Window]."
+        ],
+        "oninvalid": [
+          "/// Stream of `invalid` events handled by this [Window]."
+        ],
+        "onkeydown": [
+          "/// Stream of `keydown` events handled by this [Window]."
+        ],
+        "onkeypress": [
+          "/// Stream of `keypress` events handled by this [Window]."
+        ],
+        "onkeyup": [
+          "/// Stream of `keyup` events handled by this [Window]."
+        ],
+        "onlineEvent": [
+          "/**",
+          "   * Static factory designed to expose `online` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [Window]."
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [Window]."
+        ],
+        "onmousedown": [
+          "/// Stream of `mousedown` events handled by this [Window]."
+        ],
+        "onmouseenter": [
+          "/// Stream of `mouseenter` events handled by this [Window]."
+        ],
+        "onmouseleave": [
+          "/// Stream of `mouseleave` events handled by this [Window]."
+        ],
+        "onmousemove": [
+          "/// Stream of `mousemove` events handled by this [Window]."
+        ],
+        "onmouseout": [
+          "/// Stream of `mouseout` events handled by this [Window]."
+        ],
+        "onmouseover": [
+          "/// Stream of `mouseover` events handled by this [Window]."
+        ],
+        "onmouseup": [
+          "/// Stream of `mouseup` events handled by this [Window]."
+        ],
+        "onmousewheel": [
+          "/// Stream of `mousewheel` events handled by this [Window]."
+        ],
+        "onoffline": [
+          "/// Stream of `offline` events handled by this [Window]."
+        ],
+        "ononline": [
+          "/// Stream of `online` events handled by this [Window]."
+        ],
+        "onpagehide": [
+          "/// Stream of `pagehide` events handled by this [Window]."
+        ],
+        "onpageshow": [
+          "/// Stream of `pageshow` events handled by this [Window]."
+        ],
+        "onpopstate": [
+          "/// Stream of `popstate` events handled by this [Window]."
+        ],
+        "onreset": [
+          "/// Stream of `reset` events handled by this [Window]."
+        ],
+        "onresize": [
+          "/// Stream of `resize` events handled by this [Window]."
+        ],
+        "onscroll": [
+          "/// Stream of `scroll` events handled by this [Window]."
+        ],
+        "onsearch": [
+          "/// Stream of `search` events handled by this [Window]."
+        ],
+        "onselect": [
+          "/// Stream of `select` events handled by this [Window]."
+        ],
+        "onstorage": [
+          "/// Stream of `storage` events handled by this [Window]."
+        ],
+        "onsubmit": [
+          "/// Stream of `submit` events handled by this [Window]."
+        ],
+        "ontouchcancel": [
+          "/// Stream of `touchcancel` events handled by this [Window]."
+        ],
+        "ontouchend": [
+          "/// Stream of `touchend` events handled by this [Window]."
+        ],
+        "ontouchmove": [
+          "/// Stream of `touchmove` events handled by this [Window]."
+        ],
+        "ontouchstart": [
+          "/// Stream of `touchstart` events handled by this [Window]."
+        ],
+        "ontransitionend": [
+          "/// Stream of `transitionend` events handled by this [Window]."
+        ],
+        "onunload": [
+          "/// Stream of `unload` events handled by this [Window]."
+        ],
+        "onwebkitAnimationEnd": [
+          "/// Stream of `animationend` events handled by this [Window]."
+        ],
+        "onwebkitAnimationIteration": [
+          "/// Stream of `animationiteration` events handled by this [Window]."
+        ],
+        "onwebkitAnimationStart": [
+          "/// Stream of `animationstart` events handled by this [Window]."
+        ],
+        "pagehideEvent": [
+          "/**",
+          "   * Static factory designed to expose `pagehide` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "pageshowEvent": [
+          "/**",
+          "   * Static factory designed to expose `pageshow` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "popstateEvent": [
+          "/**",
+          "   * Static factory designed to expose `popstate` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "resizeEvent": [
+          "/**",
+          "   * Static factory designed to expose `resize` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "storageEvent": [
+          "/**",
+          "   * Static factory designed to expose `storage` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "unloadEvent": [
+          "/**",
+          "   * Static factory designed to expose `unload` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitAnimationEndEvent": [
+          "/**",
+          "   * Static factory designed to expose `animationend` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitAnimationIterationEvent": [
+          "/**",
+          "   * Static factory designed to expose `animationiteration` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitAnimationStartEvent": [
+          "/**",
+          "   * Static factory designed to expose `animationstart` events to event",
+          "   * handlers that are not necessarily instances of [Window].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "Worker": {
+      "members": {
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [Worker].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "messageEvent": [
+          "/**",
+          "   * Static factory designed to expose `message` events to event",
+          "   * handlers that are not necessarily instances of [Worker].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Worker]."
+        ],
+        "onmessage": [
+          "/// Stream of `message` events handled by this [Worker]."
+        ]
+      }
+    },
+    "WorkerGlobalScope": {
+      "members": {
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [WorkerGlobalScope].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [WorkerGlobalScope]."
+        ]
+      }
     },
     "XMLHttpRequest": {
       "members": {
@@ -373,6 +2937,7 @@
           "   */"
         ],
         "onreadystatechange": [
+          "/// Stream of `readystatechange` events handled by this [HttpRequest].",
           "/**",
           "   * Event listeners to be notified every time the [HttpRequest]",
           "   * object's `readyState` changes values.",
@@ -436,6 +3001,14 @@
           "   *     <td>4</td> <td>done</td> <td>request is complete</td>",
           "   *   </tr>",
           "   * </table>",
+          "   */"
+        ],
+        "readystatechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `readystatechange` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequest].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
         "response": [
@@ -533,6 +3106,87 @@
           "   */"
         ]
       }
+    },
+    "XMLHttpRequestEventTarget": {
+      "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadendEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadend` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadEvent": [
+          "/**",
+          "   * Static factory designed to expose `load` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `loadstart` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [HttpRequestEventTarget]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [HttpRequestEventTarget]."
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [HttpRequestEventTarget]."
+        ],
+        "onloadend": [
+          "/// Stream of `loadend` events handled by this [HttpRequestEventTarget]."
+        ],
+        "onloadstart": [
+          "/// Stream of `loadstart` events handled by this [HttpRequestEventTarget]."
+        ],
+        "onprogress": [
+          "/// Stream of `progress` events handled by this [HttpRequestEventTarget]."
+        ],
+        "ontimeout": [
+          "/// Stream of `timeout` events handled by this [HttpRequestEventTarget]."
+        ],
+        "progressEvent": [
+          "/**",
+          "   * Static factory designed to expose `progress` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "timeoutEvent": [
+          "/**",
+          "   * Static factory designed to expose `timeout` events to event",
+          "   * handlers that are not necessarily instances of [HttpRequestEventTarget].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
     }
   },
   "dart.dom.indexed_db": {
@@ -542,13 +3196,670 @@
         " * An indexed database object for storing client-side data",
         " * in web apps.",
         " */"
-      ]
+      ],
+      "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [Database].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "closeEvent": [
+          "/**",
+          "   * Static factory designed to expose `close` events to event",
+          "   * handlers that are not necessarily instances of [Database].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [Database].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [Database]."
+        ],
+        "onclose": [
+          "/// Stream of `close` events handled by this [Database]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Database]."
+        ],
+        "onversionchange": [
+          "/// Stream of `versionchange` events handled by this [Database]."
+        ],
+        "versionchangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `versionchange` events to event",
+          "   * handlers that are not necessarily instances of [Database].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "IDBOpenDBRequest": {
+      "members": {
+        "blockedEvent": [
+          "/**",
+          "   * Static factory designed to expose `blocked` events to event",
+          "   * handlers that are not necessarily instances of [OpenDBRequest].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onblocked": [
+          "/// Stream of `blocked` events handled by this [OpenDBRequest]."
+        ],
+        "onupgradeneeded": [
+          "/// Stream of `upgradeneeded` events handled by this [OpenDBRequest]."
+        ],
+        "upgradeneededEvent": [
+          "/**",
+          "   * Static factory designed to expose `upgradeneeded` events to event",
+          "   * handlers that are not necessarily instances of [OpenDBRequest].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "IDBRequest": {
+      "members": {
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [Request].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Request]."
+        ],
+        "onsuccess": [
+          "/// Stream of `success` events handled by this [Request]."
+        ],
+        "successEvent": [
+          "/**",
+          "   * Static factory designed to expose `success` events to event",
+          "   * handlers that are not necessarily instances of [Request].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "IDBTransaction": {
+      "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [Transaction].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "completeEvent": [
+          "/**",
+          "   * Static factory designed to expose `complete` events to event",
+          "   * handlers that are not necessarily instances of [Transaction].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [Transaction].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [Transaction]."
+        ],
+        "oncomplete": [
+          "/// Stream of `complete` events handled by this [Transaction]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [Transaction]."
+        ]
+      }
+    }
+  },
+  "dart.dom.svg": {
+    "SVGElementInstance": {
+      "members": {
+        "abortEvent": [
+          "/**",
+          "   * Static factory designed to expose `abort` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "beforecopyEvent": [
+          "/**",
+          "   * Static factory designed to expose `beforecopy` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "beforecutEvent": [
+          "/**",
+          "   * Static factory designed to expose `beforecut` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "beforepasteEvent": [
+          "/**",
+          "   * Static factory designed to expose `beforepaste` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "blurEvent": [
+          "/**",
+          "   * Static factory designed to expose `blur` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "changeEvent": [
+          "/**",
+          "   * Static factory designed to expose `change` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "clickEvent": [
+          "/**",
+          "   * Static factory designed to expose `click` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "contextmenuEvent": [
+          "/**",
+          "   * Static factory designed to expose `contextmenu` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "copyEvent": [
+          "/**",
+          "   * Static factory designed to expose `copy` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "cutEvent": [
+          "/**",
+          "   * Static factory designed to expose `cut` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dblclickEvent": [
+          "/**",
+          "   * Static factory designed to expose `doubleclick` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragendEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragend` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragenterEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragenter` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragEvent": [
+          "/**",
+          "   * Static factory designed to expose `drag` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragleaveEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragleave` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragoverEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragover` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dragstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `dragstart` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "dropEvent": [
+          "/**",
+          "   * Static factory designed to expose `drop` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "errorEvent": [
+          "/**",
+          "   * Static factory designed to expose `error` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "focusEvent": [
+          "/**",
+          "   * Static factory designed to expose `focus` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "inputEvent": [
+          "/**",
+          "   * Static factory designed to expose `input` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "keydownEvent": [
+          "/**",
+          "   * Static factory designed to expose `keydown` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "keypressEvent": [
+          "/**",
+          "   * Static factory designed to expose `keypress` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "keyupEvent": [
+          "/**",
+          "   * Static factory designed to expose `keyup` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "loadEvent": [
+          "/**",
+          "   * Static factory designed to expose `load` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mousedownEvent": [
+          "/**",
+          "   * Static factory designed to expose `mousedown` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseenterEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseenter` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseleaveEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseleave` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mousemoveEvent": [
+          "/**",
+          "   * Static factory designed to expose `mousemove` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseoutEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseout` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseoverEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseover` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mouseupEvent": [
+          "/**",
+          "   * Static factory designed to expose `mouseup` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "mousewheelEvent": [
+          "/**",
+          "   * Static factory designed to expose `mousewheel` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onabort": [
+          "/// Stream of `abort` events handled by this [ElementInstance]."
+        ],
+        "onbeforecopy": [
+          "/// Stream of `beforecopy` events handled by this [ElementInstance]."
+        ],
+        "onbeforecut": [
+          "/// Stream of `beforecut` events handled by this [ElementInstance]."
+        ],
+        "onbeforepaste": [
+          "/// Stream of `beforepaste` events handled by this [ElementInstance]."
+        ],
+        "onblur": [
+          "/// Stream of `blur` events handled by this [ElementInstance]."
+        ],
+        "onchange": [
+          "/// Stream of `change` events handled by this [ElementInstance]."
+        ],
+        "onclick": [
+          "/// Stream of `click` events handled by this [ElementInstance]."
+        ],
+        "oncontextmenu": [
+          "/// Stream of `contextmenu` events handled by this [ElementInstance]."
+        ],
+        "oncopy": [
+          "/// Stream of `copy` events handled by this [ElementInstance]."
+        ],
+        "oncut": [
+          "/// Stream of `cut` events handled by this [ElementInstance]."
+        ],
+        "ondblclick": [
+          "/// Stream of `doubleclick` events handled by this [ElementInstance]."
+        ],
+        "ondrag": [
+          "/// Stream of `drag` events handled by this [ElementInstance]."
+        ],
+        "ondragend": [
+          "/// Stream of `dragend` events handled by this [ElementInstance]."
+        ],
+        "ondragenter": [
+          "/// Stream of `dragenter` events handled by this [ElementInstance]."
+        ],
+        "ondragleave": [
+          "/// Stream of `dragleave` events handled by this [ElementInstance]."
+        ],
+        "ondragover": [
+          "/// Stream of `dragover` events handled by this [ElementInstance]."
+        ],
+        "ondragstart": [
+          "/// Stream of `dragstart` events handled by this [ElementInstance]."
+        ],
+        "ondrop": [
+          "/// Stream of `drop` events handled by this [ElementInstance]."
+        ],
+        "onerror": [
+          "/// Stream of `error` events handled by this [ElementInstance]."
+        ],
+        "onfocus": [
+          "/// Stream of `focus` events handled by this [ElementInstance]."
+        ],
+        "oninput": [
+          "/// Stream of `input` events handled by this [ElementInstance]."
+        ],
+        "onkeydown": [
+          "/// Stream of `keydown` events handled by this [ElementInstance]."
+        ],
+        "onkeypress": [
+          "/// Stream of `keypress` events handled by this [ElementInstance]."
+        ],
+        "onkeyup": [
+          "/// Stream of `keyup` events handled by this [ElementInstance]."
+        ],
+        "onload": [
+          "/// Stream of `load` events handled by this [ElementInstance]."
+        ],
+        "onmousedown": [
+          "/// Stream of `mousedown` events handled by this [ElementInstance]."
+        ],
+        "onmouseenter": [
+          "/// Stream of `mouseenter` events handled by this [ElementInstance]."
+        ],
+        "onmouseleave": [
+          "/// Stream of `mouseleave` events handled by this [ElementInstance]."
+        ],
+        "onmousemove": [
+          "/// Stream of `mousemove` events handled by this [ElementInstance]."
+        ],
+        "onmouseout": [
+          "/// Stream of `mouseout` events handled by this [ElementInstance]."
+        ],
+        "onmouseover": [
+          "/// Stream of `mouseover` events handled by this [ElementInstance]."
+        ],
+        "onmouseup": [
+          "/// Stream of `mouseup` events handled by this [ElementInstance]."
+        ],
+        "onmousewheel": [
+          "/// Stream of `mousewheel` events handled by this [ElementInstance]."
+        ],
+        "onpaste": [
+          "/// Stream of `paste` events handled by this [ElementInstance]."
+        ],
+        "onreset": [
+          "/// Stream of `reset` events handled by this [ElementInstance]."
+        ],
+        "onresize": [
+          "/// Stream of `resize` events handled by this [ElementInstance]."
+        ],
+        "onscroll": [
+          "/// Stream of `scroll` events handled by this [ElementInstance]."
+        ],
+        "onsearch": [
+          "/// Stream of `search` events handled by this [ElementInstance]."
+        ],
+        "onselect": [
+          "/// Stream of `select` events handled by this [ElementInstance]."
+        ],
+        "onselectstart": [
+          "/// Stream of `selectstart` events handled by this [ElementInstance]."
+        ],
+        "onsubmit": [
+          "/// Stream of `submit` events handled by this [ElementInstance]."
+        ],
+        "onunload": [
+          "/// Stream of `unload` events handled by this [ElementInstance]."
+        ],
+        "pasteEvent": [
+          "/**",
+          "   * Static factory designed to expose `paste` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "resetEvent": [
+          "/**",
+          "   * Static factory designed to expose `reset` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "resizeEvent": [
+          "/**",
+          "   * Static factory designed to expose `resize` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "scrollEvent": [
+          "/**",
+          "   * Static factory designed to expose `scroll` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "searchEvent": [
+          "/**",
+          "   * Static factory designed to expose `search` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "selectEvent": [
+          "/**",
+          "   * Static factory designed to expose `select` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "selectstartEvent": [
+          "/**",
+          "   * Static factory designed to expose `selectstart` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "submitEvent": [
+          "/**",
+          "   * Static factory designed to expose `submit` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "unloadEvent": [
+          "/**",
+          "   * Static factory designed to expose `unload` events to event",
+          "   * handlers that are not necessarily instances of [ElementInstance].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
     }
   },
   "dart.dom.web_audio": {
+    "AudioBufferSourceNode": {
+      "members": {
+        "endedEvent": [
+          "/**",
+          "   * Static factory designed to expose `ended` events to event",
+          "   * handlers that are not necessarily instances of [AudioBufferSourceNode].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onended": [
+          "/// Stream of `ended` events handled by this [AudioBufferSourceNode]."
+        ]
+      }
+    },
+    "AudioContext": {
+      "members": {
+        "completeEvent": [
+          "/**",
+          "   * Static factory designed to expose `complete` events to event",
+          "   * handlers that are not necessarily instances of [AudioContext].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "oncomplete": [
+          "/// Stream of `complete` events handled by this [AudioContext]."
+        ]
+      }
+    },
+    "OscillatorNode": {
+      "members": {
+        "endedEvent": [
+          "/**",
+          "   * Static factory designed to expose `ended` events to event",
+          "   * handlers that are not necessarily instances of [OscillatorNode].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "onended": [
+          "/// Stream of `ended` events handled by this [OscillatorNode]."
+        ]
+      }
+    },
     "ScriptProcessorNode": {
       "members": {
+        "audioprocessEvent": [
+          "/**",
+          "   * Static factory designed to expose `audioprocess` events to event",
+          "   * handlers that are not necessarily instances of [ScriptProcessorNode].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
         "onaudioprocess": [
+          "/// Stream of `audioprocess` events handled by this [ScriptProcessorNode].",
           "/**",
           "   * Get a Stream that fires events when AudioProcessingEvents occur.",
           "   * This particular stream is special in that it only allows one listener to a",

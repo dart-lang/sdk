@@ -147,6 +147,12 @@ class AudioBufferSourceNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory AudioBufferSourceNode._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `ended` events to event
+   * handlers that are not necessarily instances of [AudioBufferSourceNode].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('AudioBufferSourceNode.endedEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -250,6 +256,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   void stop(num when) native "AudioBufferSourceNode_stop_Callback";
 
+  /// Stream of `ended` events handled by this [AudioBufferSourceNode].
   @DomName('AudioBufferSourceNode.onended')
   @DocsEditable()
   @Experimental() // untriaged
@@ -268,6 +275,12 @@ class AudioContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioContext._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `complete` events to event
+   * handlers that are not necessarily instances of [AudioContext].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('AudioContext.completeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
@@ -474,6 +487,7 @@ class AudioContext extends EventTarget {
   @Experimental() // untriaged
   void removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioContext_removeEventListener_Callback";
 
+  /// Stream of `complete` events handled by this [AudioContext].
   @DomName('AudioContext.oncomplete')
   @DocsEditable()
   Stream<Event> get onComplete => completeEvent.forTarget(this);
@@ -1084,6 +1098,12 @@ class OscillatorNode extends AudioSourceNode {
   // To suppress missing implicit constructor warnings.
   factory OscillatorNode._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `ended` events to event
+   * handlers that are not necessarily instances of [OscillatorNode].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('OscillatorNode.endedEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1146,6 +1166,7 @@ class OscillatorNode extends AudioSourceNode {
   @DocsEditable()
   void stop(num when) native "OscillatorNode_stop_Callback";
 
+  /// Stream of `ended` events handled by this [OscillatorNode].
   @DomName('OscillatorNode.onended')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1274,6 +1295,12 @@ class ScriptProcessorNode extends AudioNode {
   // To suppress missing implicit constructor warnings.
   factory ScriptProcessorNode._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `audioprocess` events to event
+   * handlers that are not necessarily instances of [ScriptProcessorNode].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('ScriptProcessorNode.audioprocessEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1288,7 +1315,8 @@ class ScriptProcessorNode extends AudioNode {
   @Experimental() // non-standard
   void _setEventListener(EventListener eventListener) native "ScriptProcessorNode__setEventListener_Callback";
 
-  /**
+  /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
+/**
    * Get a Stream that fires events when AudioProcessingEvents occur.
    * This particular stream is special in that it only allows one listener to a
    * given stream. Converting the returned Stream [asBroadcast] will likely ruin
