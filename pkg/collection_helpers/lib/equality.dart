@@ -151,21 +151,12 @@ class ListEquality<E> implements Equality<List<E>> {
   bool isValidKey(Object o) => o is List<E>;
 }
 
-/**
- * Equality of the elements of two iterables without considering order.
- *
- * Two iterables are considered equal if they have the same number of elements,
- * and the elements of one set can be paired with the elements
- * of the other iterable, so that each pair are equal.
- */
-class UnorderedIterableEquality<E> implements Equality<Iterable<E>> {
+abstract class _UnorderedEquality<T> implements Equality<T> {
   final Equality<E> _elementEquality;
 
-  const UnorderedIterableEquality(
-      [Equality<E> elementEquality = const DefaultEquality()])
-      : _elementEquality = elementEquality;
+  const _UnorderedEquality(this._elementEquality);
 
-  bool equals(Iterable<E> e1, Iterable<E> e2) {
+  bool equals(T e1, T e2) {
     if (identical(e1, e2)) return true;
     if (e1 == null || e2 == null) return false;
     HashMap<E, int> counts = new HashMap(
@@ -173,13 +164,13 @@ class UnorderedIterableEquality<E> implements Equality<Iterable<E>> {
         hashCode: _elementEquality.hash,
         isValidKey: _elementEquality.isValidKey);
     int length = 0;
-    for (E e in e1) {
+    for (var e in e1) {
       int count = counts[e];
       if (count == null) count = 0;
       counts[e] = count + 1;
       length++;
     }
-    for (E e in e2) {
+    for (var e in e2) {
       int count = counts[e];
       if (count == null || count == 0) return false;
       counts[e] = count - 1;
@@ -188,9 +179,9 @@ class UnorderedIterableEquality<E> implements Equality<Iterable<E>> {
     return length == 0;
   }
 
-  int hash(Iterable<E> e) {
+  int hash(T e) {
     int hash = 0;
-    for (E element in e) {
+    for (var element in e) {
       int c = _elementEquality.hash(element);
       hash = (hash + c) & _HASH_MASK;
     }
@@ -199,6 +190,19 @@ class UnorderedIterableEquality<E> implements Equality<Iterable<E>> {
     hash = (hash + (hash << 15)) & _HASH_MASK;
     return hash;
   }
+}
+
+/**
+ * Equality of the elements of two iterables without considering order.
+ *
+ * Two iterables are considered equal if they have the same number of elements,
+ * and the elements of one set can be paired with the elements
+ * of the other iterable, so that each pair are equal.
+ */
+class UnorderedIterableEquality<E> extends _UnorderedEquality<Iterable<E>> {
+  const UnorderedIterableEquality(
+      [Equality<E> elementEquality = const DefaultEquality()])
+      : super(elementEquality);
 
   bool isValidKey(Object o) => o is Iterable<E>;
 }
@@ -213,15 +217,10 @@ class UnorderedIterableEquality<E> implements Equality<Iterable<E>> {
  * This equality behaves the same as [UnorderedIterableEquality] except that
  * it expects sets instead of iterables as arguments.
  */
-class SetEquality<E> extends UnorderedIterableEquality<E>
-                     implements Equality<Set<E>> {
+class SetEquality<E> extends _UnorderedEquality<Set<E>> {
   const SetEquality(
       [Equality<E> elementEquality = const DefaultEquality()])
       : super(elementEquality);
-
-  bool equals(Set<E> e1, Set<E> e2) => super.equals(e1, e2);
-
-  int hash(Set<E> e) => super.hash(e);
 
   bool isValidKey(Object o) => o is Set<E>;
 }
