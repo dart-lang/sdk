@@ -80,9 +80,14 @@ class Platform {
   static String get executable => _Platform.executable;
 
   /**
-   * Returns the URI of the script being run in this
-   * isolate. If the URI is relative it is relative to the file URI of
-   * the working directory of the VM when it was started.
+   * Returns the absolute URI of the script being run in this
+   * isolate. If the script argument on the command line is relative,
+   * it is resolved to an absolute URI before fetching the script, and
+   * this absolute URI is returned.
+   *
+   * This implies that a path including "link/.." in the script name
+   * is resolved by dropping the link component, which may be different
+   * from the file system's path resolution behavior.
    *
    * If the executable environment does not support [script] an empty
    * URI is returned.
