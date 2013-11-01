@@ -819,6 +819,11 @@ main() => new C();
       "Error: '#{type}' must not occur more than once "
       "in the implements clause.");
 
+  static const MessageKind MULTI_INHERITANCE = const MessageKind(
+      "Internal Error: Inheritance of the same class with different type "
+      "arguments is not supported: Both #{firstType} and #{secondType} are "
+      "supertypes of #{thisType}.");
+
   static const MessageKind ILLEGAL_SUPER_SEND = const MessageKind(
       "Error: '#{name}' cannot be called on super.");
 
@@ -973,6 +978,9 @@ main() => new C();"""]);
           "void x; main() {}",
           "foo(void x) {} main() { foo(null); }",
       ]);
+
+  static const MessageKind NULL_NOT_ALLOWED = const MessageKind(
+      "Error: `null` can't be used here.");
 
   static const MessageKind BEFORE_TOP_LEVEL = const MessageKind(
       "Error: Part header must come before top-level definitions.");

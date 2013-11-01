@@ -9,6 +9,12 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
 
+// This tests the behavior of barback under many operations happening in quick
+// succession. Since Barback is so asynchronous, it's easy for it to have subtle
+// dependencies on the commonly-used and -tested usage patterns. These tests
+// exist to stress-test less-common usage patterns in order to root out
+// additional bugs.
+
 main() {
   initConfig();
 
@@ -45,7 +51,7 @@ main() {
     initGraph(["app|foo.txt"], {"app": [[rewrite]]});
     updateSources(["app|foo.txt"]);
 
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 1000; i++) {
       updateTransformers("app", [[rewrite]]);
     }
 
@@ -58,7 +64,7 @@ main() {
     initGraph(["app|foo.txt"], {"app": [[rewrite]]});
     updateSources(["app|foo.txt"]);
 
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 1000; i++) {
       updateTransformers("app", [[rewrite]]);
       updateTransformers("app", [[]]);
     }

@@ -30,15 +30,19 @@ class PolymerTransformerGroup implements TransformerGroup {
   PolymerTransformerGroup(TransformOptions options)
       : phases = _createDeployPhases(options);
 
-  PolymerTransformerGroup.asPlugin(Map args) : this(_parseArgs(args));
+  PolymerTransformerGroup.asPlugin(BarbackSettings settings)
+      : this(_parseSettings(settings));
 }
 
-
-TransformOptions _parseArgs(Map args) {
+TransformOptions _parseSettings(BarbackSettings settings) {
+  var args = settings.configuration;
+  bool release = settings.mode == BarbackMode.RELEASE;
+  bool jsOption = args['js'];
+  bool csp = args['csp'] == true; // defaults to false
   return new TransformOptions(
       entryPoints: _readEntrypoints(args['entry_points']),
-      directlyIncludeJS: args['js'] != false, // default to true
-      contentSecurityPolicy: args['csp'] == true); // default to false
+      directlyIncludeJS: jsOption == null ? release : jsOption,
+      contentSecurityPolicy: csp);
 }
 
 _readEntrypoints(value) {

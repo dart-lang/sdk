@@ -123,9 +123,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   const String& function_name =
       String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
   const Function& allocation_function = Function::Handle(
-      Resolver::ResolveStaticByName(invocation_mirror_class,
-                                    function_name,
-                                    Resolver::kIsQualified));
+      invocation_mirror_class.LookupStaticFunction(function_name));
   ASSERT(!allocation_function.IsNull());
   const int kNumAllocationArgs = 4;
   const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
@@ -390,8 +388,7 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
                                        class_name,
                                        function_name,
                                        kNumArguments,
-                                       Object::empty_array(),
-                                       Resolver::kIsQualified);
+                                       Object::empty_array());
     ASSERT(!function.IsNull());
     isolate->object_store()->set_lookup_receive_port_function(function);
   }
@@ -422,8 +419,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
                                        class_name,
                                        function_name,
                                        kNumArguments,
-                                       Object::empty_array(),
-                                       Resolver::kIsQualified);
+                                       Object::empty_array());
     ASSERT(!function.IsNull());
     isolate->object_store()->set_handle_message_function(function);
   }
@@ -457,8 +453,7 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
                               class_name,
                               function_name,
                               kNumArguments,
-                              Object::empty_array(),
-                              Resolver::kIsQualified));
+                              Object::empty_array()));
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));

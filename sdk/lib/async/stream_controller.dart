@@ -656,7 +656,7 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
   _StreamSinkWrapper(this._target);
   void add(T data) { _target.add(data); }
   void addError(Object error, [StackTrace stackTrace]) {
-    _target.addError(error);
+    _target.addError(error, stackTrace);
   }
   Future close() => _target.close();
   Future addStream(Stream<T> source) => _target.addStream(source);

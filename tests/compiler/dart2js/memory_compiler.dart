@@ -97,7 +97,8 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                                    handler,
                                    libraryRoot,
                                    packageRoot,
-                                   options);
+                                   options,
+                                   {});
   if (cachedCompiler != null) {
     compiler.coreLibrary = cachedCompiler.libraries['dart:core'];
     compiler.types = cachedCompiler.types;

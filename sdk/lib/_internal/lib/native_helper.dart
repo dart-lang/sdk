@@ -46,7 +46,7 @@ newJsObject() {
 /**
  * Returns a String tag identifying the type of the native object, or `null`.
  * The tag is not the name of the type, but usually the name of the JavaScript
- * constructor function.
+ * constructor function.  Initialized by [initHooks].
  */
 Function getTagFunction;
 
@@ -54,9 +54,17 @@ Function getTagFunction;
  * If a lookup via [getTagFunction] on an object [object] that has [tag] fails,
  * this function is called to provide an alternate tag.  This allows us to fail
  * gracefully if we can make a good guess, for example, when browsers add novel
- * kinds of HTMLElement that we have never heard of.
+ * kinds of HTMLElement that we have never heard of.  Initialized by
+ * [initHooks].
  */
 Function alternateTagFunction;
+
+/**
+ * Returns the prototype for the JavaScript constructor named by an input tag.
+ * Returns `null` if there is no such constructor, or if pre-patching of the
+ * constructor is to be avoided.  Initialized by [initHooks].
+ */
+Function prototypeForTagFunction;
 
 
 String toStringForNativeObject(var obj) {
@@ -303,15 +311,12 @@ void initNativeDispatchContinue() {
     var context = JS('=Object', 'window');
     for (int i = 0; i < tags.length; i++) {
       var tag = tags[i];
-      if (JS('bool', 'typeof (#[#]) == "function"', context, tag)) {
-        var constructor = JS('', '#[#]', context, tag);
-        var proto = JS('', '#.prototype', constructor);
-        if (proto != null) {  // E.g. window.mozRTCIceCandidate.prototype
-          var interceptorClass = JS('', '#[#]', map, tag);
-          var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
-          if (record != null) {
-            setDispatchProperty(proto, record);
-          }
+      var proto = prototypeForTagFunction(tag);
+      if (proto != null) {
+        var interceptorClass = JS('', '#[#]', map, tag);
+        var record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
+        if (record != null) {
+          setDispatchProperty(proto, record);
         }
       }
     }
@@ -347,12 +352,15 @@ void initNativeDispatchContinue() {
  *
  *     { getTag: function(obj) {...},
  *       getUnknownTag: function(obj, tag) {...},
+ *       prototypeForTag: function(tag) {...},
  *       discriminator: function(tag) {...},
  *      }
  *
  * * getTag(obj) returns the dispatch tag, or `null`.
  * * getUnknownTag(obj, tag) returns a tag when [getTag] fails.
- * * discriminator returns a function TBD.
+ * * prototypeForTag(tag) returns the prototype of the constructor for tag,
+ *   or `null` if not available or prepatching is undesirable.
+ * * discriminator(tag) returns a function TBD.
  *
  * The web site can adapt a dart2js application by loading code ahead of the
  * dart2js application that defines hook transformers to be after the built in
@@ -408,17 +416,19 @@ void initHooks() {
 
   var getTag = JS('', '#.getTag', hooks);
   var getUnknownTag = JS('', '#.getUnknownTag', hooks);
+  var prototypeForTag = JS('', '#.prototypeForTag', hooks);
 
   getTagFunction = (o) => JS('String|Null', '#(#)', getTag, o);
   alternateTagFunction =
       (o, String tag) => JS('String|Null', '#(#, #)', getUnknownTag, o, tag);
+  prototypeForTagFunction =
+      (String tag) => JS('', '#(#)', prototypeForTag, tag);
 }
 
 applyHooksTransformer(transformer, hooks) {
   var newHooks = JS('=Object|Null', '#(#)', transformer, hooks);
   return JS('', '# || #', newHooks, hooks);
 }
-
 
 // JavaScript code fragments.
 //
@@ -445,6 +455,13 @@ function() {
     if (object instanceof HTMLElement) return "HTMLElement";
     return getUnknownTag(object, tag);
   }
+  function prototypeForTag(tag) {
+    if (typeof window == "undefined") return null;
+    if (typeof window[tag] == "undefined") return null;
+    var constructor = window[tag];
+    if (typeof constructor != "function") return null;
+    return constructor.prototype;
+  }
   function discriminator(tag) { return null; }
 
   var isBrowser = typeof navigator == "object";
@@ -452,6 +469,7 @@ function() {
   return {
     getTag: typeNameInChrome,
     getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,
+    prototypeForTag: prototypeForTag,
     discriminator: discriminator };
 }''');
 
@@ -544,7 +562,15 @@ function(hooks) {
     return tag;
   }
 
+  function prototypeForTagIE(tag) {
+    if (tag == "Document") return null;  // Do not pre-patch Document.
+    var constructor = window[tag];
+    if (constructor == null) return null;
+    return constructor.prototype;
+  }
+
   hooks.getTag = getTagIE;
+  hooks.prototypeForTag = prototypeForTagIE;
 }''');
 
 

@@ -863,6 +863,10 @@ class Class : public Object {
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
 
+  // Returns an array of all fields of this class and its superclasses indexed
+  // by offset in words.
+  RawArray* OffsetToFieldMap() const;
+
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
@@ -1589,6 +1593,7 @@ class Function : public Object {
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kStaticInitializer:
         return false;
       default:
         UNREACHABLE();
@@ -1606,6 +1611,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kStaticInitializer:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -1809,6 +1815,11 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
+  // Returns true if this function represents an static initializer function.
+  bool IsStaticInitializerFunction() const {
+    return kind() == RawFunction::kStaticInitializer;
+  }
+
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
@@ -1866,6 +1877,13 @@ class Function : public Object {
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          intptr_t token_pos);
+
+  // Creates a new static initializer function which is invoked in the implicit
+  // static getter function.
+  static RawFunction* NewStaticInitializer(const String& field_name,
+                                           const AbstractType& result_type,
+                                           const Class& cls,
+                                           intptr_t token_pos);
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
@@ -2124,13 +2142,9 @@ class Field : public Object {
     return OFFSET_OF(RawField, is_nullable_);
   }
 
-  // Update guarded class id and nullability of the field to reflect assignment
-  // of the value with the given class id to this field. May trigger
-  // deoptimization of dependent code.
-  void UpdateCid(intptr_t cid) const;
-  // Update guarded class length of the field to reflect assignment of the
-  // value with the given length. May trigger deoptimization of dependent code.
-  void UpdateLength(intptr_t length) const;
+  // Update guarded cid and guarded length for this field. May trigger
+  // deoptimization of dependent optimized code.
+  bool UpdateGuardedCidAndLength(const Object& value) const;
 
   // Return the list of optimized code objects that were optimized under
   // assumptions about guarded class id and nullability of this field.
@@ -2168,6 +2182,16 @@ class Field : public Object {
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class FinalBit : public BitField<bool, kFinalBit, 1> {};
   class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
+
+  // Update guarded class id and nullability of the field to reflect assignment
+  // of the value with the given class id to this field. Returns true, if
+  // deoptimization of dependent code is required.
+  bool UpdateCid(intptr_t cid) const;
+
+  // Update guarded class length of the field to reflect assignment of the
+  // value with the given length. Returns true if deoptimization of dependent
+  // code is required.
+  bool UpdateLength(intptr_t length) const;
 
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
@@ -3828,6 +3852,7 @@ class Instance : public Object {
   }
 
   void SetField(const Field& field, const Object& value) const {
+    field.UpdateGuardedCidAndLength(value);
     StorePointer(FieldAddr(field), value.raw());
   }
 

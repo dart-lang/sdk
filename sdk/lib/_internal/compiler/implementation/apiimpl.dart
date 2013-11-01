@@ -20,6 +20,7 @@ class Compiler extends leg.Compiler {
   final Uri libraryRoot;
   final Uri packageRoot;
   List<String> options;
+  Map<String, dynamic> environment;
   bool mockableLibraryUsed = false;
   final Set<String> allowedLibraryCategories;
 
@@ -28,7 +29,8 @@ class Compiler extends leg.Compiler {
            this.handler,
            this.libraryRoot,
            this.packageRoot,
-           List<String> options)
+           List<String> options,
+           this.environment)
       : this.options = options,
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
@@ -329,4 +331,6 @@ class Compiler extends leg.Compiler {
     print('$message: ${tryToString(exception)}');
     print(tryToString(stackTrace));
   }
+
+  fromEnvironment(String name) => environment[name];
 }

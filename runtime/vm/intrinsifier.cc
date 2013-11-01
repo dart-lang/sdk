@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
+#include "vm/assembler.h"
 #include "vm/intrinsifier.h"
 #include "vm/flags.h"
 #include "vm/object.h"
@@ -154,7 +155,9 @@ void Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
                    class_name, function_name,                                  \
                    #test_class_name, #test_function_name)) {                   \
     ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return destination(assembler);                                             \
+    assembler->Comment("Intrinsic");                                           \
+    destination(assembler);                                                    \
+    return;                                                                    \
   }                                                                            \
 
   if (lib.raw() == Library::CoreLibrary()) {

@@ -5,10 +5,8 @@
 part of js_backend;
 
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
-  final Set<HInstruction> boundsChecked;
-
-  JavaScriptItemCompilationContext()
-      : boundsChecked = new Set<HInstruction>();
+  final Set<HInstruction> boundsChecked = new Set<HInstruction>();
+  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
 }
 
 class CheckedModeHelper {
@@ -207,20 +205,21 @@ class JavaScriptBackend extends Backend {
    */
   Element mapTypeToInterceptor;
 
-  HType stringType;
-  HType doubleType;
-  HType intType;
-  HType numType;
-  HType boolType;
-  HType indexablePrimitiveType;
-  HType readableArrayType;
-  HType mutableArrayType;
-  HType fixedArrayType;
-  HType extendableArrayType;
-  HType nonNullType;
-  HType dynamicType;
-  HType nullType = const HBoundedType(const TypeMask.empty());
-  HType emptyType = const HBoundedType(const TypeMask.nonNullEmpty());
+  TypeMask get stringType => compiler.typesTask.stringType;
+  TypeMask get doubleType => compiler.typesTask.doubleType;
+  TypeMask get intType => compiler.typesTask.intType;
+  TypeMask get numType => compiler.typesTask.numType;
+  TypeMask get boolType => compiler.typesTask.boolType;
+  TypeMask get dynamicType => compiler.typesTask.dynamicType;
+  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get emptyType => const TypeMask.nonNullEmpty();
+  TypeMask indexablePrimitiveType;
+  TypeMask readableArrayType;
+  TypeMask mutableArrayType;
+  TypeMask fixedArrayType;
+  TypeMask extendableArrayType;
+  TypeMask nonNullType;
+
 
   Element getNativeInterceptorMethod;
   bool needToInitializeDispatchProperty = false;
@@ -613,32 +612,14 @@ class JavaScriptBackend extends Backend {
 
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
 
-    stringType = new HBoundedType(
-        new TypeMask.nonNullExact(jsStringClass));
-    doubleType = new HBoundedType(
-        new TypeMask.nonNullExact(jsDoubleClass));
-    intType = new HBoundedType(
-        new TypeMask.nonNullExact(jsIntClass));
-    numType = new HBoundedType(
-        new TypeMask.nonNullSubclass(jsNumberClass));
-    boolType = new HBoundedType(
-        new TypeMask.nonNullExact(jsBoolClass));
-    indexablePrimitiveType = new HBoundedType(
-        new TypeMask.nonNullSubtype(jsIndexableClass));
-    readableArrayType = new HBoundedType(
-        new TypeMask.nonNullSubclass(jsArrayClass));
-    mutableArrayType = new HBoundedType(
-        new TypeMask.nonNullSubclass(jsMutableArrayClass));
-    fixedArrayType = new HBoundedType(
-        new TypeMask.nonNullExact(jsFixedArrayClass));
-    extendableArrayType = new HBoundedType(
-        new TypeMask.nonNullExact(jsExtendableArrayClass));
-    nonNullType = new HBoundedType(
-        compiler.typesTask.dynamicType.nonNullable());
-    dynamicType = new HBoundedType(
-        compiler.typesTask.dynamicType);
-
     typeVariableClass = compiler.findHelper('TypeVariable');
+
+    indexablePrimitiveType = new TypeMask.nonNullSubtype(jsIndexableClass);
+    readableArrayType = new TypeMask.nonNullSubclass(jsArrayClass);
+    mutableArrayType = new TypeMask.nonNullSubclass(jsMutableArrayClass);
+    fixedArrayType = new TypeMask.nonNullExact(jsFixedArrayClass);
+    extendableArrayType = new TypeMask.nonNullExact(jsExtendableArrayClass);
+    nonNullType = compiler.typesTask.dynamicType.nonNullable();
   }
 
   void validateInterceptorImplementsAllObjectMethods(

@@ -29,7 +29,8 @@ main() {
                                    diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
-                                   ['--analyze-only']);
+                                   ['--analyze-only'],
+                                   {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     diagnostics.sort();
     var expected = [

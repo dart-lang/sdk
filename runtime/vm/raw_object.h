@@ -477,6 +477,7 @@ class RawClass : public RawObject {
   RawString* name_;
   RawArray* functions_;
   RawArray* fields_;
+  RawArray* offset_in_words_to_field_;
   RawGrowableObjectArray* closure_functions_;  // Local functions and literals.
   RawArray* interfaces_;  // Array of AbstractType.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
@@ -602,6 +603,7 @@ class RawFunction : public RawObject {
     kImplicitSetter,     // represents an implicit setter for fields.
     kImplicitStaticFinalGetter,  // represents an implicit getter for static
                                  // final fields (incl. static const fields).
+    kStaticInitializer,  // used in implicit static getters.
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.

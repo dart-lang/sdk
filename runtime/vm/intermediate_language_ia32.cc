@@ -3135,7 +3135,7 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
+LocationSummary* Simd32x4ShuffleInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3146,7 +3146,7 @@ LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
 }
 
 
-void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
 
   ASSERT(locs()->out().fpu_reg() == value);
@@ -3169,7 +3169,35 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cvtss2sd(value, value);
       break;
     case MethodRecognizer::kFloat32x4Shuffle:
+    case MethodRecognizer::kUint32x4Shuffle:
       __ shufps(value, value, Immediate(mask_));
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Simd32x4ShuffleMixInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == left);
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4ShuffleMix:
+    case MethodRecognizer::kUint32x4ShuffleMix:
+      __ shufps(left, right, Immediate(mask_));
       break;
     default: UNREACHABLE();
   }
@@ -3534,45 +3562,6 @@ LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
 
 void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NOP.
-}
-
-
-LocationSummary* Float32x4TwoArgShuffleInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_in(1, Location::RequiresFpuRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  return summary;
-}
-
-
-void Float32x4TwoArgShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  XmmRegister left = locs()->in(0).fpu_reg();
-  XmmRegister right = locs()->in(1).fpu_reg();
-
-  ASSERT(locs()->out().fpu_reg() == left);
-
-  switch (op_kind()) {
-    case MethodRecognizer::kFloat32x4WithZWInXY:
-      __ movhlps(left, right);
-    break;
-    case MethodRecognizer::kFloat32x4InterleaveXY:
-      __ unpcklps(left, right);
-    break;
-    case MethodRecognizer::kFloat32x4InterleaveZW:
-      __ unpckhps(left, right);
-    break;
-    case MethodRecognizer::kFloat32x4InterleaveXYPairs:
-      __ unpcklpd(left, right);
-    break;
-    case MethodRecognizer::kFloat32x4InterleaveZWPairs:
-      __ unpckhpd(left, right);
-    break;
-    default: UNREACHABLE();
-  }
 }
 
 

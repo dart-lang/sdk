@@ -11,6 +11,18 @@
 
 namespace dart {
 
+static void ThrowMaskRangeException(int64_t m) {
+  if ((m < 0) || (m > 255)) {
+    const String& error = String::Handle(
+      String::NewFormatted("mask (%" Pd64 ") must be in the range [0..256)",
+                           m));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kRange, args);
+  }
+}
+
+
 DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 5) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());
@@ -263,14 +275,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
   int64_t m = mask.AsInt64Value();
-  if (m < 0 || m > 255) {
-    const String& error = String::Handle(
-      String::NewFormatted("mask (%" Pd64 ") must be in the range [0..256)",
-                           m));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, error);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
-  }
+  ThrowMaskRangeException(m);
   float data[4] = { self.x(), self.y(), self.z(), self.w() };
   float _x = data[m & 0x3];
   float _y = data[(m >> 2) & 0x3];
@@ -280,57 +285,18 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float32x4_withZWInXY, 2) {
+DEFINE_NATIVE_ENTRY(Float32x4_shuffleMix, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = other.z();
-  float _y = other.w();
-  float _z = self.z();
-  float _w = self.w();
-  return Float32x4::New(_x, _y, _z, _w);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_interleaveXY, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x();
-  float _y = other.x();
-  float _z = self.y();
-  float _w = other.y();
-  return Float32x4::New(_x, _y, _z, _w);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_interleaveZW, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.z();
-  float _y = other.z();
-  float _z = self.w();
-  float _w = other.w();
-  return Float32x4::New(_x, _y, _z, _w);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_interleaveXYPairs, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x();
-  float _y = self.y();
-  float _z = other.x();
-  float _w = other.y();
-  return Float32x4::New(_x, _y, _z, _w);
-}
-
-
-DEFINE_NATIVE_ENTRY(Float32x4_interleaveZWPairs, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.z();
-  float _y = self.w();
-  float _z = other.z();
-  float _w = other.w();
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
+  int64_t m = mask.AsInt64Value();
+  ThrowMaskRangeException(m);
+  float data[4] = { self.x(), self.y(), self.z(), self.w() };
+  float other_data[4] = { other.x(), other.y(), other.z(), other.w() };
+  float _x = data[m & 0x3];
+  float _y = data[(m >> 2) & 0x3];
+  float _z = other_data[(m >> 4) & 0x3];
+  float _w = other_data[(m >> 6) & 0x3];
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -549,6 +515,36 @@ DEFINE_NATIVE_ENTRY(Uint32x4_getW, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
   uint32_t value = self.w();
   return Integer::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint32x4_shuffle, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
+  int64_t m = mask.AsInt64Value();
+  ThrowMaskRangeException(m);
+  uint32_t data[4] = { self.x(), self.y(), self.z(), self.w() };
+  uint32_t _x = data[m & 0x3];
+  uint32_t _y = data[(m >> 2) & 0x3];
+  uint32_t _z = data[(m >> 4) & 0x3];
+  uint32_t _w = data[(m >> 6) & 0x3];
+  return Uint32x4::New(_x, _y, _z, _w);
+}
+
+
+DEFINE_NATIVE_ENTRY(Uint32x4_shuffleMix, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Uint32x4, zw, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
+  int64_t m = mask.AsInt64Value();
+  ThrowMaskRangeException(m);
+  uint32_t data[4] = { self.x(), self.y(), self.z(), self.w() };
+  uint32_t zw_data[4] = { zw.x(), zw.y(), zw.z(), zw.w() };
+  uint32_t _x = data[m & 0x3];
+  uint32_t _y = data[(m >> 2) & 0x3];
+  uint32_t _z = zw_data[(m >> 4) & 0x3];
+  uint32_t _w = zw_data[(m >> 6) & 0x3];
+  return Uint32x4::New(_x, _y, _z, _w);
 }
 
 

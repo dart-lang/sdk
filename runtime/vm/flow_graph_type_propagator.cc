@@ -1049,13 +1049,26 @@ CompileType BinaryFloat32x4OpInstr::ComputeType() const {
 }
 
 
-CompileType Float32x4ShuffleInstr::ComputeType() const {
+CompileType Simd32x4ShuffleInstr::ComputeType() const {
   if ((op_kind() == MethodRecognizer::kFloat32x4ShuffleX) ||
       (op_kind() == MethodRecognizer::kFloat32x4ShuffleY) ||
       (op_kind() == MethodRecognizer::kFloat32x4ShuffleZ) ||
       (op_kind() == MethodRecognizer::kFloat32x4ShuffleW)) {
     return CompileType::FromCid(kDoubleCid);
   }
+  if ((op_kind() == MethodRecognizer::kUint32x4Shuffle)) {
+    return CompileType::FromCid(kUint32x4Cid);
+  }
+  ASSERT((op_kind() == MethodRecognizer::kFloat32x4Shuffle));
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Simd32x4ShuffleMixInstr::ComputeType() const {
+  if (op_kind() == MethodRecognizer::kUint32x4ShuffleMix) {
+    return CompileType::FromCid(kUint32x4Cid);
+  }
+  ASSERT((op_kind() == MethodRecognizer::kFloat32x4ShuffleMix));
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
@@ -1117,11 +1130,6 @@ CompileType Float32x4WithInstr::ComputeType() const {
 
 CompileType Float32x4ToUint32x4Instr::ComputeType() const {
   return CompileType::FromCid(kUint32x4Cid);
-}
-
-
-CompileType Float32x4TwoArgShuffleInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
 }
 
 

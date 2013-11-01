@@ -133,7 +133,8 @@ Future analyze(List<Uri> uriList, Map<String, List<String>> whiteList) {
       handler.diagnosticHandler,
       libraryRoot, libraryRoot,
       <String>['--analyze-only', '--analyze-all',
-               '--categories=Client,Server']);
+               '--categories=Client,Server'],
+      {});
   compiler.librariesToAnalyzeWhenRun = uriList;
   return compiler.run(null).then((_) {
     handler.checkResults();

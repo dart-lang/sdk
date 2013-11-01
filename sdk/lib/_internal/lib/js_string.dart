@@ -14,7 +14,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
   int codeUnitAt(int index) {
-    if (index is !num) throw new ArgumentError(index);
+    if (index is !int) throw new ArgumentError(index);
     if (index < 0) throw new RangeError.value(index);
     if (index >= length) throw new RangeError.value(index);
     return JS('int', r'#.charCodeAt(#)', this, index);
@@ -84,6 +84,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   bool startsWith(Pattern pattern, [int index = 0]) {
+    checkInt(index);
     if (index < 0 || index > this.length) {
       throw new RangeError.range(index, 0, this.length);
     }
@@ -92,16 +93,15 @@ class JSString extends Interceptor implements String, JSIndexable {
       int otherLength = other.length;
       int endIndex = index + otherLength;
       if (endIndex > length) return false;
-      return JS('bool', r'# == #', other,
-                JS('String', r'#.substring(#, #)', this, index, endIndex));
+      return other == JS('String', r'#.substring(#, #)', this, index, endIndex);
     }
     return pattern.matchAsPrefix(this, index) != null;
   }
 
   String substring(int startIndex, [int endIndex]) {
-    checkNum(startIndex);
+    checkInt(startIndex);
     if (endIndex == null) endIndex = length;
-    checkNum(endIndex);
+    checkInt(endIndex);
     if (startIndex < 0 ) throw new RangeError.value(startIndex);
     if (startIndex > endIndex) throw new RangeError.value(startIndex);
     if (endIndex > length) throw new RangeError.value(endIndex);

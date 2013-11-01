@@ -58,7 +58,8 @@ class BuildCommand extends PubCommand {
       // Since this server will only be hit by the transformer loader and isn't
       // user-facing, just use an IPv4 address to avoid a weird bug on the
       // OS X buildbots.
-      return barback.createServer("127.0.0.1", 0, graph,
+      // TODO(rnystrom): Allow specifying mode.
+      return barback.createServer("127.0.0.1", 0, graph, BarbackMode.RELEASE,
           builtInTransformers: [dart2jsTransformer],
           watchForUpdates: false);
     }).then((server) {

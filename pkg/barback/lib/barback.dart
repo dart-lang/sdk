@@ -8,6 +8,7 @@ export 'src/asset.dart';
 export 'src/asset_id.dart';
 export 'src/asset_set.dart';
 export 'src/barback.dart';
+export 'src/barback_settings.dart';
 export 'src/build_result.dart';
 export 'src/errors.dart' hide flattenAggregateExceptions;
 export 'src/log.dart';

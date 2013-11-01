@@ -79,7 +79,6 @@ TEST_CASE(DartStaticResolve) {
   const char* test_class_name = "A";
   const char* test_static_function_name = "static_foo";
   const int kTestValue = 42;
-  const Resolver::StaticResolveType kResolveType = Resolver::kIsQualified;
 
   // Setup a static function which can be invoked.
   SetupStaticFunction(test_library_name,
@@ -101,8 +100,7 @@ TEST_CASE(DartStaticResolve) {
                                 class_name,
                                 static_function_name,
                                 kNumArguments,
-                                Object::empty_array(),
-                                kResolveType));
+                                Object::empty_array()));
     EXPECT(!function.IsNull());  // No ambiguity error expected.
     const Array& args = Array::Handle(Array::New(kNumArguments));
     const String& arg0 = String::Handle(String::New("junk"));
@@ -122,8 +120,7 @@ TEST_CASE(DartStaticResolve) {
                                 class_name,
                                 static_function_name,
                                 kNumArguments,
-                                Object::empty_array(),
-                                kResolveType));
+                                Object::empty_array()));
     EXPECT(bad_function.IsNull());  // No ambiguity error expected.
   }
 
@@ -138,8 +135,7 @@ TEST_CASE(DartStaticResolve) {
                                 super_class_name,
                                 super_static_function_name,
                                 kNumArguments,
-                                Object::empty_array(),
-                                kResolveType));
+                                Object::empty_array()));
     EXPECT(!super_function.IsNull());  // No ambiguity error expected.
   }
 }

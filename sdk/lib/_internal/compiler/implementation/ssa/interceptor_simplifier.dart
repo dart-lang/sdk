@@ -64,14 +64,14 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return false;
   }
 
-  bool canUseSelfForInterceptor(HType receiverType,
+  bool canUseSelfForInterceptor(HInstruction instruction,
                                 Set<ClassElement> interceptedClasses) {
     JavaScriptBackend backend = compiler.backend;
-    if (receiverType.canBePrimitive(compiler)) {
+    if (instruction.canBePrimitive(compiler)) {
       // Primitives always need interceptors.
       return false;
     }
-    if (receiverType.canBeNull()
+    if (instruction.canBeNull()
         && interceptedClasses.contains(backend.jsNullClass)) {
       // Need the JSNull interceptor.
       return false;
@@ -80,14 +80,13 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // [interceptedClasses] is sparse - it is just the classes that define some
     // intercepted method.  Their subclasses (that inherit the method) are
     // implicit, so we have to extend them.
-
-    TypeMask receiverMask = receiverType.computeMask(compiler);
+    TypeMask receiverType = instruction.instructionType;
     return interceptedClasses
         .where((cls) => cls != compiler.objectClass)
         .map((cls) => backend.classesMixedIntoNativeClasses.contains(cls)
             ? new TypeMask.subtype(cls)
             : new TypeMask.subclass(cls))
-        .every((mask) => receiverMask.intersection(mask, compiler).isEmpty);
+        .every((mask) => receiverType.intersection(mask, compiler).isEmpty);
   }
 
   HInstruction tryComputeConstantInterceptor(
@@ -100,24 +99,23 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return graph.thisInstruction;
     }
 
-    HType type = input.instructionType;
     ClassElement constantInterceptor;
     JavaScriptBackend backend = compiler.backend;
-    if (type.canBeNull()) {
-      if (type.isNull()) {
+    if (input.canBeNull()) {
+      if (input.isNull()) {
         constantInterceptor = backend.jsNullClass;
       }
-    } else if (type.isInteger(compiler)) {
+    } else if (input.isInteger(compiler)) {
       constantInterceptor = backend.jsIntClass;
-    } else if (type.isDouble(compiler)) {
+    } else if (input.isDouble(compiler)) {
       constantInterceptor = backend.jsDoubleClass;
-    } else if (type.isBoolean(compiler)) {
+    } else if (input.isBoolean(compiler)) {
       constantInterceptor = backend.jsBoolClass;
-    } else if (type.isString(compiler)) {
+    } else if (input.isString(compiler)) {
       constantInterceptor = backend.jsStringClass;
-    } else if (type.isArray(compiler)) {
+    } else if (input.isArray(compiler)) {
       constantInterceptor = backend.jsArrayClass;
-    } else if (type.isNumber(compiler)
+    } else if (input.isNumber(compiler)
         && !interceptedClasses.contains(backend.jsIntClass)
         && !interceptedClasses.contains(backend.jsDoubleClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
@@ -136,7 +134,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // for a subclass or call methods defined on a subclass.  Provided the
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
-      ClassElement element = type.computeMask(compiler).singleClass(compiler);
+      ClassElement element = input.instructionType.singleClass(compiler);
       if (element != null && element.isNative()) {
         constantInterceptor = element;
       }
@@ -216,8 +214,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     HInstruction receiver = node.receiver;
-    HType instructionType = receiver.instructionType;
-    if (canUseSelfForInterceptor(instructionType, interceptedClasses)) {
+    if (canUseSelfForInterceptor(receiver, interceptedClasses)) {
       node.block.rewrite(node, receiver);
       return false;
     }

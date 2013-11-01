@@ -17,16 +17,17 @@ import 'dart:convert';
 import 'package:barback/barback.dart';
 
 class ConfigTransformer extends Transformer {
-  final Map configuration;
+  final BarbackSettings settings;
 
-  ConfigTransformer.asPlugin(this.configuration);
+  ConfigTransformer.asPlugin(this.settings);
 
   String get allowedExtensions => '.txt';
 
   Future apply(Transform transform) {
     return transform.primaryInput.readAsString().then((contents) {
       var id = transform.primaryInput.id.changeExtension(".json");
-      transform.addOutput(new Asset.fromString(id, JSON.encode(configuration)));
+      transform.addOutput(
+          new Asset.fromString(id, JSON.encode(settings.configuration)));
     });
   }
 }

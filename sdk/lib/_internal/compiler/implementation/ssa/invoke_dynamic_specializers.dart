@@ -13,10 +13,10 @@ part of ssa;
 class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  Compiler compiler) {
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
     Selector selector = instruction.selector;
-    HType type = new HType.inferredTypeForSelector(selector, compiler);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     // TODO(ngeoffray): Because we don't know yet the side effects of
     // a JS call, we sometimes know more in the compiler about the
     // side effects of an element (for example operator% on the int
@@ -108,15 +108,16 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
-    if (!instruction.inputs[1].isIndexable(compiler)) return null;
+    if (!instruction.inputs[1].isIndexablePrimitive(compiler)) return null;
     if (!instruction.inputs[2].isInteger(compiler)
         && compiler.enableTypeAssertions) {
       // We want the right checked mode error.
       return null;
     }
-    HType receiverType = instruction.getDartReceiver(compiler).instructionType;
-    Selector refined = receiverType.refine(instruction.selector, compiler);
-    HType type = new HType.inferredTypeForSelector(refined, compiler);
+    TypeMask receiverType =
+        instruction.getDartReceiver(compiler).instructionType;
+    Selector refined = new TypedSelector(receiverType, instruction.selector);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(refined, compiler);
     return new HIndex(
         instruction.inputs[1], instruction.inputs[2],
         instruction.selector, type);
@@ -130,8 +131,8 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.bitNot;
   }
 
-  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  Compiler compiler) {
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     JavaScriptBackend backend = compiler.backend;
@@ -159,10 +160,10 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.negate;
   }
 
-  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  Compiler compiler) {
-    HType operandType = instruction.inputs[1].instructionType;
-    if (operandType.isNumberOrNull(compiler)) return operandType;
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    TypeMask operandType = instruction.inputs[1].instructionType;
+    if (instruction.inputs[1].isNumberOrNull(compiler)) return operandType;
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
@@ -179,8 +180,8 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   const BinaryArithmeticSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  Compiler compiler) {
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     JavaScriptBackend backend = compiler.backend;
@@ -241,8 +242,8 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.divide;
   }
 
-  HType computeTypeFromInputTypes(HInstruction instruction,
-                                  Compiler compiler) {
+  TypeMask computeTypeFromInputTypes(HInstruction instruction,
+                                     Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     JavaScriptBackend backend = compiler.backend;
     if (left.isNumberOrNull(compiler)) {
@@ -321,8 +322,8 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
 abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   const BinaryBitOpSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  Compiler compiler) {
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
@@ -434,10 +435,10 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
 abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
-                                  Compiler compiler) {
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    if (instruction.inputs[1].instructionType.isPrimitiveOrNull(compiler)) {
+    if (instruction.inputs[1].isPrimitiveOrNull(compiler)) {
       return backend.boolType;
     }
     return super.computeTypeFromInputTypes(instruction, compiler);
@@ -463,11 +464,12 @@ class EqualsSpecializer extends RelationalSpecializer {
                                    Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    HType instructionType = left.instructionType;
-    if (right.isConstantNull() || instructionType.isPrimitiveOrNull(compiler)) {
+    TypeMask instructionType = left.instructionType;
+    if (right.isConstantNull() || left.isPrimitiveOrNull(compiler)) {
       return newBuiltinVariant(instruction, compiler);
     }
-    Selector selector = instructionType.refine(instruction.selector, compiler);
+    Selector selector =
+        new TypedSelector(instructionType, instruction.selector);
     World world = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     Iterable<Element> matches = world.allFunctions.filter(selector);

@@ -39,7 +39,8 @@ void main(_, SendPort replyTo) {
     _respond(wrappedMessage, (message) {
       var library = Uri.parse(message['library']);
       var configuration = JSON.decode(message['configuration']);
-      return initialize(library, configuration).
+      var mode = new BarbackMode(message['mode']);
+      return initialize(library, configuration, mode).
           map(_serializeTransformerOrGroup).toList();
     });
   });
@@ -48,9 +49,8 @@ void main(_, SendPort replyTo) {
 /// Loads all the transformers and groups defined in [uri].
 ///
 /// Loads the library, finds any Transformer or TransformerGroup subclasses in
-/// it, instantiates them (with [configuration] if it's non-null), and returns
-/// them.
-Iterable initialize(Uri uri, Map configuration) {
+/// it, instantiates them with [configuration] and [mode], and returns them.
+Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
   var mirrors = currentMirrorSystem();
   var transformerClass = reflectClass(Transformer);
   var groupClass = reflectClass(TransformerGroup);
@@ -77,10 +77,8 @@ Iterable initialize(Uri uri, Map configuration) {
     // to an empty map.
     if (configuration == null) configuration = {};
 
-    // TODO(nweiz): if the constructor accepts named parameters, automatically
-    // destructure the configuration map.
-    return classMirror.newInstance(const Symbol('asPlugin'), [configuration])
-        .reflectee;
+    return classMirror.newInstance(const Symbol('asPlugin'),
+        [new BarbackSettings(configuration, mode)]).reflectee;
   }).where((classMirror) => classMirror != null);
 }
 
@@ -444,7 +442,8 @@ Stream callbackStream(Stream callback()) {
 /// [id].
 ///
 /// [server] is used to serve any Dart files needed to load the transformers.
-Future<Set> loadTransformers(BarbackServer server, TransformerId id) {
+Future<Set> loadTransformers(BarbackServer server, BarbackMode mode,
+    TransformerId id) {
   return id.getAssetId(server.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
     // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
@@ -460,6 +459,7 @@ Future<Set> loadTransformers(BarbackServer server, TransformerId id) {
         .then((sendPort) {
       return _call(sendPort, {
         'library': uri,
+        'mode': mode.name,
         // TODO(nweiz): support non-JSON-encodable configuration maps.
         'configuration': JSON.encode(id.configuration)
       }).then((transformers) {
@@ -552,7 +552,7 @@ Map _serializeTransform(Transform transform) {
 
       if (message['type'] == 'addOutput') {
         transform.addOutput(_deserializeAsset(message['output']));
-        return;
+        return null;
       }
 
       assert(message['type'] == 'log');

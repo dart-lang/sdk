@@ -13,10 +13,25 @@ part of dart.core;
  */
 class bool {
   /**
-   * Returns the boolean for the given environment variable [name] or
-   * [defaultValue] if [name] is not present.
+   * Returns the boolean value of the environment declaration [name].
+   *
+   * The boolean value of the declaration is `true` if the declared value is
+   * the string `"true"`, and `false` if the value is `"false"`.
+   *
+   * In all other cases, including when there is no declaration for `name`,
+   * the result is the [defaultValue].
+   *
+   * Example:
+   *
+   *     const loggingFlag = const bool.fromEnvironment("logging");
+   *
+   * If you want to use a different truth-string, you can use the
+   * [String.fromEnvironment] constructor directly:
+   *
+   *     const isLoggingOn = (const String.fromEnvironment("logging") == "on");
    */
-  external const factory bool.fromEnvironment(String name, {bool defaultValue});
+  external const factory bool.fromEnvironment(String name,
+                                              {bool defaultValue: false});
 
   /**
    * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the

@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.isNull(const bool.fromEnvironment('NOT_FOUND'));
+  Expect.isFalse(const bool.fromEnvironment('NOT_FOUND'));
   Expect.isTrue(const bool.fromEnvironment('NOT_FOUND', defaultValue: true));
   Expect.isFalse(const bool.fromEnvironment('NOT_FOUND', defaultValue: false));
   Expect.isNull(const bool.fromEnvironment('NOT_FOUND', defaultValue: null));

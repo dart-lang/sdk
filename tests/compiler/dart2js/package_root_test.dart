@@ -57,7 +57,8 @@ void runCompiler(Uri main) {
                                    diagnosticHandler,
                                    libraryRoot,
                                    null,
-                                   []);
+                                   [],
+                                   {});
 
   asyncTest(() => compiler.run(main).then((_) {
     Expect.equals(1, errors.length);

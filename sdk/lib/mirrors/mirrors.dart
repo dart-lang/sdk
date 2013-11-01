@@ -539,20 +539,7 @@ abstract class ClosureMirror implements InstanceMirror {
                        [Map<Symbol, dynamic> namedArguments]);
 
   /**
-   * Looks up the value of a name in the scope of the closure. The
-   * result is a mirror on that value.
-   *
-   * Let *s* be the contents of the string used to construct the symbol [name].
-   *
-   * If the expression *s* occurs within the source code of the reflectee,
-   * and if any such occurrence refers to a declaration outside the reflectee,
-   * then let *v* be the result of evaluating the expression *s* at such
-   * an occurrence.
-   * If *s = this*, and the reflectee was defined within the instance scope of
-   * an object *o*, then let *v* be *o*.
-   *
-   * The returned value is the result of invoking the method [reflect] on
-   * *v*.
+   * Not yet supported. Calling this method throws an [UnsupportedError].
    */
   InstanceMirror findInContext(Symbol name, {ifAbsent: null});
 }

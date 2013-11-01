@@ -22,7 +22,6 @@ closure_in_initializer_test: Fail # Issue 6422
 lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
-implicit_setter_test: Fail # Issue 13917
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
@@ -75,9 +74,8 @@ vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
 
 [ $compiler == none && $runtime == dartium ]
 first_class_types_literals_test: Pass, Fail # Issue 13719: Please triage this failure.
-issue13474_test: Pass, Fail # Issue 13719: Please triage this failure.
-regress_13494_test: Pass, Fail # Issue 13719: Please triage this failure.
+issue13474_test: Pass, Fail # Issue 14651.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 typed_message_test: Crash, Fail # Issue 13921, 14400
-
+vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.

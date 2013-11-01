@@ -60,8 +60,7 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
                                    class_name,
                                    function_name,
                                    kNumArguments,
-                                   Object::empty_array(),
-                                   Resolver::kIsQualified);
+                                   Object::empty_array());
     ASSERT(!func.IsNull());
     isolate->object_store()->set_receive_port_create_function(func);
   }

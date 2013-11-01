@@ -572,6 +572,14 @@ class DynamicTypeMask implements TypeMask {
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
     throw new UnsupportedError("");
   }
+
+  bool isInMask(TypeMask other, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsMask(TypeMask other, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
 }
 
 /**

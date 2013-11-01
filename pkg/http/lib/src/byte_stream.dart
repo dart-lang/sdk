@@ -23,11 +23,8 @@ class ByteStream extends StreamView<List<int>> {
 
   /// Collects the data of this stream in a [Uint8List].
   Future<Uint8List> toBytes() {
-    /// TODO(nweiz): use BufferList when issue 6409 is fixed.
-    return fold(<int>[], (buffer, chunk) {
-      buffer.addAll(chunk);
-      return buffer;
-    }).then(toUint8List);
+    return fold(new BytesBuilder(), (builder, chunk) => builder..add(chunk))
+      .then((builder) => builder.takeBytes());
   }
 
   /// Collect the data of this stream in a [String], decoded according to

@@ -223,7 +223,9 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   Compiler compiler = new apiimpl.Compiler(inputProvider,
                                            null,
                                            internalDiagnosticHandler,
-                                           libraryRoot, packageRoot, options);
+                                           libraryRoot, packageRoot,
+                                           options,
+                                           const {});
   compiler.librariesToAnalyzeWhenRun = libraries;
   return compiler.run(null).then((bool success) {
     if (success && !compilationFailed) {

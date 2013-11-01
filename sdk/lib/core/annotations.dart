@@ -79,7 +79,7 @@ class _Override {
 /**
  * Marks a feature as [Deprecated] until the next release.
  */
-const deprecated = const Deprecated("next release");
+const Deprecated deprecated = const Deprecated("next release");
 
 /*
  * The annotation `@override` marks an instance member as overriding a
@@ -106,7 +106,7 @@ const deprecated = const Deprecated("next release");
  * For example, the annotation is intentionally not used in the Dart platform
  * libraries, since they only depend on themselves.
  */
-const override = const _Override();
+const Object override = const _Override();
 
 class _Proxy {
   const _Proxy();
@@ -130,4 +130,4 @@ class _Proxy {
  * The intent of the `@proxy` notation is to avoid irrelevant warnings when
  * a class implements its interface through `noSuchMethod`.
  */
-const proxy = const _Proxy();
+const Object proxy = const _Proxy();

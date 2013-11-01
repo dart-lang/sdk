@@ -67,8 +67,8 @@ abstract class Stream<T> {
         controller.add(value);
         controller.close();
       },
-      onError: (error) {
-        controller.addError(error);
+      onError: (error, stackTrace) {
+        controller.addError(error, stackTrace);
         controller.close();
       });
     return controller.stream;

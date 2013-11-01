@@ -181,6 +181,11 @@ class World {
     return subtypes != null && subtypes.contains(test.declaration);
   }
 
+  bool isSubclass(ClassElement superclass, ClassElement test) {
+    Set<ClassElement> subclasses = subclassesOf(superclass);
+    return subclasses != null && subclasses.contains(test.declaration);
+  }
+
   void registerUsedElement(Element element) {
     if (element.isInstanceMember() && !element.isAbstract(compiler)) {
       allFunctions.add(element);

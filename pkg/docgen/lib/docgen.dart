@@ -249,9 +249,20 @@ Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
   var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // Finds the root of SDK library based off the location of docgen.
-  var sdkRoot = Platform.script.resolve('../../../sdk').toFilePath();
+
+  var root = findRootDirectory();
+  var sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
   logger.info('SDK Root: ${sdkRoot}');
   return _analyzeLibraries(libraries, sdkRoot, packageRoot: packageRoot);
+}
+
+String findRootDirectory() {
+  var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
+  var root = scriptDir;
+  while(path.basename(root) != 'dart') {
+    root = path.dirname(root);
+  }
+  return root;
 }
 
 /**
@@ -478,9 +489,9 @@ void _mdnComment(Indexable item) {
   //Check if MDN is loaded.
   if (_mdn == null) {
     // Reading in MDN related json file.
-    var mdnDatabase =
-        Platform.script.resolve('../../../utils/apidoc/mdn/database.json');
-    _mdn = JSON.decode(new File(mdnDatabase.toFilePath()).readAsStringSync());
+    var root = findRootDirectory();
+    var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
+    _mdn = JSON.decode(new File(mdnPath).readAsStringSync());
   }
   if (item.comment.isNotEmpty) return;
   var domAnnotation = item.annotations.firstWhere(

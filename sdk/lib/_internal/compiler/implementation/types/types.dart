@@ -180,7 +180,7 @@ class TypesTask extends CompilerTask {
   TypeMask get nullType {
     if (nullTypeCache == null) {
       // TODO(johnniwinther): Assert that the null type has been resolved.
-      nullTypeCache = new TypeMask.empty();
+      nullTypeCache = const TypeMask.empty();
     }
     return nullTypeCache;
   }

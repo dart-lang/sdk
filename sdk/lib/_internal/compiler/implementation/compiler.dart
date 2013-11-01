@@ -473,6 +473,11 @@ abstract class Compiler implements DiagnosticListener {
   Element identicalFunction;
   Element functionApplyMethod;
   Element invokeOnMethod;
+  Element intEnvironment;
+  Element boolEnvironment;
+  Element stringEnvironment;
+
+  fromEnvironment(String name) => null;
 
   Element get currentElement => _currentElement;
 
@@ -571,6 +576,8 @@ abstract class Compiler implements DiagnosticListener {
       Compiler.NO_SUCH_METHOD, null, Compiler.NO_SUCH_METHOD_ARG_COUNT);
   final Selector symbolValidatedConstructorSelector = new Selector.call(
       'validated', null, 1);
+  final Selector fromEnvironmentSelector = new Selector.callConstructor(
+      'fromEnvironment', null, 2);
 
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
@@ -852,6 +859,13 @@ abstract class Compiler implements DiagnosticListener {
           symbolValidatedConstructorSelector);
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
+    } else if (intClass == cls) {
+      intEnvironment = intClass.lookupConstructor(fromEnvironmentSelector);
+    } else if (stringClass == cls) {
+      stringEnvironment =
+          stringClass.lookupConstructor(fromEnvironmentSelector);
+    } else if (boolClass == cls) {
+      boolEnvironment = boolClass.lookupConstructor(fromEnvironmentSelector);
     }
   }
 

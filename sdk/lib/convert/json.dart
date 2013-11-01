@@ -86,7 +86,7 @@ class JsonCodec extends Codec<Object, String> {
    *
    * The default [reviver] (when not provided) is the identity function.
    */
-  Object decode(String source, {reviver(var key, var value)}) {
+  dynamic decode(String source, {reviver(var key, var value)}) {
     if (reviver == null) return decoder.convert(source);
     return new JsonDecoder(reviver).convert(source);
   }
@@ -102,7 +102,7 @@ class JsonCodec extends Codec<Object, String> {
    * If [toEncodable] is omitted, it defaults to calling `.toJson()` on the
    * unencodable object.
    */
-  Object encode(Object value, {toEncodable(var object)}) {
+  String encode(Object value, {toEncodable(var object)}) {
     if (toEncodable == null) return encoder.convert(value);
     return new JsonEncoder(toEncodable).convert(value);
   }
@@ -117,7 +117,7 @@ class _ReviverJsonCodec extends JsonCodec {
   final _Reviver _reviver;
   _ReviverJsonCodec(this._reviver);
 
-  Object decode(String source, {reviver(var key, var value)}) {
+  dynamic decode(String source, {reviver(var key, var value)}) {
     if (reviver == null) reviver = _reviver;
     return new JsonDecoder(reviver).convert(source);
   }
@@ -256,7 +256,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * Throws [FormatException] if the input is not valid JSON text.
    */
-  Object convert(String input) => _parseJson(input, _reviver);
+  dynamic convert(String input) => _parseJson(input, _reviver);
 
   /**
    * Starts a conversion from a chunked JSON string to its corresponding

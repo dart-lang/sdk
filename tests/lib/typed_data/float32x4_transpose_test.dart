@@ -15,14 +15,16 @@ void transpose(Float32x4List m) {
   var m1 = m[1];
   var m2 = m[2];
   var m3 = m[3];
-  var t0 = m0.interleaveXY(m1);
-  var t1 = m2.interleaveXY(m3);
-  var t2 = m0.interleaveZW(m1);
-  var t3 = m2.interleaveZW(m3);
-  m[0] = t0.interleaveXYPairs(t1);
-  m[1] = t0.interleaveZWPairs(t1);
-  m[2] = t2.interleaveXYPairs(t3);
-  m[3] = t2.interleaveZWPairs(t3);
+
+  var t0 = m0.shuffleMix(m1, Float32x4.XYXY);
+  var t1 = m2.shuffleMix(m3, Float32x4.XYXY);
+  m[0] = t0.shuffleMix(t1, Float32x4.XZXZ);
+  m[1] = t0.shuffleMix(t1, Float32x4.YWYW);
+
+  var t2 = m0.shuffleMix(m1, Float32x4.ZWZW);
+  var t3 = m2.shuffleMix(m3, Float32x4.ZWZW);
+  m[2] = t2.shuffleMix(t3, Float32x4.XZXZ);
+  m[3] = t2.shuffleMix(t3, Float32x4.YWYW);
 }
 
 void testTranspose(Float32x4List m, Float32x4List r) {

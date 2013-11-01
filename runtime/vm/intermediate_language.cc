@@ -425,7 +425,7 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
     ASSERT(function.CheckSourceFingerprint(fp));                               \
     return true;                                                               \
   }
-POLYMORPHC_TARGET_LIST(RECOGNIZE_FUNCTION)
+POLYMORPHIC_TARGET_LIST(RECOGNIZE_FUNCTION)
 #undef RECOGNIZE_FUNCTION
   return false;
 }
@@ -2721,8 +2721,7 @@ const Function& StringInterpolateInstr::CallFunction() const {
             cls,
             Library::PrivateCoreLibName(Symbols::Interpolate()),
             kNumberOfArguments,
-            kNoArgumentNames,
-            Resolver::kIsQualified);
+            kNoArgumentNames);
   }
   ASSERT(!function_.IsNull());
   return function_;

@@ -22,7 +22,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
@@ -645,7 +644,7 @@ void FlowGraphCompiler::TryIntrinsify() {
   }
   // Even if an intrinsified version of the function was successfully
   // generated, it may fall through to the non-intrinsified method body.
-  return Intrinsifier::Intrinsify(parsed_function().function(), assembler());
+  Intrinsifier::Intrinsify(parsed_function().function(), assembler());
 }
 
 

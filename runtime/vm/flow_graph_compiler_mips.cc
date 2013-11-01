@@ -24,8 +24,6 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
-DECLARE_FLAG(bool, print_ast);
-DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 
@@ -1035,6 +1033,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // RA: return address.
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
+  __ Comment("Inlined Getter");
   __ lw(V0, Address(SP, 0 * kWordSize));
   __ lw(V0, Address(V0, offset - kHeapObjectTag));
   __ Ret();
@@ -1046,6 +1045,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   // SP+1: receiver.
   // SP+0: value.
   // Sequence node has one store node and one return NULL node.
+  __ Comment("Inlined Setter");
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
@@ -1201,16 +1201,6 @@ void FlowGraphCompiler::CompileGraph() {
       __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
       __ sw(TMP, Address(FP, (slot_base - i) * kWordSize));
     }
-  }
-
-  if (FLAG_print_scopes) {
-    // Print the function scope (again) after generating the prologue in order
-    // to see annotations such as allocation indices of locals.
-    if (FLAG_print_ast) {
-      // Second printing.
-      OS::Print("Annotated ");
-    }
-    AstPrinter::PrintFunctionScope(parsed_function());
   }
 
   VisitBlocks();

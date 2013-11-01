@@ -144,8 +144,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
                                      const String& class_name,
                                      const String& function_name,
                                      intptr_t num_arguments,
-                                     const Array& argument_names,
-                                     StaticResolveType resolve_type) {
+                                     const Array& argument_names) {
   ASSERT(!library.IsNull());
   Function& function = Function::Handle();
   if (class_name.IsNull() || (class_name.Length() == 0)) {
@@ -181,8 +180,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
       function = ResolveStatic(cls,
                                function_name,
                                num_arguments,
-                               argument_names,
-                               resolve_type);
+                               argument_names);
     }
     if (FLAG_trace_resolving && function.IsNull()) {
       OS::Print("ResolveStatic error: function '%s.%s' not found.\n",
@@ -194,41 +192,16 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
 }
 
 
-RawFunction* Resolver::ResolveStaticByName(const Class&  cls,
-                                           const String& function_name,
-                                           StaticResolveType resolve_type) {
-  ASSERT(!cls.IsNull());
-
-  if (FLAG_trace_resolving) {
-    OS::Print("ResolveStatic '%s'\n", function_name.ToCString());
-  }
-
-  // Now look for a static function whose name matches function_name
-  // in the class.
-  Function& function =
-      Function::Handle(cls.LookupStaticFunction(function_name));
-  if (resolve_type == kNotQualified) {
-    // Walk the hierarchy.
-    Class& super_class = Class::Handle(cls.SuperClass());
-    while (function.IsNull()) {
-      function = super_class.LookupStaticFunction(function_name);
-      super_class = super_class.SuperClass();
-      if (super_class.IsNull()) break;
-    }
-  }
-  return function.raw();
-}
-
-
-
 RawFunction* Resolver::ResolveStatic(const Class&  cls,
                                      const String& function_name,
                                      intptr_t num_arguments,
-                                     const Array& argument_names,
-                                     StaticResolveType resolve_type) {
+                                     const Array& argument_names) {
   ASSERT(!cls.IsNull());
-  const Function& function = Function::Handle(
-      ResolveStaticByName(cls, function_name, resolve_type));
+  if (FLAG_trace_resolving) {
+    OS::Print("ResolveStatic '%s'\n", function_name.ToCString());
+  }
+  const Function& function =
+      Function::Handle(cls.LookupStaticFunction(function_name));
   if (function.IsNull() ||
       !function.AreValidArguments(num_arguments, argument_names, NULL)) {
     // Return a null function to signal to the upper levels to throw a

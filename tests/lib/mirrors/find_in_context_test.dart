@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--support_find_in_context=true
+
 import "dart:mirrors";
 
 import "stringify.dart";
@@ -69,12 +71,16 @@ main() {
   Expect.equals(null, result);
 
   result = cm.findInContext(#staticFooInS);
+  Expect.isFalse(result is InstanceMirror);
+  Expect.equals(null, result);
+
+  result = cm.findInContext(#S.staticFooInS);
   Expect.isTrue(result is ClosureMirror);
   expect("Instance(value = staticFooInS)", result.apply(const []));
 
   result = cm.findInContext(#C.staticFooInS);
-  Expect.isTrue(result is ClosureMirror);
-  expect("Instance(value = staticFooInS)", result.apply(const []));
+  Expect.isFalse(result is InstanceMirror);
+  Expect.equals(null, result);
 
   result = cm.findInContext(#C.staticInC);
   expect("Instance(value = staticInC)", result);

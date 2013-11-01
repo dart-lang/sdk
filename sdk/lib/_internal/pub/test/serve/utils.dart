@@ -187,7 +187,7 @@ void postShould405(String urlPath) {
 void waitForBuildSuccess() {
   nextLine() {
     return _pubServer.nextLine().then((line) {
-      if (line.contains("successfully")) return;
+      if (line.contains("successfully")) return null;
 
       // This line wasn't it, so ignore it and keep trying.
       return nextLine();

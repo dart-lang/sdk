@@ -602,6 +602,28 @@ class _OneByteString extends _StringBase implements String {
     return super.indexOf(pattern, start);
   }
 
+  bool contains(Pattern pattern, [int start = 0]) {
+    final pCid = pattern._cid;
+    if ((pCid == _OneByteString._classId) ||
+        (pCid == _TwoByteString._classId) ||
+        (pCid == _ExternalOneByteString._classId)) {
+      final len = this.length;
+      if ((pattern.length == 1) && (start >= 0) && (start < len)) {
+        final patternCu0 = pattern.codeUnitAt(0);
+        if (patternCu0 > 0xFF) {
+          return false;
+        }
+        for (int i = start; i < len; i++) {
+          if (this.codeUnitAt(i) == patternCu0) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+    return super.contains(pattern, start);
+  }
+
   // Allocates a string of given length, expecting its content to be
   // set using _setAt.
   static _OneByteString _allocate(int length) native "OneByteString_allocate";

@@ -41,7 +41,8 @@ main() {
                                    diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
-                                   []);
+                                   [],
+                                   {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.isFalse(compiler.compilationFailed);
     Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedEverything);

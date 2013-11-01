@@ -27,6 +27,7 @@ namespace dart {
 DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
+DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
             "Print the IR flow graph when optimizing.");
@@ -930,7 +931,8 @@ void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
                        for_value.value(),
                        node->type(),
                        node->dst_name())) {
-    checked_value = for_value.value()->definition();  // No check needed.
+    // Drop the value and 0 additional temporaries.
+    checked_value = new DropTempsInstr(0, for_value.value());
   } else {
     checked_value = BuildAssertAssignable(node->expr()->token_pos(),
                                           for_value.value(),
@@ -1301,12 +1303,17 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
   ValueGraphVisitor for_value(owner(), temp_index());
   node->left()->Visit(&for_value);
+  Append(for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
-  if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
-    Append(for_value);
-    Do(BuildAssertAssignable(
-        node->token_pos(), for_value.value(), type, dst_name));
+  if (CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
+    // Drop the value and 0 additional temporaries.
+    Do(new DropTempsInstr(0, for_value.value()));
+  } else {
+    Do(BuildAssertAssignable(node->token_pos(),
+                             for_value.value(),
+                             type,
+                             dst_name));
   }
 }
 
@@ -3716,8 +3723,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Resolver::ResolveStatic(cls,
                               Library::PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
-                              Object::null_array(),
-                              Resolver::kIsQualified));
+                              Object::null_array()));
   ASSERT(!func.IsNull());
   return new StaticCallInstr(token_pos,
                              func,
@@ -3799,6 +3805,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(*parsed_function());
+  }
+  if (FLAG_print_scopes) {
+    AstPrinter::PrintFunctionScope(*parsed_function());
   }
   const Function& function = parsed_function()->function();
   TargetEntryInstr* normal_entry =

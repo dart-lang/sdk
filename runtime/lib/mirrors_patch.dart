@@ -14,14 +14,6 @@ patch MirrorSystem currentMirrorSystem() {
 }
 
 /**
- * Creates a [MirrorSystem] for the isolate which is listening on
- * the [SendPort].
- */
-Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-  return _Mirrors.mirrorSystemOf(port);
-}
-
-/**
  * Returns an [InstanceMirror] for some Dart language object.
  *
  * This only works if this mirror system is associated with the

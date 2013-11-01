@@ -21,7 +21,8 @@ Future<Map<String, String>> generate(String code,
                                    handler.diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
-                                   options);
+                                   options,
+                                   {});
   Uri uri = Uri.parse('memory:main.dart');
   return compiler.run(uri).then((success) {
     Expect.isTrue(success);

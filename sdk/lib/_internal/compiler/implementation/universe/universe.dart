@@ -622,6 +622,7 @@ class TypedSelector extends Selector {
       new Map<Selector, Map<TypeMask, TypedSelector>>();
 
   factory TypedSelector(TypeMask mask, Selector selector) {
+    if (selector.mask == mask) return selector;
     Selector untyped = selector.asUntyped;
     Map<TypeMask, TypedSelector> map = canonicalizedValues.putIfAbsent(untyped,
         () => new Map<TypeMask, TypedSelector>());

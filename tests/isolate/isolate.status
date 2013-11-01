@@ -62,7 +62,8 @@ isolate_negative_test: Fail # Issue 12628
 serialization_test: Pass # Issue 12628
 isolate_import_negative_test: Fail # Issue 12628
 isolate2_negative_test: Fail # Issue 12628
-illegal_msg_test: Pass # Issue 12628
+illegal_msg_function_test: Pass # Issue 12628
+illegal_msg_mirror_test: Pass # Issue 12628
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
@@ -102,7 +103,8 @@ count_test: Fail
 cross_isolate_message_test: Fail
 global_error_handler2_test: Fail
 global_error_handler_test: Fail
-illegal_msg_test: Fail
+illegal_msg_function_test: Fail
+illegal_msg_mirror_test: Fail
 isolate_complex_messages_test: Fail
 isolate_stress_test: Fail
 mandel_isolate_test: Fail
@@ -119,9 +121,7 @@ unresolved_ports_test: Fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
-illegal_msg_test: StaticWarning
 isolate3_negative_test: CompileTimeError
-isolate/illegal_msg_test: StaticWarning
 isolate_import_negative_test: CompileTimeError
 isolate/mint_maker_test: StaticWarning
 isolate/unresolved_ports_test: StaticWarning

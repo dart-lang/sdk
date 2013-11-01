@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.invoke_test;
+library test.invoke_private_test;
 
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
 
 class C {
   var _field;

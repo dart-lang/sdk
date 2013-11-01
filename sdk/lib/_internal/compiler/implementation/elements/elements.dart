@@ -552,6 +552,16 @@ class Elements {
         && node.arguments.tail.tail.isEmpty;
   }
 
+  static bool isConstructorOfTypedArraySubclass(Element element,
+                                                Compiler compiler) {
+    if (compiler.typedDataClass == null) return false;
+    ClassElement cls = element.getEnclosingClass();
+    if (cls == null || !element.isConstructor()) return false;
+    return compiler.world.isSubclass(compiler.typedDataClass, cls)
+        && cls.getLibrary() == compiler.typedDataLibrary
+        && element.name == '';
+  }
+
   static bool switchStatementHasContinue(SwitchStatement node,
                                          TreeElements elements) {
     for (SwitchCase switchCase in node.cases) {

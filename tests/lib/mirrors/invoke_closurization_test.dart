@@ -35,33 +35,6 @@ testSync() {
   Expect.equals("A:B:C", result.reflectee('A', 'B', 'C'));
 }
 
-testAsync() {
-  var future;
-
-  C c = new C();
-  InstanceMirror im = reflect(c);
-  future = im.getFieldAsync(#instanceMethod);
-  expectValueThen(future, (result) {
-    Expect.isTrue(result.reflectee is Function, "Should be closure");
-    Expect.equals("A+B+C", result.reflectee('A', 'B', 'C'));
-  });
-
-  ClassMirror cm = reflectClass(C);
-  future = cm.getFieldAsync(#staticFunction);
-  expectValueThen(future, (result) {
-    Expect.isTrue(result.reflectee is Function, "Should be closure");
-    Expect.equals("A-B-C", result.reflectee('A', 'B', 'C'));
-  });
-
-  LibraryMirror lm = cm.owner;
-  future = lm.getFieldAsync(#libraryFunction);
-  expectValueThen(future, (result) {
-    Expect.isTrue(result.reflectee is Function, "Should be closure");
-    Expect.equals("A:B:C", result.reflectee('A', 'B', 'C'));
-  });
-}
-
 main() {
   testSync();
-  testAsync();
 }

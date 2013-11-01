@@ -1,13 +1,18 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library illegal_msg_tests;
-import "package:expect/expect.dart";
-import 'dart:isolate';
-import "package:async_helper/async_helper.dart";
+library illegal_msg_mirror_test;
 
-funcFoo(x) => x + 2;
+import "package:expect/expect.dart";
+import "dart:isolate";
+import "dart:async" show Future;
+import "package:async_helper/async_helper.dart";
+import "dart:mirrors";
+
+class Class {
+  method() {}
+}
 
 echo(sendPort) {
   var port = new ReceivePort();
@@ -18,6 +23,8 @@ echo(sendPort) {
 }
 
 main() {
+  var methodMirror = reflectClass(Class).declarations[#method];
+
   ReceivePort port = new ReceivePort();
   Future spawn = Isolate.spawn(echo, port.sendPort);
   var caught_exception = false;
@@ -25,7 +32,7 @@ main() {
   asyncStart();
   stream.first.then((snd) {
     try {
-      snd.send(funcFoo);
+      snd.send(methodMirror);
     } catch (e) {
       caught_exception = true;
     }
