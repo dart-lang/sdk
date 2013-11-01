@@ -93,7 +93,6 @@ list_test/01: RuntimeError # Issue 14616
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == ie9 ]
-date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 list_test: Fail # IE doesn't support typed data.
 shuffle_test: Fail # IE doesn't support typed data.

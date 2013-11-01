@@ -530,7 +530,25 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    return JS('String', r'/\((.*)\)/.exec(#.toString())[1]', d);
+    String result = JS('String', r'/\((.*)\)/.exec(#.toString())[1]', d);
+    if (result == null) {
+      // Internet Explorer doesn't put the zone name into parenthesis:
+      // For example: Thu Oct 31 14:07:44 PDT 2013
+      result = JS('String',
+                  // Thu followed by a space.
+                  r'/^[A-Z,a-z]{3}\s'
+                  // Oct 31 followed by space.
+                  r'[A-Z,a-z]{3}\s\d+\s'
+                  // Time followed by a space.
+                  r'\d{2}:\d{2}:\d{2}\s'
+                  // The time zone name followed by a space.
+                  r'([A-Z]{3,5})\s'
+                  // The year.
+                  r'\d{4}$/'
+                  '.exec(#.toString())[1]',
+                  d);
+    }
+    return result;
   }
 
   static int getTimeZoneOffsetInMinutes(receiver) {
