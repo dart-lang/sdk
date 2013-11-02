@@ -33,6 +33,9 @@ collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 
+[ $compiler == dart2js && $checked && $runtime == d8 ]
+serialization/test/serialization_test: Pass, RuntimeError # Issue 14735
+
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: Pass, RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
