@@ -23,10 +23,6 @@ Language/13_Statements/04_Local_Function_Declaration_A04_t02: Fail # co19-roll r
 Language/07_Classes/1_Instance_Methods_A04_t02: MissingStaticWarning
 Language/07_Classes/4_Abstract_Instance_Members_A07_t04: MissingStaticWarning
 
-# TBF: It is a static warning if a class C declares an instance method named n and has a setter named n=.
-Language/07_Classes/1_Instance_Methods_A07_t01: MissingStaticWarning
-Language/07_Classes/1_Instance_Methods_A07_t02: MissingStaticWarning
-
 # TBF: Static members should not be accessible via subclasses.
 Language/07_Classes/7_Static_Methods_A01_t03: MissingStaticWarning
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
@@ -244,9 +240,6 @@ Language/13_Statements/03_Variable_Declaration_A01_t16: Fail
 
 Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
 
-
-
-
 # co19 issue 642, The argument type 'int' cannot be assigned to the parameter type 'Iterable'
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail, OK
@@ -260,6 +253,16 @@ Language/06_Functions/06_Functions_A04_t01: Fail, OK
 
 # co19 issue 646, I don't see where Spec requires any warning for boolean conversion
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: MissingStaticWarning
+
+# co19 issue #652, test is invalid, class "C" is not inherited from "A"
+Language/07_Classes/1_Instance_Methods_A07_t02: MissingStaticWarning, OK
+
+# co19 issue #653, instance method setter with the same name
+Language/07_Classes/3_Setters_A04_t02: StaticWarning, OK
+Language/07_Classes/3_Setters_A04_t03: StaticWarning, OK
+Language/07_Classes/3_Setters_A04_t04: StaticWarning, OK
+
+
 
 Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t02: MissingStaticWarning

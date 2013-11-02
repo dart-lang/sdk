@@ -19,7 +19,6 @@ function_type_alias9_test/00: crash # Issue 11987
 override_field_test/02: fail
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
-method_override8_test/03: Fail # Issue 11496
 
 built_in_identifier_test/none: Fail # Issue 13023
 
@@ -158,6 +157,11 @@ type_promotion_parameter_test/53: Fail
 
 # test issue 14410, "typedef C = " is now really illegal syntax
 mixin_illegal_syntax_test/none: fail
+
+# test issue 14736, It is a static warning if a class C declares an instance method named n and has a setter named n=.
+setter4_test: StaticWarning
+
+
 
 
 abstract_exact_selector_test: StaticWarning
