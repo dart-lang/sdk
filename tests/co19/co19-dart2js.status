@@ -264,6 +264,9 @@ LibTest/collection/LinkedList/add_A01_t01: Pass, Timeout  # co19-roll r607: Plea
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # Issue 13511
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
 
+[ $compiler == dart2js && $runtime == ie9 && $checked ]
+LibTest/async/Future/catchError_A03_t05: Pass, RuntimeError # Issue 14712
+
 #
 # The following tests are failing. Please add the error message
 # (either a compiler error or exception message). The error messages
