@@ -6,6 +6,7 @@ import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 class KeywordStateTest extends JUnitTestCase {
@@ -727,7 +728,7 @@ class ScannerTest extends JUnitTestCase {
     assertToken(TokenType.STRING, "'''string'''");
   }
   void test_string_multi_slashEnter() {
-    assertError(ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, 0, "'''\\\n'''");
+    assertToken(TokenType.STRING, "'''\\\n'''");
   }
   void test_string_multi_unterminated() {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
@@ -1667,17 +1668,123 @@ class ScannerTest_ExpectedLocation {
     this._columnNumber = columnNumber;
   }
 }
-class IncrementalScannerTest extends JUnitTestCase {
-  void test_rescan_addedToIdentifier() {
-    assertTokens("a + b;", "abs + b;");
+class IncrementalScannerTest extends EngineTestCase {
+  Token _originalTokens;
+  void test_rescan_addedBeforeIdentifier1() {
+    IncrementalScanner scanner = assertTokens("a + b;", "xa + b;");
+    JUnitTestCase.assertEquals("xa", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("xa", scanner.lastToken.lexeme);
+  }
+  void test_rescan_addedBeforeIdentifier2() {
+    IncrementalScanner scanner = assertTokens("a + b;", "a + xb;");
+    JUnitTestCase.assertEquals("xb", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("xb", scanner.lastToken.lexeme);
+  }
+  void test_rescan_addedNewIdentifier1() {
+    IncrementalScanner scanner = assertTokens("a;  c;", "a; b c;");
+    JUnitTestCase.assertEquals("b", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("b", scanner.lastToken.lexeme);
+  }
+  void test_rescan_addedNewIdentifier2() {
+    IncrementalScanner scanner = assertTokens("a;  c;", "a;b  c;");
+    JUnitTestCase.assertEquals("b", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("b", scanner.lastToken.lexeme);
+    Token oldToken = _originalTokens.next;
+    JUnitTestCase.assertSame(TokenType.SEMICOLON, oldToken.type);
+    Token newToken = scanner.tokenMap.get(oldToken);
+    JUnitTestCase.assertNotNull(newToken);
+    JUnitTestCase.assertEquals(TokenType.SEMICOLON, newToken.type);
+    JUnitTestCase.assertNotSame(oldToken, newToken);
+  }
+  void test_rescan_addedToIdentifier1() {
+    IncrementalScanner scanner = assertTokens("a + b;", "abs + b;");
+    JUnitTestCase.assertEquals("abs", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("abs", scanner.lastToken.lexeme);
+    Token oldToken = _originalTokens.next;
+    JUnitTestCase.assertEquals(TokenType.PLUS, oldToken.type);
+    Token newToken = scanner.tokenMap.get(oldToken);
+    JUnitTestCase.assertNotNull(newToken);
+    JUnitTestCase.assertEquals(TokenType.PLUS, newToken.type);
+    JUnitTestCase.assertNotSame(oldToken, newToken);
+  }
+  void test_rescan_addedToIdentifier2() {
+    IncrementalScanner scanner = assertTokens("a + b;", "a + by;");
+    JUnitTestCase.assertEquals("by", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("by", scanner.lastToken.lexeme);
+  }
+  void test_rescan_appendWhitespace1() {
+    IncrementalScanner scanner = assertTokens("a + b;", "a + b; ");
+    JUnitTestCase.assertNull(scanner.firstToken);
+    JUnitTestCase.assertNull(scanner.lastToken);
+  }
+  void test_rescan_appendWhitespace2() {
+    IncrementalScanner scanner = assertTokens("a + b; ", "a + b;  ");
+    JUnitTestCase.assertNull(scanner.firstToken);
+    JUnitTestCase.assertNull(scanner.lastToken);
   }
   void test_rescan_insertedPeriod() {
-    assertTokens("a + b;", "a + b.;");
+    IncrementalScanner scanner = assertTokens("a + b;", "a + b.;");
+    JUnitTestCase.assertEquals(".", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals(".", scanner.lastToken.lexeme);
+  }
+  void test_rescan_insertedPeriodBetweenIdentifiers1() {
+    IncrementalScanner scanner = assertTokens("a b;", "a. b;");
+    JUnitTestCase.assertEquals(".", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals(".", scanner.lastToken.lexeme);
+  }
+  void test_rescan_insertedPeriodBetweenIdentifiers2() {
+    IncrementalScanner scanner = assertTokens("a b;", "a .b;");
+    JUnitTestCase.assertEquals(".", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals(".", scanner.lastToken.lexeme);
+  }
+  void test_rescan_insertedPeriodBetweenIdentifiers3() {
+    IncrementalScanner scanner = assertTokens("a  b;", "a . b;");
+    JUnitTestCase.assertEquals(".", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals(".", scanner.lastToken.lexeme);
+  }
+  void test_rescan_insertedPeriodIdentifier() {
+    IncrementalScanner scanner = assertTokens("a + b;", "a + b.x;");
+    JUnitTestCase.assertEquals(".", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("x", scanner.lastToken.lexeme);
+  }
+  void test_rescan_insertedPeriodInsideExistingIdentifier() {
+    IncrementalScanner scanner = assertTokens("ab;", "a.b;");
+    JUnitTestCase.assertEquals("a", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals("b", scanner.lastToken.lexeme);
+  }
+  void test_rescan_insertLeadingWhitespace() {
+    IncrementalScanner scanner = assertTokens("a + b;", " a + b;");
+    JUnitTestCase.assertNull(scanner.firstToken);
+    JUnitTestCase.assertNull(scanner.lastToken);
+  }
+  void test_rescan_insertWhitespace() {
+    IncrementalScanner scanner = assertTokens("a + b;", "a  + b;");
+    JUnitTestCase.assertNull(scanner.firstToken);
+    JUnitTestCase.assertNull(scanner.lastToken);
+  }
+  void test_rescan_insertWhitespaceWithMultipleComments() {
+    IncrementalScanner scanner = assertTokens(EngineTestCase.createSource(["//comment", "//comment2", "a + b;"]), EngineTestCase.createSource(["//comment", "//comment2", "a  + b;"]));
+    JUnitTestCase.assertNull(scanner.firstToken);
+    JUnitTestCase.assertNull(scanner.lastToken);
   }
   void test_rescan_oneFunctionToTwo() {
-    assertTokens("f() {}", "f() => 0; g() {}");
+    IncrementalScanner scanner = assertTokens("f() {}", "f() => 0; g() {}");
+    JUnitTestCase.assertEquals("=>", scanner.firstToken.lexeme);
+    JUnitTestCase.assertEquals(")", scanner.lastToken.lexeme);
   }
-  void assertTokens(String originalContents, String modifiedContents) {
+  void test_tokenMap() {
+    IncrementalScanner scanner = assertTokens("main() {a + b;}", "main() { a + b;}");
+    TokenMap tokenMap = scanner.tokenMap;
+    Token oldToken = _originalTokens;
+    while (oldToken.type != TokenType.EOF) {
+      Token newToken = tokenMap.get(oldToken);
+      JUnitTestCase.assertNotSame(oldToken, newToken);
+      JUnitTestCase.assertSame(oldToken.type, newToken.type);
+      JUnitTestCase.assertEquals(oldToken.lexeme, newToken.lexeme);
+      oldToken = oldToken.next;
+    }
+  }
+  IncrementalScanner assertTokens(String originalContents, String modifiedContents) {
     int originalLength = originalContents.length;
     int modifiedLength = modifiedContents.length;
     int replaceStart = 0;
@@ -1693,40 +1800,106 @@ class IncrementalScannerTest extends JUnitTestCase {
     Source source = new TestSource();
     GatheringErrorListener originalListener = new GatheringErrorListener();
     Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
-    Token originalToken = originalScanner.tokenize();
-    JUnitTestCase.assertNotNull(originalToken);
+    _originalTokens = originalScanner.tokenize();
+    JUnitTestCase.assertNotNull(_originalTokens);
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
     Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
-    Token modifiedToken = modifiedScanner.tokenize();
-    JUnitTestCase.assertNotNull(modifiedToken);
+    Token modifiedTokens = modifiedScanner.tokenize();
+    JUnitTestCase.assertNotNull(modifiedTokens);
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
-    Token incrementalToken = incrementalScanner.rescan(originalToken, replaceStart, originalEnd - replaceStart + 1, modifiedEnd - replaceStart + 1);
+    Token incrementalTokens = incrementalScanner.rescan(_originalTokens, replaceStart, originalEnd - replaceStart + 1, modifiedEnd - replaceStart + 1);
+    Token incrementalToken = incrementalTokens;
     JUnitTestCase.assertNotNull(incrementalToken);
-    while (incrementalToken.type != TokenType.EOF && modifiedToken.type != TokenType.EOF) {
-      JUnitTestCase.assertSameMsg("Wrong type for token", modifiedToken.type, incrementalToken.type);
-      JUnitTestCase.assertEqualsMsg("Wrong offset for token", modifiedToken.offset, incrementalToken.offset);
-      JUnitTestCase.assertEqualsMsg("Wrong length for token", modifiedToken.length, incrementalToken.length);
-      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token", modifiedToken.lexeme, incrementalToken.lexeme);
+    while (incrementalToken.type != TokenType.EOF && modifiedTokens.type != TokenType.EOF) {
+      JUnitTestCase.assertSameMsg("Wrong type for token", modifiedTokens.type, incrementalToken.type);
+      JUnitTestCase.assertEqualsMsg("Wrong offset for token", modifiedTokens.offset, incrementalToken.offset);
+      JUnitTestCase.assertEqualsMsg("Wrong length for token", modifiedTokens.length, incrementalToken.length);
+      JUnitTestCase.assertEqualsMsg("Wrong lexeme for token", modifiedTokens.lexeme, incrementalToken.lexeme);
       incrementalToken = incrementalToken.next;
-      modifiedToken = modifiedToken.next;
+      modifiedTokens = modifiedTokens.next;
     }
     JUnitTestCase.assertSameMsg("Too many tokens", TokenType.EOF, incrementalToken.type);
-    JUnitTestCase.assertSameMsg("Not enough tokens", TokenType.EOF, modifiedToken.type);
+    JUnitTestCase.assertSameMsg("Not enough tokens", TokenType.EOF, modifiedTokens.type);
+    return incrementalScanner;
   }
   static dartSuite() {
     _ut.group('IncrementalScannerTest', () {
-      _ut.test('test_rescan_addedToIdentifier', () {
+      _ut.test('test_rescan_addedBeforeIdentifier1', () {
         final __test = new IncrementalScannerTest();
-        runJUnitTest(__test, __test.test_rescan_addedToIdentifier);
+        runJUnitTest(__test, __test.test_rescan_addedBeforeIdentifier1);
+      });
+      _ut.test('test_rescan_addedBeforeIdentifier2', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_addedBeforeIdentifier2);
+      });
+      _ut.test('test_rescan_addedNewIdentifier1', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_addedNewIdentifier1);
+      });
+      _ut.test('test_rescan_addedNewIdentifier2', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_addedNewIdentifier2);
+      });
+      _ut.test('test_rescan_addedToIdentifier1', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_addedToIdentifier1);
+      });
+      _ut.test('test_rescan_addedToIdentifier2', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_addedToIdentifier2);
+      });
+      _ut.test('test_rescan_appendWhitespace1', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_appendWhitespace1);
+      });
+      _ut.test('test_rescan_appendWhitespace2', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_appendWhitespace2);
+      });
+      _ut.test('test_rescan_insertLeadingWhitespace', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertLeadingWhitespace);
+      });
+      _ut.test('test_rescan_insertWhitespace', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertWhitespace);
+      });
+      _ut.test('test_rescan_insertWhitespaceWithMultipleComments', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertWhitespaceWithMultipleComments);
       });
       _ut.test('test_rescan_insertedPeriod', () {
         final __test = new IncrementalScannerTest();
         runJUnitTest(__test, __test.test_rescan_insertedPeriod);
       });
+      _ut.test('test_rescan_insertedPeriodBetweenIdentifiers1', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertedPeriodBetweenIdentifiers1);
+      });
+      _ut.test('test_rescan_insertedPeriodBetweenIdentifiers2', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertedPeriodBetweenIdentifiers2);
+      });
+      _ut.test('test_rescan_insertedPeriodBetweenIdentifiers3', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertedPeriodBetweenIdentifiers3);
+      });
+      _ut.test('test_rescan_insertedPeriodIdentifier', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertedPeriodIdentifier);
+      });
+      _ut.test('test_rescan_insertedPeriodInsideExistingIdentifier', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_rescan_insertedPeriodInsideExistingIdentifier);
+      });
       _ut.test('test_rescan_oneFunctionToTwo', () {
         final __test = new IncrementalScannerTest();
         runJUnitTest(__test, __test.test_rescan_oneFunctionToTwo);
+      });
+      _ut.test('test_tokenMap', () {
+        final __test = new IncrementalScannerTest();
+        runJUnitTest(__test, __test.test_tokenMap);
       });
     });
   }

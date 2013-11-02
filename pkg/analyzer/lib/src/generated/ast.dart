@@ -14626,6 +14626,526 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   }
 }
 /**
+ * Instances of the class `ASTComparator` compare the structure of two ASTNodes to see whether
+ * they are equal.
+ */
+class ASTComparator implements ASTVisitor<bool> {
+
+  /**
+   * Return `true` if the two AST nodes are equal.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the two AST nodes are equal
+   */
+  static bool equals3(CompilationUnit first, CompilationUnit second) {
+    ASTComparator comparator = new ASTComparator();
+    return comparator.isEqual(first, second);
+  }
+
+  /**
+   * The AST node with which the node being visited is to be compared. This is only valid at the
+   * beginning of each visit method (until [isEqual] is invoked).
+   */
+  ASTNode _other;
+  bool visitAdjacentStrings(AdjacentStrings node) {
+    AdjacentStrings other = this._other as AdjacentStrings;
+    return isEqual5(node.strings, other.strings);
+  }
+  bool visitAnnotation(Annotation node) {
+    Annotation other = this._other as Annotation;
+    return isEqual6(node.atSign, other.atSign) && isEqual(node.name, other.name) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.arguments, other.arguments);
+  }
+  bool visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+    ArgumentDefinitionTest other = this._other as ArgumentDefinitionTest;
+    return isEqual6(node.question, other.question) && isEqual(node.identifier, other.identifier);
+  }
+  bool visitArgumentList(ArgumentList node) {
+    ArgumentList other = this._other as ArgumentList;
+    return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual5(node.arguments, other.arguments) && isEqual6(node.rightParenthesis, other.rightParenthesis);
+  }
+  bool visitAsExpression(AsExpression node) {
+    AsExpression other = this._other as AsExpression;
+    return isEqual(node.expression, other.expression) && isEqual6(node.asOperator, other.asOperator) && isEqual(node.type, other.type);
+  }
+  bool visitAssertStatement(AssertStatement node) {
+    AssertStatement other = this._other as AssertStatement;
+    return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitAssignmentExpression(AssignmentExpression node) {
+    AssignmentExpression other = this._other as AssignmentExpression;
+    return isEqual(node.leftHandSide, other.leftHandSide) && isEqual6(node.operator, other.operator) && isEqual(node.rightHandSide, other.rightHandSide);
+  }
+  bool visitBinaryExpression(BinaryExpression node) {
+    BinaryExpression other = this._other as BinaryExpression;
+    return isEqual(node.leftOperand, other.leftOperand) && isEqual6(node.operator, other.operator) && isEqual(node.rightOperand, other.rightOperand);
+  }
+  bool visitBlock(Block node) {
+    Block other = this._other as Block;
+    return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.statements, other.statements) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitBlockFunctionBody(BlockFunctionBody node) {
+    BlockFunctionBody other = this._other as BlockFunctionBody;
+    return isEqual(node.block, other.block);
+  }
+  bool visitBooleanLiteral(BooleanLiteral node) {
+    BooleanLiteral other = this._other as BooleanLiteral;
+    return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
+  }
+  bool visitBreakStatement(BreakStatement node) {
+    BreakStatement other = this._other as BreakStatement;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.label, other.label) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitCascadeExpression(CascadeExpression node) {
+    CascadeExpression other = this._other as CascadeExpression;
+    return isEqual(node.target, other.target) && isEqual5(node.cascadeSections, other.cascadeSections);
+  }
+  bool visitCatchClause(CatchClause node) {
+    CatchClause other = this._other as CatchClause;
+    return isEqual6(node.onKeyword, other.onKeyword) && isEqual(node.exceptionType, other.exceptionType) && isEqual6(node.catchKeyword, other.catchKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.exceptionParameter, other.exceptionParameter) && isEqual6(node.comma, other.comma) && isEqual(node.stackTraceParameter, other.stackTraceParameter) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+  }
+  bool visitClassDeclaration(ClassDeclaration node) {
+    ClassDeclaration other = this._other as ClassDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.abstractKeyword, other.abstractKeyword) && isEqual6(node.classKeyword, other.classKeyword) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual(node.extendsClause, other.extendsClause) && isEqual(node.withClause, other.withClause) && isEqual(node.implementsClause, other.implementsClause) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.members, other.members) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitClassTypeAlias(ClassTypeAlias node) {
+    ClassTypeAlias other = this._other as ClassTypeAlias;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual6(node.equals, other.equals) && isEqual6(node.abstractKeyword, other.abstractKeyword) && isEqual(node.superclass, other.superclass) && isEqual(node.withClause, other.withClause) && isEqual(node.implementsClause, other.implementsClause) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitComment(Comment node) {
+    Comment other = this._other as Comment;
+    return isEqual5(node.references, other.references);
+  }
+  bool visitCommentReference(CommentReference node) {
+    CommentReference other = this._other as CommentReference;
+    return isEqual6(node.newKeyword, other.newKeyword) && isEqual(node.identifier, other.identifier);
+  }
+  bool visitCompilationUnit(CompilationUnit node) {
+    CompilationUnit other = this._other as CompilationUnit;
+    return isEqual6(node.beginToken, other.beginToken) && isEqual(node.scriptTag, other.scriptTag) && isEqual5(node.directives, other.directives) && isEqual5(node.declarations, other.declarations) && isEqual6(node.endToken, other.endToken);
+  }
+  bool visitConditionalExpression(ConditionalExpression node) {
+    ConditionalExpression other = this._other as ConditionalExpression;
+    return isEqual(node.condition, other.condition) && isEqual6(node.question, other.question) && isEqual(node.thenExpression, other.thenExpression) && isEqual6(node.colon, other.colon) && isEqual(node.elseExpression, other.elseExpression);
+  }
+  bool visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorDeclaration other = this._other as ConstructorDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual6(node.constKeyword, other.constKeyword) && isEqual6(node.factoryKeyword, other.factoryKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.period, other.period) && isEqual(node.name, other.name) && isEqual(node.parameters, other.parameters) && isEqual6(node.separator, other.separator) && isEqual5(node.initializers, other.initializers) && isEqual(node.redirectedConstructor, other.redirectedConstructor) && isEqual(node.body, other.body);
+  }
+  bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    ConstructorFieldInitializer other = this._other as ConstructorFieldInitializer;
+    return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.fieldName, other.fieldName) && isEqual6(node.equals, other.equals) && isEqual(node.expression, other.expression);
+  }
+  bool visitConstructorName(ConstructorName node) {
+    ConstructorName other = this._other as ConstructorName;
+    return isEqual(node.type, other.type) && isEqual6(node.period, other.period) && isEqual(node.name, other.name);
+  }
+  bool visitContinueStatement(ContinueStatement node) {
+    ContinueStatement other = this._other as ContinueStatement;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.label, other.label) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitDeclaredIdentifier(DeclaredIdentifier node) {
+    DeclaredIdentifier other = this._other as DeclaredIdentifier;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual(node.identifier, other.identifier);
+  }
+  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
+    DefaultFormalParameter other = this._other as DefaultFormalParameter;
+    return isEqual(node.parameter, other.parameter) && identical(node.kind, other.kind) && isEqual6(node.separator, other.separator) && isEqual(node.defaultValue, other.defaultValue);
+  }
+  bool visitDoStatement(DoStatement node) {
+    DoStatement other = this._other as DoStatement;
+    return isEqual6(node.doKeyword, other.doKeyword) && isEqual(node.body, other.body) && isEqual6(node.whileKeyword, other.whileKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitDoubleLiteral(DoubleLiteral node) {
+    DoubleLiteral other = this._other as DoubleLiteral;
+    return isEqual6(node.literal, other.literal) && node.value == other.value;
+  }
+  bool visitEmptyFunctionBody(EmptyFunctionBody node) {
+    EmptyFunctionBody other = this._other as EmptyFunctionBody;
+    return isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitEmptyStatement(EmptyStatement node) {
+    EmptyStatement other = this._other as EmptyStatement;
+    return isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitExportDirective(ExportDirective node) {
+    ExportDirective other = this._other as ExportDirective;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.uri, other.uri) && isEqual5(node.combinators, other.combinators) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    ExpressionFunctionBody other = this._other as ExpressionFunctionBody;
+    return isEqual6(node.functionDefinition, other.functionDefinition) && isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitExpressionStatement(ExpressionStatement node) {
+    ExpressionStatement other = this._other as ExpressionStatement;
+    return isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitExtendsClause(ExtendsClause node) {
+    ExtendsClause other = this._other as ExtendsClause;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.superclass, other.superclass);
+  }
+  bool visitFieldDeclaration(FieldDeclaration node) {
+    FieldDeclaration other = this._other as FieldDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.staticKeyword, other.staticKeyword) && isEqual(node.fields, other.fields) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitFieldFormalParameter(FieldFormalParameter node) {
+    FieldFormalParameter other = this._other as FieldFormalParameter;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual6(node.thisToken, other.thisToken) && isEqual6(node.period, other.period) && isEqual(node.identifier, other.identifier);
+  }
+  bool visitForEachStatement(ForEachStatement node) {
+    ForEachStatement other = this._other as ForEachStatement;
+    return isEqual6(node.forKeyword, other.forKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.loopVariable, other.loopVariable) && isEqual6(node.inKeyword, other.inKeyword) && isEqual(node.iterator, other.iterator) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+  }
+  bool visitFormalParameterList(FormalParameterList node) {
+    FormalParameterList other = this._other as FormalParameterList;
+    return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual5(node.parameters, other.parameters) && isEqual6(node.leftDelimiter, other.leftDelimiter) && isEqual6(node.rightDelimiter, other.rightDelimiter) && isEqual6(node.rightParenthesis, other.rightParenthesis);
+  }
+  bool visitForStatement(ForStatement node) {
+    ForStatement other = this._other as ForStatement;
+    return isEqual6(node.forKeyword, other.forKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.variables, other.variables) && isEqual(node.initialization, other.initialization) && isEqual6(node.leftSeparator, other.leftSeparator) && isEqual(node.condition, other.condition) && isEqual6(node.rightSeparator, other.rightSeparator) && isEqual5(node.updaters, other.updaters) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+  }
+  bool visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionDeclaration other = this._other as FunctionDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual(node.name, other.name) && isEqual(node.functionExpression, other.functionExpression);
+  }
+  bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    FunctionDeclarationStatement other = this._other as FunctionDeclarationStatement;
+    return isEqual(node.functionDeclaration, other.functionDeclaration);
+  }
+  bool visitFunctionExpression(FunctionExpression node) {
+    FunctionExpression other = this._other as FunctionExpression;
+    return isEqual(node.parameters, other.parameters) && isEqual(node.body, other.body);
+  }
+  bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    FunctionExpressionInvocation other = this._other as FunctionExpressionInvocation;
+    return isEqual(node.function, other.function) && isEqual(node.argumentList, other.argumentList);
+  }
+  bool visitFunctionTypeAlias(FunctionTypeAlias node) {
+    FunctionTypeAlias other = this._other as FunctionTypeAlias;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.returnType, other.returnType) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual(node.parameters, other.parameters) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    FunctionTypedFormalParameter other = this._other as FunctionTypedFormalParameter;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.returnType, other.returnType) && isEqual(node.identifier, other.identifier) && isEqual(node.parameters, other.parameters);
+  }
+  bool visitHideCombinator(HideCombinator node) {
+    HideCombinator other = this._other as HideCombinator;
+    return isEqual6(node.keyword, other.keyword) && isEqual5(node.hiddenNames, other.hiddenNames);
+  }
+  bool visitIfStatement(IfStatement node) {
+    IfStatement other = this._other as IfStatement;
+    return isEqual6(node.ifKeyword, other.ifKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.thenStatement, other.thenStatement) && isEqual6(node.elseKeyword, other.elseKeyword) && isEqual(node.elseStatement, other.elseStatement);
+  }
+  bool visitImplementsClause(ImplementsClause node) {
+    ImplementsClause other = this._other as ImplementsClause;
+    return isEqual6(node.keyword, other.keyword) && isEqual5(node.interfaces, other.interfaces);
+  }
+  bool visitImportDirective(ImportDirective node) {
+    ImportDirective other = this._other as ImportDirective;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.uri, other.uri) && isEqual6(node.asToken, other.asToken) && isEqual(node.prefix, other.prefix) && isEqual5(node.combinators, other.combinators) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitIndexExpression(IndexExpression node) {
+    IndexExpression other = this._other as IndexExpression;
+    return isEqual(node.target, other.target) && isEqual6(node.leftBracket, other.leftBracket) && isEqual(node.index, other.index) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitInstanceCreationExpression(InstanceCreationExpression node) {
+    InstanceCreationExpression other = this._other as InstanceCreationExpression;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
+  }
+  bool visitIntegerLiteral(IntegerLiteral node) {
+    IntegerLiteral other = this._other as IntegerLiteral;
+    return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
+  }
+  bool visitInterpolationExpression(InterpolationExpression node) {
+    InterpolationExpression other = this._other as InterpolationExpression;
+    return isEqual6(node.leftBracket, other.leftBracket) && isEqual(node.expression, other.expression) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitInterpolationString(InterpolationString node) {
+    InterpolationString other = this._other as InterpolationString;
+    return isEqual6(node.contents, other.contents) && node.value == other.value;
+  }
+  bool visitIsExpression(IsExpression node) {
+    IsExpression other = this._other as IsExpression;
+    return isEqual(node.expression, other.expression) && isEqual6(node.isOperator, other.isOperator) && isEqual6(node.notOperator, other.notOperator) && isEqual(node.type, other.type);
+  }
+  bool visitLabel(Label node) {
+    Label other = this._other as Label;
+    return isEqual(node.label, other.label) && isEqual6(node.colon, other.colon);
+  }
+  bool visitLabeledStatement(LabeledStatement node) {
+    LabeledStatement other = this._other as LabeledStatement;
+    return isEqual5(node.labels, other.labels) && isEqual(node.statement, other.statement);
+  }
+  bool visitLibraryDirective(LibraryDirective node) {
+    LibraryDirective other = this._other as LibraryDirective;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.libraryToken, other.libraryToken) && isEqual(node.name, other.name) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitLibraryIdentifier(LibraryIdentifier node) {
+    LibraryIdentifier other = this._other as LibraryIdentifier;
+    return isEqual5(node.components, other.components);
+  }
+  bool visitListLiteral(ListLiteral node) {
+    ListLiteral other = this._other as ListLiteral;
+    return isEqual6(node.constKeyword, other.constKeyword) && isEqual(node.typeArguments, other.typeArguments) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.elements, other.elements) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitMapLiteral(MapLiteral node) {
+    MapLiteral other = this._other as MapLiteral;
+    return isEqual6(node.constKeyword, other.constKeyword) && isEqual(node.typeArguments, other.typeArguments) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.entries, other.entries) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitMapLiteralEntry(MapLiteralEntry node) {
+    MapLiteralEntry other = this._other as MapLiteralEntry;
+    return isEqual(node.key, other.key) && isEqual6(node.separator, other.separator) && isEqual(node.value, other.value);
+  }
+  bool visitMethodDeclaration(MethodDeclaration node) {
+    MethodDeclaration other = this._other as MethodDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual6(node.modifierKeyword, other.modifierKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual(node.name, other.name) && isEqual(node.parameters, other.parameters) && isEqual(node.body, other.body);
+  }
+  bool visitMethodInvocation(MethodInvocation node) {
+    MethodInvocation other = this._other as MethodInvocation;
+    return isEqual(node.target, other.target) && isEqual6(node.period, other.period) && isEqual(node.methodName, other.methodName) && isEqual(node.argumentList, other.argumentList);
+  }
+  bool visitNamedExpression(NamedExpression node) {
+    NamedExpression other = this._other as NamedExpression;
+    return isEqual(node.name, other.name) && isEqual(node.expression, other.expression);
+  }
+  bool visitNativeClause(NativeClause node) {
+    NativeClause other = this._other as NativeClause;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.name, other.name);
+  }
+  bool visitNativeFunctionBody(NativeFunctionBody node) {
+    NativeFunctionBody other = this._other as NativeFunctionBody;
+    return isEqual6(node.nativeToken, other.nativeToken) && isEqual(node.stringLiteral, other.stringLiteral) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitNullLiteral(NullLiteral node) {
+    NullLiteral other = this._other as NullLiteral;
+    return isEqual6(node.literal, other.literal);
+  }
+  bool visitParenthesizedExpression(ParenthesizedExpression node) {
+    ParenthesizedExpression other = this._other as ParenthesizedExpression;
+    return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.expression, other.expression) && isEqual6(node.rightParenthesis, other.rightParenthesis);
+  }
+  bool visitPartDirective(PartDirective node) {
+    PartDirective other = this._other as PartDirective;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.partToken, other.partToken) && isEqual(node.uri, other.uri) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitPartOfDirective(PartOfDirective node) {
+    PartOfDirective other = this._other as PartOfDirective;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.partToken, other.partToken) && isEqual6(node.ofToken, other.ofToken) && isEqual(node.libraryName, other.libraryName) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitPostfixExpression(PostfixExpression node) {
+    PostfixExpression other = this._other as PostfixExpression;
+    return isEqual(node.operand, other.operand) && isEqual6(node.operator, other.operator);
+  }
+  bool visitPrefixedIdentifier(PrefixedIdentifier node) {
+    PrefixedIdentifier other = this._other as PrefixedIdentifier;
+    return isEqual(node.prefix, other.prefix) && isEqual6(node.period, other.period) && isEqual(node.identifier, other.identifier);
+  }
+  bool visitPrefixExpression(PrefixExpression node) {
+    PrefixExpression other = this._other as PrefixExpression;
+    return isEqual6(node.operator, other.operator) && isEqual(node.operand, other.operand);
+  }
+  bool visitPropertyAccess(PropertyAccess node) {
+    PropertyAccess other = this._other as PropertyAccess;
+    return isEqual(node.target, other.target) && isEqual6(node.operator, other.operator) && isEqual(node.propertyName, other.propertyName);
+  }
+  bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation other = this._other as RedirectingConstructorInvocation;
+    return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
+  }
+  bool visitRethrowExpression(RethrowExpression node) {
+    RethrowExpression other = this._other as RethrowExpression;
+    return isEqual6(node.keyword, other.keyword);
+  }
+  bool visitReturnStatement(ReturnStatement node) {
+    ReturnStatement other = this._other as ReturnStatement;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitScriptTag(ScriptTag node) {
+    ScriptTag other = this._other as ScriptTag;
+    return isEqual6(node.scriptTag, other.scriptTag);
+  }
+  bool visitShowCombinator(ShowCombinator node) {
+    ShowCombinator other = this._other as ShowCombinator;
+    return isEqual6(node.keyword, other.keyword) && isEqual5(node.shownNames, other.shownNames);
+  }
+  bool visitSimpleFormalParameter(SimpleFormalParameter node) {
+    SimpleFormalParameter other = this._other as SimpleFormalParameter;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual(node.identifier, other.identifier);
+  }
+  bool visitSimpleIdentifier(SimpleIdentifier node) {
+    SimpleIdentifier other = this._other as SimpleIdentifier;
+    return isEqual6(node.token, other.token);
+  }
+  bool visitSimpleStringLiteral(SimpleStringLiteral node) {
+    SimpleStringLiteral other = this._other as SimpleStringLiteral;
+    return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
+  }
+  bool visitStringInterpolation(StringInterpolation node) {
+    StringInterpolation other = this._other as StringInterpolation;
+    return isEqual5(node.elements, other.elements);
+  }
+  bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SuperConstructorInvocation other = this._other as SuperConstructorInvocation;
+    return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
+  }
+  bool visitSuperExpression(SuperExpression node) {
+    SuperExpression other = this._other as SuperExpression;
+    return isEqual6(node.keyword, other.keyword);
+  }
+  bool visitSwitchCase(SwitchCase node) {
+    SwitchCase other = this._other as SwitchCase;
+    return isEqual5(node.labels, other.labels) && isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression) && isEqual6(node.colon, other.colon) && isEqual5(node.statements, other.statements);
+  }
+  bool visitSwitchDefault(SwitchDefault node) {
+    SwitchDefault other = this._other as SwitchDefault;
+    return isEqual5(node.labels, other.labels) && isEqual6(node.keyword, other.keyword) && isEqual6(node.colon, other.colon) && isEqual5(node.statements, other.statements);
+  }
+  bool visitSwitchStatement(SwitchStatement node) {
+    SwitchStatement other = this._other as SwitchStatement;
+    return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.expression, other.expression) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.members, other.members) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitSymbolLiteral(SymbolLiteral node) {
+    SymbolLiteral other = this._other as SymbolLiteral;
+    return isEqual6(node.poundSign, other.poundSign) && isEqual7(node.components, other.components);
+  }
+  bool visitThisExpression(ThisExpression node) {
+    ThisExpression other = this._other as ThisExpression;
+    return isEqual6(node.keyword, other.keyword);
+  }
+  bool visitThrowExpression(ThrowExpression node) {
+    ThrowExpression other = this._other as ThrowExpression;
+    return isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression);
+  }
+  bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    TopLevelVariableDeclaration other = this._other as TopLevelVariableDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.variables, other.variables) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitTryStatement(TryStatement node) {
+    TryStatement other = this._other as TryStatement;
+    return isEqual6(node.tryKeyword, other.tryKeyword) && isEqual(node.body, other.body) && isEqual5(node.catchClauses, other.catchClauses) && isEqual6(node.finallyKeyword, other.finallyKeyword) && isEqual(node.finallyBlock, other.finallyBlock);
+  }
+  bool visitTypeArgumentList(TypeArgumentList node) {
+    TypeArgumentList other = this._other as TypeArgumentList;
+    return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.arguments, other.arguments) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitTypeName(TypeName node) {
+    TypeName other = this._other as TypeName;
+    return isEqual(node.name, other.name) && isEqual(node.typeArguments, other.typeArguments);
+  }
+  bool visitTypeParameter(TypeParameter node) {
+    TypeParameter other = this._other as TypeParameter;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.name, other.name) && isEqual6(node.keyword, other.keyword) && isEqual(node.bound, other.bound);
+  }
+  bool visitTypeParameterList(TypeParameterList node) {
+    TypeParameterList other = this._other as TypeParameterList;
+    return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.typeParameters, other.typeParameters) && isEqual6(node.rightBracket, other.rightBracket);
+  }
+  bool visitVariableDeclaration(VariableDeclaration node) {
+    VariableDeclaration other = this._other as VariableDeclaration;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.name, other.name) && isEqual6(node.equals, other.equals) && isEqual(node.initializer, other.initializer);
+  }
+  bool visitVariableDeclarationList(VariableDeclarationList node) {
+    VariableDeclarationList other = this._other as VariableDeclarationList;
+    return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual5(node.variables, other.variables);
+  }
+  bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    VariableDeclarationStatement other = this._other as VariableDeclarationStatement;
+    return isEqual(node.variables, other.variables) && isEqual6(node.semicolon, other.semicolon);
+  }
+  bool visitWhileStatement(WhileStatement node) {
+    WhileStatement other = this._other as WhileStatement;
+    return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
+  }
+  bool visitWithClause(WithClause node) {
+    WithClause other = this._other as WithClause;
+    return isEqual6(node.withKeyword, other.withKeyword) && isEqual5(node.mixinTypes, other.mixinTypes);
+  }
+
+  /**
+   * Return `true` if the given AST nodes have the same structure.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the given AST nodes have the same structure
+   */
+  bool isEqual(ASTNode first, ASTNode second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    } else if (first.runtimeType != second.runtimeType) {
+      return false;
+    }
+    _other = second;
+    return first.accept(this);
+  }
+
+  /**
+   * Return `true` if the given lists of AST nodes have the same size and corresponding
+   * elements are equal.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the given AST nodes have the same size and corresponding elements are
+   *         equal
+   */
+  bool isEqual5(NodeList first, NodeList second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    int size = first.length;
+    if (second.length != size) {
+      return false;
+    }
+    for (int i = 0; i < size; i++) {
+      if (!isEqual(first[i], second[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Return `true` if the given tokens have the same structure.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the given tokens have the same structure
+   */
+  bool isEqual6(Token first, Token second) {
+    if (first == null) {
+      return second == null;
+    } else if (second == null) {
+      return false;
+    }
+    return first.offset == second.offset && first.length == second.length && first.lexeme == second.lexeme;
+  }
+
+  /**
+   * Return `true` if the given arrays of tokens have the same length and corresponding
+   * elements are equal.
+   *
+   * @param first the first node being compared
+   * @param second the second node being compared
+   * @return `true` if the given arrays of tokens have the same length and corresponding
+   *         elements are equal
+   */
+  bool isEqual7(List<Token> first, List<Token> second) {
+    int length = first.length;
+    if (second.length != length) {
+      return false;
+    }
+    for (int i = 0; i < length; i++) {
+      if (isEqual6(first[i], second[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+/**
  * Instances of the class `IncrementalASTCloner` implement an object that will clone any AST
  * structure that it visits. The cloner will clone the structure, replacing the specified ASTNode
  * with a new ASTNode, mapping the old token stream to a new token stream, and preserving resolution
@@ -14684,7 +15204,9 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression copy = new AssignmentExpression.full(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
     copy.propagatedElement = node.propagatedElement;
+    copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
     return copy;
   }
   BinaryExpression visitBinaryExpression(BinaryExpression node) {
@@ -14900,7 +15422,9 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
   PostfixExpression visitPostfixExpression(PostfixExpression node) {
     PostfixExpression copy = new PostfixExpression.full(clone4(node.operand), map(node.operator));
+    copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
+    copy.staticElement = node.staticElement;
     copy.staticType = node.staticType;
     return copy;
   }

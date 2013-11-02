@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Draft Version 0.71}}
+{\large Draft Version 0.8}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -514,7 +514,17 @@ The former section on variables in interfaces (now removed): Added specification
 
 \ref{variables}: Final variables no longer introduce setters.
 
+\ref{superinterfaces}: Described \cd{@proxy} annotation's effects on typechecking.
+
+\ref{metadata}: Banned use of types as metadata.
+
 \ref{new}: Instantiating subclasses of malbounded types is a dynamic error.
+
+\ref{typeTest}, \ref{typeCast}, \ref{try}: Use of malformed type in casts, type tests and catch clauses is a dynamic error.
+
+\ref{scripts}: Corrected rules for running scripts.
+
+\ref{dynamicTypeSystem}: In checked mode, subtype tests against malbounded types are dynamic errors.
 
 \ref{leastUpperBounds}:  Extended LUBs to all types.
 
@@ -2080,7 +2090,7 @@ One might argue that it is harmless to repeat a type in the superinterface list,
 
 It is a compile-time error if the interface of a class $C$ is a superinterface of itself.
 
-Let $C$ be a concrete class that does not declare its own \code{noSuchMethod()} method.
+Let $C$ be a concrete class that does not declare its own \code{noSuchMethod()} method and is not annotated with a metadata declaration of the form \cd{@proxy}, where \cd{proxy} is declared in \cd{dart:core}.
 It is a static warning if the implicit interface of  $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding instance member $m$ of type $F'$ such that $F' <: F$. 
 
 \commentary{A class does not inherit members from its superinterfaces. However, its implicit interface does.
@@ -2090,6 +2100,8 @@ It is a static warning if the implicit interface of  $C$ includes an instance me
 \rationale {
 We choose to issue these warnings only for concrete classes; an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of  the interface.
 We also disable these warnings if a \code{noSuchMethod()} declaration is present. In such cases, the supported interface is going to be implemented via \code{noSuchMethod()} and no actual declarations of the implemented interface's members are needed. This allows proxy classes for specific types to be implemented without provoking type warnings.
+
+In addition, it may be useful to suppress these warnings if \code{noSuchMethod} is inherited, However, this may suppress meaningful warnings and so we choose not to do so by default. Instead, a special annotation is defined in \cd{dart:core} for this purpose.
 }
 
 It is a static warning if the implicit interface of  a class $C$ includes an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if  $F'$ is not a subtype of $F$. 
@@ -2254,14 +2266,6 @@ $q'_i = [C/S]q_i$ of the form
 
 $q'_i(a_{i1}, \ldots , a_{ik_i}):\SUPER(a_{i1}, \ldots , a_{ik_i});$.
 
-% The types must be given in the copied constructor. It was tempting to elide them; after all, checked mode will catch things in the
-% super call - but this may be a problem for tools. 
-% We  interpret this instead as S includes the generic parameters, so the signature has already substituted them.
-% Default values may not be replicable for optional params due to scoping/privacy.
-% How to describe and implement
-
-%The class $C$ has an implicitly declared nullary generative constructor with no initializer list and no body. 
-
 If the mixin application declares support for interfaces, the resulting class implements those interfaces.
 
 It is a compile-time error if $S$ is a malformed type. It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is a malformed type. It is a compile time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$). 
@@ -2271,7 +2275,6 @@ Let $K$ be a class declaration  with the same constructors, superclass and inter
 \commentary{
 If, for example, $M$ declares an instance member $im$ whose type is at odds with the type of a member of the same name in $S$, this will result in a static warning just as if we had defined $K$ by means of an ordinary class declaration extending $S$, with a body that included $im$.
 
-%Another implication of this definition is that one cannot apply a mixin to a superclass that does not provide a nullary constructor.
 }
 
 The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form 
@@ -2409,7 +2412,6 @@ Dart supports metadata which is used to attach user defined annotations to progr
 Metadata consists of a series of annotations, each of which begin with the character @, followed by  a constant expression that starts with an identifier. It is a compile time error if the expression is not one of the following:
 \begin{itemize}
 \item A reference to a compile-time constant variable.
-\item The name of a class.
 \item A call to a constant constructor.
 \end{itemize}
 
@@ -2523,9 +2525,13 @@ A constant expression is one of the following:
 \rationale{It would be tempting to allow string interpolation where the interpolated value is any compile-time constant.  However, this would require running the \code{toString()} method for constant objects, which could contain arbitrary code.}
 \item A literal symbol (\ref{symbols}).
 \item \NULL{} (\ref{null}).
-\item A qualified reference to a static constant variable (\ref{variables}). \commentary {For example, If class C declares a constant static variable v, C.v is a constant. The same is true if C is accessed via a prefix p; p.C.v is a constant.
+\item A qualified reference to a static constant variable (\ref{variables}). 
+\commentary {For example, If class C declares a constant static variable v, C.v is a constant. The same is true if C is accessed via a prefix p; p.C.v is a constant.
 }
-\item An identifier expression that denotes a constant variable, class or a type alias.
+\item An identifier expression that denotes a constant variable. %CHANGE in googledoc
+\item A simple or qualified identifier denoting a class or a type alias. 
+\commentary {For example, if C is a class or typedef C is a constant, and if C is imported with a prefix p,  p.C is a constant.
+}
 \item A constant constructor invocation (\ref{const}).  
 \item A constant list literal (\ref{lists}).
 \item A constant map literal (\ref{maps}).
@@ -2957,8 +2963,7 @@ A run-time list literal $<E>[e_1 \ldots e_n]$  is evaluated as follows:
 \begin{itemize}
 \item
 First, the expressions $e_1 \ldots e_n$ are evaluated in order they appear in the program, yielding objects $o_1 \ldots o_n$.
-\item
-A fresh instance  (\ref{generativeConstructors}) $a$, of size $n$,  whose class implements the built-in class $List<E>$ is allocated. 
+\item A fresh instance  (\ref{generativeConstructors}) $a$, of size $n$,  whose class implements the built-in class $List<E>$ is allocated. 
 \item
 
 The operator \code{[]=} is invoked on $a$ with  first  argument $i$ and second argument
@@ -3023,8 +3028,7 @@ A runtime map literal $<K, V>\{k_1:e_1\ldots k_n :e_n\}$  is evaluated as follow
 \begin{itemize}
 \item
 First, the expression $k_i$ is evaluated yielding object $u_i$, the $e_i$ is vaulted yielding object $o_i$, for $i \in 1..n$ in left to right order, yielding objects $u_1, o_1\ldots u_n, o_n$.
-\item 
-A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class $Map<K, V>$ is allocated. 
+\item  A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class $Map<K, V>$ is allocated. 
 \item
 The operator \code{[]=} is invoked on $m$ with  first  argument $u_i$ and second argument $o_i,  i \in 1.. n$.
 \item
@@ -3210,9 +3214,6 @@ If $T$  is malformed or if $T$ is a type variable a dynamic error occurs. In che
 
 Otherwise, if $q$ is a generative constructor (\ref{generativeConstructors}), then:
 
-%Let $T_i$ be the type parameters of $R$ (if any) and let $B_i$ be the bound of $T_i, 1 \le i \le l$.
-%In checked mode, it is a dynamic type error if  $V_i$ is not a subtype of  $[V_1,  \ldots, V_l/T_1,  \ldots, T_l]B_i,  i \in 1.. l$.
-
 \commentary{Note that it this point we are assured that the number of actual type arguments match the number of formal type parameters.}
 
 A fresh instance (\ref{generativeConstructors}), $i$,  of class $R$ is allocated. For each instance variable $f$ of $i$,  if the variable declaration of $f$ has an initializer expression $e_f$, then $e_f$ is evaluated to an object $o_f$ and $f$ is bound to $o_f$. Otherwise $f$ is bound to \NULL{}.
@@ -3224,9 +3225,6 @@ Observe that \THIS{} is not in scope in $e_f$. Hence, the initialization cannot 
 Next,  $q$ is executed  with \THIS{} bound to $i$,  the type parameters (if any) of $R$ bound to the actual type arguments $V_1, \ldots, V_l$ and the formal parameter bindings that resulted from the evaluation of the argument list. The result of the evaluation of $e$ is $i$.
 
 Otherwise, $q$ is a factory constructor (\ref{factories}). Then:
-
-%Let $T_i$ be the type parameters of $R$ (if any) and let $B_i$ be the bound of $T_i, 1 \le i \le l$.
-%In checked mode, it is a dynamic type error if  $V_i$ is not a subtype of  $[V_1,  \ldots, V_l/T_1,  \ldots, T_l]B_i, i \in 1.. l$.
 
 If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots, p_{n+k}) = c;$ or of the form  $T.id(p_1, \ldots, p_{n+k}) = c;$ then the result of the evaluation of $e$ is equivalent to evaluating the expression $[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.
 
@@ -3452,22 +3450,10 @@ Function invocation involves evaluation of the list of actual arguments to the f
 {\bf namedArgument:}
       label expression % could be top level expression?
     .
-
-%spreadArgument:
-%     '...' expression
- %   .
  \end{grammar}
 
 Evaluation of an actual argument list of the form $(a_1, \ldots, a_m, q_1: a_{m+1}, \ldots, q_l: a_{m+l})$ proceeds as follows:
 
-%Furthermore, if $p_k$ is a rest parameter, then one of the following cases holds:
-%\begin{enumerate}
-%\item $m = k-1$. Then $p_k$ is bound to a freshly allocated empty list. \Q{cant we share it? identity?}
-%\item $m = k$, and $a_k$ is a spread argument ...$e_k$. Then $p_k$ is bound to the value of $e_k$.  In checked mode, it is a dynamic type error if  the type of $p_k$ is not a supertype of the value of $e_k$.
-%\item $m \ge k$.  A freshly allocated list $r$ of the type of $p_k$ with size $m - k + 1$ is allocated. and initialized such that $r_j = a_{k+j}, 0 \le j \le m - k$. Then $p_k$ is bound to $r$.
-%\end{enumerate}
-
-%Otherwise, i
 The arguments $a_1, \ldots, a_{m+l}$ are evaluated in the order they appear in the program, yielding objects $o_1, \ldots, o_{m+l}$.
 
 \commentary{Simply stated, an argument list consisting of $m$ positional arguments and $l$ named arguments is evaluated from left to right.
@@ -4391,7 +4377,7 @@ The {\em is-expression} tests if an object is a member of a type.
  
  Evaluation of the is-expression \code{$e$ \IS{} $T$} proceeds as follows:
 
-The expression $e$ is evaluated to a value $v$. Then, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to true. Otherwise it evaluates to false.
+The expression $e$ is evaluated to a value $v$. Then, if $T$ is malformed, a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the is-expression evaluates to true. Otherwise it evaluates to false.
 
 \commentary{It follows that \code{$e$ \IS{} Object} is always true. This makes sense in a language where everything is an object. 
 
@@ -4402,17 +4388,6 @@ The is-expression \code{$e$ \IS{}! $T$} is equivalent to \code{!($e$ \IS{} $T$)}
 
 % Add flow dependent types
 
-\commentary{
-If $T$ is malformed the test always succeeds. This is a consequence of the rule that malformed types are treated as \DYNAMIC{}
-}
-%does not denote a type available in the current lexical scope. It is a %compile-time error % CHANGED
-%run-time error
-%if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters.
-
-%Note, that, in checked mode, it is a dynamic type error if a malformed type is used in a type test as specified in \ref{dynamicTypeSystem}.
-
-%It is a static warning if $T$ is malformed or malbounded.
-%does not denote a type available in the current lexical scope. 
 
 Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
 
@@ -4427,8 +4402,6 @@ We do not want to refine the type of a variable of type \DYNAMIC{}, as this coul
 }
 
 The static type of an is-expression is \code{bool}. 
-%It is a static warning if if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters. 
-
 
 
 \subsection{ Type Cast}
@@ -4449,23 +4422,10 @@ The {\em cast expression} ensures that an object is a member of a type.
  
  Evaluation of the cast expression \code{$e$ \AS{} $T$} proceeds as follows:
 
-The expression $e$ is evaluated to a value $v$. Then, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$. Otherwise, if $v$ is \NULL{}, the cast expression evaluates to $v$. 
+The expression $e$ is evaluated to a value $v$. Then, if $T$ is malformed, a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$. Otherwise, if $v$ is \NULL{}, the cast expression evaluates to $v$. 
 In all other cases,  a \code{CastError} is thrown.
-
-\commentary{
-If $T$ is malformed the cast always succeeds. This is a consequence of the rule that malformed types are treated as \DYNAMIC{}
-}
-
-%does not denote a type available in the current lexical scope. It is a %compile-time error ; CHANGED 
-%run-time error
-%if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters.
-
-%Note, that, in checked mode, it is a dynamic type error if a malformed type is used in a type cast as specified in \ref{dynamicTypeSystem}.
-
-%It is a static warning if $T$ is malformed or malbounded.
-%does not denote a type available in the current lexical scope. 
+ 
 The static type of a cast expression  \code{$e$ \AS{} $T$}  is $T$. 
-%It is a static warning if if $T$ is a parameterized type of the form $G<T_1, \ldots, T_n>$ and $G$ is not a generic type with $n$ type parameters. 
 
 
 \section{Statements}
@@ -4836,8 +4796,6 @@ It is a compile-time error if the class $C$ has an implementation of the operato
 The \SWITCH{}  statement should only be used in very limited situations (e.g., interpreters or scanners).  
 }
 
-%A switch statement {\SWITCH{} ($e$)  \{ $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1 \ldots$ $label_{n1} \ldots label_{nj_n}$  \CASE{} $e_n: s_n$ \}} is equivalent to switch statement \code{\SWITCH{} ($e$) \{ $label_{11} \ldots label_{1j_1}$ \CASE{}  $e_1: s_1 \ldots$ $label_{n1} \ldots label_{nj_n}$ \CASE{}  $e_n: s_n$ \DEFAULT{}: \}}
-
 Execution of a switch statement of the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \DEFAULT{}: $s_{n+1}$ \}} or the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \}} proceeds as follows:
 
 The statement \code{\VAR{} id = $e$;} is evaluated, where \code{id} is a variable whose name is distinct from any other variable in the program. In checked mode, it is a run time error if the value of $e$ is not an instance of the same class as the constants $e_1 \ldots e_n$. 
@@ -4944,7 +4902,7 @@ A \FINALLY{} clause, which consists of a block statement.
 The syntax is designed to be upward compatible with existing Javascript programs. The \ON{} clause can be omitted, leaving what looks like a Javascript catch clause.
 }
 
-An \ON{}-\CATCH{} clause of   the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$}  {\em matches} an object $o$  if the type of $o$ is a subtype of $T$. 
+An \ON{}-\CATCH{} clause of   the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$}  {\em matches} an object $o$  if the type of $o$ is a subtype of $T$.  If $T$ is a malformed type, then performing a match causes a run time error.
 
 \commentary {
 It is of course a static warning if $T$ is a malformed type (\ref{staticTypes}).
@@ -5482,13 +5440,17 @@ Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart syste
 \subsection{Scripts}
 \label{scripts}
 
-A {\em script} is a library with a top-level function \code{main()}. 
+A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main()}. 
 A script $S$ may be executed as follows:
 
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main()} that is in scope in $S$ is invoked with no arguments. It is a run time error if $S$ does not declare or import a top-level function \code{main()}.
+First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main()} that is in the exported namespace of $S$ is invoked with no arguments. It is a run time error if $S$ does not declare or import a top-level function \code{main()}.
 
 \rationale{
 The names of scripts are optional, in the interests of interactive, informal use. However, any script of long term value should be given a name as a matter of good practice. 
+}
+
+\commentary {
+A Dart program will typically be executed by executing a script.
 }
 
 \subsection{URIs}
@@ -5581,11 +5543,12 @@ A type $T$ is {\em malformed} iff:
 %  \end{itemize}
 \end{itemize}
 
- Any use of a malformed  type gives rise to a static warning. A malformed type is then interpreted as \DYNAMIC{} by the static type checker and the runtime.
- 
+ Any use of a malformed  type gives rise to a static warning. A malformed type is then interpreted as \DYNAMIC{} by the static type checker and the runtime unless explicitly specified otherwise.
+  
  \rationale{
 This ensures that the developer is spared a series of cascading warnings as the malformed type interacts with other types.
 }
+
 
 \subsubsection{Type Promotion}
 \label{typePromotion}
@@ -5605,7 +5568,7 @@ A Dart implementation must support execution in both {\em production mode} and {
 %It is a run-time type error to access an undeclared type outside .
 
 %It is a dynamic type error if a malformed type is used in a subtype test.  
-In checked mode, it is a dynamic type error if  a malbounded (\ref{parameterizedTypes}) 
+In checked mode, it is a dynamic type error if a malformed or malbounded (\ref{parameterizedTypes}) 
 type is used in a subtype test.  
 
 %In production mode, an undeclared type is treated as an instance of type \DYNAMIC{}. 
@@ -5637,19 +5600,9 @@ main() \{
 \end{dartCode}
 
 \commentary{
-Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident.  The undeclared type $i$ is treated as \DYNAMIC{}, so even in checked mode, the implicit subtype test at the assignment  succeeds.
+Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because he undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
 }
 
-\rationale{
-We have chosen to treat malformed types  as type \DYNAMIC{}. Earlier versions of this specification did so in some cases but not in others. We found the rules to be too complex, and have opted to harmonize the specification. Given that a static warning is issued, there is no need for the runtime to deal with extra complexity by treating malformed types specially.
-
-
-%as is done in production mode. After all, a static warning has already been given. That is a legitimate design option, and it is ultimately a judgement call as to whether checked mode should be more or less aggressive in dealing with such a situation.
-
-%Likewise, we could opt to ignore malformed types entirely in checked mode.
-
-%For now, we have opted to treat a malformed type as an error type that has no subtypes or supertypes, and which causes a runtime error when tested against any other type.
-}
 
 \commentary{
 Here is an example involving malbounded types:

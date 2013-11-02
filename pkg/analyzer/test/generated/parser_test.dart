@@ -4,14 +4,17 @@ library engine.parser_test;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
 import 'ast_test.dart' show ASTFactory;
+import 'element_test.dart' show ElementFactory;
 /**
  * The class `SimpleParserTest` defines parser tests that test individual parsing method. The
  * code fragments should be as minimal as possible in order to test the method, but should not test
@@ -473,6 +476,14 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(IndexExpression, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
   }
+  void test_parseCascadeSection_ii() {
+    MethodInvocation section = ParserTestCase.parse5("parseCascadeSection", "..a(b).c(d)", []);
+    EngineTestCase.assertInstanceOf(MethodInvocation, section.target);
+    JUnitTestCase.assertNotNull(section.period);
+    JUnitTestCase.assertNotNull(section.methodName);
+    JUnitTestCase.assertNotNull(section.argumentList);
+    EngineTestCase.assertSize(1, section.argumentList.arguments);
+  }
   void test_parseCascadeSection_p() {
     PropertyAccess section = ParserTestCase.parse5("parseCascadeSection", "..a", []);
     JUnitTestCase.assertNull(section.target);
@@ -515,7 +526,7 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseCascadeSection_paapaa() {
     FunctionExpressionInvocation section = ParserTestCase.parse5("parseCascadeSection", "..a(b)(c).d(e)(f)", []);
-    EngineTestCase.assertInstanceOf(FunctionExpressionInvocation, section.function);
+    EngineTestCase.assertInstanceOf(MethodInvocation, section.function);
     JUnitTestCase.assertNotNull(section.argumentList);
     EngineTestCase.assertSize(1, section.argumentList.arguments);
   }
@@ -4297,6 +4308,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCascadeSection_ia);
       });
+      _ut.test('test_parseCascadeSection_ii', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCascadeSection_ii);
+      });
       _ut.test('test_parseCascadeSection_p', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCascadeSection_p);
@@ -6759,6 +6774,698 @@ class ParserTestCase extends EngineTestCase {
     });
   }
 }
+class ResolutionCopierTest extends EngineTestCase {
+  void test_visitAnnotation() {
+    String annotationName = "proxy";
+    Annotation fromNode = ASTFactory.annotation(ASTFactory.identifier3(annotationName));
+    Element element = ElementFactory.topLevelVariableElement2(annotationName);
+    fromNode.element = element;
+    Annotation toNode = ASTFactory.annotation(ASTFactory.identifier3(annotationName));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitArgumentDefinitionTest() {
+    String identifier = "p";
+    ArgumentDefinitionTest fromNode = ASTFactory.argumentDefinitionTest(identifier);
+    Type2 propagatedType = ElementFactory.classElement2("A", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("B", []).type;
+    fromNode.staticType = staticType;
+    ArgumentDefinitionTest toNode = ASTFactory.argumentDefinitionTest(identifier);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitAsExpression() {
+    AsExpression fromNode = ASTFactory.asExpression(ASTFactory.identifier3("x"), ASTFactory.typeName4("A", []));
+    Type2 propagatedType = ElementFactory.classElement2("A", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("B", []).type;
+    fromNode.staticType = staticType;
+    AsExpression toNode = ASTFactory.asExpression(ASTFactory.identifier3("x"), ASTFactory.typeName4("A", []));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitAssignmentExpression() {
+    AssignmentExpression fromNode = ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.PLUS_EQ, ASTFactory.identifier3("b"));
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    AssignmentExpression toNode = ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.PLUS_EQ, ASTFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitBinaryExpression() {
+    BinaryExpression fromNode = ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b"));
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    MethodElement propagatedElement = ElementFactory.methodElement("+", propagatedType, []);
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    MethodElement staticElement = ElementFactory.methodElement("+", staticType, []);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    BinaryExpression toNode = ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitBooleanLiteral() {
+    BooleanLiteral fromNode = ASTFactory.booleanLiteral(true);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    BooleanLiteral toNode = ASTFactory.booleanLiteral(true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitCascadeExpression() {
+    CascadeExpression fromNode = ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.identifier3("b")]);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    CascadeExpression toNode = ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.identifier3("b")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitCompilationUnit() {
+    CompilationUnit fromNode = ASTFactory.compilationUnit();
+    CompilationUnitElement element = new CompilationUnitElementImpl("test.dart");
+    fromNode.element = element;
+    CompilationUnit toNode = ASTFactory.compilationUnit();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitConditionalExpression() {
+    ConditionalExpression fromNode = ASTFactory.conditionalExpression(ASTFactory.identifier3("c"), ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ConditionalExpression toNode = ASTFactory.conditionalExpression(ASTFactory.identifier3("c"), ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitConstructorDeclaration() {
+    String className = "A";
+    String constructorName = "c";
+    ConstructorDeclaration fromNode = ASTFactory.constructorDeclaration(ASTFactory.identifier3(className), constructorName, ASTFactory.formalParameterList([]), null);
+    ConstructorElement element = ElementFactory.constructorElement(ElementFactory.classElement2(className, []), constructorName);
+    fromNode.element = element;
+    ConstructorDeclaration toNode = ASTFactory.constructorDeclaration(ASTFactory.identifier3(className), constructorName, ASTFactory.formalParameterList([]), null);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitConstructorName() {
+    ConstructorName fromNode = ASTFactory.constructorName(ASTFactory.typeName4("A", []), "c");
+    ConstructorElement staticElement = ElementFactory.constructorElement(ElementFactory.classElement2("A", []), "c");
+    fromNode.staticElement = staticElement;
+    ConstructorName toNode = ASTFactory.constructorName(ASTFactory.typeName4("A", []), "c");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+  }
+  void test_visitDoubleLiteral() {
+    DoubleLiteral fromNode = ASTFactory.doubleLiteral(1.0);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    DoubleLiteral toNode = ASTFactory.doubleLiteral(1.0);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitExportDirective() {
+    ExportDirective fromNode = ASTFactory.exportDirective2("dart:uri", []);
+    ExportElement element = new ExportElementImpl();
+    fromNode.element = element;
+    ExportDirective toNode = ASTFactory.exportDirective2("dart:uri", []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitFunctionExpression() {
+    FunctionExpression fromNode = ASTFactory.functionExpression2(ASTFactory.formalParameterList([]), ASTFactory.emptyFunctionBody());
+    MethodElement element = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    fromNode.element = element;
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    FunctionExpression toNode = ASTFactory.functionExpression2(ASTFactory.formalParameterList([]), ASTFactory.emptyFunctionBody());
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitFunctionExpressionInvocation() {
+    FunctionExpressionInvocation fromNode = ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []);
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    fromNode.propagatedElement = propagatedElement;
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    fromNode.staticElement = staticElement;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    FunctionExpressionInvocation toNode = ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitImportDirective() {
+    ImportDirective fromNode = ASTFactory.importDirective2("dart:uri", null, []);
+    ImportElement element = new ImportElementImpl();
+    fromNode.element = element;
+    ImportDirective toNode = ASTFactory.importDirective2("dart:uri", null, []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitIndexExpression() {
+    IndexExpression fromNode = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.integer(0));
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
+    fromNode.auxiliaryElements = auxiliaryElements;
+    fromNode.propagatedElement = propagatedElement;
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    fromNode.staticElement = staticElement;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    IndexExpression toNode = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitInstanceCreationExpression() {
+    InstanceCreationExpression fromNode = ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    ConstructorElement staticElement = ElementFactory.constructorElement(ElementFactory.classElement2("C", []), null);
+    fromNode.staticElement = staticElement;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    InstanceCreationExpression toNode = ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitIntegerLiteral() {
+    IntegerLiteral fromNode = ASTFactory.integer(2);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    IntegerLiteral toNode = ASTFactory.integer(2);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitIsExpression() {
+    IsExpression fromNode = ASTFactory.isExpression(ASTFactory.identifier3("x"), false, ASTFactory.typeName4("A", []));
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    IsExpression toNode = ASTFactory.isExpression(ASTFactory.identifier3("x"), false, ASTFactory.typeName4("A", []));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitLibraryIdentifier() {
+    LibraryIdentifier fromNode = ASTFactory.libraryIdentifier([ASTFactory.identifier3("lib")]);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    LibraryIdentifier toNode = ASTFactory.libraryIdentifier([ASTFactory.identifier3("lib")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitListLiteral() {
+    ListLiteral fromNode = ASTFactory.listLiteral([]);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ListLiteral toNode = ASTFactory.listLiteral([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitMapLiteral() {
+    MapLiteral fromNode = ASTFactory.mapLiteral2([]);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    MapLiteral toNode = ASTFactory.mapLiteral2([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitMethodInvocation() {
+    MethodInvocation fromNode = ASTFactory.methodInvocation2("m", []);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    MethodInvocation toNode = ASTFactory.methodInvocation2("m", []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitNamedExpression() {
+    NamedExpression fromNode = ASTFactory.namedExpression2("n", ASTFactory.integer(0));
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    NamedExpression toNode = ASTFactory.namedExpression2("n", ASTFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitNullLiteral() {
+    NullLiteral fromNode = ASTFactory.nullLiteral();
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    NullLiteral toNode = ASTFactory.nullLiteral();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitParenthesizedExpression() {
+    ParenthesizedExpression fromNode = ASTFactory.parenthesizedExpression(ASTFactory.integer(0));
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ParenthesizedExpression toNode = ASTFactory.parenthesizedExpression(ASTFactory.integer(0));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitPartDirective() {
+    PartDirective fromNode = ASTFactory.partDirective2("part.dart");
+    LibraryElement element = new LibraryElementImpl(null, ASTFactory.libraryIdentifier2(["lib"]));
+    fromNode.element = element;
+    PartDirective toNode = ASTFactory.partDirective2("part.dart");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitPartOfDirective() {
+    PartOfDirective fromNode = ASTFactory.partOfDirective(ASTFactory.libraryIdentifier2(["lib"]));
+    LibraryElement element = new LibraryElementImpl(null, ASTFactory.libraryIdentifier2(["lib"]));
+    fromNode.element = element;
+    PartOfDirective toNode = ASTFactory.partOfDirective(ASTFactory.libraryIdentifier2(["lib"]));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(element, toNode.element);
+  }
+  void test_visitPostfixExpression() {
+    String variableName = "x";
+    PostfixExpression fromNode = ASTFactory.postfixExpression(ASTFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    fromNode.propagatedElement = propagatedElement;
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    fromNode.staticElement = staticElement;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    PostfixExpression toNode = ASTFactory.postfixExpression(ASTFactory.identifier3(variableName), TokenType.PLUS_PLUS);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitPrefixedIdentifier() {
+    PrefixedIdentifier fromNode = ASTFactory.identifier5("p", "f");
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    PrefixedIdentifier toNode = ASTFactory.identifier5("p", "f");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitPrefixExpression() {
+    PrefixExpression fromNode = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, ASTFactory.identifier3("x"));
+    MethodElement propagatedElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedElement = propagatedElement;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    MethodElement staticElement = ElementFactory.methodElement("+", ElementFactory.classElement2("C", []).type, []);
+    fromNode.staticElement = staticElement;
+    fromNode.staticType = staticType;
+    PrefixExpression toNode = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, ASTFactory.identifier3("x"));
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitPropertyAccess() {
+    PropertyAccess fromNode = ASTFactory.propertyAccess2(ASTFactory.identifier3("x"), "y");
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    PropertyAccess toNode = ASTFactory.propertyAccess2(ASTFactory.identifier3("x"), "y");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitRedirectingConstructorInvocation() {
+    RedirectingConstructorInvocation fromNode = ASTFactory.redirectingConstructorInvocation([]);
+    ConstructorElement staticElement = ElementFactory.constructorElement(ElementFactory.classElement2("C", []), null);
+    fromNode.staticElement = staticElement;
+    RedirectingConstructorInvocation toNode = ASTFactory.redirectingConstructorInvocation([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+  }
+  void test_visitRethrowExpression() {
+    RethrowExpression fromNode = ASTFactory.rethrowExpression();
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    RethrowExpression toNode = ASTFactory.rethrowExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitSimpleIdentifier() {
+    SimpleIdentifier fromNode = ASTFactory.identifier3("x");
+    MethodElement propagatedElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    MethodElement staticElement = ElementFactory.methodElement("m", ElementFactory.classElement2("C", []).type, []);
+    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement, propagatedElement);
+    fromNode.auxiliaryElements = auxiliaryElements;
+    fromNode.propagatedElement = propagatedElement;
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    fromNode.staticElement = staticElement;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SimpleIdentifier toNode = ASTFactory.identifier3("x");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(auxiliaryElements, toNode.auxiliaryElements);
+    JUnitTestCase.assertSame(propagatedElement, toNode.propagatedElement);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitSimpleStringLiteral() {
+    SimpleStringLiteral fromNode = ASTFactory.string2("abc");
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SimpleStringLiteral toNode = ASTFactory.string2("abc");
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitStringInterpolation() {
+    StringInterpolation fromNode = ASTFactory.string([ASTFactory.interpolationString("a", "'a'")]);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    StringInterpolation toNode = ASTFactory.string([ASTFactory.interpolationString("a", "'a'")]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitSuperConstructorInvocation() {
+    SuperConstructorInvocation fromNode = ASTFactory.superConstructorInvocation([]);
+    ConstructorElement staticElement = ElementFactory.constructorElement(ElementFactory.classElement2("C", []), null);
+    fromNode.staticElement = staticElement;
+    SuperConstructorInvocation toNode = ASTFactory.superConstructorInvocation([]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(staticElement, toNode.staticElement);
+  }
+  void test_visitSuperExpression() {
+    SuperExpression fromNode = ASTFactory.superExpression();
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SuperExpression toNode = ASTFactory.superExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitSymbolLiteral() {
+    SymbolLiteral fromNode = ASTFactory.symbolLiteral(["s"]);
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    SymbolLiteral toNode = ASTFactory.symbolLiteral(["s"]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitThisExpression() {
+    ThisExpression fromNode = ASTFactory.thisExpression();
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ThisExpression toNode = ASTFactory.thisExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitThrowExpression() {
+    ThrowExpression fromNode = ASTFactory.throwExpression();
+    Type2 propagatedType = ElementFactory.classElement2("C", []).type;
+    fromNode.propagatedType = propagatedType;
+    Type2 staticType = ElementFactory.classElement2("C", []).type;
+    fromNode.staticType = staticType;
+    ThrowExpression toNode = ASTFactory.throwExpression();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(propagatedType, toNode.propagatedType);
+    JUnitTestCase.assertSame(staticType, toNode.staticType);
+  }
+  void test_visitTypeName() {
+    TypeName fromNode = ASTFactory.typeName4("C", []);
+    Type2 type = ElementFactory.classElement2("C", []).type;
+    fromNode.type = type;
+    TypeName toNode = ASTFactory.typeName4("C", []);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    JUnitTestCase.assertSame(type, toNode.type);
+  }
+  static dartSuite() {
+    _ut.group('ResolutionCopierTest', () {
+      _ut.test('test_visitAnnotation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitAnnotation);
+      });
+      _ut.test('test_visitArgumentDefinitionTest', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitArgumentDefinitionTest);
+      });
+      _ut.test('test_visitAsExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitAsExpression);
+      });
+      _ut.test('test_visitAssignmentExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitAssignmentExpression);
+      });
+      _ut.test('test_visitBinaryExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitBinaryExpression);
+      });
+      _ut.test('test_visitBooleanLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitBooleanLiteral);
+      });
+      _ut.test('test_visitCascadeExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitCascadeExpression);
+      });
+      _ut.test('test_visitCompilationUnit', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitCompilationUnit);
+      });
+      _ut.test('test_visitConditionalExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitConditionalExpression);
+      });
+      _ut.test('test_visitConstructorDeclaration', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitConstructorDeclaration);
+      });
+      _ut.test('test_visitConstructorName', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitConstructorName);
+      });
+      _ut.test('test_visitDoubleLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitDoubleLiteral);
+      });
+      _ut.test('test_visitExportDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitExportDirective);
+      });
+      _ut.test('test_visitFunctionExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitFunctionExpression);
+      });
+      _ut.test('test_visitFunctionExpressionInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitFunctionExpressionInvocation);
+      });
+      _ut.test('test_visitImportDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitImportDirective);
+      });
+      _ut.test('test_visitIndexExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitIndexExpression);
+      });
+      _ut.test('test_visitInstanceCreationExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitInstanceCreationExpression);
+      });
+      _ut.test('test_visitIntegerLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitIntegerLiteral);
+      });
+      _ut.test('test_visitIsExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitIsExpression);
+      });
+      _ut.test('test_visitLibraryIdentifier', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitLibraryIdentifier);
+      });
+      _ut.test('test_visitListLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitListLiteral);
+      });
+      _ut.test('test_visitMapLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitMapLiteral);
+      });
+      _ut.test('test_visitMethodInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitMethodInvocation);
+      });
+      _ut.test('test_visitNamedExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitNamedExpression);
+      });
+      _ut.test('test_visitNullLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitNullLiteral);
+      });
+      _ut.test('test_visitParenthesizedExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitParenthesizedExpression);
+      });
+      _ut.test('test_visitPartDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPartDirective);
+      });
+      _ut.test('test_visitPartOfDirective', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPartOfDirective);
+      });
+      _ut.test('test_visitPostfixExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPostfixExpression);
+      });
+      _ut.test('test_visitPrefixExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPrefixExpression);
+      });
+      _ut.test('test_visitPrefixedIdentifier', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPrefixedIdentifier);
+      });
+      _ut.test('test_visitPropertyAccess', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitPropertyAccess);
+      });
+      _ut.test('test_visitRedirectingConstructorInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitRedirectingConstructorInvocation);
+      });
+      _ut.test('test_visitRethrowExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitRethrowExpression);
+      });
+      _ut.test('test_visitSimpleIdentifier', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSimpleIdentifier);
+      });
+      _ut.test('test_visitSimpleStringLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSimpleStringLiteral);
+      });
+      _ut.test('test_visitStringInterpolation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitStringInterpolation);
+      });
+      _ut.test('test_visitSuperConstructorInvocation', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSuperConstructorInvocation);
+      });
+      _ut.test('test_visitSuperExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSuperExpression);
+      });
+      _ut.test('test_visitSymbolLiteral', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitSymbolLiteral);
+      });
+      _ut.test('test_visitThisExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitThisExpression);
+      });
+      _ut.test('test_visitThrowExpression', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitThrowExpression);
+      });
+      _ut.test('test_visitTypeName', () {
+        final __test = new ResolutionCopierTest();
+        runJUnitTest(__test, __test.test_visitTypeName);
+      });
+    });
+  }
+}
 /**
  * The class `RecoveryParserTest` defines parser tests that test the parsing of invalid code
  * sequences to ensure that the correct recovery steps are taken in the parser.
@@ -7590,6 +8297,123 @@ class RecoveryParserTest extends ParserTestCase {
       _ut.test('test_typedef_eof', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_typedef_eof);
+      });
+    });
+  }
+}
+class IncrementalParserTest extends EngineTestCase {
+  void fail_reparse_oneFunctionToTwo() {
+    assertParse("f() {}", "f() => 0; g() {}");
+  }
+  void test_reparse_addedAfterIdentifier1() {
+    assertParse("f() => a + b;", "f() => abs + b;");
+  }
+  void test_reparse_addedAfterIdentifier2() {
+    assertParse("f() => a + b;", "f() => a + bar;");
+  }
+  void test_resparse_addedBeforeIdentifier1() {
+    assertParse("f() => a + b;", "f() => xa + b;");
+  }
+  void test_resparse_addedBeforeIdentifier2() {
+    assertParse("f() => a + b;", "f() => a + xb;");
+  }
+  void test_resparse_addedNewIdentifier1() {
+    assertParse("a; c;", "a; b c;");
+  }
+  void test_resparse_addedNewIdentifier2() {
+    assertParse("a;  c;", "a;b  c;");
+  }
+  void test_resparse_appendWhitespace1() {
+    assertParse("f() => a + b;", "f() => a + b; ");
+  }
+  void test_resparse_appendWhitespace2() {
+    assertParse("f() => a + b;", "f() => a + b;  ");
+  }
+  void test_resparse_insertedPeriod() {
+    assertParse("f() => a + b;", "f() => a + b.;");
+  }
+  void test_resparse_insertWhitespace() {
+    assertParse("f() => a + b;", "f() => a  + b;");
+  }
+  void assertParse(String originalContents, String modifiedContents) {
+    int originalLength = originalContents.length;
+    int modifiedLength = modifiedContents.length;
+    int replaceStart = 0;
+    while (replaceStart < originalLength && replaceStart < modifiedLength && originalContents.codeUnitAt(replaceStart) == modifiedContents.codeUnitAt(replaceStart)) {
+      replaceStart++;
+    }
+    int lengthDelta = modifiedLength - originalLength;
+    int originalEnd = originalLength - 1;
+    int modifiedEnd = modifiedLength - 1;
+    while (originalEnd >= replaceStart && modifiedEnd >= (replaceStart + lengthDelta) && originalContents.codeUnitAt(originalEnd) == modifiedContents.codeUnitAt(modifiedEnd)) {
+      originalEnd--;
+      modifiedEnd--;
+    }
+    Source source = new TestSource();
+    GatheringErrorListener originalListener = new GatheringErrorListener();
+    Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
+    Token originalToken = originalScanner.tokenize();
+    JUnitTestCase.assertNotNull(originalToken);
+    Parser originalParser = new Parser(source, originalListener);
+    CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalToken);
+    JUnitTestCase.assertNotNull(originalUnit);
+    GatheringErrorListener modifiedListener = new GatheringErrorListener();
+    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
+    Token modifiedToken = modifiedScanner.tokenize();
+    JUnitTestCase.assertNotNull(modifiedToken);
+    Parser modifiedParser = new Parser(source, modifiedListener);
+    CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedToken);
+    JUnitTestCase.assertNotNull(modifiedUnit);
+    GatheringErrorListener incrementalListener = new GatheringErrorListener();
+    IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
+    Token incrementalToken = incrementalScanner.rescan(originalToken, replaceStart, originalEnd - replaceStart + 1, modifiedEnd - replaceStart + 1);
+    JUnitTestCase.assertNotNull(incrementalToken);
+    IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
+    CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.firstToken, incrementalScanner.lastToken, replaceStart, originalEnd);
+    JUnitTestCase.assertNotNull(incrementalUnit);
+    JUnitTestCase.assertTrue(ASTComparator.equals3(modifiedUnit, incrementalUnit));
+  }
+  static dartSuite() {
+    _ut.group('IncrementalParserTest', () {
+      _ut.test('test_reparse_addedAfterIdentifier1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_reparse_addedAfterIdentifier1);
+      });
+      _ut.test('test_reparse_addedAfterIdentifier2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_reparse_addedAfterIdentifier2);
+      });
+      _ut.test('test_resparse_addedBeforeIdentifier1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_addedBeforeIdentifier1);
+      });
+      _ut.test('test_resparse_addedBeforeIdentifier2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_addedBeforeIdentifier2);
+      });
+      _ut.test('test_resparse_addedNewIdentifier1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_addedNewIdentifier1);
+      });
+      _ut.test('test_resparse_addedNewIdentifier2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_addedNewIdentifier2);
+      });
+      _ut.test('test_resparse_appendWhitespace1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_appendWhitespace1);
+      });
+      _ut.test('test_resparse_appendWhitespace2', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_appendWhitespace2);
+      });
+      _ut.test('test_resparse_insertWhitespace', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_insertWhitespace);
+      });
+      _ut.test('test_resparse_insertedPeriod', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_resparse_insertedPeriod);
       });
     });
   }
@@ -9347,7 +10171,9 @@ class ErrorParserTest extends ParserTestCase {
 main() {
   ComplexParserTest.dartSuite();
   ErrorParserTest.dartSuite();
+  IncrementalParserTest.dartSuite();
   RecoveryParserTest.dartSuite();
+  ResolutionCopierTest.dartSuite();
   SimpleParserTest.dartSuite();
 }
 Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
@@ -9355,6 +10181,36 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseExpression(arg0)),
   'parseStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatement(arg0)),
   'parseStatements_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStatements(arg0)),
+  'parseAnnotation_0': new MethodTrampoline(0, (Parser target) => target.parseAnnotation()),
+  'parseArgument_0': new MethodTrampoline(0, (Parser target) => target.parseArgument()),
+  'parseArgumentList_0': new MethodTrampoline(0, (Parser target) => target.parseArgumentList()),
+  'parseBitwiseOrExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseOrExpression()),
+  'parseBlock_0': new MethodTrampoline(0, (Parser target) => target.parseBlock()),
+  'parseClassMember_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseClassMember(arg0)),
+  'parseCompilationUnit_0': new MethodTrampoline(0, (Parser target) => target.parseCompilationUnit2()),
+  'parseConditionalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConditionalExpression()),
+  'parseConstructorName_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorName()),
+  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression2()),
+  'parseExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionWithoutCascade()),
+  'parseExtendsClause_0': new MethodTrampoline(0, (Parser target) => target.parseExtendsClause()),
+  'parseFormalParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseFormalParameterList()),
+  'parseFunctionExpression_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionExpression()),
+  'parseImplementsClause_0': new MethodTrampoline(0, (Parser target) => target.parseImplementsClause()),
+  'parseLabel_0': new MethodTrampoline(0, (Parser target) => target.parseLabel()),
+  'parseLibraryIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseLibraryIdentifier()),
+  'parseLogicalOrExpression_0': new MethodTrampoline(0, (Parser target) => target.parseLogicalOrExpression()),
+  'parseMapLiteralEntry_0': new MethodTrampoline(0, (Parser target) => target.parseMapLiteralEntry()),
+  'parseNormalFormalParameter_0': new MethodTrampoline(0, (Parser target) => target.parseNormalFormalParameter()),
+  'parsePrefixedIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parsePrefixedIdentifier()),
+  'parseReturnType_0': new MethodTrampoline(0, (Parser target) => target.parseReturnType()),
+  'parseSimpleIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseSimpleIdentifier()),
+  'parseStatement_0': new MethodTrampoline(0, (Parser target) => target.parseStatement2()),
+  'parseStringLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseStringLiteral()),
+  'parseTypeArgumentList_0': new MethodTrampoline(0, (Parser target) => target.parseTypeArgumentList()),
+  'parseTypeName_0': new MethodTrampoline(0, (Parser target) => target.parseTypeName()),
+  'parseTypeParameter_0': new MethodTrampoline(0, (Parser target) => target.parseTypeParameter()),
+  'parseTypeParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseTypeParameterList()),
+  'parseWithClause_0': new MethodTrampoline(0, (Parser target) => target.parseWithClause()),
   'advance_0': new MethodTrampoline(0, (Parser target) => target.advance()),
   'appendScalarValue_5': new MethodTrampoline(5, (Parser target, arg0, arg1, arg2, arg3, arg4) => target.appendScalarValue(arg0, arg1, arg2, arg3, arg4)),
   'computeStringValue_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.computeStringValue(arg0, arg1, arg2)),
@@ -9386,34 +10242,25 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'matchesIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.matchesIdentifier2(arg0)),
   'optional_1': new MethodTrampoline(1, (Parser target, arg0) => target.optional(arg0)),
   'parseAdditiveExpression_0': new MethodTrampoline(0, (Parser target) => target.parseAdditiveExpression()),
-  'parseAnnotation_0': new MethodTrampoline(0, (Parser target) => target.parseAnnotation()),
-  'parseArgument_0': new MethodTrampoline(0, (Parser target) => target.parseArgument()),
   'parseArgumentDefinitionTest_0': new MethodTrampoline(0, (Parser target) => target.parseArgumentDefinitionTest()),
-  'parseArgumentList_0': new MethodTrampoline(0, (Parser target) => target.parseArgumentList()),
   'parseAssertStatement_0': new MethodTrampoline(0, (Parser target) => target.parseAssertStatement()),
   'parseAssignableExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseAssignableExpression(arg0)),
   'parseAssignableSelector_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseAssignableSelector(arg0, arg1)),
   'parseBitwiseAndExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseAndExpression()),
-  'parseBitwiseOrExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseOrExpression()),
   'parseBitwiseXorExpression_0': new MethodTrampoline(0, (Parser target) => target.parseBitwiseXorExpression()),
-  'parseBlock_0': new MethodTrampoline(0, (Parser target) => target.parseBlock()),
   'parseBreakStatement_0': new MethodTrampoline(0, (Parser target) => target.parseBreakStatement()),
   'parseCascadeSection_0': new MethodTrampoline(0, (Parser target) => target.parseCascadeSection()),
   'parseClassDeclaration_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseClassDeclaration(arg0, arg1)),
-  'parseClassMember_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseClassMember(arg0)),
   'parseClassMembers_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseClassMembers(arg0, arg1)),
   'parseClassTypeAlias_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseClassTypeAlias(arg0, arg1)),
   'parseCombinators_0': new MethodTrampoline(0, (Parser target) => target.parseCombinators()),
   'parseCommentAndMetadata_0': new MethodTrampoline(0, (Parser target) => target.parseCommentAndMetadata()),
   'parseCommentReference_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseCommentReference(arg0, arg1)),
   'parseCommentReferences_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseCommentReferences(arg0)),
-  'parseCompilationUnit_0': new MethodTrampoline(0, (Parser target) => target.parseCompilationUnit2()),
   'parseCompilationUnitMember_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseCompilationUnitMember(arg0)),
-  'parseConditionalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConditionalExpression()),
   'parseConstExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConstExpression()),
   'parseConstructor_8': new MethodTrampoline(8, (Parser target, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) => target.parseConstructor(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7)),
   'parseConstructorFieldInitializer_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorFieldInitializer()),
-  'parseConstructorName_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorName()),
   'parseContinueStatement_0': new MethodTrampoline(0, (Parser target) => target.parseContinueStatement()),
   'parseDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseDirective(arg0)),
   'parseDocumentationComment_0': new MethodTrampoline(0, (Parser target) => target.parseDocumentationComment()),
@@ -9421,36 +10268,27 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseEmptyStatement_0': new MethodTrampoline(0, (Parser target) => target.parseEmptyStatement()),
   'parseEqualityExpression_0': new MethodTrampoline(0, (Parser target) => target.parseEqualityExpression()),
   'parseExportDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseExportDirective(arg0)),
-  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression2()),
   'parseExpressionList_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionList()),
-  'parseExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionWithoutCascade()),
-  'parseExtendsClause_0': new MethodTrampoline(0, (Parser target) => target.parseExtendsClause()),
   'parseFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseFinalConstVarOrType(arg0)),
   'parseFormalParameter_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseFormalParameter(arg0)),
-  'parseFormalParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseFormalParameterList()),
   'parseForStatement_0': new MethodTrampoline(0, (Parser target) => target.parseForStatement()),
   'parseFunctionBody_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionBody(arg0, arg1, arg2)),
   'parseFunctionDeclaration_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseFunctionDeclaration(arg0, arg1, arg2)),
   'parseFunctionDeclarationStatement_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionDeclarationStatement()),
   'parseFunctionDeclarationStatement_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionDeclarationStatement2(arg0, arg1)),
-  'parseFunctionExpression_0': new MethodTrampoline(0, (Parser target) => target.parseFunctionExpression()),
   'parseFunctionTypeAlias_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseFunctionTypeAlias(arg0, arg1)),
   'parseGetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseGetter(arg0, arg1, arg2, arg3)),
   'parseIdentifierList_0': new MethodTrampoline(0, (Parser target) => target.parseIdentifierList()),
   'parseIfStatement_0': new MethodTrampoline(0, (Parser target) => target.parseIfStatement()),
-  'parseImplementsClause_0': new MethodTrampoline(0, (Parser target) => target.parseImplementsClause()),
   'parseImportDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseImportDirective(arg0)),
   'parseInitializedIdentifierList_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseInitializedIdentifierList(arg0, arg1, arg2, arg3)),
   'parseInstanceCreationExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseInstanceCreationExpression(arg0)),
   'parseLibraryDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseLibraryDirective(arg0)),
-  'parseLibraryIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseLibraryIdentifier()),
   'parseLibraryName_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseLibraryName(arg0, arg1)),
   'parseListLiteral_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseListLiteral(arg0, arg1)),
   'parseListOrMapLiteral_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseListOrMapLiteral(arg0)),
   'parseLogicalAndExpression_0': new MethodTrampoline(0, (Parser target) => target.parseLogicalAndExpression()),
-  'parseLogicalOrExpression_0': new MethodTrampoline(0, (Parser target) => target.parseLogicalOrExpression()),
   'parseMapLiteral_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.parseMapLiteral(arg0, arg1)),
-  'parseMapLiteralEntry_0': new MethodTrampoline(0, (Parser target) => target.parseMapLiteralEntry()),
   'parseMethodDeclaration_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseMethodDeclaration(arg0, arg1, arg2, arg3)),
   'parseMethodDeclaration_6': new MethodTrampoline(6, (Parser target, arg0, arg1, arg2, arg3, arg4, arg5) => target.parseMethodDeclaration2(arg0, arg1, arg2, arg3, arg4, arg5)),
   'parseModifiers_0': new MethodTrampoline(0, (Parser target) => target.parseModifiers()),
@@ -9458,25 +10296,19 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseNativeClause_0': new MethodTrampoline(0, (Parser target) => target.parseNativeClause()),
   'parseNewExpression_0': new MethodTrampoline(0, (Parser target) => target.parseNewExpression()),
   'parseNonLabeledStatement_0': new MethodTrampoline(0, (Parser target) => target.parseNonLabeledStatement()),
-  'parseNormalFormalParameter_0': new MethodTrampoline(0, (Parser target) => target.parseNormalFormalParameter()),
   'parseOperator_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseOperator(arg0, arg1, arg2)),
   'parseOptionalReturnType_0': new MethodTrampoline(0, (Parser target) => target.parseOptionalReturnType()),
   'parsePartDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parsePartDirective(arg0)),
   'parsePostfixExpression_0': new MethodTrampoline(0, (Parser target) => target.parsePostfixExpression()),
-  'parsePrefixedIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parsePrefixedIdentifier()),
   'parsePrimaryExpression_0': new MethodTrampoline(0, (Parser target) => target.parsePrimaryExpression()),
   'parseRedirectingConstructorInvocation_0': new MethodTrampoline(0, (Parser target) => target.parseRedirectingConstructorInvocation()),
   'parseRelationalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseRelationalExpression()),
   'parseRethrowExpression_0': new MethodTrampoline(0, (Parser target) => target.parseRethrowExpression()),
   'parseReturnStatement_0': new MethodTrampoline(0, (Parser target) => target.parseReturnStatement()),
-  'parseReturnType_0': new MethodTrampoline(0, (Parser target) => target.parseReturnType()),
   'parseSetter_4': new MethodTrampoline(4, (Parser target, arg0, arg1, arg2, arg3) => target.parseSetter(arg0, arg1, arg2, arg3)),
   'parseShiftExpression_0': new MethodTrampoline(0, (Parser target) => target.parseShiftExpression()),
-  'parseSimpleIdentifier_0': new MethodTrampoline(0, (Parser target) => target.parseSimpleIdentifier()),
-  'parseStatement_0': new MethodTrampoline(0, (Parser target) => target.parseStatement2()),
   'parseStatements_0': new MethodTrampoline(0, (Parser target) => target.parseStatements2()),
   'parseStringInterpolation_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseStringInterpolation(arg0)),
-  'parseStringLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseStringLiteral()),
   'parseSuperConstructorInvocation_0': new MethodTrampoline(0, (Parser target) => target.parseSuperConstructorInvocation()),
   'parseSwitchStatement_0': new MethodTrampoline(0, (Parser target) => target.parseSwitchStatement()),
   'parseSymbolLiteral_0': new MethodTrampoline(0, (Parser target) => target.parseSymbolLiteral()),
@@ -9484,10 +10316,6 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseThrowExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseThrowExpressionWithoutCascade()),
   'parseTryStatement_0': new MethodTrampoline(0, (Parser target) => target.parseTryStatement()),
   'parseTypeAlias_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseTypeAlias(arg0)),
-  'parseTypeArgumentList_0': new MethodTrampoline(0, (Parser target) => target.parseTypeArgumentList()),
-  'parseTypeName_0': new MethodTrampoline(0, (Parser target) => target.parseTypeName()),
-  'parseTypeParameter_0': new MethodTrampoline(0, (Parser target) => target.parseTypeParameter()),
-  'parseTypeParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseTypeParameterList()),
   'parseUnaryExpression_0': new MethodTrampoline(0, (Parser target) => target.parseUnaryExpression()),
   'parseVariableDeclaration_0': new MethodTrampoline(0, (Parser target) => target.parseVariableDeclaration()),
   'parseVariableDeclarationList_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationList(arg0)),
@@ -9495,7 +10323,6 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseVariableDeclarationStatement_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseVariableDeclarationStatement(arg0)),
   'parseVariableDeclarationStatement_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.parseVariableDeclarationStatement2(arg0, arg1, arg2)),
   'parseWhileStatement_0': new MethodTrampoline(0, (Parser target) => target.parseWhileStatement()),
-  'parseWithClause_0': new MethodTrampoline(0, (Parser target) => target.parseWithClause()),
   'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
   'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError(arg0, arg1, arg2)),

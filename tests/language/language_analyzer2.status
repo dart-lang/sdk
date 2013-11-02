@@ -29,10 +29,6 @@ built_in_identifier_test/none: Fail # Issue 13023
 #
 
 
-# test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
-block_scope_test: fail
-lazy_static3_test: fail
-
 # test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
@@ -161,17 +157,8 @@ black_listed_test/none: fail # test issue 14228, warnings are required but not e
 bailout3_test: fail # test issue 14289
 prefix9_test: fail # test issue 14289
 
-# test issue 14358, E does not implement inherited A.+
-type_promotion_closure_test/01: Fail
-type_promotion_closure_test/02: Fail
-
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
-
-# test issue 14364, "E<A> << D"
-type_promotion_more_specific_test/09: Fail
-type_promotion_more_specific_test/10: Fail
-type_promotion_more_specific_test/11: Fail
 
 # test issue 14410, "typedef C = " is now really illegal syntax
 mixin_illegal_syntax_test/none: fail
@@ -184,7 +171,6 @@ abstract_runtime_error_test: StaticWarning
 application_negative_test: CompileTimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: CompileTimeError
-bad_initializer2_negative_test: CompileTimeError
 bad_named_constructor_negative_test: CompileTimeError
 bad_named_parameters2_test: StaticWarning
 bad_named_parameters_test: StaticWarning
@@ -454,8 +440,6 @@ try_catch4_test: StaticWarning
 try_catch5_test: StaticWarning
 type_argument_in_super_type_test: StaticWarning
 typed_selector2_test: StaticWarning
-type_variable_bounds2_test/05: StaticWarning
-type_variable_bounds3_test/00: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
 type_variable_scope2_test: StaticWarning
 unary_plus_negative_test: CompileTimeError

@@ -1,11 +1,11 @@
 name: analyzer
-version: 0.9.1
+version: 0.10.0
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: http://www.dartlang.org
 dependencies:
-  args: ">=0.8.6"
-  logging: ">=0.8.6"
-  path: ">=0.8.6"
+  args: ">=0.8.9 <1.0.0"
+  logging: ">=0.8.9 <1.0.0"
+  path: ">=0.8.9 <1.0.0"
 dev_dependencies:
-  unittest: ">=0.8.6"
+  unittest: ">=0.8.9 <1.0.0"

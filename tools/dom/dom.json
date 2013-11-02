@@ -333,8 +333,11 @@
     "support_level": "experimental"
   },
   "BeforeUnloadEvent": {
-    "members": {},
-    "support_level": "untriaged"
+    "comment": "http://www.w3.org/html/wg/drafts/html/master/browsers.html#beforeunloadevent",
+    "members": {
+      "returnValue": {}
+    },
+    "support_level": "stable"
   },
   "BiquadFilterNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section",

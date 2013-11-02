@@ -12,7 +12,7 @@ class Error {
    * toString method.
    */
   static String safeToString(Object object) {
-    if (object is int || object is double || object is bool || null == object) {
+    if (object is num || object is bool || null == object) {
       return object.toString();
     }
     if (object is String) {

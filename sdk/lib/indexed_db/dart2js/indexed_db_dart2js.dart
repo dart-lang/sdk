@@ -385,20 +385,44 @@ class Database extends EventTarget native "IDBDatabase" {
   // To suppress missing implicit constructor warnings.
   factory Database._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `abort` events to event
+   * handlers that are not necessarily instances of [Database].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBDatabase.abortEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
+  /**
+   * Static factory designed to expose `close` events to event
+   * handlers that are not necessarily instances of [Database].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBDatabase.closeEvent')
   @DocsEditable()
   // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
   @Experimental()
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [Database].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBDatabase.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `versionchange` events to event
+   * handlers that are not necessarily instances of [Database].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBDatabase.versionchangeEvent')
   @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
@@ -445,20 +469,24 @@ class Database extends EventTarget native "IDBDatabase" {
   @DocsEditable()
   void deleteObjectStore(String name) native;
 
+  /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
+  /// Stream of `close` events handled by this [Database].
   @DomName('IDBDatabase.onclose')
   @DocsEditable()
   // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22540
   @Experimental()
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [Database].
   @DomName('IDBDatabase.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `versionchange` events handled by this [Database].
   @DomName('IDBDatabase.onversionchange')
   @DocsEditable()
   Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
@@ -1163,18 +1191,32 @@ class OpenDBRequest extends Request native "IDBOpenDBRequest,IDBVersionChangeReq
   // To suppress missing implicit constructor warnings.
   factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `blocked` events to event
+   * handlers that are not necessarily instances of [OpenDBRequest].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
 
+  /**
+   * Static factory designed to expose `upgradeneeded` events to event
+   * handlers that are not necessarily instances of [OpenDBRequest].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBOpenDBRequest.upgradeneededEvent')
   @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
+  /// Stream of `blocked` events handled by this [OpenDBRequest].
   @DomName('IDBOpenDBRequest.onblocked')
   @DocsEditable()
   Stream<Event> get onBlocked => blockedEvent.forTarget(this);
 
+  /// Stream of `upgradeneeded` events handled by this [OpenDBRequest].
   @DomName('IDBOpenDBRequest.onupgradeneeded')
   @DocsEditable()
   Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
@@ -1191,10 +1233,22 @@ class Request extends EventTarget native "IDBRequest" {
   // To suppress missing implicit constructor warnings.
   factory Request._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [Request].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBRequest.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  /**
+   * Static factory designed to expose `success` events to event
+   * handlers that are not necessarily instances of [Request].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBRequest.successEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
@@ -1225,10 +1279,12 @@ class Request extends EventTarget native "IDBRequest" {
   @DocsEditable()
   final Transaction transaction;
 
+  /// Stream of `error` events handled by this [Request].
   @DomName('IDBRequest.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  /// Stream of `success` events handled by this [Request].
   @DomName('IDBRequest.onsuccess')
   @DocsEditable()
   Stream<Event> get onSuccess => successEvent.forTarget(this);
@@ -1273,14 +1329,32 @@ class Transaction extends EventTarget native "IDBTransaction" {
   // To suppress missing implicit constructor warnings.
   factory Transaction._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Static factory designed to expose `abort` events to event
+   * handlers that are not necessarily instances of [Transaction].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBTransaction.abortEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
+  /**
+   * Static factory designed to expose `complete` events to event
+   * handlers that are not necessarily instances of [Transaction].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBTransaction.completeEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
+  /**
+   * Static factory designed to expose `error` events to event
+   * handlers that are not necessarily instances of [Transaction].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
   @DomName('IDBTransaction.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
@@ -1305,14 +1379,17 @@ class Transaction extends EventTarget native "IDBTransaction" {
   @DocsEditable()
   ObjectStore objectStore(String name) native;
 
+  /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')
   @DocsEditable()
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
+  /// Stream of `complete` events handled by this [Transaction].
   @DomName('IDBTransaction.oncomplete')
   @DocsEditable()
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
+  /// Stream of `error` events handled by this [Transaction].
   @DomName('IDBTransaction.onerror')
   @DocsEditable()
   Stream<Event> get onError => errorEvent.forTarget(this);
