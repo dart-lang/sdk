@@ -34,6 +34,16 @@ class Dart2JSTransformer extends Transformer {
   // TODO(rnystrom): Do something cleaner for this, or eliminate those files.
   final entrypoints = new Set<AssetId>();
 
+  /// If this is non-null, then the transformer is currently being applied, so
+  /// subsequent calls to [apply] will wait for this to finish before
+  /// proceeding.
+  ///
+  /// Dart2js uses lots of memory, so if we try to actually run compiles in
+  /// parallel, it takes down the VM. Instead, the transformer will force
+  /// all applies to be sequential. The tracking bug to do something better
+  /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
+  Future _running;
+
   Dart2JSTransformer(this._graph, {bool minify})
       : _minify = minify == true ? true : false;
 
@@ -45,6 +55,18 @@ class Dart2JSTransformer extends Transformer {
   }
 
   Future apply(Transform transform) {
+    // Wait for any ongoing apply to finish first.
+    // TODO(rnystrom): If there are multiple simultaneous compiles, this will
+    // resume and pause them repeatedly. It still serializes them correctly,
+    // but it might be cleaner to use a real queue.
+    // TODO(rnystrom): Add a test that this is functionality is helpful.
+    if (_running != null) {
+      return _running.then((_) => apply(transform));
+    }
+
+    var completer = new Completer();
+    _running = completer.future;
+
     var stopwatch = new Stopwatch();
     stopwatch.start();
 
@@ -96,6 +118,9 @@ class Dart2JSTransformer extends Transformer {
         if (error is CompilerException) return;
         throw error;
       });
+    }).whenComplete(() {
+      completer.complete();
+      _running = null;
     });
   }
 }
