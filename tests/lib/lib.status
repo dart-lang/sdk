@@ -142,9 +142,9 @@ mirrors/typedef_test/01: Fail # http://dartbug.com/6490
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
-async/multiple_timer_test: Pass, Fail
-async/timer_isolate_test: Pass, Fail
-async/timer_test: Pass, Fail
+async/multiple_timer_test: Pass, Fail # Issue 14734
+async/timer_isolate_test: Pass, Fail # Issue 14734
+async/timer_test: Pass, Fail # Issue 14734
 convert/chunked_conversion_utf88_test: Pass, Timeout  # Issue 12029
 convert/streamed_conversion_utf8_encode_test: Pass, Timeout  # Issue 12029
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
@@ -157,12 +157,13 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Issue 12029
 async/deferred/deferred_api_test: Pass, Timeout # http://dartbug.com/12635
 convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com/12768
 convert/utf85_test: Skip # Issue 12029.
+async/timer_isolate_test: Pass, Fail # Issue 14734
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $runtime == opera ]
-async/multiple_timer_test: Pass, Fail
+async/multiple_timer_test: Pass, Fail # Probably issue 14734
 
 [ $runtime == opera && $system == windows]
 # TODO(efortuna): Investigate.
