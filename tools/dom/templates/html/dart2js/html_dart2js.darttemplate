@@ -72,14 +72,12 @@ part '$AUXILIARY_DIR/EventListener.dart';
 part '$AUXILIARY_DIR/EventStreamProvider.dart';
 part '$AUXILIARY_DIR/Html5NodeValidator.dart';
 part '$AUXILIARY_DIR/ImmutableListMixin.dart';
-part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
 part '$AUXILIARY_DIR/KeyboardEventStream.dart';
 part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
-part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
@@ -131,16 +129,3 @@ class HtmlElement extends Element native "HTMLElement" {
 // older Chrome versions.
 // Issue #12573.
 abstract class _EntryArray implements List<Entry> native "EntryArray" {}
-
-// Support for Send/ReceivePortSync.
-int _getNewIsolateId() {
-  if (JS('bool', r'!window.$dart$isolate$counter')) {
-    JS('void', r'window.$dart$isolate$counter = 1');
-  }
-  return JS('int', r'window.$dart$isolate$counter++');
-}
-
-// Fast path to invoke JS send port.
-_callPortSync(int id, message) {
-  return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
-}
