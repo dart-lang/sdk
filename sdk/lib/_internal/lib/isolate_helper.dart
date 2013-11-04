@@ -729,7 +729,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
 
   const _NativeJsSendPort(this._receivePort, int isolateId) : super(isolateId);
 
-  void send(var message, [SendPort replyTo]) {
+  void send(var message) {
     _waitForPendingPorts(message, () {
       // Check that the isolate still runs and the port is still open
       final isolate = _globalState.isolates[_isolateId];
@@ -775,7 +775,7 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
   const _WorkerSendPort(this._workerId, int isolateId, this._receivePortId)
       : super(isolateId);
 
-  void send(var message, [SendPort replyTo]) {
+  void send(var message) {
     _waitForPendingPorts(message, () {
       final workerMessage = _serializeMessage({
           'command': 'message',
@@ -846,9 +846,9 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
     _idCount++;
   }
 
-  void send(var message, [SendPort replyTo]) {
+  void send(var message) {
     if (_port != null) {
-      _port.send(message, replyTo);
+      _port.send(message);
     } else {
       pending.add(message);
     }

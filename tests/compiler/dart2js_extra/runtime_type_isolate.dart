@@ -12,5 +12,5 @@ main() {
   port.receive((msg, reply) {
     Expect.equals(new Bar().runtimeType.toString(), 'Bar');
   });
-  port.toSendPort().send(null, null);
+  port.sendPort.send(null);
 }

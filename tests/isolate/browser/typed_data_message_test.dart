@@ -66,7 +66,7 @@ pingPong(SendPort initialReplyTo) {
     SendPort replyTo = message[1];
     if (data == -1) {
       port.close();
-      replyTo.send(count, null);
+      replyTo.send(count);
     } else {
       // Check if the received object is correct.
       if (count < elements.length) {
@@ -74,7 +74,7 @@ pingPong(SendPort initialReplyTo) {
       }
       // Bounce the received object back so that the sender
       // can make sure that the object matches.
-      replyTo.send(data, null);
+      replyTo.send(data);
       count++;
     }
   });

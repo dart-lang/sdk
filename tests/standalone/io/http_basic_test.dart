@@ -170,15 +170,15 @@ class TestServer {
         HttpServer.bind("127.0.0.1", 0).then((server) {
           _server = server;
           _server.listen(_requestReceivedHandler);
-          replyTo.send(new TestServerStatus.started(_server.port), null);
+          replyTo.send(new TestServerStatus.started(_server.port));
         });
       } catch (e) {
-        replyTo.send(new TestServerStatus.error(), null);
+        replyTo.send(new TestServerStatus.error());
       }
     } else if (command.isStop) {
       _server.close();
       _dispatchPort.close();
-      replyTo.send(new TestServerStatus.stopped(), null);
+      replyTo.send(new TestServerStatus.stopped());
     } else if (command.isChunkedEncoding) {
       _chunkedEncoding = true;
     }
