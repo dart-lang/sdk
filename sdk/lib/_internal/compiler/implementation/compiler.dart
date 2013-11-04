@@ -416,9 +416,7 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement jsHelperLibrary;
   LibraryElement interceptorsLibrary;
   LibraryElement foreignLibrary;
-
   LibraryElement mainApp;
-  FunctionElement mainFunction;
 
   /// Initialized when dart:mirrors is loaded.
   LibraryElement mirrorsLibrary;
@@ -1027,7 +1025,7 @@ abstract class Compiler implements DiagnosticListener {
   void compileLoadedLibraries() {
     Element main = null;
     if (mainApp != null) {
-      main = mainApp.findExported(MAIN);
+      main = mainApp.find(MAIN);
       if (main == null) {
         if (!analyzeOnly) {
           // Allow analyze only of libraries with no main.
@@ -1044,19 +1042,14 @@ abstract class Compiler implements DiagnosticListener {
               "Use '--analyze-all' to analyze all code in the library."});
         }
       } else {
-        if (main.isErroneous()) {
-          reportFatalError(
-              main,
-              MessageKind.GENERIC,
-              {'text': "Error: Cannot determine which '$MAIN' to use."});
-        } else if (!main.isFunction()) {
+        if (!main.isFunction()) {
           reportFatalError(
               main,
               MessageKind.GENERIC,
               {'text': "Error: '$MAIN' is not a function."});
         }
-        mainFunction = main;
-        FunctionSignature parameters = mainFunction.computeSignature(this);
+        FunctionElement mainMethod = main;
+        FunctionSignature parameters = mainMethod.computeSignature(this);
         if (parameters.parameterCount > 2) {
           int index = 0;
           parameters.forEachParameter((Element parameter) {
@@ -1117,7 +1110,7 @@ abstract class Compiler implements DiagnosticListener {
     if (hasIsolateSupport()) {
       enqueuer.codegen.addToWorkList(
           isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
-      enqueuer.codegen.registerGetOfStaticFunction(main);
+      enqueuer.codegen.registerGetOfStaticFunction(mainApp.find(MAIN));
     }
     if (enabledNoSuchMethod) {
       backend.enableNoSuchMethod(enqueuer.codegen);

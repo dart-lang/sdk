@@ -902,14 +902,6 @@ class LibraryElementX extends ElementX implements LibraryElement {
     return result;
   }
 
-  Element findExported(String elementName) {
-    for (Link link = exports; !link.isEmpty; link = link.tail) {
-      Element element = link.head;
-      if (element.name == elementName) return element;
-    }
-    return null;
-  }
-
   void forEachExport(f(Element element)) {
     exports.forEach((Element e) => f(e));
   }

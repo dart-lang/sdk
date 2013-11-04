@@ -959,7 +959,7 @@ class CodeEmitterTask extends CompilerTask {
 
   emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
-    Element main = compiler.mainFunction;
+    Element main = compiler.mainApp.find(Compiler.MAIN);
     String mainCall = null;
     if (compiler.hasIsolateSupport()) {
       Element isolateMain =
