@@ -304,3 +304,14 @@ Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticW
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
+
+# co19 issue 656
+LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
