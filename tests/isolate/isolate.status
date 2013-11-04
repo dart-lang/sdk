@@ -15,7 +15,7 @@ isolate3_negative_test: Skip  # Issue 12587.
 isolate2_negative_test: Fail
 isolate_import_negative_test: Fail
 unresolved_ports_test: Pass
-mandel_isolate_test: Fail # issue 14452
+mandel_isolate_test: StaticWarning  # test issue 14782; unittestConfiguration.timeout has only getter in Configuration
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
@@ -117,7 +117,6 @@ unresolved_ports_test: Fail
 browser/typed_data_message_test: StaticWarning
 isolate3_negative_test: CompileTimeError
 isolate_import_negative_test: CompileTimeError
-mandel_isolate_test: StaticWarning
 mint_maker_test: StaticWarning
 serialization_test: StaticWarning
 unresolved_ports_test: StaticWarning
