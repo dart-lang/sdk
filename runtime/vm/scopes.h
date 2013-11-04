@@ -5,18 +5,19 @@
 #ifndef VM_SCOPES_H_
 #define VM_SCOPES_H_
 
+#include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/allocation.h"
-#include "vm/assembler.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
 #include "vm/symbols.h"
+#include "vm/token.h"
 
 namespace dart {
 
-class BitVector;
 class JoinEntryInstr;
 class LocalScope;
-class LocalVariable;
-class SourceLabel;
 
 
 class LocalVariable : public ZoneAllocated {
@@ -151,8 +152,6 @@ class SourceLabel : public ZoneAllocated {
       name_(name),
       owner_(NULL),
       kind_(kind),
-      continue_label_(),
-      break_label_(),
       join_for_break_(NULL),
       join_for_continue_(NULL),
       is_continue_target_(false) {
@@ -177,8 +176,6 @@ class SourceLabel : public ZoneAllocated {
   }
 
   Kind kind() const { return kind_; }
-  Label* break_label() { return &break_label_; }
-  Label* continue_label() { return &continue_label_; }
 
   void set_join_for_continue(JoinEntryInstr* join) {
     ASSERT(join_for_continue_ == NULL);
@@ -216,8 +213,6 @@ class SourceLabel : public ZoneAllocated {
   LocalScope* owner_;  // Local scope declaring this label.
 
   Kind kind_;
-  Label continue_label_;
-  Label break_label_;
   JoinEntryInstr* join_for_break_;
   JoinEntryInstr* join_for_continue_;
   bool is_continue_target_;  // Needed for CaseNode.

@@ -4,10 +4,7 @@
 
 #include "vm/scopes.h"
 
-#include "vm/ast.h"
-#include "vm/bit_vector.h"
 #include "vm/object.h"
-#include "vm/parser.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
