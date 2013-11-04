@@ -109,8 +109,6 @@ unicode_test: Fail # inherited from VM
 
 [ $compiler == dart2js ]
 map_values2_test: RuntimeError # Issue 8210
-iterable_to_list_test: RuntimeError # Issue 8210
-iterable_to_set_test: RuntimeError # Issue 8210
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.

@@ -1109,7 +1109,6 @@ class JavaScriptBackend extends Backend {
         analyzeTypeArgument(type, argument);
       });
     }
-    // TODO(ngeoffray): Also handle T a (in checked mode).
   }
 
   void registerClassUsingVariableExpression(ClassElement cls) {
