@@ -49,9 +49,10 @@ class _UnmodifiableMapView<K, V> implements Map<K, V> {
   void clear() => _throw();
 }
 
-// These values are allowed to be passed directly over the wire.
-bool _isSimpleValue(var value) {
-  return (value == null || value is num || value is String || value is bool);
+class _InternalMirrorError {
+  const _InternalMirrorError(String this._msg);
+  String toString() => _msg;
+  final String _msg;
 }
 
 Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
@@ -215,19 +216,6 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
                        _n(memberName),
                        value);
     return reflect(value);
-  }
-
-  static _validateArgument(int i, Object arg)
-  {
-    if (arg is Mirror) {
-        if (arg is! InstanceMirror) {
-          throw new MirrorException(
-              'positional argument $i ($arg) was not an InstanceMirror');
-        }
-      } else if (!_isSimpleValue(arg)) {
-        throw new MirrorException(
-            'positional argument $i ($arg) was not a simple value');
-      }
   }
 }
 
@@ -1252,7 +1240,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
       } else {
         var parts = MirrorSystem.getName(simpleName).split('.');
         if (parts.length > 2) {
-          throw new MirrorException(
+          throw new _InternalMirrorError(
               'Internal error in MethodMirror.constructorName: '
               'malformed name <$simpleName>');
         } else if (parts.length == 2) {

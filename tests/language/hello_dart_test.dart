@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Simple test program invoked with an option to eagerly
 // compile all code that is loaded in the isolate.
-// VMOptions=--compile_all
+// VMOptions=--compile_all --error-on-bad-type --error-on-bad-override
 
 class HelloDartTest {
   static testMain() {
