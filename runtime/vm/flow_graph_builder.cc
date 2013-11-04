@@ -1367,10 +1367,10 @@ StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(AstNode* left,
                                                            AstNode* right,
                                                            Token::Kind kind,
                                                            intptr_t token_pos) {
-  ValueGraphVisitor for_left_value(owner(), temp_index());
+  ValueGraphVisitor for_left_value(owner());
   left->Visit(&for_left_value);
   Append(for_left_value);
-  ValueGraphVisitor for_right_value(owner(), temp_index());
+  ValueGraphVisitor for_right_value(owner());
   right->Visit(&for_right_value);
   Append(for_right_value);
   StrictCompareInstr* comp = new StrictCompareInstr(token_pos,
@@ -1420,13 +1420,13 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new ZoneGrowableArray<PushArgumentInstr*>(2);
 
-    ValueGraphVisitor for_left_value(owner(), temp_index());
+    ValueGraphVisitor for_left_value(owner());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
     PushArgumentInstr* push_left = PushArgument(for_left_value.value());
     arguments->Add(push_left);
 
-    ValueGraphVisitor for_right_value(owner(), temp_index());
+    ValueGraphVisitor for_right_value(owner());
     node->right()->Visit(&for_right_value);
     Append(for_right_value);
     PushArgumentInstr* push_right = PushArgument(for_right_value.value());
