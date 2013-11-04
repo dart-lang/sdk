@@ -73,6 +73,8 @@ LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
 
+Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # co19 issue 654
+
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
