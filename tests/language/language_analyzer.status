@@ -29,6 +29,8 @@ export_double_same_main_test: Fail # Issue 14772
 #
 #
 
+ref_before_declaration_test/07: fail # please triage
+ref_before_declaration_test/none: fail # please triage
 
 # test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
