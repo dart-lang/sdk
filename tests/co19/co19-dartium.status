@@ -6,7 +6,6 @@
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
 [ $compiler == none && $runtime == dartium ]
-Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail # Issue 13719: Please triage this failure.
 Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Issue 13921
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
