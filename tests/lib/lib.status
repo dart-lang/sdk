@@ -232,7 +232,6 @@ async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
 mirrors/equality_test/02: StaticWarning # Issue 14524
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
 mirrors/invoke_named_test: StaticWarning # Issue 14522
-mirrors/metadata_allowed_values_test/none: CompileTimeError # Issue 14688
 mirrors/private_symbol_test: StaticWarning # Issue 14524
 mirrors/reflect_class_test: StaticWarning # Issue 14524
 mirrors/type_variable_owner_test: StaticWarning # Issue 14524
