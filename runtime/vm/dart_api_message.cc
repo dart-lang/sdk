@@ -291,11 +291,12 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       if (type != Dart_TypedData_kInvalid) {
         object->type =
             static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kView);
-        ReadObjectImpl();  // Skip type arguments.
+        Dart_CObject_Internal* cls =
+            reinterpret_cast<Dart_CObject_Internal*>(ReadObjectImpl());
+        ASSERT(cls == object->cls);
         object->internal.as_view.buffer = ReadObjectImpl();
         object->internal.as_view.offset_in_bytes = ReadSmiValue();
         object->internal.as_view.length = ReadSmiValue();
-        ReadObjectImpl();  // Skip last field.
 
         // The buffer is fully read now as typed data objects are
         // serialized in-line.
@@ -317,7 +318,9 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       }
     } else if (strcmp("dart:isolate", library_uri) == 0 &&
                strncmp("_SendPortImpl@", class_name, 14) == 0) {
-      ReadObjectImpl();  // Skip type arguments.
+      Dart_CObject_Internal* cls =
+          reinterpret_cast<Dart_CObject_Internal*>(ReadObjectImpl());
+      ASSERT(cls == object->cls);
       // Read the port id.
       Dart_CObject* port = ReadObjectImpl();
       if (port->type == Dart_CObject_kInt32) {
@@ -327,7 +330,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         object->type = Dart_CObject_kSendPort;
         object->value.as_send_port = port->value.as_int64;
       }
-      ReadObjectImpl();  // Skip last field.
     } else {
       // TODO(sgjesse): Handle other instances. Currently this will
       // skew the reading as the fields of the instance is not read.

@@ -1195,13 +1195,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
       // Check if the object contains any non-header fields.
       // Small objects are initialized using a consecutive set of writes.
-      for (intptr_t current_offset = sizeof(RawObject);
+      for (intptr_t current_offset = Instance::NextFieldOffset();
            current_offset < instance_size;
            current_offset += kWordSize) {
         __ movl(Address(EAX, current_offset), raw_null);
       }
     } else {
-      __ leal(ECX, Address(EAX, sizeof(RawObject)));
+      __ leal(ECX, Address(EAX, Instance::NextFieldOffset()));
       // Loop until the whole object is initialized.
       // EAX: new object.
       // EBX: next object start.

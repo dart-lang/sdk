@@ -480,7 +480,7 @@ void Object::InitOnce() {
     cls.raw_ = class_class_;
     cls.set_handle_vtable(fake.vtable());
     cls.set_instance_size(Class::InstanceSize());
-    cls.set_next_field_offset(Class::InstanceSize());
+    cls.set_next_field_offset(Class::NextFieldOffset());
     cls.set_id(Class::kClassId);
     cls.set_state_bits(0);
     cls.set_is_finalized();
@@ -1662,7 +1662,7 @@ RawClass* Class::New() {
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
-  result.set_next_field_offset(FakeObject::InstanceSize());
+  result.set_next_field_offset(FakeObject::NextFieldOffset());
   ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
@@ -2032,7 +2032,8 @@ void Class::CalculateFieldOffsets() const {
   intptr_t offset = 0;
   intptr_t type_args_field_offset = kNoTypeArguments;
   if (super.IsNull()) {
-    offset = sizeof(RawObject);
+    offset = Instance::NextFieldOffset();
+    ASSERT(offset > 0);
   } else {
     ASSERT(super.is_finalized() || super.is_prefinalized());
     type_args_field_offset = super.type_arguments_field_offset();
@@ -2056,7 +2057,7 @@ void Class::CalculateFieldOffsets() const {
     }
   }
   set_type_arguments_field_offset(type_args_field_offset);
-  ASSERT(offset != 0);
+  ASSERT(offset > 0);
   Field& field = Field::Handle();
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
@@ -2394,7 +2395,7 @@ RawClass* Class::New(intptr_t index) {
   ASSERT(fake.IsInstance());
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeInstance::InstanceSize());
-  result.set_next_field_offset(FakeInstance::InstanceSize());
+  result.set_next_field_offset(FakeInstance::NextFieldOffset());
   result.set_id(index);
   result.set_state_bits(0);
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
@@ -2426,7 +2427,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   const Class& result = Class::Handle(New(name, script, token_pos));
   // Instances of a signature class can only be closures.
   result.set_instance_size(Closure::InstanceSize());
-  result.set_next_field_offset(Closure::InstanceSize());
+  result.set_next_field_offset(Closure::NextFieldOffset());
   // Signature classes extend the _FunctionImpl class.
   result.set_super_type(Type::Handle(
       Isolate::Current()->object_store()->function_impl_type()));
@@ -2498,7 +2499,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
-    intptr_t instance_size = sizeof(RawObject) + kWordSize;
+    intptr_t instance_size = sizeof(RawInstance) + kWordSize;
     cls.set_instance_size(RoundedAllocationSize(instance_size));
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
@@ -2526,7 +2527,7 @@ RawClass* Class::NewStringClass(intptr_t class_id) {
   }
   Class& result = Class::Handle(New<String>(class_id));
   result.set_instance_size(instance_size);
-  result.set_next_field_offset(instance_size);
+  result.set_next_field_offset(String::NextFieldOffset());
   result.set_is_prefinalized();
   return result.raw();
 }
@@ -2537,7 +2538,7 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id) {
   intptr_t instance_size = TypedData::InstanceSize();
   Class& result = Class::Handle(New<TypedData>(class_id));
   result.set_instance_size(instance_size);
-  result.set_next_field_offset(instance_size);
+  result.set_next_field_offset(TypedData::NextFieldOffset());
   result.set_is_prefinalized();
   return result.raw();
 }
@@ -2547,7 +2548,7 @@ RawClass* Class::NewTypedDataViewClass(intptr_t class_id) {
   ASSERT(RawObject::IsTypedDataViewClassId(class_id));
   Class& result = Class::Handle(New<Instance>(class_id));
   result.set_instance_size(0);
-  result.set_next_field_offset(0);
+  result.set_next_field_offset(-kWordSize);
   return result.raw();
 }
 
@@ -2557,7 +2558,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
   intptr_t instance_size = ExternalTypedData::InstanceSize();
   Class& result = Class::Handle(New<ExternalTypedData>(class_id));
   result.set_instance_size(instance_size);
-  result.set_next_field_offset(instance_size);
+  result.set_next_field_offset(ExternalTypedData::NextFieldOffset());
   result.set_is_prefinalized();
   return result.raw();
 }
@@ -10829,7 +10830,7 @@ bool Instance::Equals(const Instance& other) const {
     ASSERT(instance_size != 0);
     uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
     uword other_addr = reinterpret_cast<uword>(other.raw_ptr());
-    for (intptr_t offset = sizeof(RawObject);
+    for (intptr_t offset = Instance::NextFieldOffset();
          offset < instance_size;
          offset += kWordSize) {
       if ((*reinterpret_cast<RawObject**>(this_addr + offset)) !=

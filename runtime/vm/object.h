@@ -201,6 +201,9 @@ class Symbols;
     ASSERT(raw() != null());                                                   \
     return raw()->ptr();                                                       \
   }                                                                            \
+  static intptr_t NextFieldOffset() {                                          \
+    return -kWordSize;                                                         \
+  }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
   friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
@@ -528,6 +531,11 @@ class Object {
   RawObject* raw_;  // The raw object reference.
 
  private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
   static void InitializeObject(uword address, intptr_t id, intptr_t size);
 
   static void RegisterClass(const Class& cls,
@@ -655,7 +663,8 @@ class Class : public Object {
     set_next_field_offset_in_words(value_in_bytes / kWordSize);
   }
   void set_next_field_offset_in_words(intptr_t value) const {
-    ASSERT((Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
+    ASSERT((value == -1) ||
+           (Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
             (value == raw_ptr()->instance_size_in_words_)) ||
            (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
             ((value + 1) == raw_ptr()->instance_size_in_words_)));
@@ -1083,6 +1092,7 @@ class Class : public Object {
   RawFunction* CreateInvocationDispatcher(const String& target_name,
                                           const Array& args_desc,
                                           RawFunction::Kind kind) const;
+
   void CalculateFieldOffsets() const;
 
   // Initial value for the cached number of type arguments.
@@ -1144,6 +1154,7 @@ class UnresolvedClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUnresolvedClass));
   }
+
   static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
                                  const String& ident,
                                  intptr_t token_pos);
@@ -1384,6 +1395,7 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
       const AbstractTypeArguments& value) const;
   void set_instantiator_type_arguments(
       const AbstractTypeArguments& value) const;
+
   static RawInstantiatedTypeArguments* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments,
@@ -1408,6 +1420,7 @@ class PatchClass : public Object {
  private:
   void set_patched_class(const Class& value) const;
   void set_source_class(const Class& value) const;
+
   static RawPatchClass* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
@@ -1859,7 +1872,6 @@ class Function : public Object {
     return kind() == RawFunction::kSignatureFunction;
   }
 
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
@@ -1946,6 +1958,7 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
+
   static RawFunction* New();
 
   void BuildSignatureParameters(bool instantiate,
@@ -2212,6 +2225,7 @@ class Field : public Object {
   void set_kind_bits(intptr_t value) const {
     raw_ptr()->kind_bits_ = static_cast<uint8_t>(value);
   }
+
   static RawField* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Field, Object);
@@ -2378,6 +2392,7 @@ class Script : public Object {
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
   void set_tokens(const TokenStream& value) const;
+
   static RawScript* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Script, Object);
@@ -2592,6 +2607,7 @@ class Library : public Object {
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
+
   static RawLibrary* New();
 
   void set_num_imports(intptr_t value) const {
@@ -2654,6 +2670,7 @@ class LibraryPrefix : public Object {
   void set_name(const String& value) const;
   void set_imports(const Array& value) const;
   void set_num_imports(intptr_t value) const;
+
   static RawLibraryPrefix* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
@@ -2679,6 +2696,7 @@ class Namespace : public Object {
   static RawNamespace* New(const Library& library,
                            const Array& show_names,
                            const Array& hide_names);
+
  private:
   static RawNamespace* New();
 
@@ -2988,6 +3006,7 @@ class ExceptionHandlers : public Object {
   static const intptr_t kMaxHandlers = 1024 * 1024;
 
   void set_handled_types_data(const Array& value) const;
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
 };
@@ -3745,6 +3764,7 @@ class ApiError : public Error {
 
  private:
   void set_message(const String& message) const;
+
   static RawApiError* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
@@ -3770,6 +3790,7 @@ class LanguageError : public Error {
 
  private:
   void set_message(const String& message) const;
+
   static RawLanguageError* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LanguageError, Error);
@@ -3913,10 +3934,16 @@ class Instance : public Object {
   }
   bool IsValidFieldOffset(int offset) const;
 
+  static intptr_t NextFieldOffset() {
+    return sizeof(RawInstance);
+  }
+
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
   friend class Class;
   friend class Closure;
+  friend class SnapshotWriter;
+  friend class StubCode;
   friend class TypedDataView;
 };
 
@@ -4225,6 +4252,7 @@ class TypeParameter : public AbstractType {
   void set_name(const String& value) const;
   void set_token_pos(intptr_t token_pos) const;
   void set_type_state(int8_t state) const;
+
   static RawTypeParameter* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
@@ -4478,11 +4506,17 @@ class Smi : public Integer {
   }
 
  private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
   static intptr_t ValueFromRaw(uword raw_value) {
     intptr_t value = raw_value;
     ASSERT((value & kSmiTagMask) == kSmiTag);
     return (value >> kSmiTagShift);
   }
+
   static cpp_vtable handle_vtable_;
 
   Smi() : Integer() {}
@@ -5201,6 +5235,11 @@ class ExternalOneByteString : public AllStatic {
                                             intptr_t tags,
                                             Snapshot::Kind kind);
 
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
   friend class Class;
   friend class String;
   friend class SnapshotReader;
@@ -5266,6 +5305,11 @@ class ExternalTwoByteString : public AllStatic {
                                             intptr_t object_id,
                                             intptr_t tags,
                                             Snapshot::Kind kind);
+
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
 
   friend class Class;
   friend class String;
@@ -5436,6 +5480,11 @@ class ImmutableArray : public AllStatic {
   }
 
  private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
   static RawImmutableArray* raw(const Array& array) {
     return reinterpret_cast<RawImmutableArray*>(array.raw());
   }
@@ -5907,7 +5956,7 @@ class TypedDataView : public AllStatic {
   }
 
   static intptr_t NumberOfFields() {
-    return (kLengthOffset - kTypeArguments);
+    return kLengthOffset;
   }
 
   static intptr_t data_offset() {
@@ -5931,10 +5980,9 @@ class TypedDataView : public AllStatic {
 
  private:
   enum {
-    kTypeArguments = 1,
-    kDataOffset = 2,
-    kOffsetInBytesOffset = 3,
-    kLengthOffset = 4,
+    kDataOffset = 1,
+    kOffsetInBytesOffset = 2,
+    kLengthOffset = 3,
   };
 };
 
@@ -6006,6 +6054,10 @@ class Closure : public AllStatic {
   static void set_context(const Instance& closure,
                           const Context& value) {
     closure.StorePointer(ContextAddr(closure), value.raw());
+  }
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
   }
 
   friend class Class;
