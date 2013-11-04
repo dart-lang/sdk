@@ -116,7 +116,7 @@ void main(List<String> args) {
   // TODO(amouravski): move HtmlDiff inside of the future chain below to re-use
   // the MirrorSystem already analyzed.
   _diff = new HtmlDiff(printWarnings:false);
-  Future htmlDiff = _diff.run(currentDirectory.resolve(libPath));
+  Future htmlDiff = _diff.run(currentDirectory.resolveUri(path.toUri(libPath)));
 
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
   // URIs. Perhaps Path should have a toURI() method.
