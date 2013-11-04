@@ -467,7 +467,6 @@ LibraryElement mockLibrary(Compiler compiler, String source) {
   Uri uri = new Uri(scheme: "source");
   var library = new LibraryElementX(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
-  library.setExports(<Element>[]);
   return library;
 }
 

@@ -22,8 +22,6 @@ method_override7_test/03: Fail # Issue 11496
 
 built_in_identifier_test/none: Fail # Issue 13023
 
-export_double_same_main_test: Fail # Issue 14772
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -220,7 +218,6 @@ dynamic_field_test: StaticWarning
 dynamic_prefix_core_test: StaticWarning
 empty_block_case_test: StaticWarning
 error_stacktrace_test: StaticWarning
-export_ambiguous_main_negative_test: CompileTimeError
 extend_type_parameter2_negative_test: CompileTimeError
 extend_type_parameter_negative_test: CompileTimeError
 external_test/20: StaticWarning

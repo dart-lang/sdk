@@ -163,7 +163,7 @@ class PlaceholderCollector extends Visitor {
   TreeElements treeElements;
 
   LibraryElement get coreLibrary => compiler.coreLibrary;
-  FunctionElement get entryFunction => compiler.mainFunction;
+  FunctionElement get entryFunction => compiler.mainApp.find(Compiler.MAIN);
   DartBackend get backend => compiler.backend;
 
   get currentFunctionScope => functionScopes.putIfAbsent(
