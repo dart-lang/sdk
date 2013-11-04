@@ -48,7 +48,7 @@ class RawObject;
 class RawInteger;
 class RawError;
 class RawFloat32x4;
-class RawUint32x4;
+class RawInt32x4;
 class Simulator;
 class StackResource;
 class StackZone;

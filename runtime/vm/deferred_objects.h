@@ -86,9 +86,9 @@ class DeferredFloat32x4 : public DeferredSlot {
 };
 
 
-class DeferredUint32x4 : public DeferredSlot {
+class DeferredInt32x4 : public DeferredSlot {
  public:
-  DeferredUint32x4(simd128_value_t value, RawInstance** slot,
+  DeferredInt32x4(simd128_value_t value, RawInstance** slot,
                    DeferredSlot* next)
       : DeferredSlot(slot, next), value_(value) { }
 
@@ -99,7 +99,7 @@ class DeferredUint32x4 : public DeferredSlot {
  private:
   const simd128_value_t value_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeferredUint32x4);
+  DISALLOW_COPY_AND_ASSIGN(DeferredInt32x4);
 };
 
 

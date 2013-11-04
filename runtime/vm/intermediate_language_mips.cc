@@ -729,8 +729,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
-    case kTypedDataUint32x4ArrayCid:
-      return CompileType::FromCid(kUint32x4Cid);
+    case kTypedDataInt32x4ArrayCid:
+      return CompileType::FromCid(kInt32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -780,8 +780,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -803,7 +803,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   locs->set_in(1, Location::WritableRegister());
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -863,7 +863,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     DRegister result = locs()->out().fpu_reg();
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
@@ -881,7 +881,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ LoadDFromOffset(result, index.reg(),
             FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
         break;
-      case kTypedDataUint32x4ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
         UNIMPLEMENTED();
         break;
@@ -965,8 +965,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1008,7 +1008,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1148,7 +1148,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
           FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
       break;
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       UNIMPLEMENTED();
       break;
@@ -1276,7 +1276,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ BranchSignedLess(CMPRES1, 0, &skip_length_check);
           __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
           // Check for typed data array.
-          __ BranchSignedGreater(value_cid_reg, kTypedDataUint32x4ArrayCid,
+          __ BranchSignedGreater(value_cid_reg, kTypedDataInt32x4ArrayCid,
                                  &no_fixed_length);
           __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                               &check_array);
@@ -1352,7 +1352,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label check_array, length_set, no_fixed_length;
         __ BranchEqual(value_cid_reg, kNullCid, &no_fixed_length);
         // Check for typed data array.
-        __ BranchSignedGreater(value_cid_reg, kTypedDataUint32x4ArrayCid,
+        __ BranchSignedGreater(value_cid_reg, kTypedDataInt32x4ArrayCid,
                                &no_fixed_length);
         __ BranchSignedLess(value_cid_reg, kTypedDataInt8ArrayCid,
                             &check_array);
@@ -2600,24 +2600,24 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* BoxInt32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* UnboxInt32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -2792,35 +2792,35 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -2836,46 +2836,46 @@ void Simd32x4GetSignMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4SelectInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
+LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void Uint32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
 
-LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

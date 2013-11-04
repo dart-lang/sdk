@@ -1057,8 +1057,8 @@ CompileType Simd32x4ShuffleInstr::ComputeType() const {
       (op_kind() == MethodRecognizer::kFloat32x4ShuffleW)) {
     return CompileType::FromCid(kDoubleCid);
   }
-  if ((op_kind() == MethodRecognizer::kUint32x4Shuffle)) {
-    return CompileType::FromCid(kUint32x4Cid);
+  if ((op_kind() == MethodRecognizer::kInt32x4Shuffle)) {
+    return CompileType::FromCid(kInt32x4Cid);
   }
   ASSERT((op_kind() == MethodRecognizer::kFloat32x4Shuffle));
   return CompileType::FromCid(kFloat32x4Cid);
@@ -1066,8 +1066,8 @@ CompileType Simd32x4ShuffleInstr::ComputeType() const {
 
 
 CompileType Simd32x4ShuffleMixInstr::ComputeType() const {
-  if (op_kind() == MethodRecognizer::kUint32x4ShuffleMix) {
-    return CompileType::FromCid(kUint32x4Cid);
+  if (op_kind() == MethodRecognizer::kInt32x4ShuffleMix) {
+    return CompileType::FromCid(kInt32x4Cid);
   }
   ASSERT((op_kind() == MethodRecognizer::kFloat32x4ShuffleMix));
   return CompileType::FromCid(kFloat32x4Cid);
@@ -1095,7 +1095,7 @@ CompileType Float32x4SplatInstr::ComputeType() const {
 
 
 CompileType Float32x4ComparisonInstr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 
@@ -1129,38 +1129,38 @@ CompileType Float32x4WithInstr::ComputeType() const {
 }
 
 
-CompileType Float32x4ToUint32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+CompileType Float32x4ToInt32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 
-CompileType Uint32x4BoolConstructorInstr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+CompileType Int32x4BoolConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 
-CompileType Uint32x4GetFlagInstr::ComputeType() const {
+CompileType Int32x4GetFlagInstr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
 
 
-CompileType Uint32x4SelectInstr::ComputeType() const {
+CompileType Int32x4SelectInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
 
-CompileType Uint32x4SetFlagInstr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+CompileType Int32x4SetFlagInstr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 
-CompileType Uint32x4ToFloat32x4Instr::ComputeType() const {
+CompileType Int32x4ToFloat32x4Instr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 
 
-CompileType BinaryUint32x4OpInstr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+CompileType BinaryInt32x4OpInstr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 
@@ -1194,13 +1194,13 @@ CompileType BoxFloat32x4Instr::ComputeType() const {
 }
 
 
-CompileType UnboxUint32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+CompileType UnboxInt32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 
-CompileType BoxUint32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kUint32x4Cid);
+CompileType BoxInt32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
 }
 
 

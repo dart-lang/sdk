@@ -41,7 +41,7 @@ ObjectStore::ObjectStore()
     immutable_array_class_(Class::null()),
     growable_object_array_class_(Class::null()),
     float32x4_class_(Class::null()),
-    uint32x4_class_(Class::null()),
+    int32x4_class_(Class::null()),
     typed_data_classes_(Array::null()),
     error_class_(Class::null()),
     stacktrace_class_(Class::null()),

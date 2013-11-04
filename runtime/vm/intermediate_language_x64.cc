@@ -751,8 +751,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
       return CompileType::FromCid(kDoubleCid);
     case kTypedDataFloat32x4ArrayCid:
       return CompileType::FromCid(kFloat32x4Cid);
-    case kTypedDataUint32x4ArrayCid:
-      return CompileType::FromCid(kUint32x4Cid);
+    case kTypedDataInt32x4ArrayCid:
+      return CompileType::FromCid(kInt32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -793,8 +793,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
@@ -825,7 +825,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   }
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     locs->set_out(Location::RequiresFpuRegister());
   } else {
     locs->set_out(Location::RequiresRegister());
@@ -860,7 +860,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
-      (representation() == kUnboxedUint32x4)) {
+      (representation() == kUnboxedInt32x4)) {
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -874,7 +874,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (class_id() == kTypedDataFloat64ArrayCid) {
       __ movsd(result, element_address);
     } else {
-      ASSERT((class_id() == kTypedDataUint32x4ArrayCid) ||
+      ASSERT((class_id() == kTypedDataInt32x4ArrayCid) ||
              (class_id() == kTypedDataFloat32x4ArrayCid));
       __ movups(result, element_address);
     }
@@ -946,8 +946,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedDouble;
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
-    case kTypedDataUint32x4ArrayCid:
-      return kUnboxedUint32x4;
+    case kTypedDataInt32x4ArrayCid:
+      return kUnboxedInt32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1005,7 +1005,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
@@ -1123,7 +1123,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
       break;
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
       __ movups(element_address, locs()->in(2).fpu_reg());
       break;
@@ -1258,7 +1258,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
           // Check for typed data array.
           __ CompareImmediate(
-              value_cid_reg, Immediate(kTypedDataUint32x4ArrayCid), PP);
+              value_cid_reg, Immediate(kTypedDataInt32x4ArrayCid), PP);
           // Not a typed array or a regular array.
           __ j(GREATER, &no_fixed_length, Assembler::kNearJump);
           __ CompareImmediate(
@@ -1338,7 +1338,7 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ j(EQUAL, &no_fixed_length, Assembler::kNearJump);
         // Check for typed data array.
         __ CompareImmediate(value_cid_reg,
-                            Immediate(kTypedDataUint32x4ArrayCid), PP);
+                            Immediate(kTypedDataInt32x4ArrayCid), PP);
         // Not a typed array or a regular array.
         __ j(GREATER, &no_fixed_length);
         __ CompareImmediate(
@@ -2722,7 +2722,7 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* BoxInt32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -2735,18 +2735,18 @@ LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
 }
 
 
-class BoxUint32x4SlowPath : public SlowPathCode {
+class BoxInt32x4SlowPath : public SlowPathCode {
  public:
-  explicit BoxUint32x4SlowPath(BoxUint32x4Instr* instruction)
+  explicit BoxInt32x4SlowPath(BoxInt32x4Instr* instruction)
       : instruction_(instruction) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxUint32x4SlowPath");
+    __ Comment("BoxInt32x4SlowPath");
     __ Bind(entry_label());
-    const Class& uint32x4_class = compiler->uint32x4_class();
+    const Class& int32x4_class = compiler->int32x4_class();
     const Code& stub =
-        Code::Handle(StubCode::GetAllocationStubForClass(uint32x4_class));
-    const ExternalLabel label(uint32x4_class.ToCString(), stub.EntryPoint());
+        Code::Handle(StubCode::GetAllocationStubForClass(int32x4_class));
+    const ExternalLabel label(int32x4_class.ToCString(), stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
     locs->live_registers()->Remove(locs->out());
@@ -2763,28 +2763,28 @@ class BoxUint32x4SlowPath : public SlowPathCode {
   }
 
  private:
-  BoxUint32x4Instr* instruction_;
+  BoxInt32x4Instr* instruction_;
 };
 
 
-void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxUint32x4SlowPath* slow_path = new BoxUint32x4SlowPath(this);
+void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxInt32x4SlowPath* slow_path = new BoxInt32x4SlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register out_reg = locs()->out().reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  __ TryAllocate(compiler->uint32x4_class(),
+  __ TryAllocate(compiler->int32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
                  out_reg,
                  PP);
   __ Bind(slow_path->exit_label());
-  __ movups(FieldAddress(out_reg, Uint32x4::value_offset()), value);
+  __ movups(FieldAddress(out_reg, Int32x4::value_offset()), value);
 }
 
 
-LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* UnboxInt32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -2795,19 +2795,19 @@ LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
 }
 
 
-void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void UnboxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t value_cid = value()->Type()->ToCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 
-  if (value_cid != kUint32x4Cid) {
+  if (value_cid != kInt32x4Cid) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
     __ testq(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);
-    __ CompareClassId(value, kUint32x4Cid);
+    __ CompareClassId(value, kInt32x4Cid);
     __ j(NOT_EQUAL, deopt);
   }
-  __ movups(result, FieldAddress(value, Uint32x4::value_offset()));
+  __ movups(result, FieldAddress(value, Int32x4::value_offset()));
 }
 
 
@@ -2901,7 +2901,7 @@ void Simd32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cvtss2sd(value, value);
       break;
     case MethodRecognizer::kFloat32x4Shuffle:
-    case MethodRecognizer::kUint32x4Shuffle:
+    case MethodRecognizer::kInt32x4Shuffle:
       __ shufps(value, value, Immediate(mask_));
       break;
     default: UNREACHABLE();
@@ -2928,7 +2928,7 @@ void Simd32x4ShuffleMixInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out().fpu_reg() == left);
   switch (op_kind()) {
     case MethodRecognizer::kFloat32x4ShuffleMix:
-    case MethodRecognizer::kUint32x4ShuffleMix:
+    case MethodRecognizer::kInt32x4ShuffleMix:
       __ shufps(left, right, Immediate(mask_));
       break;
     default: UNREACHABLE();
@@ -3281,7 +3281,7 @@ void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
+LocationSummary* Float32x4ToInt32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3292,12 +3292,12 @@ LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
 }
 
 
-void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Float32x4ToInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NOP.
 }
 
 
-LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 4;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -3312,7 +3312,7 @@ LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register v0 = locs()->in(0).reg();
   Register v1 = locs()->in(1).reg();
   Register v2 = locs()->in(2).reg();
@@ -3366,7 +3366,7 @@ void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4GetFlagInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3377,7 +3377,7 @@ LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   Register result = locs()->out().reg();
   Label done;
@@ -3386,16 +3386,16 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Move value to stack.
   __ movups(Address(RSP, 0), value);
   switch (op_kind()) {
-    case MethodRecognizer::kUint32x4GetFlagX:
+    case MethodRecognizer::kInt32x4GetFlagX:
       __ movl(result, Address(RSP, 0));
       break;
-    case MethodRecognizer::kUint32x4GetFlagY:
+    case MethodRecognizer::kInt32x4GetFlagY:
       __ movl(result, Address(RSP, 4));
       break;
-    case MethodRecognizer::kUint32x4GetFlagZ:
+    case MethodRecognizer::kInt32x4GetFlagZ:
       __ movl(result, Address(RSP, 8));
       break;
-    case MethodRecognizer::kUint32x4GetFlagW:
+    case MethodRecognizer::kInt32x4GetFlagW:
       __ movl(result, Address(RSP, 12));
       break;
     default: UNREACHABLE();
@@ -3411,7 +3411,7 @@ void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4SelectInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -3425,7 +3425,7 @@ LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister mask = locs()->in(0).fpu_reg();
   XmmRegister trueValue = locs()->in(1).fpu_reg();
   XmmRegister falseValue = locs()->in(2).fpu_reg();
@@ -3445,7 +3445,7 @@ void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
+LocationSummary* Int32x4SetFlagInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -3458,7 +3458,7 @@ LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister mask = locs()->in(0).fpu_reg();
   Register flag = locs()->in(1).reg();
   Register temp = locs()->temp(0).reg();
@@ -3470,7 +3470,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareObject(flag, Bool::True(), PP);
   __ j(NOT_EQUAL, &falsePath);
   switch (op_kind()) {
-    case MethodRecognizer::kUint32x4WithFlagX:
+    case MethodRecognizer::kInt32x4WithFlagX:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 0), temp);
       __ jmp(&exitPath);
@@ -3478,7 +3478,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 0), temp);
     break;
-    case MethodRecognizer::kUint32x4WithFlagY:
+    case MethodRecognizer::kInt32x4WithFlagY:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 4), temp);
       __ jmp(&exitPath);
@@ -3486,7 +3486,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 4), temp);
     break;
-    case MethodRecognizer::kUint32x4WithFlagZ:
+    case MethodRecognizer::kInt32x4WithFlagZ:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 8), temp);
       __ jmp(&exitPath);
@@ -3494,7 +3494,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadImmediate(temp, Immediate(0x0), PP);
       __ movl(Address(RSP, 8), temp);
     break;
-    case MethodRecognizer::kUint32x4WithFlagW:
+    case MethodRecognizer::kInt32x4WithFlagW:
       __ LoadImmediate(temp, Immediate(0xFFFFFFFF), PP);
       __ movl(Address(RSP, 12), temp);
       __ jmp(&exitPath);
@@ -3511,7 +3511,7 @@ void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
+LocationSummary* Int32x4ToFloat32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3522,12 +3522,12 @@ LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
 }
 
 
-void Uint32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void Int32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NOP.
 }
 
 
-LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
+LocationSummary* BinaryInt32x4OpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -3539,7 +3539,7 @@ LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
 }
 
 
-void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister left = locs()->in(0).fpu_reg();
   XmmRegister right = locs()->in(1).fpu_reg();
   ASSERT(left == locs()->out().fpu_reg());

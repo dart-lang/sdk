@@ -244,22 +244,22 @@ patch class Float32x4List {
 }
 
 
-patch class Uint32x4List {
-  /* patch */ factory Uint32x4List(int length) {
-    return new _Uint32x4Array(length);
+patch class Int32x4List {
+  /* patch */ factory Int32x4List(int length) {
+    return new _Int32x4Array(length);
   }
 
-  /* patch */ factory Uint32x4List.fromList(List<Uint32x4> elements) {
-    var result = new _Uint32x4Array(elements.length);
+  /* patch */ factory Int32x4List.fromList(List<Int32x4> elements) {
+    var result = new _Int32x4Array(elements.length);
     for (int i = 0; i < elements.length; i++) {
       result[i] = elements[i];
     }
     return result;
   }
 
-  /* patch */ factory Uint32x4List.view(ByteBuffer buffer,
+  /* patch */ factory Int32x4List.view(ByteBuffer buffer,
                                         [int offsetInBytes = 0, int length]) {
-    return new _Uint32x4ArrayView(buffer, offsetInBytes, length);
+    return new _Int32x4ArrayView(buffer, offsetInBytes, length);
   }
 }
 
@@ -274,21 +274,21 @@ patch class Float32x4 {
   /* patch */ factory Float32x4.zero() {
     return new _Float32x4.zero();
   }
-  /* patch */ factory Float32x4.fromUint32x4Bits(Uint32x4 x) {
-    return new _Float32x4.fromUint32x4Bits(x);
+  /* patch */ factory Float32x4.fromInt32x4Bits(Int32x4 x) {
+    return new _Float32x4.fromInt32x4Bits(x);
   }
 }
 
 
-patch class Uint32x4 {
-  /* patch */ factory Uint32x4(int x, int y, int z, int w) {
-    return new _Uint32x4(x, y, z, w);
+patch class Int32x4 {
+  /* patch */ factory Int32x4(int x, int y, int z, int w) {
+    return new _Int32x4(x, y, z, w);
   }
-  /* patch */ factory Uint32x4.bool(bool x, bool y, bool z, bool w) {
-    return new _Uint32x4.bool(x, y, z, w);
+  /* patch */ factory Int32x4.bool(bool x, bool y, bool z, bool w) {
+    return new _Int32x4.bool(x, y, z, w);
   }
-  /* patch */ factory Uint32x4.fromFloat32x4Bits(Float32x4 x) {
-    return new _Uint32x4.fromFloat32x4Bits(x);
+  /* patch */ factory Int32x4.fromFloat32x4Bits(Float32x4 x) {
+    return new _Int32x4.fromFloat32x4Bits(x);
   }
 }
 
@@ -611,9 +611,9 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
   void _setFloat32x4(int offsetInBytes, Float32x4 value)
       native "TypedData_SetFloat32x4";
 
-  Uint32x4 _getUint32x4(int offsetInBytes) native "TypedData_GetUint32x4";
-  void _setUint32x4(int offsetInBytes, Uint32x4 value)
-      native "TypedData_SetUint32x4";
+  Int32x4 _getInt32x4(int offsetInBytes) native "TypedData_GetInt32x4";
+  void _setInt32x4(int offsetInBytes, Int32x4 value)
+      native "TypedData_SetInt32x4";
 }
 
 
@@ -1342,64 +1342,64 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
 }
 
 
-class _Uint32x4Array extends _TypedList implements Uint32x4List {
+class _Int32x4Array extends _TypedList implements Int32x4List {
   // Factory constructors.
 
-  factory _Uint32x4Array(int length) {
+  factory _Int32x4Array(int length) {
     return _new(length);
   }
 
-  factory _Uint32x4Array.view(ByteBuffer buffer,
+  factory _Int32x4Array.view(ByteBuffer buffer,
                               [int offsetInBytes = 0, int length]) {
     if (length == null) {
       length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Uint32x4List.BYTES_PER_ELEMENT;
+               Int32x4List.BYTES_PER_ELEMENT;
     }
-    return new _Uint32x4ArrayView(buffer, offsetInBytes, length);
+    return new _Int32x4ArrayView(buffer, offsetInBytes, length);
   }
 
 
-  Uint32x4 operator[](int index) {
+  Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _getIndexedUint32x4(index);
+    return _getIndexedInt32x4(index);
   }
 
-  void operator[]=(int index, Uint32x4 value) {
+  void operator[]=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _setIndexedUint32x4(index, value);
+    _setIndexedInt32x4(index, value);
   }
 
-  Iterator<Uint32x4> get iterator {
-    return new _TypedListIterator<Uint32x4>(this);
+  Iterator<Int32x4> get iterator {
+    return new _TypedListIterator<Int32x4>(this);
   }
 
 
   // Method(s) implementing the TypedData interface.
 
   int get elementSizeInBytes {
-    return Uint32x4List.BYTES_PER_ELEMENT;
+    return Int32x4List.BYTES_PER_ELEMENT;
   }
 
 
   // Internal utility methods.
 
-  _Uint32x4Array _createList(int length) {
+  _Int32x4Array _createList(int length) {
     return _new(length);
   }
 
-  Uint32x4 _getIndexedUint32x4(int index) {
-    return _getUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT);
+  Int32x4 _getIndexedInt32x4(int index) {
+    return _getInt32x4(index * Int32x4List.BYTES_PER_ELEMENT);
   }
 
-  void _setIndexedUint32x4(int index, Uint32x4 value) {
-    _setUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT, value);
+  void _setIndexedInt32x4(int index, Int32x4 value) {
+    _setInt32x4(index * Int32x4List.BYTES_PER_ELEMENT, value);
   }
 
-  static _Uint32x4Array _new(int length) native "TypedData_Uint32x4Array_new";
+  static _Int32x4Array _new(int length) native "TypedData_Int32x4Array_new";
 }
 
 
@@ -2038,58 +2038,58 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
 }
 
 
-class _ExternalUint32x4Array extends _TypedList implements Uint32x4List {
+class _ExternalInt32x4Array extends _TypedList implements Int32x4List {
   // Factory constructors.
 
-  factory _ExternalUint32x4Array(int length) {
+  factory _ExternalInt32x4Array(int length) {
     return _new(length);
   }
 
 
   // Method(s) implementing the List interface.
 
-  Uint32x4 operator[](int index) {
+  Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _getIndexedUint32x4(index);
+    return _getIndexedInt32x4(index);
   }
 
-  void operator[]=(int index, Uint32x4 value) {
+  void operator[]=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _setIndexedUint32x4(index, value);
+    _setIndexedInt32x4(index, value);
   }
 
-  Iterator<Uint32x4> get iterator {
-    return new _TypedListIterator<Uint32x4>(this);
+  Iterator<Int32x4> get iterator {
+    return new _TypedListIterator<Int32x4>(this);
   }
 
 
   // Method(s) implementing the TypedData interface.
 
   int get elementSizeInBytes {
-    return Uint32x4List.BYTES_PER_ELEMENT;
+    return Int32x4List.BYTES_PER_ELEMENT;
   }
 
 
   // Internal utility methods.
 
-  Uint32x4List _createList(int length) {
-    return new Uint32x4List(length);
+  Int32x4List _createList(int length) {
+    return new Int32x4List(length);
   }
 
-  Uint32x4 _getIndexedUint32x4(int index) {
-    return _getUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT);
+  Int32x4 _getIndexedInt32x4(int index) {
+    return _getInt32x4(index * Int32x4List.BYTES_PER_ELEMENT);
   }
 
-  void _setIndexedUint32x4(int index, Uint32x4 value) {
-    _setUint32x4(index * Uint32x4List.BYTES_PER_ELEMENT, value);
+  void _setIndexedInt32x4(int index, Int32x4 value) {
+    _setInt32x4(index * Int32x4List.BYTES_PER_ELEMENT, value);
   }
 
-  static _ExternalUint32x4Array _new(int length) native
-      "ExternalTypedData_Uint32x4Array_new";
+  static _ExternalInt32x4Array _new(int length) native
+      "ExternalTypedData_Int32x4Array_new";
 }
 
 
@@ -2098,8 +2098,8 @@ class _Float32x4 implements Float32x4 {
       native "Float32x4_fromDoubles";
   factory _Float32x4.splat(double v) native "Float32x4_splat";
   factory _Float32x4.zero() native "Float32x4_zero";
-  factory _Float32x4.fromUint32x4Bits(Uint32x4 x)
-      native "Float32x4_fromUint32x4Bits";
+  factory _Float32x4.fromInt32x4Bits(Int32x4 x)
+      native "Float32x4_fromInt32x4Bits";
   Float32x4 operator +(Float32x4 other) {
     return _add(other);
   }
@@ -2120,31 +2120,31 @@ class _Float32x4 implements Float32x4 {
     return _div(other);
   }
   Float32x4 _div(Float32x4 other) native "Float32x4_div";
-  Uint32x4 lessThan(Float32x4 other) {
+  Int32x4 lessThan(Float32x4 other) {
     return _cmplt(other);
   }
-  Uint32x4 _cmplt(Float32x4 other) native "Float32x4_cmplt";
-  Uint32x4 lessThanOrEqual(Float32x4 other) {
+  Int32x4 _cmplt(Float32x4 other) native "Float32x4_cmplt";
+  Int32x4 lessThanOrEqual(Float32x4 other) {
     return _cmplte(other);
   }
-  Uint32x4 _cmplte(Float32x4 other) native "Float32x4_cmplte";
-  Uint32x4 greaterThan(Float32x4 other) {
+  Int32x4 _cmplte(Float32x4 other) native "Float32x4_cmplte";
+  Int32x4 greaterThan(Float32x4 other) {
     return _cmpgt(other);
   }
-  Uint32x4 _cmpgt(Float32x4 other) native "Float32x4_cmpgt";
-  Uint32x4 greaterThanOrEqual(Float32x4 other) {
+  Int32x4 _cmpgt(Float32x4 other) native "Float32x4_cmpgt";
+  Int32x4 greaterThanOrEqual(Float32x4 other) {
     return _cmpgte(other);
   }
-  Uint32x4 _cmpgte(Float32x4 other) native "Float32x4_cmpgte";
-  Uint32x4 equal(Float32x4 other) {
+  Int32x4 _cmpgte(Float32x4 other) native "Float32x4_cmpgte";
+  Int32x4 equal(Float32x4 other) {
     return _cmpequal(other);
   }
-  Uint32x4 _cmpequal(Float32x4 other)
+  Int32x4 _cmpequal(Float32x4 other)
       native "Float32x4_cmpequal";
-  Uint32x4 notEqual(Float32x4 other) {
+  Int32x4 notEqual(Float32x4 other) {
     return _cmpnequal(other);
   }
-  Uint32x4 _cmpnequal(Float32x4 other)
+  Int32x4 _cmpnequal(Float32x4 other)
       native "Float32x4_cmpnequal";
   Float32x4 scale(double s) {
     return _scale(s);
@@ -2197,59 +2197,59 @@ class _Float32x4 implements Float32x4 {
 }
 
 
-class _Uint32x4 implements Uint32x4 {
-  factory _Uint32x4(int x, int y, int z, int w)
-      native "Uint32x4_fromInts";
-  factory _Uint32x4.bool(bool x, bool y, bool z, bool w)
-      native "Uint32x4_fromBools";
-  factory _Uint32x4.fromFloat32x4Bits(Float32x4 x)
-      native "Uint32x4_fromFloat32x4Bits";
-  Uint32x4 operator |(Uint32x4 other) {
+class _Int32x4 implements Int32x4 {
+  factory _Int32x4(int x, int y, int z, int w)
+      native "Int32x4_fromInts";
+  factory _Int32x4.bool(bool x, bool y, bool z, bool w)
+      native "Int32x4_fromBools";
+  factory _Int32x4.fromFloat32x4Bits(Float32x4 x)
+      native "Int32x4_fromFloat32x4Bits";
+  Int32x4 operator |(Int32x4 other) {
     return _or(other);
   }
-  Uint32x4 _or(Uint32x4 other) native "Uint32x4_or";
-  Uint32x4 operator &(Uint32x4 other) {
+  Int32x4 _or(Int32x4 other) native "Int32x4_or";
+  Int32x4 operator &(Int32x4 other) {
     return _and(other);
   }
-  Uint32x4 _and(Uint32x4 other) native "Uint32x4_and";
-  Uint32x4 operator ^(Uint32x4 other) {
+  Int32x4 _and(Int32x4 other) native "Int32x4_and";
+  Int32x4 operator ^(Int32x4 other) {
     return _xor(other);
   }
-  Uint32x4 _xor(Uint32x4 other) native "Uint32x4_xor";
-  Uint32x4 operator +(Uint32x4 other) {
+  Int32x4 _xor(Int32x4 other) native "Int32x4_xor";
+  Int32x4 operator +(Int32x4 other) {
     return _add(other);
   }
-  Uint32x4 _add(Uint32x4 other) native "Uint32x4_add";
-  Uint32x4 operator -(Uint32x4 other) {
+  Int32x4 _add(Int32x4 other) native "Int32x4_add";
+  Int32x4 operator -(Int32x4 other) {
     return _sub(other);
   }
-  Uint32x4 _sub(Uint32x4 other) native "Uint32x4_sub";
-  int get x native "Uint32x4_getX";
-  int get y native "Uint32x4_getY";
-  int get z native "Uint32x4_getZ";
-  int get w native "Uint32x4_getW";
-  int get signMask native "Uint32x4_getSignMask";
-  Uint32x4 shuffle(int mask) native "Uint32x4_shuffle";
-  Uint32x4 shuffleMix(Uint32x4 zw, int mask) native "Uint32x4_shuffleMix";
-  Uint32x4 withX(int x) native "Uint32x4_setX";
-  Uint32x4 withY(int y) native "Uint32x4_setY";
-  Uint32x4 withZ(int z) native "Uint32x4_setZ";
-  Uint32x4 withW(int w) native "Uint32x4_setW";
-  bool get flagX native "Uint32x4_getFlagX";
-  bool get flagY native "Uint32x4_getFlagY";
-  bool get flagZ native "Uint32x4_getFlagZ";
-  bool get flagW native "Uint32x4_getFlagW";
-  Uint32x4 withFlagX(bool x) native "Uint32x4_setFlagX";
-  Uint32x4 withFlagY(bool y) native "Uint32x4_setFlagY";
-  Uint32x4 withFlagZ(bool z) native "Uint32x4_setFlagZ";
-  Uint32x4 withFlagW(bool w) native "Uint32x4_setFlagW";
+  Int32x4 _sub(Int32x4 other) native "Int32x4_sub";
+  int get x native "Int32x4_getX";
+  int get y native "Int32x4_getY";
+  int get z native "Int32x4_getZ";
+  int get w native "Int32x4_getW";
+  int get signMask native "Int32x4_getSignMask";
+  Int32x4 shuffle(int mask) native "Int32x4_shuffle";
+  Int32x4 shuffleMix(Int32x4 zw, int mask) native "Int32x4_shuffleMix";
+  Int32x4 withX(int x) native "Int32x4_setX";
+  Int32x4 withY(int y) native "Int32x4_setY";
+  Int32x4 withZ(int z) native "Int32x4_setZ";
+  Int32x4 withW(int w) native "Int32x4_setW";
+  bool get flagX native "Int32x4_getFlagX";
+  bool get flagY native "Int32x4_getFlagY";
+  bool get flagZ native "Int32x4_getFlagZ";
+  bool get flagW native "Int32x4_getFlagW";
+  Int32x4 withFlagX(bool x) native "Int32x4_setFlagX";
+  Int32x4 withFlagY(bool y) native "Int32x4_setFlagY";
+  Int32x4 withFlagZ(bool z) native "Int32x4_setFlagZ";
+  Int32x4 withFlagW(bool w) native "Int32x4_setFlagW";
   Float32x4 select(Float32x4 trueValue,
                           Float32x4 falseValue) {
     return _select(trueValue, falseValue);
   }
   Float32x4 _select(Float32x4 trueValue,
                            Float32x4 falseValue)
-      native "Uint32x4_select";
+      native "Int32x4_select";
 }
 
 class _TypedListIterator<E> implements Iterator<E> {
@@ -2925,54 +2925,54 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
 }
 
 
-class _Uint32x4ArrayView extends _TypedListView implements Uint32x4List {
+class _Int32x4ArrayView extends _TypedListView implements Int32x4List {
   // Constructor.
-  _Uint32x4ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
+  _Int32x4ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
     : super(buffer, _offsetInBytes,
             _defaultIfNull(_length,
                            ((buffer.lengthInBytes - _offsetInBytes) ~/
-                            Uint32x4List.BYTES_PER_ELEMENT))) {
+                            Int32x4List.BYTES_PER_ELEMENT))) {
     _rangeCheck(buffer.lengthInBytes,
                 offsetInBytes,
-                length * Uint32x4List.BYTES_PER_ELEMENT);
-    _offsetAlignmentCheck(_offsetInBytes, Uint32x4List.BYTES_PER_ELEMENT);
+                length * Int32x4List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Int32x4List.BYTES_PER_ELEMENT);
   }
 
 
   // Method(s) implementing List interface.
 
-  Uint32x4 operator[](int index) {
+  Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typedData._getUint32x4(offsetInBytes +
-                                   (index * Uint32x4List.BYTES_PER_ELEMENT));
+    return _typedData._getInt32x4(offsetInBytes +
+                                   (index * Int32x4List.BYTES_PER_ELEMENT));
   }
 
-  void operator[]=(int index, Uint32x4 value) {
+  void operator[]=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typedData._setUint32x4(offsetInBytes +
-                            (index * Uint32x4List.BYTES_PER_ELEMENT), value);
+    _typedData._setInt32x4(offsetInBytes +
+                            (index * Int32x4List.BYTES_PER_ELEMENT), value);
   }
 
-  Iterator<Uint32x4> get iterator {
-    return new _TypedListIterator<Uint32x4>(this);
+  Iterator<Int32x4> get iterator {
+    return new _TypedListIterator<Int32x4>(this);
   }
 
 
   // Method(s) implementing TypedData interface.
 
   int get elementSizeInBytes {
-    return Uint32x4List.BYTES_PER_ELEMENT;
+    return Int32x4List.BYTES_PER_ELEMENT;
   }
 
 
   // Internal utility methods.
 
-  Uint32x4List _createList(int length) {
-    return new Uint32x4List(length);
+  Int32x4List _createList(int length) {
+    return new Int32x4List(length);
   }
 }
 

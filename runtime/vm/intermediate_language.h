@@ -54,7 +54,7 @@ class Range;
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
-  V(_TypedList, _getUint32x4, ByteArrayBaseGetUint32x4, 1499091330)            \
+  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 163795162)               \
   V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1443265945)                    \
   V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 1864204733)                  \
   V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 1807419109)                  \
@@ -64,7 +64,7 @@ class Range;
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1457395244)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 49127618)                \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1261559935)          \
-  V(_TypedList, _setUint32x4, ByteArrayBaseSetUint32x4, 691480480)             \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 1871750680)              \
   V(_GrowableList, get:length, GrowableArrayLength, 1654225242)                \
   V(_GrowableList, get:_capacity, GrowableArrayCapacity, 817090003)            \
   V(_GrowableList, _setData, GrowableArraySetData, 1375509957)                 \
@@ -93,8 +93,8 @@ class Range;
   V(Float32x4, Float32x4., Float32x4Constructor, 786169160)                    \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 1589383280)                      \
   V(Float32x4, Float32x4.splat, Float32x4Splat, 62513275)                      \
-  V(Float32x4, Float32x4.fromUint32x4Bits, Float32x4FromUint32x4Bits,          \
-      770033146)                                                               \
+  V(Float32x4, Float32x4.fromInt32x4Bits, Float32x4FromInt32x4Bits,            \
+      1933861675)                                                              \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1178727105)                         \
   V(_Float32x4, shuffleMix, Float32x4ShuffleMix, 927956119)                    \
   V(_Float32x4, get:x, Float32x4ShuffleX, 1351717838)                          \
@@ -102,12 +102,12 @@ class Range;
   V(_Float32x4, get:z, Float32x4ShuffleZ, 2144923721)                          \
   V(_Float32x4, get:w, Float32x4ShuffleW, 1447699119)                          \
   V(_Float32x4, get:signMask, Float32x4GetSignMask, 1198849347)                \
-  V(_Float32x4, _cmpequal, Float32x4Equal, 2141256163)                         \
-  V(_Float32x4, _cmpgt, Float32x4GreaterThan, 696292270)                       \
-  V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 1199333164)              \
-  V(_Float32x4, _cmplt, Float32x4LessThan, 943396590)                          \
-  V(_Float32x4, _cmplte, Float32x4LessThanOrEqual, 57211241)                   \
-  V(_Float32x4, _cmpnequal, Float32x4NotEqual, 1234888884)                     \
+  V(_Float32x4, _cmpequal, Float32x4Equal, 1944929844)                         \
+  V(_Float32x4, _cmpgt, Float32x4GreaterThan, 499965951)                       \
+  V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 1003006845)              \
+  V(_Float32x4, _cmplt, Float32x4LessThan, 747070271)                          \
+  V(_Float32x4, _cmplte, Float32x4LessThanOrEqual, 2008368570)                 \
+  V(_Float32x4, _cmpnequal, Float32x4NotEqual, 1038562565)                     \
   V(_Float32x4, _min, Float32x4Min, 1166664658)                                \
   V(_Float32x4, _max, Float32x4Max, 343968921)                                 \
   V(_Float32x4, _scale, Float32x4Scale, 803505531)                             \
@@ -121,21 +121,21 @@ class Range;
   V(_Float32x4, withY, Float32x4WithY, 1806065938)                             \
   V(_Float32x4, withZ, Float32x4WithZ, 320659034)                              \
   V(_Float32x4, withW, Float32x4WithW, 1108437255)                             \
-  V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 517444095)               \
-  V(Uint32x4, Uint32x4.fromFloat32x4Bits, Uint32x4FromFloat32x4Bits,           \
-      1080034855)                                                              \
-  V(_Uint32x4, get:flagX, Uint32x4GetFlagX, 1674696792)                        \
-  V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 2013200152)                        \
-  V(_Uint32x4, get:flagZ, Uint32x4GetFlagZ, 944733935)                         \
-  V(_Uint32x4, get:flagW, Uint32x4GetFlagW, 22746169)                          \
-  V(_Uint32x4, get:signMask, Uint32x4GetSignMask, 1858144083)                  \
-  V(_Uint32x4, shuffle, Uint32x4Shuffle, 146209630)                            \
-  V(_Uint32x4, shuffleMix, Uint32x4ShuffleMix, 1251494596)                     \
-  V(_Uint32x4, select, Uint32x4Select, 72244182)                               \
-  V(_Uint32x4, withFlagX, Uint32x4WithFlagX, 1475542073)                       \
-  V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 830610988)                        \
-  V(_Uint32x4, withFlagZ, Uint32x4WithFlagZ, 1714792414)                       \
-  V(_Uint32x4, withFlagW, Uint32x4WithFlagW, 1516924162)                       \
+  V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 1477593884)                 \
+  V(Int32x4, Int32x4.fromFloat32x4Bits, Int32x4FromFloat32x4Bits,              \
+      1955567428)                                                              \
+  V(_Int32x4, get:flagX, Int32x4GetFlagX, 729235803)                           \
+  V(_Int32x4, get:flagY, Int32x4GetFlagY, 430840849)                           \
+  V(_Int32x4, get:flagZ, Int32x4GetFlagZ, 1981076496)                          \
+  V(_Int32x4, get:flagW, Int32x4GetFlagW, 629356099)                           \
+  V(_Int32x4, get:signMask, Int32x4GetSignMask, 1598787746)                    \
+  V(_Int32x4, shuffle, Int32x4Shuffle, 599391160)                              \
+  V(_Int32x4, shuffleMix, Int32x4ShuffleMix, 1491641197)                       \
+  V(_Int32x4, select, Int32x4Select, 598942806)                                \
+  V(_Int32x4, withFlagX, Int32x4WithFlagX, 63248661)                           \
+  V(_Int32x4, withFlagY, Int32x4WithFlagY, 1498755850)                         \
+  V(_Int32x4, withFlagZ, Int32x4WithFlagZ, 457856832)                          \
+  V(_Int32x4, withFlagW, Int32x4WithFlagW, 690638779)                          \
   V(_List, [], ObjectArrayGetIndexed, 1079829188)                              \
   V(_List, []=, ObjectArraySetIndexed, 748954698)                              \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 25983597)                    \
@@ -167,8 +167,8 @@ class Range;
   V(_Uint32Array, []=, Uint32ArraySetIndexed, 1980947178)                      \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 1901126825)                 \
   V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1419416331)                \
-  V(_Uint32x4Array, [], Uint32x4ArrayGetIndexed, 1340743913)                   \
-  V(_Uint32x4Array, []=, Uint32x4ArraySetIndexed, 1326924628)                  \
+  V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1675579883)                     \
+  V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 809970636)                     \
 
 
 // A list of core function that should always be inlined.
@@ -193,7 +193,7 @@ class Range;
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 185163470)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
-  V(_TypedList, _getUint32x4, ByteArrayBaseGetUint32x4, 1499091330)            \
+  V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 163795162)               \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -661,8 +661,8 @@ class EmbeddedArray<T, 0> {
   M(BoxDouble)                                                                 \
   M(BoxFloat32x4)                                                              \
   M(UnboxFloat32x4)                                                            \
-  M(BoxUint32x4)                                                               \
-  M(UnboxUint32x4)                                                             \
+  M(BoxInt32x4)                                                               \
+  M(UnboxInt32x4)                                                             \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -689,14 +689,14 @@ class EmbeddedArray<T, 0> {
   M(Float32x4ZeroArg)                                                          \
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
-  M(Float32x4ToUint32x4)                                                       \
+  M(Float32x4ToInt32x4)                                                       \
   M(MaterializeObject)                                                         \
-  M(Uint32x4BoolConstructor)                                                   \
-  M(Uint32x4GetFlag)                                                           \
-  M(Uint32x4Select)                                                            \
-  M(Uint32x4SetFlag)                                                           \
-  M(Uint32x4ToFloat32x4)                                                       \
-  M(BinaryUint32x4Op)                                                          \
+  M(Int32x4BoolConstructor)                                                   \
+  M(Int32x4GetFlag)                                                           \
+  M(Int32x4Select)                                                            \
+  M(Int32x4SetFlag)                                                           \
+  M(Int32x4ToFloat32x4)                                                       \
+  M(BinaryInt32x4Op)                                                          \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -961,7 +961,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
-  friend class UnboxUint32x4Instr;
+  friend class UnboxInt32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
   friend class Float32x4ZeroInstr;
@@ -977,13 +977,13 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ZeroArgInstr;
   friend class Float32x4ClampInstr;
   friend class Float32x4WithInstr;
-  friend class Float32x4ToUint32x4Instr;
-  friend class Uint32x4BoolConstructorInstr;
-  friend class Uint32x4GetFlagInstr;
-  friend class Uint32x4SetFlagInstr;
-  friend class Uint32x4SelectInstr;
-  friend class Uint32x4ToFloat32x4Instr;
-  friend class BinaryUint32x4OpInstr;
+  friend class Float32x4ToInt32x4Instr;
+  friend class Int32x4BoolConstructorInstr;
+  friend class Int32x4GetFlagInstr;
+  friend class Int32x4SetFlagInstr;
+  friend class Int32x4SelectInstr;
+  friend class Int32x4ToFloat32x4Instr;
+  friend class BinaryInt32x4OpInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -4547,9 +4547,9 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
-class BoxUint32x4Instr : public TemplateDefinition<1> {
+class BoxInt32x4Instr : public TemplateDefinition<1> {
  public:
-  explicit BoxUint32x4Instr(Value* value) {
+  explicit BoxInt32x4Instr(Value* value) {
     SetInputAt(0, value);
   }
 
@@ -4559,10 +4559,10 @@ class BoxUint32x4Instr : public TemplateDefinition<1> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
-  DECLARE_INSTRUCTION(BoxUint32x4)
+  DECLARE_INSTRUCTION(BoxInt32x4)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -4575,7 +4575,7 @@ class BoxUint32x4Instr : public TemplateDefinition<1> {
   Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BoxUint32x4Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxInt32x4Instr);
 };
 
 
@@ -4678,9 +4678,9 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
-class UnboxUint32x4Instr : public TemplateDefinition<1> {
+class UnboxInt32x4Instr : public TemplateDefinition<1> {
  public:
-  UnboxUint32x4Instr(Value* value, intptr_t deopt_id) {
+  UnboxInt32x4Instr(Value* value, intptr_t deopt_id) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
@@ -4688,11 +4688,11 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kUint32x4Cid);
+    return (value()->Type()->ToCid() != kInt32x4Cid);
   }
 
   virtual Representation representation() const {
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual bool AllowsCSE() const { return true; }
@@ -4700,7 +4700,7 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  DECLARE_INSTRUCTION(UnboxUint32x4)
+  DECLARE_INSTRUCTION(UnboxInt32x4)
   virtual CompileType ComputeType() const;
 
   virtual bool MayThrow() const { return false; }
@@ -4708,7 +4708,7 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(UnboxUint32x4Instr);
+  DISALLOW_COPY_AND_ASSIGN(UnboxInt32x4Instr);
 };
 
 
@@ -4997,8 +4997,8 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
         (op_kind_ == MethodRecognizer::kFloat32x4ShuffleW)) {
       return kUnboxedDouble;
     }
-    if ((op_kind_ == MethodRecognizer::kUint32x4Shuffle)) {
-      return kUnboxedUint32x4;
+    if ((op_kind_ == MethodRecognizer::kInt32x4Shuffle)) {
+      return kUnboxedInt32x4;
     }
     ASSERT((op_kind_ == MethodRecognizer::kFloat32x4Shuffle));
     return kUnboxedFloat32x4;
@@ -5013,8 +5013,8 @@ class Simd32x4ShuffleInstr : public TemplateDefinition<1> {
         (op_kind_ == MethodRecognizer::kFloat32x4Shuffle)) {
       return kUnboxedFloat32x4;
     }
-    ASSERT((op_kind_ == MethodRecognizer::kUint32x4Shuffle));
-    return kUnboxedUint32x4;
+    ASSERT((op_kind_ == MethodRecognizer::kInt32x4Shuffle));
+    return kUnboxedInt32x4;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -5066,8 +5066,8 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
-    if (op_kind() == MethodRecognizer::kUint32x4ShuffleMix) {
-      return kUnboxedUint32x4;
+    if (op_kind() == MethodRecognizer::kInt32x4ShuffleMix) {
+      return kUnboxedInt32x4;
     }
     ASSERT(op_kind() == MethodRecognizer::kFloat32x4ShuffleMix);
     return kUnboxedFloat32x4;
@@ -5075,8 +5075,8 @@ class Simd32x4ShuffleMixInstr : public TemplateDefinition<2> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    if (op_kind() == MethodRecognizer::kUint32x4ShuffleMix) {
-      return kUnboxedUint32x4;
+    if (op_kind() == MethodRecognizer::kInt32x4ShuffleMix) {
+      return kUnboxedInt32x4;
     }
     ASSERT(op_kind() == MethodRecognizer::kFloat32x4ShuffleMix);
     return kUnboxedFloat32x4;
@@ -5264,7 +5264,7 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -5610,9 +5610,9 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
 };
 
 
-class Float32x4ToUint32x4Instr : public TemplateDefinition<1> {
+class Float32x4ToInt32x4Instr : public TemplateDefinition<1> {
  public:
-  Float32x4ToUint32x4Instr(Value* left, intptr_t deopt_id) {
+  Float32x4ToInt32x4Instr(Value* left, intptr_t deopt_id) {
     SetInputAt(0, left);
     deopt_id_ = deopt_id;
   }
@@ -5624,7 +5624,7 @@ class Float32x4ToUint32x4Instr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -5638,7 +5638,7 @@ class Float32x4ToUint32x4Instr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Float32x4ToUint32x4)
+  DECLARE_INSTRUCTION(Float32x4ToInt32x4)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -5649,13 +5649,13 @@ class Float32x4ToUint32x4Instr : public TemplateDefinition<1> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Float32x4ToUint32x4Instr);
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ToInt32x4Instr);
 };
 
 
-class Uint32x4BoolConstructorInstr : public TemplateDefinition<4> {
+class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
  public:
-  Uint32x4BoolConstructorInstr(Value* value0, Value* value1, Value* value2,
+  Int32x4BoolConstructorInstr(Value* value0, Value* value1, Value* value2,
                                Value* value3, intptr_t deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
@@ -5674,7 +5674,7 @@ class Uint32x4BoolConstructorInstr : public TemplateDefinition<4> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -5688,7 +5688,7 @@ class Uint32x4BoolConstructorInstr : public TemplateDefinition<4> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Uint32x4BoolConstructor)
+  DECLARE_INSTRUCTION(Int32x4BoolConstructor)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -5699,13 +5699,13 @@ class Uint32x4BoolConstructorInstr : public TemplateDefinition<4> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Uint32x4BoolConstructorInstr);
+  DISALLOW_COPY_AND_ASSIGN(Int32x4BoolConstructorInstr);
 };
 
 
-class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
+class Int32x4GetFlagInstr : public TemplateDefinition<1> {
  public:
-  Uint32x4GetFlagInstr(MethodRecognizer::Kind op_kind, Value* value,
+  Int32x4GetFlagInstr(MethodRecognizer::Kind op_kind, Value* value,
                        intptr_t deopt_id)
       : op_kind_(op_kind) {
     SetInputAt(0, value);
@@ -5726,7 +5726,7 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -5735,14 +5735,14 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Uint32x4GetFlag)
+  DECLARE_INSTRUCTION(Int32x4GetFlag)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUint32x4GetFlag()->op_kind();
+    return op_kind() == other->AsInt32x4GetFlag()->op_kind();
   }
 
   virtual bool MayThrow() const { return false; }
@@ -5750,7 +5750,7 @@ class Uint32x4GetFlagInstr : public TemplateDefinition<1> {
  private:
   const MethodRecognizer::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(Uint32x4GetFlagInstr);
+  DISALLOW_COPY_AND_ASSIGN(Int32x4GetFlagInstr);
 };
 
 
@@ -5779,8 +5779,8 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
     if (op_kind_ == MethodRecognizer::kFloat32x4GetSignMask) {
       return kUnboxedFloat32x4;
     }
-    ASSERT(op_kind_ == MethodRecognizer::kUint32x4GetSignMask);
-    return kUnboxedUint32x4;
+    ASSERT(op_kind_ == MethodRecognizer::kInt32x4GetSignMask);
+    return kUnboxedInt32x4;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -5808,9 +5808,9 @@ class Simd32x4GetSignMaskInstr : public TemplateDefinition<1> {
 };
 
 
-class Uint32x4SelectInstr : public TemplateDefinition<3> {
+class Int32x4SelectInstr : public TemplateDefinition<3> {
  public:
-  Uint32x4SelectInstr(Value* mask, Value* trueValue, Value* falseValue,
+  Int32x4SelectInstr(Value* mask, Value* trueValue, Value* falseValue,
                       intptr_t deopt_id) {
     SetInputAt(0, mask);
     SetInputAt(1, trueValue);
@@ -5833,7 +5833,7 @@ class Uint32x4SelectInstr : public TemplateDefinition<3> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1) || (idx == 2));
     if (idx == 0) {
-      return kUnboxedUint32x4;
+      return kUnboxedInt32x4;
     }
     return kUnboxedFloat32x4;
   }
@@ -5844,7 +5844,7 @@ class Uint32x4SelectInstr : public TemplateDefinition<3> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Uint32x4Select)
+  DECLARE_INSTRUCTION(Int32x4Select)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -5855,13 +5855,13 @@ class Uint32x4SelectInstr : public TemplateDefinition<3> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Uint32x4SelectInstr);
+  DISALLOW_COPY_AND_ASSIGN(Int32x4SelectInstr);
 };
 
 
-class Uint32x4SetFlagInstr : public TemplateDefinition<2> {
+class Int32x4SetFlagInstr : public TemplateDefinition<2> {
  public:
-  Uint32x4SetFlagInstr(MethodRecognizer::Kind op_kind, Value* value,
+  Int32x4SetFlagInstr(MethodRecognizer::Kind op_kind, Value* value,
                        Value* flagValue, intptr_t deopt_id)
       : op_kind_(op_kind) {
     SetInputAt(0, value);
@@ -5879,7 +5879,7 @@ class Uint32x4SetFlagInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
-      return kUnboxedUint32x4;
+      return kUnboxedInt32x4;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -5887,7 +5887,7 @@ class Uint32x4SetFlagInstr : public TemplateDefinition<2> {
     if (idx == 1) {
       return kTagged;
     }
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -5896,14 +5896,14 @@ class Uint32x4SetFlagInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Uint32x4SetFlag)
+  DECLARE_INSTRUCTION(Int32x4SetFlag)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUint32x4SetFlag()->op_kind();
+    return op_kind() == other->AsInt32x4SetFlag()->op_kind();
   }
 
   virtual bool MayThrow() const { return false; }
@@ -5911,13 +5911,13 @@ class Uint32x4SetFlagInstr : public TemplateDefinition<2> {
  private:
   const MethodRecognizer::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(Uint32x4SetFlagInstr);
+  DISALLOW_COPY_AND_ASSIGN(Int32x4SetFlagInstr);
 };
 
 
-class Uint32x4ToFloat32x4Instr : public TemplateDefinition<1> {
+class Int32x4ToFloat32x4Instr : public TemplateDefinition<1> {
  public:
-  Uint32x4ToFloat32x4Instr(Value* left, intptr_t deopt_id) {
+  Int32x4ToFloat32x4Instr(Value* left, intptr_t deopt_id) {
     SetInputAt(0, left);
     deopt_id_ = deopt_id;
   }
@@ -5934,7 +5934,7 @@ class Uint32x4ToFloat32x4Instr : public TemplateDefinition<1> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -5943,7 +5943,7 @@ class Uint32x4ToFloat32x4Instr : public TemplateDefinition<1> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(Uint32x4ToFloat32x4)
+  DECLARE_INSTRUCTION(Int32x4ToFloat32x4)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
@@ -5954,13 +5954,13 @@ class Uint32x4ToFloat32x4Instr : public TemplateDefinition<1> {
   virtual bool MayThrow() const { return false; }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Uint32x4ToFloat32x4Instr);
+  DISALLOW_COPY_AND_ASSIGN(Int32x4ToFloat32x4Instr);
 };
 
 
-class BinaryUint32x4OpInstr : public TemplateDefinition<2> {
+class BinaryInt32x4OpInstr : public TemplateDefinition<2> {
  public:
-  BinaryUint32x4OpInstr(Token::Kind op_kind,
+  BinaryInt32x4OpInstr(Token::Kind op_kind,
                         Value* left,
                         Value* right,
                         intptr_t deopt_id)
@@ -5980,12 +5980,12 @@ class BinaryUint32x4OpInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedUint32x4;
+    return kUnboxedInt32x4;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -5994,14 +5994,14 @@ class BinaryUint32x4OpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  DECLARE_INSTRUCTION(BinaryUint32x4Op)
+  DECLARE_INSTRUCTION(BinaryInt32x4Op)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsBinaryUint32x4Op()->op_kind();
+    return op_kind() == other->AsBinaryInt32x4Op()->op_kind();
   }
 
   virtual bool MayThrow() const { return false; }
@@ -6009,7 +6009,7 @@ class BinaryUint32x4OpInstr : public TemplateDefinition<2> {
  private:
   const Token::Kind op_kind_;
 
-  DISALLOW_COPY_AND_ASSIGN(BinaryUint32x4OpInstr);
+  DISALLOW_COPY_AND_ASSIGN(BinaryInt32x4OpInstr);
 };
 
 class BinaryMintOpInstr : public TemplateDefinition<2> {

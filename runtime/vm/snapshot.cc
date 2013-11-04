@@ -32,7 +32,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kUint32x4Cid) ||
+          (class_id >= kInstanceCid && class_id <= kInt32x4Cid) ||
           class_id == kArrayCid ||
           class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
@@ -622,13 +622,13 @@ RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
 }
 
 
-RawUint32x4* SnapshotReader::NewUint32x4(uint32_t v0, uint32_t v1, uint32_t v2,
+RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
                                          uint32_t v3) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
-  cls_ = object_store()->uint32x4_class();
-  RawUint32x4* obj = reinterpret_cast<RawUint32x4*>(
-      AllocateUninitialized(cls_, Uint32x4::InstanceSize()));
+  cls_ = object_store()->int32x4_class();
+  RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
+      AllocateUninitialized(cls_, Int32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
   obj->ptr()->value_[1] = v1;
   obj->ptr()->value_[2] = v2;

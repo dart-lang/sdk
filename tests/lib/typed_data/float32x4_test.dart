@@ -63,39 +63,39 @@ testComparison() {
   var n = new Float32x4(2.0, 2.0, 0.001, 0.1);
   var cmp;
   cmp = m.lessThan(n);
-  Expect.equals(0xFFFFFFFF, cmp.x);
+  Expect.equals(-1, cmp.x);
   Expect.equals(0x0, cmp.y);
   Expect.equals(0x0, cmp.z);
-  Expect.equals(0xFFFFFFFF, cmp.w);
+  Expect.equals(-1, cmp.w);
 
   cmp = m.lessThanOrEqual(n);
-  Expect.equals(0xFFFFFFFF, cmp.x);
-  Expect.equals(0xFFFFFFFF, cmp.y);
+  Expect.equals(-1, cmp.x);
+  Expect.equals(-1, cmp.y);
   Expect.equals(0x0, cmp.z);
-  Expect.equals(0xFFFFFFFF, cmp.w);
+  Expect.equals(-1, cmp.w);
 
   cmp = m.equal(n);
   Expect.equals(0x0, cmp.x);
-  Expect.equals(0xFFFFFFFF, cmp.y);
+  Expect.equals(-1, cmp.y);
   Expect.equals(0x0, cmp.z);
   Expect.equals(0x0, cmp.w);
 
   cmp = m.notEqual(n);
-  Expect.equals(0xFFFFFFFF, cmp.x);
+  Expect.equals(-1, cmp.x);
   Expect.equals(0x0, cmp.y);
-  Expect.equals(0xFFFFFFFF, cmp.z);
-  Expect.equals(0xFFFFFFFF, cmp.w);
+  Expect.equals(-1, cmp.z);
+  Expect.equals(-1, cmp.w);
 
   cmp = m.greaterThanOrEqual(n);
   Expect.equals(0x0, cmp.x);
-  Expect.equals(0xFFFFFFFF, cmp.y);
-  Expect.equals(0xFFFFFFFF, cmp.z);
+  Expect.equals(-1, cmp.y);
+  Expect.equals(-1, cmp.z);
   Expect.equals(0x0, cmp.w);
 
   cmp = m.greaterThan(n);
   Expect.equals(0x0, cmp.x);
   Expect.equals(0x0, cmp.y);
-  Expect.equals(0xFFFFFFFF, cmp.z);
+  Expect.equals(-1, cmp.z);
   Expect.equals(0x0, cmp.w);
 }
 
@@ -220,7 +220,7 @@ testReciprocalSqrt() {
 }
 
 testSelect() {
-  var m = new Uint32x4.bool(true, true, false, false);
+  var m = new Int32x4.bool(true, true, false, false);
   var t = new Float32x4(1.0, 2.0, 3.0, 4.0);
   var f = new Float32x4(5.0, 6.0, 7.0, 8.0);
   var s = m.select(t, f);
@@ -231,31 +231,31 @@ testSelect() {
 }
 
 testConversions() {
-  var m = new Uint32x4(0x3F800000, 0x40000000, 0x40400000, 0x40800000);
-  var n = new Float32x4.fromUint32x4Bits(m);
+  var m = new Int32x4(0x3F800000, 0x40000000, 0x40400000, 0x40800000);
+  var n = new Float32x4.fromInt32x4Bits(m);
   Expect.equals(1.0, n.x);
   Expect.equals(2.0, n.y);
   Expect.equals(3.0, n.z);
   Expect.equals(4.0, n.w);
   n = new Float32x4(5.0, 6.0, 7.0, 8.0);
-  m = new Uint32x4.fromFloat32x4Bits(n);
+  m = new Int32x4.fromFloat32x4Bits(n);
   Expect.equals(0x40A00000, m.x);
   Expect.equals(0x40C00000, m.y);
   Expect.equals(0x40E00000, m.z);
   Expect.equals(0x41000000, m.w);
   // Flip sign using bit-wise operators.
   n = new Float32x4(9.0, 10.0, 11.0, 12.0);
-  m = new Uint32x4(0x80000000, 0x80000000, 0x80000000, 0x80000000);
-  var nMask = new Uint32x4.fromFloat32x4Bits(n);
+  m = new Int32x4(0x80000000, 0x80000000, 0x80000000, 0x80000000);
+  var nMask = new Int32x4.fromFloat32x4Bits(n);
   nMask = nMask ^ m; // flip sign.
-  n = new Float32x4.fromUint32x4Bits(nMask);
+  n = new Float32x4.fromInt32x4Bits(nMask);
   Expect.equals(-9.0, n.x);
   Expect.equals(-10.0, n.y);
   Expect.equals(-11.0, n.z);
   Expect.equals(-12.0, n.w);
-  nMask = new Uint32x4.fromFloat32x4Bits(n);
+  nMask = new Int32x4.fromFloat32x4Bits(n);
   nMask = nMask ^ m; // flip sign.
-  n = new Float32x4.fromUint32x4Bits(nMask);
+  n = new Float32x4.fromInt32x4Bits(nMask);
   Expect.equals(9.0, n.x);
   Expect.equals(10.0, n.y);
   Expect.equals(11.0, n.z);
@@ -264,25 +264,25 @@ testConversions() {
 
 
 testBitOperators() {
-  var m = new Uint32x4(0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA);
-  var n = new Uint32x4(0x55555555, 0x55555555, 0x55555555, 0x55555555);
-  Expect.equals(0xAAAAAAAA, m.x);
-  Expect.equals(0xAAAAAAAA, m.y);
-  Expect.equals(0xAAAAAAAA, m.z);
-  Expect.equals(0xAAAAAAAA, m.w);
-  Expect.equals(0x55555555, n.x);
-  Expect.equals(0x55555555, n.y);
-  Expect.equals(0x55555555, n.z);
-  Expect.equals(0x55555555, n.w);
+  var m = new Int32x4(0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA);
+  var n = new Int32x4(0x5555555, 0x5555555, 0x5555555, 0x5555555);
+  Expect.equals(0xAAAAAAA, m.x);
+  Expect.equals(0xAAAAAAA, m.y);
+  Expect.equals(0xAAAAAAA, m.z);
+  Expect.equals(0xAAAAAAA, m.w);
+  Expect.equals(0x5555555, n.x);
+  Expect.equals(0x5555555, n.y);
+  Expect.equals(0x5555555, n.z);
+  Expect.equals(0x5555555, n.w);
   Expect.equals(true, n.flagX);
   Expect.equals(true, n.flagY);
   Expect.equals(true, n.flagZ);
   Expect.equals(true, n.flagW);
   var o = m|n;  // or
-  Expect.equals(0xFFFFFFFF, o.x);
-  Expect.equals(0xFFFFFFFF, o.y);
-  Expect.equals(0xFFFFFFFF, o.z);
-  Expect.equals(0xFFFFFFFF, o.w);
+  Expect.equals(0xFFFFFFF, o.x);
+  Expect.equals(0xFFFFFFF, o.y);
+  Expect.equals(0xFFFFFFF, o.z);
+  Expect.equals(0xFFFFFFF, o.w);
   Expect.equals(true, o.flagX);
   Expect.equals(true, o.flagY);
   Expect.equals(true, o.flagZ);
@@ -292,14 +292,14 @@ testBitOperators() {
   Expect.equals(0x0, o.y);
   Expect.equals(0x0, o.z);
   Expect.equals(0x0, o.w);
-  n = n.withX(0xAAAAAAAA);
-  n = n.withY(0xAAAAAAAA);
-  n = n.withZ(0xAAAAAAAA);
-  n = n.withW(0xAAAAAAAA);
-  Expect.equals(0xAAAAAAAA, n.x);
-  Expect.equals(0xAAAAAAAA, n.y);
-  Expect.equals(0xAAAAAAAA, n.z);
-  Expect.equals(0xAAAAAAAA, n.w);
+  n = n.withX(0xAAAAAAA);
+  n = n.withY(0xAAAAAAA);
+  n = n.withZ(0xAAAAAAA);
+  n = n.withW(0xAAAAAAA);
+  Expect.equals(0xAAAAAAA, n.x);
+  Expect.equals(0xAAAAAAA, n.y);
+  Expect.equals(0xAAAAAAA, n.z);
+  Expect.equals(0xAAAAAAA, n.w);
   o = m^n;  // xor
   Expect.equals(0x0, o.x);
   Expect.equals(0x0, o.y);
@@ -331,7 +331,7 @@ testSetters() {
   Expect.equals(3.0, f.y);
   Expect.equals(2.0, f.z);
   Expect.equals(1.0, f.w);
-  var m = new Uint32x4.bool(false, false, false, false);
+  var m = new Int32x4.bool(false, false, false, false);
   Expect.equals(false, m.flagX);
   Expect.equals(false, m.flagY);
   Expect.equals(false, m.flagZ);
@@ -364,7 +364,7 @@ testGetters() {
   Expect.equals(2.0, f.y);
   Expect.equals(3.0, f.z);
   Expect.equals(4.0, f.w);
-  var m = new Uint32x4.bool(false, true, true, false);
+  var m = new Int32x4.bool(false, true, true, false);
   Expect.equals(false, m.flagX);
   Expect.equals(true, m.flagY);
   Expect.equals(true, m.flagZ);

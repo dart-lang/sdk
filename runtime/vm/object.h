@@ -4034,8 +4034,8 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Float32x4' type.
   bool IsFloat32x4Type() const;
 
-  // Check if this type represents the 'Uint32x4' type.
-  bool IsUint32x4Type() const;
+  // Check if this type represents the 'Int32x4' type.
+  bool IsInt32x4Type() const;
 
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
@@ -4156,8 +4156,8 @@ class Type : public AbstractType {
   // The 'Float32x4' type.
   static RawType* Float32x4();
 
-  // The 'Uint32x4' type.
-  static RawType* Uint32x4();
+  // The 'Int32x4' type.
+  static RawType* Int32x4();
 
   // The 'num' type.
   static RawType* Number();
@@ -5643,36 +5643,36 @@ class Float32x4 : public Instance {
 };
 
 
-class Uint32x4 : public Instance {
+class Int32x4 : public Instance {
  public:
-  static RawUint32x4* New(uint32_t value0, uint32_t value1, uint32_t value2,
-                          uint32_t value3, Heap::Space space = Heap::kNew);
-  static RawUint32x4* New(simd128_value_t value,
+  static RawInt32x4* New(int32_t value0, int32_t value1, int32_t value2,
+                          int32_t value3, Heap::Space space = Heap::kNew);
+  static RawInt32x4* New(simd128_value_t value,
                           Heap::Space space = Heap::kNew);
 
-  uint32_t x() const;
-  uint32_t y() const;
-  uint32_t z() const;
-  uint32_t w() const;
+  int32_t x() const;
+  int32_t y() const;
+  int32_t z() const;
+  int32_t w() const;
 
-  void set_x(uint32_t x) const;
-  void set_y(uint32_t y) const;
-  void set_z(uint32_t z) const;
-  void set_w(uint32_t w) const;
+  void set_x(int32_t x) const;
+  void set_y(int32_t y) const;
+  void set_z(int32_t z) const;
+  void set_w(int32_t w) const;
 
   simd128_value_t value() const;
   void set_value(simd128_value_t value) const;
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawUint32x4));
+    return RoundedAllocationSize(sizeof(RawInt32x4));
   }
 
   static intptr_t value_offset() {
-    return OFFSET_OF(RawUint32x4, value_);
+    return OFFSET_OF(RawInt32x4, value_);
   }
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint32x4, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Int32x4, Instance);
   friend class Class;
 };
 
@@ -5724,7 +5724,7 @@ class TypedData : public Instance {
   TYPED_GETTER_SETTER(Float32, float)
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Uint32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
 
 #undef TYPED_GETTER_SETTER
 
@@ -5858,7 +5858,7 @@ class ExternalTypedData : public Instance {
   TYPED_GETTER_SETTER(Float32, float)
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Uint32x4, simd128_value_t);
+  TYPED_GETTER_SETTER(Int32x4, simd128_value_t);
 
 #undef TYPED_GETTER_SETTER
 

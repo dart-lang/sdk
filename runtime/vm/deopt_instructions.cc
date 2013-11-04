@@ -190,7 +190,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kDoubleStackSlot:
     case DeoptInstr::kInt64StackSlot:
     case DeoptInstr::kFloat32x4StackSlot:
-    case DeoptInstr::kUint32x4StackSlot:
+    case DeoptInstr::kInt32x4StackSlot:
     case DeoptInstr::kPp:
     case DeoptInstr::kCallerPp:
     case DeoptInstr::kMaterializedObjectRef:
@@ -200,7 +200,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kFpuRegister:
     case DeoptInstr::kInt64FpuRegister:
     case DeoptInstr::kFloat32x4FpuRegister:
-    case DeoptInstr::kUint32x4FpuRegister:
+    case DeoptInstr::kInt32x4FpuRegister:
       // TODO(turnidge): Sometimes we encounter a deopt instruction
       // with a register source while deoptimizing frames during
       // debugging but we haven't saved our register set.  This
@@ -506,15 +506,15 @@ class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
 };
 
 
-class DeoptUint32x4StackSlotInstr : public DeoptInstr {
+class DeoptInt32x4StackSlotInstr : public DeoptInstr {
  public:
-  explicit DeoptUint32x4StackSlotInstr(intptr_t source_index)
+  explicit DeoptInt32x4StackSlotInstr(intptr_t source_index)
       : stack_slot_index_(source_index) {
     ASSERT(stack_slot_index_ >= 0);
   }
 
   virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kUint32x4StackSlot; }
+  virtual DeoptInstr::Kind kind() const { return kInt32x4StackSlot; }
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
@@ -527,14 +527,14 @@ class DeoptUint32x4StackSlotInstr : public DeoptInstr {
     simd128_value_t* source_addr = reinterpret_cast<simd128_value_t*>(
         deopt_context->GetSourceFrameAddressAt(source_index));
     *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferUint32x4Materialization(
-        *source_addr, reinterpret_cast<RawUint32x4**>(dest_addr));
+    deopt_context->DeferInt32x4Materialization(
+        *source_addr, reinterpret_cast<RawInt32x4**>(dest_addr));
   }
 
  private:
   const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptUint32x4StackSlotInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptInt32x4StackSlotInstr);
 };
 
 
@@ -744,13 +744,13 @@ class DeoptFloat32x4FpuRegisterInstr: public DeoptInstr {
 
 
 // Deoptimization instruction moving an XMM register.
-class DeoptUint32x4FpuRegisterInstr: public DeoptInstr {
+class DeoptInt32x4FpuRegisterInstr: public DeoptInstr {
  public:
-  explicit DeoptUint32x4FpuRegisterInstr(intptr_t reg_as_int)
+  explicit DeoptInt32x4FpuRegisterInstr(intptr_t reg_as_int)
       : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
   virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kUint32x4FpuRegister; }
+  virtual DeoptInstr::Kind kind() const { return kInt32x4FpuRegister; }
 
   virtual const char* ToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
@@ -760,14 +760,14 @@ class DeoptUint32x4FpuRegisterInstr: public DeoptInstr {
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
     *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferUint32x4Materialization(
-        value, reinterpret_cast<RawUint32x4**>(dest_addr));
+    deopt_context->DeferInt32x4Materialization(
+        value, reinterpret_cast<RawInt32x4**>(dest_addr));
   }
 
  private:
   const FpuRegister reg_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptUint32x4FpuRegisterInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptInt32x4FpuRegisterInstr);
 };
 
 
@@ -1069,8 +1069,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
     case kInt64StackSlot: return new DeoptInt64StackSlotInstr(source_index);
     case kFloat32x4StackSlot:
         return new DeoptFloat32x4StackSlotInstr(source_index);
-    case kUint32x4StackSlot:
-        return new DeoptUint32x4StackSlotInstr(source_index);
+    case kInt32x4StackSlot:
+        return new DeoptInt32x4StackSlotInstr(source_index);
     case kRetAddress: return new DeoptRetAddressInstr(source_index);
     case kConstant: return new DeoptConstantInstr(source_index);
     case kRegister: return new DeoptRegisterInstr(source_index);
@@ -1078,8 +1078,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
     case kInt64FpuRegister: return new DeoptInt64FpuRegisterInstr(source_index);
     case kFloat32x4FpuRegister:
         return new DeoptFloat32x4FpuRegisterInstr(source_index);
-    case kUint32x4FpuRegister:
-        return new DeoptUint32x4FpuRegisterInstr(source_index);
+    case kInt32x4FpuRegister:
+        return new DeoptInt32x4FpuRegisterInstr(source_index);
     case kPcMarker: return new DeoptPcMarkerInstr(source_index);
     case kPp: return new DeoptPpInstr(source_index);
     case kCallerFp: return new DeoptCallerFpInstr();
@@ -1214,8 +1214,8 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     } else if (value->definition()->representation() == kUnboxedFloat32x4) {
       deopt_instr = new DeoptFloat32x4FpuRegisterInstr(source_loc.fpu_reg());
     } else {
-      ASSERT(value->definition()->representation() == kUnboxedUint32x4);
-      deopt_instr = new DeoptUint32x4FpuRegisterInstr(source_loc.fpu_reg());
+      ASSERT(value->definition()->representation() == kUnboxedInt32x4);
+      deopt_instr = new DeoptInt32x4FpuRegisterInstr(source_loc.fpu_reg());
     }
   } else if (source_loc.IsStackSlot()) {
     ASSERT(value->definition()->representation() == kTagged);
@@ -1234,8 +1234,8 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     if (value->definition()->representation() == kUnboxedFloat32x4) {
       deopt_instr = new DeoptFloat32x4StackSlotInstr(source_index);
     } else {
-      ASSERT(value->definition()->representation() == kUnboxedUint32x4);
-      deopt_instr = new DeoptUint32x4StackSlotInstr(source_index);
+      ASSERT(value->definition()->representation() == kUnboxedInt32x4);
+      deopt_instr = new DeoptInt32x4StackSlotInstr(source_index);
     }
   } else if (source_loc.IsInvalid() &&
              value->definition()->IsMaterializeObject()) {

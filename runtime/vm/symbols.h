@@ -134,9 +134,9 @@ class ObjectPointerVisitor;
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
   V(_Float32x4, "_Float32x4")                                                  \
-  V(_Uint32x4, "_Uint32x4")                                                    \
+  V(_Int32x4, "_Int32x4")                                                    \
   V(Float32x4, "Float32x4")                                                    \
-  V(Uint32x4, "Uint32x4")                                                      \
+  V(Int32x4, "Int32x4")                                                      \
   V(Int8List, "Int8List")                                                      \
   V(Int8ListFactory, "Int8List.")                                              \
   V(Uint8List, "Uint8List")                                                    \
@@ -157,8 +157,8 @@ class ObjectPointerVisitor;
   V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
   V(Float32x4ListFactory, "Float32x4List.")                                    \
-  V(Uint32x4List, "Uint32x4List")                                              \
-  V(Uint32x4ListFactory, "Uint32x4List.")                                      \
+  V(Int32x4List, "Int32x4List")                                              \
+  V(Int32x4ListFactory, "Int32x4List.")                                      \
   V(Float32List, "Float32List")                                                \
   V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \
@@ -183,8 +183,8 @@ class ObjectPointerVisitor;
   V(_Uint64ArrayFactory, "_Uint64Array.")                                      \
   V(_Float32x4Array, "_Float32x4Array")                                        \
   V(_Float32x4ArrayFactory, "_Float32x4Array.")                                \
-  V(_Uint32x4Array, "_Uint32x4Array")                                          \
-  V(_Uint32x4ArrayFactory, "_Uint32x4Array.")                                  \
+  V(_Int32x4Array, "_Int32x4Array")                                          \
+  V(_Int32x4ArrayFactory, "_Int32x4Array.")                                  \
   V(_Float32Array, "_Float32Array")                                            \
   V(_Float32ArrayFactory, "_Float32Array.")                                    \
   V(_Float64Array, "_Float64Array")                                            \
@@ -201,7 +201,7 @@ class ObjectPointerVisitor;
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float64ArrayView, "_Float64ArrayView")                                    \
   V(_Float32x4ArrayView, "_Float32x4ArrayView")                                \
-  V(_Uint32x4ArrayView, "_Uint32x4ArrayView")                                  \
+  V(_Int32x4ArrayView, "_Int32x4ArrayView")                                  \
   V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
@@ -212,7 +212,7 @@ class ObjectPointerVisitor;
   V(_ExternalInt64Array, "_ExternalInt64Array")                                \
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
-  V(_ExternalUint32x4Array, "_ExternalUint32x4Array")                          \
+  V(_ExternalInt32x4Array, "_ExternalInt32x4Array")                          \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
   V(ByteData, "ByteData")                                                      \

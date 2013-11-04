@@ -74,6 +74,15 @@ LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # co19 issue 654
 

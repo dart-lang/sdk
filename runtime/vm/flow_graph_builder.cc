@@ -2252,7 +2252,7 @@ static intptr_t GetResultCidOfNative(const Function& function) {
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
-      case kTypedDataUint32x4ArrayCid:
+      case kTypedDataInt32x4ArrayCid:
         return function_class.id();
       default:
         return kDynamicCid;  // Unknown.

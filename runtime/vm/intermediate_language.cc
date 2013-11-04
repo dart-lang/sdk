@@ -1499,15 +1499,15 @@ Definition* UnboxFloat32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Definition* BoxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+Definition* BoxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
   }
 
-  // Fold away BoxUint32x4(UnboxUint32x4(v)).
-  UnboxUint32x4Instr* defn = value()->definition()->AsUnboxUint32x4();
-  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kUint32x4Cid)) {
+  // Fold away BoxInt32x4(UnboxInt32x4(v)).
+  UnboxInt32x4Instr* defn = value()->definition()->AsUnboxInt32x4();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kInt32x4Cid)) {
     return defn->value()->definition();
   }
 
@@ -1515,9 +1515,9 @@ Definition* BoxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Definition* UnboxUint32x4Instr::Canonicalize(FlowGraph* flow_graph) {
-  // Fold away UnboxUint32x4(BoxUint32x4(v)).
-  BoxUint32x4Instr* defn = value()->definition()->AsBoxUint32x4();
+Definition* UnboxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
+  // Fold away UnboxInt32x4(BoxInt32x4(v)).
+  BoxInt32x4Instr* defn = value()->definition()->AsBoxInt32x4();
   return (defn != NULL) ? defn->value()->definition() : this;
 }
 

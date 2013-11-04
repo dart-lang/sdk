@@ -393,13 +393,13 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxFloat32x4Instr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedFloat32x4) && (to == kTagged)) {
     converted = new BoxFloat32x4Instr(use->CopyWithType());
-  } else if ((from == kTagged) && (to == kUnboxedUint32x4)) {
-    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kUint32x4Cid));
+  } else if ((from == kTagged) && (to == kUnboxedInt32x4)) {
+    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kInt32x4Cid));
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    converted = new UnboxUint32x4Instr(use->CopyWithType(), deopt_id);
-  } else if ((from == kUnboxedUint32x4) && (to == kTagged)) {
-    converted = new BoxUint32x4Instr(use->CopyWithType());
+    converted = new UnboxInt32x4Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedInt32x4) && (to == kTagged)) {
+    converted = new BoxInt32x4Instr(use->CopyWithType());
   } else {
     // We have failed to find a suitable conversion instruction.
     // Insert two "dummy" conversion instructions with the correct
@@ -412,8 +412,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     Definition* boxed = NULL;
     if (from == kUnboxedDouble) {
       boxed = new BoxDoubleInstr(use->CopyWithType());
-    } else if (from == kUnboxedUint32x4) {
-      boxed = new BoxUint32x4Instr(use->CopyWithType());
+    } else if (from == kUnboxedInt32x4) {
+      boxed = new BoxInt32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedFloat32x4) {
       boxed = new BoxFloat32x4Instr(use->CopyWithType());
     } else if (from == kUnboxedMint) {
@@ -426,8 +426,8 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     Value* to_value = new Value(boxed);
     if (to == kUnboxedDouble) {
       converted = new UnboxDoubleInstr(to_value, deopt_id);
-    } else if (to == kUnboxedUint32x4) {
-      converted = new UnboxUint32x4Instr(to_value, deopt_id);
+    } else if (to == kUnboxedInt32x4) {
+      converted = new UnboxInt32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedFloat32x4) {
       converted = new UnboxFloat32x4Instr(to_value, deopt_id);
     } else if (to == kUnboxedMint) {
@@ -492,9 +492,9 @@ static bool UnboxPhi(PhiInstr* phi) {
         unboxed = kUnboxedFloat32x4;
       }
       break;
-    case kUint32x4Cid:
+    case kInt32x4Cid:
       if (ShouldInlineSimd()) {
-        unboxed = kUnboxedUint32x4;
+        unboxed = kUnboxedInt32x4;
       }
       break;
   }
@@ -510,7 +510,7 @@ static bool UnboxPhi(PhiInstr* phi) {
 
 void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of Double,
-  // Float32x4, or Uint32x4 type.
+  // Float32x4, or Int32x4 type.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
     if (join_entry != NULL) {
@@ -812,9 +812,9 @@ static intptr_t MethodKindToCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       return kTypedDataFloat32x4ArrayCid;
 
-    case MethodRecognizer::kUint32x4ArrayGetIndexed:
-    case MethodRecognizer::kUint32x4ArraySetIndexed:
-      return kTypedDataUint32x4ArrayCid;
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
+    case MethodRecognizer::kInt32x4ArraySetIndexed:
+      return kTypedDataInt32x4ArrayCid;
 
     default:
       break;
@@ -976,7 +976,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                                          : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
-    // an unboxed double, an unboxed Float32x4, or unboxed Uint32x4.
+    // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
     needs_store_barrier = kNoStoreBarrier;
     Instruction* check =
         GetCheckClass(stored_value, value_check, call->deopt_id());
@@ -1122,10 +1122,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid,
                                      ic_data, entry, last);
-    case MethodRecognizer::kByteArrayBaseGetUint32x4:
+    case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) return false;
       return InlineByteArrayViewLoad(call, receiver, receiver_cid,
-                                     kTypedDataUint32x4ArrayCid,
+                                     kTypedDataInt32x4ArrayCid,
                                      ic_data, entry, last);
     default:
       return false;
@@ -1465,8 +1465,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kDoubleCid;
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
-      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
-        operands_type = kUint32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+        operands_type = kInt32x4Cid;
       } else {
         return false;
       }
@@ -1510,8 +1510,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data)) {
         operands_type = kMintCid;
-      } else if (HasOnlyTwoOf(ic_data, kUint32x4Cid)) {
-        operands_type = kUint32x4Cid;
+      } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+        operands_type = kInt32x4Cid;
       } else {
         return false;
       }
@@ -1585,8 +1585,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     }
   } else if (operands_type == kFloat32x4Cid) {
     return InlineFloat32x4BinaryOp(call, op_kind);
-  } else if (operands_type == kUint32x4Cid) {
-    return InlineUint32x4BinaryOp(call, op_kind);
+  } else if (operands_type == kInt32x4Cid) {
+    return InlineInt32x4BinaryOp(call, op_kind);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
     ASSERT(operands_type == kSmiCid);
@@ -1850,7 +1850,7 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
+bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
                                               MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1862,15 +1862,15 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
                 call->env(),
                 call);
   intptr_t mask = 0;
-  if ((getter == MethodRecognizer::kUint32x4Shuffle) ||
-      (getter == MethodRecognizer::kUint32x4ShuffleMix)) {
+  if ((getter == MethodRecognizer::kInt32x4Shuffle) ||
+      (getter == MethodRecognizer::kInt32x4ShuffleMix)) {
     // Extract shuffle mask.
     Definition* mask_definition = NULL;
-    if (getter == MethodRecognizer::kUint32x4Shuffle) {
+    if (getter == MethodRecognizer::kInt32x4Shuffle) {
       ASSERT(call->ArgumentCount() == 2);
       mask_definition = call->ArgumentAt(1);
     } else {
-      ASSERT(getter == MethodRecognizer::kUint32x4ShuffleMix);
+      ASSERT(getter == MethodRecognizer::kInt32x4ShuffleMix);
       ASSERT(call->ArgumentCount() == 3);
       mask_definition = call->ArgumentAt(2);
     }
@@ -1890,14 +1890,14 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
       return false;
     }
   }
-  if (getter == MethodRecognizer::kUint32x4GetSignMask) {
+  if (getter == MethodRecognizer::kInt32x4GetSignMask) {
     Simd32x4GetSignMaskInstr* instr = new Simd32x4GetSignMaskInstr(
         getter,
         new Value(call->ArgumentAt(0)),
         call->deopt_id());
     ReplaceCall(call, instr);
     return true;
-  } else if (getter == MethodRecognizer::kUint32x4ShuffleMix) {
+  } else if (getter == MethodRecognizer::kInt32x4ShuffleMix) {
     Simd32x4ShuffleMixInstr* instr = new Simd32x4ShuffleMixInstr(
         getter,
         new Value(call->ArgumentAt(0)),
@@ -1906,7 +1906,7 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
         call->deopt_id());
     ReplaceCall(call, instr);
     return true;
-  } else if (getter == MethodRecognizer::kUint32x4Shuffle) {
+  } else if (getter == MethodRecognizer::kInt32x4Shuffle) {
     Simd32x4ShuffleInstr* instr = new Simd32x4ShuffleInstr(
         getter,
         new Value(call->ArgumentAt(0)),
@@ -1915,7 +1915,7 @@ bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
     ReplaceCall(call, instr);
     return true;
   } else {
-    Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
+    Int32x4GetFlagInstr* instr = new Int32x4GetFlagInstr(
         getter,
         new Value(call->ArgumentAt(0)),
         call->deopt_id());
@@ -1957,7 +1957,7 @@ bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineUint32x4BinaryOp(InstanceCallInstr* call,
+bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
                                                 Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
@@ -1980,10 +1980,10 @@ bool FlowGraphOptimizer::InlineUint32x4BinaryOp(InstanceCallInstr* call,
                 call->env(),
                 call);
   // Replace call.
-  BinaryUint32x4OpInstr* uint32x4_bin_op =
-      new BinaryUint32x4OpInstr(op_kind, new Value(left), new Value(right),
+  BinaryInt32x4OpInstr* int32x4_bin_op =
+      new BinaryInt32x4OpInstr(op_kind, new Value(left), new Value(right),
                                 call->deopt_id());
-  ReplaceCall(call, uint32x4_bin_op);
+  ReplaceCall(call, int32x4_bin_op);
   return true;
 }
 
@@ -2082,7 +2082,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat32x4ArrayCid:
-    case kTypedDataUint32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
       return true;
     default:
       return false;
@@ -2256,8 +2256,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return BuildByteArrayViewLoad(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseGetFloat32x4:
         return BuildByteArrayViewLoad(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint32x4:
-        return BuildByteArrayViewLoad(call, kTypedDataUint32x4ArrayCid);
+      case MethodRecognizer::kByteArrayBaseGetInt32x4:
+        return BuildByteArrayViewLoad(call, kTypedDataInt32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
@@ -2278,8 +2278,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         return BuildByteArrayViewStore(call, kTypedDataFloat64ArrayCid);
       case MethodRecognizer::kByteArrayBaseSetFloat32x4:
         return BuildByteArrayViewStore(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint32x4:
-        return BuildByteArrayViewStore(call, kTypedDataUint32x4ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetInt32x4:
+        return BuildByteArrayViewStore(call, kTypedDataInt32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -2290,8 +2290,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     return TryInlineFloat32x4Method(call, recognized_kind);
   }
 
-  if ((class_ids[0] == kUint32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
-    return TryInlineUint32x4Method(call, recognized_kind);
+  if ((class_ids[0] == kInt32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+    return TryInlineInt32x4Method(call, recognized_kind);
   }
 
   if (recognized_kind == MethodRecognizer::kIntegerLeftShiftWithMask32) {
@@ -2383,9 +2383,9 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
                                       call->deopt_id());
     ReplaceCall(call, con);
     return true;
-  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromUint32x4Bits) {
-    Uint32x4ToFloat32x4Instr* cast =
-        new Uint32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4FromInt32x4Bits) {
+    Int32x4ToFloat32x4Instr* cast =
+        new Int32x4ToFloat32x4Instr(new Value(call->ArgumentAt(1)),
                                     call->deopt_id());
     ReplaceCall(call, cast);
     return true;
@@ -2394,14 +2394,14 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
 }
 
 
-bool FlowGraphOptimizer::TryInlineUint32x4Constructor(
+bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
-  if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
-    Uint32x4BoolConstructorInstr* con = new Uint32x4BoolConstructorInstr(
+  if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
+    Int32x4BoolConstructorInstr* con = new Int32x4BoolConstructorInstr(
         new Value(call->ArgumentAt(1)),
         new Value(call->ArgumentAt(2)),
         new Value(call->ArgumentAt(3)),
@@ -2409,9 +2409,9 @@ bool FlowGraphOptimizer::TryInlineUint32x4Constructor(
         call->deopt_id());
     ReplaceCall(call, con);
     return true;
-  } else if (recognized_kind == MethodRecognizer::kUint32x4FromFloat32x4Bits) {
-    Float32x4ToUint32x4Instr* cast =
-        new Float32x4ToUint32x4Instr(new Value(call->ArgumentAt(1)),
+  } else if (recognized_kind == MethodRecognizer::kInt32x4FromFloat32x4Bits) {
+    Float32x4ToInt32x4Instr* cast =
+        new Float32x4ToInt32x4Instr(new Value(call->ArgumentAt(1)),
                                      call->deopt_id());
     ReplaceCall(call, cast);
     return true;
@@ -2575,7 +2575,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
 }
 
 
-bool FlowGraphOptimizer::TryInlineUint32x4Method(
+bool FlowGraphOptimizer::TryInlineInt32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2583,18 +2583,18 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
   }
   ASSERT(call->HasICData());
   switch (recognized_kind) {
-    case MethodRecognizer::kUint32x4ShuffleMix:
-    case MethodRecognizer::kUint32x4Shuffle:
-    case MethodRecognizer::kUint32x4GetFlagX:
-    case MethodRecognizer::kUint32x4GetFlagY:
-    case MethodRecognizer::kUint32x4GetFlagZ:
-    case MethodRecognizer::kUint32x4GetFlagW:
-    case MethodRecognizer::kUint32x4GetSignMask:
-      ASSERT(call->ic_data()->HasReceiverClassId(kUint32x4Cid));
+    case MethodRecognizer::kInt32x4ShuffleMix:
+    case MethodRecognizer::kInt32x4Shuffle:
+    case MethodRecognizer::kInt32x4GetFlagX:
+    case MethodRecognizer::kInt32x4GetFlagY:
+    case MethodRecognizer::kInt32x4GetFlagZ:
+    case MethodRecognizer::kInt32x4GetFlagW:
+    case MethodRecognizer::kInt32x4GetSignMask:
+      ASSERT(call->ic_data()->HasReceiverClassId(kInt32x4Cid));
       ASSERT(call->ic_data()->HasOneTarget());
-      return InlineUint32x4Getter(call, recognized_kind);
+      return InlineInt32x4Getter(call, recognized_kind);
 
-    case MethodRecognizer::kUint32x4Select: {
+    case MethodRecognizer::kInt32x4Select: {
       Definition* mask = call->ArgumentAt(0);
       Definition* trueValue = call->ArgumentAt(1);
       Definition* falseValue = call->ArgumentAt(2);
@@ -2605,7 +2605,7 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
                     call->deopt_id(),
                     call->env(),
                     call);
-      Uint32x4SelectInstr* select = new Uint32x4SelectInstr(
+      Int32x4SelectInstr* select = new Int32x4SelectInstr(
           new Value(mask),
           new Value(trueValue),
           new Value(falseValue),
@@ -2613,10 +2613,10 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
       ReplaceCall(call, select);
       return true;
     }
-    case MethodRecognizer::kUint32x4WithFlagX:
-    case MethodRecognizer::kUint32x4WithFlagY:
-    case MethodRecognizer::kUint32x4WithFlagZ:
-    case MethodRecognizer::kUint32x4WithFlagW: {
+    case MethodRecognizer::kInt32x4WithFlagX:
+    case MethodRecognizer::kInt32x4WithFlagY:
+    case MethodRecognizer::kInt32x4WithFlagZ:
+    case MethodRecognizer::kInt32x4WithFlagW: {
       Definition* left = call->ArgumentAt(0);
       Definition* flag = call->ArgumentAt(1);
       // Type check left.
@@ -2626,7 +2626,7 @@ bool FlowGraphOptimizer::TryInlineUint32x4Method(
                     call->deopt_id(),
                     call->env(),
                     call);
-      Uint32x4SetFlagInstr* setFlag = new Uint32x4SetFlagInstr(
+      Int32x4SetFlagInstr* setFlag = new Int32x4SetFlagInstr(
           recognized_kind,
           new Value(left),
           new Value(flag),
@@ -2770,7 +2770,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
 bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
                                                 intptr_t view_cid) {
   bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                   (view_cid == kTypedDataUint32x4ArrayCid);
+                   (view_cid == kTypedDataInt32x4ArrayCid);
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
@@ -2820,7 +2820,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(InstanceCallInstr* call,
 bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
                                                  intptr_t view_cid) {
   bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                   (view_cid == kTypedDataUint32x4ArrayCid);
+                   (view_cid == kTypedDataInt32x4ArrayCid);
   if (simd_view && !ShouldInlineSimd()) {
     return false;
   }
@@ -2875,14 +2875,14 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(InstanceCallInstr* call,
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
     }
-    case kTypedDataUint32x4ArrayCid: {
-      // Check that value is always Uint32x4.
+    case kTypedDataInt32x4ArrayCid: {
+      // Check that value is always Int32x4.
       value_check = ICData::New(flow_graph_->parsed_function().function(),
                                 call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
-      value_check.AddReceiverCheck(kUint32x4Cid, target);
+      value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
     }
     case kTypedDataFloat32x4ArrayCid: {
@@ -3250,8 +3250,8 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Constructor)) {
     TryInlineFloat32x4Constructor(call, recognized_kind);
-  } else if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
-    TryInlineUint32x4Constructor(call, recognized_kind);
+  } else if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
+    TryInlineInt32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -6877,40 +6877,40 @@ void ConstantPropagator::VisitFloat32x4With(Float32x4WithInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitFloat32x4ToUint32x4(
-    Float32x4ToUint32x4Instr* instr) {
+void ConstantPropagator::VisitFloat32x4ToInt32x4(
+    Float32x4ToInt32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4BoolConstructor(
-    Uint32x4BoolConstructorInstr* instr) {
+void ConstantPropagator::VisitInt32x4BoolConstructor(
+    Int32x4BoolConstructorInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4GetFlag(Uint32x4GetFlagInstr* instr) {
+void ConstantPropagator::VisitInt32x4GetFlag(Int32x4GetFlagInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4SetFlag(Uint32x4SetFlagInstr* instr) {
+void ConstantPropagator::VisitInt32x4SetFlag(Int32x4SetFlagInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4Select(Uint32x4SelectInstr* instr) {
+void ConstantPropagator::VisitInt32x4Select(Int32x4SelectInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitUint32x4ToFloat32x4(
-    Uint32x4ToFloat32x4Instr* instr) {
+void ConstantPropagator::VisitInt32x4ToFloat32x4(
+    Int32x4ToFloat32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitBinaryUint32x4Op(BinaryUint32x4OpInstr* instr) {
+void ConstantPropagator::VisitBinaryInt32x4Op(BinaryInt32x4OpInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -6982,7 +6982,7 @@ void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
 }
 
 
-void ConstantPropagator::VisitUnboxUint32x4(UnboxUint32x4Instr* instr) {
+void ConstantPropagator::VisitUnboxInt32x4(UnboxInt32x4Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
@@ -6993,7 +6993,7 @@ void ConstantPropagator::VisitUnboxUint32x4(UnboxUint32x4Instr* instr) {
 }
 
 
-void ConstantPropagator::VisitBoxUint32x4(BoxUint32x4Instr* instr) {
+void ConstantPropagator::VisitBoxInt32x4(BoxInt32x4Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);

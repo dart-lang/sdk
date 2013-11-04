@@ -84,8 +84,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->double_class())),
       float32x4_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->float32x4_class())),
-      uint32x4_class_(Class::ZoneHandle(
-          Isolate::Current()->object_store()->uint32x4_class())),
+      int32x4_class_(Class::ZoneHandle(
+          Isolate::Current()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(
           Library::Handle(Library::CoreLibrary()).
               LookupClass(Symbols::List()))),
@@ -502,7 +502,7 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
           it.SetCurrentLocation(Location::DoubleStackSlot(index));
           break;
         case kUnboxedFloat32x4:
-        case kUnboxedUint32x4:
+        case kUnboxedInt32x4:
           it.SetCurrentLocation(Location::QuadStackSlot(index));
           break;
         default:

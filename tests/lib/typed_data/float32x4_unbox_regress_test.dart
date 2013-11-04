@@ -74,7 +74,7 @@ void testGetDeopt() {
 }
 
 void testComparison(a, b) {
-  Uint32x4 r = a.equal(b);
+  Int32x4 r = a.equal(b);
   Expect.equals(true, r.flagX);
   Expect.equals(false, r.flagY);
   Expect.equals(false, r.flagZ);

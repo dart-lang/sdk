@@ -81,7 +81,7 @@ struct simd128_value_t {
     storage[3] = v[3];
     return *this;
   }
-  simd128_value_t& readFrom(const uint32_t* v) {
+  simd128_value_t& readFrom(const int32_t* v) {
     const float* vv = reinterpret_cast<const float*>(v);
     storage[0] = vv[0];
     storage[1] = vv[1];
@@ -99,7 +99,7 @@ struct simd128_value_t {
     v[2] = storage[2];
     v[3] = storage[3];
   }
-  void writeTo(uint32_t* v) {
+  void writeTo(int32_t* v) {
     float* vv = reinterpret_cast<float*>(v);
     vv[0] = storage[0];
     vv[1] = storage[1];

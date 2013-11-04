@@ -1148,13 +1148,13 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-  // Register Float32x4 and Uint32x4 in the object store.
+  // Register Float32x4 and Int32x4 in the object store.
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
+  cls = Class::New<Int32x4>();
+  object_store->set_int32x4_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
@@ -1166,13 +1166,13 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_float32x4_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, Symbols::Uint32x4(), lib);
+  RegisterClass(cls, Symbols::Int32x4(), lib);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_prefinalized();
   pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_uint32x4_type(type);
+  object_store->set_int32x4_type(type);
 
   object_store->set_typed_data_classes(typed_data_classes);
 
@@ -1308,8 +1308,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
 
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
+  cls = Class::New<Int32x4>();
+  object_store->set_int32x4_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
@@ -1534,8 +1534,8 @@ RawString* Class::UserVisibleName() const {
       return Symbols::List().raw();
     case kFloat32x4Cid:
       return Symbols::Float32x4().raw();
-    case kUint32x4Cid:
-      return Symbols::Uint32x4().raw();
+    case kInt32x4Cid:
+      return Symbols::Int32x4().raw();
     case kTypedDataInt8ArrayCid:
     case kExternalTypedDataInt8ArrayCid:
       return Symbols::Int8List().raw();
@@ -11410,9 +11410,9 @@ bool AbstractType::IsFloat32x4Type() const {
 }
 
 
-bool AbstractType::IsUint32x4Type() const {
+bool AbstractType::IsInt32x4Type() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::Uint32x4()).type_class());
+      (type_class() == Type::Handle(Type::Int32x4()).type_class());
 }
 
 
@@ -11575,8 +11575,8 @@ RawType* Type::Float32x4() {
 }
 
 
-RawType* Type::Uint32x4() {
-  return Isolate::Current()->object_store()->uint32x4_type();
+RawType* Type::Int32x4() {
+  return Isolate::Current()->object_store()->int32x4_type();
 }
 
 
@@ -15053,14 +15053,14 @@ void Float32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
-                           Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint32x4_class() !=
+RawInt32x4* Int32x4::New(int32_t v0, int32_t v1, int32_t v2, int32_t v3,
+                         Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->int32x4_class() !=
          Class::null());
-  Uint32x4& result = Uint32x4::Handle();
+  Int32x4& result = Int32x4::Handle();
   {
-    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
-                                      Uint32x4::InstanceSize(),
+    RawObject* raw = Object::Allocate(Int32x4::kClassId,
+                                      Int32x4::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
@@ -15073,13 +15073,13 @@ RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
 }
 
 
-RawUint32x4* Uint32x4::New(simd128_value_t value, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+RawInt32x4* Int32x4::New(simd128_value_t value, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->int32x4_class() !=
          Class::null());
-  Uint32x4& result = Uint32x4::Handle();
+  Int32x4& result = Int32x4::Handle();
   {
-    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
-                                      Uint32x4::InstanceSize(),
+    RawObject* raw = Object::Allocate(Int32x4::kClassId,
+                                      Int32x4::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
@@ -15089,62 +15089,62 @@ RawUint32x4* Uint32x4::New(simd128_value_t value, Heap::Space space) {
 }
 
 
-void Uint32x4::set_x(uint32_t value) const {
+void Int32x4::set_x(int32_t value) const {
   raw_ptr()->value_[0] = value;
 }
 
 
-void Uint32x4::set_y(uint32_t value) const {
+void Int32x4::set_y(int32_t value) const {
   raw_ptr()->value_[1] = value;
 }
 
 
-void Uint32x4::set_z(uint32_t value) const {
+void Int32x4::set_z(int32_t value) const {
   raw_ptr()->value_[2] = value;
 }
 
 
-void Uint32x4::set_w(uint32_t value) const {
+void Int32x4::set_w(int32_t value) const {
   raw_ptr()->value_[3] = value;
 }
 
 
-uint32_t Uint32x4::x() const {
+int32_t Int32x4::x() const {
   return raw_ptr()->value_[0];
 }
 
 
-uint32_t Uint32x4::y() const {
+int32_t Int32x4::y() const {
   return raw_ptr()->value_[1];
 }
 
 
-uint32_t Uint32x4::z() const {
+int32_t Int32x4::z() const {
   return raw_ptr()->value_[2];
 }
 
 
-uint32_t Uint32x4::w() const {
+int32_t Int32x4::w() const {
   return raw_ptr()->value_[3];
 }
 
 
-simd128_value_t Uint32x4::value() const {
+simd128_value_t Int32x4::value() const {
   return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
 }
 
 
-void Uint32x4::set_value(simd128_value_t value) const {
+void Int32x4::set_value(simd128_value_t value) const {
   value.writeTo(&raw_ptr()->value_[0]);
 }
 
 
-const char* Uint32x4::ToCString() const {
+const char* Int32x4::ToCString() const {
   const char* kFormat = "[%08x, %08x, %08x, %08x]";
-  uint32_t _x = x();
-  uint32_t _y = y();
-  uint32_t _z = z();
-  uint32_t _w = w();
+  int32_t _x = x();
+  int32_t _y = y();
+  int32_t _z = z();
+  int32_t _w = w();
   // Calculate the size of the string.
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
@@ -15153,7 +15153,7 @@ const char* Uint32x4::ToCString() const {
 }
 
 
-void Uint32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Int32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 }
 
@@ -15171,7 +15171,7 @@ const intptr_t TypedData::element_size[] = {
   4,   // kTypedDataFloat32ArrayCid.
   8,   // kTypedDataFloat64ArrayCid.
   16,  // kTypedDataFloat32x4ArrayCid.
-  16,  // kTypedDataUint32x4ArrayCid.
+  16,  // kTypedDataInt32x4ArrayCid.
 };
 
 
