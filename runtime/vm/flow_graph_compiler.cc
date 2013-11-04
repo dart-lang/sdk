@@ -127,9 +127,6 @@ void FlowGraphCompiler::InitCompiler() {
         if (current->IsInstanceCall()) {
           ic_data = current->AsInstanceCall()->ic_data();
           ASSERT(ic_data != NULL);
-        } else if (current->IsEqualityCompare()) {
-          ic_data = current->AsEqualityCompare()->ic_data();
-          ASSERT(ic_data != NULL);
         }
         if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
           may_reoptimize_ = true;

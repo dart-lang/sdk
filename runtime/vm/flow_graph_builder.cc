@@ -671,6 +671,7 @@ void TestGraphVisitor::ReturnValue(Value* value) {
                              Token::kEQ_STRICT,
                              value,
                              constant_true);
+  comp->set_needs_number_check(false);
   BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
@@ -683,10 +684,8 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
   BranchInstr* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
-    branch = new BranchInstr(new StrictCompareInstr(comp->token_pos(),
-                                                    comp->kind(),
-                                                    comp->left(),
-                                                    comp->right()));
+    ASSERT(comp->IsStrictCompare());
+    branch = new BranchInstr(comp);
   } else if (Token::IsEqualityOperator(comp->kind()) &&
              (comp->left()->BindsToConstantNull() ||
               comp->right()->BindsToConstantNull())) {
@@ -708,11 +707,13 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
   ASSERT(!FLAG_enable_type_checks);
   Value* constant_true = Bind(new ConstantInstr(Bool::True()));
-  BranchInstr* branch = new BranchInstr(
+  StrictCompareInstr* comp =
       new StrictCompareInstr(condition_token_pos(),
                              Token::kNE_STRICT,
                              neg->value(),
-                             constant_true));
+                             constant_true);
+  comp->set_needs_number_check(false);
+  BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_addresses_.Add(branch->true_successor_address());
@@ -1366,6 +1367,24 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
 }
 
 
+StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(AstNode* left,
+                                                           AstNode* right,
+                                                           Token::Kind kind,
+                                                           intptr_t token_pos) {
+  ValueGraphVisitor for_left_value(owner(), temp_index());
+  left->Visit(&for_left_value);
+  Append(for_left_value);
+  ValueGraphVisitor for_right_value(owner(), temp_index());
+  right->Visit(&for_right_value);
+  Append(for_right_value);
+  StrictCompareInstr* comp = new StrictCompareInstr(token_pos,
+                                                    kind,
+                                                    for_left_value.value(),
+                                                    for_right_value.value());
+  return comp;
+}
+
+
 // <Expression> :: Comparison { kind:  Token::Kind
 //                              left:  <Expression>
 //                              right: <Expression> }
@@ -1379,52 +1398,62 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     BuildTypeCast(node);
     return;
   }
+
   if ((node->kind() == Token::kEQ_STRICT) ||
       (node->kind() == Token::kNE_STRICT)) {
-    ValueGraphVisitor for_left_value(owner(), temp_index());
-    node->left()->Visit(&for_left_value);
-    Append(for_left_value);
-    ValueGraphVisitor for_right_value(owner(), temp_index());
-    node->right()->Visit(&for_right_value);
-    Append(for_right_value);
-    StrictCompareInstr* comp = new StrictCompareInstr(node->token_pos(),
-                                                      node->kind(),
-                                                      for_left_value.value(),
-                                                      for_right_value.value());
-    ReturnDefinition(comp);
+    ReturnDefinition(BuildStrictCompare(node->left(), node->right(),
+                                        node->kind(), node->token_pos()));
     return;
   }
 
   if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
+    // Eagerly fold null-comparisons.
+    LiteralNode* left_lit = node->left()->AsLiteralNode();
+    LiteralNode* right_lit = node->right()->AsLiteralNode();
+    if (((left_lit != NULL) && left_lit->literal().IsNull()) ||
+        ((right_lit != NULL) && right_lit->literal().IsNull())) {
+      Token::Kind kind =
+          (node->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT;
+      StrictCompareInstr* compare =
+          BuildStrictCompare(node->left(), node->right(),
+                             kind, node->token_pos());
+      ReturnDefinition(compare);
+      return;
+    }
+
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>(2);
+
     ValueGraphVisitor for_left_value(owner(), temp_index());
     node->left()->Visit(&for_left_value);
     Append(for_left_value);
+    PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+    arguments->Add(push_left);
+
     ValueGraphVisitor for_right_value(owner(), temp_index());
     node->right()->Visit(&for_right_value);
     Append(for_right_value);
+    PushArgumentInstr* push_right = PushArgument(for_right_value.value());
+    arguments->Add(push_right);
+
+    Definition* result =
+        new InstanceCallInstr(node->token_pos(),
+                              Symbols::EqualOperator(),
+                              Token::kEQ,  // Result is negated later for kNE.
+                              arguments,
+                              Object::null_array(),
+                              2,
+                              owner()->ic_data_array());
     if (FLAG_enable_type_checks) {
-      EqualityCompareInstr* comp = new EqualityCompareInstr(
-          node->token_pos(),
-          Token::kEQ,
-          for_left_value.value(),
-          for_right_value.value(),
-          owner()->ic_data_array());
-      if (node->kind() == Token::kEQ) {
-        ReturnDefinition(comp);
-      } else {
-        Value* eq_result = Bind(comp);
-        eq_result = Bind(new AssertBooleanInstr(node->token_pos(), eq_result));
-        ReturnDefinition(new BooleanNegateInstr(eq_result));
-      }
-    } else {
-      EqualityCompareInstr* comp = new EqualityCompareInstr(
-          node->token_pos(),
-          node->kind(),
-          for_left_value.value(),
-          for_right_value.value(),
-          owner()->ic_data_array());
-      ReturnDefinition(comp);
+      Value* value = Bind(result);
+      result = new AssertBooleanInstr(node->token_pos(), value);
     }
+
+    if (node->kind() == Token::kNE) {
+      Value* value = Bind(result);
+      result = new BooleanNegateInstr(value);
+    }
+    ReturnDefinition(result);
     return;
   }
 
@@ -2925,6 +2954,21 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   if (!function.IsClosureFunction()) {
     MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
     switch (kind) {
+      case MethodRecognizer::kObjectEquals: {
+        Value* receiver = Bind(BuildLoadThisVar(node->scope()));
+        LocalVariable* other_var =
+            node->scope()->LookupVariable(Symbols::Other(),
+                                          true);  // Test only.
+        Value* other = Bind(new LoadLocalInstr(*other_var));
+        StrictCompareInstr* compare =
+            new StrictCompareInstr(node->token_pos(),
+                                   Token::kEQ_STRICT,
+                                   receiver,
+                                   other);
+        // Receiver is not a number because numbers override equality.
+        compare->set_needs_number_check(false);
+        return ReturnDefinition(compare);
+      }
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
         Value* receiver = Bind(BuildLoadThisVar(node->scope()));

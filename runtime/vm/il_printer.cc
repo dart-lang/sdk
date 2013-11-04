@@ -372,9 +372,6 @@ void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s ", Token::Str(kind()));
   right()->PrintTo(f);
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
 }
 
 

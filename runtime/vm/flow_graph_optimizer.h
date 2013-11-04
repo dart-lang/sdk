@@ -58,8 +58,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
-  virtual void VisitEqualityCompare(EqualityCompareInstr* instr);
-  virtual void VisitBranch(BranchInstr* instr);
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,
@@ -101,6 +99,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
 
+  bool TryReplaceWithEqualityOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
   bool TryInlineInstanceGetter(InstanceCallInstr* call);
@@ -200,23 +199,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
-
-  // Visit an equality compare.  The current instruction can be the
-  // comparison itself or a branch on the comparison.
-  template <typename T>
-  void HandleEqualityCompare(EqualityCompareInstr* comp,
-                             T current_instruction);
-
-  static bool CanStrictifyEqualityCompare(EqualityCompareInstr* call);
-
-  template <typename T>
-  bool StrictifyEqualityCompare(EqualityCompareInstr* compare,
-                                T current_instruction) const;
-
-  template <typename T>
-  bool StrictifyEqualityCompareWithICData(EqualityCompareInstr* compare,
-                                          const ICData& unary_ic_data,
-                                          T current_instruction);
 
   void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
                                     Definition* left_instr,

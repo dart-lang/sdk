@@ -171,10 +171,22 @@ class GraphInfoCollector : public ValueObject {
         ++instruction_count_;
         Instruction* current = it.Current();
         if (current->IsStaticCall() ||
-            current->IsClosureCall() ||
-            (current->IsPolymorphicInstanceCall() &&
-             !current->AsPolymorphicInstanceCall()->HasRecognizedTarget())) {
+            current->IsClosureCall()) {
           ++call_site_count_;
+          continue;
+        }
+        if (current->IsPolymorphicInstanceCall()) {
+          PolymorphicInstanceCallInstr* call =
+              current->AsPolymorphicInstanceCall();
+          // These checks make sure that the number of call-sites counted does
+          // not change relative to the time when the current set of inlining
+          // parameters was fixed.
+          // TODO(fschneider): Determine new heuristic parameters that avoid
+          // these checks entirely.
+          if (!call->HasRecognizedTarget() &&
+              (call->instance_call()->token_kind() != Token::kEQ)) {
+            ++call_site_count_;
+          }
         }
       }
     }

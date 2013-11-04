@@ -331,6 +331,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
       ZoneGrowableArray<PushArgumentInstr*>* arguments,
       bool result_is_needed);
 
+  StrictCompareInstr* BuildStrictCompare(AstNode* left,
+                                         AstNode* right,
+                                         Token::Kind kind,
+                                         intptr_t token_pos);
+
   virtual void BuildTypeTest(ComparisonNode* node);
   virtual void BuildTypeCast(ComparisonNode* node);
 

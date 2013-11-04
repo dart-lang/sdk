@@ -810,8 +810,8 @@ CompileType StrictCompareInstr::ComputeType() const {
 
 
 CompileType EqualityCompareInstr::ComputeType() const {
-  return IsInlinedNumericComparison() ? CompileType::Bool()
-                                      : CompileType::Dynamic();
+  // Used for numeric comparisons only.
+  return CompileType::Bool();
 }
 
 
@@ -821,6 +821,7 @@ bool EqualityCompareInstr::RecomputeType() {
 
 
 CompileType RelationalOpInstr::ComputeType() const {
+  // Used for numeric comparisons only.
   return CompileType::Bool();
 }
 

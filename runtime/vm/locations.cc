@@ -159,6 +159,8 @@ void Location::PrintTo(BufferFormatter* f) const {
     f->Print("S%+" Pd "", stack_index());
   } else if (kind() == kDoubleStackSlot) {
     f->Print("DS%+" Pd "", stack_index());
+  } else if (kind() == kQuadStackSlot) {
+    f->Print("QS%+" Pd "", stack_index());
   } else {
     f->Print("%s", Name());
   }

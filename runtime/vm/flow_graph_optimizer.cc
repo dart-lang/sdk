@@ -26,6 +26,9 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
+DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
+    "Maximum number of polymorphic checks in equality operator,"
+    " otherwise use megamorphic dispatch.");
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
@@ -85,9 +88,6 @@ void FlowGraphOptimizer::ApplyClassIds() {
         ComparisonInstr* compare = instr->AsBranch()->comparison();
         if (compare->IsStrictCompare()) {
           VisitStrictCompare(compare->AsStrictCompare());
-        } else if (compare->IsEqualityCompare()) {
-          StrictifyEqualityCompare(compare->AsEqualityCompare(),
-                                   instr->AsBranch());
         }
       }
     }
@@ -1287,6 +1287,101 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
 
 
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
+
+bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
+                                                  Token::Kind op_kind) {
+  const ICData& ic_data = *call->ic_data();
+  ASSERT(ic_data.num_args_tested() == 2);
+
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  intptr_t cid = kIllegalCid;
+  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+    InsertBefore(call,
+                 new CheckSmiInstr(new Value(left), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    InsertBefore(call,
+                 new CheckSmiInstr(new Value(right), call->deopt_id()),
+                 call->env(),
+                 Definition::kEffect);
+    cid = kSmiCid;
+  } else if (HasTwoMintOrSmi(ic_data) &&
+             FlowGraphCompiler::SupportsUnboxedMints()) {
+    cid = kMintCid;
+  } else if (HasTwoDoubleOrSmi(ic_data)) {
+    // Use double comparison.
+    if (SmiFitsInDouble()) {
+      cid = kDoubleCid;
+    } else {
+      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+        // We cannot use double comparison on two smis. Need polymorphic
+        // call.
+        return false;
+      } else {
+        InsertBefore(call,
+                     new CheckEitherNonSmiInstr(new Value(left),
+                                                new Value(right),
+                                                call->deopt_id()),
+                     call->env(),
+                     Definition::kEffect);
+        cid = kDoubleCid;
+      }
+    }
+  } else {
+    // Check if ICDData contains checks with Smi/Null combinations. In that case
+    // we can still emit the optimized Smi equality operation but need to add
+    // checks for null or Smi.
+    GrowableArray<intptr_t> smi_or_null(2);
+    smi_or_null.Add(kSmiCid);
+    smi_or_null.Add(kNullCid);
+    if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
+                                              smi_or_null,
+                                              smi_or_null)) {
+      const ICData& unary_checks_0 =
+          ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+      AddCheckClass(left,
+                    unary_checks_0,
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+
+      const ICData& unary_checks_1 =
+          ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(1));
+      AddCheckClass(right,
+                    unary_checks_1,
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      cid = kSmiCid;
+    } else {
+      // Shortcut for equality with null.
+      ConstantInstr* right_const = right->AsConstant();
+      ConstantInstr* left_const = left->AsConstant();
+      if ((right_const != NULL && right_const->value().IsNull()) ||
+          (left_const != NULL && left_const->value().IsNull())) {
+        StrictCompareInstr* comp = new StrictCompareInstr(call->token_pos(),
+                                                          Token::kEQ_STRICT,
+                                                          new Value(left),
+                                                          new Value(right));
+        ReplaceCall(call, comp);
+        return true;
+      }
+      return false;
+    }
+  }
+  ASSERT(cid != kIllegalCid);
+  EqualityCompareInstr* comp = new EqualityCompareInstr(call->token_pos(),
+                                                        op_kind,
+                                                        new Value(left),
+                                                        new Value(right),
+                                                        cid,
+                                                        call->deopt_id());
+  ReplaceCall(call, comp);
+  return true;
+}
 
 
 bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
@@ -2933,6 +3028,18 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
 }
 
 
+static Definition* OriginalDefinition(Definition* defn) {
+  while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
+    if (defn->IsRedefinition()) {
+      defn = defn->AsRedefinition()->value()->definition();
+    } else {
+      defn = defn->AsAssertAssignable()->value()->definition();
+    }
+  }
+  return defn;
+}
+
+
 // TODO(srdjan): Use ICData to check if always true or false.
 void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
@@ -2941,8 +3048,8 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* type_args = call->ArgumentAt(2);
   const AbstractType& type =
       AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
-  const bool negate =
-      Bool::Cast(call->ArgumentAt(4)->AsConstant()->value()).value();
+  const bool negate = Bool::Cast(
+      OriginalDefinition(call->ArgumentAt(4))->AsConstant()->value()).value();
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
@@ -3041,7 +3148,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
 
-  if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
+  intptr_t max_checks = (op_kind == Token::kEQ)
+      ? FLAG_max_equality_polymorphic_checks
+      : FLAG_max_polymorphic_checks;
+  if ((unary_checks.NumberOfChecks() > max_checks) &&
       InstanceCallNeedsClassCheck(instr)) {
     // Too many checks, it will be megamorphic which needs unary checks.
     instr->set_ic_data(&unary_checks);
@@ -3052,6 +3162,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
   if ((op_kind == Token::kINDEX) && TryReplaceWithLoadIndexed(instr)) {
+    return;
+  }
+
+  if (op_kind == Token::kEQ && TryReplaceWithEqualityOp(instr, op_kind)) {
     return;
   }
 
@@ -3277,222 +3391,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   instr->RemoveEnvironment();
   ReplaceCall(instr, store);
   return true;
-}
-
-
-bool FlowGraphOptimizer::CanStrictifyEqualityCompare(
-    EqualityCompareInstr* compare) {
-  // If one of the inputs is null this is a strict comparison.
-  if (compare->left()->BindsToConstantNull() ||
-      compare->right()->BindsToConstantNull()) {
-    return true;
-  }
-
-  if (compare->left()->Type()->IsNone()) {
-    return false;  // We might be running prior to any type propagation passes.
-  }
-
-  // Try resolving target function using propagated cid for the receiver.
-  // If receiver is either null or has default equality operator then
-  // we can convert such comparison to a strict one.
-  const intptr_t receiver_cid =
-     compare->left()->Type()->ToNullableCid();
-
-  if (receiver_cid == kDynamicCid) {
-    return false;
-  }
-
-  const Class& receiver_class = Class::Handle(
-      Isolate::Current()->class_table()->At(receiver_cid));
-
-  // Resolve equality operator.
-  const intptr_t kNumArgs = 2;
-  ArgumentsDescriptor args_desc(
-      Array::Handle(ArgumentsDescriptor::New(kNumArgs)));
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          Symbols::EqualOperator(),
-          args_desc));
-
-  if (function.IsNull()) {
-    return false;
-  }
-
-  // Default equality operator declared on the Object class just calls
-  // identical.
-  return (Class::Handle(function.Owner()).id() == kInstanceCid);
-}
-
-
-template <typename T>
-bool FlowGraphOptimizer::StrictifyEqualityCompare(
-    EqualityCompareInstr* compare,
-    T current_instruction) const {
-  if (CanStrictifyEqualityCompare(compare)) {
-    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
-        Token::kEQ_STRICT : Token::kNE_STRICT;
-    StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(compare->token_pos(),
-                               strict_kind,
-                               compare->left()->CopyWithType(),
-                               compare->right()->CopyWithType());
-    // Numbers override equality and are therefore not part of this conversion.
-    strict_comp->set_needs_number_check(false);
-    current_instruction->ReplaceWith(strict_comp, current_iterator());
-    return true;
-  }
-  return false;
-}
-
-
-// Returns true if we converted EqualityCompare to StrictCompare.
-template <typename T>
-bool FlowGraphOptimizer::StrictifyEqualityCompareWithICData(
-    EqualityCompareInstr* compare,
-    const ICData& unary_ic_data,
-    T current_instruction) {
-  ASSERT(unary_ic_data.num_args_tested() == 1);
-  if (unary_ic_data.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
-    // If possible classes do not override Object's equality then replace
-    // with strict equality.
-    Function& target = Function::Handle();
-    Class& targets_class = Class::Handle();
-    for (intptr_t i = 0; i < unary_ic_data.NumberOfChecks(); i++) {
-      intptr_t cid = kIllegalCid;
-      unary_ic_data.GetOneClassCheckAt(i, &cid, &target);
-      targets_class = target.Owner();
-      if (targets_class.id() != kInstanceCid) {
-        // Overriden equality operator.
-        return false;
-      }
-    }
-    AddCheckClass(compare->left()->definition(),
-                  unary_ic_data,
-                  compare->deopt_id(),
-                  current_instruction->env(),
-                  current_instruction);
-    ASSERT((compare->kind() == Token::kEQ) || (compare->kind() == Token::kNE));
-    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
-        Token::kEQ_STRICT : Token::kNE_STRICT;
-    StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(compare->token_pos(),
-                               strict_kind,
-                               compare->left()->Copy(),
-                               compare->right()->Copy());
-    // Numbers override equality and are therefore not part of this conversion.
-    strict_comp->set_needs_number_check(false);
-    current_instruction->ReplaceWith(strict_comp, current_iterator());
-    return true;
-  }
-  return false;
-}
-
-
-template <typename T>
-void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
-                                               T current_instruction) {
-  if (StrictifyEqualityCompare(comp, current_instruction)) {
-    // Based on input types, equality converted to strict-equality.
-    return;
-  }
-
-  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
-    return;
-  }
-
-  const ICData& ic_data = *comp->ic_data();
-  ASSERT(ic_data.num_args_tested() == 2);
-  ASSERT(comp->operation_cid() == kIllegalCid);
-  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-    InsertBefore(current_instruction,
-                 new CheckSmiInstr(comp->left()->Copy(), comp->deopt_id()),
-                 current_instruction->env(),
-                 Definition::kEffect);
-    InsertBefore(current_instruction,
-                 new CheckSmiInstr(comp->right()->Copy(), comp->deopt_id()),
-                 current_instruction->env(),
-                 Definition::kEffect);
-    comp->set_operation_cid(kSmiCid);
-  } else if (HasTwoMintOrSmi(ic_data) &&
-             FlowGraphCompiler::SupportsUnboxedMints()) {
-    comp->set_operation_cid(kMintCid);
-  } else if (HasTwoDoubleOrSmi(ic_data)) {
-    // Use double comparison.
-    if (SmiFitsInDouble()) {
-      comp->set_operation_cid(kDoubleCid);
-    } else {
-      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
-        // We cannot use double comparison on two smis.
-        ASSERT(comp->operation_cid() == kIllegalCid);
-      } else {
-        InsertBefore(current_instruction,
-                     new CheckEitherNonSmiInstr(comp->left()->Copy(),
-                                                comp->right()->Copy(),
-                                                comp->deopt_id()),
-                     current_instruction->env(),
-                     Definition::kEffect);
-        comp->set_operation_cid(kDoubleCid);
-      }
-    }
-  }
-
-  if (comp->operation_cid() != kIllegalCid) {
-    // Done.
-    return;
-  }
-
-  const ICData& unary_checks_0 =
-      ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
-  if (StrictifyEqualityCompareWithICData(
-        comp, unary_checks_0, current_instruction)) {
-    // Based on ICData, equality converted to strict-equality.
-    return;
-  }
-
-  // Check if ICDData contains checks with Smi/Null combinations. In that case
-  // we can still emit the optimized Smi equality operation but need to add
-  // checks for null or Smi.
-  // TODO(srdjan): Add it for Double and Mint.
-  GrowableArray<intptr_t> smi_or_null(2);
-  smi_or_null.Add(kSmiCid);
-  smi_or_null.Add(kNullCid);
-  if (ICDataHasOnlyReceiverArgumentClassIds(ic_data,
-                                            smi_or_null,
-                                            smi_or_null)) {
-    AddCheckClass(comp->left()->definition(),
-                  unary_checks_0,
-                  comp->deopt_id(),
-                  current_instruction->env(),
-                  current_instruction);
-
-    const ICData& unary_checks_1 =
-        ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecksForArgNr(1));
-    AddCheckClass(comp->right()->definition(),
-                  unary_checks_1,
-                  comp->deopt_id(),
-                  current_instruction->env(),
-                  current_instruction);
-    comp->set_operation_cid(kSmiCid);
-  }
-}
-
-
-
-
-void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareInstr* instr) {
-  HandleEqualityCompare(instr, instr);
-}
-
-
-void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
-  ComparisonInstr* comparison = instr->comparison();
-  if (comparison->IsEqualityCompare()) {
-    HandleEqualityCompare(comparison->AsEqualityCompare(), instr);
-  } else {
-    ASSERT(comparison->IsStrictCompare());
-    // Nothing to do.
-  }
 }
 
 
@@ -4601,17 +4499,6 @@ class Place : public ValueObject {
   static Place* Wrap(const Place& place);
 
  private:
-  static Definition* OriginalDefinition(Definition* defn) {
-    while (defn->IsRedefinition() || defn->IsAssertAssignable()) {
-      if (defn->IsRedefinition()) {
-        defn = defn->AsRedefinition()->value()->definition();
-      } else {
-        defn = defn->AsAssertAssignable()->value()->definition();
-      }
-    }
-    return defn;
-  }
-
   bool SameField(Place* other) const {
     return (kind_ == kField) ? (field().raw() == other->field().raw())
                              : (offset_in_bytes_ == other->offset_in_bytes_);
@@ -6454,10 +6341,8 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& right = instr->right()->definition()->constant_value();
 
   if (instr->left()->definition() == instr->right()->definition()) {
-    // Fold x == x, and x != x to true/false for numbers and checked strict
-    // comparisons.
-    if (instr->IsCheckedStrictEqual() ||
-        RawObject::IsIntegerClassId(instr->operation_cid())) {
+    // Fold x == x, and x != x to true/false for numbers comparisons.
+    if (RawObject::IsIntegerClassId(instr->operation_cid())) {
       return SetValue(instr, Bool::Get(instr->kind() == Token::kEQ));
     }
   }
@@ -7428,9 +7313,8 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                                  comparison->kind(),
                                  left,
                                  right,
-                                 Object::null_array());
-    new_equality_compare->set_ic_data(equality_compare->ic_data());
-    new_equality_compare->set_operation_cid(equality_compare->operation_cid());
+                                 equality_compare->operation_cid(),
+                                 equality_compare->deopt_id());
     new_comparison = new_equality_compare;
   } else {
     ASSERT(comparison->IsRelationalOp());

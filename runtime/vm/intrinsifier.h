@@ -45,7 +45,7 @@ namespace dart {
   V(_GrowableList, add, GrowableList_add, 996912766)                           \
   V(_ImmutableList, [], ImmutableList_getIndexed, 25983597)                    \
   V(_ImmutableList, get:length, ImmutableList_getLength, 578733070)            \
-  V(Object, ==, Object_equal, 936042315)                                       \
+  V(Object, ==, Object_equal, 180968008)                                       \
   V(_StringBase, get:hashCode, String_getHashCode, 654543028)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 879849436)                    \
   V(_StringBase, get:length, String_getLength, 1483520063)                     \
