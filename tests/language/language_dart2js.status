@@ -30,6 +30,7 @@ ref_before_declaration_test/02: MissingCompileTimeError
 ref_before_declaration_test/03: MissingCompileTimeError
 ref_before_declaration_test/04: MissingCompileTimeError
 ref_before_declaration_test/05: MissingCompileTimeError
+ref_before_declaration_test/06: MissingCompileTimeError
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699

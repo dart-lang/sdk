@@ -41,10 +41,22 @@ class C {
     const y = "Honk if you like peace and quiet!";  /// 03: compile-time error
   }
 
+  void test4() {
+    void Q() {
+      P();  // Refers to non-existing top-level function P
+    }
+    void P() {  /// 06: compile-time error
+      Q();      /// 06: continued
+    }           /// 06: continued
+
+    Function f = () {x = f;};  /// 07: compile-time error
+  }
+
   test() {
     test1();
     test2();
     test3();
+    test4();
   }
 }
 

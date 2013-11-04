@@ -5410,19 +5410,6 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   const intptr_t ident_pos = TokenPos();
   const String& ident = *CurrentLiteral();
   LocalVariable* variable = new LocalVariable(ident_pos, ident, type);
-  ASSERT(current_block_ != NULL);
-  ASSERT(current_block_->scope != NULL);
-  const intptr_t previous_pos =
-      current_block_->scope->PreviousReferencePos(ident);
-  if (previous_pos >= 0) {
-    ASSERT(!script_.IsNull());
-    intptr_t line_number;
-    script_.GetTokenLocation(previous_pos, &line_number, NULL);
-    ErrorMsg(ident_pos,
-             "identifier '%s' previously used in line %" Pd "",
-             ident.ToCString(),
-             line_number);
-  }
   ConsumeToken();  // Variable identifier.
   AstNode* initialization = NULL;
   if (CurrentToken() == Token::kASSIGN) {
@@ -5443,6 +5430,27 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     AstNode* null_expr = new LiteralNode(ident_pos, Instance::ZoneHandle());
     initialization = new StoreLocalNode(ident_pos, variable, null_expr);
   }
+
+  ASSERT(current_block_ != NULL);
+  const intptr_t previous_pos =
+  current_block_->scope->PreviousReferencePos(ident);
+  if (previous_pos >= 0) {
+    ASSERT(!script_.IsNull());
+    if (previous_pos > ident_pos) {
+      ErrorMsg(ident_pos,
+               "initializer of '%s' may not refer to itself",
+               ident.ToCString());
+
+    } else {
+      intptr_t line_number;
+      script_.GetTokenLocation(previous_pos, &line_number, NULL);
+      ErrorMsg(ident_pos,
+               "identifier '%s' previously used in line %" Pd "",
+               ident.ToCString(),
+               line_number);
+    }
+  }
+
   // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
   if (!current_block_->scope->AddVariable(variable)) {
@@ -5557,8 +5565,24 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                (LookaheadToken(1) != Token::kLPAREN)) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
+    const intptr_t name_pos = TokenPos();
     variable_name = ExpectIdentifier("function name expected");
     function_name = variable_name;
+
+    // Check that the function name has not been referenced
+    // before this declaration.
+    ASSERT(current_block_ != NULL);
+    const intptr_t previous_pos =
+        current_block_->scope->PreviousReferencePos(*function_name);
+    if (previous_pos >= 0) {
+      ASSERT(!script_.IsNull());
+      intptr_t line_number;
+      script_.GetTokenLocation(previous_pos, &line_number, NULL);
+      ErrorMsg(name_pos,
+               "identifier '%s' previously used in line %" Pd "",
+               function_name->ToCString(),
+               line_number);
+    }
   }
 
   if (CurrentToken() != Token::kLPAREN) {

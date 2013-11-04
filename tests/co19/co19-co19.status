@@ -48,7 +48,6 @@ LibTest/isolate/isolate_api/spawnFunction_A04_t01: fail, timeout # co19-roll r54
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: fail, timeout # co19-roll r546: Please triage this failure
 
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r607: Please triage this failure
-Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/forEach_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
