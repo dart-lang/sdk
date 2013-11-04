@@ -38,7 +38,8 @@ const String USAGE = 'Usage: dart docgen.dart [OPTIONS] fooDir/barFile';
 
 
 List<String> skippedAnnotations = const [
-    'metadata.DocsEditable', 'metadata.DomName'];
+    'metadata.DocsEditable', '_js_helper.JSName', '_js_helper.Creates',
+    '_js_helper.Returns', 'observe-src-metadata.Reflectable'];
 
 /// Current library being documented to be used for comment links.
 LibraryMirror _currentLibrary;
