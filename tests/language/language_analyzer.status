@@ -135,8 +135,8 @@ duplicate_export_test: fail # Issue 13787
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
 
-# test issue  , disallow default values in redirecting factories
-redirecting_factory_default_values_test/none: fail # Issue 14471
+# test issue 14471, has (legitimate) static warning; but not annotated
+redirecting_factory_default_values_test/none: StaticWarning # Test issue 14471; has (legitimate) static warning; but not annotated
 
 # test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
 default_factory2_test/none: fail
@@ -395,7 +395,6 @@ prefix22_test: StaticWarning
 prefix23_test: StaticWarning
 prefix7_negative_test: CompileTimeError
 property_field_override_test: StaticWarning
-redirecting_factory_default_values_test/none: StaticWarning
 redirecting_factory_incompatible_signature_test: StaticWarning
 regress_13494_test: StaticWarning
 return_type_test: StaticWarning
