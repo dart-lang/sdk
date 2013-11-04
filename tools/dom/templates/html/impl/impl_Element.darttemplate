@@ -796,6 +796,11 @@ $endif
   @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
 
+  /**
+   * The string representation of this element.
+   *
+   * This is equivalent to reading the [localName] property.
+   */
   String toString() => localName;
 
   /**

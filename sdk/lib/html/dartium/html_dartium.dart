@@ -10054,6 +10054,11 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
 
+  /**
+   * The string representation of this element.
+   *
+   * This is equivalent to reading the [localName] property.
+   */
   String toString() => localName;
 
   /**
@@ -11234,10 +11239,26 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   void _removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
 
+  /**
+   * Scrolls the element by a number of lines.
+   *
+   * ## Other resources
+   *
+   * * [scrollByLines]
+   * (http://docs.webplatform.org/wiki/dom/methods/scrollByLines) from WebPlatform.org.
+   */
   @DomName('Element.scrollByLines')
   @DocsEditable()
   void scrollByLines(int lines) native "Element_scrollByLines_Callback";
 
+  /**
+   * Scrolls the element by a number of pages.
+   *
+   * ## Other resources
+   *
+   * * [scrollByPages]
+   * (http://docs.webplatform.org/wiki/dom/methods/scrollByPages) from WebPlatform.org.
+   */
   @DomName('Element.scrollByPages')
   @DocsEditable()
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
@@ -11276,6 +11297,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   @DocsEditable()
   void setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
+  /**
+   * Returns an array of ranges of fragments in the flow.
+   *
+   * ## Other resources
+   *
+   * * [CSS regions and exclusions tutorial]
+   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.
+   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.
+   * * [CSS regions specification]
+   * (http://www.w3.org/TR/css3-regions/) from W3C.
+   */
   @DomName('Element.webkitGetRegionFlowRanges')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -11290,6 +11322,17 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   // http://dev.w3.org/2006/webapi/selectors-api2/#matches
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
+  /**
+   * Displays this element fullscreen.
+   *
+   * ## Other resources
+   *
+   * * [Using the full-screen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   * tutorial from WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Element.webkitRequestFullscreen')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -11298,6 +11341,18 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
   void requestFullscreen() native "Element_webkitRequestFullscreen_Callback";
 
+  /**
+   * Locks the mouse pointer to this element.
+   *
+   * ## Other resources
+   *
+   * * [Pointer lock and first person shooter controls]
+   * (http://www.html5rocks.com/en/tutorials/pointerlock/intro/) tutorial from
+   * HTML5Rocks.
+   *
+   * * [Pointer lock specification]
+   * (http://www.w3.org/TR/pointerlock/) from W3C.
+   */
   @DomName('Element.webkitRequestPointerLock')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
