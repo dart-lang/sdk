@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 bad_constructor_test/05: CompileTimeError # Issue 13669
-block_scope_test: CompileTimeError # Issue 13204.
 malformed_test/05: MissingCompileTimeError # Issue 12695
 malformed_test/06: MissingCompileTimeError # Issue 12695
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
