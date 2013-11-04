@@ -4171,10 +4171,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
-    if (backend.isInterceptedSelector(selector) &&
-        // Fields don't need an interceptor; consider generating HFieldGet/Set
-        // instead.
-        element.kind != ElementKind.FIELD) {
+    if (backend.isInterceptedSelector(selector)) {
       inputs.add(invokeInterceptor(receiver));
     }
     inputs.add(receiver);
