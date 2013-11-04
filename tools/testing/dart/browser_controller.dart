@@ -494,10 +494,11 @@ final dartiumOnAndroidConfig = new AndroidBrowserConfig(
 
 
 class AndroidBrowser extends Browser {
+  final bool checkedMode;
   AdbDevice _adbDevice;
   AndroidBrowserConfig _config;
 
-  AndroidBrowser(this._adbDevice, this._config);
+  AndroidBrowser(this._adbDevice, this._config, this.checkedMode);
 
   Future<bool> start(String url) {
     var intent = new Intent(
@@ -510,6 +511,12 @@ class AndroidBrowser extends Browser {
       return _adbDevice.adbRoot();
     }).then((_) {
       return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
+    }).then((_) {
+      if (checkedMode) {
+        return _adbDevice.setProp("DART_FLAGS", "--checked");
+      } else {
+        return _adbDevice.setProp("DART_FLAGS", "");
+      }
     }).then((_) {
       return _adbDevice.startActivity(intent).then((_) => true);
     });
@@ -715,7 +722,7 @@ class BrowserTestOutput {
 
 /**
  * Encapsulates all the functionality for running tests in browsers.
- * The interface is rather simple. After starting the runner tests
+ * The interface is rather simple. After starting, the runner tests
  * are simply added to the queue and a the supplied callbacks are called
  * whenever a test completes.
  */
@@ -788,9 +795,9 @@ class BrowserTestRunner {
     var androidBrowserCreationMapping = {
       'chromeOnAndroid' : (AdbDevice device) => new AndroidChrome(device),
       'ContentShellOnAndroid' : (AdbDevice device) =>
-          new AndroidBrowser(device, contentShellOnAndroidConfig),
+          new AndroidBrowser(device, contentShellOnAndroidConfig, checkedMode),
       'DartiumOnAndroid' : (AdbDevice device) =>
-          new AndroidBrowser(device, dartiumOnAndroidConfig),
+          new AndroidBrowser(device, dartiumOnAndroidConfig, checkedMode),
     };
     if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
@@ -915,10 +922,12 @@ class BrowserTestRunner {
         browser = new AndroidChrome(adbDeviceMapping[id]);
       } else if (browserName == 'ContentShellOnAndroid') {
         browser = new AndroidBrowser(adbDeviceMapping[id],
-                                     contentShellOnAndroidConfig);
+                                     contentShellOnAndroidConfig,
+                                     checkedMode);
       } else if (browserName == 'DartiumOnAndroid') {
         browser = new AndroidBrowser(adbDeviceMapping[id],
-                                     dartiumOnAndroidConfig);
+                                     dartiumOnAndroidConfig,
+                                     checkedMode);
       } else {
         browserStatus.remove(id);
         browser = getInstance();
