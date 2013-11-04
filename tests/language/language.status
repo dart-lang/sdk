@@ -9,7 +9,6 @@
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970
-throwing_lazy_variable_test: Fail # Issue 5802
 f_bounded_equality_test: RuntimeError # Issue 14000
 
 # These bugs refer currently ongoing language discussions.
@@ -19,7 +18,6 @@ constructor6_test: Fail # Issue 6422
 closure_in_initializer_test: Fail # Issue 6422
 
 # Regular bugs which should be fixed.
-lazy_static3_test: Fail # Issue 12593
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 

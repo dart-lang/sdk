@@ -54,6 +54,8 @@ LibTest/json/stringify_A04_t01: Fail, OK # Issue 637
 
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19 issue 648
+
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok # co19 issue 634
 Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok # co19 issue 634

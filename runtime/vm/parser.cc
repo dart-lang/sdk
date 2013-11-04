@@ -1015,23 +1015,17 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
             ident_pos,
             field,
             new LiteralNode(ident_pos, Object::transition_sentinel())));
-    // TODO(hausner): If evaluation of the field value throws an exception,
-    // we leave the field value as 'transition_sentinel', which is wrong.
-    // A second reference to the field later throws a circular dependency
-    // exception. The field should instead be set to null after an exception.
-    const String& init_name =
-        String::Handle(Symbols::New(String::Handle(
-        String::Concat(Symbols::InitPrefix(), String::Handle(field.name())))));
+    const String& init_name = String::Handle(
+        Symbols::New(String::Handle(String::Concat(
+            Symbols::InitPrefix(), String::Handle(field.name())))));
     const Function& init_function = Function::ZoneHandle(
         field_class.LookupStaticFunction(init_name));
     ASSERT(!init_function.IsNull());
     ArgumentListNode* arguments = new ArgumentListNode(expr_pos);
     StaticCallNode* init_call =
         new StaticCallNode(expr_pos, init_function, arguments);
+    initialize_field->Add(init_call);
 
-    initialize_field->Add(new StoreStaticFieldNode(ident_pos,
-                                                   field,
-                                                   init_call));
     AstNode* uninitialized_check =
         new IfNode(ident_pos, compare_uninitialized, initialize_field, NULL);
     current_block_->statements->Add(uninitialized_check);
@@ -1057,10 +1051,96 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   OpenFunctionBlock(func);
   AddFormalParamsToScope(&params, current_block_->scope);
 
-  intptr_t expr_pos = func.token_pos();
+  // Move forward to the start of the initializer expression.
+  ExpectIdentifier("identifier expected");
+  ExpectToken(Token::kASSIGN);
+  intptr_t token_pos = TokenPos();
+
+  // Synthesize a try-catch block to wrap the initializer expression.
+  LocalVariable* context_var =
+      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
+  if (context_var == NULL) {
+    context_var = new LocalVariable(token_pos,
+                                    Symbols::SavedTryContextVar(),
+                                    Type::ZoneHandle(Type::DynamicType()));
+    current_block_->scope->AddVariable(context_var);
+  }
+  LocalVariable* catch_excp_var =
+      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
+  if (catch_excp_var == NULL) {
+    catch_excp_var = new LocalVariable(token_pos,
+                                       Symbols::ExceptionVar(),
+                                       Type::ZoneHandle(Type::DynamicType()));
+    current_block_->scope->AddVariable(catch_excp_var);
+  }
+  LocalVariable* catch_trace_var =
+      current_block_->scope->LocalLookupVariable(Symbols::StacktraceVar());
+  if (catch_trace_var == NULL) {
+    catch_trace_var = new LocalVariable(token_pos,
+                                        Symbols::StacktraceVar(),
+                                        Type::ZoneHandle(Type::DynamicType()));
+    current_block_->scope->AddVariable(catch_trace_var);
+  }
+
+  OpenBlock();  // Start try block.
   AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
-  ReturnNode* return_node = new ReturnNode(expr_pos, expr);
-  current_block_->statements->Add(return_node);
+  const Field& field = Field::ZoneHandle(func.saved_static_field());
+  ASSERT(!field.is_const());
+  StoreStaticFieldNode* store = new StoreStaticFieldNode(field.token_pos(),
+                                                         field,
+                                                         expr);
+  current_block_->statements->Add(store);
+  SequenceNode* try_block = CloseBlock();  // End try block.
+
+  OpenBlock();  // Start catch handler list.
+  SourceLabel* end_catch_label =
+      SourceLabel::New(token_pos, NULL, SourceLabel::kCatch);
+  current_block_->scope->AddLabel(end_catch_label);
+
+  OpenBlock();  // Start catch clause.
+  AstNode* compare_transition_sentinel = new ComparisonNode(
+      token_pos,
+      Token::kEQ_STRICT,
+      new LoadStaticFieldNode(token_pos, field),
+      new LiteralNode(field.token_pos(), Object::transition_sentinel()));
+
+  SequenceNode* store_null = new SequenceNode(token_pos, NULL);
+  store_null->Add(new StoreStaticFieldNode(
+      field.token_pos(),
+      field,
+      new LiteralNode(token_pos, Instance::ZoneHandle())));
+  AstNode* transition_sentinel_check =
+      new IfNode(token_pos, compare_transition_sentinel, store_null, NULL);
+  current_block_->statements->Add(transition_sentinel_check);
+
+  current_block_->statements->Add(
+      new ThrowNode(token_pos,
+                    new LoadLocalNode(token_pos, catch_excp_var),
+                    new LoadLocalNode(token_pos, catch_trace_var)));
+  current_block_->statements->Add(
+      new JumpNode(token_pos, Token::kCONTINUE, end_catch_label));
+  SequenceNode* catch_clause = CloseBlock();  // End catch clause.
+
+  current_block_->statements->Add(catch_clause);
+  SequenceNode* catch_handler_list = CloseBlock();  // End catch handler list.
+  CatchClauseNode* catch_block =
+      new CatchClauseNode(token_pos,
+                          catch_handler_list,
+                          Array::ZoneHandle(Object::empty_array().raw()),
+                          context_var,
+                          catch_excp_var,
+                          catch_trace_var,
+                          CatchClauseNode::kInvalidTryIndex,
+                          false);  // No stack trace needed.
+
+  AstNode* try_catch_node = new TryCatchNode(token_pos,
+                                             try_block,
+                                             end_catch_label,
+                                             context_var,
+                                             catch_block,
+                                             NULL,  // No finally block.
+                                             AllocateTryIndex());
+  current_block_->statements->Add(try_catch_node);
   return CloseBlock();
 }
 
@@ -3307,7 +3387,6 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   Function& setter = Function::Handle();
   Field& class_field = Field::ZoneHandle();
   Instance& init_value = Instance::Handle();
-  intptr_t expr_pos = -1;
   while (true) {
     bool has_initializer = CurrentToken() == Token::kASSIGN;
     bool has_simple_literal = false;
@@ -3332,7 +3411,6 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
           (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
       }
-      expr_pos = TokenPos();
       SkipExpr();
     } else {
       // Static const and static final fields must have an initializer.
@@ -3377,13 +3455,12 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         getter.set_result_type(*field->type);
         members->AddFunction(getter);
 
-        // Create initializer function.
-        const Function& init_function = Function::ZoneHandle(
-            Function::NewStaticInitializer(*field->name,
-                                           *field->type,
-                                           current_class(),
-                                           expr_pos));
-        members->AddFunction(init_function);
+        // Create initializer function for non-const fields.
+        if (!class_field.is_const()) {
+          const Function& init_function = Function::ZoneHandle(
+              Function::NewStaticInitializer(class_field));
+          members->AddFunction(init_function);
+        }
       }
     }
 
@@ -4493,7 +4570,6 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
       if ((is_const || is_final) && (LookaheadToken(1) == Token::kSEMICOLON)) {
         has_simple_literal = IsSimpleLiteral(type, &field_value);
       }
-      const intptr_t expr_pos = TokenPos();
       SkipExpr();
       field.set_value(field_value);
       if (!has_simple_literal) {
@@ -4511,12 +4587,11 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
         top_level->functions.Add(getter);
 
         // Create initializer function.
-        const Function& init_function = Function::ZoneHandle(
-            Function::NewStaticInitializer(var_name,
-                                           type,
-                                           current_class(),
-                                           expr_pos));
-        top_level->functions.Add(init_function);
+        if (!field.is_const()) {
+          const Function& init_function = Function::ZoneHandle(
+              Function::NewStaticInitializer(field));
+          top_level->functions.Add(init_function);
+        }
       }
     } else if (is_final) {
       ErrorMsg(name_pos, "missing initializer for final or const variable");
@@ -6753,7 +6828,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // operator.
   bool catch_seen = false;
   bool generic_catch_seen = false;
-  SequenceNode* catch_handler_list = NULL;
   const intptr_t handler_pos = TokenPos();
   OpenBlock();  // Start the catch block sequence.
   current_block_->scope->AddLabel(end_catch_label);
@@ -6877,7 +6951,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     // Add this individual catch handler to the catch handlers list.
     current_block_->statements->Add(catch_clause);
   }
-  catch_handler_list = CloseBlock();
+  SequenceNode* catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
   const intptr_t try_index = inner_try_block->try_index();
   TryBlocks* outer_try_block = try_blocks_list_;

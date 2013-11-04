@@ -238,7 +238,6 @@ const_var_test: Pass, Fail # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
-lazy_static3_test: Fail # Issue 12593
 list_literal1_test/01: Fail # Issue 12993
 map_literal1_test/01: Fail # Issue 12993
 method_override4_test: Fail # Issue 12810
@@ -255,7 +254,6 @@ malbounded_type_literal_test: Fail # Issue 13960
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-throwing_lazy_variable_test: Fail # Issue 5802
 f_bounded_equality_test: RuntimeError # Issue 14000
 
 # Minified mode failures.

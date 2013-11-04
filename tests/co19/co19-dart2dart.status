@@ -128,7 +128,6 @@ Language/12_Expressions/22_Equality_A01_t20: fail # co19-roll r546: Please triag
 Language/12_Expressions/22_Equality_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/27_Unary_Expressions_A01_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/30_Identifier_Reference_A08_t02: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/09_Switch_A01_t02: fail # co19-roll r546: Please triage this failure
