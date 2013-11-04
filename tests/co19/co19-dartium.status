@@ -46,5 +46,4 @@ LibTest/isolate/isolate_api/spawnUri_A01_t05: Skip # Issue 13992
 
 [ $compiler == none && $runtime == dartium && $checked ]
 Language/13_Statements/09_Switch_A09_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
-Language/12_Expressions/12_Instance_Creation_A01_t08: Fail # Please triage this failure (enabled checked mode tests on dartium)
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure

@@ -13,9 +13,6 @@ Language/12_Expressions/01_Constants_A16_t03: fail
 # TBF: infinite look: class A {const A();final m = const A();}
 Language/12_Expressions/01_Constants_A17_t03: fail
 
-# TBF: malformed or malbounded type in "conts" is static warning
-Language/12_Expressions/12_Instance_Creation_A01_t08: Fail
-
 # TBF: it seems that "12.15.3 Unqualied Invocation" was changed, so it may be not an error anymore to call unknown function from top-level
 Language/13_Statements/04_Local_Function_Declaration_A04_t02: Fail # co19-roll r641: Please triage this failure
 
@@ -39,34 +36,15 @@ Language/15_Types/4_Interface_Types_A08_t03: fail, OK
 
 # co19 issue #455, undeclared identifier is static warning
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: fail, OK
-Language/13_Statements/04_Local_Function_Declaration_A02_t02: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t12: fail, OK
 Language/14_Libraries_and_Scripts/1_Imports_A02_t15: fail, OK
-
-# co19 issue #513, rules for finals were loosened, contradiction in spec was fixed
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A21_t01: fail, OK
-
-# co19 issue #515, it is a compile-time error if there is more than one entity with the same name declared in the same scope
-Language/07_Classes/3_Setters_A08_t03: fail, OK
-
-# co19 issue #593: Conditional expressions are now allowed as constant expressions
-Language/12_Expressions/01_Constants_A15_t16: fail, OK
 
 # co19 issue #438, Static variables are initialized lazily, need not be constants
 Language/12_Expressions/01_Constants_A16_t01: fail, OK
 Language/12_Expressions/01_Constants_A16_t02: fail, OK
 
-# co19 issue #420, "throw" requires expression, "rethrow" should be used instead
-Language/12_Expressions/08_Throw_A05_t01: fail, OK
-Language/12_Expressions/08_Throw_A05_t02: fail, OK
-Language/12_Expressions/08_Throw_A05_t03: fail, OK
-
 # co19 issue #454 (wrongly closed)
 Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
-
-# co19 issue #528, Const: wrong number of type arguments
-Language/12_Expressions/12_Instance_Creation_A01_t05: fail, OK
-Language/12_Expressions/12_Instance_Creation_A01_t06: fail, OK
 
 # co19 issue #541: tests contain unqualified reference to static members defined in superclass
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: fail, OK
@@ -81,87 +59,6 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 
 # co19 issue #615: Expect import missing
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
-
-# co19 issue #617: "hasNext" is not a function; "Expec"
-LibTest/collection/HasNextIterator/HasNextIterator_A01_t01: Fail, OK
-
-# co19 issue #623: main() { {}; } is block and empty statement, not a map
-Language/13_Statements/02_Expression_Statements_A01_t13: Fail, OK
-
-# co19 issue #626: StreamTransformers have been refactored.
-LibTest/async/EventTransformStream/EventTransformStream_A01_t01: Fail
-LibTest/async/EventTransformStream/EventTransformStream_A01_t02: Fail
-LibTest/async/EventTransformStream/any_A01_t01: Fail
-LibTest/async/EventTransformStream/any_A02_t01: Fail
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: Fail
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t02: Fail
-LibTest/async/EventTransformStream/asBroadcastStream_A02_t01: Fail
-LibTest/async/EventTransformStream/contains_A01_t01: Fail
-LibTest/async/EventTransformStream/contains_A02_t01: Fail
-LibTest/async/EventTransformStream/contains_A03_t01: Fail
-LibTest/async/EventTransformStream/distinct_A01_t01: Fail
-LibTest/async/EventTransformStream/distinct_A01_t02: Fail
-LibTest/async/EventTransformStream/drain_A01_t01: Fail
-LibTest/async/EventTransformStream/drain_A02_t01: Fail
-LibTest/async/EventTransformStream/drain_A02_t02: Fail
-LibTest/async/EventTransformStream/elementAt_A01_t01: Fail
-LibTest/async/EventTransformStream/elementAt_A02_t01: Fail
-LibTest/async/EventTransformStream/elementAt_A03_t01: Fail
-LibTest/async/EventTransformStream/every_A01_t01: Fail
-LibTest/async/EventTransformStream/every_A02_t01: Fail
-LibTest/async/EventTransformStream/expand_A01_t01: Fail
-LibTest/async/EventTransformStream/firstWhere_A01_t01: Fail
-LibTest/async/EventTransformStream/firstWhere_A02_t01: Fail
-LibTest/async/EventTransformStream/firstWhere_A03_t01: Fail
-LibTest/async/EventTransformStream/firstWhere_A03_t02: Fail
-LibTest/async/EventTransformStream/first_A01_t01: Fail
-LibTest/async/EventTransformStream/first_A02_t01: Fail
-LibTest/async/EventTransformStream/first_A03_t01: Fail
-LibTest/async/EventTransformStream/fold_A01_t01: Fail
-LibTest/async/EventTransformStream/fold_A01_t02: Fail
-LibTest/async/EventTransformStream/forEach_A01_t01: Fail
-LibTest/async/EventTransformStream/forEach_A02_t01: Fail
-LibTest/async/EventTransformStream/forEach_A02_t02: Fail
-LibTest/async/EventTransformStream/handleError_A01_t01: Fail
-LibTest/async/EventTransformStream/handleError_A02_t01: Fail
-LibTest/async/EventTransformStream/handleError_A03_t01: Fail
-LibTest/async/EventTransformStream/isBroadcast_A01_t01: Fail
-LibTest/async/EventTransformStream/isBroadcast_A01_t02: Fail
-LibTest/async/EventTransformStream/isEmpty_A01_t01: Fail
-LibTest/async/EventTransformStream/lastWhere_A01_t01: Fail
-LibTest/async/EventTransformStream/lastWhere_A02_t01: Fail
-LibTest/async/EventTransformStream/lastWhere_A03_t01: Fail
-LibTest/async/EventTransformStream/lastWhere_A04_t01: Fail
-LibTest/async/EventTransformStream/last_A01_t01: Fail
-LibTest/async/EventTransformStream/last_A02_t01: Fail
-LibTest/async/EventTransformStream/length_A01_t01: Fail
-LibTest/async/EventTransformStream/listen_A01_t01: Fail
-LibTest/async/EventTransformStream/listen_A02_t01: Fail
-LibTest/async/EventTransformStream/listen_A03_t01: Fail
-LibTest/async/EventTransformStream/listen_A04_t01: Fail
-LibTest/async/EventTransformStream/map_A01_t01: Fail
-LibTest/async/EventTransformStream/reduce_A01_t01: Fail
-LibTest/async/EventTransformStream/reduce_A01_t02: Fail
-LibTest/async/EventTransformStream/reduce_A01_t03: Fail
-LibTest/async/EventTransformStream/singleWhere_A01_t01: Fail
-LibTest/async/EventTransformStream/singleWhere_A02_t01: Fail
-LibTest/async/EventTransformStream/single_A01_t01: Fail
-LibTest/async/EventTransformStream/single_A02_t01: Fail
-LibTest/async/EventTransformStream/skipWhile_A01_t01: Fail
-LibTest/async/EventTransformStream/skip_A01_t01: Fail
-LibTest/async/EventTransformStream/takeWhile_A01_t01: Fail
-LibTest/async/EventTransformStream/take_A01_t01: Fail
-LibTest/async/EventTransformStream/take_A01_t02: Fail
-LibTest/async/EventTransformStream/take_A01_t03: Fail
-LibTest/async/EventTransformStream/toList_A01_t01: Fail
-LibTest/async/EventTransformStream/toSet_A01_t01: Fail
-LibTest/async/EventTransformStream/transform_A01_t01: Fail
-LibTest/async/EventTransformStream/where_A01_t01: Fail
-LibTest/async/EventTransformStream/where_A01_t02: Fail
-LibTest/async/StreamEventTransformer/bind_A01_t01: Fail
-LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail
-LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail
-LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail
 
 # co19 issue 639.
 Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail
@@ -239,24 +136,12 @@ LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail
 
 #co19 issue 631
 Language/12_Expressions/30_Identifier_Reference_A02_t01: Fail
-Language/13_Statements/03_Variable_Declaration_A01_t09: Fail
-Language/13_Statements/03_Variable_Declaration_A01_t16: Fail
-
-Language/13_Statements/09_Switch_A02_t04: Fail  # Issue 629
-
-
 
 
 # co19 issue 642, The argument type 'int' cannot be assigned to the parameter type 'Iterable'
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail, OK
 LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
-
-# co19 issue 644, The argument type 'int' cannot be assigned to the parameter type '(String, Object) -> void'
-LibTest/collection/LinkedHashMap/allTests_A01_t01: Fail, OK
-
-# co19 issue 645, "15.7 Type Void". Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
-Language/06_Functions/06_Functions_A04_t01: Fail, OK
 
 # co19 issue 646, I don't see where Spec requires any warning for boolean conversion
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: MissingStaticWarning

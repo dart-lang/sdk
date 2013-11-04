@@ -7,12 +7,6 @@
 Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392, passes in checked mode b/c of type check
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium) ]
-Language/13_Statements/03_Variable_Declaration_A04_t01: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t02: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t05: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t06: Fail, MissingCompileTimeError # Issue 7052
-Language/13_Statements/03_Variable_Declaration_A04_t07: Fail # co19 issue 535
-Language/13_Statements/03_Variable_Declaration_A04_t08: Fail # co19 issue 535
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # Issue 12508
@@ -118,7 +112,6 @@ LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
-Language/12_Expressions/12_Instance_Creation_A01_t08: CompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349

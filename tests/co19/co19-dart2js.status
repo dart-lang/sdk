@@ -610,8 +610,6 @@ LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please tr
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 
-LibTest/json/stringify_A01_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/math/pow_A04_t01: fail # co19-roll r587: Please triage this failure

@@ -12,18 +12,6 @@
 # Tests that fail everywhere, including the analyzer.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 
-LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t03: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer.fromHandlers_A01_t04: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer_A01_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer_A01_t03: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer_A02_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer_A02_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer_A03_t01: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/StreamTransformer_A03_t02: Fail, CompileTimeError # co19-roll r641: Please triage this failure
-LibTest/StreamTransformer/bind_A01_t01: Fail # co19-roll r641: Please triage this failure
-
 LibTest/json/BuildJsonListener/BuildJsonListener_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/JsonParser_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/constants_A01_t01: Fail, OK # Issue 637
@@ -36,37 +24,22 @@ LibTest/json/JsonParser/parseTrue_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/parse_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/properties_A01_t01: Fail, OK # Issue 637
 LibTest/json/ReviverJsonListener/ReviverJsonListener_A01_t01: Fail, OK # Issue 637
-LibTest/json/parse_A01_t01: Fail, OK # Issue 637
-LibTest/json/parse_A02_t01: Fail, OK # Issue 637
-LibTest/json/parse_A03_t01: Fail, OK # Issue 637
 LibTest/json/printOn_A01_t01: Fail, OK # Issue 637
 LibTest/json/printOn_A02_t01: Fail, OK # Issue 637
 LibTest/json/printOn_A03_t01: Fail, OK # Issue 637
 LibTest/json/printOn_A03_t02: Fail, OK # Issue 637
 LibTest/json/printOn_A03_t03: Fail, OK # Issue 637
 LibTest/json/printOn_A04_t01: Fail, OK # Issue 637
-LibTest/json/stringify_A01_t01: Fail, OK # Issue 637
-LibTest/json/stringify_A02_t01: Fail, OK # Issue 637
-LibTest/json/stringify_A03_t01: Fail, OK # Issue 637
-LibTest/json/stringify_A03_t02: Fail, OK # Issue 637
-LibTest/json/stringify_A03_t03: Fail, OK # Issue 637
-LibTest/json/stringify_A04_t01: Fail, OK # Issue 637
 
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19 issue 648
 
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t04: fail, pass, ok # co19 issue 634
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t02: fail, pass, ok # co19 issue 634
-Language/12_Expressions/12_Instance_Creation/2_Const_A09_t03: fail, pass, ok # co19 issue 634
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail, pass, ok # co19 issue 649
 
 Language/05_Variables/05_Variables_A06_t01: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t02: fail, pass, ok # co19 issue 624
 Language/05_Variables/05_Variables_A06_t03: fail, pass, ok # co19 issue 624
-Language/05_Variables/05_Variables_A06_t04: fail, pass, ok # co19 issue 624
-Language/05_Variables/05_Variables_A06_t05: fail, pass, ok # co19 issue 624
-Language/05_Variables/05_Variables_A06_t06: fail, pass, ok # co19 issue 624
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 
@@ -132,85 +105,11 @@ LibTest/async/Timer/Timer_A02_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/Timer.periodic_A01_t01: PASS, FAIL, OK # co19 issue 537
 LibTest/async/Timer/Timer.periodic_A02_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Future/Future.delayed_A01_t02: PASS, FAIL, OK # co19 issue 536
-LibTest/async/EventTransformStream/listen_A04_t01: Pass, Timeout # co19 issue 542
 
 LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
 
 [ $runtime == vm || $compiler == none || $compiler == dart2js ]
-LibTest/async/EventTransformStream/EventTransformStream_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/EventTransformStream_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/any_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/any_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/asBroadcastStream_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/contains_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/contains_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/contains_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/distinct_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/distinct_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/drain_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/drain_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/drain_A02_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/elementAt_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/elementAt_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/elementAt_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/every_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/every_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/expand_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/firstWhere_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/firstWhere_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/firstWhere_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/firstWhere_A03_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/first_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/first_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/first_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/fold_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/fold_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/forEach_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/forEach_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/forEach_A02_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/handleError_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/handleError_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/handleError_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/isBroadcast_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/isBroadcast_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/isEmpty_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/lastWhere_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/lastWhere_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/lastWhere_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/lastWhere_A04_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/last_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/last_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/length_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/listen_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/listen_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/listen_A03_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/listen_A04_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/map_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/reduce_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/reduce_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/reduce_A01_t03: Fail # co19 issue 626
-LibTest/async/EventTransformStream/singleWhere_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/singleWhere_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/single_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/single_A02_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/skipWhile_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/skip_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/takeWhile_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/take_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/take_A01_t02: Fail # co19 issue 626
-LibTest/async/EventTransformStream/take_A01_t03: Fail # co19 issue 626
-LibTest/async/EventTransformStream/toList_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/toSet_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/transform_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/where_A01_t01: Fail # co19 issue 626
-LibTest/async/EventTransformStream/where_A01_t02: Fail # co19 issue 626
-LibTest/async/StreamEventTransformer/bind_A01_t01: Fail # co19 issue 626
-LibTest/async/StreamEventTransformer/handleData_A01_t01: Fail # co19 issue 626
-LibTest/async/StreamEventTransformer/handleDone_A01_t01: Fail # co19 issue 626
-LibTest/async/StreamEventTransformer/handleError_A01_t01: Fail # co19 issue 626
-
 Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/IsolateSink/add_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/IsolateSink/add_A01_t02: Fail # Co19 issue 639
@@ -282,5 +181,4 @@ LibTest/async/Future/catchError_A03_t05: RuntimeError # co19 issue 651.
 [ ($runtime == vm || $compiler == dart2js) && $checked]
 Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
 Language/14_Libraries_and_Scripts/1_Imports_A03_t66: PASS, FAIL, OK # co19 issue 560
-LibTest/async/EventTransformStream/contains_A01_t01: FAIL, OK  # co19 issue 498
 

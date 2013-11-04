@@ -27,9 +27,6 @@ isolate_stress_test: Pass, Crash # Issue 14438
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
 
-global_error_handler_test: Pass, RuntimeError # Issue 9012, Issue 9024
-global_error_handler2_test: Pass, RuntimeError # Issue 9012, Issue 9024
-
 [ $compiler == dart2js && $runtime == ie9 ]
 browser/typed_data_message_test: Fail # Issue 12624
 
@@ -92,7 +89,6 @@ spawn_uri_test: Fail # http://dartbug.com/13454
 spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 
 [ $compiler == none && $runtime == dartium ]
-global_error_handler2_test: Fail # Issue 13719: Please triage this failure.
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
@@ -101,8 +97,6 @@ browser/compute_this_script_browser_test: Fail
 browser/typed_data_message_test: Skip # 13961
 count_test: Fail
 cross_isolate_message_test: Fail
-global_error_handler2_test: Fail
-global_error_handler_test: Fail
 illegal_msg_function_test: Fail
 illegal_msg_mirror_test: Fail
 isolate_complex_messages_test: Fail
@@ -123,9 +117,6 @@ unresolved_ports_test: Fail
 browser/typed_data_message_test: StaticWarning
 isolate3_negative_test: CompileTimeError
 isolate_import_negative_test: CompileTimeError
-isolate/mint_maker_test: StaticWarning
-isolate/unresolved_ports_test: StaticWarning
-mandel_isolate_stream_test: StaticWarning
 mandel_isolate_test: StaticWarning
 mint_maker_test: StaticWarning
 serialization_test: StaticWarning

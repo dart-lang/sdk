@@ -171,5 +171,3 @@ Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please tri
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A03_t02: fail # co19-roll r587: Please triage this failure
-LibTest/json/stringify_A02_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/stringify_A03_t02: fail # co19-roll r587: Please triage this failure
