@@ -5,16 +5,25 @@
 #ifndef VM_FLOW_GRAPH_BUILDER_H_
 #define VM_FLOW_GRAPH_BUILDER_H_
 
+#include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/growable_array.h"
 #include "vm/intermediate_language.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
+class AbstractType;
+class AbstractTypeArguments;
+class Array;
+class Class;
+class Field;
 class FlowGraph;
-class Instruction;
+class LocalVariable;
 class ParsedFunction;
+class String;
 
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
@@ -151,6 +160,13 @@ class FlowGraphBuilder: public ValueObject {
     return guarded_fields_;
   }
 
+  intptr_t temp_count() const { return temp_count_; }
+  intptr_t AllocateTemp() { return ++temp_count_; }
+  void DeallocateTemps(intptr_t count) {
+    ASSERT(temp_count_ >= count);
+    temp_count_ -= count;
+  }
+
   intptr_t args_pushed() const { return args_pushed_; }
   void add_args_pushed(intptr_t n) { args_pushed_ += n; }
 
@@ -182,6 +198,9 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t loop_depth_;
   GraphEntryInstr* graph_entry_;
 
+  // The expression stack height.
+  intptr_t temp_count_;
+
   // Outgoing argument stack height.
   intptr_t args_pushed_;
 
@@ -206,10 +225,8 @@ class TestGraphVisitor;
 //   - (i0, i1): an open graph fragment
 class EffectGraphVisitor : public AstNodeVisitor {
  public:
-  EffectGraphVisitor(FlowGraphBuilder* owner,
-                     intptr_t temp_index)
+  explicit EffectGraphVisitor(FlowGraphBuilder* owner)
       : owner_(owner),
-        temp_index_(temp_index),
         entry_(NULL),
         exit_(NULL) { }
 
@@ -220,7 +237,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
 #undef DECLARE_VISIT
 
   FlowGraphBuilder* owner() const { return owner_; }
-  intptr_t temp_index() const { return temp_index_; }
   Instruction* entry() const { return entry_; }
   Instruction* exit() const { return exit_; }
 
@@ -345,11 +361,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void UnchainContext();
 
   void CloseFragment() { exit_ = NULL; }
-  intptr_t AllocateTempIndex() { return temp_index_++; }
-  void DeallocateTempIndex(intptr_t n) {
-    ASSERT(temp_index_ >= n);
-    temp_index_ -= n;
-  }
 
   // Returns a local variable index for a temporary local that is
   // on top of the current expression stack.
@@ -412,9 +423,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Shared global state.
   FlowGraphBuilder* owner_;
 
-  // Input parameters.
-  intptr_t temp_index_;
-
   // Output parameters.
   Instruction* entry_;
   Instruction* exit_;
@@ -428,9 +436,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 // language Value.
 class ValueGraphVisitor : public EffectGraphVisitor {
  public:
-  ValueGraphVisitor(FlowGraphBuilder* owner,
-                    intptr_t temp_index)
-      : EffectGraphVisitor(owner, temp_index), value_(NULL) { }
+  explicit ValueGraphVisitor(FlowGraphBuilder* owner)
+      : EffectGraphVisitor(owner), value_(NULL) { }
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
@@ -492,9 +499,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
-                   intptr_t temp_index,
                    intptr_t condition_token_pos)
-      : ValueGraphVisitor(owner, temp_index),
+      : ValueGraphVisitor(owner),
         true_successor_addresses_(1),
         false_successor_addresses_(1),
         condition_token_pos_(condition_token_pos) { }
