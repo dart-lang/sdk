@@ -161,7 +161,7 @@ class FlowGraphBuilder: public ValueObject {
   }
 
   intptr_t temp_count() const { return temp_count_; }
-  intptr_t AllocateTemp() { return ++temp_count_; }
+  intptr_t AllocateTemp() { return temp_count_++; }
   void DeallocateTemps(intptr_t count) {
     ASSERT(temp_count_ >= count);
     temp_count_ -= count;

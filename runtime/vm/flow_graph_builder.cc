@@ -1914,7 +1914,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   Do(new PushTempInstr(value));
   owner()->AllocateTemp();
 
-  ASSERT(value->definition()->temp_index() == owner()->temp_count());
+  ASSERT(value->definition()->temp_index() == (owner()->temp_count() - 1));
   intptr_t index = GetCurrentTempLocalIndex();
   char name[64];
   OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
