@@ -1147,7 +1147,9 @@ templateInstantiationTests() {
     expect(div.nodes[i++].text, 'Item 2');
   });
 
-  observeTest('Attribute Template Option/Optgroup', () {
+  // Note: we don't need a zone for this test, and we don't want to alter timing
+  // since we're testing a rather subtle relationship between select and option.
+  test('Attribute Template Option/Optgroup', () {
     var div = createTestHtml(
         '<template bind>'
           '<select selectedIndex="{{ selected }}">'
@@ -1165,27 +1167,27 @@ templateInstantiationTests() {
     });
 
     recursivelySetTemplateModel(div, m);
-    performMicrotaskCheckpoint();
+    Observable.dirtyCheck();
 
-    var select = div.nodes[0].nextNode;
-    expect(select.nodes.length, 2);
+    // Use a timer so it's slower than mutation observers.
+    return new Future(() {
+      var select = div.nodes[0].nextNode;
+      expect(select.nodes.length, 2);
 
-    scheduleMicrotask(expectAsync0(() {
-      scheduleMicrotask(expectAsync0(() {
-        // TODO(jmesserly): this should be called sooner.
-        expect(select.selectedIndex, 1);
-      }));
-    }));
-    expect(select.nodes[0].tagName, 'TEMPLATE');
-    expect((templateBind(templateBind(select.nodes[0]).ref)
-        .content.nodes[0] as Element).tagName, 'OPTGROUP');
+      expect(select.selectedIndex, 1, reason: 'selected index should update by '
+          'animationFrame time');
 
-    var optgroup = select.nodes[1];
-    expect(optgroup.nodes[0].tagName, 'TEMPLATE');
-    expect(optgroup.nodes[1].tagName, 'OPTION');
-    expect(optgroup.nodes[1].text, '0');
-    expect(optgroup.nodes[2].tagName, 'OPTION');
-    expect(optgroup.nodes[2].text, '1');
+      expect(select.nodes[0].tagName, 'TEMPLATE');
+      expect((templateBind(templateBind(select.nodes[0]).ref)
+          .content.nodes[0] as Element).tagName, 'OPTGROUP');
+
+      var optgroup = select.nodes[1];
+      expect(optgroup.nodes[0].tagName, 'TEMPLATE');
+      expect(optgroup.nodes[1].tagName, 'OPTION');
+      expect(optgroup.nodes[1].text, '0');
+      expect(optgroup.nodes[2].tagName, 'OPTION');
+      expect(optgroup.nodes[2].text, '1');
+    });
   });
 
   observeTest('NestedIterateTableMixedSemanticNative', () {
