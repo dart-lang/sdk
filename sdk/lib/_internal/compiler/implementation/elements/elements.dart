@@ -694,6 +694,7 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 
   Element find(String elementName);
   Element findLocal(String elementName);
+  Element findExported(String elementName);
   void forEachExport(f(Element element));
 
   bool hasLibraryName();

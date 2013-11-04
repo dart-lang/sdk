@@ -47,6 +47,8 @@ compile_time_constant_checked3_test/06: Fail, OK
 [ $runtime == vm || (($runtime == drt || $runtime == dartium) && $compiler == none) ]
 call_test: Fail # Issue 12602
 dynamic_prefix_core_test: Fail # Issue 12478
+export_main_test: Fail # Issue 14763
+export_double_same_main_test: Fail # Issue 14763
 
 [ $compiler == none && $runtime == drt ]
 mixin_illegal_object_test/01: pass # Issue 10952.
