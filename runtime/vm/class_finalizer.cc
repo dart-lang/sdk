@@ -1220,17 +1220,11 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           field.set_value(Instance::Handle(Object::sentinel().raw()));
 
           // Create initializer function.
-          // We don't have the start position of the initializer expression
-          // here, but can compute it from the field identifier position:
-          // The initializer expression starts after the assignment token at +2.
-          const intptr_t initializer_pos = field.token_pos() + 2;
-          const Function& init_function = Function::ZoneHandle(
-              Function::NewStaticInitializer(
-                  String::Handle(field.name()),
-                  type,
-                  cls,
-                  initializer_pos));
-          cls.AddFunction(init_function);
+          if (!field.is_const()) {
+            const Function& init_function = Function::ZoneHandle(
+                Function::NewStaticInitializer(field));
+            cls.AddFunction(init_function);
+          }
         }
       }
     }

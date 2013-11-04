@@ -426,7 +426,10 @@ class Dartdoc {
       String packageRoot) {
     _packageRoot = packageRoot;
     _exports = new ExportMap.parse(libraryList, packageRoot);
-    var librariesToAnalyze = _exports.allExportedFiles.toList();
+    var librariesToAnalyze =
+        _exports.allExportedFiles
+                .map((file) => new Uri.file(file).toString())
+                .toList();
     librariesToAnalyze.addAll(libraryList.map((uri) => uri.toString()));
 
     // dart2js takes a String, but it expects that to be a Uri, not a file

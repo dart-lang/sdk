@@ -5,5 +5,8 @@
 import "dart:io";
 
 main(List<String> arguments) {
+  if (!Platform.script.isAbsolute) {
+    throw "Platform.script is not absolute: ${Platform.script}";
+  }
   print(Platform.environment[arguments[0]]);
 }

@@ -1527,6 +1527,9 @@ class Function : public Object {
   void set_saved_args_desc(const Array& array) const;
   RawArray* saved_args_desc() const;
 
+  void set_saved_static_field(const Field& array) const;
+  RawField* saved_static_field() const;
+
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;
   }
@@ -1880,10 +1883,7 @@ class Function : public Object {
 
   // Creates a new static initializer function which is invoked in the implicit
   // static getter function.
-  static RawFunction* NewStaticInitializer(const String& field_name,
-                                           const AbstractType& result_type,
-                                           const Class& cls,
-                                           intptr_t token_pos);
+  static RawFunction* NewStaticInitializer(const Field& field);
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.

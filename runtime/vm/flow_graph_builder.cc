@@ -3574,12 +3574,11 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   owner()->AddCatchEntry(catch_entry);
   ASSERT(!for_catch.is_open());
   AppendFragment(catch_entry, for_catch);
-  if (node->end_catch_label() != NULL) {
-    JoinEntryInstr* join = node->end_catch_label()->join_for_continue();
-    if (join != NULL) {
-      if (is_open()) Goto(join);
-      exit_ = join;
-    }
+
+  JoinEntryInstr* join = node->end_catch_label()->join_for_continue();
+  if (join != NULL) {
+    if (is_open()) Goto(join);
+    exit_ = join;
   }
 
   if (finally_block != NULL) {

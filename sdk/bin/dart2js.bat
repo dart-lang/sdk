@@ -54,8 +54,8 @@ exit /b %errorlevel%
 setlocal
 for %%i in (%1) do set result=%%~fi
 set current=
-for /f "tokens=2 delims=[]" %%i in ('dir /a:l ^"%~dp1^" 2^>nul ^
-                                     ^| find ">     %~n1 ["') do (
+for /f "usebackq tokens=2 delims=[]" %%i in (`dir /a:l "%~dp1" 2^>nul ^
+                                             ^| find ">     %~n1 ["`) do (
   set current=%%i
 )
 if not "%current%"=="" call :follow_links "%current%", result
