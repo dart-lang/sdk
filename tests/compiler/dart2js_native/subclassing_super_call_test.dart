@@ -15,13 +15,13 @@ class N1 native "N1" {
 
 class N2 extends N1 native "N2" {
   N2.init();
-  var text;
+  String text;
   foo() native;
 }
 
 class AA extends N2 {
   AA.init() : super.init();
-  var afield;
+  String afield;
   afun() => 'afun:$afield';
 }
 
@@ -63,8 +63,8 @@ testSuperOnNative() {
   JS('', '#(#)', constructor, b1);
   JS('', '#(#)', constructor, b2);
 
-  b1.text = 'one';
-  b2.text = 'two';
+  b1.text = inscrutable('one');
+  b2.text = inscrutable('two');
 
   print('b1.text ${inscrutable(b1).text}');
   print('b2.text ${inscrutable(b2).text}');
@@ -73,16 +73,16 @@ testSuperOnNative() {
   print('b2.foo() ${inscrutable(b2).foo()}');
 
   Expect.equals('one', b1.text);
-  Expect.equals('two', b1.text);
+  Expect.equals('two', b2.text);
 
   Expect.equals('foo:one', b1.foo());
   Expect.equals('foo:two', b2.foo());
 
-  inscrutable(b1).text = 'three';
-  inscrutable(b2).text = 'four';
+  inscrutable(b1).text = inscrutable('three');
+  inscrutable(b2).text = inscrutable('four');
 
   Expect.equals('three', inscrutable(b1).text);
-  Expect.equals('four', inscrutable(b1).text);
+  Expect.equals('four', inscrutable(b2).text);
 
   Expect.equals('foo:three', inscrutable(b1).foo());
   Expect.equals('foo:four', inscrutable(b2).foo());
@@ -97,8 +97,8 @@ testSuperOnSubclassOfNative() {
   JS('', '#(#)', constructor, b1);
   JS('', '#(#)', constructor, b2);
 
-  b1.afield = 'one';
-  b2.afield = 'two';
+  b1.afield = inscrutable('one');
+  b2.afield = inscrutable('two');
 
   print('b1.afield ${inscrutable(b1).afield}');
   print('b2.afield ${inscrutable(b2).afield}');
@@ -107,17 +107,17 @@ testSuperOnSubclassOfNative() {
   print('b2.afun() ${inscrutable(b2).afun()}');
 
   Expect.equals('one', b1.afield);
-  Expect.equals('two', b1.afield);
+  Expect.equals('two', b2.afield);
 
   Expect.equals('afun:one', b1.afun());
   Expect.equals('afun:two', b2.afun());
 
 
-  inscrutable(b1).afield = 'three';
-  inscrutable(b2).afield = 'four';
+  inscrutable(b1).afield = inscrutable('three');
+  inscrutable(b2).afield = inscrutable('four');
 
   Expect.equals('three', inscrutable(b1).afield);
-  Expect.equals('four', inscrutable(b1).afield);
+  Expect.equals('four', inscrutable(b2).afield);
 
   Expect.equals('afun:three', inscrutable(b1).afun());
   Expect.equals('afun:four', inscrutable(b2).afun());
