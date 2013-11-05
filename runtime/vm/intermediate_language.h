@@ -3105,9 +3105,6 @@ class IfThenElseInstr : public TemplateDefinition<2> {
     SetInputAt(1, right);
   }
 
-  // Returns true if this instruction is supported on the current platform.
-  static bool IsSupported();
-
   // Returns true if this combination of comparison and values flowing on
   // the true and false paths is supported on the current platform.
   static bool Supports(ComparisonInstr* comparison, Value* v1, Value* v2);

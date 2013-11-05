@@ -7487,10 +7487,6 @@ static void EliminateTrivialBlock(BlockEntryInstr* block,
 
 
 void IfConverter::Simplify(FlowGraph* flow_graph) {
-  if (!IfThenElseInstr::IsSupported()) {
-    return;
-  }
-
   bool changed = false;
 
   const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();

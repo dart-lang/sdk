@@ -4666,11 +4666,6 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 }
 
 
-bool IfThenElseInstr::IsSupported() {
-  return true;
-}
-
-
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {

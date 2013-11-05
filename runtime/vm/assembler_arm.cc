@@ -2418,6 +2418,18 @@ void Assembler::AddImmediateWithCarry(Register rd, Register rn, int32_t value,
 }
 
 
+void Assembler::AndImmediate(Register rd, Register rs, int32_t imm,
+                             Condition cond) {
+  ShifterOperand op;
+  if (ShifterOperand::CanHold(imm, &op)) {
+    and_(rd, rs, ShifterOperand(op), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    and_(rd, rs, ShifterOperand(TMP), cond);
+  }
+}
+
+
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {

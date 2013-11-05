@@ -109,27 +109,152 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-bool IfThenElseInstr::IsSupported() {
-  return false;
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return NE;
+    case NE: return EQ;
+    case LT: return GE;
+    case LE: return GT;
+    case GT: return LE;
+    case GE: return LT;
+    case CC: return CS;
+    case LS: return HI;
+    case HI: return LS;
+    case CS: return CC;
+    default:
+      UNREACHABLE();
+      return EQ;
+  }
+}
+
+
+static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
+  if (!val->BindsToConstant()) {
+    return false;
+  }
+
+  const Object& bound_constant = val->BoundConstant();
+  if (!bound_constant.IsSmi()) {
+    return false;
+  }
+
+  *smi_value = Smi::Cast(bound_constant).Value();
+  return true;
+}
+
+
+// Detect pattern when one value is zero and another is a power of 2.
+static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
+  return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
+         (Utils::IsPowerOfTwo(v2) && (v1 == 0));
 }
 
 
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {
-  UNREACHABLE();
-  return false;
+  if (!(comparison->IsStrictCompare() &&
+        !comparison->AsStrictCompare()->needs_number_check()) &&
+      !(comparison->IsEqualityCompare() &&
+        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
+    return false;
+  }
+
+  intptr_t v1_value, v2_value;
+
+  if (!BindsToSmiConstant(v1, &v1_value) ||
+      !BindsToSmiConstant(v2, &v2_value)) {
+    return false;
+  }
+
+  return true;
 }
 
 
 LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
-  UNREACHABLE();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_out(Location::RequiresRegister());
+  return locs;
 }
 
 
 void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  const Register result = locs()->out().reg();
+  ASSERT(Token::IsEqualityOperator(kind()));
+
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(srdjan): Determine why this instruction was not eliminated.
+    bool res = (left.constant().raw() == right.constant().raw());
+    if ((kind_ == Token::kNE_STRICT) || (kind_ == Token::kNE)) {
+      res = !res;
+    }
+    __ LoadImmediate(locs()->out().reg(),
+        reinterpret_cast<int32_t>(Smi::New(res ? if_true_ : if_false_)));
+    return;
+  }
+
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+
+  // Clear out register.
+  __ eor(result, result, ShifterOperand(result));
+
+  // Compare left and right. For now only equality comparison is supported.
+  // TODO(vegorov): reuse code from the other comparison instructions instead of
+  // generating it inline here.
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ cmp(left.reg(), ShifterOperand(right.reg()));
+  }
+
+  Condition true_condition =
+      ((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kEQ)) ? EQ : NE;
+
+  const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
+
+  intptr_t true_value = if_true_;
+  intptr_t false_value = if_false_;
+
+  if (is_power_of_two_kind) {
+    if (true_value == 0) {
+      // We need to have zero in result on true_condition.
+      true_condition = NegateCondition(true_condition);
+    }
+  } else {
+    if (true_value == 0) {
+      // Swap values so that false_value is zero.
+      intptr_t temp = true_value;
+      true_value = false_value;
+      false_value = temp;
+    } else {
+      true_condition = NegateCondition(true_condition);
+    }
+  }
+
+  __ mov(result, ShifterOperand(1), true_condition);
+
+  if (is_power_of_two_kind) {
+    const intptr_t shift =
+        Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
+    __ Lsl(result, result, shift + kSmiTagSize);
+  } else {
+    __ sub(result, result, ShifterOperand(1));
+    const int32_t val =
+        Smi::RawValue(true_value) - Smi::RawValue(false_value);
+    __ AndImmediate(result, result, val);
+    if (false_value != 0) {
+      __ AddImmediate(result, Smi::RawValue(false_value));
+    }
+  }
 }
 
 
@@ -336,25 +461,6 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   }
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
-}
-
-
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQ: return NE;
-    case NE: return EQ;
-    case LT: return GE;
-    case LE: return GT;
-    case GT: return LE;
-    case GE: return LT;
-    case CC: return CS;
-    case LS: return HI;
-    case HI: return LS;
-    case CS: return CC;
-    default:
-      UNREACHABLE();
-      return EQ;
-  }
 }
 
 

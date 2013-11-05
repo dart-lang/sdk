@@ -583,6 +583,8 @@ class Assembler : public ValueObject {
   void AddImmediateWithCarry(Register rd, Register rn, int32_t value,
                              Condition cond = AL);
 
+  void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
+
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
 

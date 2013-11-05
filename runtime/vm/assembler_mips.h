@@ -859,6 +859,20 @@ class Assembler : public ValueObject {
     AddImmediate(rd, rd, value);
   }
 
+  void AndImmediate(Register rd, Register rs, int32_t imm) {
+    if (imm == 0) {
+      mov(rd, ZR);
+      return;
+    }
+
+    if (Utils::IsUint(kImmBits, imm)) {
+      andi(rd, rs, Immediate(imm));
+    } else {
+      LoadImmediate(TMP, imm);
+      and_(rd, rs, TMP);
+    }
+  }
+
   void BranchEqual(Register rd, int32_t value, Label* l) {
     if (value == 0) {
       beq(rd, ZR, l);
