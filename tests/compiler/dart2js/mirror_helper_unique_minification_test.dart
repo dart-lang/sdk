@@ -15,7 +15,11 @@ show
 import
     '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
 show
-    Node;
+    Node, Identifier;
+import
+    '../../../sdk/lib/_internal/compiler/implementation/mirror_renamer/mirror_renamer.dart'
+show
+    MirrorRenamer;
 
 main() {
   testUniqueMinification();
