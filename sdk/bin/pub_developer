@@ -12,12 +12,16 @@
 BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
 SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
+# Increase the heap size for Dart. Pub runs dart2js, which uses a lot of
+# memory.
+DART_FLAGS="--new_gen_heap_size=256 --old_gen_heap_size=1536"
+
 SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
 
 if test -f "$SNAPSHOT"; then
   # We are running the snapshot in the built SDK.
   DART="$BIN_DIR/dart"
-  exec "$DART" --checked "$SNAPSHOT" "$@"
+  exec "$DART" "$DART_FLAGS" --checked "$SNAPSHOT" "$@"
 else
   # We are running pub from source in the development repo.
   if [ -z "$DART_CONFIGURATION" ];
@@ -39,5 +43,6 @@ else
 
   PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
 
-  exec "$DART" "--checked" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+  exec "$DART" "$DART_FLAGS" "--checked" "--package-root=$PACKAGES_DIR" "$PUB" \
+       "$@"
 fi
