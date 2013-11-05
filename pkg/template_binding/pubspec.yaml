@@ -6,6 +6,7 @@ description: >
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
   logging: any
+  mutation_observer: any
   observe: any
 dev_dependencies:
   custom_element: any
