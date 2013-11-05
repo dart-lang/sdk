@@ -81,10 +81,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
         mainScriptTag.attributes['src'] =
             path.url.basename(bootstrapId.path);
 
-        // TODO(sigmund): stop renaming the file (see dartbug.com/14554)
-        var modifiedMainId = mainLibraryId.addExtension('_modified.dart');
-
-        libraries.add(modifiedMainId);
+        libraries.add(mainLibraryId);
         var urls = libraries.map((id) => assetUrlFor(id, bootstrapId, logger))
             .where((url) => url != null).toList();
         var buffer = new StringBuffer()..writeln(MAIN_HEADER);
@@ -98,17 +95,12 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
             ..writeln('  configureForDeployment([')
             ..writeAll(urls.map((url) => "      '$url',\n"))
             ..writeln('    ]);')
-            ..writeln('  i${i - 1}.polymerMainWrapper();')
+            ..writeln('  i${i - 1}.main();')
             ..writeln('}');
 
         transform.addOutput(new Asset.fromString(
               bootstrapId, buffer.toString()));
         transform.addOutput(new Asset.fromString(id, document.outerHtml));
-
-        return transform.readInputAsString(mainLibraryId).then((contents) {
-          transform.addOutput(new Asset.fromString(modifiedMainId,
-              '$contents\n\npolymerMainWrapper() => main();\n'));
-        });
       });
     });
   }

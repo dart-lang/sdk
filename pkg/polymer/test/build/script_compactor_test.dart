@@ -46,19 +46,16 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'a.dart_modified.dart' as i0;
+          import 'a.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'a.dart_modified.dart',
+                'a.dart',
               ]);
-            i0.polymerMainWrapper();
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': 'library a;\nmain(){}',
-      'a|web/a.dart_modified.dart':
-          'library a;\nmain(){}'
-          '\n\npolymerMainWrapper() => main();\n',
     });
 
   testPhases('several scripts', phases, {
@@ -83,16 +80,16 @@ void main() {
           import 'a.dart' as i0;
           import 'b.dart' as i1;
           import 'c.dart' as i2;
-          import 'd.dart_modified.dart' as i3;
+          import 'd.dart' as i3;
 
           void main() {
             configureForDeployment([
                 'a.dart',
                 'b.dart',
                 'c.dart',
-                'd.dart_modified.dart',
+                'd.dart',
               ]);
-            i3.polymerMainWrapper();
+            i3.main();
           }
           '''.replaceAll('\n          ', '\n'),
     });
