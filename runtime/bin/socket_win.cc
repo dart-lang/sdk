@@ -97,6 +97,9 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
     return NULL;
   }
   *port = SocketAddress::GetAddrPort(&raw);
+  // Clear the port before calling WSAAddressToString as WSAAddressToString
+  // includes the port in the formatted string.
+  SocketAddress::SetAddrPort(&raw, 0);
   return new SocketAddress(&raw.addr);
 }
 
