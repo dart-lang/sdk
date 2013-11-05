@@ -405,7 +405,6 @@ touchevent_test/supported: Fail # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 audiocontext_test: StaticWarning
-custom/created_callback_test: StaticWarning
 custom/document_register_basic_test: StaticWarning
 datalistelement_test: StaticWarning
 documentfragment_test: StaticWarning
