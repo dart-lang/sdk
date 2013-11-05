@@ -1508,14 +1508,14 @@ class SsaTypeConversionInserter extends HBaseVisitor
     HInstruction input = instruction.expression;
     for (HIf ifUser in ifUsers) {
       changeUsesDominatedBy(ifUser.thenBlock, input, convertedType);
-      // TODO(ngeoffray): Also change uses for the else block on a HType
-      // that knows it is not of a specific Type.
+      // TODO(ngeoffray): Also change uses for the else block on a type
+      // that knows it is not of a specific type.
     }
 
     for (HIf ifUser in notIfUsers) {
       changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
-      // TODO(ngeoffray): Also change uses for the then block on a HType
-      // that knows it is not of a specific Type.
+      // TODO(ngeoffray): Also change uses for the then block on a type
+      // that knows it is not of a specific type.
     }
   }
 }

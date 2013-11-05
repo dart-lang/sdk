@@ -374,10 +374,10 @@ void testUnion(MockCompiler compiler) {
 
   rule(jsFixedArray, jsFixedArray, jsFixedArray);
 
-  check(nonPrimitive1, nullType, (type) => type is HBoundedType);
-  check(nonPrimitive2, nullType, (type) => type is HBoundedType);
-  check(nullType, nonPrimitive1, (type) => type.isNullable);
-  check(nullType, nonPrimitive2, (type) => type.isNullable);
+  check(nonPrimitive1, nullType, (type) => type == nonPrimitive1.nullable());
+  check(nonPrimitive2, nullType, (type) => type == nonPrimitive2.nullable());
+  check(nullType, nonPrimitive1, (type) => type == nonPrimitive1.nullable());
+  check(nullType, nonPrimitive2, (type) => type == nonPrimitive2.nullable());
 
   ruleSet.validateCoverage();
 }

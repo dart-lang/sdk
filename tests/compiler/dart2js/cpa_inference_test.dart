@@ -1351,9 +1351,9 @@ testJsCall() {
     final expectedGType = [result.num];
     result.checkNodeHasType('g', expectedGType);
     result.checkNodeHasType('gNull', maybe(expectedGType));
-    final expectedHType = [result.bool];
-    result.checkNodeHasType('h', expectedHType);
-    result.checkNodeHasType('hNull', maybe(expectedHType));
+    final expectedType = [result.bool];
+    result.checkNodeHasType('h', expectedType);
+    result.checkNodeHasType('hNull', maybe(expectedType));
     final expectedIType = [result.base('A'), result.base('B'),
                            result.base('BB'), result.base('C'),
                            result.base('D')];
