@@ -6,8 +6,8 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-# TBD: using built-in identifers
-built_in_identifier_prefix_test: fail # Issue 12694
+# Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
+built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
 # TBD: these look like bad tests, no issue number
 class_literal_test: fail
@@ -178,7 +178,6 @@ bad_named_parameters2_test: StaticWarning
 bad_named_parameters_test: StaticWarning
 bit_operations_test: StaticWarning
 body_less_constructor_wrong_arg_negative_test: CompileTimeError
-built_in_identifier_test/01: CompileTimeError
 call_constructor_on_unresolvable_class_test/04: StaticWarning
 call_constructor_on_unresolvable_class_test/05: StaticWarning
 call_constructor_on_unresolvable_class_test/06: StaticWarning
