@@ -1131,6 +1131,14 @@ class Class : public Object {
                 const AbstractTypeArguments& other_type_arguments,
                 Error* bound_error) const;
 
+  static bool TypeTestNonRecursive(
+      const Class& cls,
+      TypeTestKind test_kind,
+      const AbstractTypeArguments& type_arguments,
+      const Class& other,
+      const AbstractTypeArguments& other_type_arguments,
+      Error* bound_error);
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
   friend class Instance;

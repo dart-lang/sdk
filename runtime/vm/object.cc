@@ -2737,157 +2737,179 @@ bool Class::IsCanonicalSignatureClass() const {
 // type T by class 'other' parameterized with 'other_type_arguments'.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
-bool Class::TypeTest(
-    TypeTestKind test_kind,
+bool Class::TypeTestNonRecursive(
+    const Class& cls,
+    Class::TypeTestKind test_kind,
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
-    Error* bound_error) const {
-  ASSERT(!IsVoidClass());
-  // Check for DynamicType.
-  // Each occurrence of DynamicType in type T is interpreted as the dynamic
-  // type, a supertype of all types.
-  if (other.IsDynamicClass()) {
-    return true;
-  }
-  // In the case of a subtype test, each occurrence of DynamicType in type S is
-  // interpreted as the bottom type, a subtype of all types.
-  // However, DynamicType is not more specific than any type.
-  if (IsDynamicClass()) {
-    return test_kind == kIsSubtypeOf;
-  }
-  // Check for NullType, which is only a subtype of ObjectType, of DynamicType,
-  // or of itself, and which is more specific than any type.
-  if (IsNullClass()) {
-    // We already checked for other.IsDynamicClass() above.
-    return (test_kind == kIsMoreSpecificThan) ||
-        other.IsObjectClass() || other.IsNullClass();
-  }
-  // Check for ObjectType. Any type that is not NullType or DynamicType (already
-  // checked above), is more specific than ObjectType.
-  if (other.IsObjectClass()) {
-    return true;
-  }
-  // Check for reflexivity.
-  if (raw() == other.raw()) {
-    const intptr_t len = NumTypeArguments();
-    if (len == 0) {
+    Error* bound_error) {
+  // Use the thsi object as if it was the receiver of this method, but instead
+  // of recursing reset it to the super class and loop.
+  Class& thsi = Class::Handle(cls.raw());
+  while (true) {
+    ASSERT(!thsi.IsVoidClass());
+    // Check for DynamicType.
+    // Each occurrence of DynamicType in type T is interpreted as the dynamic
+    // type, a supertype of all types.
+    if (other.IsDynamicClass()) {
       return true;
     }
-    // Since we do not truncate the type argument vector of a subclass (see
-    // below), we only check a prefix of the proper length.
-    // Check for covariance.
-    if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+    // In the case of a subtype test, each occurrence of DynamicType in type S
+    // is interpreted as the bottom type, a subtype of all types.
+    // However, DynamicType is not more specific than any type.
+    if (thsi.IsDynamicClass()) {
+      return test_kind == Class::kIsSubtypeOf;
+    }
+    // Check for NullType, which is only a subtype of ObjectType, of
+    // DynamicType, or of itself, and which is more specific than any type.
+    if (thsi.IsNullClass()) {
+      // We already checked for other.IsDynamicClass() above.
+      return (test_kind == Class::kIsMoreSpecificThan) ||
+      other.IsObjectClass() || other.IsNullClass();
+    }
+    // Check for ObjectType. Any type that is not NullType or DynamicType
+    // (already checked above), is more specific than ObjectType.
+    if (other.IsObjectClass()) {
       return true;
     }
-    if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
-      // Other type can't be more specific than this one because for that
-      // it would have to have all dynamic type arguments which is checked
-      // above.
-      return test_kind == kIsSubtypeOf;
-    }
-    return type_arguments.TypeTest(test_kind,
-                                   other_type_arguments,
-                                   len,
-                                   bound_error);
-  }
-  const bool other_is_function_class = other.IsFunctionClass();
-  if (other.IsSignatureClass() || other_is_function_class) {
-    const Function& other_fun = Function::Handle(other.signature_function());
-    if (IsSignatureClass()) {
-      if (other_is_function_class) {
+    // Check for reflexivity.
+    if (thsi.raw() == other.raw()) {
+      const intptr_t len = thsi.NumTypeArguments();
+      if (len == 0) {
         return true;
       }
-      // Check for two function types.
-      const Function& fun = Function::Handle(signature_function());
-      return fun.TypeTest(test_kind,
-                          type_arguments,
-                          other_fun,
-                          other_type_arguments,
-                          bound_error);
-    }
-    // Check if type S has a call() method of function type T.
-    Function& function =
-        Function::Handle(LookupDynamicFunction(Symbols::Call()));
-    if (function.IsNull()) {
-      // Walk up the super_class chain.
-      Class& cls = Class::Handle(SuperClass());
-      while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunction(Symbols::Call());
-        cls = cls.SuperClass();
+      // Since we do not truncate the type argument vector of a subclass (see
+      // below), we only check a prefix of the proper length.
+      // Check for covariance.
+      if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+        return true;
       }
+      if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
+        // Other type can't be more specific than this one because for that
+        // it would have to have all dynamic type arguments which is checked
+        // above.
+        return test_kind == Class::kIsSubtypeOf;
+      }
+      return type_arguments.TypeTest(test_kind,
+                                     other_type_arguments,
+                                     len,
+                                     bound_error);
     }
-    if (!function.IsNull()) {
-      if (other_is_function_class ||
-          function.TypeTest(test_kind,
+    const bool other_is_function_class = other.IsFunctionClass();
+    if (other.IsSignatureClass() || other_is_function_class) {
+      const Function& other_fun = Function::Handle(other.signature_function());
+      if (thsi.IsSignatureClass()) {
+        if (other_is_function_class) {
+          return true;
+        }
+        // Check for two function types.
+        const Function& fun = Function::Handle(thsi.signature_function());
+        return fun.TypeTest(test_kind,
                             type_arguments,
                             other_fun,
                             other_type_arguments,
-                            bound_error)) {
-        return true;
+                            bound_error);
+      }
+      // Check if type S has a call() method of function type T.
+      Function& function =
+      Function::Handle(thsi.LookupDynamicFunction(Symbols::Call()));
+      if (function.IsNull()) {
+        // Walk up the super_class chain.
+        Class& cls = Class::Handle(thsi.SuperClass());
+        while (!cls.IsNull() && function.IsNull()) {
+          function = cls.LookupDynamicFunction(Symbols::Call());
+          cls = cls.SuperClass();
+        }
+      }
+      if (!function.IsNull()) {
+        if (other_is_function_class ||
+            function.TypeTest(test_kind,
+                              type_arguments,
+                              other_fun,
+                              other_type_arguments,
+                              bound_error)) {
+              return true;
+            }
       }
     }
-  }
-  // Check for 'direct super type' specified in the implements clause
-  // and check for transitivity at the same time.
-  Array& interfaces = Array::Handle(this->interfaces());
-  AbstractType& interface = AbstractType::Handle();
-  Class& interface_class = Class::Handle();
-  AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
-  Error& error = Error::Handle();
-  for (intptr_t i = 0; i < interfaces.Length(); i++) {
-    interface ^= interfaces.At(i);
-    if (!interface.IsFinalized()) {
-      // We may be checking bounds at finalization time. Skipping this
-      // unfinalized interface will postpone bound checking to run time.
-      continue;
-    }
-    error = Error::null();
-    if (interface.IsMalboundedWithError(&error)) {
-      // Return the first bound error to the caller if it requests it.
-      if ((bound_error != NULL) && bound_error->IsNull()) {
-        ASSERT(!error.IsNull());
-        *bound_error = error.raw();
+    // Check for 'direct super type' specified in the implements clause
+    // and check for transitivity at the same time.
+    Array& interfaces = Array::Handle(thsi.interfaces());
+    AbstractType& interface = AbstractType::Handle();
+    Class& interface_class = Class::Handle();
+    AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
+    Error& error = Error::Handle();
+    for (intptr_t i = 0; i < interfaces.Length(); i++) {
+      interface ^= interfaces.At(i);
+      if (!interface.IsFinalized()) {
+        // We may be checking bounds at finalization time. Skipping this
+        // unfinalized interface will postpone bound checking to run time.
+        continue;
       }
-      continue;  // Another interface may work better.
-    }
-    interface_class = interface.type_class();
-    interface_args = interface.arguments();
-    if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
-      // This type class implements an interface that is parameterized with
-      // generic type(s), e.g. it implements List<T>.
-      // The uninstantiated type T must be instantiated using the type
-      // parameters of this type before performing the type test.
-      // The type arguments of this type that are referred to by the type
-      // parameters of the interface are at the end of the type vector,
-      // after the type arguments of the super type of this type.
-      // The index of the type parameters is adjusted upon finalization.
       error = Error::null();
-      interface_args = interface_args.InstantiateFrom(type_arguments, &error);
-      if (!error.IsNull()) {
+      if (interface.IsMalboundedWithError(&error)) {
         // Return the first bound error to the caller if it requests it.
         if ((bound_error != NULL) && bound_error->IsNull()) {
+          ASSERT(!error.IsNull());
           *bound_error = error.raw();
         }
         continue;  // Another interface may work better.
       }
+      interface_class = interface.type_class();
+      interface_args = interface.arguments();
+      if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
+        // This type class implements an interface that is parameterized with
+        // generic type(s), e.g. it implements List<T>.
+        // The uninstantiated type T must be instantiated using the type
+        // parameters of this type before performing the type test.
+        // The type arguments of this type that are referred to by the type
+        // parameters of the interface are at the end of the type vector,
+        // after the type arguments of the super type of this type.
+        // The index of the type parameters is adjusted upon finalization.
+        error = Error::null();
+        interface_args = interface_args.InstantiateFrom(type_arguments, &error);
+        if (!error.IsNull()) {
+          // Return the first bound error to the caller if it requests it.
+          if ((bound_error != NULL) && bound_error->IsNull()) {
+            *bound_error = error.raw();
+          }
+          continue;  // Another interface may work better.
+        }
+      }
+      if (interface_class.TypeTest(test_kind,
+                                   interface_args,
+                                   other,
+                                   other_type_arguments,
+                                   bound_error)) {
+        return true;
+      }
     }
-    if (interface_class.TypeTest(test_kind,
-                                 interface_args,
-                                 other,
-                                 other_type_arguments,
-                                 bound_error)) {
-      return true;
+    // "Recurse" up the class hierarchy until we have reached the top.
+    thsi = thsi.SuperClass();
+    if (thsi.IsNull()) {
+      return false;
     }
   }
-  const Class& super_class = Class::Handle(SuperClass());
-  if (super_class.IsNull()) {
-    return false;
-  }
-  // Instead of truncating the type argument vector to the length of the super
-  // type argument vector, we make sure that the code works with a vector that
-  // is longer than necessary.
-  return super_class.TypeTest(test_kind,
+  UNREACHABLE();
+  return false;
+}
+
+
+// If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
+// If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
+// Type S is specified by this class parameterized with 'type_arguments', and
+// type T by class 'other' parameterized with 'other_type_arguments'.
+// This class and class 'other' do not need to be finalized, however, they must
+// be resolved as well as their interfaces.
+bool Class::TypeTest(
+                     TypeTestKind test_kind,
+                     const AbstractTypeArguments& type_arguments,
+                     const Class& other,
+                     const AbstractTypeArguments& other_type_arguments,
+                     Error* bound_error) const {
+  return TypeTestNonRecursive(*this,
+                              test_kind,
                               type_arguments,
                               other,
                               other_type_arguments,
