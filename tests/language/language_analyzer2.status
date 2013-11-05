@@ -206,7 +206,6 @@ core_type_check_test: StaticWarning
 crash_6725_test: StaticWarning
 default_factory_library_test: StaticWarning
 default_factory_test: StaticWarning
-div_with_power_of_two2_test: StaticWarning
 double_to_string_as_exponential2_test: StaticWarning
 double_to_string_as_fixed2_test: StaticWarning
 double_to_string_as_precision2_test: StaticWarning
