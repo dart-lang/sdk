@@ -218,10 +218,10 @@ abstract class Future<T> {
     // Set to null if an error occurs.
     List values;
 
-    dynamic handleError(error) {
+    dynamic handleError(error, stackTrace) {
       if (values != null) {
         values = null;
-        completer.completeError(error);
+        completer.completeError(error, stackTrace);
       }
       return null;
     }

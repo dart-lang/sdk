@@ -53,8 +53,9 @@ Future testWaitWithSingleError() {
 
   return Future.wait(futures).then((_) {
     throw 'incorrect error';
-  }).catchError((error) {
+  }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
+    Expect.isNull(stackTrace);
   });
 }
 
@@ -69,8 +70,52 @@ Future testWaitWithMultipleErrors() {
 
   return Future.wait(futures).then((_) {
     throw 'incorrect error 2';
-  }).catchError((error) {
+  }).catchError((error, stackTrace) {
     Expect.equals('correct error', error);
+    Expect.isNull(stackTrace);
+  });
+}
+
+StackTrace get currentStackTrace {
+  try {
+    throw 0;
+  } catch(e, st) {
+    return st;
+  }
+  return null;
+}
+
+Future testWaitWithSingleErrorWithStackTrace() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.complete();
+  c2.completeError('correct error', currentStackTrace);
+
+  return Future.wait(futures).then((_) {
+    throw 'incorrect error';
+  }).catchError((error, stackTrace) {
+    Expect.equals('correct error', error);
+    Expect.isNotNull(stackTrace);
+  });
+}
+
+Future testWaitWithMultipleErrorsWithStackTrace() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.completeError('correct error', currentStackTrace);
+  c2.completeError('incorrect error 1');
+
+  return Future.wait(futures).then((_) {
+    throw 'incorrect error 2';
+  }).catchError((error, stackTrace) {
+    Expect.equals('correct error', error);
+    Expect.isNotNull(stackTrace);
   });
 }
 
@@ -110,13 +155,15 @@ main() {
   futures.add(testWaitWithMultipleValues());
   futures.add(testWaitWithSingleError());
   futures.add(testWaitWithMultipleErrors());
+  futures.add(testWaitWithSingleErrorWithStackTrace());
+  futures.add(testWaitWithMultipleErrorsWithStackTrace());
   futures.add(testForEachEmpty());
   futures.add(testForEach());
   futures.add(testForEachWithException());
 
   asyncStart();
   Future.wait(futures).then((List list) {
-    Expect.equals(9, list.length);
+    Expect.equals(11, list.length);
     asyncEnd();
   });
 }
