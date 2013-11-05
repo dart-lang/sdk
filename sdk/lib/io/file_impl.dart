@@ -494,28 +494,37 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> writeAsBytes(List<int> bytes,
-                            {FileMode mode: FileMode.WRITE}) {
+                            {FileMode mode: FileMode.WRITE,
+                             bool flush: false}) {
     try {
       IOSink sink = openWrite(mode: mode);
       sink.add(bytes);
-      sink.close();
+      if (flush) {
+        sink.flush().then((_) => sink.close());
+      } else {
+        sink.close();
+      }
       return sink.done.then((_) => this);
     } catch (e) {
       return new Future.error(e);
     }
   }
 
-  void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE}) {
+  void writeAsBytesSync(List<int> bytes,
+                        {FileMode mode: FileMode.WRITE,
+                         bool flush: false}) {
     RandomAccessFile opened = openSync(mode: mode);
     opened.writeFromSync(bytes, 0, bytes.length);
+    if (flush) opened.flushSync();
     opened.closeSync();
   }
 
   Future<File> writeAsString(String contents,
                              {FileMode mode: FileMode.WRITE,
-                              Encoding encoding: UTF8}) {
+                              Encoding encoding: UTF8,
+                              bool flush: false}) {
     try {
-      return writeAsBytes(encoding.encode(contents), mode: mode);
+      return writeAsBytes(encoding.encode(contents), mode: mode, flush: flush);
     } catch (e) {
       return new Future.error(e);
     }
@@ -523,8 +532,9 @@ class _File extends FileSystemEntity implements File {
 
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
-                          Encoding encoding: UTF8}) {
-    writeAsBytesSync(encoding.encode(contents), mode: mode);
+                          Encoding encoding: UTF8,
+                          bool flush: false}) {
+    writeAsBytesSync(encoding.encode(contents), mode: mode, flush: flush);
   }
 
   String toString() => "File: '$path'";

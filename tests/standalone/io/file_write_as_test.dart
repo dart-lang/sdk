@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 
 testWriteAsBytesSync(dir) {
   var f = new File('${dir.path}/bytes_sync.txt');
-  var data = [50,50,50];
+  var data = [50, 50, 50];
   f.writeAsBytesSync(data);
   Expect.listEquals(data, f.readAsBytesSync());
-  f.writeAsBytesSync(data, mode: FileMode.APPEND);
+  f.writeAsBytesSync(data, mode: FileMode.APPEND, flush: true);
   var expected = [50, 50, 50, 50, 50, 50];
   Expect.listEquals(expected, f.readAsBytesSync());
 }
@@ -23,19 +23,19 @@ testWriteAsStringSync(dir) {
   var data = 'asdf';
   f.writeAsStringSync(data);
   Expect.equals(data, f.readAsStringSync());
-  f.writeAsStringSync(data, mode: FileMode.APPEND);
+  f.writeAsStringSync(data, mode: FileMode.APPEND, flush: true);
   Expect.equals('$data$data', f.readAsStringSync());
 }
 
 Future testWriteAsBytes(dir) {
   var completer = new Completer();
   var f = new File('${dir.path}/bytes.txt');
-  var data = [50,50,50];
+  var data = [50, 50, 50];
   f.writeAsBytes(data).then((file){
     Expect.equals(f, file);
     f.readAsBytes().then((bytes) {
       Expect.listEquals(data, bytes);
-      f.writeAsBytes(data, mode: FileMode.APPEND).then((file) {
+      f.writeAsBytes(data, mode: FileMode.APPEND, flush: true).then((file) {
         Expect.equals(f, file);
         f.readAsBytes().then((bytes) {
           var expected = [50, 50, 50, 50, 50, 50];
@@ -56,7 +56,7 @@ Future testWriteAsString(dir) {
     Expect.equals(f, file);
     f.readAsString().then((str) {
       Expect.equals(data, str);
-      f.writeAsString(data, mode: FileMode.APPEND).then((file) {
+      f.writeAsString(data, mode: FileMode.APPEND, flush: true).then((file) {
         Expect.equals(f, file);
         f.readAsString().then((str) {
           Expect.equals('$data$data', str);

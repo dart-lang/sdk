@@ -249,8 +249,13 @@ abstract class File implements FileSystemEntity {
    * By default [writeAsBytes] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
+   *
+   * If the argument [flush] is set to `true`, the data written will be
+   * flushed to the file system before the returned future completes.
    */
-  Future<File> writeAsBytes(List<int> bytes, {FileMode mode: FileMode.WRITE});
+  Future<File> writeAsBytes(List<int> bytes,
+                            {FileMode mode: FileMode.WRITE,
+                             bool flush: false});
 
   /**
    * Synchronously write a list of bytes to a file.
@@ -261,9 +266,14 @@ abstract class File implements FileSystemEntity {
    * the file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
    *
+   * If the [flush] argument is set to `true` data written will be
+   * flushed to the file system before returning.
+   *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE});
+  void writeAsBytesSync(List<int> bytes,
+                        {FileMode mode: FileMode.WRITE,
+                         bool flush: false});
 
   /**
    * Write a string to a file.
@@ -275,10 +285,15 @@ abstract class File implements FileSystemEntity {
    * By default [writeAsString] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
+   *
+   * If the argument [flush] is set to `true`, the data written will be
+   * flushed to the file system before the returned future completes.
+   *
    */
   Future<File> writeAsString(String contents,
                              {FileMode mode: FileMode.WRITE,
-                              Encoding encoding: UTF8});
+                              Encoding encoding: UTF8,
+                              bool flush: false});
 
   /**
    * Synchronously write a string to a file.
@@ -291,11 +306,15 @@ abstract class File implements FileSystemEntity {
    * to an existing file, pass [FileMode.APPEND] as the optional mode
    * parameter.
    *
+   * If the [flush] argument is set to `true` data written will be
+   * flushed to the file system before returning.
+   *
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
-                          Encoding encoding: UTF8});
+                          Encoding encoding: UTF8,
+                          bool flush: false});
 
   /**
    * Get the path of the file.
