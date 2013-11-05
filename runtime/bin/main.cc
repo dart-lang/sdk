@@ -897,6 +897,14 @@ int main(int argc, char** argv) {
     ASSERT(bytes_written);
     delete snapshot_file;
   } else {
+    // Lookup the library of the root script.
+    Dart_Handle root_lib = Dart_RootLibrary();
+    // Import the root library into the builtin library so that we can easily
+    // lookup the main entry point exported from the root library.
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
+
     if (has_compile_all) {
       result = Dart_CompileAll();
       if (Dart_IsError(result)) {
@@ -911,22 +919,10 @@ int main(int argc, char** argv) {
       }
     }
 
-    // Lookup the library of the root script.
-    Dart_Handle library = Dart_RootLibrary();
-    if (Dart_IsNull(library)) {
+    if (Dart_IsNull(root_lib)) {
       return ErrorExit(kErrorExitCode,
                        "Unable to find root library for '%s'\n",
                        script_name);
-    }
-    // Set debug breakpoint if specified on the command line.
-    if (breakpoint_at != NULL) {
-      result = SetBreakpoint(breakpoint_at, library);
-      if (Dart_IsError(result)) {
-        return ErrorExit(kErrorExitCode,
-                         "Error setting breakpoint at '%s': %s\n",
-                         breakpoint_at,
-                         Dart_GetError(result));
-      }
     }
     if (has_print_script) {
       result = GenerateScriptSource();
@@ -934,36 +930,53 @@ int main(int argc, char** argv) {
         return DartErrorExit(result);
       }
     } else {
-      // Lookup and invoke the top level main function.
-      // The top-level function may accept up to two arguments:
-      //   main(List<String> args, var message).
-      // However most commonly it either accepts one (the args list) or
-      // none.
-      // If the message is optional, main(args, [message]), it is invoked with
-      // one argument only.
-      Dart_Handle main_args[2];
-      main_args[0] = CreateRuntimeOptions(&dart_options);
-      main_args[1] = Dart_Null();
-      // First try with 1 argument.
-      result = Dart_Invoke(library, DartUtils::NewString("main"), 1, main_args);
-      // TODO(iposva): Return a special error type for mismatched argument
-      // counts from Dart_Invoke to avoid the string comparison.
-      const char* expected_error = "Dart_Invoke: wrong argument count for "
-          "function 'main': ";
-      intptr_t length = strlen(expected_error);
-      if (Dart_IsError(result) &&
-          strncmp(expected_error, Dart_GetError(result), length) == 0) {
-        // Try with two arguments.
-        result =
-            Dart_Invoke(library, DartUtils::NewString("main"), 2, main_args);
-        if (Dart_IsError(result) &&
-            strncmp(expected_error, Dart_GetError(result), length) == 0) {
-          // Finally try with 0 arguments.
-          result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
+      // The helper function _getMainClosure creates a closure for the main
+      // entry point which is either explicitly or implictly exported from the
+      // root library.
+      Dart_Handle main_closure = Dart_Invoke(
+          builtin_lib, Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
+      if (Dart_IsError(main_closure)) {
+        return DartErrorExit(result);
+      }
+
+      // Set debug breakpoint if specified on the command line before calling
+      // the main function.
+      if (breakpoint_at != NULL) {
+        result = SetBreakpoint(breakpoint_at, root_lib);
+        if (Dart_IsError(result)) {
+          return ErrorExit(kErrorExitCode,
+                           "Error setting breakpoint at '%s': %s\n",
+                           breakpoint_at,
+                           Dart_GetError(result));
         }
       }
+
+      // Call _startIsolate in the isolate library to enable dispatching the
+      // initial startup message.
+      Dart_Handle isolate_args[2];
+      isolate_args[0] = main_closure;
+      isolate_args[1] = Dart_True();
+
+      Dart_Handle isolate_lib = Dart_LookupLibrary(
+          Dart_NewStringFromCString("dart:isolate"));
+      result = Dart_Invoke(isolate_lib,
+                           Dart_NewStringFromCString("_startIsolate"),
+                           2, isolate_args);
+
+      // Setup the arguments in the initial startup message and leave the
+      // replyTo and message fields empty.
+      Dart_Handle initial_startup_msg = Dart_NewList(3);
+      result = Dart_ListSetAt(initial_startup_msg, 1,
+                              CreateRuntimeOptions(&dart_options));
       if (Dart_IsError(result)) {
         return DartErrorExit(result);
+      }
+      Dart_Port main_port = Dart_GetMainPortId();
+      bool posted = Dart_Post(main_port, initial_startup_msg);
+      if (!posted) {
+        return ErrorExit(kErrorExitCode,
+                         "Failed posting startup message to main "
+                         "isolate control port.");
       }
 
       // Keep handling messages until the last active receive port is closed.

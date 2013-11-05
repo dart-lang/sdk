@@ -174,8 +174,10 @@ void _startIsolate(Function entryPoint, bool isSpawnUri) {
     keepAlivePort.close();
 
     SendPort replyTo = message[0];
-    // TODO(floitsch): don't send ok-message if we can't find the entry point.
-    replyTo.send("started");
+    if (replyTo != null) {
+      // TODO(floitsch): don't send ok-message if we can't find the entry point.
+      replyTo.send("started");
+    }
     if (isSpawnUri) {
       assert(message.length == 3);
       List<String> args = message[1];

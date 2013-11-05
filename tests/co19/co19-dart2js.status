@@ -248,7 +248,6 @@ LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 
 Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
-Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # co19 issue 654
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333

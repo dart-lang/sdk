@@ -68,6 +68,8 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: Fail, Timeout # co19-roll 
 
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
+Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: FAIL, OK # co19 issue 654
+
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/atan_A01_t01: PASS, FAIL, OK # co19 issue 44
