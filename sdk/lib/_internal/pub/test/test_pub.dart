@@ -472,12 +472,8 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   // Find the main pub entrypoint.
   var pubPath = path.join(testDirectory, '..', 'bin', 'pub.dart');
 
-  var dartArgs = [
-    '--package-root=$_packageRoot/',
-    // Make the heap bigger since dart2js uses a lot of memory.
-    '--new_gen_heap_size=256', '--old_gen_heap_size=1536',
-    '--checked', pubPath, '--verbose'
-  ];
+  var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
+      '--verbose'];
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
