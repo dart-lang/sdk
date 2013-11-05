@@ -224,7 +224,7 @@ def main():
       'content_shell' : os.path.join('dart', 'chromium',
                                      'content_shell.exe'),
 
-      'msi_scratch' : 'darteditor-installer-windows-%(bits)s.exe',
+      'msi_scratch' : 'darteditor-installer-windows-%(bits)s.msi',
       'editor_scratch' : 'DartEditor%(bits)s.exe',
       'chrome_scratch' : 'chromium%(bits)s.exe',
       'content_shell_scratch' : 'content_shell%(bits)s.exe',
