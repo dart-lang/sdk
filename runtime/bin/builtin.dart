@@ -163,7 +163,13 @@ void _setWorkingDirectory(cwd) {
 
 _setPackageRoot(String packageRoot) {
   packageRoot = _enforceTrailingSlash(packageRoot);
-  _packageRoot = _workingDirectoryUri.resolve(packageRoot);
+  if (packageRoot.startsWith('file:') ||
+      packageRoot.startsWith('http:') ||
+      packageRoot.startsWith('https:')) {
+    _packageRoot = _workingDirectoryUri.resolve(packageRoot);
+  } else {
+    _packageRoot = _workingDirectoryUri.resolveUri(new Uri.file(packageRoot));
+  }
   _logResolution('# Package root: $packageRoot -> $_packageRoot');
 }
 
@@ -214,73 +220,33 @@ String _resolveUri(String base, String userString) {
 }
 
 
+// Returns either a file path or a URI starting with http:, as a String.
 String _filePathFromUri(String userUri) {
   var uri = Uri.parse(userUri);
   _logResolution('# Getting file path from: $uri');
 
   var path;
   switch (uri.scheme) {
+    case '':
     case 'file':
-      path = _filePathFromFileUri(uri);
+      return uri.toFilePath();
       break;
     case 'dart-ext':
-      path = _filePathFromOtherUri(uri);
+      return new Uri(scheme: 'file',
+                     host: uri.host,
+                     path: uri.path).toFilePath();
       break;
     case 'package':
-      path = _filePathFromPackageUri(uri);
+      return _filePathFromPackageUri(uri);
       break;
     case 'http':
-      path = _filePathFromHttpUri(uri);
-      break;
+      return uri.toString();
     default:
-      // Only handling file and package URIs in standalone binary.
+      // Only handling file, dart-ext, http, and package URIs
+      // in standalone binary.
       _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
       throw 'Not a known scheme: $uri';
   }
-
-  if (_isWindows && path.startsWith('/')) {
-    // For Windows we need to massage the paths a bit according to
-    // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
-    //
-    // Drop the leading / before the drive letter.
-    // TODO(14577): Handle paths like \\server\share\dir\file.
-    path = path.substring(1);
-    _logResolution('# Path: Removed leading / -> $path');
-  }
-
-  return path;
-}
-
-
-String _filePathFromFileUri(Uri uri) {
-  if (!uri.host.isEmpty) {
-    throw "URIs using the 'file:' scheme may not contain a host.";
-  }
-
-  String path = uri.path;
-  _logResolution('# Path: $uri -> ${path}');
-  // Check that the path is not already in the form of /X:.
-  if (_isWindows && (path.length > 2) && path.startsWith('/') &&
-      (path[2] != ':')) {
-    // Absolute path on Windows without a drive letter.
-    if (_workingWindowsDrivePrefix == null) {
-      throw 'Could not determine windows drive letter prefix.';
-    }
-    _logResolution('# Path: Windows absolute path needs a drive letter.'
-                   ' Prepending $_workingWindowsDrivePrefix.');
-    path = '$_workingWindowsDrivePrefix$path';
-  }
-  return path;
-}
-
-
-String _filePathFromOtherUri(Uri uri) {
-  if (!uri.host.isEmpty) {
-    throw 'URIs whose paths are used as file paths may not contain a host.';
-  }
-
-  _logResolution('# Path: $uri -> ${uri.path}');
-  return uri.path;
 }
 
 
@@ -294,27 +260,8 @@ String _filePathFromPackageUri(Uri uri) {
           "'$right', not '$wrong'.";
   }
 
-  var packageUri;
-  var path;
-  if (_packageRoot != null) {
-    // Resolve against package root.
-    packageUri = _packageRoot.resolve(uri.path);
-  } else {
-    // Resolve against working directory.
-    packageUri = _entryPointScript.resolve('packages/${uri.path}');
-  }
-
-  if (packageUri.scheme == 'file') {
-    path = packageUri.path;
-  } else {
-    path = packageUri.toString();
-  }
-  _logResolution('# Package: $uri -> $path');
-  return path;
-}
-
-
-String _filePathFromHttpUri(Uri uri) {
-  _logResolution('# Path: $uri -> $uri');
-  return uri.toString();
+  var packageRoot = _packageRoot == null ?
+                    _entryPointScript.resolve('packages/') :
+                    _packageRoot;
+  return _filePathFromUri(packageRoot.resolve(uri.path).toString());
 }
