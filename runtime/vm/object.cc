@@ -480,7 +480,7 @@ void Object::InitOnce() {
     cls.raw_ = class_class_;
     cls.set_handle_vtable(fake.vtable());
     cls.set_instance_size(Class::InstanceSize());
-    cls.set_next_field_offset(Class::InstanceSize());
+    cls.set_next_field_offset(Class::NextFieldOffset());
     cls.set_id(Class::kClassId);
     cls.set_state_bits(0);
     cls.set_is_finalized();
@@ -1148,13 +1148,13 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-  // Register Float32x4 and Uint32x4 in the object store.
+  // Register Float32x4 and Int32x4 in the object store.
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
+  cls = Class::New<Int32x4>();
+  object_store->set_int32x4_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
@@ -1166,13 +1166,13 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_float32x4_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, Symbols::Uint32x4(), lib);
+  RegisterClass(cls, Symbols::Int32x4(), lib);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_prefinalized();
   pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
-  object_store->set_uint32x4_type(type);
+  object_store->set_int32x4_type(type);
 
   object_store->set_typed_data_classes(typed_data_classes);
 
@@ -1308,8 +1308,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
 
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
+  cls = Class::New<Int32x4>();
+  object_store->set_int32x4_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
@@ -1534,8 +1534,8 @@ RawString* Class::UserVisibleName() const {
       return Symbols::List().raw();
     case kFloat32x4Cid:
       return Symbols::Float32x4().raw();
-    case kUint32x4Cid:
-      return Symbols::Uint32x4().raw();
+    case kInt32x4Cid:
+      return Symbols::Int32x4().raw();
     case kTypedDataInt8ArrayCid:
     case kExternalTypedDataInt8ArrayCid:
       return Symbols::Int8List().raw();
@@ -1662,7 +1662,7 @@ RawClass* Class::New() {
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
-  result.set_next_field_offset(FakeObject::InstanceSize());
+  result.set_next_field_offset(FakeObject::NextFieldOffset());
   ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_state_bits(0);
@@ -2032,7 +2032,8 @@ void Class::CalculateFieldOffsets() const {
   intptr_t offset = 0;
   intptr_t type_args_field_offset = kNoTypeArguments;
   if (super.IsNull()) {
-    offset = sizeof(RawObject);
+    offset = Instance::NextFieldOffset();
+    ASSERT(offset > 0);
   } else {
     ASSERT(super.is_finalized() || super.is_prefinalized());
     type_args_field_offset = super.type_arguments_field_offset();
@@ -2056,7 +2057,7 @@ void Class::CalculateFieldOffsets() const {
     }
   }
   set_type_arguments_field_offset(type_args_field_offset);
-  ASSERT(offset != 0);
+  ASSERT(offset > 0);
   Field& field = Field::Handle();
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
@@ -2394,7 +2395,7 @@ RawClass* Class::New(intptr_t index) {
   ASSERT(fake.IsInstance());
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeInstance::InstanceSize());
-  result.set_next_field_offset(FakeInstance::InstanceSize());
+  result.set_next_field_offset(FakeInstance::NextFieldOffset());
   result.set_id(index);
   result.set_state_bits(0);
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
@@ -2426,7 +2427,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   const Class& result = Class::Handle(New(name, script, token_pos));
   // Instances of a signature class can only be closures.
   result.set_instance_size(Closure::InstanceSize());
-  result.set_next_field_offset(Closure::InstanceSize());
+  result.set_next_field_offset(Closure::NextFieldOffset());
   // Signature classes extend the _FunctionImpl class.
   result.set_super_type(Type::Handle(
       Isolate::Current()->object_store()->function_impl_type()));
@@ -2498,7 +2499,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
-    intptr_t instance_size = sizeof(RawObject) + kWordSize;
+    intptr_t instance_size = sizeof(RawInstance) + kWordSize;
     cls.set_instance_size(RoundedAllocationSize(instance_size));
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
@@ -2526,7 +2527,7 @@ RawClass* Class::NewStringClass(intptr_t class_id) {
   }
   Class& result = Class::Handle(New<String>(class_id));
   result.set_instance_size(instance_size);
-  result.set_next_field_offset(instance_size);
+  result.set_next_field_offset(String::NextFieldOffset());
   result.set_is_prefinalized();
   return result.raw();
 }
@@ -2537,7 +2538,7 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id) {
   intptr_t instance_size = TypedData::InstanceSize();
   Class& result = Class::Handle(New<TypedData>(class_id));
   result.set_instance_size(instance_size);
-  result.set_next_field_offset(instance_size);
+  result.set_next_field_offset(TypedData::NextFieldOffset());
   result.set_is_prefinalized();
   return result.raw();
 }
@@ -2547,7 +2548,7 @@ RawClass* Class::NewTypedDataViewClass(intptr_t class_id) {
   ASSERT(RawObject::IsTypedDataViewClassId(class_id));
   Class& result = Class::Handle(New<Instance>(class_id));
   result.set_instance_size(0);
-  result.set_next_field_offset(0);
+  result.set_next_field_offset(-kWordSize);
   return result.raw();
 }
 
@@ -2557,7 +2558,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
   intptr_t instance_size = ExternalTypedData::InstanceSize();
   Class& result = Class::Handle(New<ExternalTypedData>(class_id));
   result.set_instance_size(instance_size);
-  result.set_next_field_offset(instance_size);
+  result.set_next_field_offset(ExternalTypedData::NextFieldOffset());
   result.set_is_prefinalized();
   return result.raw();
 }
@@ -2736,157 +2737,179 @@ bool Class::IsCanonicalSignatureClass() const {
 // type T by class 'other' parameterized with 'other_type_arguments'.
 // This class and class 'other' do not need to be finalized, however, they must
 // be resolved as well as their interfaces.
-bool Class::TypeTest(
-    TypeTestKind test_kind,
+bool Class::TypeTestNonRecursive(
+    const Class& cls,
+    Class::TypeTestKind test_kind,
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
-    Error* bound_error) const {
-  ASSERT(!IsVoidClass());
-  // Check for DynamicType.
-  // Each occurrence of DynamicType in type T is interpreted as the dynamic
-  // type, a supertype of all types.
-  if (other.IsDynamicClass()) {
-    return true;
-  }
-  // In the case of a subtype test, each occurrence of DynamicType in type S is
-  // interpreted as the bottom type, a subtype of all types.
-  // However, DynamicType is not more specific than any type.
-  if (IsDynamicClass()) {
-    return test_kind == kIsSubtypeOf;
-  }
-  // Check for NullType, which is only a subtype of ObjectType, of DynamicType,
-  // or of itself, and which is more specific than any type.
-  if (IsNullClass()) {
-    // We already checked for other.IsDynamicClass() above.
-    return (test_kind == kIsMoreSpecificThan) ||
-        other.IsObjectClass() || other.IsNullClass();
-  }
-  // Check for ObjectType. Any type that is not NullType or DynamicType (already
-  // checked above), is more specific than ObjectType.
-  if (other.IsObjectClass()) {
-    return true;
-  }
-  // Check for reflexivity.
-  if (raw() == other.raw()) {
-    const intptr_t len = NumTypeArguments();
-    if (len == 0) {
+    Error* bound_error) {
+  // Use the thsi object as if it was the receiver of this method, but instead
+  // of recursing reset it to the super class and loop.
+  Class& thsi = Class::Handle(cls.raw());
+  while (true) {
+    ASSERT(!thsi.IsVoidClass());
+    // Check for DynamicType.
+    // Each occurrence of DynamicType in type T is interpreted as the dynamic
+    // type, a supertype of all types.
+    if (other.IsDynamicClass()) {
       return true;
     }
-    // Since we do not truncate the type argument vector of a subclass (see
-    // below), we only check a prefix of the proper length.
-    // Check for covariance.
-    if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+    // In the case of a subtype test, each occurrence of DynamicType in type S
+    // is interpreted as the bottom type, a subtype of all types.
+    // However, DynamicType is not more specific than any type.
+    if (thsi.IsDynamicClass()) {
+      return test_kind == Class::kIsSubtypeOf;
+    }
+    // Check for NullType, which is only a subtype of ObjectType, of
+    // DynamicType, or of itself, and which is more specific than any type.
+    if (thsi.IsNullClass()) {
+      // We already checked for other.IsDynamicClass() above.
+      return (test_kind == Class::kIsMoreSpecificThan) ||
+      other.IsObjectClass() || other.IsNullClass();
+    }
+    // Check for ObjectType. Any type that is not NullType or DynamicType
+    // (already checked above), is more specific than ObjectType.
+    if (other.IsObjectClass()) {
       return true;
     }
-    if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
-      // Other type can't be more specific than this one because for that
-      // it would have to have all dynamic type arguments which is checked
-      // above.
-      return test_kind == kIsSubtypeOf;
-    }
-    return type_arguments.TypeTest(test_kind,
-                                   other_type_arguments,
-                                   len,
-                                   bound_error);
-  }
-  const bool other_is_function_class = other.IsFunctionClass();
-  if (other.IsSignatureClass() || other_is_function_class) {
-    const Function& other_fun = Function::Handle(other.signature_function());
-    if (IsSignatureClass()) {
-      if (other_is_function_class) {
+    // Check for reflexivity.
+    if (thsi.raw() == other.raw()) {
+      const intptr_t len = thsi.NumTypeArguments();
+      if (len == 0) {
         return true;
       }
-      // Check for two function types.
-      const Function& fun = Function::Handle(signature_function());
-      return fun.TypeTest(test_kind,
-                          type_arguments,
-                          other_fun,
-                          other_type_arguments,
-                          bound_error);
-    }
-    // Check if type S has a call() method of function type T.
-    Function& function =
-        Function::Handle(LookupDynamicFunction(Symbols::Call()));
-    if (function.IsNull()) {
-      // Walk up the super_class chain.
-      Class& cls = Class::Handle(SuperClass());
-      while (!cls.IsNull() && function.IsNull()) {
-        function = cls.LookupDynamicFunction(Symbols::Call());
-        cls = cls.SuperClass();
+      // Since we do not truncate the type argument vector of a subclass (see
+      // below), we only check a prefix of the proper length.
+      // Check for covariance.
+      if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+        return true;
       }
+      if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
+        // Other type can't be more specific than this one because for that
+        // it would have to have all dynamic type arguments which is checked
+        // above.
+        return test_kind == Class::kIsSubtypeOf;
+      }
+      return type_arguments.TypeTest(test_kind,
+                                     other_type_arguments,
+                                     len,
+                                     bound_error);
     }
-    if (!function.IsNull()) {
-      if (other_is_function_class ||
-          function.TypeTest(test_kind,
+    const bool other_is_function_class = other.IsFunctionClass();
+    if (other.IsSignatureClass() || other_is_function_class) {
+      const Function& other_fun = Function::Handle(other.signature_function());
+      if (thsi.IsSignatureClass()) {
+        if (other_is_function_class) {
+          return true;
+        }
+        // Check for two function types.
+        const Function& fun = Function::Handle(thsi.signature_function());
+        return fun.TypeTest(test_kind,
                             type_arguments,
                             other_fun,
                             other_type_arguments,
-                            bound_error)) {
-        return true;
+                            bound_error);
+      }
+      // Check if type S has a call() method of function type T.
+      Function& function =
+      Function::Handle(thsi.LookupDynamicFunction(Symbols::Call()));
+      if (function.IsNull()) {
+        // Walk up the super_class chain.
+        Class& cls = Class::Handle(thsi.SuperClass());
+        while (!cls.IsNull() && function.IsNull()) {
+          function = cls.LookupDynamicFunction(Symbols::Call());
+          cls = cls.SuperClass();
+        }
+      }
+      if (!function.IsNull()) {
+        if (other_is_function_class ||
+            function.TypeTest(test_kind,
+                              type_arguments,
+                              other_fun,
+                              other_type_arguments,
+                              bound_error)) {
+              return true;
+            }
       }
     }
-  }
-  // Check for 'direct super type' specified in the implements clause
-  // and check for transitivity at the same time.
-  Array& interfaces = Array::Handle(this->interfaces());
-  AbstractType& interface = AbstractType::Handle();
-  Class& interface_class = Class::Handle();
-  AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
-  Error& error = Error::Handle();
-  for (intptr_t i = 0; i < interfaces.Length(); i++) {
-    interface ^= interfaces.At(i);
-    if (!interface.IsFinalized()) {
-      // We may be checking bounds at finalization time. Skipping this
-      // unfinalized interface will postpone bound checking to run time.
-      continue;
-    }
-    error = Error::null();
-    if (interface.IsMalboundedWithError(&error)) {
-      // Return the first bound error to the caller if it requests it.
-      if ((bound_error != NULL) && bound_error->IsNull()) {
-        ASSERT(!error.IsNull());
-        *bound_error = error.raw();
+    // Check for 'direct super type' specified in the implements clause
+    // and check for transitivity at the same time.
+    Array& interfaces = Array::Handle(thsi.interfaces());
+    AbstractType& interface = AbstractType::Handle();
+    Class& interface_class = Class::Handle();
+    AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
+    Error& error = Error::Handle();
+    for (intptr_t i = 0; i < interfaces.Length(); i++) {
+      interface ^= interfaces.At(i);
+      if (!interface.IsFinalized()) {
+        // We may be checking bounds at finalization time. Skipping this
+        // unfinalized interface will postpone bound checking to run time.
+        continue;
       }
-      continue;  // Another interface may work better.
-    }
-    interface_class = interface.type_class();
-    interface_args = interface.arguments();
-    if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
-      // This type class implements an interface that is parameterized with
-      // generic type(s), e.g. it implements List<T>.
-      // The uninstantiated type T must be instantiated using the type
-      // parameters of this type before performing the type test.
-      // The type arguments of this type that are referred to by the type
-      // parameters of the interface are at the end of the type vector,
-      // after the type arguments of the super type of this type.
-      // The index of the type parameters is adjusted upon finalization.
       error = Error::null();
-      interface_args = interface_args.InstantiateFrom(type_arguments, &error);
-      if (!error.IsNull()) {
+      if (interface.IsMalboundedWithError(&error)) {
         // Return the first bound error to the caller if it requests it.
         if ((bound_error != NULL) && bound_error->IsNull()) {
+          ASSERT(!error.IsNull());
           *bound_error = error.raw();
         }
         continue;  // Another interface may work better.
       }
+      interface_class = interface.type_class();
+      interface_args = interface.arguments();
+      if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
+        // This type class implements an interface that is parameterized with
+        // generic type(s), e.g. it implements List<T>.
+        // The uninstantiated type T must be instantiated using the type
+        // parameters of this type before performing the type test.
+        // The type arguments of this type that are referred to by the type
+        // parameters of the interface are at the end of the type vector,
+        // after the type arguments of the super type of this type.
+        // The index of the type parameters is adjusted upon finalization.
+        error = Error::null();
+        interface_args = interface_args.InstantiateFrom(type_arguments, &error);
+        if (!error.IsNull()) {
+          // Return the first bound error to the caller if it requests it.
+          if ((bound_error != NULL) && bound_error->IsNull()) {
+            *bound_error = error.raw();
+          }
+          continue;  // Another interface may work better.
+        }
+      }
+      if (interface_class.TypeTest(test_kind,
+                                   interface_args,
+                                   other,
+                                   other_type_arguments,
+                                   bound_error)) {
+        return true;
+      }
     }
-    if (interface_class.TypeTest(test_kind,
-                                 interface_args,
-                                 other,
-                                 other_type_arguments,
-                                 bound_error)) {
-      return true;
+    // "Recurse" up the class hierarchy until we have reached the top.
+    thsi = thsi.SuperClass();
+    if (thsi.IsNull()) {
+      return false;
     }
   }
-  const Class& super_class = Class::Handle(SuperClass());
-  if (super_class.IsNull()) {
-    return false;
-  }
-  // Instead of truncating the type argument vector to the length of the super
-  // type argument vector, we make sure that the code works with a vector that
-  // is longer than necessary.
-  return super_class.TypeTest(test_kind,
+  UNREACHABLE();
+  return false;
+}
+
+
+// If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
+// If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
+// Type S is specified by this class parameterized with 'type_arguments', and
+// type T by class 'other' parameterized with 'other_type_arguments'.
+// This class and class 'other' do not need to be finalized, however, they must
+// be resolved as well as their interfaces.
+bool Class::TypeTest(
+                     TypeTestKind test_kind,
+                     const AbstractTypeArguments& type_arguments,
+                     const Class& other,
+                     const AbstractTypeArguments& other_type_arguments,
+                     Error* bound_error) const {
+  return TypeTestNonRecursive(*this,
+                              test_kind,
                               type_arguments,
                               other,
                               other_type_arguments,
@@ -10829,7 +10852,7 @@ bool Instance::Equals(const Instance& other) const {
     ASSERT(instance_size != 0);
     uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
     uword other_addr = reinterpret_cast<uword>(other.raw_ptr());
-    for (intptr_t offset = sizeof(RawObject);
+    for (intptr_t offset = Instance::NextFieldOffset();
          offset < instance_size;
          offset += kWordSize) {
       if ((*reinterpret_cast<RawObject**>(this_addr + offset)) !=
@@ -11409,9 +11432,9 @@ bool AbstractType::IsFloat32x4Type() const {
 }
 
 
-bool AbstractType::IsUint32x4Type() const {
+bool AbstractType::IsInt32x4Type() const {
   return HasResolvedTypeClass() &&
-      (type_class() == Type::Handle(Type::Uint32x4()).type_class());
+      (type_class() == Type::Handle(Type::Int32x4()).type_class());
 }
 
 
@@ -11574,8 +11597,8 @@ RawType* Type::Float32x4() {
 }
 
 
-RawType* Type::Uint32x4() {
-  return Isolate::Current()->object_store()->uint32x4_type();
+RawType* Type::Int32x4() {
+  return Isolate::Current()->object_store()->int32x4_type();
 }
 
 
@@ -15052,14 +15075,14 @@ void Float32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
-                           Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint32x4_class() !=
+RawInt32x4* Int32x4::New(int32_t v0, int32_t v1, int32_t v2, int32_t v3,
+                         Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->int32x4_class() !=
          Class::null());
-  Uint32x4& result = Uint32x4::Handle();
+  Int32x4& result = Int32x4::Handle();
   {
-    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
-                                      Uint32x4::InstanceSize(),
+    RawObject* raw = Object::Allocate(Int32x4::kClassId,
+                                      Int32x4::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
@@ -15072,13 +15095,13 @@ RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
 }
 
 
-RawUint32x4* Uint32x4::New(simd128_value_t value, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+RawInt32x4* Int32x4::New(simd128_value_t value, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->int32x4_class() !=
          Class::null());
-  Uint32x4& result = Uint32x4::Handle();
+  Int32x4& result = Int32x4::Handle();
   {
-    RawObject* raw = Object::Allocate(Uint32x4::kClassId,
-                                      Uint32x4::InstanceSize(),
+    RawObject* raw = Object::Allocate(Int32x4::kClassId,
+                                      Int32x4::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
@@ -15088,62 +15111,62 @@ RawUint32x4* Uint32x4::New(simd128_value_t value, Heap::Space space) {
 }
 
 
-void Uint32x4::set_x(uint32_t value) const {
+void Int32x4::set_x(int32_t value) const {
   raw_ptr()->value_[0] = value;
 }
 
 
-void Uint32x4::set_y(uint32_t value) const {
+void Int32x4::set_y(int32_t value) const {
   raw_ptr()->value_[1] = value;
 }
 
 
-void Uint32x4::set_z(uint32_t value) const {
+void Int32x4::set_z(int32_t value) const {
   raw_ptr()->value_[2] = value;
 }
 
 
-void Uint32x4::set_w(uint32_t value) const {
+void Int32x4::set_w(int32_t value) const {
   raw_ptr()->value_[3] = value;
 }
 
 
-uint32_t Uint32x4::x() const {
+int32_t Int32x4::x() const {
   return raw_ptr()->value_[0];
 }
 
 
-uint32_t Uint32x4::y() const {
+int32_t Int32x4::y() const {
   return raw_ptr()->value_[1];
 }
 
 
-uint32_t Uint32x4::z() const {
+int32_t Int32x4::z() const {
   return raw_ptr()->value_[2];
 }
 
 
-uint32_t Uint32x4::w() const {
+int32_t Int32x4::w() const {
   return raw_ptr()->value_[3];
 }
 
 
-simd128_value_t Uint32x4::value() const {
+simd128_value_t Int32x4::value() const {
   return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
 }
 
 
-void Uint32x4::set_value(simd128_value_t value) const {
+void Int32x4::set_value(simd128_value_t value) const {
   value.writeTo(&raw_ptr()->value_[0]);
 }
 
 
-const char* Uint32x4::ToCString() const {
+const char* Int32x4::ToCString() const {
   const char* kFormat = "[%08x, %08x, %08x, %08x]";
-  uint32_t _x = x();
-  uint32_t _y = y();
-  uint32_t _z = z();
-  uint32_t _w = w();
+  int32_t _x = x();
+  int32_t _y = y();
+  int32_t _z = z();
+  int32_t _w = w();
   // Calculate the size of the string.
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y, _z, _w) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
@@ -15152,7 +15175,7 @@ const char* Uint32x4::ToCString() const {
 }
 
 
-void Uint32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
+void Int32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 }
 
@@ -15170,7 +15193,7 @@ const intptr_t TypedData::element_size[] = {
   4,   // kTypedDataFloat32ArrayCid.
   8,   // kTypedDataFloat64ArrayCid.
   16,  // kTypedDataFloat32x4ArrayCid.
-  16,  // kTypedDataUint32x4ArrayCid.
+  16,  // kTypedDataInt32x4ArrayCid.
 };
 
 

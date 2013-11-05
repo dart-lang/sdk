@@ -23,6 +23,8 @@ method_override8_test/03: Fail # Issue 11496
 
 built_in_identifier_test/none: Fail # Issue 13023
 
+export_double_same_main_test: Fail # Issue 14772
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -153,10 +155,6 @@ malformed_test/06: fail # test issue 14079, it is not error, but warning to use 
 # test issue 14228
 black_listed_test/none: fail # test issue 14228, warnings are required but not expected
 
-# test issue 14289
-bailout3_test: fail # test issue 14289
-prefix9_test: fail # test issue 14289
-
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
 
@@ -218,6 +216,7 @@ dynamic_field_test: StaticWarning
 dynamic_prefix_core_test: StaticWarning
 empty_block_case_test: StaticWarning
 error_stacktrace_test: StaticWarning
+export_ambiguous_main_negative_test: CompileTimeError
 extend_type_parameter2_negative_test: CompileTimeError
 extend_type_parameter_negative_test: CompileTimeError
 external_test/20: StaticWarning

@@ -1484,6 +1484,11 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 
 void Debugger::OneTimeBreakAtEntry(const Function& target_function) {
   InstrumentForStepping(target_function);
+  if (target_function.HasImplicitClosureFunction()) {
+    const Function& closure_func =
+        Function::Handle(target_function.ImplicitClosureFunction());
+    InstrumentForStepping(closure_func);
+  }
 }
 
 

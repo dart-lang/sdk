@@ -360,7 +360,7 @@ class SocketCloseServer {
           },
           onError: errorHandlerServer
         );
-        replyTo.send(_server.port, null);
+        replyTo.send(_server.port);
       });
     } else {
       Timer.run(waitForResult);

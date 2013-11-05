@@ -21,13 +21,15 @@ override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 method_override8_test/03: Fail # Issue 11496
 
-built_in_identifier_test/none: Fail # Issue 13023
+export_double_same_main_test: Fail # Issue 14772
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
 #
 
+ref_before_declaration_test/07: fail # please triage
+ref_before_declaration_test/none: fail # please triage
 
 # test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
@@ -134,8 +136,8 @@ duplicate_export_test: fail # Issue 13787
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
 
-# test issue  , disallow default values in redirecting factories
-redirecting_factory_default_values_test/none: fail # Issue 14471
+# test issue 14471, has (legitimate) static warning; but not annotated
+redirecting_factory_default_values_test/none: StaticWarning # Test issue 14471; has (legitimate) static warning; but not annotated
 
 # test issue 13956, It is a static type warning if any of the type arguments to k' are not subtypes of the bounds of the corresponding formal type parameters of type.
 default_factory2_test/none: fail
@@ -152,10 +154,6 @@ malformed_test/06: fail # test issue 14079, it is not error, but warning to use 
 
 # test issue 14228
 black_listed_test/none: fail # test issue 14228, warnings are required but not expected
-
-# test issue 14289
-bailout3_test: fail # test issue 14289
-prefix9_test: fail # test issue 14289
 
 # test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
 type_promotion_parameter_test/53: Fail
@@ -218,6 +216,7 @@ dynamic_field_test: StaticWarning
 dynamic_prefix_core_test: StaticWarning
 empty_block_case_test: StaticWarning
 error_stacktrace_test: StaticWarning
+export_ambiguous_main_negative_test: CompileTimeError
 extend_type_parameter2_negative_test: CompileTimeError
 extend_type_parameter_negative_test: CompileTimeError
 external_test/20: StaticWarning
@@ -313,6 +312,7 @@ method_override4_test: StaticWarning
 method_override5_test: StaticWarning
 method_override6_test: StaticWarning
 method_override_test: StaticWarning
+mixin_illegal_static_access_test: StaticWarning
 mixin_illegal_syntax_test/13: CompileTimeError
 mixin_typedef_constructor_test: StaticWarning
 mixin_type_parameter2_test: StaticWarning
@@ -392,7 +392,6 @@ prefix22_test: StaticWarning
 prefix23_test: StaticWarning
 prefix7_negative_test: CompileTimeError
 property_field_override_test: StaticWarning
-redirecting_factory_default_values_test/none: StaticWarning
 redirecting_factory_incompatible_signature_test: StaticWarning
 regress_13494_test: StaticWarning
 return_type_test: StaticWarning

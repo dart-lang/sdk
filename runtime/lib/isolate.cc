@@ -266,6 +266,12 @@ DEFINE_NATIVE_ENTRY(Isolate_mainPort, 0) {
   if (port.IsError()) {
     Exceptions::PropagateError(Error::Cast(port));
   }
+
+  // The control port is being accessed as a regular port from Dart code. This
+  // is most likely due to the _startIsolate code in dart:isolate. Account for
+  // this by increasing the number of open control ports.
+  isolate->message_handler()->increment_control_ports();
+
   return port.raw();
 }
 

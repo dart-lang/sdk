@@ -429,7 +429,7 @@ class FlowGraphCompiler : public ValueObject {
 
   const Class& double_class() const { return double_class_; }
   const Class& float32x4_class() const { return float32x4_class_; }
-  const Class& uint32x4_class() const { return uint32x4_class_; }
+  const Class& int32x4_class() const { return int32x4_class_; }
 
   void SaveLiveRegisters(LocationSummary* locs);
   void RestoreLiveRegisters(LocationSummary* locs);
@@ -598,7 +598,7 @@ class FlowGraphCompiler : public ValueObject {
 
   const Class& double_class_;
   const Class& float32x4_class_;
-  const Class& uint32x4_class_;
+  const Class& int32x4_class_;
   const Class& list_class_;
 
   ParallelMoveResolver parallel_move_resolver_;

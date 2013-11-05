@@ -110,13 +110,8 @@ class _RawReceivePortImpl implements RawReceivePort {
 
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
-  void send(var message, [SendPort replyTo = null]) {
-    this._sendNow(message, replyTo);
-  }
-
-  void _sendNow(var message, SendPort replyTo) {
-    int replyId = (replyTo == null) ? 0 : replyTo._id;
-    _sendInternal(_id, replyId, message);
+  void send(var message) {
+    _sendInternal(_id, 0, message);
   }
 
   bool operator==(var other) {
@@ -145,6 +140,7 @@ class _SendPortImpl implements SendPort {
 
   // Forward the implementation of sending messages to the VM. Only port ids
   // are being handed to the VM.
+  // TODO(14731): Remove replyId argument.
   static _sendInternal(int sendId, int replyId, var message)
       native "SendPortImpl_sendInternal_";
 
@@ -178,8 +174,10 @@ void _startIsolate(Function entryPoint, bool isSpawnUri) {
     keepAlivePort.close();
 
     SendPort replyTo = message[0];
-    // TODO(floitsch): don't send ok-message if we can't find the entry point.
-    replyTo.send("started");
+    if (replyTo != null) {
+      // TODO(floitsch): don't send ok-message if we can't find the entry point.
+      replyTo.send("started");
+    }
     if (isSpawnUri) {
       assert(message.length == 3);
       List<String> args = message[1];

@@ -98,10 +98,8 @@ abstract class SendPort {
    * is also possible to send object instances (which would be copied in the
    * process). This is currently only supported by the dartvm.  For now, the
    * dart2js compiler only supports the restricted messages described above.
-   *
-   * The second argument [replyTo] is deprecated and its value is ignored.
    */
-  void send(var message, [SendPort replyTo]);
+  void send(var message);
 
   /**
    * Tests whether [other] is a [SendPort] pointing to the same

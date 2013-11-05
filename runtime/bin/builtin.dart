@@ -4,6 +4,13 @@
 
 library builtin;
 import 'dart:io';
+// import 'root_library'; happens here from C Code
+
+// The root library (aka the script) is imported into this library. The
+// standalone embedder uses this to lookup the main entrypoint in the
+// root library's namespace.
+Function _getMainClosure() => main;
+
 
 // Corelib 'print' implementation.
 void _print(arg) {

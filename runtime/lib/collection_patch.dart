@@ -562,7 +562,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   bool contains(Object object) {
     int index = _hashCode(object) & (_buckets.length - 1);
-    HashSetEntry entry = _buckets[index];
+    _HashSetEntry entry = _buckets[index];
     while (entry != null) {
       if (_equals(entry.key, object)) return true;
       entry = entry.next;
@@ -572,7 +572,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
 
   E lookup(Object object) {
     int index = _hashCode(object) & (_buckets.length - 1);
-    HashSetEntry entry = _buckets[index];
+    _HashSetEntry entry = _buckets[index];
     while (entry != null) {
       var key = entry.key;
       if (_equals(key, object)) return key;
@@ -586,7 +586,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   bool add(E element) {
     int hashCode = _hashCode(element);
     int index = hashCode & (_buckets.length - 1);
-    HashSetEntry entry = _buckets[index];
+    _HashSetEntry entry = _buckets[index];
     while (entry != null) {
       if (_equals(entry.key, element)) return false;
       entry = entry.next;
@@ -641,8 +641,8 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
   void _filterWhere(bool test(E element), bool removeMatching) {
     int length = _buckets.length;
     for (int index =  0; index < length; index++) {
-      HashSetEntry entry = _buckets[index];
-      HashSetEntry previous = null;
+      _HashSetEntry entry = _buckets[index];
+      _HashSetEntry previous = null;
       while (entry != null) {
         int modificationCount = _modificationCount;
         bool testResult = test(entry.key);
@@ -650,7 +650,7 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
           throw new ConcurrentModificationError(this);
         }
         if (testResult == removeMatching) {
-          HashSetEntry next = entry.remove();
+          _HashSetEntry next = entry.remove();
           if (previous == null) {
             _buckets[index] = next;
           } else {

@@ -138,16 +138,15 @@ class TestServer {
         HttpServer.bind("127.0.0.1", 0).then((server) {
           _server = server;
           _server.listen(_requestReceivedHandler);
-          replyTo.send(
-              new IsolatedHttpServerStatus.started(_server.port), null);
+          replyTo.send(new IsolatedHttpServerStatus.started(_server.port));
         });
       } catch (e) {
-        replyTo.send(new IsolatedHttpServerStatus.error(), null);
+        replyTo.send(new IsolatedHttpServerStatus.error());
       }
     } else if (command.isStop) {
       _server.close();
       _dispatchPort.close();
-      replyTo.send(new IsolatedHttpServerStatus.stopped(), null);
+      replyTo.send(new IsolatedHttpServerStatus.stopped());
     } else if (command.isChunkedEncoding) {
       _chunkedEncoding = true;
     }

@@ -68,7 +68,7 @@ namespace dart {
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
     V(Float32x4)                                                               \
-    V(Uint32x4)                                                                \
+    V(Int32x4)                                                                \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -94,7 +94,7 @@ namespace dart {
   V(Float32Array)                                                              \
   V(Float64Array)                                                              \
   V(Float32x4Array)                                                            \
-  V(Uint32x4Array)                                                             \
+  V(Int32x4Array)                                                             \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
@@ -1412,17 +1412,17 @@ class RawFloat32x4 : public RawInstance {
 };
 
 
-class RawUint32x4 : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint32x4);
+class RawInt32x4 : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Int32x4);
 
-  uint32_t value_[4];
+  int32_t value_[4];
 
   friend class SnapshotReader;
  public:
-  uint32_t x() const { return value_[0]; }
-  uint32_t y() const { return value_[1]; }
-  uint32_t z() const { return value_[2]; }
-  uint32_t w() const { return value_[3]; }
+  int32_t x() const { return value_[0]; }
+  int32_t y() const { return value_[1]; }
+  int32_t z() const { return value_[2]; }
+  int32_t w() const { return value_[3]; }
 };
 
 
@@ -1650,10 +1650,10 @@ inline bool RawObject::IsTypedDataClassId(intptr_t index) {
          kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
          kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
          kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
-         kTypedDataUint32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
+         kTypedDataInt32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
          kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 13);
   return (index >= kTypedDataInt8ArrayCid &&
-          index <= kTypedDataUint32x4ArrayCid);
+          index <= kTypedDataInt32x4ArrayCid);
 }
 
 
@@ -1670,7 +1670,7 @@ inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
          kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
          kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
          kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
-         kTypedDataUint32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
+         kTypedDataInt32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
          kByteDataViewCid == kTypedDataInt8ArrayViewCid + 13 &&
          kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 14);
   return (index >= kTypedDataInt8ArrayViewCid &&
@@ -1702,11 +1702,11 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
           kExternalTypedDataInt8ArrayCid + 10) &&
          (kExternalTypedDataFloat32x4ArrayCid ==
           kExternalTypedDataInt8ArrayCid + 11) &&
-         (kExternalTypedDataUint32x4ArrayCid ==
+         (kExternalTypedDataInt32x4ArrayCid ==
           kExternalTypedDataInt8ArrayCid + 12) &&
          (kNullCid == kExternalTypedDataInt8ArrayCid + 13));
   return (index >= kExternalTypedDataInt8ArrayCid &&
-          index <= kExternalTypedDataUint32x4ArrayCid);
+          index <= kExternalTypedDataInt32x4ArrayCid);
 }
 
 

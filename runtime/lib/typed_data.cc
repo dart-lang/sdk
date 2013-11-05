@@ -296,7 +296,7 @@ TYPED_DATA_UINT64_NATIVES(GetUint64, SetUint64, Integer)
 TYPED_DATA_NATIVES(GetFloat32, SetFloat32, Double, value, 4)
 TYPED_DATA_NATIVES(GetFloat64, SetFloat64, Double, value, 8)
 TYPED_DATA_NATIVES(GetFloat32x4, SetFloat32x4, Float32x4, value, 16)
-TYPED_DATA_NATIVES(GetUint32x4, SetUint32x4, Uint32x4, value, 16)
+TYPED_DATA_NATIVES(GetInt32x4, SetInt32x4, Int32x4, value, 16)
 
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {

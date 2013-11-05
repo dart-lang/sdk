@@ -2154,8 +2154,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 /* TODO(turnidge): Finish documenting this section. */
 
 typedef enum {
-  Dart_kLibraryTag = 0,
-  Dart_kImportTag,
+  Dart_kImportTag = 0,
   Dart_kSourceTag,
   Dart_kCanonicalizeUrl
 } Dart_LibraryTag;

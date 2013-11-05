@@ -1151,6 +1151,26 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "scrollByLines": [
+          "/**",
+          "   * Scrolls the element by a number of lines.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [scrollByLines]",
+          "   * (http://docs.webplatform.org/wiki/dom/methods/scrollByLines) from WebPlatform.org.",
+          "   */"
+        ],
+        "scrollByPages": [
+          "/**",
+          "   * Scrolls the element by a number of pages.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [scrollByPages]",
+          "   * (http://docs.webplatform.org/wiki/dom/methods/scrollByPages) from WebPlatform.org.",
+          "   */"
+        ],
         "scrollEvent": [
           "/**",
           "   * Static factory designed to expose `scroll` events to event",
@@ -1283,6 +1303,19 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "webkitGetRegionFlowRanges": [
+          "/**",
+          "   * Returns an array of ranges of fragments in the flow.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [CSS regions and exclusions tutorial]",
+          "   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.",
+          "   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.",
+          "   * * [CSS regions specification]",
+          "   * (http://www.w3.org/TR/css3-regions/) from W3C.",
+          "   */"
+        ],
         "webkitRegionOverset": [
           "/**",
           "   * The current state of this region.",
@@ -1299,6 +1332,33 @@
           "   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.",
           "   * * [CSS regions specification]",
           "   * (http://www.w3.org/TR/css3-regions/) from W3C.",
+          "   */"
+        ],
+        "webkitRequestFullscreen": [
+          "/**",
+          "   * Displays this element fullscreen.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Using the full-screen API]",
+          "   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)",
+          "   * tutorial from WebPlatform.org.",
+          "   * * [Fullscreen specification]",
+          "   * (http://www.w3.org/TR/fullscreen/) from W3C.",
+          "   */"
+        ],
+        "webkitRequestPointerLock": [
+          "/**",
+          "   * Locks the mouse pointer to this element.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Pointer lock and first person shooter controls]",
+          "   * (http://www.html5rocks.com/en/tutorials/pointerlock/intro/) tutorial from",
+          "   * HTML5Rocks.",
+          "   *",
+          "   * * [Pointer lock specification]",
+          "   * (http://www.w3.org/TR/pointerlock/) from W3C.",
           "   */"
         ]
       }

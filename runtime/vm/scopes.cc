@@ -30,7 +30,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       begin_token_pos_(0),
       end_token_pos_(0),
       variables_(),
-      labels_() {
+      labels_(),
+      referenced_() {
   // Hook this node into the children of the parent, unless the parent has a
   // different function_level, since the local scope of a nested function can
   // be discarded after it has been parsed.
@@ -79,6 +80,48 @@ bool LocalScope::AddLabel(SourceLabel* label) {
     label->set_owner(this);
   }
   return true;
+}
+
+
+NameReference* LocalScope::FindReference(const String& name) const {
+  intptr_t num_references = referenced_.length();
+  for (intptr_t i = 0; i < num_references; i++) {
+    if (name.Equals(referenced_[i]->name())) {
+      return referenced_[i];
+    }
+  }
+  return NULL;
+}
+
+
+void LocalScope::AddReferencedName(intptr_t token_pos,
+                                   const String& name) {
+  if (LocalLookupVariable(name) != NULL) {
+    return;
+  }
+  NameReference* ref = FindReference(name);
+  if (ref != NULL) {
+    ref->set_token_pos(token_pos);
+    return;
+  }
+  ref = new NameReference(token_pos, name);
+  referenced_.Add(ref);
+  // Add name reference in innermost enclosing scopes that do not
+  // define a local variable with this name.
+  LocalScope* scope = this->parent();
+  while (scope != NULL && (scope->LocalLookupVariable(name) == NULL)) {
+    scope->referenced_.Add(ref);
+    scope = scope->parent();
+  }
+}
+
+
+intptr_t LocalScope::PreviousReferencePos(const String& name) const {
+  NameReference* ref = FindReference(name);
+  if (ref != NULL) {
+    return ref->token_pos();
+  }
+  return -1;
 }
 
 

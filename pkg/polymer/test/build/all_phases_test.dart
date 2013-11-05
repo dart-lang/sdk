@@ -45,18 +45,16 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'a.dart_modified.dart' as i0;
+          import 'a.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'a.dart_modified.dart',
+                'a.dart',
               ]);
-            i0.polymerMainWrapper();
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
-      'a|web/a.dart_modified.dart':
-          _sampleObservableOutput('A', 'foo', includeMain: true),
     });
 
   testPhases('single inline script', phases, {
@@ -75,19 +73,17 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'test.html.0.dart_modified.dart' as i0;
+          import 'test.html.0.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'test.html.0.dart_modified.dart',
+                'test.html.0.dart',
               ]);
-            i0.polymerMainWrapper();
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test.html.0.dart':
           _sampleObservableOutput("B", "bar"),
-      'a|web/test.html.0.dart_modified.dart':
-          _sampleObservableOutput("B", "bar", includeMain: true),
     });
 
   testPhases('several scripts', phases, {
@@ -119,18 +115,16 @@ void main() {
 
       'a|web/test.html_bootstrap.dart':
           '''$MAIN_HEADER
-          import 'a.dart_modified.dart' as i0;
+          import 'a.dart' as i0;
 
           void main() {
             configureForDeployment([
-                'a.dart_modified.dart',
+                'a.dart',
               ]);
-            i0.polymerMainWrapper();
+            i0.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/a.dart': _sampleObservableOutput('A', 'foo'),
-      'a|web/a.dart_modified.dart':
-          _sampleObservableOutput('A', 'foo', includeMain: true),
       'a|web/test.html.0.dart': _sampleObservableOutput("B", "bar"),
       'a|web/test.html.1.dart': _sampleObservableOutput("C", "car"),
     });
@@ -160,19 +154,17 @@ void main() {
       'a|web/index.html_bootstrap.dart':
           '''$MAIN_HEADER
           import 'test2.html.0.dart' as i0;
-          import 'b.dart_modified.dart' as i1;
+          import 'b.dart' as i1;
 
           void main() {
             configureForDeployment([
                 'test2.html.0.dart',
-                'b.dart_modified.dart',
+                'b.dart',
               ]);
-            i1.polymerMainWrapper();
+            i1.main();
           }
           '''.replaceAll('\n          ', '\n'),
       'a|web/test2.html.0.dart': _sampleObservableOutput("A", "foo"),
-      'a|web/test2.html.0.dart_modified.dart':
-          _sampleObservableOutput("A", "foo", includeMain: true),
       'a|web/b.dart': _sampleObservableOutput('B', 'bar'),
     });
 }
@@ -198,5 +190,4 @@ String _sampleObservableOutput(String className, String field,
       "__\$$field = notifyPropertyChange(#$field, __\$$field, value); "
       "}\n"
     "  $className($field) : __\$$field = $field;\n"
-    "}\n"
-    "${includeMain ? '\n\npolymerMainWrapper() => main();\n' : ''}";
+    "}\n";

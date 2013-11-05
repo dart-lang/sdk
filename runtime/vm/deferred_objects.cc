@@ -54,17 +54,17 @@ void DeferredFloat32x4::Materialize() {
 }
 
 
-void DeferredUint32x4::Materialize() {
-  RawUint32x4** uint32x4_slot = reinterpret_cast<RawUint32x4**>(slot());
-  RawUint32x4* raw_uint32x4 = Uint32x4::New(value());
-  *uint32x4_slot = raw_uint32x4;
+void DeferredInt32x4::Materialize() {
+  RawInt32x4** int32x4_slot = reinterpret_cast<RawInt32x4**>(slot());
+  RawInt32x4* raw_int32x4 = Int32x4::New(value());
+  *int32x4_slot = raw_int32x4;
 
   if (FLAG_trace_deoptimization_verbose) {
-    uint32_t x = raw_uint32x4->x();
-    uint32_t y = raw_uint32x4->y();
-    uint32_t z = raw_uint32x4->z();
-    uint32_t w = raw_uint32x4->w();
-    OS::PrintErr("materializing Uint32x4 at %" Px ": %x,%x,%x,%x\n",
+    uint32_t x = raw_int32x4->x();
+    uint32_t y = raw_int32x4->y();
+    uint32_t z = raw_int32x4->z();
+    uint32_t w = raw_int32x4->w();
+    OS::PrintErr("materializing Int32x4 at %" Px ": %x,%x,%x,%x\n",
                  reinterpret_cast<uword>(slot()), x, y, z, w);
   }
 }

@@ -4,15 +4,15 @@
 // VMOptions=--deoptimization_counter_threshold=1000 --optimization-counter-threshold=10
 
 // Library tag to be able to run in html test framework.
-library uint32x4_list_test;
+library int32x4_list_test;
 
 import 'package:expect/expect.dart';
 import 'dart:typed_data';
 
 testLoadStore(array) {
   Expect.equals(8, array.length);
-  Expect.isTrue(array is List<Uint32x4>);
-  array[0] = new Uint32x4(1, 2, 3, 4);
+  Expect.isTrue(array is List<Int32x4>);
+  array[0] = new Int32x4(1, 2, 3, 4);
   Expect.equals(1, array[0].x);
   Expect.equals(2, array[0].y);
   Expect.equals(3, array[0].z);
@@ -38,8 +38,8 @@ testLoadStoreDeopt(array, index, value) {
 }
 
 testLoadStoreDeoptDriver() {
-  Uint32x4List list = new Uint32x4List(4);
-  Uint32x4 value = new Uint32x4(1, 2, 3, 4);
+  Int32x4List list = new Int32x4List(4);
+  Int32x4 value = new Int32x4(1, 2, 3, 4);
   for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
@@ -72,15 +72,15 @@ testLoadStoreDeoptDriver() {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
-    // non-Uint32x4 value.
+    // non-Int32x4 value.
     testLoadStoreDeopt(list, 0, 4.toDouble());
   } catch (_) {}
   for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
   try {
-    // non-Uint32x4List list.
-    testLoadStoreDeopt([new Uint32x4(2, 3, 4, 5)], 0, value);
+    // non-Int32x4List list.
+    testLoadStoreDeopt([new Int32x4(2, 3, 4, 5)], 0, value);
   } catch (_) {}
   for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
@@ -88,7 +88,7 @@ testLoadStoreDeoptDriver() {
 }
 
 testListZero() {
-  Uint32x4List list = new Uint32x4List(1);
+  Int32x4List list = new Int32x4List(1);
   Expect.equals(0, list[0].x);
   Expect.equals(0, list[0].y);
   Expect.equals(0, list[0].z);
@@ -97,7 +97,7 @@ testListZero() {
 
 testView(array) {
   Expect.equals(8, array.length);
-  Expect.isTrue(array is List<Uint32x4>);
+  Expect.isTrue(array is List<Int32x4>);
   Expect.equals(0, array[0].x);
   Expect.equals(1, array[0].y);
   Expect.equals(2, array[0].z);
@@ -110,7 +110,7 @@ testView(array) {
 
 testSublist(array) {
   Expect.equals(8, array.length);
-  Expect.isTrue(array is Uint32x4List);
+  Expect.isTrue(array is Int32x4List);
   var a = array.sublist(0, 1);
   Expect.equals(1, a.length);
   Expect.equals(0, a[0].x);
@@ -135,7 +135,7 @@ testSublist(array) {
 main() {
   var list;
 
-  list = new Uint32x4List(8);
+  list = new Int32x4List(8);
   for (int i = 0; i < 20; i++) {
     testLoadStore(list);
   }
@@ -144,7 +144,7 @@ main() {
   for (int i = 0; i < uint32List.length; i++) {
     uint32List[i] = i;
   }
-  list = new Uint32x4List.view(uint32List.buffer);
+  list = new Int32x4List.view(uint32List.buffer);
   for (int i = 0; i < 20; i++) {
     testView(list);
   }

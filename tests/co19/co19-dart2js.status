@@ -14,6 +14,7 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
+Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter
@@ -23,6 +24,7 @@ Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with s
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19-roll r576: Please triage this failure
+Language/05_Variables/05_Variables_A11_t01: fail
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/List/List_A03_t01: RuntimeError # TODO(kasperl): Please triage this failure.
@@ -58,6 +60,15 @@ LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
 [ $compiler == dart2js && $runtime != ie9 ]
 LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
@@ -513,9 +524,6 @@ Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Compile
 
 [ $compiler == dart2js && $checked ]
 Language/12_Expressions/03_Numbers_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/06_Lists_A09_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/06_Lists_A09_t04: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/07_Maps_A10_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A12_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/19_Conditional_A04_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/20_Logical_Boolean_Expressions_A03_t01: fail # co19-roll r546: Please triage this failure

@@ -35,7 +35,7 @@ patch class DeferredLibrary {
 }
 
 // TODO(ahe): This should not only apply to this isolate.
-final _loadedLibraries = <String, Completer<bool>>{};
+final Map<String, Future<bool>> _loadedLibraries = <String, Future<bool>>{};
 
 Future<bool> _load(String libraryName, String uri) {
   // TODO(ahe): Validate libraryName.  Kasper points out that you want

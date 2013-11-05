@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js || $compiler == dart2dart ]
 bad_constructor_test/05: CompileTimeError # Issue 13669
-block_scope_test: CompileTimeError # Issue 13204.
 malformed_test/05: MissingCompileTimeError # Issue 12695
 malformed_test/06: MissingCompileTimeError # Issue 12695
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
@@ -23,6 +22,14 @@ type_variable_conflict_test/03: Fail # Issue 13702
 type_variable_conflict_test/04: Fail # Issue 13702
 type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
+
+ref_before_declaration_test/00: MissingCompileTimeError
+ref_before_declaration_test/01: MissingCompileTimeError
+ref_before_declaration_test/02: MissingCompileTimeError
+ref_before_declaration_test/03: MissingCompileTimeError
+ref_before_declaration_test/04: MissingCompileTimeError
+ref_before_declaration_test/05: MissingCompileTimeError
+ref_before_declaration_test/06: MissingCompileTimeError
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
@@ -130,7 +137,6 @@ const_var_test: CompileTimeError # Issue 12793
 map_literal3_test: CompileTimeError # Issue 12793
 method_override5_test: RuntimeError # Issue 12809
 external_test/13: CompileTimeError # Issue 12887
-instanceof4_test/01: RuntimeError # Issue 12889
 list_literal4_test: RuntimeError # Issue 12890
 map_literal4_test: RuntimeError # Issue 12891
 built_in_identifier_test/01: CompileTimeError # Issue 13022

@@ -37,8 +37,8 @@ main() {
 	expect(val2.x, floatEquals(2.0));
 	expect(val2.y, floatEquals(4.0));
 	expect(val2.z, floatEquals(6.0));
-	expect(val2.w, floatEquals(8.0));	
-      }	
+	expect(val2.w, floatEquals(8.0));
+      }
   });
 
   test('test Float32x4List', () {
@@ -68,9 +68,9 @@ main() {
       expect(counter.w, floatEquals(21.0));
   });
 
-  test('test Uint32x4', () {
+  test('test Int32x4', () {
       if (Platform.supportsSimd) {
-	final val = new Uint32x4(1, 2, 3, 4);
+	final val = new Int32x4(1, 2, 3, 4);
 	expect(val.x, equals(1));
 	expect(val.y, equals(2));
 	expect(val.z, equals(3));
@@ -79,7 +79,7 @@ main() {
 	expect(val2.x, equals(0));
 	expect(val2.y, equals(0));
 	expect(val2.z, equals(0));
-	expect(val2.w, equals(0));	
-      }	
+	expect(val2.w, equals(0));
+      }
   });
 }

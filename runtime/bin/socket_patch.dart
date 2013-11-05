@@ -814,7 +814,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   List<int> read([int len]) {
     if (_isMacOSTerminalInput) {
-      var available = available();
+      var available = this.available();
       if (available == 0) return null;
       var data = _socket.read(len);
       if (data == null || data.length < available) {

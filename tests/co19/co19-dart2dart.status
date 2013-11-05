@@ -10,6 +10,8 @@ Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with s
 Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 
+Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
+
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 
@@ -72,6 +74,17 @@ LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
+LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
+LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
+
+Language/14_Libraries_and_Scripts/4_Scripts_A03_t02: Fail # co19 issue 654
 
 
 [ $compiler == dart2dart && $system == windows ]
@@ -101,6 +114,7 @@ Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
+Language/05_Variables/05_Variables_A11_t01: fail
 Language/07_Classes/1_Instance_Methods_A01_t01: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A01_t02: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # co19-roll r559: Please triage this failure

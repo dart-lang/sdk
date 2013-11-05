@@ -16,7 +16,9 @@ pushd $DIR > /dev/null
 POLYMER_REMOTE=https://github.com/Polymer
 POLYMER_DIR=../../../third_party/polymer
 
-for NAME in ShadowDOM observe-js WeakMap; do
+NEWLINE=$'\n'
+REVISIONS=""
+for NAME in ShadowDOM observe-js WeakMap platform; do
   GIT_REMOTE="$POLYMER_REMOTE/$NAME.git"
   GIT_DIR="$POLYMER_DIR/$NAME"
   echo "*** Syncing $GIT_DIR from $GIT_REMOTE"
@@ -28,6 +30,9 @@ for NAME in ShadowDOM observe-js WeakMap; do
   else
     git clone $GIT_REMOTE $GIT_DIR
   fi
+  pushd $GIT_DIR > /dev/null
+  REVISIONS="$REVISIONS $NEWLINE  $NAME is at revision `git rev-parse HEAD`"
+  popd
 done
 
 echo '*** Installing NPM prerequisites'
@@ -35,3 +40,5 @@ npm install
 
 echo '*** Running grunt'
 grunt
+
+echo "*** Revision hash to use in commit message: $REVISIONS"

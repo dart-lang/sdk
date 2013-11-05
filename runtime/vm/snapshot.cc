@@ -32,7 +32,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kUint32x4Cid) ||
+          (class_id >= kInstanceCid && class_id <= kInt32x4Cid) ||
           class_id == kArrayCid ||
           class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
@@ -622,13 +622,13 @@ RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
 }
 
 
-RawUint32x4* SnapshotReader::NewUint32x4(uint32_t v0, uint32_t v1, uint32_t v2,
+RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
                                          uint32_t v3) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
-  cls_ = object_store()->uint32x4_class();
-  RawUint32x4* obj = reinterpret_cast<RawUint32x4*>(
-      AllocateUninitialized(cls_, Uint32x4::InstanceSize()));
+  cls_ = object_store()->int32x4_class();
+  RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
+      AllocateUninitialized(cls_, Int32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
   obj->ptr()->value_[1] = v1;
   obj->ptr()->value_[2] = v2;
@@ -790,30 +790,39 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       ASSERT(!cls_.IsNull());
       instance_size = cls_.instance_size();
     }
-    intptr_t offset = Object::InstanceSize();
+    intptr_t next_field_offset = cls_.next_field_offset();
+    intptr_t type_argument_field_offset = cls_.type_arguments_field_offset();
+    ASSERT(next_field_offset > 0);
+    // Instance::NextFieldOffset() returns the offset of the first field in
+    // a Dart object.
+    intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
-    while (offset < instance_size) {
+    while (offset < next_field_offset) {
       obj_ = ReadObjectRef();
       result->SetFieldAtOffset(offset, obj_);
-      if (kind_ == Snapshot::kMessage) {
+      if ((offset != type_argument_field_offset) &&
+          (kind_ == Snapshot::kMessage)) {
         // TODO(fschneider): Consider hoisting these lookups out of the loop.
         // This would involve creating a handle, since cls_ can't be reused
         // across the call to ReadObjectRef.
         cls_ = isolate()->class_table()->At(result_cid);
         array_ = cls_.OffsetToFieldMap();
         field_ ^= array_.At(offset >> kWordSizeLog2);
-        // Entries can be null because offset can be outside of instance fields
-        // due to rounded allocation size.
-        if (!field_.IsNull()) {
-          ASSERT(field_.Offset() == offset);
-          field_.UpdateGuardedCidAndLength(obj_);
-        }
+        ASSERT(!field_.IsNull());
+        ASSERT(field_.Offset() == offset);
+        field_.UpdateGuardedCidAndLength(obj_);
       }
       // TODO(fschneider): Verify the guarded cid and length for other kinds of
       // snapshot (kFull, kScript) with asserts.
       offset += kWordSize;
     }
     if (kind_ == Snapshot::kFull) {
+      // We create an uninitialized object in the case of full snapshots, so
+      // we need to initialize any remaining padding area with the Null object.
+      while (offset < instance_size) {
+        result->SetFieldAtOffset(offset, Object::null_object());
+        offset += kWordSize;
+      }
       result->SetCreatedFromSnapshot();
     } else if (result->IsCanonical()) {
       *result = result->CheckAndCanonicalize(NULL);
@@ -1387,9 +1396,9 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
   CheckIfSerializable(cls);
 
   // Object is regular dart instance.
-  intptr_t instance_size =
-      cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
-  ASSERT(instance_size != 0);
+  intptr_t next_field_offset =
+      cls->ptr()->next_field_offset_in_words_ << kWordSizeLog2;
+  ASSERT(next_field_offset > 0);
 
   // Write out the serialization header value for this object.
   WriteInlinedObjectHeader(object_id);
@@ -1404,8 +1413,10 @@ void SnapshotWriter::WriteInstance(intptr_t object_id,
   WriteObjectImpl(cls);
 
   // Write out all the fields for the object.
-  intptr_t offset = Object::InstanceSize();
-  while (offset < instance_size) {
+  // Instance::NextFieldOffset() returns the offset of the first field in
+  // a Dart object.
+  intptr_t offset = Instance::NextFieldOffset();
+  while (offset < next_field_offset) {
     WriteObjectRef(*reinterpret_cast<RawObject**>(
         reinterpret_cast<uword>(raw->ptr()) + offset));
     offset += kWordSize;

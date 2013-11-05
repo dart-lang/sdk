@@ -4839,8 +4839,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 
 
 RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
-                                          intptr_t token_pos,
-                                          const String& url) {
+                                         intptr_t token_pos,
+                                         const String& url) {
   Dart_LibraryTagHandler handler = isolate()->library_tag_handler();
   if (handler == NULL) {
     if (url.StartsWith(Symbols::DartScheme())) {
@@ -5408,10 +5408,8 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   TRACE_PARSER("ParseVariableDeclaration");
   ASSERT(IsIdentifier());
   const intptr_t ident_pos = TokenPos();
-  LocalVariable* variable =
-      new LocalVariable(ident_pos, *CurrentLiteral(), type);
-  ASSERT(current_block_ != NULL);
-  ASSERT(current_block_->scope != NULL);
+  const String& ident = *CurrentLiteral();
+  LocalVariable* variable = new LocalVariable(ident_pos, ident, type);
   ConsumeToken();  // Variable identifier.
   AstNode* initialization = NULL;
   if (CurrentToken() == Token::kASSIGN) {
@@ -5432,6 +5430,27 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     AstNode* null_expr = new LiteralNode(ident_pos, Instance::ZoneHandle());
     initialization = new StoreLocalNode(ident_pos, variable, null_expr);
   }
+
+  ASSERT(current_block_ != NULL);
+  const intptr_t previous_pos =
+  current_block_->scope->PreviousReferencePos(ident);
+  if (previous_pos >= 0) {
+    ASSERT(!script_.IsNull());
+    if (previous_pos > ident_pos) {
+      ErrorMsg(ident_pos,
+               "initializer of '%s' may not refer to itself",
+               ident.ToCString());
+
+    } else {
+      intptr_t line_number;
+      script_.GetTokenLocation(previous_pos, &line_number, NULL);
+      ErrorMsg(ident_pos,
+               "identifier '%s' previously used in line %" Pd "",
+               ident.ToCString(),
+               line_number);
+    }
+  }
+
   // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
   if (!current_block_->scope->AddVariable(variable)) {
@@ -5546,8 +5565,24 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                (LookaheadToken(1) != Token::kLPAREN)) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
+    const intptr_t name_pos = TokenPos();
     variable_name = ExpectIdentifier("function name expected");
     function_name = variable_name;
+
+    // Check that the function name has not been referenced
+    // before this declaration.
+    ASSERT(current_block_ != NULL);
+    const intptr_t previous_pos =
+        current_block_->scope->PreviousReferencePos(*function_name);
+    if (previous_pos >= 0) {
+      ASSERT(!script_.IsNull());
+      intptr_t line_number;
+      script_.GetTokenLocation(previous_pos, &line_number, NULL);
+      ErrorMsg(name_pos,
+               "identifier '%s' previously used in line %" Pd "",
+               function_name->ToCString(),
+               line_number);
+    }
   }
 
   if (CurrentToken() != Token::kLPAREN) {
@@ -8918,6 +8953,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   TRACE_PARSER("ResolveIdentInLocalScope");
   // First try to find the identifier in the nested local scopes.
   LocalVariable* local = LookupLocalScope(ident);
+  if (current_block_ != NULL) {
+    current_block_->scope->AddReferencedName(ident_pos, ident);
+  }
   if (local != NULL) {
     if (node != NULL) {
       if (local->IsConst()) {
@@ -9262,6 +9300,11 @@ RawAbstractType* Parser::ParseType(
   }
   QualIdent type_name;
   if (finalization == ClassFinalizer::kIgnore) {
+    if (!is_top_level_ && (current_block_ != NULL)) {
+      // Add the library prefix or type class name to the list of referenced
+      // names of this scope, even if the type is ignored.
+      current_block_->scope->AddReferencedName(TokenPos(), *CurrentLiteral());
+    }
     SkipQualIdent();
   } else {
     ParseQualIdent(&type_name);

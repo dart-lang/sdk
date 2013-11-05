@@ -468,8 +468,8 @@ class _StringBase {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result = new List<String>(length);
-      for (int i = 0; i < length; i++) {
+      List<String> result = new List<String>(this.length);
+      for (int i = 0; i < this.length; i++) {
         result[i] = this[i];
       }
       return result;

@@ -114,7 +114,7 @@ class _GrowableList<T> implements List<T> {
 
   List<T> sublist(int start, [int end]) {
     Arrays.indicesCheck(this, start, end);
-    if (end == null) end = length;
+    if (end == null) end = this.length;
     int length = end - start;
     if (start == end) return <T>[];
     List list = new _GrowableList<T>.withCapacity(length);

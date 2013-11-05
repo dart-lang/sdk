@@ -742,11 +742,11 @@ intptr_t RawFloat32x4::VisitFloat32x4Pointers(
 }
 
 
-intptr_t RawUint32x4::VisitUint32x4Pointers(
-    RawUint32x4* raw_obj,
+intptr_t RawInt32x4::VisitInt32x4Pointers(
+    RawInt32x4* raw_obj,
     ObjectPointerVisitor* visitor) {
     ASSERT(raw_obj->IsHeapObject());
-    return Uint32x4::InstanceSize();
+    return Int32x4::InstanceSize();
 }
 
 

@@ -795,9 +795,9 @@ class Float32x4List
 }
 
 
-class Uint32x4List
-    extends Object with ListMixin<Uint32x4>, FixedLengthListMixin<Uint32x4>
-    implements List<Uint32x4>, TypedData {
+class Int32x4List
+    extends Object with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
+    implements List<Int32x4>, TypedData {
 
   final Uint32List _storage;
 
@@ -835,11 +835,11 @@ class Uint32x4List
     return end;
   }
 
-  Uint32x4List(int length) : _storage = new Uint32List(length*4);
+  Int32x4List(int length) : _storage = new Uint32List(length*4);
 
-  Uint32x4List._externalStorage(Uint32List storage) : _storage = storage;
+  Int32x4List._externalStorage(Uint32List storage) : _storage = storage;
 
-  Uint32x4List._slowFromList(List<Uint32x4> list)
+  Int32x4List._slowFromList(List<Int32x4> list)
       : _storage = new Uint32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
@@ -850,17 +850,17 @@ class Uint32x4List
     }
   }
 
-  factory Uint32x4List.fromList(List<Uint32x4> list) {
-    if (list is Uint32x4List) {
-      Uint32x4List nativeList = list as Uint32x4List;
-      return new Uint32x4List._externalStorage(
+  factory Int32x4List.fromList(List<Int32x4> list) {
+    if (list is Int32x4List) {
+      Int32x4List nativeList = list as Int32x4List;
+      return new Int32x4List._externalStorage(
           new Uint32List.fromList(nativeList._storage));
     } else {
-      return new Uint32x4List._slowFromList(list);
+      return new Int32x4List._slowFromList(list);
     }
   }
 
-  Uint32x4List.view(ByteBuffer buffer,
+  Int32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
       : _storage = new Uint32List.view(buffer, byteOffset, length);
 
@@ -868,16 +868,16 @@ class Uint32x4List
 
   int get length => _storage.length ~/ 4;
 
-  Uint32x4 operator[](int index) {
+  Int32x4 operator[](int index) {
     _checkIndex(index, length);
     int _x = _storage[(index*4)+0];
     int _y = _storage[(index*4)+1];
     int _z = _storage[(index*4)+2];
     int _w = _storage[(index*4)+3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  void operator[]=(int index, Uint32x4 value) {
+  void operator[]=(int index, Int32x4 value) {
     _checkIndex(index, length);
     _storage[(index*4)+0] = value._storage[0];
     _storage[(index*4)+1] = value._storage[1];
@@ -885,9 +885,9 @@ class Uint32x4List
     _storage[(index*4)+3] = value._storage[3];
   }
 
-  List<Uint32x4> sublist(int start, [int end]) {
+  List<Int32x4> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    return new Uint32x4List._externalStorage(_storage.sublist(start*4, end*4));
+    return new Int32x4List._externalStorage(_storage.sublist(start*4, end*4));
   }
 }
 
@@ -909,7 +909,7 @@ class Float32x4 {
   }
   Float32x4.zero();
   /// Returns a bit-wise copy of [x] as a Float32x4.
-  Float32x4.fromUint32x4Bits(Uint32x4 x) {
+  Float32x4.fromInt32x4Bits(Int32x4 x) {
     var view = new Float32List.view(x._storage.buffer);
     _storage[0] = view[0];
     _storage[1] = view[1];
@@ -963,72 +963,72 @@ class Float32x4 {
   }
 
   /// Relational less than.
-  Uint32x4 lessThan(Float32x4 other) {
+  Int32x4 lessThan(Float32x4 other) {
     bool _cx = _storage[0] < other._storage[0];
     bool _cy = _storage[1] < other._storage[1];
     bool _cz = _storage[2] < other._storage[2];
     bool _cw = _storage[3] < other._storage[3];
-    return new Uint32x4(_cx == true ? 0xFFFFFFFF : 0x0,
+    return new Int32x4(_cx == true ? 0xFFFFFFFF : 0x0,
                         _cy == true ? 0xFFFFFFFF : 0x0,
                         _cz == true ? 0xFFFFFFFF : 0x0,
                         _cw == true ? 0xFFFFFFFF : 0x0);
   }
 
   /// Relational less than or equal.
-  Uint32x4 lessThanOrEqual(Float32x4 other) {
+  Int32x4 lessThanOrEqual(Float32x4 other) {
     bool _cx = _storage[0] <= other._storage[0];
     bool _cy = _storage[1] <= other._storage[1];
     bool _cz = _storage[2] <= other._storage[2];
     bool _cw = _storage[3] <= other._storage[3];
-    return new Uint32x4(_cx == true ? 0xFFFFFFFF : 0x0,
+    return new Int32x4(_cx == true ? 0xFFFFFFFF : 0x0,
                         _cy == true ? 0xFFFFFFFF : 0x0,
                         _cz == true ? 0xFFFFFFFF : 0x0,
                         _cw == true ? 0xFFFFFFFF : 0x0);
   }
 
   /// Relational greater than.
-  Uint32x4 greaterThan(Float32x4 other) {
+  Int32x4 greaterThan(Float32x4 other) {
     bool _cx = _storage[0] > other._storage[0];
     bool _cy = _storage[1] > other._storage[1];
     bool _cz = _storage[2] > other._storage[2];
     bool _cw = _storage[3] > other._storage[3];
-    return new Uint32x4(_cx == true ? 0xFFFFFFFF : 0x0,
+    return new Int32x4(_cx == true ? 0xFFFFFFFF : 0x0,
                         _cy == true ? 0xFFFFFFFF : 0x0,
                         _cz == true ? 0xFFFFFFFF : 0x0,
                         _cw == true ? 0xFFFFFFFF : 0x0);
   }
 
   /// Relational greater than or equal.
-  Uint32x4 greaterThanOrEqual(Float32x4 other) {
+  Int32x4 greaterThanOrEqual(Float32x4 other) {
     bool _cx = _storage[0] >= other._storage[0];
     bool _cy = _storage[1] >= other._storage[1];
     bool _cz = _storage[2] >= other._storage[2];
     bool _cw = _storage[3] >= other._storage[3];
-    return new Uint32x4(_cx == true ? 0xFFFFFFFF : 0x0,
+    return new Int32x4(_cx == true ? 0xFFFFFFFF : 0x0,
                         _cy == true ? 0xFFFFFFFF : 0x0,
                         _cz == true ? 0xFFFFFFFF : 0x0,
                         _cw == true ? 0xFFFFFFFF : 0x0);
   }
 
   /// Relational equal.
-  Uint32x4 equal(Float32x4 other) {
+  Int32x4 equal(Float32x4 other) {
     bool _cx = _storage[0] == other._storage[0];
     bool _cy = _storage[1] == other._storage[1];
     bool _cz = _storage[2] == other._storage[2];
     bool _cw = _storage[3] == other._storage[3];
-    return new Uint32x4(_cx == true ? 0xFFFFFFFF : 0x0,
+    return new Int32x4(_cx == true ? 0xFFFFFFFF : 0x0,
                         _cy == true ? 0xFFFFFFFF : 0x0,
                         _cz == true ? 0xFFFFFFFF : 0x0,
                         _cw == true ? 0xFFFFFFFF : 0x0);
   }
 
   /// Relational not-equal.
-  Uint32x4 notEqual(Float32x4 other) {
+  Int32x4 notEqual(Float32x4 other) {
     bool _cx = _storage[0] != other._storage[0];
     bool _cy = _storage[1] != other._storage[1];
     bool _cz = _storage[2] != other._storage[2];
     bool _cw = _storage[3] != other._storage[3];
-    return new Uint32x4(_cx == true ? 0xFFFFFFFF : 0x0,
+    return new Int32x4(_cx == true ? 0xFFFFFFFF : 0x0,
                         _cy == true ? 0xFFFFFFFF : 0x0,
                         _cz == true ? 0xFFFFFFFF : 0x0,
                         _cw == true ? 0xFFFFFFFF : 0x0);
@@ -1472,25 +1472,25 @@ class Float32x4 {
 }
 
 
-class Uint32x4 {
-  final _storage = new Uint32List(4);
+class Int32x4 {
+  final _storage = new Int32List(4);
 
-  Uint32x4(int x, int y, int z, int w) {
+  Int32x4(int x, int y, int z, int w) {
     _storage[0] = x;
     _storage[1] = y;
     _storage[2] = z;
     _storage[3] = w;
   }
 
-  Uint32x4.bool(bool x, bool y, bool z, bool w) {
+  Int32x4.bool(bool x, bool y, bool z, bool w) {
     _storage[0] = x == true ? 0xFFFFFFFF : 0x0;
     _storage[1] = y == true ? 0xFFFFFFFF : 0x0;
     _storage[2] = z == true ? 0xFFFFFFFF : 0x0;
     _storage[3] = w == true ? 0xFFFFFFFF : 0x0;
   }
 
-  /// Returns a bit-wise copy of [x] as a Uint32x4.
-  Uint32x4.fromFloat32x4Bits(Float32x4 x) {
+  /// Returns a bit-wise copy of [x] as a Int32x4.
+  Int32x4.fromFloat32x4Bits(Float32x4 x) {
     var view = new Uint32List.view(x._storage.buffer);
     _storage[0] = view[0];
     _storage[1] = view[1];
@@ -1499,34 +1499,34 @@ class Uint32x4 {
   }
 
   /// The bit-wise or operator.
-  Uint32x4 operator|(Uint32x4 other) {
+  Int32x4 operator|(Int32x4 other) {
     int _x = _storage[0] | other._storage[0];
     int _y = _storage[1] | other._storage[1];
     int _z = _storage[2] | other._storage[2];
     int _w = _storage[3] | other._storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
   /// The bit-wise and operator.
-  Uint32x4 operator&(Uint32x4 other) {
+  Int32x4 operator&(Int32x4 other) {
     int _x = _storage[0] & other._storage[0];
     int _y = _storage[1] & other._storage[1];
     int _z = _storage[2] & other._storage[2];
     int _w = _storage[3] & other._storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
   /// The bit-wise xor operator.
-  Uint32x4 operator^(Uint32x4 other) {
+  Int32x4 operator^(Int32x4 other) {
     int _x = _storage[0] ^ other._storage[0];
     int _y = _storage[1] ^ other._storage[1];
     int _z = _storage[2] ^ other._storage[2];
     int _w = _storage[3] ^ other._storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  Uint32x4 operator+(Uint32x4 other) {
-    var r = new Uint32x4(0, 0, 0, 0);
+  Int32x4 operator+(Int32x4 other) {
+    var r = new Int32x4(0, 0, 0, 0);
     r._storage[0] = (_storage[0] + other._storage[0]);
     r._storage[1] = (_storage[1] + other._storage[1]);
     r._storage[2] = (_storage[2] + other._storage[2]);
@@ -1534,8 +1534,8 @@ class Uint32x4 {
     return r;
   }
 
-  Uint32x4 operator-(Uint32x4 other) {
-    var r = new Uint32x4(0, 0, 0, 0);
+  Int32x4 operator-(Int32x4 other) {
+    var r = new Int32x4(0, 0, 0, 0);
     r._storage[0] = (_storage[0] - other._storage[0]);
     r._storage[1] = (_storage[1] - other._storage[1]);
     r._storage[2] = (_storage[2] - other._storage[2]);
@@ -1820,7 +1820,7 @@ class Uint32x4 {
   static const int WWWW = 0xFF;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
-  Uint32x4 shuffle(int mask) {
+  Int32x4 shuffle(int mask) {
     if ((mask < 0) || (mask > 255)) {
       throw new RangeError('mask $mask must be in the range [0..256)');
     }
@@ -1828,13 +1828,13 @@ class Uint32x4 {
     int _y = _storage[(mask >> 2) & 0x3];
     int _z = _storage[(mask >> 4) & 0x3];
     int _w = _storage[(mask >> 6) & 0x3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
   /// Shuffle the lane values in [this] and [other]. The returned
-  /// Uint32x4 will have XY lanes from [this] and ZW lanes from [other].
+  /// Int32x4 will have XY lanes from [this] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
-  Uint32x4 shuffleMix(Uint32x4 other, int mask) {
+  Int32x4 shuffleMix(Int32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
       throw new RangeError('mask $mask must be in the range [0..256)');
     }
@@ -1842,43 +1842,43 @@ class Uint32x4 {
     int _y = _storage[(mask >> 2) & 0x3];
     int _z = other._storage[(mask >> 4) & 0x3];
     int _w = other._storage[(mask >> 6) & 0x3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new x value.
-  Uint32x4 withX(int x) {
+  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  Int32x4 withX(int x) {
     int _x = x;
     int _y = _storage[1];
     int _z = _storage[2];
     int _w = _storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new y value.
-  Uint32x4 withY(int y) {
+  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  Int32x4 withY(int y) {
     int _x = _storage[0];
     int _y = y;
     int _z = _storage[2];
     int _w = _storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new z value.
-  Uint32x4 withZ(int z) {
+  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  Int32x4 withZ(int z) {
     int _x = _storage[0];
     int _y = _storage[1];
     int _z = z;
     int _w = _storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new w value.
-  Uint32x4 withW(int w) {
+  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  Int32x4 withW(int w) {
     int _x = _storage[0];
     int _y = _storage[1];
     int _z = _storage[2];
     int _w = w;
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
   /// Extracted x value. Returns false for 0, true for any other value.
@@ -1890,48 +1890,48 @@ class Uint32x4 {
   /// Extracted w value. Returns false for 0, true for any other value.
   bool get flagW => _storage[3] != 0x0;
 
-  /// Returns a new [Uint32x4] copied from [this] with a new x value.
-  Uint32x4 withFlagX(bool x) {
+  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  Int32x4 withFlagX(bool x) {
     int _x = x == true ? 0xFFFFFFFF : 0x0;
     int _y = _storage[1];
     int _z = _storage[2];
     int _w = _storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new y value.
-  Uint32x4 withFlagY(bool y) {
+  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  Int32x4 withFlagY(bool y) {
     int _x = _storage[0];
     int _y = y == true ? 0xFFFFFFFF : 0x0;
     int _z = _storage[2];
     int _w = _storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new z value.
-  Uint32x4 withFlagZ(bool z) {
+  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  Int32x4 withFlagZ(bool z) {
     int _x = _storage[0];
     int _y = _storage[1];
     int _z = z == true ? 0xFFFFFFFF : 0x0;
     int _w = _storage[3];
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
-  /// Returns a new [Uint32x4] copied from [this] with a new w value.
-  Uint32x4 withFlagW(bool w) {
+  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  Int32x4 withFlagW(bool w) {
     int _x = _storage[0];
     int _y = _storage[1];
     int _z = _storage[2];
     int _w = w == true ? 0xFFFFFFFF : 0x0;
-    return new Uint32x4(_x, _y, _z, _w);
+    return new Int32x4(_x, _y, _z, _w);
   }
 
   /// Merge [trueValue] and [falseValue] based on [this]' bit mask:
   /// Select bit from [trueValue] when bit in [this] is on.
   /// Select bit from [falseValue] when bit in [this] is off.
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) {
-    var trueView = new Uint32List.view(trueValue._storage.buffer);
-    var falseView = new Uint32List.view(falseValue._storage.buffer);
+    var trueView = new Int32List.view(trueValue._storage.buffer);
+    var falseView = new Int32List.view(falseValue._storage.buffer);
     int cmx = _storage[0];
     int cmy = _storage[1];
     int cmz = _storage[2];
@@ -1949,7 +1949,7 @@ class Uint32x4 {
     int _z = (cmz & stz) | (~cmz & sfz);
     int _w = (cmw & stw) | (~cmw & sfw);
     var r = new Float32x4(0.0, 0.0, 0.0, 0.0);
-    var rView = new Uint32List.view(r._storage.buffer);
+    var rView = new Int32List.view(r._storage.buffer);
     rView[0] = _x;
     rView[1] = _y;
     rView[2] = _z;

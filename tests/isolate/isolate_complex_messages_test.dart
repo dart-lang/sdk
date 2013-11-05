@@ -18,12 +18,12 @@ main() {
       switch (msg[0]) {
         case "init":
           var remote = msg[1];
-          remote.send(1, null);
-          remote.send("Hello", null);
-          remote.send("World", null);
-          remote.send(const [null, 1, 2, 3, 4], null);
-          remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
-          remote.send(const ["Hello", "World", 0xffffffffff], null);
+          remote.send(1);
+          remote.send("Hello");
+          remote.send("World");
+          remote.send(const [null, 1, 2, 3, 4]);
+          remote.send(const [1, 2.0, true, false, 0xffffffffff]);
+          remote.send(const ["Hello", "World", 0xffffffffff]);
           // Shutdown the LogRunner.
           remote.send(-1);
           break;

@@ -827,26 +827,26 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
 
 
 /**
- * A fixed-length list of Uint32x4 numbers that is viewable as a
+ * A fixed-length list of Int32x4 numbers that is viewable as a
  * [TypedData]. For long lists, this implementation will be considerably more
  * space- and time-efficient than the default [List] implementation.
  */
-abstract class Uint32x4List implements List<Uint32x4>, TypedData {
+abstract class Int32x4List implements List<Int32x4>, TypedData {
   /**
-   * Creates a [Uint32x4List] of the specified length (in elements),
+   * Creates a [Int32x4List] of the specified length (in elements),
    * all of whose elements are initially zero.
    */
-  external factory Uint32x4List(int length);
+  external factory Int32x4List(int length);
 
   /**
-   * Creates a [Uint32x4List] with the same size as the [elements] list
+   * Creates a [Int32x4List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  external factory Uint32x4List.fromList(List<Uint32x4> elements);
+  external factory Int32x4List.fromList(List<Int32x4> elements);
 
   /**
-   * Creates a [Uint32x4List] _view_ of the specified region in the specified
-   * byte buffer. Changes in the [Uint32x4List] will be visible in the byte
+   * Creates a [Int32x4List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Int32x4List] will be visible in the byte
    * buffer and vice versa. If the [offsetInBytes] index of the region is not
    * specified, it defaults to zero (the first byte in the byte buffer).
    * If the length is not specified, it defaults to null, which indicates
@@ -859,7 +859,7 @@ abstract class Uint32x4List implements List<Uint32x4>, TypedData {
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * BYTES_PER_ELEMENT.
    */
-  external factory Uint32x4List.view(ByteBuffer buffer,
+  external factory Int32x4List.view(ByteBuffer buffer,
                                       [int offsetInBytes = 0, int length]);
 
   static const int BYTES_PER_ELEMENT = 16;
@@ -875,7 +875,7 @@ abstract class Float32x4 {
   external factory Float32x4(double x, double y, double z, double w);
   external factory Float32x4.splat(double v);
   external factory Float32x4.zero();
-  external factory Float32x4.fromUint32x4Bits(Uint32x4 x);
+  external factory Float32x4.fromInt32x4Bits(Int32x4 x);
 
   /// Addition operator.
   Float32x4 operator+(Float32x4 other);
@@ -889,17 +889,17 @@ abstract class Float32x4 {
   Float32x4 operator/(Float32x4 other);
 
   /// Relational less than.
-  Uint32x4 lessThan(Float32x4 other);
+  Int32x4 lessThan(Float32x4 other);
   /// Relational less than or equal.
-  Uint32x4 lessThanOrEqual(Float32x4 other);
+  Int32x4 lessThanOrEqual(Float32x4 other);
   /// Relational greater than.
-  Uint32x4 greaterThan(Float32x4 other);
+  Int32x4 greaterThan(Float32x4 other);
   /// Relational greater than or equal.
-  Uint32x4 greaterThanOrEqual(Float32x4 other);
+  Int32x4 greaterThanOrEqual(Float32x4 other);
   /// Relational equal.
-  Uint32x4 equal(Float32x4 other);
+  Int32x4 equal(Float32x4 other);
   /// Relational not-equal.
-  Uint32x4 notEqual(Float32x4 other);
+  Int32x4 notEqual(Float32x4 other);
 
   /// Returns a copy of [this] each lane being scaled by [s].
   Float32x4 scale(double s);
@@ -1214,25 +1214,25 @@ abstract class Float32x4 {
 
 
 /**
- * Interface of Dart Uint32x4 and operations.
- * Uint32x4 stores 4 32-bit bit-masks in "lanes".
+ * Interface of Dart Int32x4 and operations.
+ * Int32x4 stores 4 32-bit bit-masks in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
-abstract class Uint32x4 {
-  external factory Uint32x4(int x, int y, int z, int w);
-  external factory Uint32x4.bool(bool x, bool y, bool z, bool w);
-  external factory Uint32x4.fromFloat32x4Bits(Float32x4 x);
+abstract class Int32x4 {
+  external factory Int32x4(int x, int y, int z, int w);
+  external factory Int32x4.bool(bool x, bool y, bool z, bool w);
+  external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 
   /// The bit-wise or operator.
-  Uint32x4 operator|(Uint32x4 other);
+  Int32x4 operator|(Int32x4 other);
   /// The bit-wise and operator.
-  Uint32x4 operator&(Uint32x4 other);
+  Int32x4 operator&(Int32x4 other);
   /// The bit-wise xor operator.
-  Uint32x4 operator^(Uint32x4 other);
+  Int32x4 operator^(Int32x4 other);
   /// Addition operator.
-  Uint32x4 operator+(Uint32x4 other);
+  Int32x4 operator+(Int32x4 other);
   /// Subtraction operator.
-  Uint32x4 operator-(Uint32x4 other);
+  Int32x4 operator-(Int32x4 other);
 
   /// Extract 32-bit mask from x lane.
   int get x;
@@ -1505,21 +1505,21 @@ abstract class Uint32x4 {
   static const int WWWW = 0xFF;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
-  Uint32x4 shuffle(int mask);
+  Int32x4 shuffle(int mask);
 
   /// Shuffle the lane values in [this] and [other]. The returned
-  /// Uint32x4 will have XY lanes from [this] and ZW lanes from [other].
+  /// Int32x4 will have XY lanes from [this] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
-  Uint32x4 shuffleMix(Uint32x4 other, int mask);
+  Int32x4 shuffleMix(Int32x4 other, int mask);
 
-  /// Returns a new [Uint32x4] copied from [this] with a new x value.
-  Uint32x4 withX(int x);
-  /// Returns a new [Uint32x4] copied from [this] with a new y value.
-  Uint32x4 withY(int y);
-  /// Returns a new [Uint32x4] copied from [this] with a new z value.
-  Uint32x4 withZ(int z);
-  /// Returns a new [Uint32x4] copied from [this] with a new w value.
-  Uint32x4 withW(int w);
+  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  Int32x4 withX(int x);
+  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  Int32x4 withY(int y);
+  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  Int32x4 withZ(int z);
+  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  Int32x4 withW(int w);
 
   /// Extracted x value. Returns false for 0, true for any other value.
   bool get flagX;
@@ -1530,14 +1530,14 @@ abstract class Uint32x4 {
   /// Extracted w value. Returns false for 0, true for any other value.
   bool get flagW;
 
-  /// Returns a new [Uint32x4] copied from [this] with a new x value.
-  Uint32x4 withFlagX(bool x);
-  /// Returns a new [Uint32x4] copied from [this] with a new y value.
-  Uint32x4 withFlagY(bool y);
-  /// Returns a new [Uint32x4] copied from [this] with a new z value.
-  Uint32x4 withFlagZ(bool z);
-  /// Returns a new [Uint32x4] copied from [this] with a new w value.
-  Uint32x4 withFlagW(bool w);
+  /// Returns a new [Int32x4] copied from [this] with a new x value.
+  Int32x4 withFlagX(bool x);
+  /// Returns a new [Int32x4] copied from [this] with a new y value.
+  Int32x4 withFlagY(bool y);
+  /// Returns a new [Int32x4] copied from [this] with a new z value.
+  Int32x4 withFlagZ(bool z);
+  /// Returns a new [Int32x4] copied from [this] with a new w value.
+  Int32x4 withFlagW(bool w);
 
   /// Merge [trueValue] and [falseValue] based on [this]' bit mask:
   /// Select bit from [trueValue] when bit in [this] is on.

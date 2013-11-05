@@ -157,11 +157,7 @@ types.TypeMask findTypeMask(compiler, String name,
     case 'subtype': return new types.TypeMask.subtype(element);
     case 'nonNullSubtype': return new types.TypeMask.nonNullSubtype(element);
   }
-  Expect.fail('Unknown HType constructor $how');
-}
-
-ssa.HType findHType(compiler, String name, [String how = 'nonNullExact']) {
-  return new ssa.HType.fromMask(findTypeMask(compiler, name, how), compiler);
+  Expect.fail('Unknown TypeMask constructor $how');
 }
 
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";

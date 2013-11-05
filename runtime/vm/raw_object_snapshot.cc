@@ -2227,7 +2227,7 @@ void RawFloat32x4::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawUint32x4* Uint32x4::ReadFrom(SnapshotReader* reader,
+RawInt32x4* Int32x4::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
                                       Snapshot::Kind kind) {
@@ -2239,12 +2239,12 @@ RawUint32x4* Uint32x4::ReadFrom(SnapshotReader* reader,
   uint32_t value3 = reader->Read<uint32_t>();
 
   // Create a Float32x4 object.
-  Uint32x4& simd = Uint32x4::ZoneHandle(reader->isolate(), Uint32x4::null());
+  Int32x4& simd = Int32x4::ZoneHandle(reader->isolate(), Int32x4::null());
 
   if (kind == Snapshot::kFull) {
-    simd = reader->NewUint32x4(value0, value1, value2, value3);
+    simd = reader->NewInt32x4(value0, value1, value2, value3);
   } else {
-    simd = Uint32x4::New(value0, value1, value2, value3, HEAP_SPACE(kind));
+    simd = Int32x4::New(value0, value1, value2, value3, HEAP_SPACE(kind));
   }
   reader->AddBackRef(object_id, &simd, kIsDeserialized);
   // Set the object tags.
@@ -2253,7 +2253,7 @@ RawUint32x4* Uint32x4::ReadFrom(SnapshotReader* reader,
 }
 
 
-void RawUint32x4::WriteTo(SnapshotWriter* writer,
+void RawInt32x4::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
   ASSERT(writer != NULL);
@@ -2262,7 +2262,7 @@ void RawUint32x4::WriteTo(SnapshotWriter* writer,
   writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteIndexedObject(kUint32x4Cid);
+  writer->WriteIndexedObject(kInt32x4Cid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the mask values.
