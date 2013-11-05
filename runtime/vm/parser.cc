@@ -6912,7 +6912,10 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     SequenceNode* catch_handler = CloseBlock();
     ExpectToken(Token::kRBRACE);
 
-    if (!exception_param.type.IsDynamicType()) {  // Has a type specification.
+    const bool is_bad_type = exception_param.type.IsMalformed() ||
+                             exception_param.type.IsMalbounded();
+    if (!is_bad_type && !exception_param.type.IsDynamicType()) {
+      // Has a type specification that is not malformed or malbounded.
       // Now form an 'if type check' as an exception type exists in the
       // catch specifier.
       if (!exception_param.type.IsInstantiated() &&
@@ -6940,6 +6943,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         handler_types.Add(exception_param.type);
       }
     } else {
+      if (is_bad_type) {
+        current_block_->statements->Add(ThrowTypeError(catch_pos,
+                                                       exception_param.type));
+        // We still add the dead code below to satisfy the code generator.
+      }
       // No exception type exists in the catch specifier so execute the
       // catch handler code unconditionally.
       current_block_->statements->Add(catch_handler);
@@ -8615,36 +8623,24 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           // referenced by a static member.
           if (ParsingStaticMember()) {
             ASSERT(scope_class.raw() == current_class().raw());
-            if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-                FLAG_error_on_bad_type) {
-              *type = ClassFinalizer::NewFinalizedMalformedType(
-                  Error::Handle(),  // No previous error.
-                  script_,
-                  type->token_pos(),
-                  "type parameter '%s' cannot be referenced "
-                  "from static member",
-                  String::Handle(type_parameter.name()).ToCString());
-            } else {
-              // Map the malformed type to dynamic and ignore type arguments.
-              *type = Type::DynamicType();
-            }
+            *type = ClassFinalizer::NewFinalizedMalformedType(
+                Error::Handle(),  // No previous error.
+                script_,
+                type->token_pos(),
+                "type parameter '%s' cannot be referenced "
+                "from static member",
+                String::Handle(type_parameter.name()).ToCString());
             return;
           }
           // A type parameter cannot be parameterized, so make the type
           // malformed if type arguments have previously been parsed.
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
-            if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-                FLAG_error_on_bad_type) {
-              *type = ClassFinalizer::NewFinalizedMalformedType(
-                  Error::Handle(),  // No previous error.
-                  script_,
-                  type_parameter.token_pos(),
-                  "type parameter '%s' cannot be parameterized",
-                  String::Handle(type_parameter.name()).ToCString());
-            } else {
-              // Map the malformed type to dynamic and ignore type arguments.
-              *type = Type::DynamicType();
-            }
+            *type = ClassFinalizer::NewFinalizedMalformedType(
+                Error::Handle(),  // No previous error.
+                script_,
+                type_parameter.token_pos(),
+                "type parameter '%s' cannot be parameterized",
+                String::Handle(type_parameter.name()).ToCString());
             return;
           }
           *type = type_parameter.raw();
@@ -8671,18 +8667,12 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
       // Replace unresolved class with resolved type class.
       parameterized_type.set_type_class(resolved_type_class);
     } else if (finalization >= ClassFinalizer::kCanonicalize) {
-      if ((finalization == ClassFinalizer::kCanonicalizeWellFormed) ||
-          FLAG_error_on_bad_type) {
-        ClassFinalizer::FinalizeMalformedType(
-            Error::Handle(),  // No previous error.
-            script_,
-            parameterized_type,
-            "type '%s' is not loaded",
-            String::Handle(parameterized_type.UserVisibleName()).ToCString());
-      } else {
-        // Map the malformed type to dynamic and ignore type arguments.
-        *type = Type::DynamicType();
-      }
+      ClassFinalizer::FinalizeMalformedType(
+          Error::Handle(),  // No previous error.
+          script_,
+          parameterized_type,
+          "type '%s' is not loaded",
+          String::Handle(parameterized_type.UserVisibleName()).ToCString());
       return;
     }
   }
@@ -9286,15 +9276,12 @@ RawAbstractType* Parser::ParseType(
         ResolveIdentInLocalScope(type_name.ident_pos, *type_name.ident, NULL)) {
       // The type is malformed. Skip over its type arguments.
       ParseTypeArguments(ClassFinalizer::kIgnore);
-      if (finalization == ClassFinalizer::kCanonicalizeWellFormed) {
-        return ClassFinalizer::NewFinalizedMalformedType(
-            Error::Handle(),  // No previous error.
-            script_,
-            type_name.ident_pos,
-            "using '%s' in this context is invalid",
-            type_name.ident->ToCString());
-      }
-      return Type::DynamicType();
+      return ClassFinalizer::NewFinalizedMalformedType(
+          Error::Handle(),  // No previous error.
+          script_,
+          type_name.ident_pos,
+          "using '%s' in this context is invalid",
+          type_name.ident->ToCString());
     }
   }
   Object& type_class = Object::Handle(isolate());

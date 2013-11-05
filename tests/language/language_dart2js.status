@@ -35,6 +35,12 @@ ref_before_declaration_test/06: MissingCompileTimeError
 vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && $checked ]
+type_parameter_test/01: Fail # Issue 14006
+type_parameter_test/02: Fail # Issue 14006
+type_parameter_test/03: Fail # Issue 14006
+type_parameter_test/04: Fail # Issue 14006
+type_parameter_test/05: Fail # Issue 14006
+type_parameter_test/06: Fail # Issue 14006
 checked_setter2_test: Fail # Issue 11273
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_bounds2_test/01: Fail # Issue 12702
@@ -195,13 +201,6 @@ constructor_initializer_test/none: Fail # Issue 12633
 factory3_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
 
-instanceof3_test: Fail # Issue 14768
-is_not_class2_test: Fail # Issue 14768
-isnot_malformed_type_test: Fail # Issue 14768
-library_ambiguous_test/04: Fail # Issue 14768
-malformed2_test/00: Fail # Issue 14768
-on_catch_malformed_type_test: Fail # Issue 14768
-
 # Mixins fail on the VM.
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
@@ -289,13 +288,6 @@ malformed2_test/01: Fail, OK
 malbounded_type_cast_test: Fail # Issue 14123
 malbounded_type_test_test/01: Fail # Issue 14131
 malbounded_instantiation_test/01: Fail # Issue 14132
-
-type_parameter_test/01: Fail # Issue 14768
-type_parameter_test/02: Fail # Issue 14768
-type_parameter_test/03: Fail # Issue 14768
-type_parameter_test/04: Fail # Issue 14768
-type_parameter_test/05: Fail # Issue 14768
-type_parameter_test/06: Fail # Issue 14768
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.

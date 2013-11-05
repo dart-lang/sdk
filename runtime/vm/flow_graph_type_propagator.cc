@@ -415,18 +415,16 @@ void CompileType::Union(CompileType* other) {
     cid_ = kDynamicCid;
   }
 
-  Error& malformed_error = Error::Handle();
-  if (ToAbstractType()->IsMoreSpecificThan(*other->ToAbstractType(),
-                                           &malformed_error)) {
-    type_ = other->ToAbstractType();
-  } else if (other->ToAbstractType()->IsMoreSpecificThan(*ToAbstractType(),
-                                                         &malformed_error)) {
-    // Nothing to do.
+  const AbstractType* compile_type = ToAbstractType();
+  const AbstractType* other_compile_type = other->ToAbstractType();
+  if (compile_type->IsMoreSpecificThan(*other_compile_type, NULL)) {
+    type_ = other_compile_type;
+  } else if (other_compile_type->IsMoreSpecificThan(*compile_type, NULL)) {
+  // Nothing to do.
   } else {
-    // Can't unify.
-    type_ = &Type::ZoneHandle(Type::DynamicType());
+  // Can't unify.
+  type_ = &Type::ZoneHandle(Type::DynamicType());
   }
-  ASSERT(malformed_error.IsNull());
 }
 
 
@@ -615,14 +613,13 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  Error& malformed_error = Error::Handle();
-  *is_instance = compile_type.IsMoreSpecificThan(type, &malformed_error);
-  return malformed_error.IsNull() && *is_instance;
+  *is_instance = compile_type.IsMoreSpecificThan(type, NULL);
+  return *is_instance;
 }
 
 
 bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
-  if (IsNone() || other.IsMalformed()) {
+  if (IsNone()) {
     return false;
   }
 
@@ -631,10 +628,7 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
     return IsNull();
   }
 
-  Error& malformed_error = Error::Handle();
-  const bool is_more_specific =
-      ToAbstractType()->IsMoreSpecificThan(other, &malformed_error);
-  return malformed_error.IsNull() && is_more_specific;
+  return ToAbstractType()->IsMoreSpecificThan(other, NULL);
 }
 
 

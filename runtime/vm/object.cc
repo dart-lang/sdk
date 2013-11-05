@@ -11461,8 +11461,13 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                             Error* bound_error) const {
   ASSERT(IsResolved());
   ASSERT(other.IsResolved());
-  ASSERT(!IsMalformed());
-  ASSERT(!other.IsMalformed());
+  if (IsMalformed() || other.IsMalformed()) {
+    // Malformed types involved in subtype tests should be handled specially
+    // by the caller. Malformed types should only be encountered here in a
+    // more specific than test.
+    ASSERT(test_kind == kIsMoreSpecificThan);
+    return false;
+  }
   // In case the type checked in a type test is malbounded, the code generator
   // may compile a throw instead of a run time call performing the type check.
   // However, in checked mode, a function type may include malbounded result

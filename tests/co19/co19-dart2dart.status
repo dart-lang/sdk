@@ -10,6 +10,12 @@ Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with s
 Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 
+Language/10_Generics/10_Generics_A05_t01: Fail # Issue 463
+Language/14_Libraries_and_Scripts/1_Imports_A03_t05: Fail # Issue 463
+Language/15_Types/1_Static_Types_A03_t01: Fail # Issue 463
+Language/12_Expressions/33_Type_Cast_A03_t01: Fail # Issue 463
+Language/12_Expressions/33_Type_Cast_A03_t03: Fail # Issue 463
+
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
@@ -99,7 +105,6 @@ LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 [ $compiler == dart2dart ]
-Language/03_Overview/2_Privacy_A01_t06: Fail # co19 issue 463
 LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389

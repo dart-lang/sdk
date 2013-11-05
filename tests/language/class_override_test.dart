@@ -17,7 +17,7 @@ main() {
   B instance = new B();
   try {
     instance.foo();
-  } on NoSuchMethodEror catch (error) {  /// 00: continued
+  } on NoSuchMethodError catch (error) {  /// 00: continued
   } finally {
   }
   print("Success");
