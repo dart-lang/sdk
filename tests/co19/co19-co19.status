@@ -58,7 +58,6 @@ Language/07_Classes/07_Classes_A13_t07: Pass, MissingCompileTimeError, Fail # co
 LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 

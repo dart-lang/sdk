@@ -114,6 +114,8 @@ class ByteData extends TypedData native "DataView" {
   num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat32(byteOffset, endian._littleEndian);
 
+  int get elementSizeInBytes => 1;
+
   @JSName('getFloat32')
   @Returns('num')
   num _getFloat32(int byteOffset, [bool littleEndian]) native;
