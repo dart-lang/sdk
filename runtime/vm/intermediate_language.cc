@@ -1649,9 +1649,6 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       RemoveEnvironment();
       flow_graph->CopyDeoptTarget(this, comp);
-      // Unlink environment from the comparison since it is copied to the
-      // branch instruction.
-      comp->RemoveEnvironment();
 
       comp->RemoveFromGraph();
       SetComparison(comp);
