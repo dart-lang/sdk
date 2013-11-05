@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test program for catch that we expect a class after an 'is'. This is
-// not a negative test since 'aa' is a malformed type and therefore should be
-// treated as dynamic.
+// Dart test program for catch that we expect a class after an 'is'. 'aa' is a
+// malformed type and a type error should be thrown upon test.
+
+import 'package:expect/expect.dart';
 
 class A {
   const A();
@@ -23,5 +24,5 @@ class IsNotClass2NegativeTest {
 }
 
 main() {
-  IsNotClass2NegativeTest.testMain();
+  Expect.throws(IsNotClass2NegativeTest.testMain, (e) => e is TypeError);
 }

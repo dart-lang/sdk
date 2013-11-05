@@ -70,6 +70,7 @@ compile_time_constant_checked3_test/03: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
+malformed2_test/01: MissingCompileTimeError, OK
 generic_test: RuntimeError, OK
 named_parameters_type_test/01: MissingRuntimeError, OK
 named_parameters_type_test/02: MissingRuntimeError, OK
@@ -194,6 +195,13 @@ constructor_initializer_test/none: Fail # Issue 12633
 factory3_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
 
+instanceof3_test: Fail # Issue 14768
+is_not_class2_test: Fail # Issue 14768
+isnot_malformed_type_test: Fail # Issue 14768
+library_ambiguous_test/04: Fail # Issue 14768
+malformed2_test/00: Fail # Issue 14768
+on_catch_malformed_type_test: Fail # Issue 14768
+
 # Mixins fail on the VM.
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
@@ -274,12 +282,20 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
+malformed2_test/01: Fail, OK
 
 [ $compiler == dart2dart && $checked ]
 # Dart VM problems
 malbounded_type_cast_test: Fail # Issue 14123
 malbounded_type_test_test/01: Fail # Issue 14131
 malbounded_instantiation_test/01: Fail # Issue 14132
+
+type_parameter_test/01: Fail # Issue 14768
+type_parameter_test/02: Fail # Issue 14768
+type_parameter_test/03: Fail # Issue 14768
+type_parameter_test/04: Fail # Issue 14768
+type_parameter_test/05: Fail # Issue 14768
+type_parameter_test/06: Fail # Issue 14768
 
 [ $compiler == dart2dart && $minified ]
 super_getter_setter_test: Fail # Issue 11065.

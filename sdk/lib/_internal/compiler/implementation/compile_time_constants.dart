@@ -114,20 +114,32 @@ class ConstantHandler extends CompilerTask {
         Node right = assignment.arguments.head;
         value =
             compileNodeWithDefinitions(right, definitions, isConst: isConst);
-        if (compiler.enableTypeAssertions
-            && value != null
-            && element.isField()) {
+        if (compiler.enableTypeAssertions &&
+            value != null &&
+            element.isField()) {
           DartType elementType = element.computeType(compiler);
-          DartType constantType = value.computeType(compiler);
-          if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+          if (elementType.kind == TypeKind.MALFORMED_TYPE && !value.isNull()) {
             if (isConst) {
+              ErroneousElement element = elementType.element;
               compiler.reportFatalError(
-                  node, MessageKind.NOT_ASSIGNABLE.error,
-                  {'fromType': constantType, 'toType': elementType});
+                  node, element.messageKind, element.messageArguments);
             } else {
-              // If the field cannot be lazily initialized, we will throw
-              // the exception at runtime.
+              // We need to throw an exception at runtime.
               value = null;
+            }
+          } else {
+            DartType constantType = value.computeType(compiler);
+            if (!constantSystem.isSubtype(compiler,
+                                          constantType, elementType)) {
+              if (isConst) {
+                compiler.reportFatalError(
+                    node, MessageKind.NOT_ASSIGNABLE.error,
+                    {'fromType': constantType, 'toType': elementType});
+              } else {
+                // If the field cannot be lazily initialized, we will throw
+                // the exception at runtime.
+                value = null;
+              }
             }
           }
         }

@@ -304,6 +304,7 @@ list_test: StaticWarning
 malbounded_type_cast_test: StaticWarning
 malbounded_type_literal_test: StaticWarning
 malformed_type_test: StaticWarning
+malformed2_test/01: MissingCompileTimeError
 map_literal11_test: StaticWarning
 map_literal2_negative_test: CompileTimeError
 map_literal3_test: StaticWarning

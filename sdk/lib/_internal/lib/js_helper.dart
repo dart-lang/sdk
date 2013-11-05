@@ -1939,6 +1939,11 @@ voidTypeCheck(value) {
   throw new TypeErrorImplementation(value, 'void');
 }
 
+checkMalformedType(value, message) {
+  if (value == null) return value;
+  throw new TypeErrorImplementation.fromMessage(message);
+}
+
 /**
  * Special interface recognized by the compiler and implemented by DOM
  * objects that support integer indexing. This interface is not

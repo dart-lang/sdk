@@ -100,6 +100,6 @@ main() {
     }
      Expect.throws(() => divBy0(4),
                   (e) => e is IntegerDivisionByZeroException
-                         || e is RuntimeError);
+                         || e is UnsupportedError);
   }
 }

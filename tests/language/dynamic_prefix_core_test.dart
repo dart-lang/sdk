@@ -9,9 +9,9 @@ import "dart:core" as mycore;
 
 void main() {
   // Should still be available because it is not a member of dart:core.
-  Expect.isTrue(dynamic is Type);
-  
-  Expect.throws(() => mycore.dynamic is Type,
-                (e) => e is NoSuchMethodError,
+  Expect.isTrue(dynamic is mycore.Type);
+
+  Expect.throws(() => mycore.dynamic is mycore.Type,
+                (e) => e is mycore.NoSuchMethodError,
                 'dynamic is not a member of dart:core');
 }

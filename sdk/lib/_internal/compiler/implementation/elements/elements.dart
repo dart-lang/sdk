@@ -599,6 +599,7 @@ class Elements {
 abstract class ErroneousElement extends Element implements FunctionElement {
   MessageKind get messageKind;
   Map get messageArguments;
+  String get message;
 }
 
 /// An [Element] whose usage should cause a warning.

@@ -17,7 +17,7 @@ main() {
   print(bar());  /// 01: runtime error
   print(baz());  /// 02: runtime error
   print(bay());  /// 03: runtime error
-  print(main is bax);  /// 04: static type warning
+  print(main is bax);  /// 04: runtime error
   var x = new X();  /// 05: continued
   print("No error expected if ambiguous definitions are not used.");
 }

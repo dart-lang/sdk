@@ -594,6 +594,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
+        // Malformed types are treated as dynamic statically, but should
+        // throw a type error at runtime.
+        return node;
+      }
       if (!type.treatAsRaw || type.kind == TypeKind.TYPE_VARIABLE) {
         return node;
       }
