@@ -1617,9 +1617,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerStaticUse(superMethod);
     ClassElement superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
-      String fieldName = node.caller.isShadowedByField(superMethod)
-          ? backend.namer.shadowedFieldName(superMethod)
-          : backend.namer.instanceFieldName(superMethod);
+      String fieldName = superMethod.hasFixedBackendName()
+          ? superMethod.fixedBackendName()
+          : node.caller.isShadowedByField(superMethod)
+              ? backend.namer.shadowedFieldName(superMethod)
+              : backend.namer.instanceFieldName(superMethod);
       use(node.inputs[0]);
       js.PropertyAccess access =
           new js.PropertyAccess.field(pop(), fieldName);
