@@ -136,7 +136,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
 }
 
 
-bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
+SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(fd >= 0);
   RawAddr raw;
   socklen_t size = sizeof(raw);
@@ -148,23 +148,10 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
     char error_message[kBufferSize];
     strerror_r(errno, error_message, kBufferSize);
     Log::PrintErr("Error getpeername: %s\n", error_message);
-    return false;
-  }
-  if (TEMP_FAILURE_RETRY(getnameinfo(&raw.addr,
-                                     size,
-                                     host,
-                                     INET6_ADDRSTRLEN,
-                                     NULL,
-                                     0,
-                                     NI_NUMERICHOST)) != 0) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
-    Log::PrintErr("Error getnameinfo: %s\n", error_message);
-    return false;
+    return NULL;
   }
   *port = SocketAddress::GetAddrPort(&raw);
-  return true;
+  return new SocketAddress(&raw.addr);
 }
 
 

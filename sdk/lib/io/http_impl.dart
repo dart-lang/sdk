@@ -2201,7 +2201,7 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
     if (socket == null) return null;
     try {
       _HttpConnectionInfo info = new _HttpConnectionInfo();
-      info.remoteHost = socket.remoteHost;
+      info.remoteAddress = socket.remoteAddress;
       info.remotePort = socket.remotePort;
       info.localPort = socket.port;
       return info;
@@ -2209,7 +2209,7 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
     return null;
   }
 
-  String remoteHost;
+  InternetAddress remoteAddress;
   int remotePort;
   int localPort;
 }
@@ -2268,7 +2268,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   InternetAddress get address => _socket.address;
 
-  String get remoteHost => _socket.remoteHost;
+  InternetAddress get remoteAddress => _socket.remoteAddress;
 
   int get remotePort => _socket.remotePort;
 

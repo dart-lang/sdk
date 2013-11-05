@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Check that malformed types in on-catch are handled correctly, that is,
-// are treated as dynamic and thus catches all in bith production and checked
-// mode.
+// throws a type error in both production and checked mode.
+
+import 'package:expect/expect.dart';
 
 catchUnresolvedBefore() {
   try {
@@ -18,15 +19,17 @@ catchUnresolvedBefore() {
 }
 
 catchUnresolvedAfter() {
-  try {
-    throw "foo";
-    Expect.fail("This code shouldn't be executed");
-  } on Unavailable catch(ex) {
-    // This is tested before the catch block below.
-    // In both production and checked mode the test is always true.
-  } on String catch(oks) {
-    Expect.fail("This code shouldn't be executed");
-  }
+  Expect.throws(() {
+    try {
+      throw "foo";
+      Expect.fail("This code shouldn't be executed");
+    } on Unavailable catch(ex) {
+      // This is tested before the catch block below.
+      // In both production and checked mode the test causes a type error.
+    } on String catch(oks) {
+      Expect.fail("This code shouldn't be executed");
+    }
+  }, (e) => e is TypeError);
 }
 
 main() {

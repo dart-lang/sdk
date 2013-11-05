@@ -381,9 +381,9 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   InternetAddress get address;
 
   /**
-   * Returns the remote host connected to by this socket.
+   * Returns the remote [InternetAddress] connected to by this socket.
    */
-  String get remoteHost;
+  InternetAddress get remoteAddress;
 
   /**
    * Closes the socket. Returns a Future that completes with [this] when the
@@ -427,9 +427,9 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
 }
 
 /**
- * A high-level class for communicating over a TCP socket. 
+ * A high-level class for communicating over a TCP socket.
  *
- * The [Socket] exposes both a [Stream] and a [IOSink] interface, making it 
+ * The [Socket] exposes both a [Stream] and a [IOSink] interface, making it
  * ideal for using together with other [Stream]s.
  */
 abstract class Socket implements Stream<List<int>>, IOSink {
@@ -478,9 +478,9 @@ abstract class Socket implements Stream<List<int>>, IOSink {
   InternetAddress get address;
 
   /**
-   * Returns the remote host connected to by this socket.
+   * Returns the remote [InternetAddress] connected to by this socket.
    */
-  String get remoteHost;
+  InternetAddress get remoteAddress;
 }
 
 

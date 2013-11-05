@@ -603,7 +603,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   int get port => _socket.port;
 
-  String get remoteHost => _socket.remoteHost;
+  InternetAddress get remoteAddress => _socket.remoteAddress;
 
   int get remotePort => _socket.remotePort;
 

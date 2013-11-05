@@ -2912,13 +2912,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if ("as" == op.source) {
       visit(node.receiver);
       HInstruction expression = pop();
-      Node argument = node.arguments.head;
-      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
-      DartType type = elements.getType(typeAnnotation);
-      HInstruction converted = buildTypeConversion(
-          expression, type, HTypeConversion.CAST_TYPE_CHECK);
-      if (converted != expression) add(converted);
-      stack.add(converted);
+      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+      if (type.kind == TypeKind.MALFORMED_TYPE) {
+        ErroneousElement element = type.element;
+        generateTypeError(node, element.message);
+      } else {
+        HInstruction converted = buildTypeConversion(
+            expression, type, HTypeConversion.CAST_TYPE_CHECK);
+        if (converted != expression) add(converted);
+        stack.add(converted);
+      }
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);
@@ -3021,6 +3024,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  representations,
                                                  asFieldName];
       pushInvokeStatic(node, helper, inputs, backend.boolType);
+      HInstruction call = pop();
+      return new HIs.compound(type, expression, call, backend.boolType);
+    } else if (type.kind == TypeKind.MALFORMED_TYPE) {
+      ErroneousElement element = type.element;
+      generateTypeError(node, element.message);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
     } else {
@@ -4171,7 +4179,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
-    if (backend.isInterceptedSelector(selector)) {
+    if (backend.isInterceptedSelector(selector) &&
+        // Fields don't need an interceptor; consider generating HFieldGet/Set
+        // instead.
+        element.kind != ElementKind.FIELD) {
       inputs.add(invokeInterceptor(receiver));
     }
     inputs.add(receiver);

@@ -345,9 +345,9 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   computeTargetType(Compiler compiler, InterfaceType newType) => unsupported();
 
-  String toString() {
-    return '<$name: ${messageKind.message(messageArguments)}>';
-  }
+  String get message => '${messageKind.message(messageArguments)}';
+
+  String toString() => '<$name: $message>';
 }
 
 /// A message attached to a [WarnOnUseElementX].

@@ -206,7 +206,6 @@ core_type_check_test: StaticWarning
 crash_6725_test: StaticWarning
 default_factory_library_test: StaticWarning
 default_factory_test: StaticWarning
-div_with_power_of_two2_test: StaticWarning
 double_to_string_as_exponential2_test: StaticWarning
 double_to_string_as_fixed2_test: StaticWarning
 double_to_string_as_precision2_test: StaticWarning
@@ -301,6 +300,7 @@ list_test: StaticWarning
 malbounded_type_cast_test: StaticWarning
 malbounded_type_literal_test: StaticWarning
 malformed_type_test: StaticWarning
+malformed2_test/01: MissingCompileTimeError
 map_literal11_test: StaticWarning
 map_literal2_negative_test: CompileTimeError
 map_literal3_test: StaticWarning

@@ -1537,7 +1537,7 @@ abstract class HttpClientDigestCredentials extends HttpClientCredentials {
  * [HttpClientResponse] connection.
  */
 abstract class HttpConnectionInfo {
-  String get remoteHost;
+  InternetAddress get remoteAddress;
   int get remotePort;
   int get localPort;
 }

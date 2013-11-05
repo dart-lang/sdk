@@ -6,7 +6,8 @@
 import "package:expect/expect.dart";
 
 // In the type test 'e is T', if T does not denote a type available in the
-// current lexical scope, then T is mapped to dynamic and the test succeeds.
+// current lexical scope, then T is mapped to dynamic. Direct tests against
+// T cause a dynamic type error though.
 
 isCheckedMode() {
   try {
@@ -27,8 +28,8 @@ testAll() {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // No type error.
-    Expect.isFalse(got_type_error);
+    // Type error.
+    Expect.isTrue(got_type_error);
   }
   {
     bool got_type_error = false;
@@ -38,8 +39,8 @@ testAll() {
     } on TypeError catch (error) {
       got_type_error = true;
     }
-    // No type error.
-    Expect.isFalse(got_type_error);
+    // Type error.
+    Expect.isTrue(got_type_error);
   }
   {
     bool got_type_error = false;

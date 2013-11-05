@@ -35,6 +35,17 @@ class CheckedModeHelper {
   }
 }
 
+class MalformedCheckedModeHelper extends CheckedModeHelper {
+  const MalformedCheckedModeHelper(String name) : super(name);
+
+  void generateAdditionalArguments(SsaCodeGenerator codegen,
+                                   HTypeConversion node,
+                                   List<jsAst.Expression> arguments) {
+    ErroneousElement element = node.typeExpression.element;
+    arguments.add(js.string(element.message));
+  }
+}
+
 class PropertyCheckedModeHelper extends CheckedModeHelper {
   const PropertyCheckedModeHelper(String name) : super(name);
 
@@ -338,6 +349,7 @@ class JavaScriptBackend extends Backend {
 
   /// All the checked mode helpers.
   static const checkedModeHelpers = const [
+      const MalformedCheckedModeHelper('checkMalformedType'),
       const CheckedModeHelper('voidTypeCheck'),
       const CheckedModeHelper('stringTypeCast'),
       const CheckedModeHelper('stringTypeCheck'),
@@ -988,6 +1000,9 @@ class JavaScriptBackend extends Backend {
       }
     }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
+    if (type.kind == TypeKind.MALFORMED_TYPE) {
+      enqueueInResolution(getThrowTypeError(), elements);
+    }
     if (!type.treatAsRaw || type.containsTypeVariables) {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
@@ -1323,6 +1338,11 @@ class JavaScriptBackend extends Backend {
                                           {bool typeCast,
                                            bool nativeCheckOnly}) {
     assert(type.kind != TypeKind.TYPEDEF);
+    if (type.kind == TypeKind.MALFORMED_TYPE) {
+      // The same error is thrown for type test and type cast of a malformed
+      // type so we only need one check method.
+      return 'checkMalformedType';
+    }
     Element element = type.element;
     bool nativeCheck = nativeCheckOnly ||
         emitter.nativeEmitter.requiresNativeIsCheck(element);

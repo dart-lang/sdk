@@ -5,10 +5,10 @@
 import 'package:expect/expect.dart';
 
 f(obj) {
-  // 'Baz' is not loaded, mapped to dynamic.
+  // 'Baz' is not loaded, throws a type error on test.
   return (obj is !Baz);
 }
 
 main () {
-  Expect.isFalse(f(null));
+  Expect.throws(() => f(null), (e) => e is TypeError);
 }
