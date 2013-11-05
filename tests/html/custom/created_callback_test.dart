@@ -215,7 +215,7 @@ class AccessWhileUpgradingElement extends HtmlElement {
     var child = upgradingContext.firstChild;
 
     expect(child.foo, 666);
-    expect(upgradingContextChild is HtmlElement, isTrue);
+    expect(upgradingContextChild is HtmlElement, isFalse);
     expect(upgradingContextChild is AccessWhileUpgradingElement, isFalse,
         reason: 'Elements accessed while upgrading should not be upgraded.');
   }
