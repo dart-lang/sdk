@@ -78,6 +78,12 @@ void Platform::PrintBlocking(FILE* file, const char* format, ...) {
   FDUtils::SetNonBlocking(fd);
 }
 
+
+void Platform::Cleanup() {
+  FDUtils::SetBlocking(fileno(stdout));
+  FDUtils::SetBlocking(fileno(stderr));
+}
+
 }  // namespace bin
 }  // namespace dart
 

@@ -1011,6 +1011,8 @@ int main(int argc, char** argv) {
     free(environment);
   }
 
+  Platform::Cleanup();
+
   return Process::GlobalExitCode();
 }
 
