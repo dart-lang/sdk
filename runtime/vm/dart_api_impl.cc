@@ -38,6 +38,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
+DEFINE_FLAG(bool, check_function_fingerprints, false,
+            "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
 
@@ -819,6 +821,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
         Error::Handle(isolate,
                       Dart::InitializeIsolate(snapshot, callback_data));
     if (error_obj.IsNull()) {
+      if (FLAG_check_function_fingerprints) {
+        Library::CheckFunctionFingerprints();
+      }
       START_TIMER(time_total_runtime);
       return reinterpret_cast<Dart_Isolate>(isolate);
     }

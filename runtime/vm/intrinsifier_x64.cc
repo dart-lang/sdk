@@ -712,24 +712,6 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Integer_remainder(Assembler* assembler) {
-  Label fall_through;
-  TestBothArgumentsSmis(assembler, &fall_through);
-  // RAX: right argument (divisor)
-  __ movq(RCX, RAX);
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
-  // RAX: Tagged left (dividend).
-  // RCX: Tagged right (divisor).
-  __ cmpq(RCX, Immediate(0));
-  __ j(EQUAL, &fall_through);
-  EmitRemainderOperation(assembler);
-  // Untagged remainder result in RAX.
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);

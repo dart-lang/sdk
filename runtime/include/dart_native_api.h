@@ -185,10 +185,4 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
  */
 DART_EXPORT Dart_Handle Dart_CompileAll();
 
-/**
- * Check that all function fingerprints are OK.
- *
- */
-DART_EXPORT Dart_Handle Dart_CheckFunctionFingerprints();
-
 #endif  /* INCLUDE_DART_NATIVE_API_H_ */  /* NOLINT */

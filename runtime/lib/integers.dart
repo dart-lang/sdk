@@ -275,8 +275,8 @@ class _Smi extends _IntegerImplementation implements int {
 
     while (val > 0) {
       int digit = val % 10;
-      reversed[index++] = (digit + 0x30);
       val = val ~/ 10;
+      reversed[index++] = (digit + 0x30);
     }
     if (negative) reversed[index++] = 0x2D;  // '-'.
 

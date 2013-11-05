@@ -59,9 +59,6 @@ static const char* package_root = NULL;
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool has_compile_all = false;
-// Global flag that is used to indicate that we want to check function
-// fingerprints.
-static bool has_check_function_fingerprints = false;
 
 // Global flag that is used to indicate that we want to print the source code
 // for script that is being run.
@@ -187,16 +184,6 @@ static bool ProcessCompileAllOption(const char* arg) {
 }
 
 
-static bool ProcessFingerprintedFunctions(const char* arg) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
-  has_check_function_fingerprints = true;
-  return true;
-}
-
-
 static bool ProcessDebugOption(const char* port) {
   // TODO(hausner): Add support for specifying an IP address on which
   // the debugger should listen.
@@ -298,7 +285,6 @@ static struct {
   { "--debug", ProcessDebugOption },
   { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--print-script", ProcessPrintScriptOption },
-  { "--check-function-fingerprints", ProcessFingerprintedFunctions },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { NULL, NULL }
@@ -907,13 +893,6 @@ int main(int argc, char** argv) {
 
     if (has_compile_all) {
       result = Dart_CompileAll();
-      if (Dart_IsError(result)) {
-        return DartErrorExit(result);
-      }
-    }
-
-    if (has_check_function_fingerprints) {
-      result = Dart_CheckFunctionFingerprints();
       if (Dart_IsError(result)) {
         return DartErrorExit(result);
       }

@@ -730,27 +730,6 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Integer_remainder(Assembler* assembler) {
-  Label fall_through;
-  TestBothArgumentsSmis(assembler, &fall_through);
-  // EAX: right argument (divisor)
-  __ movl(EBX, EAX);
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument (dividend).
-  // EAX: Tagged left (dividend).
-  // EBX: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ cmpl(EBX, Immediate(0));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  EmitRemainderOperation(assembler);
-  // Untagged remainder result in EDX.
-  __ movl(EAX, EDX);
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);

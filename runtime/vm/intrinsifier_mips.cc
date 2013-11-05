@@ -736,24 +736,6 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Integer_remainder(Assembler* assembler) {
-  Label fall_through;
-
-  TestBothArgumentsSmis(assembler, &fall_through);
-  // T1: Tagged left (dividend).
-  // T0: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ beq(T0, ZR, &fall_through);
-  EmitRemainderOperation(assembler);
-  // Untagged right in T0. Untagged remainder result in V0.
-
-  __ Ret();
-  __ delay_slot()->SmiTag(V0);
-
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through;
 

@@ -131,6 +131,9 @@ namespace dart {
                                                                                \
   /* Support for Dart scripts. */                                              \
   TOK(kSCRIPTTAG, "#!", 0, kNoAttribute)                                       \
+                                                                               \
+  /* Support for optimized code */                                             \
+  TOK(kREM, "", 0, kNoAttribute)                                               \
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.
