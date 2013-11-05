@@ -16,6 +16,13 @@ abstract class Directory implements FileSystemEntity {
   factory Directory(String path) => new _Directory(path);
 
   /**
+   * Create a Directory object from a URI.
+   *
+   * If [uri] cannot reference a directory this throws [UnsupportedError].
+   */
+  factory Directory.fromUri(Uri uri) => new Directory(uri.toFilePath());
+
+  /**
    * Creates a directory object pointing to the current working
    * directory.
    */
