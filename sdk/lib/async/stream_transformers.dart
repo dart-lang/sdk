@@ -228,24 +228,18 @@ class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
       void handleData(S data, EventSink<T> sink),
       void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
       void handleDone(EventSink<T> sink)})
-      // TODO(14014): Remove static call.
-      : super(_workAroundBug14014(handleData, handleError, handleDone));
+      : super((EventSink<T> outputSink) {
+          if (handleData == null) handleData = _defaultHandleData;
+          if (handleError == null) handleError = _defaultHandleError;
+          if (handleDone == null) handleDone = _defaultHandleDone;
+          return new _HandlerEventSink<S, T>(
+              handleData, handleError, handleDone, outputSink);
+        });
 
   Stream<T> bind(Stream<S> stream) {
     return super.bind(stream);
   }
 
-  static _workAroundBug14014(handleData, handleError, handleDone) {
-    // TODO(14014): Use generic type.
-    return (EventSink/*<T>*/ outputSink) {
-      if (handleData == null) handleData = _defaultHandleData;
-      if (handleError == null) handleError = _defaultHandleError;
-      if (handleDone == null) handleDone = _defaultHandleDone;
-      // TODO(14014): Use generic type.
-      return new _HandlerEventSink/*<S, T>*/(
-          handleData, handleError, handleDone, outputSink);
-    };
-  }
   /** Default data handler forwards all data. */
   static void _defaultHandleData(var data, EventSink sink) {
     sink.add(data);
