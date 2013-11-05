@@ -14,7 +14,8 @@ const ISOLATES = 20;
 
 main() {
   // Test is really slow in debug builds of the VM.
-  unittestConfiguration.timeout = const Duration(seconds: 480);
+  SimpleConfiguration configuration = unittestConfiguration;
+  configuration.timeout = const Duration(seconds: 480);
   test("Render Mandelbrot in parallel", () {
     final state = new MandelbrotState();
     state._validated.future.then(expectAsync1((result) {
