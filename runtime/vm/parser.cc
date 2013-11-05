@@ -6842,6 +6842,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   ExpectToken(Token::kRBRACE);
   SequenceNode* try_block = CloseBlock();
 
+  if ((CurrentToken() != Token::kCATCH) && !IsLiteral("on") &&
+      (CurrentToken() != Token::kFINALLY)) {
+    ErrorMsg("catch or finally clause expected");
+  }
+
   // Now create a label for the end of catch block processing so that we can
   // jump over the catch block code after executing the try block.
   SourceLabel* end_catch_label =
@@ -6850,7 +6855,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // Now parse the 'catch' blocks if any and merge all of them into
   // an if-then sequence of the different types specified using the 'is'
   // operator.
-  bool catch_seen = false;
   bool generic_catch_seen = false;
   const intptr_t handler_pos = TokenPos();
   OpenBlock();  // Start the catch block sequence.
@@ -6862,7 +6866,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     const intptr_t catch_pos = TokenPos();
     CatchParamDesc exception_param;
     CatchParamDesc stack_trace_param;
-    catch_seen = true;
     if (IsLiteral("on")) {
       ConsumeToken();
       exception_param.type = &AbstractType::ZoneHandle(
@@ -6887,15 +6890,13 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       ExpectToken(Token::kRPAREN);
     }
 
-    OpenBlock();
-    AddCatchParamsToScope(exception_param,
-                          stack_trace_param,
-                          current_block_->scope);
-
     // Parse the individual catch handler code and add an unconditional
     // JUMP to the end of the try block.
     ExpectToken(Token::kLBRACE);
     OpenBlock();
+    AddCatchParamsToScope(exception_param,
+                          stack_trace_param,
+                          current_block_->scope);
 
     if (exception_param.var != NULL) {
       // Generate code to load the exception object (:exception_var) into
@@ -6970,10 +6971,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       handler_types.SetLength(0);
       handler_types.Add(*exception_param.type);
     }
-    SequenceNode* catch_clause = CloseBlock();
-
-    // Add this individual catch handler to the catch handlers list.
-    current_block_->statements->Add(catch_clause);
   }
   SequenceNode* catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
@@ -7005,10 +7002,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
     finally_block = ParseFinallyBlock();
-  } else {
-    if (!catch_seen) {
-      ErrorMsg("catch or finally clause expected");
-    }
   }
 
   if (!generic_catch_seen) {
