@@ -285,8 +285,6 @@ LibTest/async/Future/catchError_A03_t05: Pass, RuntimeError # Issue 14712
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: RuntimeError # compiler cancelled: cannot resolve type T
 
-Language/03_Overview/2_Privacy_A01_t06: RuntimeError # cannot resolve type _inaccessibleFuncType
-
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: RuntimeError # Expect.fail('Some exception expected')
