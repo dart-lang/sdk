@@ -11155,8 +11155,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
   String getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
   /**
-   * The smallest bounding rectangle that encompasses this element's padding,
-   * scrollbar, and border.
+   * Returns the smallest bounding rectangle that encompasses this element's
+   * padding, scrollbar, and border.
    *
    * ## Other resources
    *
@@ -11164,14 +11164,16 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
    * from MDN.
    * * [The getBoundingClientRect() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
+   * from W3C.
    */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
   Rectangle getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
   /**
-   * A list of bounding rectangles for each box associated with this element.
+   * Returns a list of bounding rectangles for each box associated with this
+   * element.
    *
    * ## Other resources
    *
@@ -11179,17 +11181,39 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
    * from MDN.
    * * [The getClientRects() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods) from W3C.
+   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
+   * from W3C.
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
   List<Rectangle> getClientRects() native "Element_getClientRects_Callback";
 
+  /**
+   * Returns a list of shadow DOM insertion points to which this element is
+   * distributed.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM specification]
+   * (https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
+   * from W3C.
+   */
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
   List<Node> getDestinationInsertionPoints() native "Element_getDestinationInsertionPoints_Callback";
 
+  /**
+   * Returns a list of nodes with the given class name inside this element.
+   *
+   * ## Other resources
+   *
+   * * [getElementsByClassName]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
+   * from MDN.
+   * * [DOM specification]
+   * (http://www.w3.org/TR/domcore/) from W3C.
+   */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
   List<Node> getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
