@@ -108,7 +108,7 @@ compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
 [ $compiler == dart2js ]
-map_values2_test: RuntimeError # Issue 8210
+map_values2_test: RuntimeError, OK # Uses IterableBase.map, which loses the second type argument.
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
