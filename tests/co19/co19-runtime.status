@@ -4,7 +4,7 @@
 
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium) && $unchecked]
-Language/12_Expressions/01_Constants_A16_t04: fail # Issue 392, passes in checked mode b/c of type check
+
 
 [ $compiler == none && ($runtime == vm || $runtime == dartium) ]
 
