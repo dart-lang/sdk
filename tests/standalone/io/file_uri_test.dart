@@ -9,6 +9,7 @@ import "package:expect/expect.dart";
 
 void testFromUri() {
   asyncStart();
+  Directory originalWorkingDirectory = Directory.current;
   Directory.systemTemp.createTemp('file_uri').then((temp) {
     String filename = temp.path + '/from_uri';
     Uri fileUri = new Uri.file(filename);
@@ -21,6 +22,7 @@ void testFromUri() {
     Directory.current = temp.path;
     Expect.isTrue(new File.fromUri(Uri.parse('from_uri')).existsSync());
     Expect.isTrue(new File.fromUri(Uri.base.resolve('from_uri')).existsSync());
+    Directory.current = originalWorkingDirectory;
     file.deleteSync();
     temp.deleteSync(recursive: true);
     asyncEnd();
