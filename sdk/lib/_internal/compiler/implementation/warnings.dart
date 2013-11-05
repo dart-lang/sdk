@@ -1481,6 +1481,11 @@ Please include the following information:
   // Patch errors end.
   //////////////////////////////////////////////////////////////////////////////
 
+  static const MessageKind CALL_NOT_SUPPORTED_ON_NATIVE_CLASS =
+      const MessageKind(
+          "Error: Non-supported 'call' member on a native class, or a "
+          "subclass of a native class.");
+
   toString() => template;
 
   Message message([Map arguments = const {}, bool terse = false]) {

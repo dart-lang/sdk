@@ -652,6 +652,12 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
+        if (member.name == Compiler.CALL_OPERATOR_NAME) {
+          compiler.reportError(
+              member,
+              MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
+          return;
+        }
         if (member.isSynthesized) return;
         // All methods on [Object] are shadowed by [Interceptor].
         if (classElement == compiler.objectClass) return;

@@ -10,6 +10,7 @@ native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631
 subclassing_super_field_1_test: Fail  # Issue 14096
 subclassing_super_field_2_test: Fail  # Issue 14096
+call_on_native_class_test: CompileTimeError # Issue 14813
 
 [ $compiler == dart2js && $unminified ]
 fake_thing_test: Fail # Issue 13010
