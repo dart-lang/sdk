@@ -11,8 +11,8 @@ void testHttpConnectionInfo() {
 
     server.listen((request) {
       var response = request.response;
-      Expect.isTrue(request.connectionInfo.remoteHost is String);
-      Expect.isTrue(response.connectionInfo.remoteHost is String);
+      Expect.isTrue(request.connectionInfo.remoteAddress is InternetAddress);
+      Expect.isTrue(response.connectionInfo.remoteAddress is InternetAddress);
       Expect.equals(request.connectionInfo.localPort, server.port);
       Expect.equals(response.connectionInfo.localPort, server.port);
       Expect.isNotNull(clientPort);
@@ -26,7 +26,8 @@ void testHttpConnectionInfo() {
     HttpClient client = new HttpClient();
     client.get("127.0.0.1", server.port, "/")
         .then((request) {
-          Expect.isTrue(request.connectionInfo.remoteHost is String);
+          Expect.isTrue(
+              request.connectionInfo.remoteAddress is InternetAddress);
           Expect.equals(request.connectionInfo.remotePort, server.port);
           clientPort = request.connectionInfo.localPort;
           return request.close();

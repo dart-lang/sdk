@@ -235,13 +235,24 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   if (Dart_IsError(err)) Dart_PropagateError(err);
   OSError os_error;
   intptr_t port = 0;
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  char host[INET6_ADDRSTRLEN];
-  if (Socket::GetRemotePeer(socket, host, &port)) {
+  SocketAddress* addr = Socket::GetRemotePeer(socket, &port);
+  if (addr != NULL) {
     Dart_Handle list = Dart_NewList(2);
-    Dart_ListSetAt(list, 0, Dart_NewStringFromCString(host));
+
+    Dart_Handle entry = Dart_NewList(3);
+    Dart_ListSetAt(entry, 0, Dart_NewInteger(addr->GetType()));
+    Dart_ListSetAt(entry, 1, Dart_NewStringFromCString(addr->as_string()));
+
+    RawAddr raw = addr->addr();
+    intptr_t data_length = SocketAddress::GetAddrLength(&raw);
+    Dart_Handle data = Dart_NewTypedData(Dart_TypedData_kUint8, data_length);
+    Dart_ListSetAsBytes(data, 0, reinterpret_cast<uint8_t*>(&raw), data_length);
+    Dart_ListSetAt(entry, 2, data);
+
+    Dart_ListSetAt(list, 0, entry);
     Dart_ListSetAt(list, 1, Dart_NewInteger(port));
     Dart_SetReturnValue(args, list);
+    delete addr;
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }

@@ -85,7 +85,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
 }
 
 
-bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
+SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw;
@@ -94,23 +94,10 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
                   &raw.addr,
                   &size)) {
     Log::PrintErr("Error getpeername: %d\n", WSAGetLastError());
-    return false;
+    return NULL;
   }
   *port = SocketAddress::GetAddrPort(&raw);
-  // Clear the port before calling WSAAddressToString as WSAAddressToString
-  // includes the port in the formatted string.
-  SocketAddress::SetAddrPort(&raw, 0);
-  DWORD len = INET6_ADDRSTRLEN;
-  int err = WSAAddressToStringA(&raw.addr,
-                                sizeof(raw),
-                                NULL,
-                                host,
-                                &len);
-  if (err != 0) {
-    Log::PrintErr("Error WSAAddressToString: %d\n", WSAGetLastError());
-    return false;
-  }
-  return true;
+  return new SocketAddress(&raw.addr);
 }
 
 

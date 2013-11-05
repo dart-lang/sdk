@@ -440,8 +440,10 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     return nativeGetRemotePeer()[1];
   }
 
-  String get remoteHost {
-    return nativeGetRemotePeer()[0];
+  InternetAddress get remoteAddress {
+    var result = nativeGetRemotePeer()[0];
+    var type = new InternetAddressType._from(result[0]);
+    return new _InternetAddress(type, result[1], "", result[2]);
   }
 
   // Multiplexes socket events to the socket handlers.
@@ -841,7 +843,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   InternetAddress get address => _socket.address;
 
-  String get remoteHost => _socket.remoteHost;
+  InternetAddress get remoteAddress => _socket.remoteAddress;
 
   bool get readEventsEnabled => _readEventsEnabled;
   void set readEventsEnabled(bool value) {
@@ -1112,7 +1114,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   int get port => _raw.port;
-  String get remoteHost => _raw.remoteHost;
+  InternetAddress get remoteAddress => _raw.remoteAddress;
   int get remotePort => _raw.remotePort;
 
   Future _detachRaw() {

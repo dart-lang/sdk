@@ -163,7 +163,7 @@ class Socket {
   static intptr_t CreateConnect(RawAddr addr,
                                 const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
-  static bool GetRemotePeer(intptr_t fd, char* host, intptr_t* port);
+  static SocketAddress* GetRemotePeer(intptr_t fd, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
   static int GetType(intptr_t fd);
   static intptr_t GetStdioHandle(intptr_t num);
