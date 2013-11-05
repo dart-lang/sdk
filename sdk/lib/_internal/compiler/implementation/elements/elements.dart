@@ -931,7 +931,8 @@ abstract class ClassElement extends TypeDeclarationElement
 
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
-  void set mixin(ClassElement value);
+  InterfaceType get mixinType;
+  void set mixinType(InterfaceType value);
   void addConstructor(FunctionElement constructor);
 }
 

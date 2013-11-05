@@ -172,6 +172,83 @@ class HierarchyIterator implements Iterator<ClassMirror> {
   }
 }
 
+bool isMixinApplication(ClassMirror mirror) {
+  return mirror != null && mirror.mixin != mirror;
+}
+
+/**
+ * Returns the superclass of [cls] skipping unnamed mixin applications.
+ *
+ * For instance, for all of the following definitions this method returns [:B:].
+ *
+ *     class A extends B {}
+ *     class A extends B with C1, C2 {}
+ *     class A extends B implements D1, D2 {}
+ *     class A extends B with C1, C2 implements D1, D2 {}
+ *     class A = B with C1, C2;
+ *     abstract class A = B with C1, C2 implements D1, D2;
+ */
+ClassMirror getSuperclass(ClassMirror cls) {
+  ClassMirror superclass = cls.superclass;
+  while (isMixinApplication(superclass) && superclass.isNameSynthetic) {
+    superclass = superclass.superclass;
+  }
+  return superclass;
+}
+
+/**
+ * Returns the mixins directly applied to [cls].
+ *
+ * For instance, for all of the following definitions this method returns
+ * [:C1, C2:].
+ *
+ *     class A extends B with C1, C2 {}
+ *     class A extends B with C1, C2 implements D1, D2 {}
+ *     class A = B with C1, C2;
+ *     abstract class A = B with C1, C2 implements D1, D2;
+ */
+Iterable<ClassMirror> getAppliedMixins(ClassMirror cls) {
+  List<ClassMirror> mixins = <ClassMirror>[];
+  ClassMirror superclass = cls.superclass;
+  while (isMixinApplication(superclass) && superclass.isNameSynthetic) {
+    mixins.add(superclass.mixin);
+    superclass = superclass.superclass;
+  }
+  if (mixins.length > 1) {
+    mixins = new List<ClassMirror>.from(mixins.reversed);
+  }
+  if (isMixinApplication(cls)) {
+    mixins.add(cls.mixin);
+  }
+  return mixins;
+}
+
+/**
+ * Returns the superinterfaces directly and explicitly implemented by [cls].
+ *
+ * For instance, for all of the following definitions this method returns
+ * [:D1, D2:].
+ *
+ *     class A extends B implements D1, D2 {}
+ *     class A extends B with C1, C2 implements D1, D2 {}
+ *     abstract class A = B with C1, C2 implements D1, D2;
+ */
+Iterable<ClassMirror> getExplicitInterfaces(ClassMirror cls) {
+  if (isMixinApplication(cls)) {
+    bool first = true;
+    ClassMirror mixin = cls.mixin;
+    bool filter(ClassMirror superinterface) {
+      if (first && superinterface == mixin) {
+        first = false;
+        return false;
+      }
+      return true;
+    }
+    return cls.superinterfaces.where(filter);
+  }
+  return cls.superinterfaces;
+}
+
 final RegExp _singleLineCommentStart = new RegExp(r'^///? ?(.*)');
 final RegExp _multiLineCommentStartEnd =
     new RegExp(r'^/\*\*? ?([\s\S]*)\*/$', multiLine: true);
@@ -220,12 +297,12 @@ String stripComment(String comment) {
  * Looks up [name] in the scope [declaration].
  *
  * If [name] is of the form 'a.b.c', 'a' is looked up in the scope of
- * [declaration] and if unresolved 'a.b' is looked in the scope of 
+ * [declaration] and if unresolved 'a.b' is looked in the scope of
  * [declaration]. Each identifier of the remaining suffix, 'c' or 'b.c', is
  * then looked up in the local scope of the previous result.
- * 
+ *
  * For instance, assumming that [:Iterable:] is imported into the scope of
- * [declaration] via the prefix 'col', 'col.Iterable.E' finds the type 
+ * [declaration] via the prefix 'col', 'col.Iterable.E' finds the type
  * variable of [:Iterable:] and 'col.Iterable.contains.element' finds the
  * [:element:] parameter of the [:contains:] method on [:Iterable:].
  */
@@ -233,7 +310,7 @@ DeclarationMirror lookupQualifiedInScope(DeclarationMirror declaration,
                                          String name) {
   // TODO(11653): Support lookup of constructors using the [:new Foo:]
   // syntax.
-  int offset = 1; 
+  int offset = 1;
   List<String> parts = name.split('.');
   DeclarationMirror result = declaration.lookupInScope(parts[0]);
   if (result == null && parts.length > 1) {

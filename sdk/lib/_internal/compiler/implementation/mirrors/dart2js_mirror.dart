@@ -293,6 +293,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String get simpleName => _element.name;
 
+  bool get isNameSynthetic => false;
+
   /**
    * Computes the first token for this declaration using the begin token of the
    * element node or element position as indicator.
@@ -537,13 +539,7 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
    */
   String get simpleName {
     if (_library.libraryTag != null) {
-      // TODO(ahe): Remove StringNode check when old syntax is removed.
-      StringNode name = _library.libraryTag.name.asStringNode();
-      if (name != null) {
-        return name.dartString.slowToString();
-      } else {
-        return _library.libraryTag.name.toString();
-      }
+      return _library.libraryTag.name.toString();
     } else {
       // Use the file name as script name.
       String path = _library.canonicalUri.path;
@@ -847,6 +843,23 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
     return null;
   }
 
+  ClassMirror get mixin {
+    if (_class.isMixinApplication) {
+      MixinApplicationElement mixinApplication = _class;
+      return new Dart2JsInterfaceTypeMirror(mirrors,
+                                            mixinApplication.mixinType);
+    }
+    return this;
+  }
+
+  bool get isNameSynthetic {
+    if (_class.isMixinApplication) {
+      MixinApplicationElement mixinApplication = _class;
+      return mixinApplication.isUnnamedMixinApplication;
+    }
+    return false;
+  }
+
   List<ClassMirror> get superinterfaces {
     var list = <ClassMirror>[];
     Link<DartType> link = _class.interfaces;
@@ -957,6 +970,10 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   ClassMirror get superclass => null;
 
   List<ClassMirror> get superinterfaces => const <ClassMirror>[];
+
+  // TODO(johnniwinther): Refactor [TypedefMirror] to not extend [ClassMirror]
+  // and remove this.
+  ClassMirror get mixin => this;
 
   bool get isClass => false;
 
@@ -1077,6 +1094,8 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
 
   InterfaceType get _interfaceType => _type;
 
+  bool get isNameSynthetic => originalDeclaration.isNameSynthetic;
+
   String get qualifiedName => originalDeclaration.qualifiedName;
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
@@ -1095,6 +1114,14 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   List<ClassMirror> get superinterfaces => originalDeclaration.superinterfaces;
+
+  // TODO(johnniwinther): Substitute type arguments for type variables.
+  ClassMirror get mixin {
+    if (originalDeclaration.mixin == originalDeclaration) {
+      return this;
+    }
+    return originalDeclaration.mixin;
+  }
 
   bool get isClass => originalDeclaration.isClass;
 
@@ -1170,7 +1197,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   List<ParameterMirror> _parameters;
 
   Dart2JsFunctionTypeMirror(Dart2JsMirrorSystem system,
-                             FunctionType functionType, this._functionSignature)
+                            FunctionType functionType, this._functionSignature)
       : super(system, functionType) {
     assert (_functionSignature != null);
   }
@@ -1208,6 +1235,8 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   List<ClassMirror> get superinterfaces => originalDeclaration.superinterfaces;
+
+  ClassMirror get mixin => this;
 
   bool get isClass => originalDeclaration.isClass;
 

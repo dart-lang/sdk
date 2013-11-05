@@ -3949,10 +3949,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       return;
     }
 
-    assert(mixinApplication.mixin == null);
-    Element mixin = resolveMixinFor(mixinApplication, mixinType);
-
-    mixinApplication.mixin = mixin;
+    assert(mixinApplication.mixinType == null);
+    mixinApplication.mixinType = resolveMixinFor(mixinApplication, mixinType);
 
     // Create forwarding constructors for constructor defined in the superclass
     // because they are now hidden by the mixin application.
@@ -3966,8 +3964,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     calculateAllSupertypes(mixinApplication);
   }
 
-  ClassElement resolveMixinFor(MixinApplicationElement mixinApplication,
-                               DartType mixinType) {
+  InterfaceType resolveMixinFor(MixinApplicationElement mixinApplication,
+                                DartType mixinType) {
     ClassElement mixin = mixinType.element;
     mixin.ensureResolved(compiler);
 
@@ -3989,7 +3987,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       current = currentMixinApplication.mixin;
     }
     compiler.world.registerMixinUse(mixinApplication, mixin);
-    return mixin;
+    return mixinType;
   }
 
   DartType resolveType(TypeAnnotation node) {
