@@ -4,6 +4,7 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/code_generator.h"
 #include "vm/flags.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"

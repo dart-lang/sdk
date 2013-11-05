@@ -8,28 +8,41 @@
 #include "include/dart_api.h"
 
 #include "lib/invocation_mirror.h"
-#include "vm/ast.h"
+#include "platform/assert.h"
+#include "platform/globals.h"
+#include "vm/allocation.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
-#include "vm/scanner.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
+#include "vm/token.h"
 
 namespace dart {
 
 // Forward declarations.
+class ArgumentListNode;
 class ArgumentsDescriptor;
-class Function;
-class Isolate;
-class LiteralToken;
-class Script;
-class TokenStream;
-
-struct TopLevel;
+class AstNode;
+class CaseNode;
 class ClassDesc;
+class ConstructorCallNode;
+template <typename T> class GrowableArray;
+class InlinedFinallyNode;
+class Isolate;
+class LetNode;
+class LiteralNode;
+class LocalScope;
+class LocalVariable;
+class PrimaryNode;
+class SequenceNode;
+class SourceLabel;
+class StaticCallNode;
+
+struct CatchParameter;
 struct MemberDesc;
 struct ParamList;
 struct QualIdent;
-struct CatchParamDesc;
-struct FieldInitExpression;
+struct TopLevel;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -505,9 +518,9 @@ class Parser : public ValueObject {
   AstNode* ParseSwitchStatement(String* label_name);
 
   // try/catch/finally parsing.
-  void AddCatchParamsToScope(const CatchParamDesc& exception_param,
-                             const CatchParamDesc& stack_trace_param,
-                             LocalScope* scope);
+  void AddCatchParametersToScope(CatchParameter* exception_param,
+                                 CatchParameter* stack_trace_param,
+                                 LocalScope* scope);
   // Parse finally block and create an AST for it.
   SequenceNode* ParseFinallyBlock();
   // Adds try block to the list of try blocks seen so far.
@@ -629,6 +642,8 @@ class Parser : public ValueObject {
                               AstNode* rhs);
   LetNode* PrepareCompoundAssignmentNodes(AstNode** expr);
   LocalVariable* CreateTempConstVariable(intptr_t token_pos, const char* s);
+
+  LocalVariable* EnsureLocalVariable(const String& name);
 
   static SequenceNode* NodeAsSequenceNode(intptr_t sequence_pos,
                                           AstNode* node,

@@ -5,7 +5,8 @@
 #include "vm/parser.h"
 
 #include "lib/invocation_mirror.h"
-#include "vm/bigint_operations.h"
+#include "platform/utils.h"
+#include "vm/ast.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -14,14 +15,22 @@
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/handles.h"
+#include "vm/heap.h"
+#include "vm/isolate.h"
 #include "vm/longjump.h"
+#include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/os.h"
 #include "vm/resolver.h"
+#include "vm/scanner.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
+#include "vm/timer.h"
 #include "vm/symbols.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -1040,6 +1049,17 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
 }
 
 
+LocalVariable* Parser::EnsureLocalVariable(const String& name) {
+  LocalVariable* variable = current_block_->scope->LocalLookupVariable(name);
+  if (variable == NULL) {
+    variable = new LocalVariable(TokenPos(), name,
+                                 Type::ZoneHandle(Type::DynamicType()));
+    current_block_->scope->AddVariable(variable);
+  }
+  return variable;
+}
+
+
 SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   TRACE_PARSER("ParseStaticInitializer");
   ParamList params;
@@ -1058,29 +1078,10 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
 
   // Synthesize a try-catch block to wrap the initializer expression.
   LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  if (context_var == NULL) {
-    context_var = new LocalVariable(token_pos,
-                                    Symbols::SavedTryContextVar(),
-                                    Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(context_var);
-  }
-  LocalVariable* catch_excp_var =
-      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (catch_excp_var == NULL) {
-    catch_excp_var = new LocalVariable(token_pos,
-                                       Symbols::ExceptionVar(),
-                                       Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_excp_var);
-  }
-  LocalVariable* catch_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StacktraceVar());
-  if (catch_trace_var == NULL) {
-    catch_trace_var = new LocalVariable(token_pos,
-                                        Symbols::StacktraceVar(),
-                                        Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_trace_var);
-  }
+      EnsureLocalVariable(Symbols::SavedTryContextVar());
+  LocalVariable* exception_var = EnsureLocalVariable(Symbols::ExceptionVar());
+  LocalVariable* stack_trace_var =
+      EnsureLocalVariable(Symbols::StackTraceVar());
 
   OpenBlock();  // Start try block.
   AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
@@ -1115,8 +1116,8 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
 
   current_block_->statements->Add(
       new ThrowNode(token_pos,
-                    new LoadLocalNode(token_pos, catch_excp_var),
-                    new LoadLocalNode(token_pos, catch_trace_var)));
+                    new LoadLocalNode(token_pos, exception_var),
+                    new LoadLocalNode(token_pos, stack_trace_var)));
   current_block_->statements->Add(
       new JumpNode(token_pos, Token::kCONTINUE, end_catch_label));
   SequenceNode* catch_clause = CloseBlock();  // End catch clause.
@@ -1128,8 +1129,8 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
                           catch_handler_list,
                           Array::ZoneHandle(Object::empty_array().raw()),
                           context_var,
-                          catch_excp_var,
-                          catch_trace_var,
+                          exception_var,
+                          stack_trace_var,
                           CatchClauseNode::kInvalidTryIndex,
                           false);  // No stack trace needed.
 
@@ -6682,38 +6683,42 @@ AstNode* Parser::ParseAssertStatement() {
 }
 
 
-struct CatchParamDesc {
-  CatchParamDesc()
-      : token_pos(0), type(NULL), var(NULL) { }
+struct CatchParameter {
+  CatchParameter()
+      : token_pos(0), type(AbstractType::ZoneHandle()), name(NULL), var(NULL) {
+  }
   intptr_t token_pos;
-  const AbstractType* type;
-  const String* var;
+  AbstractType& type;
+  const String* name;
+  LocalVariable* var;
 };
 
 
 // Populate local scope of the catch block with the catch parameters.
-void Parser::AddCatchParamsToScope(const CatchParamDesc& exception_param,
-                                   const CatchParamDesc& stack_trace_param,
-                                   LocalScope* scope) {
-  if (exception_param.var != NULL) {
-    LocalVariable* var = new LocalVariable(exception_param.token_pos,
-                                           *exception_param.var,
-                                           *exception_param.type);
+void Parser::AddCatchParametersToScope(CatchParameter* exception_param,
+                                       CatchParameter* stack_trace_param,
+                                       LocalScope* scope) {
+  if (exception_param->name != NULL) {
+    LocalVariable* var = new LocalVariable(exception_param->token_pos,
+                                           *exception_param->name,
+                                           exception_param->type);
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     ASSERT(added_to_scope);
+    exception_param->var = var;
   }
-  if (stack_trace_param.var != NULL) {
-    LocalVariable* var = new LocalVariable(TokenPos(),
-                                           *stack_trace_param.var,
-                                           *stack_trace_param.type);
+  if (stack_trace_param->name != NULL) {
+    LocalVariable* var = new LocalVariable(stack_trace_param->token_pos,
+                                           *stack_trace_param->name,
+                                           stack_trace_param->type);
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     if (!added_to_scope) {
-      ErrorMsg(stack_trace_param.token_pos,
+      ErrorMsg(stack_trace_param->token_pos,
                "name '%s' already exists in scope",
-               stack_trace_param.var->ToCString());
+               stack_trace_param->name->ToCString());
     }
+    stack_trace_param->var = var;
   }
 }
 
@@ -6785,43 +6790,24 @@ void Parser::AddFinallyBlockToNode(AstNode* node,
 AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
 
-  // We create three stack slots for exceptions here:
-  // ':saved_try_context_var' - Used to save the context before start of the try
-  //                            block. The context register is restored from
-  //                            this slot before processing the catch block
-  //                            handler.
+  // We create three local variables for exceptions here:
+  // ':saved_try_context_var' - Used to save the context before start of the
+  //                            try block. The context register is restored
+  //                            from this slot before processing the catch
+  //                            block handler.
   // ':exception_var' - Used to save the current exception object that was
   //                    thrown.
-  // ':stacktrace_var' - Used to save the current stack trace object into which
-  //                     the stack trace was copied into when an exception was
-  //                     thrown.
-  // :exception_var and :stacktrace_var get set with the exception object
-  // and the stacktrace object when an exception is thrown.
-  // These three implicit variables can never be captured variables.
+  // ':stack_trace_var' - Used to save the current stack trace object into
+  //                      which the stack trace was copied into when an
+  //                      exception was thrown.
+  // :exception_var and :stack_trace_var get set with the exception object
+  // and the stack trace object when an exception is thrown.  These three
+  // implicit variables can never be captured variables.
   LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  if (context_var == NULL) {
-    context_var = new LocalVariable(TokenPos(),
-                                    Symbols::SavedTryContextVar(),
-                                    Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(context_var);
-  }
-  LocalVariable* catch_excp_var =
-      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (catch_excp_var == NULL) {
-    catch_excp_var = new LocalVariable(TokenPos(),
-                                       Symbols::ExceptionVar(),
-                                       Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_excp_var);
-  }
-  LocalVariable* catch_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StacktraceVar());
-  if (catch_trace_var == NULL) {
-    catch_trace_var = new LocalVariable(TokenPos(),
-                                        Symbols::StacktraceVar(),
-                                        Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_trace_var);
-  }
+      EnsureLocalVariable(Symbols::SavedTryContextVar());
+  LocalVariable* exception_var = EnsureLocalVariable(Symbols::ExceptionVar());
+  LocalVariable* stack_trace_var =
+      EnsureLocalVariable(Symbols::StackTraceVar());
 
   const intptr_t try_pos = TokenPos();
   ConsumeToken();  // Consume the 'try'.
@@ -6852,8 +6838,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   SourceLabel* end_catch_label =
       SourceLabel::New(TokenPos(), NULL, SourceLabel::kCatch);
 
-  // Now parse the 'catch' blocks if any and merge all of them into
-  // an if-then sequence of the different types specified using the 'is'
+  // Now parse the 'catch' blocks if any and merge all of them into an
+  // if-then sequence of the different types specified using the 'is'
   // operator.
   bool generic_catch_seen = false;
   const intptr_t handler_pos = TokenPos();
@@ -6861,68 +6847,61 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   current_block_->scope->AddLabel(end_catch_label);
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  bool needs_stacktrace = false;
+  bool needs_stack_trace = false;
   while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
     const intptr_t catch_pos = TokenPos();
-    CatchParamDesc exception_param;
-    CatchParamDesc stack_trace_param;
+    CatchParameter exception_param;
+    CatchParameter stack_trace_param;
     if (IsLiteral("on")) {
       ConsumeToken();
-      exception_param.type = &AbstractType::ZoneHandle(
-          ParseType(ClassFinalizer::kCanonicalize));
+      exception_param.type = ParseType(ClassFinalizer::kCanonicalize);
     } else {
-      exception_param.type =
-          &AbstractType::ZoneHandle(Type::DynamicType());
+      exception_param.type = Type::DynamicType();
     }
     if (CurrentToken() == Token::kCATCH) {
       ConsumeToken();  // Consume the 'catch'.
       ExpectToken(Token::kLPAREN);
       exception_param.token_pos = TokenPos();
-      exception_param.var = ExpectIdentifier("identifier expected");
+      exception_param.name = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
         // TODO(hausner): Make implicit type be StackTrace, not dynamic.
-        stack_trace_param.type =
-            &AbstractType::ZoneHandle(Type::DynamicType());
+        stack_trace_param.type = Type::DynamicType();
         stack_trace_param.token_pos = TokenPos();
-        stack_trace_param.var = ExpectIdentifier("identifier expected");
+        stack_trace_param.name = ExpectIdentifier("identifier expected");
       }
       ExpectToken(Token::kRPAREN);
     }
 
-    // Parse the individual catch handler code and add an unconditional
-    // JUMP to the end of the try block.
+    // Parse the individual catch handler code and add an unconditional JUMP
+    // to the end of the try block.
     ExpectToken(Token::kLBRACE);
     OpenBlock();
-    AddCatchParamsToScope(exception_param,
-                          stack_trace_param,
-                          current_block_->scope);
+    AddCatchParametersToScope(&exception_param, &stack_trace_param,
+                              current_block_->scope);
 
     if (exception_param.var != NULL) {
       // Generate code to load the exception object (:exception_var) into
       // the exception variable specified in this block.
-      LocalVariable* var = LookupLocalScope(*exception_param.var);
-      ASSERT(var != NULL);
-      ASSERT(catch_excp_var != NULL);
+      ASSERT(exception_var != NULL);
       current_block_->statements->Add(
-          new StoreLocalNode(catch_pos, var,
-                             new LoadLocalNode(catch_pos, catch_excp_var)));
+          new StoreLocalNode(catch_pos, exception_param.var,
+                             new LoadLocalNode(catch_pos, exception_var)));
     }
     if (stack_trace_param.var != NULL) {
       // A stack trace variable is specified in this block, so generate code
-      // to load the stack trace object (:stacktrace_var) into the stack trace
-      // variable specified in this block.
-      needs_stacktrace = true;
+      // to load the stack trace object (:stack_trace_var) into the stack
+      // trace variable specified in this block.
+      needs_stack_trace = true;
       ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
-      LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
-      ASSERT(catch_trace_var != NULL);
+      ASSERT(stack_trace_var != NULL);
       current_block_->statements->Add(
-          new StoreLocalNode(catch_pos, trace,
-                             new LoadLocalNode(catch_pos, catch_trace_var)));
+          new StoreLocalNode(catch_pos, stack_trace_param.var,
+                             new LoadLocalNode(catch_pos, stack_trace_var)));
       current_block_->statements->Add(
           new InstanceCallNode(
               catch_pos,
-              new LoadLocalNode(catch_pos, trace),
+              new LoadLocalNode(catch_pos, stack_trace_param.var),
               Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
               no_args));
     }
@@ -6933,33 +6912,32 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     SequenceNode* catch_handler = CloseBlock();
     ExpectToken(Token::kRBRACE);
 
-    if (!exception_param.type->IsDynamicType()) {  // Has a type specification.
-      // Now form an 'if type check' as an exception type exists in
-      // the catch specifier.
-      if (!exception_param.type->IsInstantiated() &&
+    if (!exception_param.type.IsDynamicType()) {  // Has a type specification.
+      // Now form an 'if type check' as an exception type exists in the
+      // catch specifier.
+      if (!exception_param.type.IsInstantiated() &&
           (current_block_->scope->function_level() > 0)) {
         // Make sure that the instantiator is captured.
         CaptureInstantiator();
       }
-      TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
-      AstNode* exception_var = new LoadLocalNode(catch_pos, catch_excp_var);
+      TypeNode* exception_type = new TypeNode(catch_pos, exception_param.type);
+      AstNode* exception_value = new LoadLocalNode(catch_pos, exception_var);
       if (!exception_type->type().IsInstantiated()) {
         EnsureExpressionTemp();
       }
       AstNode* type_cond_expr = new ComparisonNode(
-          catch_pos, Token::kIS, exception_var, exception_type);
+          catch_pos, Token::kIS, exception_value, exception_type);
       current_block_->statements->Add(
           new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
 
-      // Do not add uninstantiated types (e.g. type parameter T or
-      // generic type List<T>), since the debugger won't be able to
-      // instantiate it when walking the stack.
-      // This means that the debugger is not able to determine whether
-      // an exception is caught if the catch clause uses generic types.
-      // It will report the exception as uncaught when in fact it might
-      // be caught and handled when we unwind the stack.
-      if (exception_param.type->IsInstantiated()) {
-        handler_types.Add(*exception_param.type);
+      // Do not add uninstantiated types (e.g. type parameter T or generic
+      // type List<T>), since the debugger won't be able to instantiate it
+      // when walking the stack.  This means that the debugger is not able
+      // to determine whether an exception is caught if the catch clause
+      // uses generic types.  It will report the exception as uncaught when
+      // in fact it might be caught and handled when we unwind the stack.
+      if (exception_param.type.IsInstantiated()) {
+        handler_types.Add(exception_param.type);
       }
     } else {
       // No exception type exists in the catch specifier so execute the
@@ -6969,7 +6947,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       // This catch clause will handle all exceptions. We can safely forget
       // all previous catch clause types.
       handler_types.SetLength(0);
-      handler_types.Add(*exception_param.type);
+      handler_types.Add(exception_param.type);
     }
   }
   SequenceNode* catch_handler_list = CloseBlock();
@@ -7005,28 +6983,28 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   }
 
   if (!generic_catch_seen) {
-    // No generic catch handler exists so rethrow the exception so that
-    // the next catch handler can deal with it.
+    // No generic catch handler exists so rethrow the exception so that the
+    // next catch handler can deal with it.
     catch_handler_list->Add(
         new ThrowNode(handler_pos,
-                      new LoadLocalNode(handler_pos, catch_excp_var),
-                      new LoadLocalNode(handler_pos, catch_trace_var)));
+                      new LoadLocalNode(handler_pos, exception_var),
+                      new LoadLocalNode(handler_pos, stack_trace_var)));
   }
   CatchClauseNode* catch_block =
       new CatchClauseNode(handler_pos,
                           catch_handler_list,
                           Array::ZoneHandle(Array::MakeArray(handler_types)),
                           context_var,
-                          catch_excp_var,
-                          catch_trace_var,
+                          exception_var,
+                          stack_trace_var,
                           (finally_block != NULL)
                               ? AllocateTryIndex()
                               : CatchClauseNode::kInvalidTryIndex,
-                          needs_stacktrace);
+                          needs_stack_trace);
 
-  // Now create the try/catch ast node and return it. If there is a label
-  // on the try/catch, close the block that's embedding the try statement
-  // and attach the label to it.
+  // Now create the try/catch ast node and return it. If there is a label on
+  // the try/catch, close the block that's embedding the try statement and
+  // attach the label to it.
   AstNode* try_catch_node =
       new TryCatchNode(try_pos, try_block, end_catch_label,
                        context_var, catch_block, finally_block, try_index);
@@ -7194,15 +7172,16 @@ AstNode* Parser::ParseStatement() {
     ASSERT(label->owner() != NULL);
     LocalScope* scope = label->owner()->parent();
     ASSERT(scope != NULL);
-    LocalVariable* excp_var =
+    LocalVariable* exception_var =
         scope->LocalLookupVariable(Symbols::ExceptionVar());
-    ASSERT(excp_var != NULL);
-    LocalVariable* trace_var =
-        scope->LocalLookupVariable(Symbols::StacktraceVar());
-    ASSERT(trace_var != NULL);
-    statement = new ThrowNode(statement_pos,
-                              new LoadLocalNode(statement_pos, excp_var),
-                              new LoadLocalNode(statement_pos, trace_var));
+    ASSERT(exception_var != NULL);
+    LocalVariable* stack_trace_var =
+        scope->LocalLookupVariable(Symbols::StackTraceVar());
+    ASSERT(stack_trace_var != NULL);
+    statement =
+        new ThrowNode(statement_pos,
+                      new LoadLocalNode(statement_pos, exception_var),
+                      new LoadLocalNode(statement_pos, stack_trace_var));
   } else {
     statement = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectSemicolon();
