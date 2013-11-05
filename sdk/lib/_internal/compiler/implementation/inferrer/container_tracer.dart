@@ -200,7 +200,13 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   visitPhiElementTypeInformation(PhiElementTypeInformation info) {}
   visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info) {}
-  visitContainerTypeInformation(ContainerTypeInformation info) {}
+
+  visitContainerTypeInformation(ContainerTypeInformation info) {
+    if (container != info) {
+      bailout('Stored in a container');
+    }
+  }
+
   visitConcreteTypeInformation(ConcreteTypeInformation info) {}
 
   visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
