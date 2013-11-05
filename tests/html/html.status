@@ -413,7 +413,6 @@ element_add_test: StaticWarning
 element_test: StaticWarning
 events_test: StaticWarning
 htmlelement_test: StaticWarning
-isolates_test: StaticWarning
 localstorage_test: StaticWarning
 mutationobserver_test: StaticWarning
 track_element_constructor_test: StaticWarning
