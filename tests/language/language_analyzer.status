@@ -316,6 +316,7 @@ method_override4_test: StaticWarning
 method_override5_test: StaticWarning
 method_override6_test: StaticWarning
 method_override_test: StaticWarning
+mixin_illegal_static_access_test: StaticWarning
 mixin_illegal_syntax_test/13: CompileTimeError
 mixin_typedef_constructor_test: StaticWarning
 mixin_type_parameter2_test: StaticWarning

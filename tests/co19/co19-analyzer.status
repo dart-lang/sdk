@@ -24,11 +24,7 @@ Language/07_Classes/1_Instance_Methods_A04_t02: MissingStaticWarning
 Language/07_Classes/4_Abstract_Instance_Members_A07_t04: MissingStaticWarning
 
 # TBF: Static members should not be accessible via subclasses.
-Language/07_Classes/7_Static_Methods_A01_t03: MissingStaticWarning
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: MissingStaticWarning
-
-
 
 # co19 issue #442, undefined name "Expect"
 Language/15_Types/4_Interface_Types_A08_t03: fail, OK
@@ -262,11 +258,7 @@ Language/07_Classes/3_Setters_A04_t02: StaticWarning, OK
 Language/07_Classes/3_Setters_A04_t03: StaticWarning, OK
 Language/07_Classes/3_Setters_A04_t04: StaticWarning, OK
 
-
-
 Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t02: MissingStaticWarning
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: MissingStaticWarning
 Language/12_Expressions/19_Conditional_A01_t14: MissingStaticWarning
 Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t10: MissingStaticWarning
 Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t11: MissingStaticWarning
@@ -298,7 +290,6 @@ Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll 
 Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/07_Classes/8_Static_Variables_A01_t01: MissingStaticWarning # co19-roll r651: Please triage this failure
 Language/12_Expressions/01_Constants_A20_t04: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticWarning # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
