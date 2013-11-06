@@ -83,8 +83,8 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool isSingleImplementationOf(ClassElement cls, Compiler compiler) {
-    // Special case basic types so that, for example, String satisfies
-    // JSString.
+    // Special case basic types so that, for example, JSString is the
+    // single implementation of String.
     // The general optimization is to realize there is only one class that
     // implements [base] and [base] is not instantiated. We however do
     // not track correctly the list of truly instantiated classes.
