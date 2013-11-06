@@ -172,8 +172,8 @@ class HierarchyIterator implements Iterator<ClassMirror> {
   }
 }
 
-bool isMixinApplication(ClassMirror mirror) {
-  return mirror != null && mirror.mixin != mirror;
+bool isMixinApplication(Mirror mirror) {
+  return mirror is ClassMirror && mirror.mixin != mirror;
 }
 
 /**
