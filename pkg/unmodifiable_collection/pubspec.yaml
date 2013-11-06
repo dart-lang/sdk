@@ -1,7 +1,10 @@
 name: unmodifiable_collection
+version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
   Unmodifiable wrappers for base collection types.
 dev_dependencies:
-  unittest: any
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=1.0.0 <2.0.0"

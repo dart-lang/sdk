@@ -1,10 +1,13 @@
 name: http_server
+version: 0.9.0
 author: Dart Team <misc@dartlang.org>
 description: Library of HTTP server classes.
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/http_server
 dependencies:
-  mime: any
-  path: any
+  mime: ">=0.9.0 <0.10.0"
+  path: ">=0.9.0 <0.10.0"
 dev_dependencies:
-  unittest: any
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=1.0.0 <2.0.0"

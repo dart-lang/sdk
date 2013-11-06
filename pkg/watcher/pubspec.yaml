@@ -1,4 +1,5 @@
 name: watcher
+version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -6,8 +7,10 @@ description: >
   of directories and notifies you when files have been added, removed, or
   modified.
 dependencies:
-  crypto: any
-  path: any
+  crypto: ">=0.9.0 <0.10.0"
+  path: ">=0.9.0 <0.10.0"
 dev_dependencies:
-  scheduled_test: any
-  unittest: any
+  scheduled_test: ">=0.9.0 <0.10.0"
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=1.0.0 <2.0.0"

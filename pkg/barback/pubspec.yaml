@@ -1,4 +1,5 @@
 name: barback
+version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -12,9 +13,11 @@ description: >
   Runs transforms asynchronously and in parallel when possible to maximize
   responsiveness.
 dependencies:
-  path: any
-  source_maps: any
-  stack_trace: any
+  path: ">=0.9.0 <0.10.0"
+  source_maps: ">=0.9.0 <0.10.0"
+  stack_trace: ">=0.9.0 <0.10.0"
 dev_dependencies:
-  scheduled_test: any
-  unittest: any
+  scheduled_test: ">=0.9.0 <0.10.0"
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=1.0.0 <2.0.0"

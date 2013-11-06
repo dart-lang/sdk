@@ -1,4 +1,5 @@
 name: html_import
+version: 0.9.0
 author: "Web UI Team <web-ui-dev@dartlang.org>"
 homepage: https://github.com/Polymer/HTMLImports/tree/master
 description: >
@@ -6,3 +7,5 @@ description: >
   documents. As <script> tags let authors include external code in their
   pages, imports let authors load full HTML resources. In particular, imports
   let authors include Custom Element definitions from external URLs.
+environment:
+  sdk: ">=1.0.0 <2.0.0"
