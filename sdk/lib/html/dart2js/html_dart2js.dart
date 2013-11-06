@@ -14448,6 +14448,22 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
   @DocsEditable()
   final String statusText;
 
+  /**
+   * Length of time before a request is automatically terminated.
+   *
+   * When the time has passed, a [TimeoutEvent] is dispatched.
+   *
+   * If [timeout] is set to 0, then the request will not time out.
+   *
+   * ## Other resources
+   *
+   * * [XMLHttpRequest.timeout]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)
+   * from MDN.
+   * * [The timeout attribute]
+   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   * from W3C.
+   */
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
   @Experimental() // untriaged
@@ -14550,15 +14566,34 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * `send` method is intended only for more complext HTTP requests where
    * finer-grained control is needed.
    *
-   * See also:
+   * ## Other resources
    *
-   *   * [send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
+   * * [XMLHttpRequest.send]
+   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
    * from MDN.
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
   void send([data]) native;
 
+  /**
+   * Sets the value of an HTTP requst header.
+   *
+   * This method should be called after the request is opened, but before
+   * the request is sent.
+   *
+   * Multiple calls with the same header will combine all their values into a
+   * single header.
+   *
+   * ## Other resources
+   *
+   * * [XMLHttpRequest.setRequestHeader]
+   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
+   * from MDN.
+   * * [The setRequestHeader() method]
+   * (http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method) from
+   * W3C.
+   */
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
   void setRequestHeader(String header, String value) native;
@@ -19292,6 +19327,9 @@ class Node extends EventTarget native "Node" {
   // Custom element created callback.
   Node._created() : super._created();
 
+  /**
+   * A modifiable list of this node's children.
+   */
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
@@ -19418,16 +19456,43 @@ class Node extends EventTarget native "Node" {
   @DocsEditable()
   final String _baseUri;
 
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
   @DomName('Node.childNodes')
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> childNodes;
 
+  /**
+   * The first child of this node.
+   *
+   * ## Other resources
+   *
+   * * [Node.firstChild]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
+   * from MDN.
+   */
   @DomName('Node.firstChild')
   @DocsEditable()
   final Node firstChild;
 
+  /**
+   * The last child of this node.
+   *
+   * ## Other resources
+   *
+   * * [Node.lastChild]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
+   * from MDN.
+   */
   @DomName('Node.lastChild')
   @DocsEditable()
   final Node lastChild;
@@ -19443,41 +19508,147 @@ class Node extends EventTarget native "Node" {
   final String _namespaceUri;
 
   @JSName('nextSibling')
+  /**
+   * The next sibling node.
+   *
+   * ## Other resources
+   *
+   * * [Node.nextSibling]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
+   * from MDN.
+   */
   @DomName('Node.nextSibling')
   @DocsEditable()
   final Node nextNode;
 
+  /**
+   * The name of this node.
+   *
+   * This varies by this node's [nodeType].
+   *
+   * ## Other resources
+   *
+   * * [Node.nodeName]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
+   * from MDN. This page contains a table of [nodeName] values for each
+   * [nodeType].
+   */
   @DomName('Node.nodeName')
   @DocsEditable()
   final String nodeName;
 
+  /**
+   * The type of node.
+   *
+   * This value is one of:
+   *
+   * * [ATTRIBUTE_NODE] if this node is an attribute.
+   * * [CDATA_SECTION_NODE] if this node is a [CDataSection].
+   * * [COMMENT_NODE] if this node is a [Comment].
+   * * [DOCUMENT_FRAGMENT_NODE] if this node is a [DocumentFragment].
+   * * [DOCUMENT_NODE] if this node is a [Document].
+   * * [DOCUMENT_TYPE_NODE] if this node is a [DocumentType] node.
+   * * [ELEMENT_NODE] if this node is an [Element].
+   * * [ENTITY_NODE] if this node is an entity.
+   * * [ENTITY_REFERENCE_NODE] if this node is an entity reference.
+   * * [NOTATION_NODE] if this node is a notation.
+   * * [PROCESSING_INSTRUCTION_NODE] if this node is a [ProcessingInstruction].
+   * * [TEXT_NODE] if this node is a [Text] node.
+   *
+   * ## Other resources
+   *
+   * * [Node.nodeType]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType) from MDN.
+   */
   @DomName('Node.nodeType')
   @DocsEditable()
   final int nodeType;
 
+  /**
+   * The value of this node.
+   *
+   * This varies by this type's [nodeType].
+   *
+   * ## Other resources
+   *
+   * * [Node.nodeValue]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
+   * from MDN. This page contains a table of [nodeValue] values for each
+   * [nodeType].
+   */
   @DomName('Node.nodeValue')
   @DocsEditable()
   final String nodeValue;
 
+  /**
+   * The document this node belongs to.
+   *
+   * Returns `null` if this node does not belong to any document.
+   *
+   * ## Other resources
+   *
+   * * [Node.ownerDocument]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument) from
+   * MDN.
+   */
   @DomName('Node.ownerDocument')
   @DocsEditable()
   final Document ownerDocument;
 
   @JSName('parentElement')
+  /**
+   * The parent element of this node.
+   *
+   * Returns `null` if this node either does not have a parent or its parent is
+   * not an element.
+   *
+   * ## Other resources
+   *
+   * * [Node.parentElement]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement) from
+   * W3C.
+   */
   @DomName('Node.parentElement')
   @DocsEditable()
   final Element parent;
 
+  /**
+   * The parent node of this node.
+   *
+   * ## Other resources
+   *
+   * * [Node.parentNode]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode) from
+   * MDN.
+   */
   @DomName('Node.parentNode')
   @DocsEditable()
   final Node parentNode;
 
   @JSName('previousSibling')
+  /**
+   * The previous sibling node.
+   *
+   * ## Other resources
+   *
+   * * [Node.previousSibling]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
+   * from MDN.
+   */
   @DomName('Node.previousSibling')
   @DocsEditable()
   final Node previousNode;
 
   @JSName('textContent')
+  /**
+   * All text within this node and its decendents.
+   *
+   * ## Other resources
+   *
+   * * [Node.textContent]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from
+   * MDN.
+   */
   @DomName('Node.textContent')
   @DocsEditable()
   String text;
@@ -19497,18 +19668,56 @@ class Node extends EventTarget native "Node" {
   Node append(Node newChild) native;
 
   @JSName('cloneNode')
+  /**
+   * Returns a copy of this node.
+   *
+   * If [deep] is `true`, then all of this node's children and decendents are
+   * copied as well. If [deep] is `false`, then only this node is copied.
+   *
+   * ## Other resources
+   *
+   * * [Node.cloneNode]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode) from
+   * MDN.
+   */
   @DomName('Node.cloneNode')
   @DocsEditable()
   Node clone(bool deep) native;
 
+  /**
+   * Returns true if this node contains the specified node.
+   *
+   * ## Other resources
+   *
+   * * [Node.contains]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.contains) from MDN.
+   */
   @DomName('Node.contains')
   @DocsEditable()
   bool contains(Node other) native;
 
+  /**
+   * Returns true if this node has any children.
+   *
+   * ## Other resources
+   *
+   * * [Node.hasChildNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes) from
+   * MDN.
+   */
   @DomName('Node.hasChildNodes')
   @DocsEditable()
   bool hasChildNodes() native;
 
+  /**
+   * Inserts all of the nodes into this node directly before refChild.
+   *
+   * ## Other resources
+   *
+   * * [Node.insertBefore]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore) from
+   * MDN.
+   */
   @DomName('Node.insertBefore')
   @DocsEditable()
   Node insertBefore(Node newChild, Node refChild) native;
