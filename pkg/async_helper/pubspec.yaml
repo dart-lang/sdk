@@ -1,5 +1,4 @@
 name: async_helper
-version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -8,5 +7,3 @@ description: >
  language tests.
  Third parties are discouraged from using this, and should use
  the facilities provided in the unittest library.
-environment:
-  sdk: ">=1.0.0 <2.0.0"

@@ -1,5 +1,4 @@
 name: utf
-version: 0.9.0
 author: Dart Team <misc@dartlang.org>
 description: >
  A Unicode library. Intended for advanced use where the built-in facilities
@@ -7,6 +6,4 @@ description: >
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/utf
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  unittest: any

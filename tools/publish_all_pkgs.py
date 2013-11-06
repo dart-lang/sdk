@@ -20,8 +20,6 @@ import sys
 BLACK_LISTED_DIRECTORIES = ['.svn', 'async_helper', 'expect', 'third_party'];
 
 def Main(argv):
-  pkgs_to_publish = []
-
   for pkgdir in ['pkg', 'pkg/third_party']:
     for name in os.listdir(pkgdir):
       if os.path.isdir(os.path.join(pkgdir, name)):

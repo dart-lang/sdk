@@ -1,5 +1,4 @@
 name: custom_element
-version: 0.9.0
 author: "Web UI Team <web-ui-dev@dartlang.org>"
 homepage: http://www.dartlang.org/
 description: >
@@ -7,8 +6,7 @@ description: >
   with custom tag names, and then use those custom tag names as they would any
   standard tag.
 dependencies:
-  mutation_observer: ">=0.9.0 <0.10.0"
+  meta: any
+  mutation_observer: any
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  unittest: any

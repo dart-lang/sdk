@@ -1,5 +1,4 @@
 name: oauth2
-version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -7,8 +6,6 @@ description: >
   behalf of a user, and making authorized HTTP requests with the user's
   OAuth2 credentials.
 dependencies:
-  http: ">=0.9.0 <0.10.0"
+  http: any
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  unittest: any

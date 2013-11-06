@@ -1,12 +1,10 @@
 name: logging
-version: 0.9.0
 author: Dart Team <misc@dartlang.org>
 description: Provides APIs for debugging and error logging. This library introduces abstractions similar to those used in other languages, such as the Closure JS Logger and java.util.logging.Logger.
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/logging
 dependencies:
-  unmodifiable_collection: ">=0.9.0 <0.10.0"
+  meta: any
+  unmodifiable_collection: any
 dev_dependencies:
-  unittest: ">=0.9.0 <0.10.0"
-environment:
-  sdk: ">=1.0.0 <2.0.0"
+  unittest: any
