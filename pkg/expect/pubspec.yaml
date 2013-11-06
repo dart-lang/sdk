@@ -1,4 +1,5 @@
 name: expect
+version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -7,3 +8,5 @@ description: >
  Third parties are discouraged from using this, and should use
  the expect() function in the unit test library instead for
  test assertions.
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"

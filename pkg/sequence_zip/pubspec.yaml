@@ -1,4 +1,5 @@
 name: sequence_zip
+version: 0.9.0
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -6,4 +7,6 @@ description: >
   Combines multiple iterables into a single iterable of tuples of values,
   and similar for Streams.
 dev_dependencies:
-  unittest: any
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"

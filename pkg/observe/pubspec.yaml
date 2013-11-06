@@ -1,4 +1,5 @@
 name: observe
+version: 0.9.0
 author: Web UI Team <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in Model-Driven-Views (MDV).
@@ -8,10 +9,12 @@ description: >
   immediately assigned to the model.
 homepage: https://www.dartlang.org/polymer-dart/
 dependencies:
-  analyzer: any
-  barback: any
-  logging: any
-  path: any
-  source_maps: any
+  analyzer: ">=0.10.1 <0.11.0"
+  barback: ">=0.9.0 <0.10.0"
+  logging: ">=0.9.0 <0.10.0"
+  path: ">=0.9.0 <0.10.0"
+  source_maps: ">=0.9.0 <0.10.0"
 dev_dependencies:
-  unittest: any
+  unittest: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"
