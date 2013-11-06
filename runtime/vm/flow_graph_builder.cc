@@ -1440,12 +1440,11 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
                               Object::null_array(),
                               2,
                               owner()->ic_data_array());
-    if (FLAG_enable_type_checks) {
-      Value* value = Bind(result);
-      result = new AssertBooleanInstr(node->token_pos(), value);
-    }
-
     if (node->kind() == Token::kNE) {
+      if (FLAG_enable_type_checks) {
+        Value* value = Bind(result);
+        result = new AssertBooleanInstr(node->token_pos(), value);
+      }
       Value* value = Bind(result);
       result = new BooleanNegateInstr(value);
     }
