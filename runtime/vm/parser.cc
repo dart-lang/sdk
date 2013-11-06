@@ -6875,7 +6875,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
     // Parse the individual catch handler code and add an unconditional JUMP
     // to the end of the try block.
-    OpenBlock();  // Block for the exception and stack trace variables.
+    ExpectToken(Token::kLBRACE);
+    OpenBlock();
     AddCatchParametersToScope(&exception_param, &stack_trace_param,
                               current_block_->scope);
 
@@ -6905,13 +6906,11 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
               no_args));
     }
 
-    // Parse the catch handler code.
-    if (CurrentToken() != Token::kLBRACE) {
-      ErrorMsg("'{' expected");
-    }
-    SequenceNode* catch_block = ParseNestedStatement(false, NULL);
-    catch_block->Add(
+    ParseStatementSequence();  // Parse the catch handler code.
+    current_block_->statements->Add(
         new JumpNode(catch_pos, Token::kCONTINUE, end_catch_label));
+    SequenceNode* catch_handler = CloseBlock();
+    ExpectToken(Token::kRBRACE);
 
     const bool is_bad_type = exception_param.type.IsMalformed() ||
                              exception_param.type.IsMalbounded();
@@ -6932,7 +6931,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       AstNode* type_cond_expr = new ComparisonNode(
           catch_pos, Token::kIS, exception_value, exception_type);
       current_block_->statements->Add(
-          new IfNode(catch_pos, type_cond_expr, catch_block, NULL));
+          new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
 
       // Do not add uninstantiated types (e.g. type parameter T or generic
       // type List<T>), since the debugger won't be able to instantiate it
@@ -6951,16 +6950,13 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       }
       // No exception type exists in the catch specifier so execute the
       // catch handler code unconditionally.
-      current_block_->statements->Add(catch_block);
+      current_block_->statements->Add(catch_handler);
       generic_catch_seen = true;
       // This catch clause will handle all exceptions. We can safely forget
       // all previous catch clause types.
       handler_types.SetLength(0);
       handler_types.Add(exception_param.type);
     }
-    // Add this individual catch handler to the catch handlers list.
-    SequenceNode* catch_clause = CloseBlock();
-    current_block_->statements->Add(catch_clause);
   }
   SequenceNode* catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
