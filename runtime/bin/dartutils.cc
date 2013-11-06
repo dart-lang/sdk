@@ -244,7 +244,7 @@ void DartUtils::CloseFile(void* stream) {
 }
 
 
-bool DartUtils::EntropySource(uint8_t* buffer, size_t length) {
+bool DartUtils::EntropySource(uint8_t* buffer, intptr_t length) {
   return Crypto::GetRandomBytes(length, buffer);
 }
 
