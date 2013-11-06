@@ -150,6 +150,15 @@ class Pubspec {
             _error('"$field.$library" field must be a map, but was '
                 '"$configuration".');
           }
+
+          var reservedKeys = configuration.keys
+              .where((key) => key is String && key.startsWith(r'$'))
+              .map((key) => '"$key"');
+          if (reservedKeys.isNotEmpty) {
+            _error('"$field.$library" field cannot contain reserved '
+                '${pluralize('field', reservedKeys.length)} '
+                '${toSentence(reservedKeys)}.');
+          }
         }
 
         var id = _wrapFormatException("transformer identifier",

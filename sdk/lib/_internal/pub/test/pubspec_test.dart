@@ -195,6 +195,18 @@ dependencies:
           (pubspec) => pubspec.transformers);
     });
 
+    test("throws if a transformer's configuration contains a top-level key "
+        "beginning with a dollar sign", () {
+      expectPubspecException('transformers: {pkg: {\$key: value}}',
+          (pubspec) => pubspec.transformers);
+    });
+
+    test("doesn't throw if a transformer's configuration contains a "
+        "non-top-level key beginning with a dollar sign", () {
+      expectPubspecException('transformers: {pkg: {\$key: value}}',
+          (pubspec) => pubspec.transformers);
+    });
+
     test("allows comment-only files", () {
       var pubspec = new Pubspec.parse('''
 # No external dependencies yet
