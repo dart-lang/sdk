@@ -82,6 +82,29 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
+  bool isSingleImplementationOf(ClassElement cls, Compiler compiler) {
+    // Special case basic types so that, for example, String satisfies
+    // JSString.
+    // The general optimization is to realize there is only one class that
+    // implements [base] and [base] is not instantiated. We however do
+    // not track correctly the list of truly instantiated classes.
+    Backend backend = compiler.backend;
+    if (containsOnlyString(compiler)) {
+      return cls == compiler.stringClass || cls == backend.stringImplementation;
+    }
+    if (containsOnlyBool(compiler)) {
+      return cls == compiler.boolClass || cls == backend.boolImplementation;
+    }
+    if (containsOnlyInt(compiler)) {
+      return cls == compiler.intClass || cls == backend.intImplementation;
+    }
+    if (containsOnlyDouble(compiler)) {
+      return cls == compiler.doubleClass
+          || cls == compiler.backend.doubleImplementation;
+    }
+    return false;
+  }
+
   bool isInMask(TypeMask other, Compiler compiler) {
     if (isEmpty) {
       return isNullable ? other.isNullable : true;
@@ -91,7 +114,10 @@ class FlatTypeMask implements TypeMask {
     if (other is! FlatTypeMask) return other.containsMask(this, compiler);
     FlatTypeMask flatOther = other;
     ClassElement otherBase = flatOther.base;
-    if (flatOther.isExact) return isExact && base == otherBase;
+    if (flatOther.isExact) {
+      return (isExact && base == otherBase)
+          || isSingleImplementationOf(otherBase, compiler);
+    }
     if (flatOther.isSubclass) {
       if (isSubtype) return false;
       return base == otherBase || isSubclassOf(base, otherBase, compiler);
@@ -146,26 +172,6 @@ class FlatTypeMask implements TypeMask {
     if (isEmpty) return false;
     if (base == cls) return true;
     if (isSubtypeOf(base, cls, compiler)) return true;
-
-    // Special case basic types so that, for example, String satisfies
-    // JSString.
-    // The general optimization is to realize there is only one class that
-    // implements [base] and [base] is not instantiated. We however do
-    // not track correctly the list of truly instantiated classes.
-    Backend backend = compiler.backend;
-    if (containsOnlyString(compiler)) {
-      return cls == compiler.stringClass || cls == backend.stringImplementation;
-    }
-    if (containsOnlyBool(compiler)) {
-      return cls == compiler.boolClass || cls == backend.boolImplementation;
-    }
-    if (containsOnlyInt(compiler)) {
-      return cls == compiler.intClass || cls == backend.intImplementation;
-    }
-    if (containsOnlyDouble(compiler)) {
-      return cls == compiler.doubleClass
-          || cls == compiler.backend.doubleImplementation;
-    }
     return false;
   }
 
