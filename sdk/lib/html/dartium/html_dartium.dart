@@ -28352,7 +28352,7 @@ class WheelEvent extends MouseEvent {
  *
  * ## See also
  *
- * [WindowBase]
+ * * [WindowBase]
  *
  * ## Other resources
  *
@@ -31896,10 +31896,7 @@ class _DataAttributeMap implements Map<String, String> {
 /**
  * An object that can be drawn to a 2D canvas rendering context.
  *
- * This object is either an [ImageElement], [VideoElement], or
- * [CanvasElement].
- *
- * The image drawn to the canvas differs by implementation:
+ * The image drawn to the canvas depends on the type of this object:
  *
  * * If this object is an [ImageElement], then this element's image is
  * drawn to the canvas. If this element is an animated image, then this
@@ -31950,7 +31947,7 @@ abstract class CanvasImageSource {}
  *
  * ## See also
  *
- * [Window]
+ * * [Window]
  *
  * ## Other resources
  *
