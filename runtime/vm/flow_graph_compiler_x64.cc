@@ -1659,7 +1659,9 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
                                               Register result) {
   assembler()->comisd(left, right);
   Label is_false, is_true, done;
-  assembler()->j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN false;
+  // x == NaN -> false, x != NaN -> true.
+  Label* nan_label = (true_condition == NOT_EQUAL) ? &is_true : &is_false;
+  assembler()->j(PARITY_EVEN, nan_label, Assembler::kNearJump);
   assembler()->j(true_condition, &is_true, Assembler::kNearJump);
   assembler()->Bind(&is_false);
   assembler()->LoadObject(result, Bool::False(), PP);

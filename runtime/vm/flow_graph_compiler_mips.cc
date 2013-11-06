@@ -1710,11 +1710,12 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
                                               FpuRegister left,
                                               FpuRegister right,
                                               Register result) {
-  Label done;
+  Label done, is_true;
+  Label* nan_label = (true_condition == NE) ? &is_true : &done;
   __ Comment("DoubleCompareBool");
   assembler()->LoadObject(result, Bool::False());
   assembler()->cund(left, right);
-  assembler()->bc1t(&done);
+  assembler()->bc1t(nan_label);
 
   switch (true_condition) {
     case EQ: assembler()->ceqd(left, right); break;
@@ -1735,6 +1736,7 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
   } else {
     assembler()->bc1f(&done);
   }
+  assembler()->Bind(&is_true);
   assembler()->LoadObject(result, Bool::True());
   assembler()->Bind(&done);
 }

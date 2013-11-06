@@ -1625,7 +1625,9 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
   assembler()->vmstat();
   assembler()->LoadObject(result, Bool::False());
   Label done;
-  assembler()->b(&done, VS);  // NaN -> false.
+  if (true_condition != NE) {
+    assembler()->b(&done, VS);  // x == NaN -> false, x != NaN -> true.
+  }
   assembler()->LoadObject(result, Bool::True(), true_condition);
   assembler()->Bind(&done);
 }
