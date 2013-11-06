@@ -1086,10 +1086,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HGraph buildCheckedSetter(VariableElement field) {
     openFunction(field, field.parseNode(compiler));
-    HInstruction parameter = addParameter(
-        field,
-        TypeMaskFactory.inferredTypeForElement(field, compiler));
     HInstruction thisInstruction = localsHandler.readThis();
+    // Use dynamic type because the type computed by the inferrer is
+    // narrowed to the type annotation.
+    HInstruction parameter = new HParameterValue(field, backend.dynamicType);
+    // Add the parameter as the last instruction of the entry block.
+    // If the method is intercepted, we want the actual receiver
+    // to be the first parameter.
+    graph.entry.addBefore(graph.entry.last, parameter);
     HInstruction value =
         potentiallyCheckType(parameter, field.computeType(compiler));
     add(new HFieldSet(field, thisInstruction, value));
