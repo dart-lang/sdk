@@ -27,7 +27,8 @@ class Dart : public AllStatic {
       Dart_FileOpenCallback file_open,
       Dart_FileReadCallback file_read,
       Dart_FileWriteCallback file_write,
-      Dart_FileCloseCallback file_close);
+      Dart_FileCloseCallback file_close,
+      Dart_EntropySource entropy_source);
   static const char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix);

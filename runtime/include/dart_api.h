@@ -724,6 +724,7 @@ typedef void (*Dart_FileWriteCallback)(const void* data,
 
 typedef void (*Dart_FileCloseCallback)(void* stream);
 
+typedef bool (*Dart_EntropySource)(uint8_t* buffer, size_t length);
 
 /**
  * Initializes the VM.
@@ -747,7 +748,8 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileOpenCallback file_open,
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
-    Dart_FileCloseCallback file_close);
+    Dart_FileCloseCallback file_close,
+    Dart_EntropySource entropy_source);
 
 /**
  * Cleanup state in the VM before process termination.

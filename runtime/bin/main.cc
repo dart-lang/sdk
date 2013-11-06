@@ -809,7 +809,8 @@ int main(int argc, char** argv) {
                        DartUtils::OpenFile,
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,
-                       DartUtils::CloseFile)) {
+                       DartUtils::CloseFile,
+                       DartUtils::EntropySource)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
     return kErrorExitCode;

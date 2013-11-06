@@ -10,12 +10,13 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-#include "bin/extensions.h"
+#include "bin/crypto.h"
 #include "bin/directory.h"
+#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
-#include "bin/utils.h"
 #include "bin/socket.h"
+#include "bin/utils.h"
 
 namespace dart {
 namespace bin {
@@ -240,6 +241,11 @@ void DartUtils::WriteFile(const void* buffer,
 
 void DartUtils::CloseFile(void* stream) {
   delete reinterpret_cast<File*>(stream);
+}
+
+
+bool DartUtils::EntropySource(uint8_t* buffer, size_t length) {
+  return Crypto::GetRandomBytes(length, buffer);
 }
 
 

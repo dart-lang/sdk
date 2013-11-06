@@ -115,6 +115,8 @@ class DartUtils {
   static void ReadFile(const uint8_t** data, intptr_t* file_len, void* stream);
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
   static void CloseFile(void* stream);
+  static bool EntropySource(uint8_t* buffer, size_t length);
+
   static Dart_Handle ReadStringFromFile(const char* filename);
   static Dart_Handle ReadStringFromHttp(const char* filename);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,

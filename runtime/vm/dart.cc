@@ -81,12 +81,14 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_FileOpenCallback file_open,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
-                           Dart_FileCloseCallback file_close) {
+                           Dart_FileCloseCallback file_close,
+                           Dart_EntropySource entropy_source) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized.";
   }
   Isolate::SetFileCallbacks(file_open, file_read, file_write, file_close);
+  Isolate::SetEntropySourceCallback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Isolate::InitOnce();

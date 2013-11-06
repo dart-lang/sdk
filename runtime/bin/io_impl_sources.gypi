@@ -7,6 +7,7 @@
 {
   'sources': [
     'crypto.cc',
+    'crypto.h',
     'crypto_android.cc',
     'crypto_linux.cc',
     'crypto_macos.cc',
