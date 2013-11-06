@@ -111,11 +111,53 @@
         'vm/libdart_dependency_helper.cc',
       ],
     },
+    # Targets coming from dart/dart.gyp.
     {
-      'target_name': 'runtime_packages',
+      'target_name': 'runtime_all',
       'type': 'none',
       'dependencies': [
         '../pkg/pkg.gyp:pkg_packages',
+        'sample_extension',
+      ],
+    },
+    {
+      'target_name': 'sample_extension',
+      'type': 'shared_library',
+      'dependencies': [
+        'dart',
+      ],
+      'include_dirs': [
+        '.',
+      ],
+      'sources': [
+        '../samples/sample_extension/sample_extension.cc',
+        '../samples/sample_extension/sample_extension_dllmain_win.cc',
+      ],
+      'defines': [
+        'DART_SHARED_LIB',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalDependencies': [ 'dart.lib' ],
+              'AdditionalLibraryDirectories': [ '<(PRODUCT_DIR)' ],
+            },
+          },
+        }],
+        ['OS=="mac"', {
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-undefined',
+              'dynamic_lookup',
+            ],
+          },
+        }],
+        ['OS=="linux"', {
+          'cflags': [
+            '-fPIC',
+          ],
+        }],
       ],
     },
   ],
