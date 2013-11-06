@@ -7,12 +7,16 @@ part of html;
 /**
  * Top-level container for a browser tab or window.
  *
- * In a web browser, a [WindowBase] object represents any browser window.  This
- * abstract class contains the state of the window and its relation to other
- * windows, such as which window opened it.
+ * In a web browser, a [WindowBase] object represents any browser window. This
+ * object contains the window's state and its relation to other
+ * windows, such as which window opened this window.
  *
- * **Note:** This class represents any window, whereas [Window] is
+ * **Note:** This class represents any window, while [Window] is
  * used to access the properties and content of the current window or tab.
+ *
+ * ## See also
+ *
+ * [Window]
  *
  * ## Other resources
  *
