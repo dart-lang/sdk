@@ -20,8 +20,6 @@ override_field_test/02: fail
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
-export_double_same_main_test: Fail # Issue 14772
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -69,9 +67,6 @@ compile_time_constant_e_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
-
-# test issue 11589, export D from 2 export directives
-export_cyclic_test: fail
 
 # test issue 11590, runtime only negative test
 field_method4_negative_test: fail
@@ -128,9 +123,6 @@ static_field_test/01: fail # Issue 12541
 static_field_test/02: fail # Issue 12541
 static_field_test/03: fail # Issue 12541
 static_field_test/04: fail # Issue 12541
-
-# test issue 13787; duplicate exports of the same declaration is not handled
-duplicate_export_test: fail # Issue 13787
 
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail
