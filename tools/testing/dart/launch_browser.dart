@@ -26,14 +26,15 @@ void main() {
     printHelp();
     return;
   }
+  var name = args[0];
 
-  if (!Browser.supportedBrowser(args[0])) {
+  if (!Browser.supportedBrowser(name)) {
     print("Specified browser not supported");
     printHelp();
     return;
   }
 
-  var browser = new Browser.byName(args[0]);
+  var executable = Locations.getBrowserExecutable(name, {});
+  var browser = new Browser.byName(name, executable);
   browser.start(args[1]);
-
 }

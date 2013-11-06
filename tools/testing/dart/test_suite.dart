@@ -1110,7 +1110,8 @@ class StandardTestSuite extends TestSuite {
               '--timeout=${configuration['timeout']}',
               '--out=$fullHtmlPath'];
           if (runtime == 'dartium') {
-            var dartiumLocation = Locations.getDartiumLocation(configuration);
+            var dartiumLocation =
+                Locations.getBrowserLocation('dartium', configuration);
             args.add('--executable=$dartiumLocation');
           }
           if (subtestIndex != 0) {

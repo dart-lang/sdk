@@ -31,6 +31,10 @@ abstract class Browser {
 
   /** The version of the browser - normally set when starting a browser */
   String version = "";
+
+  // The path to the browser executable.
+  String _binary;
+
   /**
    * The underlying process - don't mess directly with this if you don't
    * know what you are doing (this is an interactive process that needs
@@ -55,21 +59,24 @@ abstract class Browser {
   Browser();
 
   factory Browser.byName(String name,
-                         [Map globalConfiguration = const {},
-                          bool checkedMode = false]) {
-    if (name == 'ff' || name == 'firefox') {
-      return new Firefox();
+                         String executablePath,
+                         [bool checkedMode = false]) {
+    var browser;
+    if (name == 'firefox') {
+      browser = new Firefox();
     } else if (name == 'chrome') {
-      return new Chrome();
+      browser = new Chrome();
     } else if (name == 'dartium') {
-      return new Dartium(globalConfiguration, checkedMode);
+      browser = new Dartium(checkedMode);
     } else if (name == 'safari') {
-      return new Safari();
+      browser = new Safari();
     } else if (name.startsWith('ie')) {
-      return new IE();
+      browser = new IE();
     } else {
       throw "Non supported browser";
     }
+    browser._binary = executablePath;
+    return browser;
   }
 
   static const List<String> SUPPORTED_BROWSERS =
@@ -194,12 +201,6 @@ abstract class Browser {
 
 class Safari extends Browser {
   /**
-   * The binary used to run safari - changing this can be nececcary for
-   * testing or using non standard safari installation.
-   */
-  static const String binary = "/Applications/Safari.app/Contents/MacOS/Safari";
-
-  /**
    * We get the safari version by parsing a version file
    */
   static const String versionFile =
@@ -318,10 +319,10 @@ class Safari extends Browser {
             _cleanup = () { userDir.deleteSync(recursive: true); };
             _createLaunchHTML(userDir.path, url);
             var args = ["${userDir.path}/launch.html"];
-            return startBrowser(binary, args);
+            return startBrowser(_binary, args);
           });
         }).catchError((error) {
-          _logEvent("Running $binary --version failed with $error");
+          _logEvent("Running $_binary --version failed with $error");
           return false;
         });
       });
@@ -338,22 +339,7 @@ class Safari extends Browser {
 
 
 class Chrome extends Browser {
-  String _binary;
   String _version = "Version not found yet";
-
-  Chrome() {
-    _binary = _getBinary();
-  }
-
-  String _getBinary() {
-    if (Platform.isWindows) {
-      return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
-    } else if (Platform.isMacOS) {
-      return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-    }
-    assert(Platform.isLinux);
-    return 'google-chrome';
-  }
 
   Map<String, String> _getEnvironment() => null;
 
@@ -410,14 +396,9 @@ class Chrome extends Browser {
 }
 
 class Dartium extends Chrome {
-  final Map globalConfiguration;
   final bool checkedMode;
 
-  Dartium(this.globalConfiguration, this.checkedMode);
-
-  String _getBinary() {
-    return Locations.getDartiumLocation(globalConfiguration);
-  }
+  Dartium(this.checkedMode);
 
   Map<String, String> _getEnvironment() {
     var environment = new Map<String,String>.from(Platform.environment);
@@ -435,10 +416,6 @@ class Dartium extends Chrome {
 }
 
 class IE extends Browser {
-
-  static const String binary =
-      "c:\\Program Files\\Internet Explorer\\iexplore.exe";
-
   Future<String> getVersion() {
     var args = ["query",
                 "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
@@ -463,7 +440,7 @@ class IE extends Browser {
     _logEvent("Starting ie browser on: $url");
     return getVersion().then((version) {
       _logEvent("Got version: $version");
-      return startBrowser(binary, [url]);
+      return startBrowser(_binary, [url]);
     });
   }
   String toString() => "IE";
@@ -610,8 +587,6 @@ class Firefox extends Browser {
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
 
-  static String _binary = _getBinary();
-
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
     var randomFile = file.openSync(mode: FileMode.WRITE);
@@ -619,17 +594,6 @@ class Firefox extends Browser {
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.writeStringSync(disableScriptTimeLimit);
     randomFile.close();
-  }
-
-  // This is extracted to a function since we may need to support several
-  // locations.
-  static String _getWindowsBinary() {
-    return "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
-  }
-
-  static String _getBinary() {
-    if (Platform.isWindows) return _getWindowsBinary();
-    if (Platform.isLinux) return 'firefox';
   }
 
   Future<bool> start(String url) {
@@ -1036,8 +1000,9 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
-    var browser =
-        new Browser.byName(browserName, globalConfiguration, checkedMode);
+    if (browserName == 'ff') browserName = 'firefox';
+    var path = Locations.getBrowserLocation(browserName, globalConfiguration);
+    var browser = new Browser.byName(browserName, path, checkedMode);
     browser.logger = logger;
     return browser;
   }

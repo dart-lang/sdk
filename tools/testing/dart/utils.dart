@@ -126,16 +126,47 @@ String decodeUtf8(List<int> bytes) {
 }
 
 class Locations {
-  static String getDartiumLocation(Map globalConfiguration) {
-    var dartium = globalConfiguration['dartium'];
-    if (dartium != null && dartium != '') {
-      return dartium;
+  static String getBrowserLocation(String browserName,
+                                   Map globalConfiguration) {
+    var location = globalConfiguration[browserName];
+    if (location != null && location != '') {
+      return location;
     }
-    if (Platform.operatingSystem == 'macos') {
-      return new Path('client/tests/dartium/Chromium.app/Contents/'
-          'MacOS/Chromium').toNativePath();
+    final browserLocations = const {
+        'firefox': const {
+          'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
+          'linux': 'firefox',
+          'macos': '/Applications/Firefox.app/Contents/MacOS/firefox'
+        },
+        'chrome': const {
+          'windows':
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+          'macos':
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+          'linux': 'google-chrome'
+        },
+        'dartium': const {
+          'windows': 'client\\tests\\dartium\\chrome.exe',
+          'macos': 'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
+          'linux': 'client/tests/dartium/chrome'
+        },
+        'safari': const {
+          'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
+        },
+        'ie9': const {
+          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        },
+        'ie10': const {
+          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        }};
+
+    assert(browserLocations[browserName] != null);
+    location = browserLocations[browserName][Platform.operatingSystem];
+    if (location != null) {
+      return location;
+    } else {
+      throw '$browserName not supported on ${Platform.operatingSystem}';
     }
-    return new Path('client/tests/dartium/chrome').toNativePath();
   }
 }
 

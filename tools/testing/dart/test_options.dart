@@ -243,6 +243,24 @@ class TestOptionsParser {
               [],
               ''),
           new _TestOptionSpecification(
+              'firefox',
+              'Path to firefox browser executable',
+              ['--firefox'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'chrome',
+              'Path to chrome browser executable',
+              ['--chrome'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'safari',
+              'Path to safari browser executable',
+              ['--safari'],
+              [],
+              ''),
+          new _TestOptionSpecification(
               'use_sdk',
               '''Use compiler or runtime from the SDK.
 
@@ -484,8 +502,8 @@ Note: currently only implemented for dart2js.''',
   // options.
   Set<String>  _blacklistedOptions = new Set<String>.from([
     'progress', 'failure-summary', 'step_name', 'report', 'tasks', 'verbose',
-    'time', 'dart', 'drt', 'dartium', 'build_directory', 'append_logs',
-    'local_ip', 'shard', 'shards',
+    'time', 'dart', 'drt', 'dartium', 'firefox', 'chrome', 'safari',
+    'build_directory', 'append_logs', 'local_ip', 'shard', 'shards',
   ]);
 
   List<String> _constructReproducingCommandArguments(Map config) {
