@@ -269,6 +269,8 @@
     'port.cc',
     'port.h',
     'port_test.cc',
+    'random.cc',
+    'random.h',
     'raw_object.cc',
     'raw_object.h',
     'raw_object_snapshot.cc',

@@ -10,7 +10,7 @@ import "../../../sdk/lib/_internal/compiler/implementation/types/types.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/dart_types.dart";
 
 main() {
-  Compiler compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler();
   compiler.intClass.ensureResolved(compiler);
   compiler.stringClass.ensureResolved(compiler);
 

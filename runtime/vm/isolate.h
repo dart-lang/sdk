@@ -13,6 +13,7 @@
 #include "vm/gc_callbacks.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
+#include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
 
@@ -273,6 +274,8 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, single_step_);
   }
 
+  Random* random() { return &random_; }
+
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
@@ -343,6 +346,13 @@ class Isolate : public BaseIsolate {
     return file_close_callback_;
   }
 
+  static void SetEntropySourceCallback(Dart_EntropySource entropy_source) {
+    entropy_source_callback_ = entropy_source;
+  }
+  static Dart_EntropySource entropy_source_callback() {
+    return entropy_source_callback_;
+  }
+
   void set_object_id_ring(ObjectIdRing* ring) {
     object_id_ring_ = ring;
   }
@@ -388,6 +398,7 @@ class Isolate : public BaseIsolate {
   template<class T> T* AllocateReusableHandle();
 
   static ThreadLocalKey isolate_key;
+
   StoreBuffer store_buffer_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;
@@ -406,6 +417,7 @@ class Isolate : public BaseIsolate {
   StubCode* stub_code_;
   Debugger* debugger_;
   bool single_step_;
+  Random random_;
   Simulator* simulator_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
@@ -445,6 +457,7 @@ class Isolate : public BaseIsolate {
   static Dart_FileReadCallback file_read_callback_;
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
+  static Dart_EntropySource entropy_source_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;
 
   friend class ReusableHandleScope;

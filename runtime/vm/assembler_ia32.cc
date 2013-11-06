@@ -83,6 +83,15 @@ class DirectCallRelocation : public AssemblerFixup {
 };
 
 
+int32_t Assembler::jit_cookie() {
+  if (jit_cookie_ == 0) {
+    jit_cookie_ = static_cast<int32_t>(
+        Isolate::Current()->random()->NextUInt32());
+  }
+  return jit_cookie_;
+}
+
+
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
 }
@@ -1949,9 +1958,9 @@ void Assembler::LoadObjectSafely(Register dst, const Object& object) {
   if (Assembler::IsSafe(object)) {
     LoadObject(dst, object);
   } else {
-    movl(dst,
-         Immediate(reinterpret_cast<int32_t>(object.raw()) ^ jit_cookie_));
-    xorl(dst, Immediate(jit_cookie_));
+    int32_t cookie = jit_cookie();
+    movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw()) ^ cookie));
+    xorl(dst, Immediate(cookie));
   }
 }
 

@@ -113,7 +113,7 @@ class _Random implements Random {
   void _nextState() native "Random_nextState";
 
   int nextInt(int max) {
-    // TODO(srdjan): Remove the 'limit' check once optimizing  comparison of
+    // TODO(srdjan): Remove the 'limit' check once optimizing comparison of
     // Smi-s with Mint constants.
     final limit = 0x3FFFFFFF;
     if (max <= 0 || ((max > limit) && (max > _POW2_32))) {

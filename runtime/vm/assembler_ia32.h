@@ -311,8 +311,8 @@ class Assembler : public ValueObject {
       : buffer_(),
         object_pool_(GrowableObjectArray::Handle()),
         prologue_offset_(-1),
-        comments_(),
-        jit_cookie_(1017109444) {
+        jit_cookie_(0),
+        comments_() {
     // This mode is only needed and implemented for MIPS and ARM.
     ASSERT(!use_far_branches);
   }
@@ -798,10 +798,6 @@ class Assembler : public ValueObject {
   }
 
  private:
-  AssemblerBuffer buffer_;
-  GrowableObjectArray& object_pool_;  // Object pool is not used on ia32.
-  intptr_t prologue_offset_;
-
   class CodeComment : public ZoneAllocated {
    public:
     CodeComment(intptr_t pc_offset, const String& comment)
@@ -817,9 +813,6 @@ class Assembler : public ValueObject {
     DISALLOW_COPY_AND_ASSIGN(CodeComment);
   };
 
-  GrowableArray<CodeComment*> comments_;
-
-  int32_t jit_cookie_;
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
@@ -844,6 +837,14 @@ class Assembler : public ValueObject {
   void StoreIntoObjectFilterNoSmi(Register object,
                                   Register value,
                                   Label* no_update);
+
+  int32_t jit_cookie();
+
+  AssemblerBuffer buffer_;
+  GrowableObjectArray& object_pool_;  // Object pool is not used on ia32.
+  intptr_t prologue_offset_;
+  int32_t jit_cookie_;
+  GrowableArray<CodeComment*> comments_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

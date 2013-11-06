@@ -545,6 +545,9 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(type.IsFinalized());
+  ASSERT(!type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!type.IsMalformed());  // Already checked in code generator.
+  ASSERT(!type.IsMalbounded());  // Already checked in code generator.
   Error& bound_error = Error::Handle();
   const Bool& result =
       Bool::Get(instance.IsInstanceOf(type,

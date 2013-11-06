@@ -5,31 +5,42 @@
 part of html;
 
 /**
- * An object that can be drawn to a [CanvasRenderingContext2D] object with
- * [CanvasRenderingContext2D.drawImage],
- * [CanvasRenderingContext2D.drawImageToRect],
- * [CanvasRenderingContext2D.drawImageScaled], or
- * [CanvasRenderingContext2D.drawImageScaledFromSource].
+ * An object that can be drawn to a 2D canvas rendering context.
  *
- * If the CanvasImageSource is an [ImageElement] then the element's image is
- * used. If the [ImageElement] is an animated image, then the poster frame is
- * used. If there is no poster frame, then the first frame of animation is used.
+ * This object is either an [ImageElement], [VideoElement], or
+ * [CanvasElement].
  *
- * If the CanvasImageSource is a [VideoElement] then the frame at the current
- * playback position is used as the image.
+ * The image drawn to the canvas differs by implementation:
  *
- * If the CanvasImageSource is a [CanvasElement] then the element's bitmap is
- * used.
+ * * If this object is an [ImageElement], then this element's image is
+ * drawn to the canvas. If this element is an animated image, then this
+ * element's poster frame is drawn. If this element has no poster frame, then
+ * the first frame of animation is drawn.
  *
- * ** Note: ** Currently, all versions of Internet Explorer do not support
- * drawing a VideoElement to a canvas. Also, you may experience problems drawing
+ * * If this object is a [VideoElement], then the frame at this element's current
+ * playback position is drawn to the canvas.
+ *
+ * * If this object is a [CanvasElement], then this element's bitmap is drawn to
+ * the canvas.
+ *
+ * **Note:** Currently all versions of Internet Explorer do not support
+ * drawing a video element to a canvas. You may also encounter problems drawing
  * a video to a canvas in Firefox if the source of the video is a data URL.
  *
- * See also:
+ * ## See also
  *
- *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
- * from the WHATWG.
- *  * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
- * from the WHATWG.
+ * * [CanvasRenderingContext2D.drawImage]
+ * * [CanvasRenderingContext2D.drawImageToRect]
+ * * [CanvasRenderingContext2D.drawImageScaled]
+ * * [CanvasRenderingContext2D.drawImageScaledFromSource]
+ *
+ * ## Other resources
+ *
+ * * [Image sources for 2D rendering contexts]
+ * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
+ * from WHATWG.
+ * * [Drawing images]
+ * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+ * from WHATWG.
  */
 abstract class CanvasImageSource {}

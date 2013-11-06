@@ -9,10 +9,10 @@ import 'package:expect/expect.dart';
 import 'package:expect/expect.dart' as prefix;  // Define 'prefix'.
 
 checkIsUnresolved(var v) {
-  Expect.isTrue(v is Unresolved);
-  Expect.isTrue(v is Unresolved<int>);
-  Expect.isTrue(v is prefix.Unresolved);
-  Expect.isTrue(v is prefix.Unresolved<int>);
+  Expect.throws(() => v is Unresolved, (e) => e is TypeError);
+  Expect.throws(() => v is Unresolved<int>, (e) => e is TypeError);
+  Expect.throws(() => v is prefix.Unresolved, (e) => e is TypeError);
+  Expect.throws(() => v is prefix.Unresolved<int>, (e) => e is TypeError);
 }
 
 checkIsListUnresolved(bool expect, var v) {
@@ -29,10 +29,10 @@ checkIsListDynamic(bool expect, var v) {
 }
 
 checkAsUnresolved(var v) {
-  Expect.equals(v, v as Unresolved);
-  Expect.equals(v, v as Unresolved<int>);
-  Expect.equals(v, v as prefix.Unresolved);
-  Expect.equals(v, v as prefix.Unresolved<int>);
+  Expect.throws(() => v as Unresolved, (e) => e is TypeError);
+  Expect.throws(() => v as Unresolved<int>, (e) => e is TypeError);
+  Expect.throws(() => v as prefix.Unresolved, (e) => e is TypeError);
+  Expect.throws(() => v as prefix.Unresolved<int>, (e) => e is TypeError);
 }
 
 checkAsListUnresolved(bool expect, var v) {
@@ -125,24 +125,40 @@ void main() {
   Expect.throws(() => new undeclared_prefix.Unresolved<int>(), (e) => true);  /// 05: compile-time error
 
   try {
-    throw 'foo';
-  } on Unresolved catch (e) {
-    // Equivalent to 'on dynamic', catches 'foo'.
+    try {
+      throw 'foo';
+    } on Unresolved catch (e) {
+      Expect.fail("This code shouldn't be executed");
+    }
+    Expect.fail("This code shouldn't be executed");
+  } on TypeError catch (e) {
   }
   try {
-    throw 'foo';
-  } on Unresolved<int> catch (e) {
-    // Equivalent to 'on dynamic', catches 'foo'.
+    try {
+      throw 'foo';
+    } on Unresolved<int> catch (e) {
+      Expect.fail("This code shouldn't be executed");
+    }
+    Expect.fail("This code shouldn't be executed");
+  } on TypeError catch (e) {
   }
   try {
-    throw 'foo';
-  } on prefix.Unresolved catch (e) {
-    // Equivalent to 'on dynamic', catches 'foo'.
+    try {
+      throw 'foo';
+    } on prefix.Unresolved catch (e) {
+      Expect.fail("This code shouldn't be executed");
+    }
+    Expect.fail("This code shouldn't be executed");
+  } on TypeError catch (e) {
   }
   try {
-    throw 'foo';
-  } on prefix.Unresolved<int> catch (e) {
-    // Equivalent to 'on dynamic', catches 'foo'.
+    try {
+      throw 'foo';
+    } on prefix.Unresolved<int> catch (e) {
+      Expect.fail("This code shouldn't be executed");
+    }
+    Expect.fail("This code shouldn't be executed");
+  } on TypeError catch (e) {
   }
   try {
     throw 'foo';

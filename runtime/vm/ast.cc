@@ -255,6 +255,17 @@ const char* BinaryOpWithMask32Node::TokenName() const {
 
 bool BinaryOpNode::IsPotentiallyConst() const {
   switch (kind_) {
+    case Token::kOR:
+    case Token::kAND:
+      if (this->left()->IsLiteralNode() &&
+          this->left()->AsLiteralNode()->literal().IsNull()) {
+        return false;
+      }
+      if (this->right()->IsLiteralNode() &&
+          this->right()->AsLiteralNode()->literal().IsNull()) {
+        return false;
+      }
+      // Fall-through intentional.
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
@@ -266,8 +277,6 @@ bool BinaryOpNode::IsPotentiallyConst() const {
     case Token::kBIT_AND:
     case Token::kSHL:
     case Token::kSHR:
-    case Token::kOR:
-    case Token::kAND:
       return this->left()->IsPotentiallyConst() &&
           this->right()->IsPotentiallyConst();
     default:
@@ -355,6 +364,10 @@ bool UnaryOpNode::IsKindValid() const {
 
 
 bool UnaryOpNode::IsPotentiallyConst() const {
+  if (this->operand()->IsLiteralNode() &&
+      this->operand()->AsLiteralNode()->literal().IsNull()) {
+    return false;
+  }
   return this->operand()->IsPotentiallyConst();
 }
 

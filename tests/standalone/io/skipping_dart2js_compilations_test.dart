@@ -132,7 +132,7 @@ class CommandCompletedHandler {
 
   CommandCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
 
-  void processCompletedTest(CommandOutput output) {
+  void processCompletedTest(runner.CommandOutput output) {
     Expect.isTrue(output.exitCode == 0);
     Expect.isTrue(output.stderr.length == 0);
     if (_shouldHaveRun) {
@@ -212,7 +212,7 @@ void main() {
       var completedHandler = new CommandCompletedHandler(fileUtils, shouldRun);
       var command = makeCompilationCommand(name, fileUtils);
       var process = new runner.RunningProcess(command, 60);
-      return process.run().then((CommandOutput output) {
+      return process.run().then((runner.CommandOutput output) {
         completedHandler.processCompletedTest(output);
       });
     }

@@ -290,6 +290,7 @@ Isolate::Isolate()
       stub_code_(NULL),
       debugger_(NULL),
       single_step_(false),
+      random_(),
       simulator_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
@@ -726,6 +727,7 @@ Dart_FileOpenCallback Isolate::file_open_callback_ = NULL;
 Dart_FileReadCallback Isolate::file_read_callback_ = NULL;
 Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
+Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
 
 
