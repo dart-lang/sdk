@@ -49,7 +49,13 @@ class _HasProperty extends Matcher {
     var mirror = reflect(item);
     var classMirror = mirror.type;
     var symbol = new Symbol(_name);
-    if (!classMirror.getters.containsKey(symbol)) {
+    bool hasGetter(classMirror, getterName) {
+      var candidate = classMirror.declarations[getterName];
+      return candidate != null &&
+          candidate is MethodMirror &&
+          candidate.isGetter;
+    }
+    if (!hasGetter(classMirror, symbol)) {
       addStateInfo(matchState, {'reason': 'has no property named "$_name"'});
       return false;
     }

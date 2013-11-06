@@ -25,10 +25,10 @@ reflectTypeDeclaration(t) => reflectType(t).originalDeclaration;
 main() {
   TypeMirror dynamicMirror = currentMirrorSystem().dynamicType;
 
-  TypedefMirror predicateOfNum = reflectClass(C).variables[#predicateOfNum].type;
-  TypedefMirror transformOfString = reflectClass(C).variables[#transformOfString].type;
-  TypedefMirror transformOfR = reflectClass(C).variables[#transformOfR].type;
-  TypedefMirror transformOfDouble = reflect(new C<double>()).type.variables[#transformOfR].type;
+  TypedefMirror predicateOfNum = (reflectClass(C).declarations[#predicateOfNum] as VariableMirror).type;
+  TypedefMirror transformOfString = (reflectClass(C).declarations[#transformOfString] as VariableMirror).type;
+  TypedefMirror transformOfR = (reflectClass(C).declarations[#transformOfR] as VariableMirror).type;
+  TypedefMirror transformOfDouble = (reflect(new C<double>()).type.declarations[#transformOfR] as VariableMirror).type;
 
   TypeVariableMirror tFromGenericPredicate = reflectTypeDeclaration(GenericPredicate).typeVariables[0];
   TypeVariableMirror sFromGenericTransform = reflectTypeDeclaration(GenericTransform).typeVariables[0];
