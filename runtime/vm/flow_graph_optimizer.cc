@@ -6336,6 +6336,26 @@ static bool CompareIntegers(Token::Kind kind,
 }
 
 
+void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    if (left.IsInteger() && right.IsInteger()) {
+      const bool result = CompareIntegers(
+          instr->kind(),
+          Integer::Handle(Integer::Cast(left).BitOp(Token::kBIT_AND,
+                                                    Integer::Cast(right))),
+          Smi::Handle(Smi::New(0)));
+      SetValue(instr, result ? Bool::True() : Bool::False());
+    } else {
+      SetValue(instr, non_constant_);
+    }
+  }
+}
+
+
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();

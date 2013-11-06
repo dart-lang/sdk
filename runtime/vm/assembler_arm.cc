@@ -2442,6 +2442,16 @@ void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
 }
 
 
+void Assembler::TestImmediate(Register rn, int32_t imm, Condition cond) {
+  ShifterOperand shifter_op;
+  if (ShifterOperand::CanHold(imm, &shifter_op)) {
+    tst(rn, shifter_op, cond);
+  } else {
+    LoadImmediate(IP, imm);
+    tst(rn, ShifterOperand(IP), cond);
+  }
+}
+
 void Assembler::IntegerDivide(Register result, Register left, Register right,
                               DRegister tmpl, DRegister tmpr) {
   ASSERT(tmpl != tmpr);

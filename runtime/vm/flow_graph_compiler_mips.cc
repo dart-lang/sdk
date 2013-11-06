@@ -230,11 +230,11 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
-  __ andi(CMPRES, kInstanceReg, Immediate(kSmiTagMask));
+  __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
   if (smi_is_ok) {
-    __ beq(CMPRES, ZR, is_instance_lbl);
+    __ beq(CMPRES1, ZR, is_instance_lbl);
   } else {
-    __ beq(CMPRES, ZR, is_not_instance_lbl);
+    __ beq(CMPRES1, ZR, is_not_instance_lbl);
   }
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
@@ -428,8 +428,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
-    __ andi(CMPRES, A0, Immediate(kSmiTagMask));
-    __ bne(CMPRES, ZR, &not_smi);  // Value is Smi?
+    __ andi(CMPRES1, A0, Immediate(kSmiTagMask));
+    __ bne(CMPRES1, ZR, &not_smi);  // Value is Smi?
     __ BranchEqual(T2, Type::ZoneHandle(Type::IntType()), is_instance_lbl);
     __ BranchEqual(T2, Type::ZoneHandle(Type::Number()), is_instance_lbl);
 
@@ -456,8 +456,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   if (type.IsType()) {
     const Register kInstanceReg = A0;
     const Register kTypeArgumentsReg = A1;
-    __ andi(CMPRES, kInstanceReg, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, is_not_instance_lbl);  // Is instance Smi?
+    __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, is_not_instance_lbl);  // Is instance Smi?
     __ lw(kTypeArgumentsReg, Address(SP, 0));  // Instantiator type args.
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator.
@@ -497,11 +497,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
   if (TypeCheckAsClassEquality(type)) {
     const intptr_t type_cid = Class::Handle(type.type_class()).id();
     const Register kInstanceReg = A0;
-    __ andi(CMPRES, kInstanceReg, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
     if (type_cid == kSmiCid) {
-      __ beq(CMPRES, ZR, is_instance_lbl);
+      __ beq(CMPRES1, ZR, is_instance_lbl);
     } else {
-      __ beq(CMPRES, ZR, is_not_instance_lbl);
+      __ beq(CMPRES1, ZR, is_not_instance_lbl);
       __ LoadClassId(T0, kInstanceReg);
       __ BranchEqual(T0, type_cid, is_instance_lbl);
     }
@@ -672,13 +672,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Generate throw new TypeError() if the type is malformed or malbounded.
   if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
     __ addiu(SP, SP, Immediate(-4 * kWordSize));
-    __ LoadObject(TMP1, Object::ZoneHandle());
-    __ sw(TMP1, Address(SP, 3 * kWordSize));  // Make room for the result.
+    __ LoadObject(TMP, Object::ZoneHandle());
+    __ sw(TMP, Address(SP, 3 * kWordSize));  // Make room for the result.
     __ sw(A0, Address(SP, 2 * kWordSize));  // Push the source object.
-    __ LoadObject(TMP1, dst_name);
-    __ sw(TMP1, Address(SP, 1 * kWordSize));  // Push the destination name.
-    __ LoadObject(TMP1, dst_type);
-    __ sw(TMP1, Address(SP, 0 * kWordSize));  // Push the destination type.
+    __ LoadObject(TMP, dst_name);
+    __ sw(TMP, Address(SP, 1 * kWordSize));  // Push the destination name.
+    __ LoadObject(TMP, dst_type);
+    __ sw(TMP, Address(SP, 0 * kWordSize));  // Push the destination type.
 
     GenerateRuntimeCall(token_pos,
                         deopt_id,
@@ -707,15 +707,15 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ lw(A2, Address(SP, 1 * kWordSize));
 
   __ addiu(SP, SP, Immediate(-7 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());
-  __ sw(TMP1, Address(SP, 6 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP, Object::ZoneHandle());
+  __ sw(TMP, Address(SP, 6 * kWordSize));  // Make room for the result.
   __ sw(A0, Address(SP, 5 * kWordSize));  // Push the source object.
-  __ LoadObject(TMP1, dst_type);
-  __ sw(TMP1, Address(SP, 4 * kWordSize));  // Push the type of the destination.
+  __ LoadObject(TMP, dst_type);
+  __ sw(TMP, Address(SP, 4 * kWordSize));  // Push the type of the destination.
   __ sw(A2, Address(SP, 3 * kWordSize));  // Push instantiator.
   __ sw(A1, Address(SP, 2 * kWordSize));  // Push type arguments.
-  __ LoadObject(TMP1, dst_name);
-  __ sw(TMP1, Address(SP, 1 * kWordSize));  // Push the name of the destination.
+  __ LoadObject(TMP, dst_name);
+  __ sw(TMP, Address(SP, 1 * kWordSize));  // Push the name of the destination.
   __ LoadObject(T0, test_cache);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
@@ -1353,8 +1353,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   Label not_smi, load_cache;
   __ TraceSimMsg("MegamorphicInstanceCall");
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &not_smi);
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &not_smi);
   __ LoadImmediate(T0, Smi::RawValue(kSmiCid));
   __ b(&load_cache);
 
@@ -1380,8 +1380,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ and_(T3, T3, T1);
   const intptr_t base = Array::data_offset();
   // T3 is smi tagged, but table entries are two words, so LSL 2.
-  __ sll(TMP1, T3, 2);
-  __ addu(TMP1, T2, TMP1);
+  __ sll(TMP, T3, 2);
+  __ addu(TMP, T2, TMP);
   __ lw(T4, FieldAddress(TMP, base));
 
   ASSERT(kIllegalCid == 0);
@@ -1489,8 +1489,8 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(reg, Address(SP, 1 * kWordSize));
-    __ LoadObject(TMP1, obj);
-    __ sw(TMP1, Address(SP, 0 * kWordSize));
+    __ LoadObject(TMP, obj);
+    __ sw(TMP, Address(SP, 0 * kWordSize));
     if (is_optimizing()) {
       __ BranchLinkPatchable(
           &StubCode::OptimizedIdenticalWithNumberCheckLabel());
@@ -1531,7 +1531,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                          Isolate::kNoDeoptId,
                          token_pos);
     __ TraceSimMsg("EqualityRegRegCompare return");
-    // Stub returns result in CMPRES. If it is 0, then left and right are equal.
+    // Stub returns result in CMPRES1. If it is 0, then left and right are
+    // equal.
     __ lw(right, Address(SP, 0 * kWordSize));
     __ lw(left, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
@@ -1700,7 +1701,7 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
   }
   assembler()->mov(CMPRES2, ZR);
 
-  // EmitBranchOnCondition expects ordering to be described by CMPRES, CMPRES2.
+  // EmitBranchOnCondition expects ordering to be described by CMPRES1, CMPRES2.
   branch->EmitBranchOnCondition(this, EQ);
 }
 
@@ -1930,15 +1931,15 @@ void ParallelMoveResolver::EmitSwap(int index) {
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
   __ TraceSimMsg("ParallelMoveResolver::MoveMemoryToMemory");
-  __ lw(TMP1, src);
-  __ sw(TMP1, dst);
+  __ lw(TMP, src);
+  __ sw(TMP, dst);
 }
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
   __ TraceSimMsg("ParallelMoveResolver::StoreObject");
-  __ LoadObject(TMP1, obj);
-  __ sw(TMP1, dst);
+  __ LoadObject(TMP, obj);
+  __ sw(TMP, dst);
 }
 
 

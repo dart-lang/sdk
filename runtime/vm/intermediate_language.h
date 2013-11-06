@@ -661,8 +661,8 @@ class EmbeddedArray<T, 0> {
   M(BoxDouble)                                                                 \
   M(BoxFloat32x4)                                                              \
   M(UnboxFloat32x4)                                                            \
-  M(BoxInt32x4)                                                               \
-  M(UnboxInt32x4)                                                             \
+  M(BoxInt32x4)                                                                \
+  M(UnboxInt32x4)                                                              \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -689,14 +689,15 @@ class EmbeddedArray<T, 0> {
   M(Float32x4ZeroArg)                                                          \
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
-  M(Float32x4ToInt32x4)                                                       \
+  M(Float32x4ToInt32x4)                                                        \
   M(MaterializeObject)                                                         \
-  M(Int32x4BoolConstructor)                                                   \
-  M(Int32x4GetFlag)                                                           \
-  M(Int32x4Select)                                                            \
-  M(Int32x4SetFlag)                                                           \
-  M(Int32x4ToFloat32x4)                                                       \
-  M(BinaryInt32x4Op)                                                          \
+  M(Int32x4BoolConstructor)                                                    \
+  M(Int32x4GetFlag)                                                            \
+  M(Int32x4Select)                                                             \
+  M(Int32x4SetFlag)                                                            \
+  M(Int32x4ToFloat32x4)                                                        \
+  M(BinaryInt32x4Op)                                                           \
+  M(TestSmi)                                                                   \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -2985,6 +2986,45 @@ class StrictCompareInstr : public ComparisonInstr {
 };
 
 
+// Comparison instruction that is equivalent to the (left & right) == 0
+// comparison pattern.
+class TestSmiInstr : public ComparisonInstr {
+ public:
+  TestSmiInstr(intptr_t token_pos, Token::Kind kind, Value* left, Value* right)
+      : ComparisonInstr(token_pos, kind, left, right) {
+    ASSERT(kind == Token::kEQ || kind == Token::kNE);
+  }
+
+  DECLARE_INSTRUCTION(TestSmi);
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // TestSmi can be merged into Branch and thus needs an environment.
+    return true;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
+};
+
+
 class EqualityCompareInstr : public ComparisonInstr {
  public:
   EqualityCompareInstr(intptr_t token_pos,
@@ -3001,7 +3041,6 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   DECLARE_INSTRUCTION(EqualityCompare)
   virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3051,7 +3090,6 @@ class RelationalOpInstr : public ComparisonInstr {
 
   DECLARE_INSTRUCTION(RelationalOp)
   virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

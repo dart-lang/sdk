@@ -175,9 +175,7 @@ const FpuRegister kNoFpuRegister = kNoDRegister;
 
 
 // Register aliases.
-const Register TMP1 = AT;  // Used as scratch register by assembler.
-const Register TMP = TMP1;  // Arch independent flow graph compiler needs a
-                            // Register called TMP.
+const Register TMP = AT;  // Used as scratch register by assembler.
 const Register CTX = S6;  // Caches current context in generated code.
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
@@ -190,7 +188,6 @@ const Register ICREG = S5;  // IC data register.
 // since TMP is clobbered by a far branch.
 const Register CMPRES1 = T8;
 const Register CMPRES2 = T9;
-const Register CMPRES = CMPRES1;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

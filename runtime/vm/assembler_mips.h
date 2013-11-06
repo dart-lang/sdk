@@ -738,7 +738,7 @@ class Assembler : public ValueObject {
 
   // Addition of rs and rt with the result placed in rd.
   // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
-  // rd and ro must not be TMP1.
+  // rd and ro must not be TMP.
   // ro must be different from all the other registers.
   // If rd, rs, and rt are the same register, then a scratch register different
   // from the other registers is needed.
@@ -746,7 +746,7 @@ class Assembler : public ValueObject {
                           Register scratch = kNoRegister);
 
   // ro must be different from rd and rs.
-  // rd and ro must not be TMP1.
+  // rd and ro must not be TMP.
   // If rd and rs are the same, a scratch register different from the other
   // registers is needed.
   void AddImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
@@ -757,12 +757,12 @@ class Assembler : public ValueObject {
 
   // Subtraction of rt from rs (rs - rt) with the result placed in rd.
   // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
-  // None of rd, rs, rt, or ro may be TMP1.
+  // None of rd, rs, rt, or ro may be TMP.
   // ro must be different from the other registers.
   void SubuDetectOverflow(Register rd, Register rs, Register rt, Register ro);
 
   // ro must be different from rd and rs.
-  // None of rd, rs, rt, or ro may be TMP1.
+  // None of rd, rs, rt, or ro may be TMP.
   void SubImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
                                   Register ro) {
     LoadImmediate(rd, imm);
@@ -770,29 +770,29 @@ class Assembler : public ValueObject {
   }
 
   void Branch(const ExternalLabel* label) {
-    LoadImmediate(TMP1, label->address());
-    jr(TMP1);
+    LoadImmediate(TMP, label->address());
+    jr(TMP);
   }
 
   void BranchPatchable(const ExternalLabel* label) {
     const uint16_t low = Utils::Low16Bits(label->address());
     const uint16_t high = Utils::High16Bits(label->address());
-    lui(TMP1, Immediate(high));
-    ori(TMP1, TMP1, Immediate(low));
-    jr(TMP1);
+    lui(TMP, Immediate(high));
+    ori(TMP, TMP, Immediate(low));
+    jr(TMP);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
   void BranchLink(const ExternalLabel* label) {
-    LoadImmediate(TMP1, label->address());
-    jalr(TMP1);
+    LoadImmediate(TMP, label->address());
+    jalr(TMP);
   }
 
   void BranchLinkPatchable(const ExternalLabel* label) {
     const int32_t offset =
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-    LoadWordFromPoolOffset(TMP1, offset);
-    jalr(TMP1);
+    LoadWordFromPoolOffset(TMP, offset);
+    jalr(TMP);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
@@ -820,15 +820,15 @@ class Assembler : public ValueObject {
     const int32_t low = Utils::Low32Bits(ival);
     const int32_t high = Utils::High32Bits(ival);
     if (low != 0) {
-      LoadImmediate(TMP1, low);
-      mtc1(TMP1, frd);
+      LoadImmediate(TMP, low);
+      mtc1(TMP, frd);
     } else {
       mtc1(ZR, frd);
     }
 
     if (high != 0) {
-      LoadImmediate(TMP1, high);
-      mtc1(TMP1, static_cast<FRegister>(frd + 1));
+      LoadImmediate(TMP, high);
+      mtc1(TMP, static_cast<FRegister>(frd + 1));
     } else {
       mtc1(ZR, static_cast<FRegister>(frd + 1));
     }
@@ -839,8 +839,8 @@ class Assembler : public ValueObject {
     if (ival == 0) {
       mtc1(ZR, rd);
     } else {
-      LoadImmediate(TMP1, ival);
-      mtc1(TMP1, rd);
+      LoadImmediate(TMP, ival);
+      mtc1(TMP, rd);
     }
   }
 
@@ -850,8 +850,8 @@ class Assembler : public ValueObject {
     if (Utils::IsInt(kImmBits, value)) {
       addiu(rd, rs, Immediate(value));
     } else {
-      LoadImmediate(TMP1, value);
-      addu(rd, rs, TMP1);
+      LoadImmediate(TMP, value);
+      addu(rd, rs, TMP);
     }
   }
 

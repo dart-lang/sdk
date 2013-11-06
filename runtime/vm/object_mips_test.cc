@@ -19,13 +19,13 @@ namespace dart {
 // This is used to test Code and Instruction object creation.
 void GenerateIncrement(Assembler* assembler) {
   __ Push(ZR);
-  __ lw(TMP1, Address(SP, 0));
-  __ addiu(TMP1, TMP1, Immediate(1));
-  __ sw(TMP1, Address(SP, 0));
-  __ lw(TMP1, Address(SP, 0));
-  __ addiu(TMP1, TMP1, Immediate(1));
+  __ lw(TMP, Address(SP, 0));
+  __ addiu(TMP, TMP, Immediate(1));
+  __ sw(TMP, Address(SP, 0));
+  __ lw(TMP, Address(SP, 0));
+  __ addiu(TMP, TMP, Immediate(1));
   __ Pop(V0);
-  __ mov(V0, TMP1);
+  __ mov(V0, TMP);
   __ Ret();
 }
 

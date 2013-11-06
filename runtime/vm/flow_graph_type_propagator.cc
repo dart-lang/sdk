@@ -803,25 +803,20 @@ CompileType StrictCompareInstr::ComputeType() const {
 }
 
 
+CompileType TestSmiInstr::ComputeType() const {
+  return CompileType::Bool();
+}
+
+
 CompileType EqualityCompareInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();
 }
 
 
-bool EqualityCompareInstr::RecomputeType() {
-  return UpdateType(ComputeType());
-}
-
-
 CompileType RelationalOpInstr::ComputeType() const {
   // Used for numeric comparisons only.
   return CompileType::Bool();
-}
-
-
-bool RelationalOpInstr::RecomputeType() {
-  return UpdateType(ComputeType());
 }
 
 

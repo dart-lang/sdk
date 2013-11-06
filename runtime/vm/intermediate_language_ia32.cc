@@ -551,6 +551,42 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
+LocationSummary* TestSmiInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  // Only one input can be a constant operand. The case of two constant
+  // operands should be handled by constant propagation.
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  return locs;
+}
+
+
+void TestSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Never emitted outside of the BranchInstr.
+  UNREACHABLE();
+}
+
+
+void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  Condition branch_condition = (kind() == Token::kNE) ? NOT_ZERO : ZERO;
+  Register left = locs()->in(0).reg();
+  Location right = locs()->in(1);
+  if (right.IsConstant()) {
+    ASSERT(right.constant().IsSmi());
+    const int32_t imm =
+        reinterpret_cast<int32_t>(right.constant().raw());
+    __ testl(left, Immediate(imm));
+  } else {
+    __ testl(left, right.reg());
+  }
+  branch->EmitBranchOnCondition(compiler, branch_condition);
+}
+
+
 LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;

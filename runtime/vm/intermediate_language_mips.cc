@@ -473,7 +473,7 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 }
 
 
-// Branches on condition c assuming comparison results in CMPRES and CMPRES2.
+// Branches on condition c assuming comparison results in CMPRES1 and CMPRES2.
 static void EmitBranchAfterCompare(
     FlowGraphCompiler* compiler, Condition c, Label* is_true) {
   switch (c) {
@@ -635,6 +635,43 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
+LocationSummary* TestSmiInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  // Only one input can be a constant operand. The case of two constant
+  // operands should be handled by constant propagation.
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  return locs;
+}
+
+
+void TestSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Never emitted outside of the BranchInstr.
+  UNREACHABLE();
+}
+
+
+void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  Condition branch_condition = (kind() == Token::kNE) ? NE : EQ;
+  Register left = locs()->in(0).reg();
+  Location right = locs()->in(1);
+  if (right.IsConstant()) {
+    ASSERT(right.constant().IsSmi());
+    const int32_t imm =
+        reinterpret_cast<int32_t>(right.constant().raw());
+    __ AndImmediate(CMPRES1, left, imm);
+  } else {
+    __ and_(CMPRES1, left, right.reg());
+  }
+  __ mov(CMPRES2, ZR);
+  branch->EmitBranchOnCondition(compiler, branch_condition);
+}
+
+
 LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -777,9 +814,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(result,
                    reinterpret_cast<uword>(Symbols::PredefinedAddress()));
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
-  __ sll(TMP1, char_code, 1);  // Char code is a smi.
-  __ addu(TMP1, TMP1, result);
-  __ lw(result, Address(TMP1));
+  __ sll(TMP, char_code, 1);  // Char code is a smi.
+  __ addu(TMP, TMP, result);
+  __ lw(result, Address(TMP));
 }
 
 
@@ -836,8 +873,8 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out().reg();
   Label load, done;
-  __ andi(CMPRES, object, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &load);
+  __ andi(CMPRES1, object, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &load);
   __ LoadImmediate(result, Smi::RawValue(kSmiCid));
   __ b(&done);
   __ Bind(&load);
@@ -1055,9 +1092,9 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
         __ lw(result, element_address);
         // Verify that the unsigned value in 'result' can fit inside a Smi.
-        __ LoadImmediate(TMP1, 0xC0000000);
-        __ and_(CMPRES, result, TMP1);
-        __ bne(CMPRES, ZR, deopt);
+        __ LoadImmediate(TMP, 0xC0000000);
+        __ and_(CMPRES1, result, TMP);
+        __ bne(CMPRES1, ZR, deopt);
         __ SmiTag(result);
       }
       break;
@@ -1240,8 +1277,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(value);
         __ BranchUnsignedLess(value, 0xFF + 1, &store_value);
         __ LoadImmediate(TMP, 0xFF);
-        __ slti(CMPRES, value, Immediate(1));
-        __ movn(TMP, ZR, CMPRES);
+        __ slti(CMPRES1, value, Immediate(1));
+        __ movn(TMP, ZR, CMPRES1);
         __ mov(value, TMP);
         __ Bind(&store_value);
         __ sb(value, element_address);
@@ -1429,31 +1466,29 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ bne(CMPRES1, ZR, fail);
       }
       __ Bind(&skip_length_check);
-      __ lw(TMP1, field_nullability_operand);
-      __ subu(CMPRES, value_cid_reg, TMP1);
+      __ lw(TMP, field_nullability_operand);
+      __ subu(CMPRES1, value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      // TODO(regis): TMP1 may conflict. Revisit.
-      __ lw(TMP1, field_nullability_operand);
-      __ LoadImmediate(CMPRES, value_cid);
-      __ subu(CMPRES, TMP1, CMPRES);
+      __ lw(TMP, field_nullability_operand);
+      __ LoadImmediate(CMPRES1, value_cid);
+      __ subu(CMPRES1, TMP, CMPRES1);
     } else {
       Label skip_length_check;
-      // TODO(regis): TMP1 may conflict. Revisit.
-      __ lw(TMP1, field_cid_operand);
-      __ LoadImmediate(CMPRES, value_cid);
-      __ subu(CMPRES, TMP1, CMPRES);
-      __ bne(CMPRES, ZR, &skip_length_check);
+      __ lw(TMP, field_cid_operand);
+      __ LoadImmediate(CMPRES1, value_cid);
+      __ subu(CMPRES1, TMP, CMPRES1);
+      __ bne(CMPRES1, ZR, &skip_length_check);
       // Insert length check.
       if (field_has_length) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
           __ lw(TMP, FieldAddress(value_reg, Array::length_offset()));
-          __ LoadImmediate(CMPRES, Smi::RawValue(field_length));
-          __ subu(CMPRES, TMP, CMPRES);
+          __ LoadImmediate(CMPRES1, Smi::RawValue(field_length));
+          __ subu(CMPRES1, TMP, CMPRES1);
         } else if (RawObject::IsTypedDataClassId(value_cid)) {
           __ lw(TMP, FieldAddress(value_reg, TypedData::length_offset()));
-          __ LoadImmediate(CMPRES, Smi::RawValue(field_length));
-          __ subu(CMPRES, TMP, CMPRES);
+          __ LoadImmediate(CMPRES1, Smi::RawValue(field_length));
+          __ subu(CMPRES1, TMP, CMPRES1);
         } else if (field_cid != kIllegalCid) {
           ASSERT(field_cid != value_cid);
           ASSERT(field_length >= 0);
@@ -1465,11 +1500,11 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           ASSERT(field_length == Field::kUnknownFixedLength);
           // Following jump cannot not occur, fall through.
         }
-        __ bne(CMPRES, ZR, fail);
+        __ bne(CMPRES1, ZR, fail);
       }
       __ Bind(&skip_length_check);
     }
-    __ beq(CMPRES, ZR, &ok);
+    __ beq(CMPRES1, ZR, &ok);
 
     __ lw(CMPRES1, field_cid_operand);
     __ BranchNotEqual(CMPRES1, kIllegalCid, fail);
@@ -1503,16 +1538,15 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Updated field length from regular array.
         __ b(&length_set);
         __ Bind(&no_fixed_length);
-        // TODO(regis): TMP1 may conflict. Revisit.
-        __ LoadImmediate(TMP1, Smi::RawValue(Field::kNoFixedLength));
-        __ sw(TMP1, field_length_operand);
+        __ LoadImmediate(TMP, Smi::RawValue(Field::kNoFixedLength));
+        __ sw(TMP, field_length_operand);
         __ Bind(&length_set);
       }
     } else {
       ASSERT(field_reg != kNoRegister);
-      __ LoadImmediate(TMP1, value_cid);
-      __ sw(TMP1, field_cid_operand);
-      __ sw(TMP1, field_nullability_operand);
+      __ LoadImmediate(TMP, value_cid);
+      __ sw(TMP, field_cid_operand);
+      __ sw(TMP, field_nullability_operand);
       if (field_has_length) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
@@ -1541,18 +1575,18 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (value_cid == kDynamicCid) {
       // Field's guarded class id is fixed by value's class id is not known.
-      __ andi(CMPRES, value_reg, Immediate(kSmiTagMask));
+      __ andi(CMPRES1, value_reg, Immediate(kSmiTagMask));
 
       if (field_cid != kSmiCid) {
-        __ beq(CMPRES, ZR, fail);
+        __ beq(CMPRES1, ZR, fail);
         __ LoadClassId(value_cid_reg, value_reg);
-        __ LoadImmediate(TMP1, field_cid);
-        __ subu(CMPRES, value_cid_reg, TMP1);
+        __ LoadImmediate(TMP, field_cid);
+        __ subu(CMPRES1, value_cid_reg, TMP);
       }
 
       if (field_has_length) {
         // Jump when Value CID != Field guard CID
-        __ bne(CMPRES, ZR, fail);
+        __ bne(CMPRES1, ZR, fail);
         // Classes are same, perform guarded list length check.
         ASSERT(field_reg != kNoRegister);
         ASSERT(value_cid_reg != kNoRegister);
@@ -1567,20 +1601,20 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ lw(value_cid_reg,
                 FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ lw(TMP1, field_length_operand);
-        __ subu(CMPRES, value_cid_reg, TMP1);
+        __ lw(TMP, field_length_operand);
+        __ subu(CMPRES1, value_cid_reg, TMP);
       }
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
-        __ beq(CMPRES, ZR, &ok);
+        __ beq(CMPRES1, ZR, &ok);
         __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
-        __ subu(CMPRES, value_reg, TMP);
+        __ subu(CMPRES1, value_reg, TMP);
       }
 
       if (ok_is_fall_through) {
-        __ bne(CMPRES, ZR, fail);
+        __ bne(CMPRES1, ZR, fail);
       } else {
-        __ beq(CMPRES, ZR, &ok);
+        __ beq(CMPRES1, ZR, &ok);
       }
     } else {
       // Both value's and field's class id is known.
@@ -1599,10 +1633,10 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ lw(value_cid_reg,
                 FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ LoadImmediate(TMP1, Smi::RawValue(field_length));
-        __ subu(CMPRES, value_cid_reg, TMP1);
+        __ LoadImmediate(TMP, Smi::RawValue(field_length));
+        __ subu(CMPRES1, value_cid_reg, TMP);
         if (ok_is_fall_through) {
-          __ bne(CMPRES, ZR, fail);
+          __ bne(CMPRES1, ZR, fail);
         }
       } else {
         // Nothing to emit.
@@ -1821,10 +1855,10 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // (or null).
   // A runtime call to instantiate the type is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());
-  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
-  __ LoadObject(TMP1, type());
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ LoadObject(TMP, Object::ZoneHandle());
+  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP, type());
+  __ sw(TMP, Address(SP, 1 * kWordSize));
   // Push instantiator type arguments.
   __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
 
@@ -1875,10 +1909,10 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());
-  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
-  __ LoadObject(TMP1, type_arguments());
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ LoadObject(TMP, Object::ZoneHandle());
+  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP, type_arguments());
+  __ sw(TMP, Address(SP, 1 * kWordSize));
   // Push instantiator type arguments.
   __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
 
@@ -2021,8 +2055,8 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("CloneContextInstr");
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());  // Make room for the result.
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ LoadObject(TMP, Object::ZoneHandle());  // Make room for the result.
+  __ sw(TMP, Address(SP, 1 * kWordSize));
   __ sw(context_value, Address(SP, 0 * kWordSize));
 
   compiler->GenerateRuntimeCall(token_pos(),
@@ -2049,11 +2083,11 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_,
                                 needs_stacktrace());
   // Restore pool pointer.
-  __ GetNextPC(CMPRES, TMP);
+  __ GetNextPC(CMPRES1, TMP);
   const intptr_t object_pool_pc_dist =
      Instructions::HeaderSize() - Instructions::object_pool_offset() +
      compiler->assembler()->CodeSize() - 1 * Instr::kInstrSize;
-  __ LoadFromOffset(PP, CMPRES, -object_pool_pc_dist);
+  __ LoadFromOffset(PP, CMPRES1, -object_pool_pc_dist);
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2129,9 +2163,9 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ LoadImmediate(TMP1, Isolate::Current()->stack_limit_address());
+  __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
 
-  __ lw(CMPRES1, Address(TMP1));
+  __ lw(CMPRES1, Address(TMP));
   __ BranchUnsignedLessEqual(SP, CMPRES1, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     Register temp = locs()->temp(0).reg();
@@ -2181,8 +2215,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     } else {
       if (!is_truncating) {
         // Check for overflow (preserve left).
-        __ sll(TMP1, left, value);
-        __ sra(CMPRES1, TMP1, value);
+        __ sll(TMP, left, value);
+        __ sra(CMPRES1, TMP, value);
         __ bne(CMPRES1, left, deopt);  // Overflow.
       }
       // Shift for result now we know there is no overflow.
@@ -2232,13 +2266,13 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       Label done, is_not_zero;
 
-      __ sltiu(CMPRES,
+      __ sltiu(CMPRES1,
           right, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-      __ movz(result, ZR, CMPRES);  // result = right >= kBits ? 0 : result.
-      __ sra(TMP1, right, kSmiTagSize);
-      __ sllv(TMP1, left, TMP1);
+      __ movz(result, ZR, CMPRES1);  // result = right >= kBits ? 0 : result.
+      __ sra(TMP, right, kSmiTagSize);
+      __ sllv(TMP, left, TMP);
       // result = right < kBits ? left << right : result.
-      __ movn(result, TMP1, CMPRES);
+      __ movn(result, TMP, CMPRES1);
     } else {
       __ sra(TMP, right, kSmiTagSize);
       __ sllv(result, left, TMP);
@@ -2321,8 +2355,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (deopt == NULL) {
           __ AddImmediate(result, left, -imm);
         } else {
-          __ SubImmediateDetectOverflow(result, left, imm, CMPRES);
-          __ bltz(CMPRES, deopt);
+          __ SubImmediateDetectOverflow(result, left, imm, CMPRES1);
+          __ bltz(CMPRES1, deopt);
         }
         break;
       }
@@ -2331,8 +2365,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ AddImmediate(result, left, imm);
         } else {
           Register temp = locs()->temp(0).reg();
-          __ AddImmediateDetectOverflow(result, left, imm, CMPRES, temp);
-          __ bltz(CMPRES, deopt);
+          __ AddImmediateDetectOverflow(result, left, imm, CMPRES1, temp);
+          __ bltz(CMPRES1, deopt);
         }
         break;
       }
@@ -2343,8 +2377,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           if (value == 2) {
             __ sll(result, left, 1);
           } else {
-            __ LoadImmediate(TMP1, value);
-            __ mult(left, TMP1);
+            __ LoadImmediate(TMP, value);
+            __ mult(left, TMP);
             __ mflo(result);
           }
         } else {
@@ -2352,12 +2386,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ sra(CMPRES2, left, 31);  // CMPRES2 = sign of left.
             __ sll(result, left, 1);
           } else {
-            __ LoadImmediate(TMP1, value);
-            __ mult(left, TMP1);
+            __ LoadImmediate(TMP, value);
+            __ mult(left, TMP);
             __ mflo(result);
             __ mfhi(CMPRES2);
           }
-          __ sra(CMPRES, result, 31);
+          __ sra(CMPRES1, result, 31);
           __ bne(CMPRES1, CMPRES2, deopt);
         }
         break;
@@ -2398,8 +2432,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (Utils::IsUint(kImmBits, imm)) {
           __ andi(result, left, Immediate(imm));
         } else {
-          __ LoadImmediate(TMP1, imm);
-          __ and_(result, left, TMP1);
+          __ LoadImmediate(TMP, imm);
+          __ and_(result, left, TMP);
         }
         break;
       }
@@ -2408,8 +2442,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (Utils::IsUint(kImmBits, imm)) {
           __ ori(result, left, Immediate(imm));
         } else {
-          __ LoadImmediate(TMP1, imm);
-          __ or_(result, left, TMP1);
+          __ LoadImmediate(TMP, imm);
+          __ or_(result, left, TMP);
         }
         break;
       }
@@ -2418,8 +2452,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (Utils::IsUint(kImmBits, imm)) {
           __ xori(result, left, Immediate(imm));
         } else {
-          __ LoadImmediate(TMP1, imm);
-          __ xor_(result, left, TMP1);
+          __ LoadImmediate(TMP, imm);
+          __ xor_(result, left, TMP);
         }
         break;
       }
@@ -2464,8 +2498,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ addu(result, left, right);
       } else {
         Register temp = locs()->temp(0).reg();
-        __ AdduDetectOverflow(result, left, right, CMPRES, temp);
-        __ bltz(CMPRES, deopt);
+        __ AdduDetectOverflow(result, left, right, CMPRES1, temp);
+        __ bltz(CMPRES1, deopt);
       }
       break;
     }
@@ -2474,8 +2508,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (deopt == NULL) {
         __ subu(result, left, right);
       } else {
-        __ SubuDetectOverflow(result, left, right, CMPRES);
-        __ bltz(CMPRES, deopt);
+        __ SubuDetectOverflow(result, left, right, CMPRES1);
+        __ bltz(CMPRES1, deopt);
       }
       break;
     }
@@ -2588,14 +2622,14 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   if (left_cid == kSmiCid) {
-    __ andi(CMPRES, right, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
-    __ andi(CMPRES, left, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, left, Immediate(kSmiTagMask));
   } else {
     __ or_(TMP, left, right);
-    __ andi(CMPRES, TMP, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, TMP, Immediate(kSmiTagMask));
   }
-  __ beq(CMPRES, ZR, deopt);
+  __ beq(CMPRES1, ZR, deopt);
 }
 
 
@@ -2691,8 +2725,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
     Label is_smi, done;
 
-    __ andi(CMPRES, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, &is_smi);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, &is_smi);
     __ LoadClassId(CMPRES1, value);
     __ BranchNotEqual(CMPRES1, kDoubleCid, deopt);
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
@@ -3150,8 +3184,8 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE: {
       Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                             kDeoptUnaryOp);
-      __ SubuDetectOverflow(result, ZR, value, CMPRES);
-      __ bltz(CMPRES, deopt);
+      __ SubuDetectOverflow(result, ZR, value, CMPRES1);
+      __ bltz(CMPRES1, deopt);
       break;
     }
     case Token::kBIT_NOT:
@@ -3233,8 +3267,8 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label do_call, done;
   // Check for overflow and that it fits into Smi.
   __ LoadImmediate(TMP, 0xC0000000);
-  __ subu(CMPRES, result, TMP);
-  __ bltz(CMPRES, &do_call);
+  __ subu(CMPRES1, result, TMP);
+  __ bltz(CMPRES1, &do_call);
   __ SmiTag(result);
   __ b(&done);
   __ Bind(&do_call);
@@ -3275,8 +3309,8 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Check for overflow and that it fits into Smi.
   __ LoadImmediate(TMP, 0xC0000000);
-  __ subu(CMPRES, result, TMP);
-  __ bltz(CMPRES, deopt);
+  __ subu(CMPRES1, result, TMP);
+  __ bltz(CMPRES1, deopt);
   __ SmiTag(result);
 }
 
@@ -3440,23 +3474,23 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
-    __ andi(CMPRES, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, &is_ok);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, &is_ok);
     cix++;  // Skip first check.
   } else {
-    __ andi(CMPRES, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, deopt);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, deopt);
   }
   __ LoadClassId(temp, value);
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   for (intptr_t i = cix; i < num_checks; i++) {
     ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
-    __ LoadImmediate(TMP1, unary_checks().GetReceiverClassIdAt(i));
-    __ subu(CMPRES, temp, TMP1);
+    __ LoadImmediate(TMP, unary_checks().GetReceiverClassIdAt(i));
+    __ subu(CMPRES1, temp, TMP);
     if (i == (num_checks - 1)) {
-      __ bne(CMPRES, ZR, deopt);
+      __ bne(CMPRES1, ZR, deopt);
     } else {
-      __ beq(CMPRES, ZR, &is_ok);
+      __ beq(CMPRES1, ZR, &is_ok);
     }
   }
   __ Bind(&is_ok);
@@ -3687,7 +3721,7 @@ void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
 }
 
 
-// The comparison result is in CMPRES.
+// The comparison result is in CMPRES1.
 void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                                Condition true_condition) {
   __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
@@ -3828,9 +3862,9 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   __ LoadObject(result, Bool::True());
-  __ LoadObject(TMP1, Bool::False());
-  __ subu(CMPRES, value, result);
-  __ movz(result, TMP1, CMPRES);  // If value is True, move False into result.
+  __ LoadObject(TMP, Bool::False());
+  __ subu(CMPRES1, value, result);
+  __ movz(result, TMP, CMPRES1);  // If value is True, move False into result.
 }
 
 

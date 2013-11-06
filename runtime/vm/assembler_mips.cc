@@ -367,14 +367,14 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
                                    Register ro, Register scratch) {
   ASSERT(rd != ro);
-  ASSERT(rd != TMP1);
-  ASSERT(ro != TMP1);
+  ASSERT(rd != TMP);
+  ASSERT(ro != TMP);
   ASSERT(ro != rs);
   ASSERT(ro != rt);
 
   if ((rs == rt) && (rd == rs)) {
     ASSERT(scratch != kNoRegister);
-    ASSERT(scratch != TMP1);
+    ASSERT(scratch != TMP);
     ASSERT(rd != scratch);
     ASSERT(ro != scratch);
     ASSERT(rs != scratch);
@@ -384,22 +384,22 @@ void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
   }
 
   if (rd == rs) {
-    mov(TMP1, rs);  // Preserve rs.
+    mov(TMP, rs);  // Preserve rs.
     addu(rd, rs, rt);  // rs is overwritten.
-    xor_(TMP1, rd, TMP1);  // Original rs.
+    xor_(TMP, rd, TMP);  // Original rs.
     xor_(ro, rd, rt);
-    and_(ro, ro, TMP1);
+    and_(ro, ro, TMP);
   } else if (rd == rt) {
-    mov(TMP1, rt);  // Preserve rt.
+    mov(TMP, rt);  // Preserve rt.
     addu(rd, rs, rt);  // rt is overwritten.
-    xor_(TMP1, rd, TMP1);  // Original rt.
+    xor_(TMP, rd, TMP);  // Original rt.
     xor_(ro, rd, rs);
-    and_(ro, ro, TMP1);
+    and_(ro, ro, TMP);
   } else {
     addu(rd, rs, rt);
     xor_(ro, rd, rs);
-    xor_(TMP1, rd, rt);
-    and_(ro, TMP1, ro);
+    xor_(TMP, rd, rt);
+    and_(ro, TMP, ro);
   }
 }
 
@@ -407,12 +407,12 @@ void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
 void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
                                    Register ro) {
   ASSERT(rd != ro);
-  ASSERT(rd != TMP1);
-  ASSERT(ro != TMP1);
+  ASSERT(rd != TMP);
+  ASSERT(ro != TMP);
   ASSERT(ro != rs);
   ASSERT(ro != rt);
-  ASSERT(rs != TMP1);
-  ASSERT(rt != TMP1);
+  ASSERT(rs != TMP);
+  ASSERT(rt != TMP);
 
   // This happens with some crankshaft code. Since Subu works fine if
   // left == right, let's not make that restriction here.
@@ -423,22 +423,22 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
   }
 
   if (rd == rs) {
-    mov(TMP1, rs);  // Preserve left.
+    mov(TMP, rs);  // Preserve left.
     subu(rd, rs, rt);  // Left is overwritten.
-    xor_(ro, rd, TMP1);  // scratch is original left.
-    xor_(TMP1, TMP1, rs);  // scratch is original left.
-    and_(ro, TMP1, ro);
+    xor_(ro, rd, TMP);  // scratch is original left.
+    xor_(TMP, TMP, rs);  // scratch is original left.
+    and_(ro, TMP, ro);
   } else if (rd == rt) {
-    mov(TMP1, rt);  // Preserve right.
+    mov(TMP, rt);  // Preserve right.
     subu(rd, rs, rt);  // Right is overwritten.
     xor_(ro, rd, rs);
-    xor_(TMP1, rs, TMP1);  // Original right.
-    and_(ro, TMP1, ro);
+    xor_(TMP, rs, TMP);  // Original right.
+    and_(ro, TMP, ro);
   } else {
     subu(rd, rs, rt);
     xor_(ro, rd, rs);
-    xor_(TMP1, rs, rt);
-    and_(ro, TMP1, ro);
+    xor_(TMP, rs, rt);
+    and_(ro, TMP, ro);
   }
 }
 
@@ -483,19 +483,19 @@ int32_t Assembler::AddObject(const Object& obj) {
 
 
 void Assembler::PushObject(const Object& object) {
-  LoadObject(TMP1, object);
-  Push(TMP1);
+  LoadObject(TMP, object);
+  Push(TMP);
 }
 
 
 void Assembler::CompareObject(Register rd1, Register rd2,
                               Register rn, const Object& object) {
-  ASSERT(rn != TMP1);
-  ASSERT(rd1 != TMP1);
+  ASSERT(rn != TMP);
+  ASSERT(rd1 != TMP);
   ASSERT(rd1 != rd2);
-  LoadObject(TMP1, object);
-  slt(rd1, rn, TMP1);
-  slt(rd2, TMP1, rn);
+  LoadObject(TMP, object);
+  slt(rd1, rn, TMP);
+  slt(rd2, TMP, rn);
 }
 
 
@@ -510,9 +510,9 @@ void Assembler::StoreIntoObjectFilterNoSmi(Register object,
   // the object is in the old space (has bit cleared).
   // To check that, we compute value & ~object and skip the write barrier
   // if the bit is not set. We can't destroy the object.
-  nor(TMP1, ZR, object);
-  and_(TMP1, value, TMP1);
-  andi(CMPRES1, TMP1, Immediate(kNewObjectAlignmentOffset));
+  nor(TMP, ZR, object);
+  and_(TMP, value, TMP);
+  andi(CMPRES1, TMP, Immediate(kNewObjectAlignmentOffset));
   beq(CMPRES1, ZR, no_update);
 }
 
@@ -523,12 +523,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
                                       Label* no_update) {
   // For the value we are only interested in the new/old bit and the tag bit.
   // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
-  sll(TMP1, value, kObjectAlignmentLog2 - 1);
-  and_(TMP1, value, TMP1);
+  sll(TMP, value, kObjectAlignmentLog2 - 1);
+  and_(TMP, value, TMP);
   // And the result with the negated space bit of the object.
   nor(CMPRES1, ZR, object);
-  and_(TMP1, TMP1, CMPRES1);
-  andi(CMPRES1, TMP1, Immediate(kNewObjectAlignmentOffset));
+  and_(TMP, TMP, CMPRES1);
+  andi(CMPRES1, TMP, Immediate(kNewObjectAlignmentOffset));
   beq(CMPRES1, ZR, no_update);
 }
 
@@ -590,8 +590,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
-  LoadObject(TMP1, value);
-  sw(TMP1, dest);
+  LoadObject(TMP, value);
+  sw(TMP, dest);
 }
 
 
@@ -610,22 +610,22 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
   lw(result, Address(result, table_offset_in_isolate));
-  sll(TMP1, class_id, 2);
-  addu(result, result, TMP1);
+  sll(TMP, class_id, 2);
+  addu(result, result, TMP);
   lw(result, Address(result));
 }
 
 
 void Assembler::LoadClass(Register result, Register object) {
-  ASSERT(TMP1 != result);
-  LoadClassId(TMP1, object);
+  ASSERT(TMP != result);
+  LoadClassId(TMP, object);
 
   lw(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
   lw(result, Address(result, table_offset_in_isolate));
-  sll(TMP1, TMP1, 2);
-  addu(result, result, TMP1);
+  sll(TMP, TMP, 2);
+  addu(result, result, TMP);
   lw(result, Address(result));
 }
 
@@ -641,13 +641,13 @@ void Assembler::EnterStubFrame(bool uses_pp) {
     addiu(FP, SP, Immediate(1 * kWordSize));
     // Setup pool pointer for this stub.
 
-    GetNextPC(TMP1);  // TMP1 gets the address of the next instruction.
+    GetNextPC(TMP);  // TMP gets the address of the next instruction.
 
     const intptr_t object_pool_pc_dist =
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         CodeSize();
 
-    lw(PP, Address(TMP1, -object_pool_pc_dist));
+    lw(PP, Address(TMP, -object_pool_pc_dist));
   } else {
     addiu(SP, SP, Immediate(-3 * kWordSize));
     sw(ZR, Address(SP, 2 * kWordSize));  // PC marker is 0 in stubs.
@@ -745,7 +745,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   sw(FP, Address(SP, 1 * kWordSize));
   sw(PP, Address(SP, 0 * kWordSize));
 
-  GetNextPC(TMP1);  // TMP1 gets the address of the next instruction.
+  GetNextPC(TMP);  // TMP gets the address of the next instruction.
 
   // Calculate the offset of the pool pointer from the PC.
   const intptr_t object_pool_pc_dist =
@@ -753,14 +753,14 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
       CodeSize();
 
   // Save PC in frame for fast identification of corresponding code.
-  AddImmediate(TMP1, -offset);
-  sw(TMP1, Address(SP, 3 * kWordSize));
+  AddImmediate(TMP, -offset);
+  sw(TMP, Address(SP, 3 * kWordSize));
 
   // Set FP to the saved previous FP.
   addiu(FP, SP, Immediate(kWordSize));
 
-  // Load the pool pointer. offset has already been subtracted from TMP1.
-  lw(PP, Address(TMP1, -object_pool_pc_dist + offset));
+  // Load the pool pointer. offset has already been subtracted from TMP.
+  lw(PP, Address(TMP, -object_pool_pc_dist + offset));
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -831,8 +831,8 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // the C++ world.
   AddImmediate(SP, -frame_space);
   if (OS::ActivationFrameAlignment() > 1) {
-    LoadImmediate(TMP1, ~(OS::ActivationFrameAlignment() - 1));
-    and_(SP, SP, TMP1);
+    LoadImmediate(TMP, ~(OS::ActivationFrameAlignment() - 1));
+    and_(SP, SP, TMP);
   }
 }
 

@@ -413,13 +413,13 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 
   // Load the receiver.
   __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ sll(TMP1, A1, 1);  // A1 is Smi.
-  __ addu(TMP1, FP, TMP1);
-  __ lw(T1, Address(TMP1, kParamEndSlotFromFp * kWordSize));
+  __ sll(TMP, A1, 1);  // A1 is Smi.
+  __ addu(TMP, FP, TMP);
+  __ lw(T1, Address(TMP, kParamEndSlotFromFp * kWordSize));
 
   // Push space for the return value.
   // Push the receiver.
-  // Push TMP1 data object.
+  // Push TMP data object.
   // Push arguments descriptor array.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
@@ -648,11 +648,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // and is computed as:
     // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
     // Assert that length is a Smi.
-    __ andi(CMPRES, A1, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, A1, Immediate(kSmiTagMask));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ bne(CMPRES, ZR, &slow_case);
+      __ bne(CMPRES1, ZR, &slow_case);
     }
     __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
     __ lw(T0, Address(T0, Isolate::heap_offset()));
@@ -666,11 +666,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ lw(V0, Address(T0, Scavenger::top_offset()));
     intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
     __ LoadImmediate(T3, fixed_size);
-    __ sll(TMP1, A1, 1);  // A1 is Smi.
-    __ addu(T3, T3, TMP1);
+    __ sll(TMP, A1, 1);  // A1 is Smi.
+    __ addu(T3, T3, TMP);
     ASSERT(kSmiTagShift == 1);
-    __ LoadImmediate(TMP1, ~(kObjectAlignment - 1));
-    __ and_(T3, T3, TMP1);
+    __ LoadImmediate(TMP, ~(kObjectAlignment - 1));
+    __ and_(T3, T3, TMP);
     __ addu(T2, T3, V0);
 
     // Check if the allocation fits into the remaining space.
@@ -716,14 +716,14 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
     // If no size tag overflow, shift T3 left, else set T3 to zero.
     __ LoadImmediate(T4, RawObject::SizeTag::kMaxSizeTag);
-    __ sltu(CMPRES, T4, T3);  // CMPRES = T4 < T3 ? 1 : 0
-    __ sll(TMP1, T3, shift);  // TMP1 = T3 << shift;
-    __ movz(T3, TMP1, CMPRES);  // T3 = T4 >= T3 ? 0 : T3
-    __ movn(T3, ZR, CMPRES);  // T3 = T4 < T3 ? TMP1 : T3
+    __ sltu(CMPRES1, T4, T3);  // CMPRES1 = T4 < T3 ? 1 : 0
+    __ sll(TMP, T3, shift);  // TMP = T3 << shift;
+    __ movz(T3, TMP, CMPRES1);  // T3 = T4 >= T3 ? 0 : T3
+    __ movn(T3, ZR, CMPRES1);  // T3 = T4 < T3 ? TMP : T3
 
     // Get the class index and insert it into the tags.
-    __ LoadImmediate(TMP1, RawObject::ClassIdTag::encode(kArrayCid));
-    __ or_(T3, T3, TMP1);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(kArrayCid));
+    __ or_(T3, T3, TMP);
     __ sw(T3, FieldAddress(V0, Array::tags_offset()));
 
     // Initialize all array elements to raw_null.
@@ -786,8 +786,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // Load num_args.
   __ TraceSimMsg("GenerateCallClosureFunctionStub");
   __ lw(T0, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ LoadImmediate(TMP1, Smi::RawValue(1));
-  __ subu(T0, T0, TMP1);
+  __ LoadImmediate(TMP, Smi::RawValue(1));
+  __ subu(T0, T0, TMP);
 
   // Load closure object in T1.
   __ sll(T1, T0, 1);  // T0 (num_args - 1) is a Smi.
@@ -802,8 +802,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // See if it is not a closure, but null object.
   __ beq(T1, T7, &not_closure);
 
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, &not_closure);  // Not a closure, but a smi.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ beq(CMPRES1, ZR, &not_closure);  // Not a closure, but a smi.
 
   // Verify that the class of the object is a closure class by checking that
   // class.signature_function() is not null.
@@ -1071,8 +1071,8 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     // T3: potential next object start.
-    __ LoadImmediate(TMP1, heap->EndAddress());
-    __ lw(CMPRES1, Address(TMP1, 0));
+    __ LoadImmediate(TMP, heap->EndAddress());
+    __ lw(CMPRES1, Address(TMP, 0));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -1093,16 +1093,16 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T1: number of context variables.
     // T2: object size.
     const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
-    __ LoadImmediate(TMP1, RawObject::SizeTag::kMaxSizeTag);
-    __ sltu(CMPRES, TMP1, T2);  // CMPRES = T2 > TMP1 ? 1 : 0.
-    __ movn(T2, ZR, CMPRES);  // T2 = CMPRES != 0 ? 0 : T2.
-    __ sll(TMP1, T2, shift);  // TMP1 = T2 << shift.
-    __ movz(T2, TMP1, CMPRES);  // T2 = CMPRES == 0 ? TMP1 : T2.
+    __ LoadImmediate(TMP, RawObject::SizeTag::kMaxSizeTag);
+    __ sltu(CMPRES1, TMP, T2);  // CMPRES1 = T2 > TMP ? 1 : 0.
+    __ movn(T2, ZR, CMPRES1);  // T2 = CMPRES1 != 0 ? 0 : T2.
+    __ sll(TMP, T2, shift);  // TMP = T2 << shift.
+    __ movz(T2, TMP, CMPRES1);  // T2 = CMPRES1 == 0 ? TMP : T2.
 
     // Get the class index and insert it into the tags.
     // T2: size and bit tags.
-    __ LoadImmediate(TMP1, RawObject::ClassIdTag::encode(context_class.id()));
-    __ or_(T2, T2, TMP1);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(context_class.id()));
+    __ or_(T2, T2, TMP);
     __ sw(T2, FieldAddress(V0, Context::tags_offset()));
 
     // Setup up number of context variables field.
@@ -1181,8 +1181,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: T1, T2, T3.
   // T0: Address being stored.
   __ lw(T2, FieldAddress(T0, Object::tags_offset()));
-  __ andi(CMPRES, T2, Immediate(1 << RawObject::kRememberedBit));
-  __ beq(CMPRES, ZR, &add_to_buffer);
+  __ andi(CMPRES1, T2, Immediate(1 << RawObject::kRememberedBit));
+  __ beq(CMPRES1, ZR, &add_to_buffer);
   __ lw(T1, Address(SP, 0 * kWordSize));
   __ lw(T2, Address(SP, 1 * kWordSize));
   __ lw(T3, Address(SP, 2 * kWordSize));
@@ -1213,12 +1213,12 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   Label L;
   __ addiu(T2, T2, Immediate(1));
   __ sw(T2, Address(T1, StoreBufferBlock::top_offset()));
-  __ addiu(CMPRES, T2, Immediate(-StoreBufferBlock::kSize));
+  __ addiu(CMPRES1, T2, Immediate(-StoreBufferBlock::kSize));
   // Restore values.
   __ lw(T1, Address(SP, 0 * kWordSize));
   __ lw(T2, Address(SP, 1 * kWordSize));
   __ lw(T3, Address(SP, 2 * kWordSize));
-  __ beq(CMPRES, ZR, &L);
+  __ beq(CMPRES1, ZR, &L);
   __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
   __ Ret();
 
@@ -1280,8 +1280,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Check if the allocation fits into the remaining space.
     // T2: potential new object start.
     // T3: potential next object start.
-    __ LoadImmediate(TMP1, heap->EndAddress());
-    __ lw(CMPRES1, Address(TMP1));
+    __ LoadImmediate(TMP, heap->EndAddress());
+    __ lw(CMPRES1, Address(TMP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -1383,13 +1383,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
-  __ LoadObject(TMP1, cls);
+  __ LoadObject(TMP, cls);
 
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
   // Space on stack for return value.
   __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(T7, Address(SP, 3 * kWordSize));
-  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Class of object to be allocated.
+  __ sw(TMP, Address(SP, 2 * kWordSize));  // Class of object to be allocated.
 
   if (is_cls_parameterized) {
     // Push type arguments of object to be allocated and of instantiator.
@@ -1447,8 +1447,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // T2: potential new closure object.
     // T3: address of top of heap.
     // T4: potential new context object (only if is_implicit_closure).
-    __ LoadImmediate(TMP1, heap->EndAddress());
-    __ lw(CMPRES1, Address(TMP1));
+    __ LoadImmediate(TMP, heap->EndAddress());
+    __ lw(CMPRES1, Address(TMP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -1527,8 +1527,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   // Setup space on stack for return value.
   __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
   __ sw(T7, Address(SP, (num_slots - 1) * kWordSize));
-  __ LoadObject(TMP1, func);
-  __ sw(TMP1, Address(SP, (num_slots - 2) * kWordSize));
+  __ LoadObject(TMP, func);
+  __ sw(TMP, Address(SP, (num_slots - 2) * kWordSize));
   __ mov(T2, T7);
   if (is_implicit_instance_closure) {
     __ lw(T1, Address(FP, kReceiverFPOffset));
@@ -1693,8 +1693,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ LoadImmediate(TMP1, Smi::RawValue(1));
-  __ subu(T1, T1, TMP1);
+  __ LoadImmediate(TMP, Smi::RawValue(1));
+  __ subu(T1, T1, TMP);
   __ sll(T3, T1, 1);  // T1 (argument_count - 1) is smi.
   __ addu(T3, T3, SP);
   __ bal(&get_class_id_as_smi);
@@ -1768,8 +1768,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ sw(TMP, Address(SP, (num_slots - 3) * kWordSize));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
-    __ lw(TMP1, Address(T1, -i * kWordSize));
-    __ sw(TMP1, Address(SP, (num_slots - i - 4) * kWordSize));
+    __ lw(TMP, Address(T1, -i * kWordSize));
+    __ sw(TMP, Address(SP, (num_slots - i - 4) * kWordSize));
   }
   // Pass IC data object.
   __ sw(S5, Address(SP, (num_slots - num_args - 4) * kWordSize));
@@ -2295,7 +2295,7 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 
 // Does identical check (object references are equal or not equal) with special
 // checks for boxed numbers.
-// Returns: CMPRES is zero if equal, non-zero otherwise.
+// Returns: CMPRES1 is zero if equal, non-zero otherwise.
 // Note: A Mint cannot contain a value that would fit in Smi, a Bigint
 // cannot contain a value that fits in Mint or Smi.
 void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
@@ -2317,43 +2317,43 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ LoadClassId(temp2, left);
   __ bne(temp1, temp2, &check_mint);
   __ LoadClassId(temp2, right);
-  __ subu(CMPRES, temp1, temp2);
-  __ bne(CMPRES, ZR, &done);
+  __ subu(CMPRES1, temp1, temp2);
+  __ bne(CMPRES1, ZR, &done);
 
   // Double values bitwise compare.
   __ lw(temp1, FieldAddress(left, Double::value_offset() + 0 * kWordSize));
   __ lw(temp2, FieldAddress(right, Double::value_offset() + 0 * kWordSize));
-  __ subu(CMPRES, temp1, temp2);
-  __ bne(CMPRES, ZR, &done);
+  __ subu(CMPRES1, temp1, temp2);
+  __ bne(CMPRES1, ZR, &done);
   __ lw(temp1, FieldAddress(left, Double::value_offset() + 1 * kWordSize));
   __ lw(temp2, FieldAddress(right, Double::value_offset() + 1 * kWordSize));
   __ b(&done);
-  __ delay_slot()->subu(CMPRES, temp1, temp2);
+  __ delay_slot()->subu(CMPRES1, temp1, temp2);
 
   __ Bind(&check_mint);
   __ LoadImmediate(temp1, kMintCid);
   __ LoadClassId(temp2, left);
   __ bne(temp1, temp2, &check_bigint);
   __ LoadClassId(temp2, right);
-  __ subu(CMPRES, temp1, temp2);
-  __ bne(CMPRES, ZR, &done);
+  __ subu(CMPRES1, temp1, temp2);
+  __ bne(CMPRES1, ZR, &done);
 
   __ lw(temp1, FieldAddress(left, Mint::value_offset() + 0 * kWordSize));
   __ lw(temp2, FieldAddress(right, Mint::value_offset() + 0 * kWordSize));
-  __ subu(CMPRES, temp1, temp2);
-  __ bne(CMPRES, ZR, &done);
+  __ subu(CMPRES1, temp1, temp2);
+  __ bne(CMPRES1, ZR, &done);
   __ lw(temp1, FieldAddress(left, Mint::value_offset() + 1 * kWordSize));
   __ lw(temp2, FieldAddress(right, Mint::value_offset() + 1 * kWordSize));
   __ b(&done);
-  __ delay_slot()->subu(CMPRES, temp1, temp2);
+  __ delay_slot()->subu(CMPRES1, temp1, temp2);
 
   __ Bind(&check_bigint);
   __ LoadImmediate(temp1, kBigintCid);
   __ LoadClassId(temp2, left);
   __ bne(temp1, temp2, &reference_compare);
   __ LoadClassId(temp2, right);
-  __ subu(CMPRES, temp1, temp2);
-  __ bne(CMPRES, ZR, &done);
+  __ subu(CMPRES1, temp1, temp2);
+  __ bne(CMPRES1, ZR, &done);
 
   __ EnterStubFrame();
   __ ReserveAlignedFrameSpace(2 * kWordSize);
@@ -2366,10 +2366,10 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   // Result in V0, 0 means equal.
   __ LeaveStubFrame();
   __ b(&done);
-  __ delay_slot()->mov(CMPRES, V0);
+  __ delay_slot()->mov(CMPRES1, V0);
 
   __ Bind(&reference_compare);
-  __ subu(CMPRES, left, right);
+  __ subu(CMPRES1, left, right);
   __ Bind(&done);
   // A branch or test after this comparison will check CMPRES1 == CMPRES2.
   __ mov(CMPRES2, ZR);
@@ -2380,7 +2380,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // RA: return address.
 // SP + 4: left operand.
 // SP + 0: right operand.
-// Returns: CMPRES is zero if equal, non-zero otherwise.
+// Returns: CMPRES1 is zero if equal, non-zero otherwise.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
@@ -2412,7 +2412,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
 // destroyed.
 // SP + 4: left operand.
 // SP + 0: right operand.
-// Returns: CMPRES is zero if equal, non-zero otherwise.
+// Returns: CMPRES1 is zero if equal, non-zero otherwise.
 void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   const Register temp1 = T2;

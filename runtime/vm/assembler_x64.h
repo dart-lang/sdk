@@ -500,6 +500,7 @@ class Assembler : public ValueObject {
 
   void testq(Register reg1, Register reg2);
   void testq(Register reg, const Immediate& imm);
+  void TestImmediate(Register dst, const Immediate& imm, Register pp);
 
   void andl(Register dst, Register src);
   void andl(Register dst, const Immediate& imm);

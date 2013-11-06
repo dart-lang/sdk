@@ -585,8 +585,12 @@ class Assembler : public ValueObject {
 
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
 
+  // Test rn and immediate. May clobber IP.
+  void TestImmediate(Register rn, int32_t imm, Condition cond = AL);
+
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
+
 
   // Signed integer division of left by right. Checks to see if integer
   // division is supported. If not, uses the FPU for division with

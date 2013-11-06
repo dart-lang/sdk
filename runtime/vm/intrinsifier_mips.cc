@@ -31,8 +31,8 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
   __ lw(T3, Address(SP, kArrayLengthOffset));  // Array length.
 
   // Check that length is a positive Smi.
-  __ andi(CMPRES, T3, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);
+  __ andi(CMPRES1, T3, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);
   __ bltz(T3, &fall_through);
 
   // Check for maximum allowed length.
@@ -56,8 +56,8 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
   __ LoadImmediate(T3, heap->TopAddress());
   __ lw(T0, Address(T3, 0));  // Potential new object start.
 
-  __ AdduDetectOverflow(T1, T0, T2, CMPRES);  // Potential next object start.
-  __ bltz(CMPRES, &fall_through);  // CMPRES < 0 on overflow.
+  __ AdduDetectOverflow(T1, T0, T2, CMPRES1);  // Potential next object start.
+  __ bltz(CMPRES1, &fall_through);  // CMPRES1 < 0 on overflow.
 
   // Check if the allocation fits into the remaining space.
   // T0: potential new object start.
@@ -90,8 +90,8 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
 
     // Get the class index and insert it into the tags.
     // T2: size and bit tags.
-    __ LoadImmediate(TMP1, RawObject::ClassIdTag::encode(cls.id()));
-    __ or_(T2, T2, TMP1);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
+    __ or_(T2, T2, TMP);
     __ sw(T2, FieldAddress(T0, Array::tags_offset()));  // Store tags.
   }
 
@@ -150,8 +150,8 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 
   __ lw(T0, Address(SP, + 0 * kWordSize));  // Index
 
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);  // Index is not an smi, fall through
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through
   __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array
 
   // range check
@@ -217,17 +217,17 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ BranchEqual(T0, Type::ZoneHandle(Type::DynamicType()), &checked_ok);
 
     // Check for int and num.
-    __ andi(CMPRES, T2, Immediate(kSmiTagMask));
-    __ bne(CMPRES, ZR, &fall_through);  // Non-smi value.
+    __ andi(CMPRES1, T2, Immediate(kSmiTagMask));
+    __ bne(CMPRES1, ZR, &fall_through);  // Non-smi value.
 
     __ BranchEqual(T0, Type::ZoneHandle(Type::IntType()), &checked_ok);
     __ BranchNotEqual(T0, Type::ZoneHandle(Type::Number()), &fall_through);
     __ Bind(&checked_ok);
   }
   __ lw(T1, Address(SP, 1 * kWordSize));  // Index.
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
   // Index not Smi.
-  __ bne(CMPRES, ZR, &fall_through);
+  __ bne(CMPRES1, ZR, &fall_through);
 
   __ lw(T0, Address(SP, 2 * kWordSize));  // Array.
   // Range check.
@@ -337,8 +337,8 @@ void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
 
   __ lw(T0, Address(SP, 0 * kWordSize));  // Index
 
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);  // Index is not an smi, fall through
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through
   __ delay_slot()->lw(T1, Address(SP, 1 * kWordSize));  // Array
 
   // range check
@@ -365,8 +365,8 @@ void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
   }
   Label fall_through;
   __ lw(T1, Address(SP, 1 * kWordSize));  // Index.
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);  // Non-smi index.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Non-smi index.
   __ delay_slot()->lw(T0, Address(SP, 2 * kWordSize));  // GrowableArray.
   // Range check using _length field.
   __ lw(T2, FieldAddress(T0, GrowableObjectArray::length_offset()));
@@ -392,8 +392,8 @@ void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
 void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
   Label fall_through;
   __ lw(T1, Address(SP, 0 * kWordSize));  // Length value.
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);  // Non-smi length.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Non-smi length.
   __ delay_slot()->lw(T0, Address(SP, 1 * kWordSize));  // Growable array.
   __ Ret();
   __ delay_slot()->sw(T1,
@@ -411,8 +411,8 @@ void Intrinsifier::GrowableList_setData(Assembler* assembler) {
   Label fall_through;
   __ lw(T1, Address(SP, 0 * kWordSize));  // Data.
   // Check that data is an ObjectArray.
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, &fall_through);  // Data is Smi.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ beq(CMPRES1, ZR, &fall_through);  // Data is Smi.
   __ LoadClassId(CMPRES1, T1);
   __ BranchNotEqual(CMPRES1, kArrayCid, &fall_through);
   __ lw(T0, Address(SP, 1 * kWordSize));  // Growable array.
@@ -464,8 +464,8 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
   __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* T2: requested array length argument. */                                   \
-  __ andi(CMPRES, T2, Immediate(kSmiTagMask));                                 \
-  __ bne(CMPRES, ZR, &fall_through);                                           \
+  __ andi(CMPRES1, T2, Immediate(kSmiTagMask));                                \
+  __ bne(CMPRES1, ZR, &fall_through);                                          \
   __ BranchSignedLess(T2, 0, &fall_through);                                   \
   __ SmiUntag(T2);                                                             \
   /* Check for maximum allowed length. */                                      \
@@ -482,8 +482,8 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
   __ lw(V0, Address(V0, 0));                                                   \
                                                                                \
   /* T2: allocation size. */                                                   \
-  __ AdduDetectOverflow(T1, V0, T2, CMPRES);                                   \
-  __ bltz(CMPRES, &fall_through);                                              \
+  __ AdduDetectOverflow(T1, V0, T2, CMPRES1);                                  \
+  __ bltz(CMPRES1, &fall_through);                                             \
                                                                                \
   /* Check if the allocation fits into the remaining space. */                 \
   /* V0: potential new object start. */                                        \
@@ -588,9 +588,9 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(T1, Address(SP, 1 * kWordSize));
-  __ or_(CMPRES, T0, T1);
-  __ andi(CMPRES, CMPRES, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, not_smi);
+  __ or_(CMPRES1, T0, T1);
+  __ andi(CMPRES1, CMPRES1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, not_smi);
   return;
 }
 
@@ -599,8 +599,8 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);  // Checks two Smis.
-  __ AdduDetectOverflow(V0, T0, T1, CMPRES);  // Add.
-  __ bltz(CMPRES, &fall_through);  // Fall through on overflow.
+  __ AdduDetectOverflow(V0, T0, T1, CMPRES1);  // Add.
+  __ bltz(CMPRES1, &fall_through);  // Fall through on overflow.
   __ Ret();  // Nothing in branch delay slot.
   __ Bind(&fall_through);
 }
@@ -615,8 +615,8 @@ void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ SubuDetectOverflow(V0, T0, T1, CMPRES);  // Subtract.
-  __ bltz(CMPRES, &fall_through);  // Fall through on overflow.
+  __ SubuDetectOverflow(V0, T0, T1, CMPRES1);  // Subtract.
+  __ bltz(CMPRES1, &fall_through);  // Fall through on overflow.
   __ Ret();
   __ Bind(&fall_through);
 }
@@ -626,8 +626,8 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ SubuDetectOverflow(V0, T1, T0, CMPRES);  // Subtract.
-  __ bltz(CMPRES, &fall_through);  // Fall through on overflow.
+  __ SubuDetectOverflow(V0, T1, T0, CMPRES1);  // Subtract.
+  __ bltz(CMPRES1, &fall_through);  // Fall through on overflow.
   __ Ret();  // Nothing in branch delay slot.
   __ Bind(&fall_through);
 }
@@ -706,9 +706,9 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   // Test arguments for smi.
   __ lw(T1, Address(SP, 0 * kWordSize));
   __ lw(T0, Address(SP, 1 * kWordSize));
-  __ or_(CMPRES, T0, T1);
-  __ andi(CMPRES, CMPRES, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);
+  __ or_(CMPRES1, T0, T1);
+  __ andi(CMPRES1, CMPRES1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);
   // T1: Tagged left (dividend).
   // T0: Tagged right (divisor).
   // Check if modulo by zero -> exception thrown in main function.
@@ -759,10 +759,10 @@ void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, + 0 * kWordSize));  // Grabs first argument.
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));  // Test for Smi.
-  __ bne(CMPRES, ZR, &fall_through);  // Fall through if not a Smi.
-  __ SubuDetectOverflow(V0, ZR, T0, CMPRES);
-  __ bltz(CMPRES, &fall_through);  // There was overflow.
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));  // Test for Smi.
+  __ bne(CMPRES1, ZR, &fall_through);  // Fall through if not a Smi.
+  __ SubuDetectOverflow(V0, ZR, T0, CMPRES1);
+  __ bltz(CMPRES1, &fall_through);  // There was overflow.
   __ Ret();
   __ Bind(&fall_through);
 }
@@ -869,8 +869,8 @@ static void Get64SmiOrMint(Assembler* assembler,
                            Register reg,
                            Label* not_smi_or_mint) {
   Label not_smi, done;
-  __ andi(CMPRES, reg, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &not_smi);
+  __ andi(CMPRES1, reg, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &not_smi);
   __ SmiUntag(reg);
 
   // Sign extend to 64 bit
@@ -997,9 +997,9 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ beq(T0, T1, &true_label);
 
   __ or_(T2, T0, T1);
-  __ andi(CMPRES, T2, Immediate(kSmiTagMask));
+  __ andi(CMPRES1, T2, Immediate(kSmiTagMask));
   // If T0 or T1 is not a smi do Mint checks.
-  __ bne(CMPRES, ZR, &check_for_mint);
+  __ bne(CMPRES1, ZR, &check_for_mint);
 
   // Both arguments are smi, '===' is good enough.
   __ LoadObject(V0, Bool::False());
@@ -1012,8 +1012,8 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
 
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &receiver_not_smi);  // Check receiver.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &receiver_not_smi);  // Check receiver.
 
   // Left (receiver) is Smi, return false if right is not Double.
   // Note that an instance of Mint or Bigint never contains a value that can be
@@ -1030,8 +1030,8 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ LoadClassId(CMPRES1, T1);
   __ BranchNotEqual(CMPRES1, kMintCid, &fall_through);
   // Receiver is Mint, return false if right is Smi.
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);
   __ LoadObject(V0, Bool::False());
   __ Ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
@@ -1055,8 +1055,8 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
   __ bltz(T0, &fall_through);
 
   __ LoadImmediate(T2, 0x1F);
-  __ slt(CMPRES, T2, T0);  // CMPRES <- 0x1F < T0 ? 1 : 0
-  __ movn(T0, T2, CMPRES);  // T0 <- 0x1F < T0 ? 0x1F : T0
+  __ slt(CMPRES1, T2, T0);  // CMPRES1 <- 0x1F < T0 ? 1 : 0
+  __ movn(T0, T2, CMPRES1);  // T0 <- 0x1F < T0 ? 0x1F : T0
 
   __ SmiUntag(T1);
   __ srav(V0, T1, T0);
@@ -1086,8 +1086,8 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* is_smi,
                                      Label* not_double_smi) {
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, is_smi);
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ beq(CMPRES1, ZR, is_smi);
   __ LoadClassId(CMPRES1, T0);
   __ BranchNotEqual(CMPRES1, kDoubleCid, not_double_smi);
   // Fall through with Double in T0.
@@ -1228,8 +1228,8 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   // Only smis allowed.
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);
 
   // Is Smi.
   __ SmiUntag(T0);
@@ -1255,7 +1255,7 @@ void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
   __ bne(T0, ZR, &fall_through);
 
   // Is Smi.
@@ -1316,7 +1316,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   // Check for negative zero by looking at the sign bit.
   __ mfc1(T0, F1);  // Moves bits 32...63 of D0 to T0.
   __ srl(T0, T0, 31);  // Get the sign bit down to bit 0 of T0.
-  __ andi(CMPRES, T0, Immediate(1));  // Check if the bit is set.
+  __ andi(CMPRES1, T0, Immediate(1));  // Check if the bit is set.
   __ bne(T0, ZR, &is_true);  // Sign bit set. True.
   __ b(&is_false);
 }
@@ -1333,8 +1333,8 @@ void Intrinsifier::Double_toInt(Assembler* assembler) {
   Label fall_through;
   // Check for overflow and that it fits into Smi.
   __ LoadImmediate(TMP, 0xC0000000);
-  __ subu(CMPRES, V0, TMP);
-  __ bltz(CMPRES, &fall_through);
+  __ subu(CMPRES1, V0, TMP);
+  __ bltz(CMPRES1, &fall_through);
   __ Ret();
   __ delay_slot()->SmiTag(V0);
   __ Bind(&fall_through);
@@ -1459,7 +1459,7 @@ void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
   __ lw(T0, Address(SP, 1 * kWordSize));  // String.
 
   // Checks.
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
   __ bne(T1, ZR, &fall_through);  // Index is not a Smi.
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
@@ -1590,8 +1590,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ lw(V0, Address(T3, 0));
 
   // length_reg: allocation size.
-  __ AdduDetectOverflow(T1, V0, length_reg, CMPRES);
-  __ bltz(CMPRES, failure);  // Fail on overflow.
+  __ AdduDetectOverflow(T1, V0, length_reg, CMPRES1);
+  __ bltz(CMPRES1, failure);  // Fail on overflow.
 
   // Check if the allocation fits into the remaining space.
   // V0: potential new object start.
@@ -1626,8 +1626,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // T2: size and bit tags.
-    __ LoadImmediate(TMP1, RawObject::ClassIdTag::encode(cls.id()));
-    __ or_(T2, T2, TMP1);
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
+    __ or_(T2, T2, TMP);
     __ sw(T2, FieldAddress(V0, String::tags_offset()));  // Store tags.
   }
 
@@ -1653,9 +1653,9 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
 
   __ lw(T2, Address(SP, kEndIndexOffset));
   __ lw(TMP, Address(SP, kStartIndexOffset));
-  __ or_(CMPRES, T2, TMP);
-  __ andi(CMPRES, CMPRES, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &fall_through);  // 'start', 'end' not Smi.
+  __ or_(CMPRES1, T2, TMP);
+  __ andi(CMPRES1, CMPRES1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // 'start', 'end' not Smi.
 
   __ subu(T2, T2, TMP);
   TryAllocateOnebyteString(assembler, &ok, &fall_through);
@@ -1734,8 +1734,8 @@ void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ beq(T0, T1, &is_true);
 
   // Is other OneByteString?
-  __ andi(CMPRES, T1, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, &fall_through);  // Other is Smi.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ beq(CMPRES1, ZR, &fall_through);  // Other is Smi.
   __ LoadClassId(CMPRES1, T1);  // Class ID check.
   __ BranchNotEqual(CMPRES1, string_cid, &fall_through);
 

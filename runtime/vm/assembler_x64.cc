@@ -1458,6 +1458,17 @@ void Assembler::testq(Register reg, const Immediate& imm) {
 }
 
 
+void Assembler::TestImmediate(Register dst, const Immediate& imm, Register pp) {
+  if (CanLoadImmediateFromPool(imm, pp)) {
+    ASSERT(dst != TMP);
+    LoadImmediate(TMP, imm, pp);
+    testq(dst, TMP);
+  } else {
+    testq(dst, imm);
+  }
+}
+
+
 void Assembler::andl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);

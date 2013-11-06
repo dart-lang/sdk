@@ -760,6 +760,7 @@ BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
       is_checked_(is_checked),
       constrained_type_(NULL),
       constant_target_(NULL) {
+  ASSERT(comparison->env() == NULL);
   for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
     comparison->InputAt(i)->set_instruction(this);
   }
@@ -781,18 +782,19 @@ void BranchInstr::ReplaceWith(ComparisonInstr* other,
 }
 
 
-void BranchInstr::SetComparison(ComparisonInstr* comp) {
-  for (intptr_t i = comp->InputCount() - 1; i >= 0; --i) {
-    Value* input = comp->InputAt(i);
+void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
+  for (intptr_t i = new_comparison->InputCount() - 1; i >= 0; --i) {
+    Value* input = new_comparison->InputAt(i);
     input->definition()->AddInputUse(input);
     input->set_instruction(this);
   }
   // There should be no need to copy or unuse an environment.
   ASSERT(comparison()->env() == NULL);
+  ASSERT(new_comparison->env() == NULL);
   // Remove the current comparison's input uses.
   comparison()->UnuseAllInputs();
-  ASSERT(!comp->HasUses());
-  comparison_ = comp;
+  ASSERT(!new_comparison->HasUses());
+  comparison_ = new_comparison;
 }
 
 
@@ -1617,6 +1619,25 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
 }
 
 
+// Recognize the pattern (a & b) == 0 where left is a bitwise and operation
+// and right is a constant 0.
+static bool RecognizeTestPattern(Value* left, Value* right) {
+  if (!right->BindsToConstant()) {
+    return false;
+  }
+
+  const Object& value = right->BoundConstant();
+  if (!value.IsSmi() || (Smi::Cast(value).Value() != 0)) {
+    return false;
+  }
+
+  Definition* left_defn = left->definition();
+  return left_defn->IsBinarySmiOp() &&
+      (left_defn->AsBinarySmiOp()->op_kind() == Token::kBIT_AND) &&
+      left_defn->HasOnlyUse(left);
+}
+
+
 Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
@@ -1663,6 +1684,29 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       ASSERT(comp->input_use_list() == NULL);
       comp->ClearSSATempIndex();
       comp->ClearTempIndex();
+    }
+  } else if (comparison()->IsEqualityCompare() &&
+             comparison()->operation_cid() == kSmiCid) {
+    BinarySmiOpInstr* bit_and = NULL;
+    if (RecognizeTestPattern(comparison()->left(), comparison()->right())) {
+      bit_and = comparison()->left()->definition()->AsBinarySmiOp();
+    } else if (RecognizeTestPattern(comparison()->right(),
+                                    comparison()->left())) {
+      bit_and = comparison()->right()->definition()->AsBinarySmiOp();
+    }
+    if (bit_and != NULL) {
+      if (FLAG_trace_optimization) {
+        OS::Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
+      }
+      TestSmiInstr* test = new TestSmiInstr(comparison()->token_pos(),
+                                            comparison()->kind(),
+                                            bit_and->left()->Copy(),
+                                            bit_and->right()->Copy());
+      ASSERT(!CanDeoptimize());
+      RemoveEnvironment();
+      flow_graph->CopyDeoptTarget(this, bit_and);
+      SetComparison(test);
+      bit_and->RemoveFromGraph();
     }
   }
   return this;
