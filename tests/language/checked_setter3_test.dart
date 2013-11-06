@@ -6,7 +6,8 @@ import "package:expect/expect.dart";
 
 bool get inCheckedMode {
   try {
-    String a = 42;
+    var i = 42;
+    String a = i;
   } catch (e) {
     return true;
   }
