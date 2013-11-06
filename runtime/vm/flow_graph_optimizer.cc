@@ -6469,9 +6469,26 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
 
 
 void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
+  const Definition* def = instr->value()->definition();
+  const Object& value = def->constant_value();
   if (IsNonConstant(value)) {
-    SetValue(instr, non_constant_);
+    const AbstractType& checked_type = instr->type();
+    intptr_t value_cid = instr->value()->Type()->ToCid();
+    Representation rep = def->representation();
+    if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
+        (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4))     ||
+        (checked_type.IsDoubleType() && (rep == kUnboxedDouble))       ||
+        (checked_type.IsIntType() && (rep == kUnboxedMint))) {
+      // Ensure that compile time type matches representation.
+      ASSERT(((rep == kUnboxedFloat32x4) && (value_cid == kFloat32x4Cid)) ||
+             ((rep == kUnboxedInt32x4) && (value_cid == kInt32x4Cid))     ||
+             ((rep == kUnboxedDouble) && (value_cid == kDoubleCid))       ||
+             ((rep == kUnboxedMint) && (value_cid == kMintCid)));
+      // The representation guarantees the type check to be true.
+      SetValue(instr, instr->negate_result() ? Bool::False() : Bool::True());
+    } else {
+      SetValue(instr, non_constant_);
+    }
   } else if (IsConstant(value)) {
     // TODO(kmillikin): Handle instanceof on constants.
     SetValue(instr, non_constant_);
