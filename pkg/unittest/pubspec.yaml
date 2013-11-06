@@ -1,8 +1,10 @@
 name: unittest
+version: 0.9.0
 author: Dart Team <misc@dartlang.org>
 description: A library for writing dart unit tests.
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/unittest
 dependencies:
-  meta: any
-  stack_trace: any
+  stack_trace: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"
