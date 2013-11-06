@@ -82,14 +82,22 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  bool isInMask(other, Compiler compiler) {
+  bool isInMask(TypeMask other, Compiler compiler) {
     if (isEmpty) {
       return isNullable ? other.isNullable : true;
     }
     if (other.isEmpty) return false;
     if (isNullable && !other.isNullable) return false;
     if (other is! FlatTypeMask) return other.containsMask(this, compiler);
-    return satisfies(other.base, compiler);
+    FlatTypeMask flatOther = other;
+    ClassElement otherBase = flatOther.base;
+    if (flatOther.isExact) return isExact && base == otherBase;
+    if (flatOther.isSubclass) {
+      if (isSubtype) return false;
+      return base == otherBase || isSubclassOf(base, otherBase, compiler);
+    }
+    assert(flatOther.isSubtype);
+    return satisfies(otherBase, compiler);
   }
 
   bool containsMask(TypeMask other, Compiler compiler) {
