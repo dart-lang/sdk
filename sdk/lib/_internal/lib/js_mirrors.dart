@@ -247,7 +247,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   final bool _isRoot;
   final _globalObject;
   List<JsMethodMirror> _cachedFunctionMirrors;
-  List<JsVariableMirror> _cachedFields;
+  List<VariableMirror> _cachedFields;
   UnmodifiableMapView<Symbol, ClassMirror> _cachedClasses;
   UnmodifiableMapView<Symbol, MethodMirror> _cachedFunctions;
   UnmodifiableMapView<Symbol, MethodMirror> _cachedGetters;
@@ -1087,7 +1087,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   List _metadata;
   ClassMirror _superclass;
   List<JsMethodMirror> _cachedMethods;
-  List<JsVariableMirror> _cachedFields;
+  List<VariableMirror> _cachedFields;
   UnmodifiableMapView<Symbol, MethodMirror> _cachedConstructors;
   UnmodifiableMapView<Symbol, MethodMirror> _cachedMethodsMap;
   UnmodifiableMapView<Symbol, MethodMirror> _cachedGetters;

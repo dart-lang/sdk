@@ -1221,7 +1221,10 @@ class JavaScriptBackend extends Backend {
         registerCompileTimeConstant(initialValue, work.resolutionTree);
         compiler.constantHandler.addCompileTimeConstantForEmission(
             initialValue);
-        return;
+        // We don't need to generate code for static or top-level
+        // variables. For instance variables, we may need to generate
+        // the checked setter.
+        if (Elements.isStaticOrTopLevel(element)) return;
       } else {
         // If the constant-handler was not able to produce a result we have to
         // go through the builder (below) to generate the lazy initializer for

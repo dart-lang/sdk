@@ -735,9 +735,14 @@ class CodegenEnqueuer extends Enqueuer {
     // Don't generate code for foreign elements.
     if (element.isForeign(compiler)) return;
 
-    // Codegen inlines field initializers, so it does not need to add
-    // individual fields in the work list.
-    if (element.isField() && element.isInstanceMember()) return;
+    // Codegen inlines field initializers. It only needs to generate
+    // code for checked setters.
+    if (element.isField() && element.isInstanceMember()) {
+      if (!compiler.enableTypeAssertions
+          || element.enclosingElement.isClosure()) {
+        return;
+      }
+    }
 
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,

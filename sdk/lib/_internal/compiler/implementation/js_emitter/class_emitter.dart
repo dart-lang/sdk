@@ -442,7 +442,7 @@ class ClassEmitter extends CodeEmitterHelper {
         bool needsCheckedSetter = false;
         if (compiler.enableTypeAssertions
             && needsSetter
-            && canGenerateCheckedSetter(field)) {
+            && !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
           needsSetter = false;
         }
@@ -516,49 +516,21 @@ class ClassEmitter extends CodeEmitterHelper {
     return field is ClosureFieldElement;
   }
 
-  bool canGenerateCheckedSetter(VariableElement field) {
+  bool canAvoidGeneratedCheckedSetter(Element member) {
     // We never generate accessors for top-level/static fields.
-    if (!field.isInstanceMember()) return false;
-    DartType type = field.computeType(compiler).unalias(compiler);
-    if (type.element.isTypeVariable() ||
-        (type is FunctionType && type.containsTypeVariables) ||
-        type.treatAsDynamic ||
-        type.element == compiler.objectClass) {
-      // TODO(ngeoffray): Support type checks on type parameters.
-      return false;
-    }
-    return true;
+    if (!member.isInstanceMember()) return true;
+    DartType type = member.computeType(compiler);
+    return type.treatAsDynamic || (type.element == compiler.objectClass);
   }
 
   void generateCheckedSetter(Element member,
                              String fieldName,
                              String accessorName,
                              ClassBuilder builder) {
-    assert(canGenerateCheckedSetter(member));
-    DartType type = member.computeType(compiler);
-    // TODO(ahe): Generate a dynamic type error here.
-    if (type.element.isErroneous()) return;
-    type = type.unalias(compiler);
-    // TODO(11273): Support complex subtype checks.
-    type = type.asRaw();
-    CheckedModeHelper helper =
-        backend.getCheckedModeHelper(type, typeCast: false);
-    FunctionElement helperElement = helper.getElement(compiler);
-    String helperName = namer.isolateAccess(helperElement);
-    List<jsAst.Expression> arguments = <jsAst.Expression>[js('v')];
-    if (helperElement.computeSignature(compiler).parameterCount != 1) {
-      arguments.add(js.string(namer.operatorIsType(type)));
-    }
-
+    jsAst.Expression code = backend.generatedCode[member];
+    assert(code != null);
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
-        ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member)
-        ? ['receiver', 'v']
-        : ['v'];
-    builder.addProperty(setterName,
-        js.fun(args,
-            js('$receiver.$fieldName = #', js(helperName)(arguments))));
+    builder.addProperty(setterName, code);
     generateReflectionDataForFieldGetterOrSetter(
         member, setterName, builder, isGetter: false);
   }

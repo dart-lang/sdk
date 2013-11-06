@@ -43,10 +43,13 @@ class ClosureTask extends CompilerTask {
         translator.translateFunction(element, node);
       } else if (element.isSynthesized) {
         return new ClosureClassMap(null, null, null, new ThisElement(element));
-      } else {
-        // Must be the lazy initializer of a static.
-        assert(node is SendSet);
+      } else if (node is SendSet) {
+        // The lazy initializer of a static.
         translator.translateLazyInitializer(element, node);
+      } else {
+        assert(element.isInstanceMember() && element.isField());
+        closureMappingCache[node] =
+            new ClosureClassMap(null, null, null, new ThisElement(element));
       }
       assert(closureMappingCache[node] != null);
       return closureMappingCache[node];

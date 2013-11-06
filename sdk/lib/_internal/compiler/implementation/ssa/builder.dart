@@ -45,8 +45,12 @@ class SsaBuilderTask extends CompilerTask {
                    kind == ElementKind.SETTER) {
           graph = builder.buildMethod(element);
         } else if (kind == ElementKind.FIELD) {
-          assert(!element.isInstanceMember());
-          graph = builder.buildLazyInitializer(element);
+          if (element.isInstanceMember()) {
+            assert(compiler.enableTypeAssertions);
+            graph = builder.buildCheckedSetter(element);
+          } else {
+            graph = builder.buildLazyInitializer(element);
+          }
         } else {
           compiler.internalErrorOnElement(element,
                                           'unexpected element kind $kind');
@@ -945,6 +949,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  /**
+   * Returns whether this builder is building code for [element].
+   */
+  bool isBuildingFor(Element element) {
+    return work.element == element;
+  }
+
   /// A stack of [DartType]s the have been seen during inlining of factory
   /// constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HForeignNews] inside the inline code and registered during code
@@ -1070,6 +1081,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
     function.body.accept(this);
+    return closeFunction();
+  }
+
+  HGraph buildCheckedSetter(VariableElement field) {
+    openFunction(field, field.parseNode(compiler));
+    HInstruction parameter = addParameter(
+        field,
+        TypeMaskFactory.inferredTypeForElement(field, compiler));
+    HInstruction thisInstruction = localsHandler.readThis();
+    HInstruction value =
+        potentiallyCheckType(parameter, field.computeType(compiler));
+    add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
 
@@ -3599,7 +3622,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // The type variable is stored in a parameter of the method.
         return localsHandler.readLocal(type.element);
       }
-    } else if (isInConstructorContext || member.isField()) {
+    } else if (isInConstructorContext ||
+               // When [member] is a field, we can be either
+               // generating a checked setter or inlining its
+               // initializer in a constructor. An initializer is
+               // never built standalone, so [isBuildingFor] will
+               // always return true when seeing one.
+               (member.isField() && !isBuildingFor(member))) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {
