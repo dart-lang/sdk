@@ -79,6 +79,19 @@ class SsaOptimizerTask extends CompilerTask {
   }
 }
 
+bool isFixedLength(mask, Compiler compiler) {
+  JavaScriptBackend backend = compiler.backend;
+  if (mask.isContainer && mask.length != null) {
+    // A container on which we have inferred the length.
+    return true;
+  } else if (mask.containsOnly(backend.jsFixedArrayClass)
+             || mask.containsOnlyString(compiler)
+             || backend.isTypedArray(mask)) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * If both inputs to known operations are available execute the operation at
  * compile-time.
@@ -196,19 +209,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantInt(constant.length, compiler);
       }
       Element element = backend.jsIndexableLength;
-      var mask = actualReceiver.instructionType;
-      bool isFixedLength = false;
-      if (mask.isContainer && mask.length != null) {
-        // A container on which we have inferred the length.
-        isFixedLength = true;
-      } else if (mask.containsOnly(backend.jsFixedArrayClass)
-                 || mask.containsOnlyString(compiler)
-                 || backend.isTypedArray(mask)) {
-        isFixedLength = true;
-      }
+      bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       HFieldGet result = new HFieldGet(
           element, actualReceiver, backend.intType,
-          isAssignable: !isFixedLength);
+          isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -835,11 +839,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction array,
                                  HInstruction indexArgument) {
     Compiler compiler = backend.compiler;
-    bool isAssignable =
-        !array.isFixedArray(compiler) && !array.isString(compiler);
     HFieldGet length = new HFieldGet(
         backend.jsIndexableLength, array, backend.intType,
-        isAssignable: isAssignable);
+        isAssignable: !isFixedLength(array.instructionType, compiler));
     indexNode.block.addBefore(indexNode, length);
 
     HBoundsCheck check = new HBoundsCheck(
