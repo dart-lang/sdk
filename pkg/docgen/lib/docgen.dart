@@ -305,7 +305,7 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   entityMap.values.where((e) => e is Class).forEach((c) => c.makeValid());
   // Everything is a subclass of Object, therefore empty the list to avoid a
   // giant list of subclasses to be printed out.
-  if (parseSdk) (entityMap['dart-core.Object'] as Class).subclasses.clear();
+  if (includeSdk) (entityMap['dart-core.Object'] as Class).subclasses.clear();
 
   var filteredEntities = entityMap.values.where(_isVisible);
 

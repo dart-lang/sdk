@@ -25,7 +25,7 @@ void main(List<String> arguments) {
       includeSdk: results['parse-sdk'] || results['include-sdk'],
       parseSdk: results['parse-sdk'],
       append: results['append'] && new Directory('docs').existsSync(),
-      introduction: results['parse-sdk'] ?
+      introduction: (results['parse-sdk'] || results['include-sdk']) ?
           'sdk-introduction.md' : results['introduction']);
 }
 

@@ -82,12 +82,13 @@ def GenerateAllDocs(docgen_options):
   '''Generate all documentation for the SDK and all packages in the repository.
   We first attempt to run the quickest path to generate all docs, but if that
   fails, we fall back on a slower option.'''
-  sdk_cmd = [DART_EXECUTABLE, 'docgen.dart', '--parse-sdk']
-  ExecuteCommand(AddUserDocgenOptions(sdk_cmd, docgen_options))
-
+# TODO(alanknight): The --append option doesn't work properly. It overwrites
+# existing files with new information. Known symptom is that it loses subclasses
+# from the SDK and includes only the ones from pkg. So right now our only option
+# is to do everything in one pass.
   doc_dir = join(DART_DIR, 'pkg')
   cmd_lst = [DART_EXECUTABLE, '--old_gen_heap_size=1024',
-      '--package-root=%s' % PACKAGE_ROOT, 'docgen.dart', '--append']
+      '--package-root=%s' % PACKAGE_ROOT, 'docgen.dart', '--include-sdk' ]
   cmd_str = ' '.join(AddUserDocgenOptions(cmd_lst, docgen_options, True))
   # Try to run all pkg docs together at once as it's fastest.
   (return_code, _) = ExecuteCommandString('%s %s' % (cmd_str, doc_dir))
