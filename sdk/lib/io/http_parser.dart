@@ -210,9 +210,8 @@ class _HttpParser
           _pauseStateChanged();
         },
         onCancel: () {
-          try {
+          if (_socketSubscription != null) {
             _socketSubscription.cancel();
-          } catch (e) {
           }
         });
     _reset();
