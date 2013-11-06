@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 void testPauseResumeCancelStream() {
   asyncStart();
-  Directory.systemTemp.createTemp('file_stream').then((d) {
+  Directory.systemTemp.createTemp('dart_file_stream').then((d) {
     var file = new File("${d.path}/file");
     new File(Platform.executable).openRead().pipe(file.openWrite())
       .then((_) {
@@ -37,7 +37,7 @@ void testPauseResumeCancelStream() {
 
 void testStreamIsEmpty() {
   asyncStart();
-  Directory.systemTemp.createTemp('file_stream').then((d) {
+  Directory.systemTemp.createTemp('dart_file_stream').then((d) {
     var file = new File("${d.path}/file");
     new File(Platform.executable).openRead().pipe(file.openWrite())
       .then((_) {
