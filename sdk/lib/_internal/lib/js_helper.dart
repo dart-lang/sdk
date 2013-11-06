@@ -30,6 +30,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
+import 'dart:_collection-dev' show MappedIterable;
 
 import 'dart:_js_names' show
     mangledNames,
@@ -1460,11 +1461,6 @@ int objectHashCode(var object) {
  */
 makeLiteralMap(keyValuePairs) {
   return fillLiteralMap(keyValuePairs, new LinkedHashMap());
-}
-
-makeConstantMap(keyValuePairs) {
-  return fillLiteralMap(keyValuePairs,
-      new LinkedHashMap(equals: identical, hashCode: objectHashCode));
 }
 
 fillLiteralMap(keyValuePairs, Map result) {

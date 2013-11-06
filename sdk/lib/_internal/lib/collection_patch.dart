@@ -71,7 +71,7 @@ class _HashMap<K, V> implements HashMap<K, V> {
   }
 
   Iterable<V> get values {
-    return keys.map((each) => this[each]);
+    return new MappedIterable<K, V>(keys, (each) => this[each]);
   }
 
   bool containsKey(Object key) {
@@ -527,7 +527,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
   }
 
   Iterable<V> get values {
-    return keys.map((each) => this[each]);
+    return new MappedIterable<K, V>(keys, (each) => this[each]);
   }
 
   bool containsKey(Object key) {

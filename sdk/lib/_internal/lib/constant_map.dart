@@ -55,7 +55,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
   }
 
   Iterable<V> get values {
-    return _keys.map((key) => this[key]);
+    return new MappedIterable<K, V>(_keys, (key) => this[key]);
   }
 }
 
@@ -92,7 +92,9 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   // have not been defined when constants are created.
   Map<K, V> _getMap() {
     if (JS('bool', r'!this.$map')) {
-      JS('', r'this.$map = #', makeConstantMap(_jsData));
+      Map backingMap =
+          new LinkedHashMap<K, V>(equals: identical, hashCode: objectHashCode);
+      JS('', r'this.$map = #', fillLiteralMap(_jsData, backingMap));
     }
     return JS('Map', r'this.$map');
   }
