@@ -138,6 +138,15 @@ class TryCatchTest {
     Expect.equals("s", e);
   }
 
+  static void test10() {
+    try {
+      throw "up";
+    } on String catch (e) {
+      var e = 1;  // ok, shadows exception variable.
+      Expect.equals(1, e);
+    }
+  }
+
   static void testMain() {
     test1();
     test2();
@@ -148,6 +157,7 @@ class TryCatchTest {
     test7();
     test8();
     test9();
+    test10();
   }
 }
 

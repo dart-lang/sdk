@@ -271,6 +271,7 @@ class Parser : public ValueObject {
     CompilerStats::num_tokens_consumed++;
   }
   void ConsumeRightAngleBracket();
+  void CheckToken(Token::Kind token_expected, const char* msg = NULL);
   void ExpectToken(Token::Kind token_expected);
   void ExpectSemicolon();
   void UnexpectedToken();

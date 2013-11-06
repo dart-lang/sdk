@@ -861,9 +861,7 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
 
 
 RawArray* Parser::EvaluateMetadata() {
-  if (CurrentToken() != Token::kAT) {
-    ErrorMsg("Metadata character '@' expected");
-  }
+  CheckToken(Token::kAT, "Metadata character '@' expected");
   GrowableObjectArray& meta_values =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   while (CurrentToken() == Token::kAT) {
@@ -1690,13 +1688,9 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
                             evaluate_metadata,
                             params);
       if (params->has_optional_positional_parameters) {
-        if (CurrentToken() != Token::kRBRACK) {
-          ErrorMsg("',' or ']' expected");
-        }
+        CheckToken(Token::kRBRACK, "',' or ']' expected");
       } else {
-        if (CurrentToken() != Token::kRBRACE) {
-          ErrorMsg("',' or '}' expected");
-        }
+        CheckToken(Token::kRBRACE, "',' or '}' expected");
       }
       ConsumeToken();  // ']' or '}'.
     }
@@ -1716,9 +1710,7 @@ String& Parser::ParseNativeDeclaration() {
   TRACE_PARSER("ParseNativeDeclaration");
   ASSERT(IsLiteral("native"));
   ConsumeToken();
-  if (CurrentToken() != Token::kSTRING) {
-    ErrorMsg("string literal expected");
-  }
+  CheckToken(Token::kSTRING, "string literal expected");
   String& native_name = *CurrentLiteral();
   ConsumeToken();
   return native_name;
@@ -2119,9 +2111,7 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
     ctor_name = String::Concat(ctor_name,
                                *ExpectIdentifier("constructor name expected"));
   }
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("parameter list expected");
-  }
+  CheckToken(Token::kLPAREN, "parameter list expected");
 
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // 'this' parameter is the first argument to super class constructor.
@@ -2380,9 +2370,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
     ctor_name = String::Concat(ctor_name,
                                *ExpectIdentifier("constructor name expected"));
   }
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("parameter list expected");
-  }
+  CheckToken(Token::kLPAREN, "parameter list expected");
 
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // 'this' parameter is the first argument to constructor.
@@ -3002,9 +2990,7 @@ void Parser::SkipInitializers() {
         ConsumeToken();
         ExpectIdentifier("identifier expected");
       }
-      if (CurrentToken() != Token::kLPAREN) {
-        ErrorMsg("'(' expected");
-      }
+      CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
     } else {
       SkipIf(Token::kTHIS);
@@ -3215,9 +3201,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
             *ExpectIdentifier("constructor name expected"));
       }
       method->redirect_name = &redir_name;
-      if (CurrentToken() != Token::kLPAREN) {
-        ErrorMsg("'(' expected");
-      }
+      CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
     } else {
       SkipInitializers();
@@ -3684,9 +3668,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     // Ensure that names are symbols.
     *member.name = Symbols::New(*member.name);
 
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("left parenthesis expected");
-    }
+    CheckToken(Token::kLPAREN);
   } else if ((CurrentToken() == Token::kGET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
@@ -3706,9 +3688,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->TokenPos();
     member.name = ExpectIdentifier("identifier expected");
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("'(' expected");
-    }
+    CheckToken(Token::kLPAREN);
     // The grammar allows a return type, so member.type is not always NULL here.
     // If no return type is specified, the return type of the setter is dynamic.
     if (member.type == NULL) {
@@ -3941,9 +3921,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   if (is_mixin_declaration) {
     ExpectSemicolon();
   } else {
-    if (CurrentToken() != Token::kLBRACE) {
-      ErrorMsg("{ expected");
-    }
+    CheckToken(Token::kLBRACE);
     SkipBlock();
     ExpectToken(Token::kRBRACE);
   }
@@ -4107,9 +4085,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
              String::Handle(type.UserVisibleName()).ToCString());
   }
 
-  if (CurrentToken() != Token::kWITH) {
-    ErrorMsg("mixin application 'with Type' expected");
-  }
+  CheckToken(Token::kWITH, "mixin application 'with Type' expected");
   type = ParseMixins(type);
 
   mixin_application.set_super_type(type);
@@ -4226,9 +4202,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                          &result_type);
   }
   // Parse the formal parameters of the function type.
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("formal parameter list expected");
-  }
+  CheckToken(Token::kLPAREN, "formal parameter list expected");
   ParamList func_params;
 
   // Add implicit closure object parameter.
@@ -4654,9 +4628,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   // A setter named x= may co-exist with a function named x, thus we do
   // not need to check setters.
 
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
+  CheckToken(Token::kLPAREN);
   const intptr_t function_pos = TokenPos();
   ParamList params;
   const bool allow_explicit_default_values = true;
@@ -4913,9 +4885,7 @@ void Parser::ParseLibraryImportExport() {
   ASSERT(is_import || is_export);
   const intptr_t import_pos = TokenPos();
   ConsumeToken();
-  if (CurrentToken() != Token::kSTRING) {
-    ErrorMsg("library url expected");
-  }
+  CheckToken(Token::kSTRING, "library url expected");
   AstNode* url_literal = ParseStringLiteral(false);
   ASSERT(url_literal->IsLiteralNode());
   ASSERT(url_literal->AsLiteralNode()->literal().IsString());
@@ -5004,9 +4974,7 @@ void Parser::ParseLibraryImportExport() {
 void Parser::ParseLibraryPart() {
   const intptr_t source_pos = TokenPos();
   ConsumeToken();  // Consume "part".
-  if (CurrentToken() != Token::kSTRING) {
-    ErrorMsg("url expected");
-  }
+  CheckToken(Token::kSTRING, "url expected");
   AstNode* url_literal = ParseStringLiteral(false);
   ASSERT(url_literal->IsLiteralNode());
   ASSERT(url_literal->AsLiteralNode()->literal().IsString());
@@ -5072,9 +5040,7 @@ void Parser::ParseLibraryDefinition() {
 
 void Parser::ParsePartHeader() {
   SkipMetadata();
-  if (CurrentToken() != Token::kPART) {
-    ErrorMsg("'part of' expected");
-  }
+  CheckToken(Token::kPART, "'part of' expected");
   ConsumeToken();
   if (!IsLiteral("of")) {
     ErrorMsg("'part of' expected");
@@ -5584,10 +5550,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                line_number);
     }
   }
-
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
+  CheckToken(Token::kLPAREN);
 
   // Check whether we have parsed this closure function before, in a previous
   // compilation. If so, reuse the function object, else create a new one
@@ -6835,8 +6798,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
   // Now parse the 'try' block.
   OpenBlock();
-  Block* current_try_block = current_block_;
-  PushTryBlock(current_try_block);
+  PushTryBlock(current_block_);
   ExpectToken(Token::kLBRACE);
   ParseStatementSequence();
   ExpectToken(Token::kRBRACE);
@@ -6871,8 +6833,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       exception_param.type = &AbstractType::ZoneHandle(
           ParseType(ClassFinalizer::kCanonicalize));
     } else {
-      exception_param.type =
-          &AbstractType::ZoneHandle(Type::DynamicType());
+      exception_param.type = &AbstractType::ZoneHandle(Type::DynamicType());
     }
     if (CurrentToken() == Token::kCATCH) {
       ConsumeToken();  // Consume the 'catch'.
@@ -6890,9 +6851,12 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       ExpectToken(Token::kRPAREN);
     }
 
-    // Parse the individual catch handler code and add an unconditional
-    // JUMP to the end of the try block.
-    ExpectToken(Token::kLBRACE);
+    // Create a block containing the catch clause parameters and
+    // the following code:
+    // 1) Store exception object and stack trace object into user-defined
+    //    variables (as needed).
+    // 2) Nested block with source code from catch clause block.
+    // 3) Unconditional JUMP to the end of the try block.
     OpenBlock();
     AddCatchParamsToScope(exception_param,
                           stack_trace_param,
@@ -6927,18 +6891,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
               no_args));
     }
 
-    ParseStatementSequence();  // Parse the catch handler code.
+    // Add nested block with user-defined code.
+    CheckToken(Token::kLBRACE);
+    current_block_->statements->Add(ParseNestedStatement(false, NULL));
+
+    // Add unconditional jump to end of catch clause list.
     current_block_->statements->Add(
         new JumpNode(catch_pos, Token::kCONTINUE, end_catch_label));
-    SequenceNode* catch_handler = CloseBlock();
-    ExpectToken(Token::kRBRACE);
+
+    SequenceNode* catch_clause = CloseBlock();
 
     const bool is_bad_type = exception_param.type->IsMalformed() ||
                              exception_param.type->IsMalbounded();
     if (!is_bad_type && !exception_param.type->IsDynamicType()) {
       // Has a type specification that is not malformed or malbounded.
-      // Now form an 'if type check' as an exception type exists in the
-      // catch specifier.
+      // Now form an 'if type check' to guard the catch handler code.
       if (!exception_param.type->IsInstantiated() &&
           (current_block_->scope->function_level() > 0)) {
         // Make sure that the instantiator is captured.
@@ -6952,7 +6919,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       AstNode* type_cond_expr = new ComparisonNode(
           catch_pos, Token::kIS, exception_var, exception_type);
       current_block_->statements->Add(
-          new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
+          new IfNode(catch_pos, type_cond_expr, catch_clause, NULL));
 
       // Do not add uninstantiated types (e.g. type parameter T or
       // generic type List<T>), since the debugger won't be able to
@@ -6970,9 +6937,9 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                                                        *exception_param.type));
         // We still add the dead code below to satisfy the code generator.
       }
-      // No exception type exists in the catch specifier so execute the
+      // No exception type exists in the catch clause so execute the
       // catch handler code unconditionally.
-      current_block_->statements->Add(catch_handler);
+      current_block_->statements->Add(catch_clause);
       generic_catch_seen = true;
       // This catch clause will handle all exceptions. We can safely forget
       // all previous catch clause types.
@@ -6980,6 +6947,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       handler_types.Add(*exception_param.type);
     }
   }
+
   SequenceNode* catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
   const intptr_t try_index = inner_try_block->try_index();
@@ -7398,6 +7366,17 @@ void Parser::Warning(const char* format, ...) {
 
 void Parser::Unimplemented(const char* msg) {
   ErrorMsg(TokenPos(), "%s", msg);
+}
+
+
+void Parser::CheckToken(Token::Kind token_expected, const char* msg) {
+  if (CurrentToken() != token_expected) {
+    if (msg != NULL) {
+      ErrorMsg("%s", msg);
+    } else {
+      ErrorMsg("'%s' expected", Token::Str(token_expected));
+    }
+  }
 }
 
 
@@ -8202,9 +8181,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
 AstNode* Parser::ParseInstanceCall(AstNode* receiver, const String& func_name) {
   TRACE_PARSER("ParseInstanceCall");
   const intptr_t call_pos = TokenPos();
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg(call_pos, "left parenthesis expected");
-  }
+  CheckToken(Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   return new InstanceCallNode(call_pos, receiver, func_name, arguments);
 }
@@ -9278,9 +9255,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 RawAbstractType* Parser::ParseType(
     ClassFinalizer::FinalizationKind finalization) {
   TRACE_PARSER("ParseType");
-  if (CurrentToken() != Token::kIDENT) {
-    ErrorMsg("type name expected");
-  }
+  CheckToken(Token::kIDENT, "type name expected");
   QualIdent type_name;
   if (finalization == ClassFinalizer::kIgnore) {
     if (!is_top_level_ && (current_block_ != NULL)) {
@@ -9897,9 +9872,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   // Parse constructor parameters.
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
+  CheckToken(Token::kLPAREN);
   intptr_t call_pos = TokenPos();
   ArgumentListNode* arguments = ParseActualParameters(NULL, is_const);
 
