@@ -78,7 +78,7 @@ class ScheduledServer {
       handler.ready = true;
       return handler.result.catchError((e) {
         // Close the server so that we don't leave a dangling request.
-        _server.then((s) => s.close());
+        _server.then((s) => s.close(force: true));
         throw e;
       });
     }, "'$description' waiting for $method $path");
@@ -97,7 +97,7 @@ class ScheduledServer {
       return _handlers.removeFirst().fn(request);
     }).catchError((e) {
       // Close the server so that we don't leave a dangling request.
-      _server.then((s) => s.close());
+      _server.then((s) => s.close(force: true));
       throw e;
     }), 'receiving ${request.method} ${request.uri}');
   }
