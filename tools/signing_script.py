@@ -209,25 +209,19 @@ def main():
     'macos' : {
       'editor' : os.path.join('dart', 'DartEditor.app'),
       'chrome' : os.path.join('dart', 'chromium', 'Chromium.app'),
-      'content_shell' : os.path.join('dart', 'chromium',
-                                     'Content Shell.app'),
 
       'editor_scratch' : 'DartEditor%(bits)s.app',
       'chrome_scratch' : 'Chromium%(bits)s.app',
-      'content_shell_scratch' : 'ContentShell%(bits)s.app',
 
       'zip' : True,
     },
     'win32' : {
       'editor' : os.path.join('dart', 'DartEditor.exe'),
       'chrome' : os.path.join('dart', 'chromium', 'chrome.exe'),
-      'content_shell' : os.path.join('dart', 'chromium',
-                                     'content_shell.exe'),
 
       'msi_scratch' : 'darteditor-installer-windows-%(bits)s.msi',
       'editor_scratch' : 'DartEditor%(bits)s.exe',
       'chrome_scratch' : 'chromium%(bits)s.exe',
-      'content_shell_scratch' : 'content_shell%(bits)s.exe',
 
       'zip' : False,
     },
@@ -257,7 +251,7 @@ def main():
 
         run(['unzip', destination, '-d', destination_dir])
 
-        for name in ['editor', 'chrome', 'content_shell']:
+        for name in ['editor', 'chrome']:
           from_path = os.path.join(destination_dir, locations[system][name])
           to_path = os.path.join(
               presign_dir, locations[system]['%s_scratch' % name] % config)
@@ -278,7 +272,7 @@ def main():
       elif options.deploy:
         copy_tree(destination_dir, deploy_dir)
 
-        for name in ['editor', 'chrome', 'content_shell']:
+        for name in ['editor', 'chrome']:
           from_path = os.path.join(
               postsign_dir, locations[system]['%s_scratch' % name] % config)
           to_path = os.path.join(deploy_dir, locations[system][name])
