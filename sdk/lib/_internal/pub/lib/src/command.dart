@@ -103,6 +103,12 @@ abstract class PubCommand {
         }
       }
 
+      if (error is ApplicationException && error.innerError != null) {
+        var message = "Wrapped exception: ${error.innerError}";
+        if (error.innerTrace != null) message = "$message\n${error.innerTrace}";
+        log.fine(message);
+      }
+
       if (options['trace']) {
         log.dumpTranscript();
       } else if (!isUserFacingException(error)) {

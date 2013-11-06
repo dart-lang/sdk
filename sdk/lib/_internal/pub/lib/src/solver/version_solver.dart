@@ -172,6 +172,9 @@ abstract class SolveFailure implements ApplicationException {
   /// an empty collection if the failure is not specific to one package.
   final Iterable<Dependency> dependencies;
 
+  final innerError = null;
+  final innerTrace = null;
+
   SolveFailure(this.package, Iterable<Dependency> dependencies)
       : dependencies = dependencies != null ? dependencies : <Dependency>[];
 

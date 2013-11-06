@@ -712,14 +712,21 @@ String getErrorMessage(error) {
 class ApplicationException implements Exception {
   final String message;
 
-  ApplicationException(this.message);
+  /// The underlying exception that [this] is wrapping, if any.
+  final innerError;
+
+  /// The stack trace for [innerError] if it exists.
+  final Trace innerTrace;
+
+  ApplicationException(this.message, [this.innerError, StackTrace innerTrace])
+      : innerTrace = innerTrace == null ? null : new Trace.from(innerTrace);
 
   String toString() => message;
 }
 
 /// Throw a [ApplicationException] with [message].
-void fail(String message) {
-  throw new ApplicationException(message);
+void fail(String message, [innerError, StackTrace innerTrace]) {
+  throw new ApplicationException(message, innerError, innerTrace);
 }
 
 /// All the names of user-facing exceptions.

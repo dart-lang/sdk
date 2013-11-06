@@ -50,9 +50,9 @@ class HostedSource extends Source {
       return doc['versions']
           .map((version) => new Version.parse(version['version']))
           .toList();
-    }).catchError((ex) {
+    }).catchError((ex, stackTrace) {
       var parsed = _parseDescription(description);
-      _throwFriendlyError(ex, parsed.first, parsed.last);
+      _throwFriendlyError(ex, stackTrace, parsed.first, parsed.last);
     });
   }
 
@@ -73,9 +73,9 @@ class HostedSource extends Source {
       // been downloaded.
       return new Pubspec.fromMap(version['pubspec'], systemCache.sources,
           expectedName: id.name, location: url);
-    }).catchError((ex) {
+    }).catchError((ex, stackTrace) {
       var parsed = _parseDescription(id.description);
-      _throwFriendlyError(ex, id, parsed.last);
+      _throwFriendlyError(ex, stackTrace, id, parsed.last);
     });
   }
 
@@ -155,19 +155,21 @@ class HostedSource extends Source {
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
-  void _throwFriendlyError(error, package, url) {
+  void _throwFriendlyError(error, StackTrace stackTrace, String package,
+      String url) {
     if (error is PubHttpException &&
         error.response.statusCode == 404) {
-      fail('Could not find package "$package" at $url.');
+      fail('Could not find package "$package" at $url.', error, stackTrace);
     }
 
     if (error is TimeoutException) {
-      fail('Timed out trying to find package "$package" at $url.');
+      fail('Timed out trying to find package "$package" at $url.',
+          error, stackTrace);
     }
 
     if (error is io.SocketException) {
-      fail('Got socket error trying to find package "$package" at $url.\n'
-          '$error');
+      fail('Got socket error trying to find package "$package" at $url.',
+           error, stackTrace);
     }
 
     // Otherwise re-throw the original exception.

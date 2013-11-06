@@ -467,7 +467,7 @@ Future<Set> loadTransformers(BarbackServer server, BarbackMode mode,
         log.fine("Transformers from $assetId: $transformers");
         return transformers;
       });
-    }).catchError((error) {
+    }).catchError((error, stackTrace) {
       if (error is! dart.CrossIsolateException) throw error;
       if (error.type != 'IsolateSpawnException') throw error;
       // TODO(nweiz): don't parse this as a string once issues 12617 and 12689
@@ -479,8 +479,8 @@ Future<Set> loadTransformers(BarbackServer server, BarbackMode mode,
       // If there was an IsolateSpawnException and the import that actually
       // failed was the one we were loading transformers from, throw an
       // application exception with a more user-friendly message.
-      fail('Transformer library "package:${id.package}/$path" not '
-          'found.');
+      fail('Transformer library "package:${id.package}/$path" not found.',
+          error, stackTrace);
     });
   });
 }
