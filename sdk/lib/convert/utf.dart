@@ -5,10 +5,10 @@
 part of dart.convert;
 
 /** The Unicode Replacement character `U+FFFD` (�). */
-const UNICODE_REPLACEMENT_CHARACTER_RUNE = 0xFFFD;
+const int UNICODE_REPLACEMENT_CHARACTER_RUNE = 0xFFFD;
 
 /** The Unicode Byte Order Marker (BOM) character `U+FEFF`. */
-const UNICODE_BOM_CHARACTER_RUNE = 0xFEFF;
+const int UNICODE_BOM_CHARACTER_RUNE = 0xFEFF;
 
 /**
  * An instance of the default implementation of the [Utf8Codec].
