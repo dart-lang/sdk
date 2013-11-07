@@ -128,7 +128,7 @@ main() {
 
           // Testing something with no reference
           var libraryDocComment = fixReference('foobar', libraryMirror,
-              classMirror, methodMirror).children.first.text;
+              classMirror, methodMirror).text;
           expect(libraryDocComment == 'foobar', isTrue);
         })).whenComplete(() => temporaryDir.deleteSync(recursive: true));
     });
