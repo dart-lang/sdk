@@ -15,8 +15,6 @@ GSUTIL = os.path.join(DART_DIR, 'third_party', 'gsutil', 'gsutil')
 BOT_UTILS = os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py')
 BASENAME_PATTERN = 'darteditor-%(system)s-%(bits)s'
 FILENAME_PATTERN = BASENAME_PATTERN + '.zip'
-BUCKET_PATTERN = (
-    'gs://dart-editor-archive-trunk/%(revision)s/' + FILENAME_PATTERN)
 
 DRY_RUN = False
 
@@ -113,22 +111,6 @@ def unzip_and_copy(extracted_zipfiledir, to_dir):
   rm_tree(to_dir)
   copy_tree(extracted_zipfiledir, to_dir)
 
-def download_from_old_location(config, destination):
-  bucket = BUCKET_PATTERN % config
-  run([GSUTIL, 'cp', bucket, destination])
-
-def upload_to_old_location(config, source_zip):
-  if not DRY_RUN:
-    bot_utils.CreateChecksumFile(
-        source_zip, mangled_filename=os.path.basename(source_zip))
-  md5_zip_file = source_zip + '.md5sum'
-  
-  bucket = BUCKET_PATTERN % config
-  run([GSUTIL, 'cp', source_zip, bucket])
-  run([GSUTIL, 'cp', md5_zip_file, bucket + '.md5sum'])
-  run([GSUTIL, 'setacl', 'public-read', bucket])
-  run([GSUTIL, 'setacl', 'public-read', bucket + '.md5sum'])
-
 def download_from_new_location(channel, config, destination):
   namer = bot_utils.GCSNamer(channel,
                              bot_utils.ReleaseType.RAW)
@@ -152,7 +134,7 @@ def upload_to_new_location(channel, config, source_zip):
   if not DRY_RUN:
     bot_utils.CreateChecksumFile(source_zip, mangled_filename=zipfilename)
   md5_zip_file = source_zip + '.md5sum'
-  
+
   run([GSUTIL, 'cp', source_zip, bucket])
   run([GSUTIL, 'cp', md5_zip_file, bucket + '.md5sum'])
   run([GSUTIL, 'setacl', 'public-read', bucket])
@@ -183,8 +165,8 @@ def main():
   if len(args) > 0:
     die("Invalid additional arguments: %s." % args)
 
-  if options.channel:
-    assert options.channel in bot_utils.Channel.ALL_CHANNELS
+  if not options.channel:
+    die("You need to specify a channel with --channel.")
 
   global DRY_RUN
   DRY_RUN = options.dry_run
@@ -244,10 +226,7 @@ def main():
 
       if options.prepare:
         # Download *.zip files from GCS buckets
-        if options.channel:
-          download_from_new_location(options.channel, config, destination)
-        else:
-          download_from_old_location(config, destination)
+        download_from_new_location(options.channel, config, destination)
 
         run(['unzip', destination, '-d', destination_dir])
 
@@ -289,10 +268,7 @@ def main():
           run(['zip', '-r9', deploy_zip_file, 'dart'])
 
         # Upload *.zip/*.zip.md5sum and set 'public-read' ACL
-        if options.channel:
-          upload_to_new_location(options.channel, config, deploy_zip_file)
-        else:
-          upload_to_old_location(config, deploy_zip_file)
+        upload_to_new_location(options.channel, config, deploy_zip_file)
 
         # Upload *.msi installer and set 'public-read ACL
         if system == 'win32':
