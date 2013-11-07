@@ -90,13 +90,27 @@ class PathSource extends Source {
       // local file system.
       assert(containingPath != null);
 
-      description = path.join(path.dirname(containingPath), description);
+      description = path.normalize(
+          path.join(path.dirname(containingPath), description));
     }
 
     return {
       "path": description,
       "relative": isRelative
     };
+  }
+
+  /// Serializes path dependency's [description]. For the descriptions where
+  /// `relative` attribute is `true`, tries to make `path` relative to the
+  /// specified [containingPath].
+  dynamic serializeDescription(String containingPath, description) {
+    if (description["relative"]) {
+      return {
+        "path": path.relative(description['path'], from: containingPath),
+        "relative": true
+      };
+    }
+    return description;
   }
 
   /// Ensures that [description] is a valid path description and returns a
@@ -106,7 +120,7 @@ class PathSource extends Source {
   /// existing directory. Throws an [ApplicationException] if the path is
   /// invalid.
   String _validatePath(String name, description) {
-    var dir = path.normalize(description["path"]);
+    var dir = description["path"];
 
     if (dirExists(dir)) return dir;
 

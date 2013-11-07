@@ -238,7 +238,7 @@ class Entrypoint {
     }
 
     var lockFilePath = path.join(root.dir, 'pubspec.lock');
-    writeTextFile(lockFilePath, lockFile.serialize());
+    writeTextFile(lockFilePath, lockFile.serialize(root.dir, cache.sources));
   }
 
   /// Creates a self-referential symlink in the `packages` directory that allows

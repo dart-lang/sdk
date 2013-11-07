@@ -227,6 +227,13 @@ abstract class Source {
     return description;
   }
 
+  /// When a [LockFile] is serialized, it uses this method to get the
+  /// [description] in the right format. [containingPath] references the
+  /// containing directory of the root package.
+  dynamic serializeDescription(String containingPath, description) {
+    return description;
+  }
+
   /// Returns whether or not [description1] describes the same package as
   /// [description2] for this source. This method should be light-weight. It
   /// doesn't need to validate that either package exists.

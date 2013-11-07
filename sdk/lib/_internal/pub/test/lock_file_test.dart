@@ -179,7 +179,7 @@ packages:
         lockfile.packages['bar'] = new PackageId(
             'bar', mockSource.name, new Version.parse('3.2.1'), 'bar desc');
 
-        expect(loadYaml(lockfile.serialize()), equals({
+        expect(loadYaml(lockfile.serialize(null, sources)), equals({
           'packages': {
             'foo': {
               'version': '1.2.3',

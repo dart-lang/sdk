@@ -32,6 +32,8 @@ import '../lib/src/lock_file.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/package.dart';
 import '../lib/src/safe_http_server.dart';
+import '../lib/src/source/path.dart';
+import '../lib/src/source_registry.dart';
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
@@ -653,7 +655,12 @@ void createLockFile(String package, {Iterable<String> sandbox,
     });
     lockFile.packages[name] = id;
   });
-  d.file(path.join(package, 'pubspec.lock'), lockFile.serialize()).create();
+
+  var sources = new SourceRegistry()
+    ..register(new PathSource());
+
+  d.file(path.join(package, 'pubspec.lock'),
+      lockFile.serialize(null, sources)).create();
 }
 
 /// Use [client] as the mock HTTP client for this test.
