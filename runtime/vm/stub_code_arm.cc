@@ -2124,8 +2124,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
 }
 
 
-// Called from otpimzied code only. Must preserve any registers that are
-// destroyed.
+// Called from optimized code only.
 // LR: return address.
 // SP + 4: left operand.
 // SP + 0: right operand.
@@ -2135,12 +2134,9 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   const Register temp = R2;
   const Register left = R1;
   const Register right = R0;
-  // Preserve left, right and temp.
-  __ PushList((1 << R0) | (1 << R1) | (1 << R2));
-  __ ldr(left, Address(SP, 4 * kWordSize));
-  __ ldr(right, Address(SP, 3 * kWordSize));
+  __ ldr(left, Address(SP, 1 * kWordSize));
+  __ ldr(right, Address(SP, 0 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
-  __ PopList((1 << R0) | (1 << R1) | (1 << R2));
   __ Ret();
 }
 

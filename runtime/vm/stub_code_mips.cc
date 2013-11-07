@@ -2400,7 +2400,6 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   const Register temp2 = T3;
   const Register left = T1;
   const Register right = T0;
-  // Preserve left, right.
   __ lw(left, Address(SP, 1 * kWordSize));
   __ lw(right, Address(SP, 0 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
@@ -2408,8 +2407,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
 }
 
 
-// Called from otpimzied code only. Must preserve any registers that are
-// destroyed.
+// Called from optimized code only.
 // SP + 4: left operand.
 // SP + 0: right operand.
 // Returns: CMPRES1 is zero if equal, non-zero otherwise.
@@ -2419,21 +2417,10 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
   const Register temp2 = T3;
   const Register left = T1;
   const Register right = T0;
-  // Preserve left, right.
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ sw(temp1, Address(SP, 3 * kWordSize));
-  __ sw(temp2, Address(SP, 2 * kWordSize));
-  __ sw(left, Address(SP, 1 * kWordSize));
-  __ sw(right, Address(SP, 0 * kWordSize));
-  __ lw(left, Address(SP, 5 * kWordSize));
-  __ lw(right, Address(SP, 4 * kWordSize));
-  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
-  __ lw(right, Address(SP, 0 * kWordSize));
   __ lw(left, Address(SP, 1 * kWordSize));
-  __ lw(temp2, Address(SP, 2 * kWordSize));
-  __ lw(temp1, Address(SP, 3 * kWordSize));
+  __ lw(right, Address(SP, 0 * kWordSize));
+  GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
   __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 }  // namespace dart
