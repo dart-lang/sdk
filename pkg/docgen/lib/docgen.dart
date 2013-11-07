@@ -543,7 +543,7 @@ String findElementInScope(String name, LibraryMirror currentLibrary,
   if (libraryScope != null) return docName(libraryScope);
 
   // Look in the dart core library scope.
-  var coreScope = lookupFunc(_coreLibrary, name);
+  var coreScope = _coreLibrary == null? null : lookupFunc(_coreLibrary, name);
   if (coreScope != null) return docName(_coreLibrary);
 
   // If it's a reference that starts with a another library name, then it
