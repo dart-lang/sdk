@@ -1332,6 +1332,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * The current default path of this canvas context, if there is one.
+   *
+   * ## Other resources
+   *
+   * * [Current default path]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
+   * from WHATWG.
+   */
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
@@ -1356,6 +1365,16 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable()
   String globalCompositeOperation;
 
+  /**
+   * Whether images and patterns on this canvas will be smoothed when this
+   * canvas is scaled.
+   *
+   * ## Other resources
+   *
+   * * [Image smoothing]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
+   * from WHATWG.
+   */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1408,6 +1427,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   String textBaseline;
 
   @JSName('webkitBackingStorePixelRatio')
+  /**
+   * The ratio between this canvas' backing store dimensions and the canvas'
+   * logical dimensions.
+   *
+   * ## Other resources
+   *
+   * * [High DPI Canvas tutorial]
+   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.
+   */
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)

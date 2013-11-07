@@ -199,6 +199,44 @@
         ]
       }
     },
+    "CanvasRenderingContext2D": {
+      "members": {
+        "currentPath": [
+          "/**",
+          "   * The current default path of this canvas context, if there is one.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Current default path]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "imageSmoothingEnabled": [
+          "/**",
+          "   * Whether images and patterns on this canvas will be smoothed when this",
+          "   * canvas is scaled.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Image smoothing]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "webkitBackingStorePixelRatio": [
+          "/**",
+          "   * The ratio between this canvas' backing store dimensions and the canvas'",
+          "   * logical dimensions.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [High DPI Canvas tutorial]",
+          "   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.",
+          "   */"
+        ]
+      }
+    },
     "Clipboard": {
       "members": {
         "getData": [
