@@ -796,6 +796,9 @@ class JavaScriptBackend extends Backend {
         // of the map.
         enqueueClass(enqueuer, compiler.listClass, elements);
         enqueueClass(enqueuer, mapLiteralClass, elements);
+        // For map literals, the dependency between the implementation class
+        // and [Map] is not visible, so we have to add it manually.
+        rti.registerRtiDependency(mapLiteralClass, cls);
         enqueueInResolution(getMapMaker(), elements);
       } else if (cls == compiler.boundClosureClass) {
         // TODO(ngeoffray): Move the bound closure class in the

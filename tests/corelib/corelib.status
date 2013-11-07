@@ -107,9 +107,6 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
 
-[ $compiler == dart2js && $unchecked ]
-map_values4_test: RuntimeError # Issue: 14837
-
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
 

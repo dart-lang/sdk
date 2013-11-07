@@ -3387,7 +3387,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
     mapping.setType(node, mapType);
-    world.registerInstantiatedClass(compiler.mapClass, mapping);
+    world.registerInstantiatedType(mapType, mapping);
     if (node.isConst()) {
       compiler.backend.registerConstantMap(mapping);
     }
