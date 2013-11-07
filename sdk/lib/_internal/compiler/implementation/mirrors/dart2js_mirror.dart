@@ -518,6 +518,8 @@ abstract class Dart2JsContainerMirror extends Dart2JsElementMirror
 class Dart2JsLibraryMirror extends Dart2JsContainerMirror
     implements LibraryMirror {
   Map<String, ClassMirror> _classes;
+  List<LibraryDependencyMirror> _libraryDependencies;
+
 
   Dart2JsLibraryMirror(Dart2JsMirrorSystem system, LibraryElement library)
       : super(system, library);
@@ -617,6 +619,89 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
     }
     return null;
   }
+
+  void _ensureLibraryDependenciesAnalyzed() {
+    if (_libraryDependencies == null) {
+      _libraryDependencies = <LibraryDependencyMirror>[];
+      for (LibraryTag node in _library.tags.reverse()) {
+        LibraryDependency libraryDependency = node.asLibraryDependency();
+        if (libraryDependency != null) {
+          LibraryElement targetLibraryElement =
+              _library.getLibraryFromTag(libraryDependency);
+          assert(targetLibraryElement != null);
+          LibraryMirror targetLibrary =
+              mirrors._getLibrary(targetLibraryElement);
+          _libraryDependencies.add(new Dart2JsLibraryDependencyMirror(
+              libraryDependency, this, targetLibrary));
+        }
+      }
+    }
+  }
+
+  List<LibraryDependencyMirror> get libraryDependencies {
+    _ensureLibraryDependenciesAnalyzed();
+    return _libraryDependencies;
+  }
+}
+
+class Dart2JsLibraryDependencyMirror implements LibraryDependencyMirror {
+  final LibraryDependency _node;
+  final Dart2JsLibraryMirror _sourceLibrary;
+  final Dart2JsLibraryMirror _targetLibrary;
+  List<CombinatorMirror> _combinators;
+
+  Dart2JsLibraryDependencyMirror(this._node,
+                                 this._sourceLibrary,
+                                 this._targetLibrary);
+
+  SourceLocation get location {
+    return new Dart2JsSourceLocation(
+      _sourceLibrary._library.entryCompilationUnit.script,
+      _sourceLibrary.mirrors.compiler.spanFromNode(_node));
+  }
+
+  List<CombinatorMirror> get combinators {
+    if (_combinators == null) {
+      _combinators = <CombinatorMirror>[];
+      if (_node.combinators != null) {
+        for (Combinator combinator in _node.combinators.nodes) {
+          List<String> identifiers = <String>[];
+          for (Identifier identifier in combinator.identifiers.nodes) {
+            identifiers.add(identifier.source);
+          }
+          _combinators.add(new Dart2JsCombinatorMirror(
+              identifiers, isShow: combinator.isShow));
+        }
+      }
+    }
+    return _combinators;
+  }
+
+  LibraryMirror get sourceLibrary => _sourceLibrary;
+
+  LibraryMirror get targetLibrary => _targetLibrary;
+
+  String get prefix {
+    Import import = _node.asImport();
+    if (import != null && import.prefix != null) {
+      return import.prefix.source;
+    }
+    return null;
+  }
+
+  bool get isImport => _node.asImport() != null;
+
+  bool get isExport => _node.asExport() != null;
+}
+
+class Dart2JsCombinatorMirror implements CombinatorMirror {
+  final List<String> identifiers;
+  final bool isShow;
+
+  Dart2JsCombinatorMirror(this.identifiers, {bool isShow: true})
+      : this.isShow = isShow;
+
+  bool get isHide => !isShow;
 }
 
 class Dart2JsSourceLocation implements SourceLocation {

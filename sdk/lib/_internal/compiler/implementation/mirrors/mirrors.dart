@@ -303,6 +303,49 @@ abstract class LibraryMirror implements ContainerMirror, DeclarationMirror {
    * Returns the canonical URI for this library.
    */
   Uri get uri;
+
+  /**
+   * Returns a list of the imports and exports in this library;
+   */
+  List<LibraryDependencyMirror> get libraryDependencies;
+}
+
+/// A mirror on an import or export declaration.
+abstract class LibraryDependencyMirror {
+  /// Is `true` if this dependency is an import.
+  bool get isImport;
+
+  /// Is `true` if this dependency is an export.
+  bool get isExport;
+
+  /// Returns the library mirror of the library that imports or exports the
+  /// [targetLibrary].
+  LibraryMirror get sourceLibrary;
+
+  /// Returns the library mirror of the library that is imported or exported.
+  LibraryMirror get targetLibrary;
+
+  /// Returns the prefix if this is a prefixed import and `null` otherwise.
+  String get prefix;
+
+  /// Returns the list of show/hide combinators on the import/export
+  /// declaration.
+  List<CombinatorMirror> get combinators;
+
+  /// Returns the source location for this import/export declaration.
+  SourceLocation get location;
+}
+
+/// A mirror on a show/hide combinator declared on a library dependency.
+abstract class CombinatorMirror {
+  /// The list of identifiers on the combinator.
+  List<String> get identifiers;
+
+  /// Is `true` if this is a 'show' combinator.
+  bool get isShow;
+
+  /// Is `true` if this is a 'hide' combinator.
+  bool get isHide;
 }
 
 /**

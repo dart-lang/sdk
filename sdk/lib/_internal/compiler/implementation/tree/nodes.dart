@@ -162,6 +162,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   Label asLabel() => null;
   LabeledStatement asLabeledStatement() => null;
   LibraryName asLibraryName() => null;
+  LibraryDependency asLibraryDependency() => null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
   LiteralInt asLiteralInt() => null;
@@ -1766,6 +1767,8 @@ abstract class LibraryDependency extends LibraryTag {
                     this.combinators,
                     Link<MetadataAnnotation> metadata)
     : super(metadata);
+
+  LibraryDependency asLibraryDependency() => this;
 }
 
 /**
