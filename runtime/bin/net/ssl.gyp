@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/net/third_party/nss/ssl.gyp.
-# Revision 199075 (this should agree with "nss_rev" in DEPS).
+# Revision 232552 (this should agree with "nss_rev" in DEPS).
 
 # The following modification was made to make sure we have the same
 # xcode_settings on all configurations (otherwise we can't build with ninja):
@@ -101,11 +101,6 @@
         'NSS_ENABLE_ECC',
         'USE_UTIL_DIRECTLY',
       ],
-      'defines!': [
-        # Regrettably, NSS can't be compiled with NO_NSPR_10_SUPPORT yet.
-        'NO_NSPR_10_SUPPORT',
-        'DEBUG',
-      ],
       'dependencies': [
         # Changed by Dart.
         'zlib.gyp:zlib_dart',  # Added by Dart (the _dart postfix)
@@ -150,10 +145,19 @@
             # See http://crbug.com/138571#c8. In short, sslsecur.c picks up the
             # system's cert.h because cert.h isn't in chromium's repo.
             '-Wno-incompatible-pointer-types',
+
+            # There is a broken header guard in /usr/include/nss/secmod.h:
+            # https://bugzilla.mozilla.org/show_bug.cgi?id=884072
+            '-Wno-header-guard',
           ],
         }],
-        # Added by Dart.
         [ 'OS == "linux"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
+          # Added by Dart.
           'defines': [
             'XP_UNIX',
             'NSS_PLATFORM_CLIENT_AUTH',
