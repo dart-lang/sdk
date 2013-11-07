@@ -897,7 +897,7 @@ class Class extends Indexable {
   /// the superclass.
   void addInherited(Class superclass) {
     inheritedVariables.addAll(superclass.inheritedVariables);
-    inheritedVariables.addAll(superclass.variables);
+    inheritedVariables.addAll(_filterStatics(superclass.variables));
     inheritedMethods.addInherited(superclass);
   }
 
@@ -1190,13 +1190,13 @@ class MethodGroup {
 
   void addInherited(Class parent) {
     setters.addAll(parent.inheritedMethods.setters);
-    setters.addAll(parent.methods.setters);
+    setters.addAll(_filterStatics(parent.methods.setters));
     getters.addAll(parent.inheritedMethods.getters);
-    getters.addAll(parent.methods.getters);
+    getters.addAll(_filterStatics(parent.methods.getters));
     operators.addAll(parent.inheritedMethods.operators);
-    operators.addAll(parent.methods.operators);
+    operators.addAll(_filterStatics(parent.methods.operators));
     regularMethods.addAll(parent.inheritedMethods.regularMethods);
-    regularMethods.addAll(parent.methods.regularMethods);
+    regularMethods.addAll(_filterStatics(parent.methods.regularMethods));
   }
 
   Map toMap() => {
@@ -1331,4 +1331,15 @@ String docName(DeclarationMirror m) {
   // For the unnamed constructor we just return the class name.
   if (m.simpleName == '') return docName(owner);
   return docName(owner) + '.' + m.simpleName;
+}
+
+/// Remove statics from the map of inherited items before adding them.
+Map _filterStatics(Map items) {
+  var result = {};
+  items.forEach((name, item) {
+    if (!item.isStatic) {
+      result[name] = item;
+    }
+  });
+  return result;
 }
