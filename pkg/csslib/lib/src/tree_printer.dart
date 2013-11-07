@@ -172,7 +172,8 @@ class _TreePrinter extends Visitor {
    */
   void visitIncludeDirective(IncludeDirective node) {
     heading('IncludeDirective ${node.name}', node);
-    output.writeNodeList('parameters', node.args);
+    var flattened = node.args.expand((e) => e).toList();
+    output.writeNodeList('parameters', flattened);
   }
 
   void visitIncludeMixinAtDeclaration(IncludeMixinAtDeclaration node) {
