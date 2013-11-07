@@ -809,6 +809,26 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
+  // Try to find the length given to a fixed array constructor call.
+  int findLength(Send node) {
+    Node firstArgument = node.arguments.head;
+    Element element = elements[firstArgument];
+    LiteralInt length = firstArgument.asLiteralInt();
+    if (length != null) {
+      return length.value;
+    } else if (element != null
+               && element.isField()
+               && Elements.isStaticOrTopLevelField(element)
+               && compiler.world.fieldNeverChanges(element)) {
+      var constant =
+          compiler.constantHandler.getConstantForVariable(element);
+      if (constant != null && constant.isInt()) {
+        return constant.value;
+      }
+    }
+    return null;
+  }
+
   T visitStaticSend(Send node) {
     if (visitingInitializers && Initializers.isConstructorRedirect(node)) {
       isConstructorRedirect = true;
@@ -830,38 +850,24 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)
         || Elements.isFilledListConstructorCall(element, node, compiler)) {
 
-      int initialLength;
-      T elementType;
-      if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-        LiteralInt length = node.arguments.head.asLiteralInt();
-        if (length != null) {
-          initialLength = length.value;
-        }
-        elementType = types.nullType;
-      } else {
-        LiteralInt length = node.arguments.head.asLiteralInt();
-        if (length != null) {
-          initialLength = length.value;
-        }
-        elementType = arguments.positional[1];
-      }
+      int length = findLength(node);
+      T elementType =
+          Elements.isFixedListConstructorCall(element, node, compiler)
+              ? types.nullType
+              : arguments.positional[1];
 
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateContainer(
               types.fixedListType, node, outermostElement,
-              elementType, initialLength));
+              elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
-      int initialLength;
-      LiteralInt length = node.arguments.head.asLiteralInt();
-      if (length != null) {
-        initialLength = length.value;
-      }
+      int length = findLength(node);
       T elementType = inferrer.returnTypeOfElement(
           element.getEnclosingClass().lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
         node, () => types.allocateContainer(
           types.nonNullExact(element.getEnclosingClass()), node,
-          outermostElement, elementType, initialLength));
+          outermostElement, elementType, length));
     } else if (element.isFunction() || element.isConstructor()) {
       return returnType;
     } else {
