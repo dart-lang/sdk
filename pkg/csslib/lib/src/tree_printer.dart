@@ -7,7 +7,7 @@ part of csslib.visitor;
 // TODO(terry): Enable class for debug only; when conditional imports enabled.
 
 /** Helper function to dump the CSS AST. */
-String treeToDebugString(styleSheet, [bool useSpan = false]) {
+String treeToDebugString(StyleSheet styleSheet, [bool useSpan = false]) {
   var to = new TreeOutput();
   new _TreePrinter(to, useSpan)..visitTree(styleSheet);
   return to.toString();
@@ -15,11 +15,11 @@ String treeToDebugString(styleSheet, [bool useSpan = false]) {
 
 /** Tree dump for debug output of the CSS AST. */
 class _TreePrinter extends Visitor {
-  var output;
+  final TreeOutput output;
   final bool useSpan;
   _TreePrinter(this.output, this.useSpan) { output.printer = this; }
 
-  void visitTree(tree) => visitStylesheet(tree);
+  void visitTree(StyleSheet tree) => visitStylesheet(tree);
 
   void heading(String heading, node) {
     if (useSpan) {
@@ -66,7 +66,7 @@ class _TreePrinter extends Visitor {
   }
 
   void visitMediaQueries(MediaQuery query) {
-    output.headeing('MediaQueries');
+    output.heading('MediaQueries');
     output.writeValue('unary', query.unary);
     output.writeValue('media type', query.mediaType);
     output.writeNodeList('media expressions', query.expressions);
@@ -111,7 +111,7 @@ class _TreePrinter extends Visitor {
     heading('KeyFrameDirective', node);
     output.depth++;
     output.writeValue('keyframe', node.keyFrameName);
-    output.writeValue('name', node._name);
+    output.writeValue('name', node.name);
     output.writeNodeList('blocks', node._blocks);
     output.depth--;
   }
@@ -244,7 +244,7 @@ class _TreePrinter extends Visitor {
     heading('Selector', node);
     output.depth++;
     output.writeNodeList('simpleSelectorsSequences',
-        node._simpleSelectorSequences);
+        node.simpleSelectorSequences);
     output.depth--;
   }
 

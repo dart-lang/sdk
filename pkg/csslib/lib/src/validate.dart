@@ -4,7 +4,6 @@
 
 library csslib.src.validate;
 
-import 'package:csslib/parser.dart';
 import 'package:csslib/visitor.dart';
 import 'package:source_maps/span.dart' show Span;
 

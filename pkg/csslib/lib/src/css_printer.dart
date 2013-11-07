@@ -137,7 +137,7 @@ class CssPrinter extends Visitor {
 
   void visitKeyFrameDirective(KeyFrameDirective node) {
     emit('$_newLine${node.keyFrameName} ');
-    node._name.visit(this);
+    node.name.visit(this);
     emit('$_sp{$_newLine');
     for (final block in node._blocks) {
       block.visit(this);
@@ -274,7 +274,7 @@ class CssPrinter extends Visitor {
 
 
   void visitSelectorGroup(SelectorGroup node) {
-    var selectors = node._selectors;
+    var selectors = node.selectors;
     var selectorsLength = selectors.length;
     for (var i = 0; i < selectorsLength; i++) {
       if (i > 0) emit(',$_sp');
@@ -284,7 +284,7 @@ class CssPrinter extends Visitor {
 
   void visitSimpleSelectorSequence(SimpleSelectorSequence node) {
     emit('${node._combinatorToString}');
-    node._selector.visit(this);
+    node.simpleSelector.visit(this);
   }
 
   void visitSimpleSelector(SimpleSelector node) {

@@ -9,7 +9,7 @@ import 'package:csslib/parser.dart';
 import 'package:csslib/visitor.dart';
 import 'package:csslib/src/messages.dart';
 
-useMockMessages() {
+void useMockMessages() {
   messages = new Messages(printHandler: (message) {});
 }
 
@@ -37,10 +37,10 @@ StyleSheet polyFillCompileCss(input, {List errors, List opts}) =>
     compileCss(input, errors: errors, polyfill: true, opts: opts);
 
 /** CSS emitter walks the style sheet tree and emits readable CSS. */
-var _emitCss = new CssPrinter();
+final _emitCss = new CssPrinter();
 
 /** Simple Visitor does nothing but walk tree. */
-var _cssVisitor = new Visitor();
+final _cssVisitor = new Visitor();
 
 /** Pretty printer for CSS. */
 String prettyPrint(StyleSheet ss) {
@@ -65,5 +65,3 @@ void walkTree(StyleSheet ss) {
 }
 
 String dumpTree(StyleSheet ss) => treeToDebugString(ss);
-
-

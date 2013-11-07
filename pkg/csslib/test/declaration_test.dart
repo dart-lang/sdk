@@ -6,8 +6,6 @@ library declaration_test;
 
 import 'package:unittest/unittest.dart';
 import 'testing.dart';
-import 'package:csslib/parser.dart';
-import 'package:csslib/visitor.dart';
 
 
 /** CSS compiler options no checks in in memory style sheet. */

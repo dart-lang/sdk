@@ -180,7 +180,7 @@ class Visitor implements VisitorBase {
   }
 
   void visitKeyFrameDirective(KeyFrameDirective node) {
-    visitIdentifier(node._name);
+    visitIdentifier(node.name);
     _visitNodeList(node._blocks);
   }
 
@@ -258,11 +258,11 @@ class Visitor implements VisitorBase {
   }
 
   void visitSelector(Selector node) {
-    _visitNodeList(node._simpleSelectorSequences);
+    _visitNodeList(node.simpleSelectorSequences);
   }
 
   void visitSimpleSelectorSequence(SimpleSelectorSequence node) {
-    var selector = node._selector;
+    var selector = node.simpleSelector;
     if (selector is NamespaceSelector) {
       visitNamespaceSelector(selector);
     } else if (selector is ElementSelector) {

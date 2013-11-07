@@ -5,7 +5,6 @@
 library visitor_test;
 
 import 'package:unittest/unittest.dart';
-import 'package:csslib/parser.dart';
 import 'package:csslib/visitor.dart';
 import 'testing.dart';
 

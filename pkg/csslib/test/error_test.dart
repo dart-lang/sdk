@@ -6,8 +6,6 @@ library error_test;
 
 import 'package:unittest/unittest.dart';
 import 'testing.dart';
-import 'package:csslib/parser.dart';
-import 'package:csslib/visitor.dart';
 import 'package:csslib/src/messages.dart';
 
 /**

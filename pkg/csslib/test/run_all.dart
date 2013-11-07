@@ -8,27 +8,28 @@
  */
 library run_impl;
 
-import 'dart:io';
 import 'package:unittest/compact_vm_config.dart';
 import 'testing.dart';
 
+import 'big_1_test.dart' as big_1_test;
 import 'compiler_test.dart' as compiler_test;
 import 'declaration_test.dart' as declaration_test;
-import 'var_test.dart' as var_test;
-import 'nested_test.dart' as nested_test;
+import 'debug_test.dart' as debug_test;
 import 'error_test.dart' as error_test;
-import 'selector_test.dart' as selector_test;
-import 'visitor_test.dart' as visitor_test;
-import 'mixin_test.dart' as mixin_test;
 import 'extend_test.dart' as extend_test;
-import 'big_1_test.dart' as big_1_test;
+import 'mixin_test.dart' as mixin_test;
+import 'nested_test.dart' as nested_test;
+import 'selector_test.dart' as selector_test;
+import 'var_test.dart' as var_test;
+import 'visitor_test.dart' as visitor_test;
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   var pattern = new RegExp(arguments.length > 0 ? arguments[0] : '.');
 
   useCompactVMConfiguration();
   useMockMessages();
 
+  if (pattern.hasMatch('debug_test.dart')) debug_test.main();
   if (pattern.hasMatch('compiler_test.dart')) compiler_test.main();
   if (pattern.hasMatch('declaration_test.dart')) declaration_test.main();
   if (pattern.hasMatch('var_test.dart')) var_test.main();
