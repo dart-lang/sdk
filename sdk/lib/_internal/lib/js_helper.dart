@@ -415,16 +415,6 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static List newGrowableList(length) {
-    return JS('JSExtendableArray', r'new Array(#)', length);
-  }
-
-  static List newFixedList(length) {
-    var result = JS('JSFixedArray', r'new Array(#)', length);
-    JS('void', r'#.fixed$length = #', result, true);
-    return result;
-  }
-
   static num dateNow() => JS('num', r'Date.now()');
 
   static num numMicroseconds() {
