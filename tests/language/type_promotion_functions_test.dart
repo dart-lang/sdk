@@ -58,10 +58,10 @@ testFuncDynToDyn() {
   }
 
   if (funcDynToDyn is FuncDynToVoid) {
-    // No promotion: FuncDynToVoid !<< FuncDynToDyn.
-    a = funcDynToDyn(new A());
-    b = funcDynToDyn(new B());
-    c = funcDynToDyn(new C());
+    // Promotion: FuncDynToVoid << FuncDynToDyn.
+    a = funcDynToDyn(new A()); /// 12: static type warning
+    b = funcDynToDyn(new B()); /// 13: static type warning
+    c = funcDynToDyn(new C()); /// 14: static type warning
   }
 
   if (funcDynToDyn is FuncDynToA) { // Promotion: FuncDynToA << FuncDynToDyn.
