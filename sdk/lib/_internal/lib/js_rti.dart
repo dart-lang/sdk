@@ -121,6 +121,15 @@ getRuntimeTypeArgument(Object target, String substitutionName, int index) {
   return isNull(arguments) ? null : getIndex(arguments, index);
 }
 
+getTypeArgumentByIndex(Object target, int index) {
+  var rti = getRuntimeTypeInfo(target);
+  return isNull(rti) ? null : getIndex(rti, index);
+}
+
+void copyTypeArguments(Object source, Object target) {
+  JS('var', r'#.$builtinTypeInfo = #.$builtinTypeInfo', target, source);
+}
+
 /**
  * Retrieves the class name from type information stored on the constructor
  * of [object].

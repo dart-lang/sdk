@@ -1773,11 +1773,72 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     removeInlinedInstantiation(type);
     // Create the runtime type information, if needed.
     if (backend.classNeedsRti(classElement)) {
-      List<HInstruction> rtiInputs = <HInstruction>[];
+      // Read the values of the type arguments and create a list to set on the
+      // newly create object.  We can identify the case where the new list
+      // would be of the form:
+      //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
+      // and k is the number of type arguments of this.  If this is the case,
+      // we can simply copy the list from this.
+
+      // These locals are modified by [isIndexedTypeArgumentGet].
+      HInstruction source;  // The source of the type arguments.
+      bool allIndexed = true;
+      int expectedIndex = 0;
+      ClassElement contextClass;  // The class of `this`.
+      Link typeVariables;  // The list of 'remaining type variables' of `this`.
+
+      /// Helper to identify instructions that read a type variable without
+      /// substitution (that is, directly use the index). These instructions
+      /// are of the form:
+      ///   HInvokeStatic(getTypeArgumentByIndex, this, index)
+      ///
+      /// Return `true` if [instruction] is of that form and the index is the
+      /// next index in the sequence (held in [expectedIndex]).
+      bool isIndexedTypeArgumentGet(HInstruction instruction) {
+        if (instruction is! HInvokeStatic) return false;
+        HInvokeStatic invoke = instruction;
+        if (invoke.element != backend.getGetTypeArgumentByIndex()) {
+          return false;
+        }
+        HConstant index = invoke.inputs[1];
+        HInstruction newSource = invoke.inputs[0];
+        if (newSource is! HThis) {
+          return false;
+        }
+        if (source == null) {
+          // This is the first match. Extract the context class for the type
+          // variables and get the list of type variables to keep track of how
+          // many arguments we need to process.
+          source = newSource;
+          contextClass = source.sourceElement.getEnclosingClass();
+          typeVariables = contextClass.typeVariables;
+        } else {
+          assert(source == newSource);
+        }
+        // If there are no more type variables, then there are more type
+        // arguments for the new object than the source has, and it can't be
+        // a copy.  Otherwise remove one argument.
+        if (typeVariables.isEmpty) return false;
+        typeVariables = typeVariables.tail;
+        // Check that the index is the one we expect.
+        IntConstant constant = index.constant;
+        return constant.value == expectedIndex++;
+      }
+
+      List<HInstruction> typeArguments = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        rtiInputs.add(localsHandler.readLocal(typeVariable.element));
+        HInstruction argument = localsHandler.readLocal(typeVariable.element);
+        if (allIndexed && !isIndexedTypeArgumentGet(argument)) {
+          allIndexed = false;
+        }
+        typeArguments.add(argument);
       });
-      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
+
+      if (source != null && allIndexed && typeVariables.isEmpty) {
+        copyRuntimeTypeInfo(source, newObject);
+      } else {
+        callSetRuntimeTypeInfo(classElement, typeArguments, newObject);
+      }
     }
 
     // Generate calls to the constructor bodies.
@@ -3024,14 +3085,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  contextName,
                                                  context,
                                                  typeArguments];
-      pushInvokeStatic(node, checkFunctionSubtype, inputs, backend.boolType);
+      pushInvokeStatic(node, checkFunctionSubtype, inputs,
+          type: backend.boolType);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
-      pushInvokeStatic(null, helper, inputs, backend.boolType);
+      pushInvokeStatic(null, helper, inputs, type: backend.boolType);
       HInstruction call = pop();
       return new HIs.variable(type, expression, call, backend.boolType);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
@@ -3050,7 +3112,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  isFieldName,
                                                  representations,
                                                  asFieldName];
-      pushInvokeStatic(node, helper, inputs, backend.boolType);
+      pushInvokeStatic(node, helper, inputs, type: backend.boolType);
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, backend.boolType);
     } else if (type.kind == TypeKind.MALFORMED_TYPE) {
@@ -3223,7 +3285,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
       }
-      pushInvokeStatic(null, element, [], backend.dynamicType);
+      pushInvokeStatic(null, element, [], type: backend.dynamicType);
     }
   }
 
@@ -3302,7 +3364,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       List<HInstruction> inputs = <HInstruction>[];
       addGenericSendArgumentsToList(link, inputs);
-      pushInvokeStatic(node, element, inputs, backend.dynamicType);
+      pushInvokeStatic(node, element, inputs, type: backend.dynamicType);
     }
   }
 
@@ -3508,7 +3570,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       graph.addConstant(kindConstant, compiler),
                       argumentsInstruction,
                       argumentNamesInstruction],
-                      backend.dynamicType);
+                      type: backend.dynamicType);
 
     var inputs = <HInstruction>[pop()];
     push(buildInvokeSuper(compiler.noSuchMethodSelector, element, inputs));
@@ -3560,6 +3622,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
+    if (compiler.world.isUsedAsMixin(cls)) return true;
+
+    Set<ClassElement> subclasses = compiler.world.subclassesOf(cls);
+    return subclasses != null && subclasses.any((ClassElement subclass) {
+      return !backend.rti.isTrivialSubstitution(subclass, cls);
+    });
+  }
+
   /**
    * Generate code to extract the type arguments from the object, substitute
    * them as an instance of the type we are testing against (if necessary), and
@@ -3569,20 +3640,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction readTypeVariable(ClassElement cls,
                                 TypeVariableElement variable) {
     assert(currentElement.isInstanceMember());
-    int index = RuntimeTypes.getTypeVariableIndex(variable);
-    // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
-    // string concatenation in the implementation), and may prevent
-    // segmentation of '$'.
-    String substitutionNameString = backend.namer.getNameForRti(cls);
-    HInstruction substitutionName = graph.addConstantString(
-        new LiteralDartString(substitutionNameString), null, compiler);
+
     HInstruction target = localsHandler.readThis();
-    pushInvokeStatic(null,
-                     backend.getGetRuntimeTypeArgument(),
-                     [target,
-                      substitutionName,
-                      graph.addConstantInt(index, compiler)],
-                      backend.dynamicType);
+    HConstant index = graph.addConstantInt(
+        RuntimeTypes.getTypeVariableIndex(variable),
+        compiler);
+
+    if (needsSubstitutionForTypeVariableAccess(cls)) {
+      // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
+      // string concatenation in the implementation), and may prevent
+      // segmentation of '$'.
+      String substitutionNameString = backend.namer.getNameForRti(cls);
+      HInstruction substitutionName = graph.addConstantString(
+          new LiteralDartString(substitutionNameString), null, compiler);
+      pushInvokeStatic(null,
+                       backend.getGetRuntimeTypeArgument(),
+                       [target, substitutionName, index],
+                        type: backend.dynamicType,
+                        pure: true);
+    } else {
+      pushInvokeStatic(null, backend.getGetTypeArgumentByIndex(),
+          [target, index],
+          type: backend.dynamicType,
+          pure: true);
+    }
     return pop();
   }
 
@@ -3653,6 +3734,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return graph.addConstantNull(compiler);
     }
 
+    if (argument.kind == TypeKind.TYPE_VARIABLE) {
+      return addTypeVariableReference(argument);
+    }
+
     List<HInstruction> inputs = <HInstruction>[];
 
     String template = rti.getTypeRepresentationWithHashes(argument, (variable) {
@@ -3678,6 +3763,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void copyRuntimeTypeInfo(HInstruction source, HInstruction target) {
+    Element copyHelper = backend.getCopyTypeArguments();
+    pushInvokeStatic(null, copyHelper, [source, target]);
+    pop();
+  }
+
   void callSetRuntimeTypeInfo(ClassElement element,
                               List<HInstruction> rtiInputs,
                               HInstruction newObject) {
@@ -3694,7 +3785,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         null,
         typeInfoSetterElement,
         <HInstruction>[newObject, typeInfo],
-        backend.dynamicType);
+        type: backend.dynamicType);
     pop();
   }
 
@@ -3802,7 +3893,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     TypeMask elementType = computeType(constructor);
     addInlinedInstantiation(expectedType);
-    pushInvokeStatic(node, constructor, inputs, elementType);
+    pushInvokeStatic(node, constructor, inputs, type: elementType);
     removeInlinedInstantiation(expectedType);
     HInstruction newInstance = stack.last;
 
@@ -3960,7 +4051,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
                        [value],
-                       backend.stringType);
+                       type: backend.stringType);
       pushInvokeStatic(node,
                        backend.getCreateRuntimeType(),
                        [pop()]);
@@ -4176,10 +4267,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  SideEffects getSideEffects(Element element) {
+    // TODO(karlklose): use metadata to mark these helpers.
+    if (element == backend.getGetTypeArgumentByIndex()) {
+      return new SideEffects.empty();
+    }
+    return compiler.world.getSideEffectsOfElement(element);
+  }
+
   void pushInvokeStatic(Node location,
                         Element element,
                         List<HInstruction> arguments,
-                        [TypeMask type = null]) {
+                        {TypeMask type: null,
+                         bool pure: false}) {
     if (tryInlineMethod(element, null, arguments, location)) {
       return;
     }
@@ -4189,13 +4289,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].
-    HInvokeStatic instruction =
-        new HInvokeStatic(element.declaration, arguments, type);
+    HInvokeStatic instruction = new HInvokeStatic(
+        element.declaration, arguments, type, targetCanThrow: !pure);
     if (!currentInlinedInstantiations.isEmpty) {
       instruction.instantiatedTypes = new List<DartType>.from(
           currentInlinedInstantiations);
     }
-    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
+    instruction.sideEffects = getSideEffects(element);
     if (location == null) {
       push(instruction);
     } else {
@@ -4791,7 +4891,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HLiteralList keyValuePairs = buildLiteralList(inputs);
     add(keyValuePairs);
     TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
-    pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
+    pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs],
+        type: mapType);
     setRtiIfNeeded(peek(), node);
   }
 

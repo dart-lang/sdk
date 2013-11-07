@@ -941,6 +941,8 @@ class JavaScriptBackend extends Backend {
 
   void registerGetRuntimeTypeArgument(TreeElements elements) {
     enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+    enqueueInResolution(getGetTypeArgumentByIndex(), elements);
+    enqueueInResolution(getCopyTypeArguments(), elements);
   }
 
   void registerGenericCallMethod(Element callMethod,
@@ -1015,7 +1017,7 @@ class JavaScriptBackend extends Backend {
     if (!type.treatAsRaw || type.containsTypeVariables) {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
-      enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+      registerGetRuntimeTypeArgument(elements);
       if (inCheckedMode) {
         enqueueInResolution(getAssertSubtype(), elements);
       }
@@ -1531,6 +1533,14 @@ class JavaScriptBackend extends Backend {
 
   Element getGetRuntimeTypeInfo() {
     return compiler.findHelper('getRuntimeTypeInfo');
+  }
+
+  Element getGetTypeArgumentByIndex() {
+    return compiler.findHelper('getTypeArgumentByIndex');
+  }
+
+  Element getCopyTypeArguments() {
+    return compiler.findHelper('copyTypeArguments');
   }
 
   Element getComputeSignature() {

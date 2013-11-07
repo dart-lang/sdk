@@ -1415,6 +1415,10 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 class HInvokeStatic extends HInvoke {
   final Element element;
 
+  final bool targetCanThrow;
+
+  bool canThrow() => targetCanThrow;
+
   /// If this instruction is a call to a constructor, [instantiatedTypes]
   /// contains the type(s) used in the (Dart) `New` expression(s).
   /// The [instructionType] of this node is not enough, because we also need
@@ -1422,7 +1426,9 @@ class HInvokeStatic extends HInvoke {
   List<DartType> instantiatedTypes;
 
   /** The first input must be the target. */
-  HInvokeStatic(this.element, inputs, TypeMask type) : super(inputs, type);
+  HInvokeStatic(this.element, inputs, TypeMask type,
+                {this.targetCanThrow: true})
+    : super(inputs, type);
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
