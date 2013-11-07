@@ -34143,8 +34143,8 @@ Element query(String relativeSelectors) => document.query(relativeSelectors);
 @Experimental()
 ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
 
-Element querySelector(String selector) => document.querySelector(selector);
-ElementList querySelectorAll(String selector) => document.querySelectorAll(selector);
+Element querySelector(String selectors) => document.querySelector(selectors);
+ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

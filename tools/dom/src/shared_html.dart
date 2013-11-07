@@ -30,5 +30,5 @@ Element query(String relativeSelectors) => document.query(relativeSelectors);
 @Experimental()
 ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
 
-Element querySelector(String selector) => document.querySelector(selector);
-ElementList querySelectorAll(String selector) => document.querySelectorAll(selector);
+Element querySelector(String selectors) => document.querySelector(selectors);
+ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
