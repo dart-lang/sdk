@@ -9,14 +9,14 @@ import 'package:unittest/unittest.dart';
 
 main() {
   test('constructor', () {
-    var point = new Point();
+    var point = new Point(0, 0);
     expect(point.x, 0);
     expect(point.y, 0);
     expect('$point', 'Point(0, 0)');
   });
 
   test('constructor X', () {
-    var point = new Point<int>(10);
+    var point = new Point<int>(10, 0);
     expect(point.x, 10);
     expect(point.y, 0);
     expect('$point', 'Point(10, 0)');

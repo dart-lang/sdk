@@ -10,7 +10,7 @@ class Point<T extends num> {
   final T x;
   final T y;
 
-  const Point([T x = 0, T y = 0]): this.x = x, this.y = y;
+  const Point(T x, T y): this.x = x, this.y = y;
 
   String toString() => 'Point($x, $y)';
 
