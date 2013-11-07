@@ -302,7 +302,7 @@ class _Utils {
     addForClass(ClassMirror mirror, bool isStatic) {
       if (mirror == null)
         return;
-      addAll(mirror.declarations, isStatic);
+      addAll(mirror.members, isStatic);
       if (mirror.superclass != null)
         addForClass(mirror.superclass, isStatic);
       for (var interface in mirror.superinterfaces) {
@@ -422,10 +422,8 @@ class _Utils {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
-    var createdConstructor = cls.declarations[new Symbol('$className.created')];
-    if (createdConstructor == null ||
-        createdConstructor is! MethodMirror ||
-        !createdConstructor.isConstructor) {
+    var createdConstructor = cls.constructors[new Symbol('$className.created')];
+    if (createdConstructor == null) {
       throw new UnsupportedError(
           'Class is missing constructor $className.created');
     }

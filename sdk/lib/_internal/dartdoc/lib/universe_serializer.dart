@@ -312,35 +312,23 @@ class ClassElement extends Element {
       this.interfaces.add(_optionalReference(interface));
     }
 
-    mirror.declarations.values
-        .where((d) => d is MethodMirror)
-        .forEach((childMirror) {
+    mirror.methods.forEach((childName, childMirror) {
       if (!childMirror.isConstructor && !childMirror.isGetter) {
-        var childName = childMirror.simpleName;
         addChild(new MethodElement(childName, childMirror, lookupMdnComment));
       }
     });
 
-    mirror.declarations.values
-        .where((d) => d is MethodMirror && d.isGetter)
-        .forEach((childMirror) {
-      var childName = childMirror.simpleName;
+    mirror.getters.forEach((childName, childMirror) {
       addChild(new GetterElement(childName, childMirror, lookupMdnComment));
     });
 
-    mirror.declarations.values
-        .where((d) => d is VariableMirror)
-        .forEach((childMirror) {
-      var childName = childMirror.simpleName;
-      addChild(new VariableElement(childName, childMirror,
-          lookupMdnComment));
+    mirror.variables.forEach((childName, childMirror) {
+        addChild(new VariableElement(childName, childMirror,
+            lookupMdnComment));
     });
 
-    mirror.declarations.values
-        .where((d) => d is MethodMirror && d.isConstructor)
-        .forEach((childMirror) {
-      var childName = childMirror.simpleName;
-      addChild(new MethodElement(childName, methodMirror,
+    mirror.constructors.forEach((constructorName, methodMirror) {
+      addChild(new MethodElement(constructorName, methodMirror,
           lookupMdnComment, 'constructor'));
     });
 

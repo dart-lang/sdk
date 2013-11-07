@@ -368,9 +368,9 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
   _currentLibrary = library;
   var result = new Library(docName(library), _commentToHtml(library),
-    _variables(library.variables),
-    _methods(library.functions),
-    _classes(library.classes), _isHidden(library));
+      _variables(library.variables),
+      _methods(library.functions),
+      _classes(library.classes), _isHidden(library));
   _findPackage(result, library);
   logger.fine('Generated library for ${result.name}');
   return result;
