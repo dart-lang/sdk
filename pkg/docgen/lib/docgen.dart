@@ -365,12 +365,23 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   _writeToFile(JSON.encode(index), 'index.json');
 }
 
+_filterMap(map, predicate) {
+  var result = new Map();
+  map.forEach((key, value) {
+    if (predicate(value)) result[key] = value;
+  });
+  return result;
+}
+
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
   _currentLibrary = library;
-  var result = new Library(docName(library), _commentToHtml(library),
-      _variables(library.variables),
-      _methods(library.functions),
-      _classes(library.classes), _isHidden(library));
+  var result = new Library(
+      docName(library),
+      _commentToHtml(library),
+      _variables(_filterMap(library.declarations, (d) => d is VariableMirror)),
+      _methods(_filterMap(library.declarations, (d) => d is MethodMirror)),
+      _classes(_filterMap(library.declarations, (d) => d is ClassMirror)),
+      _isHidden(library));
   _findPackage(result, library);
   logger.fine('Generated library for ${result.name}');
   return result;
@@ -657,8 +668,11 @@ Class _class(ClassMirror mirror) {
     var interfaces =
         mirror.superinterfaces.map((interface) => _class(interface));
     clazz = new Class(mirror.simpleName, superclass, _commentToHtml(mirror),
-        interfaces.toList(), _variables(mirror.variables),
-        _methods(mirror.methods), _annotations(mirror), _generics(mirror),
+        interfaces.toList(),
+        _variables(_filterMap(mirror.declarations, (d) => d is VariableMirror)),
+        _methods(_filterMap(mirror.declarations,
+                            (d) => d is MethodMirror && !d.isConstructor)),
+        _annotations(mirror), _generics(mirror),
         docName(mirror), _isHidden(mirror), docName(mirror.owner),
         mirror.isAbstract);
     if (superclass != null) clazz.addInherited(superclass);

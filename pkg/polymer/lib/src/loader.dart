@@ -169,11 +169,11 @@ void _loadLibrary(String uriString) {
   }
 
   // Search top-level functions marked with @initMethod
-  for (var f in lib.functions.values) {
+  for (var f in lib.declarations.values.where((d) => d is MethodMirror)) {
     _maybeInvoke(lib, f);
   }
 
-  for (var c in lib.classes.values) {
+  for (var c in lib.declarations.values.where((d) => d is ClassMirror)) {
     // Search for @CustomTag on classes
     for (var m in c.metadata) {
       var meta = m.reflectee;

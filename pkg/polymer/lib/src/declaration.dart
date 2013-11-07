@@ -222,8 +222,10 @@ class PolymerDeclaration extends HtmlElement {
     var cls = reflectClass(type);
     // TODO(jmesserly): this feels unnatrual in Dart. Since we have convenient
     // lazy static initialization, can we get by without it?
-    var registered = cls.methods[#registerCallback];
-    if (registered != null && registered.isStatic &&
+    var registered = cls.declarations[#registerCallback];
+    if (registered != null &&
+        registered is MethodMirror &&
+        registered.isStatic &&
         registered.isRegularMethod) {
       cls.invoke(#registerCallback, [this]);
     }
