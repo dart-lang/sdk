@@ -290,7 +290,6 @@ Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll 
 Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/01_Constants_A20_t04: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticWarning # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure

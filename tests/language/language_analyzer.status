@@ -71,9 +71,6 @@ instance_call_wrong_argument_count_negative_test: fail
 # test issue 11590, runtime only negative test
 field_method4_negative_test: fail
 
-# test issue 11592, Function type alias (typedef) is not a constant
-first_class_types_constants_test: fail
-
 # test issue 11594, Reference to a not resolve identifier is static warning
 import_combinators_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
