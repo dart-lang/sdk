@@ -1961,6 +1961,29 @@ void Debugger::Initialize(Isolate* isolate) {
 }
 
 
+static RawFunction* GetOriginalFunction(const Function& func) {
+  const Class& origin_class = Class::Handle(func.origin());
+  if (origin_class.is_patch()) {
+    // Patched functions from patch classes are removed from the
+    // function array of the patch class, so we will not find an
+    // original function object.
+    return func.raw();
+  }
+  const Array& functions = Array::Handle(origin_class.functions());
+  Object& orig_func = Object::Handle();
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    orig_func = functions.At(i);
+    // Function names are symbols, so we can compare the raw pointers.
+    if (func.name() == Function::Cast(orig_func).name()) {
+      return Function::Cast(orig_func).raw();
+    }
+  }
+  // Uncommon case: not a mixin function.
+  ASSERT(!Class::Handle(func.Owner()).IsMixinApplication());
+  return func.raw();
+}
+
+
 void Debugger::NotifyCompilation(const Function& func) {
   if (src_breakpoints_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
@@ -1975,6 +1998,12 @@ void Debugger::NotifyCompilation(const Function& func) {
     // which the user sets breakpoints.
     lookup_function = func.parent_function();
     ASSERT(!lookup_function.IsNull());
+  }
+  if (lookup_function.Owner() != lookup_function.origin()) {
+    // This is a cloned function from a mixin class. If a breakpoint
+    // was set in this function, it is registered using the function
+    // of the origin class.
+    lookup_function = GetOriginalFunction(lookup_function);
   }
   SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
