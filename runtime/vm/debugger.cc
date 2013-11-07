@@ -949,18 +949,43 @@ void Debugger::DeoptimizeWorld() {
   const ClassTable& class_table = *isolate_->class_table();
   Class& cls = Class::Handle();
   Array& functions = Array::Handle();
+  GrowableObjectArray& closures = GrowableObjectArray::Handle();
   Function& function = Function::Handle();
   intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
       cls = class_table.At(i);
+
+      // Disable optimized functions.
       functions = cls.functions();
-      intptr_t num_functions = functions.IsNull() ? 0 : functions.Length();
-      for (intptr_t f = 0; f < num_functions; f++) {
-        function ^= functions.At(f);
-        ASSERT(!function.IsNull());
-        if (function.HasOptimizedCode()) {
-          function.SwitchToUnoptimizedCode();
+      if (!functions.IsNull()) {
+        intptr_t num_functions = functions.Length();
+        for (intptr_t pos = 0; pos < num_functions; pos++) {
+          function ^= functions.At(pos);
+          ASSERT(!function.IsNull());
+          if (function.HasOptimizedCode()) {
+            function.SwitchToUnoptimizedCode();
+          }
+          // Also disable any optimized implicit closure functions.
+          if (function.HasImplicitClosureFunction()) {
+            function = function.ImplicitClosureFunction();
+            if (function.HasOptimizedCode()) {
+              function.SwitchToUnoptimizedCode();
+            }
+          }
+        }
+      }
+
+      // Disable other optimized closure functions.
+      closures = cls.closures();
+      if (!closures.IsNull()) {
+        intptr_t num_closures = closures.Length();
+        for (intptr_t pos = 0; pos < num_closures; pos++) {
+          function ^= closures.At(pos);
+          ASSERT(!function.IsNull());
+          if (function.HasOptimizedCode()) {
+            function.SwitchToUnoptimizedCode();
+          }
         }
       }
     }

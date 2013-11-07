@@ -1506,6 +1506,8 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
 
 
 RawString* Class::Name() const {
+  // TODO(turnidge): This assert fails for the fake kFreeListElement class.
+  // Fix this.
   ASSERT(raw_ptr()->name_ != String::null());
   return raw_ptr()->name_;
 }
@@ -4289,7 +4291,8 @@ void Function::set_parent_function(const Function& value) const {
 RawFunction* Function::implicit_closure_function() const {
   if (IsClosureFunction() ||
       IsSignatureFunction() ||
-      IsStaticInitializerFunction()) {
+      IsStaticInitializerFunction() ||
+      IsFactory()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
