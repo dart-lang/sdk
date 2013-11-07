@@ -1496,13 +1496,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         return false;
       }
       break;
-    case Token::kMOD:
-      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-        operands_type = kSmiCid;
-      } else {
-        return false;
-      }
-      break;
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
@@ -1522,7 +1515,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.deopt_reason() == kDeoptShiftMintOp) return false;
+        if (ic_data.deopt_reason() == kDeoptShiftMintOp) {
+          return false;
+        }
         operands_type = (ic_data.deopt_reason() == kDeoptBinarySmiOp)
             ? kMintCid
             : kSmiCid;
@@ -1531,16 +1526,21 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                      ic_data.AsUnaryClassChecksForArgNr(1)))) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.deopt_reason() == kDeoptShiftMintOp) return false;
+        if (ic_data.deopt_reason() == kDeoptShiftMintOp) {
+          return false;
+        }
         // Check for smi/mint << smi or smi/mint >> smi.
         operands_type = kMintCid;
       } else {
         return false;
       }
       break;
+    case Token::kMOD:
     case Token::kTRUNCDIV:
       if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-        if (ic_data.deopt_reason() == kDeoptBinarySmiOp) return false;
+        if (ic_data.deopt_reason() == kDeoptBinarySmiOp) {
+          return false;
+        }
         operands_type = kSmiCid;
       } else {
         return false;
@@ -1588,26 +1588,34 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kInt32x4Cid) {
     return InlineInt32x4BinaryOp(call, op_kind);
   } else if (op_kind == Token::kMOD) {
-    // TODO(vegorov): implement fast path code for modulo.
     ASSERT(operands_type == kSmiCid);
-    if (!right->IsConstant()) return false;
-    const Object& obj = right->AsConstant()->value();
-    if (!obj.IsSmi()) return false;
-    const intptr_t value = Smi::Cast(obj).Value();
-    if (!Utils::IsPowerOfTwo(value)) return false;
-
-    // Insert smi check and attach a copy of the original environment
-    // because the smi operation can still deoptimize.
-    InsertBefore(call,
-                 new CheckSmiInstr(new Value(left), call->deopt_id()),
-                 call->env(),
-                 Definition::kEffect);
-    ConstantInstr* constant =
-        flow_graph()->GetConstant(Smi::Handle(Smi::New(value - 1)));
+    if (right->IsConstant()) {
+      const Object& obj = right->AsConstant()->value();
+      if (obj.IsSmi() && Utils::IsPowerOfTwo(Smi::Cast(obj).Value())) {
+        // Insert smi check and attach a copy of the original environment
+        // because the smi operation can still deoptimize.
+        InsertBefore(call,
+                     new CheckSmiInstr(new Value(left), call->deopt_id()),
+                     call->env(),
+                     Definition::kEffect);
+        ConstantInstr* constant =
+            flow_graph()->GetConstant(Smi::Handle(
+                Smi::New(Smi::Cast(obj).Value() - 1)));
+        BinarySmiOpInstr* bin_op =
+            new BinarySmiOpInstr(Token::kBIT_AND,
+                                 new Value(left),
+                                 new Value(constant),
+                                 call->deopt_id());
+        ReplaceCall(call, bin_op);
+        return true;
+      }
+    }
+    // Insert two smi checks and attach a copy of the original
+    // environment because the smi operation can still deoptimize.
+    AddCheckSmi(left, call->deopt_id(), call->env(), call);
+    AddCheckSmi(right, call->deopt_id(), call->env(), call);
     BinarySmiOpInstr* bin_op =
-        new BinarySmiOpInstr(Token::kBIT_AND,
-                             new Value(left),
-                             new Value(constant),
+        new BinarySmiOpInstr(op_kind, new Value(left), new Value(right),
                              call->deopt_id());
     ReplaceCall(call, bin_op);
   } else {

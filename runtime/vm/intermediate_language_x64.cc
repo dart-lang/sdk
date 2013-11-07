@@ -2202,6 +2202,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
       (op_kind() != Token::kTRUNCDIV) &&
       (op_kind() != Token::kSHL) &&
       (op_kind() != Token::kMUL) &&
+      (op_kind() != Token::kMOD) &&
       CanBeImmediate(right_constant->value())) {
     const intptr_t kNumTemps = 0;
     LocationSummary* summary =
@@ -2230,6 +2231,17 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
       // Will be used for sign extension and division.
       summary->set_temp(0, Location::RegisterLocation(RDX));
     }
+    return summary;
+  } else if (op_kind() == Token::kMOD) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
+    summary->set_in(0, Location::RegisterLocation(RDX));
+    summary->set_in(1, Location::WritableRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(RAX));
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -2515,6 +2527,67 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     }
+    case Token::kMOD: {
+      Label not_32bit, div_done;
+
+      Register temp = locs()->temp(0).reg();
+      ASSERT(left == RDX);
+      ASSERT((right != RDX) && (right != RAX));
+      ASSERT(temp == RAX);
+      ASSERT(result == RDX);
+      // Handle divide by zero in runtime.
+      __ testq(right, right);
+      __ j(ZERO, deopt);
+      // Check if both operands fit into 32bits as idiv with 64bit operands
+      // requires twice as many cycles and has much higher latency.
+      // We are checking this before untagging them to avoid corner case
+      // dividing INT_MAX by -1 that raises exception because quotient is
+      // too large for 32bit register.
+      __ movsxd(temp, left);
+      __ cmpq(temp, left);
+      __ j(NOT_EQUAL, &not_32bit);
+      __ movsxd(temp, right);
+      __ cmpq(temp, right);
+      __ j(NOT_EQUAL, &not_32bit);
+      // Both operands are 31bit smis. Divide using 32bit idiv.
+      __ SmiUntag(left);
+      __ SmiUntag(right);
+      __ movq(RAX, RDX);
+      __ cdq();
+      __ idivl(right);
+      __ movsxd(result, result);
+      __ jmp(&div_done);
+
+      // Divide using 64bit idiv.
+      __ Bind(&not_32bit);
+      __ SmiUntag(left);
+      __ SmiUntag(right);
+      __ movq(RAX, RDX);
+      __ cqo();  // Sign extend RAX -> RDX:RAX.
+      __ idivq(right);  //  RAX: quotient, RDX: remainder.
+      __ Bind(&div_done);
+      //  res = left % right;
+      //  if (res < 0) {
+      //    if (right < 0) {
+      //      res = res - right;
+      //    } else {
+      //      res = res + right;
+      //    }
+      //  }
+      Label subtract, all_done;
+      __ cmpq(result, Immediate(0));
+      __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
+      // Result is negative, adjust it.
+      __ cmpq(right, Immediate(0));
+      __ j(LESS, &subtract, Assembler::kNearJump);
+      __ addq(result, right);
+      __ jmp(&all_done, Assembler::kNearJump);
+      __ Bind(&subtract);
+      __ subq(result, right);
+      __ Bind(&all_done);
+      __ SmiTag(result);
+      break;
+    }
     case Token::kSHR: {
       if (CanDeoptimize()) {
         __ CompareImmediate(right, Immediate(0), PP);
@@ -2541,11 +2614,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kDIV: {
       // Dispatches to 'Double./'.
       // TODO(srdjan): Implement as conversion to double and double division.
-      UNREACHABLE();
-      break;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
       UNREACHABLE();
       break;
     }

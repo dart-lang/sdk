@@ -2223,7 +2223,9 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   BuildPushArguments(*node->arguments(), arguments);
   InstanceCallInstr* call = new InstanceCallInstr(
       node->token_pos(),
-      node->function_name(), Token::kILLEGAL, arguments,
+      node->function_name(),
+      Token::kILLEGAL,
+      arguments,
       node->arguments()->names(),
       1,
       owner()->ic_data_array());

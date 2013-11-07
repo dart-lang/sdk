@@ -2306,6 +2306,17 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
       summary->set_temp(0, Location::RegisterLocation(EDX));
     }
     return summary;
+  } else if (op_kind() == Token::kMOD) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
+    summary->set_in(0, Location::RegisterLocation(EDX));
+    summary->set_in(1, Location::WritableRegister());
+    summary->set_out(Location::SameAsFirstInput());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(EAX));
+    return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
     LocationSummary* summary =
@@ -2551,6 +2562,41 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     }
+    case Token::kMOD: {
+      // Handle divide by zero in runtime.
+      __ testl(right, right);
+      __ j(ZERO, deopt);
+      ASSERT(left == EDX);
+      ASSERT((right != EDX) && (right != EAX));
+      ASSERT(locs()->temp(0).reg() == EAX);
+      ASSERT(result == EDX);
+      __ SmiUntag(left);
+      __ SmiUntag(right);
+      __ movl(EAX, EDX);
+      __ cdq();  // Sign extend EAX -> EDX:EAX.
+      __ idivl(right);  //  EAX: quotient, EDX: remainder.
+      //  res = left % right;
+      //  if (res < 0) {
+      //    if (right < 0) {
+      //      res = res - right;
+      //    } else {
+      //      res = res + right;
+      //    }
+      //  }
+      Label subtract, done;
+      __ cmpl(result, Immediate(0));
+      __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+      // Result is negative, adjust it.
+      __ cmpl(right, Immediate(0));
+      __ j(LESS, &subtract, Assembler::kNearJump);
+      __ addl(result, right);
+      __ jmp(&done, Assembler::kNearJump);
+      __ Bind(&subtract);
+      __ subl(result, right);
+      __ Bind(&done);
+      __ SmiTag(result);
+      break;
+    }
     case Token::kSHR: {
       if (CanDeoptimize()) {
         __ cmpl(right, Immediate(0));
@@ -2577,11 +2623,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kDIV: {
       // Dispatches to 'Double./'.
       // TODO(srdjan): Implement as conversion to double and double division.
-      UNREACHABLE();
-      break;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
       UNREACHABLE();
       break;
     }

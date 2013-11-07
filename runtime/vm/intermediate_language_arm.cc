@@ -2279,6 +2279,14 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
+  if (op_kind() == Token::kMOD) {
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->AddTemp(Location::RequiresRegister());
+    summary->AddTemp(Location::RequiresFpuRegister());
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && !is_truncating()) ||
@@ -2507,6 +2515,38 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     }
+    case Token::kMOD: {
+      // Handle divide by zero in runtime.
+      __ cmp(right, ShifterOperand(0));
+      __ b(deopt, EQ);
+      Register temp = locs()->temp(0).reg();
+      DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+      __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+
+      __ IntegerDivide(result, temp, IP, dtemp, DTMP);
+
+      __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+      __ mls(result, IP, result, temp);  // result <- left - right * result
+      __ SmiTag(result);
+      //  res = left % right;
+      //  if (res < 0) {
+      //    if (right < 0) {
+      //      res = res - right;
+      //    } else {
+      //      res = res + right;
+      //    }
+      //  }
+      Label done;
+      __ cmp(result, ShifterOperand(0));
+      __ b(&done, GE);
+      // Result is negative, adjust it.
+      __ cmp(right, ShifterOperand(0));
+      __ sub(result, result, ShifterOperand(right), LT);
+      __ add(result, result, ShifterOperand(right), GE);
+      __ Bind(&done);
+      break;
+    }
     case Token::kSHR: {
       if (CanDeoptimize()) {
         __ CompareImmediate(right, 0);
@@ -2530,11 +2570,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kDIV: {
       // Dispatches to 'Double./'.
       // TODO(srdjan): Implement as conversion to double and double division.
-      UNREACHABLE();
-      break;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
       UNREACHABLE();
       break;
     }

@@ -2400,6 +2400,13 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
+  if (op_kind() == Token::kMOD) {
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->AddTemp(Location::RequiresRegister());
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && !is_truncating()) ||
@@ -2640,6 +2647,33 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     }
+    case Token::kMOD: {
+      // Handle divide by zero in runtime.
+      __ beq(right, ZR, deopt);
+      Register temp = locs()->temp(0).reg();
+      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ div(temp, TMP);
+      __ mfhi(result);
+      //  res = left % right;
+      //  if (res < 0) {
+      //    if (right < 0) {
+      //      res = res - right;
+      //    } else {
+      //      res = res + right;
+      //    }
+      //  }
+      Label done, subtract;
+      __ bgez(result, &done);
+      __ bltz(right, &subtract);
+      __ addu(result, result, TMP);
+      __ b(&done);
+      __ Bind(&subtract);
+      __ subu(result, result, TMP);
+      __ Bind(&done);
+      __ SmiTag(result);
+      break;
+    }
     case Token::kSHR: {
       Register temp = locs()->temp(0).reg();
       if (CanDeoptimize()) {
@@ -2665,11 +2699,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kDIV: {
       // Dispatches to 'Double./'.
       // TODO(srdjan): Implement as conversion to double and double division.
-      UNREACHABLE();
-      break;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
       UNREACHABLE();
       break;
     }
