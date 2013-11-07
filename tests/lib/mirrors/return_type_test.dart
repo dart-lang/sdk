@@ -20,16 +20,8 @@ class B {
   // List<int> j() {}
 }
 
-methodsOf(ClassMirror cm) {
-  var result = new Map();
-  cm.declarations.forEach((k,v) {
-    if(v is MethodMirror && v.isRegularMethod) result[k] = v;
-  });
-  return result;
-}
-
 main() {
-  var methods = methodsOf(reflectClass(B));
+  var methods = reflectClass(B).methods;
 
   expect('{f: Method(s(f) in s(B)), '
          'g: Method(s(g) in s(B)), '
@@ -45,4 +37,6 @@ main() {
   expect('Class(s(int) in s(dart.core), top-level)', g.returnType);
   expect('Class(s(List) in s(dart.core), top-level)', h.returnType);
   expect('Class(s(B) in s(test.return_type_test), top-level)', i.returnType);
+
+  print(methods);
 }

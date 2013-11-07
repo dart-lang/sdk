@@ -39,7 +39,7 @@ main() {
   Expect.equals(const Symbol("void"), mm.returnType.simpleName);
 
   ClassMirror cm = reflectClass(C);
-  mm = cm.declarations[#getE];
+  mm = cm.members[#getE];
   Expect.equals(true, mm.returnType is TypeMirror);
   // The spec for this is ambigious and needs to be updated before it is clear
   // what has to be returned.

@@ -11,41 +11,41 @@ main() {
   LibraryMirror dartcore = currentMirrorSystem().findLibrary(#dart.core);
   ClassMirror cm;
 
-  cm = dartcore.declarations[#int];
+  cm = dartcore.classes[#int];
   Expect.equals(reflectClass(int), cm);
   Expect.equals(#int, cm.simpleName);
 
-  cm = dartcore.declarations[#double];
+  cm = dartcore.classes[#double];
   Expect.equals(reflectClass(double), cm);
   Expect.equals(#double, cm.simpleName);
 
-  cm = dartcore.declarations[#num];
+  cm = dartcore.classes[#num];
   Expect.equals(reflectClass(num), cm);
   Expect.equals(#num, cm.simpleName);
 
-  cm = dartcore.declarations[#bool];
+  cm = dartcore.classes[#bool];
   Expect.equals(reflectClass(bool), cm);
   Expect.equals(#bool, cm.simpleName);
 
-  cm = dartcore.declarations[#String];
+  cm = dartcore.classes[#String];
   Expect.equals(reflectClass(String), cm);
   Expect.equals(#String, cm.simpleName);
 
-  cm = dartcore.declarations[#List];
+  cm = dartcore.classes[#List];
   Expect.equals(reflectClass(List), cm);
   Expect.equals(#List, cm.simpleName);
 
-  cm = dartcore.declarations[#Null];
+  cm = dartcore.classes[#Null];
   Expect.equals(reflectClass(Null), cm);
   Expect.equals(#Null, cm.simpleName);
 
-  cm = dartcore.declarations[#Object];
+  cm = dartcore.classes[#Object];
   Expect.equals(reflectClass(Object), cm);
   Expect.equals(#Object, cm.simpleName);
 
-  cm = dartcore.declarations[#dynamic];
+  cm = dartcore.classes[#dynamic];
   Expect.isNull(cm);
 
-  cm = dartcore.declarations[const Symbol('void')];
+  cm = dartcore.classes[const Symbol('void')];
   Expect.isNull(cm);
 }

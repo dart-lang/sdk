@@ -42,8 +42,7 @@ void main() {
   var operators = new Map<Symbol, MethodMirror>();
   var operatorParameters = new Map<Symbol, List>();
   var returnTypes =  new Map<Symbol, Mirror>();
-  for (MethodMirror method in cls.declarations.values.where(
-      (d) => d is MethodMirror && !d.isConstructor)) {
+  for (MethodMirror method in cls.methods.values) {
     Expect.isTrue(method.isRegularMethod);
     Expect.isTrue(method.isOperator);
     Expect.isFalse(method.isGetter);

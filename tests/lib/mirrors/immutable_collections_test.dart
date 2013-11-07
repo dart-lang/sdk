@@ -41,13 +41,22 @@ checkMethod(MethodMirror mm) {
 }
 
 checkClass(ClassMirror cm) {
-  checkMap(cm.declarations, 'ClassMirror.declarations');
+  checkMap(cm.members, 'ClassMirror.members');
+  checkMap(cm.variables, 'ClassMirror.variables');
+  checkMap(cm.methods, 'ClassMirror.methods');
+  checkMap(cm.getters, 'ClassMirror.getters');
+  checkMap(cm.setters, 'ClassMirror.setters');
+  checkMap(cm.constructors, 'ClassMirror.constructors');
   checkList(cm.metadata, 'ClassMirror.metadata');
   checkList(cm.superinterfaces, 'ClassMirror.superinterfaces');
   checkList(cm.typeArguments, 'ClassMirror.typeArguments');
   checkList(cm.typeVariables, 'ClassMirror.typeVariables');
 
-  cm.declarations.values.forEach(checkDeclaration);
+  cm.methods.values.forEach(checkMethod);
+  cm.getters.values.forEach(checkMethod);
+  cm.setters.values.forEach(checkMethod);
+  cm.constructors.values.forEach(checkMethod);
+  cm.variables.values.forEach(checkVariable);
   cm.typeVariables.forEach(checkTypeVariable);
 }
 
@@ -55,19 +64,22 @@ checkType(TypeMirror tm) {
   checkList(tm.metadata, 'TypeMirror.metadata');
 }
 
-checkDeclaration(DeclarationMirror dm) {
-  if (dm is MethodMirror) checkMethod(dm);
-  if (dm is ClassMirror) checkClass(dm);
-  if (dm is TypeMirror) checkType(dm);
-  if (dm is VariableMirror) checkVariable(dm);
-  if (dm is TypeVariableMirror) checkTypeVariable(dm);
-}
-
 checkLibrary(LibraryMirror lm) {
-  checkMap(lm.declarations, 'LibraryMirror.declarations');
+  checkMap(lm.members, 'LibraryMirror.members');
+  checkMap(lm.variables, 'LibraryMirror.variables');
+  checkMap(lm.classes, 'LibraryMirror.classes');
+  checkMap(lm.types, 'LibraryMirror.types');
+  checkMap(lm.functions, 'LibraryMirror.functions');
+  checkMap(lm.getters, 'LibraryMirror.getters');
+  checkMap(lm.setters, 'LibraryMirror.setters');
   checkList(lm.metadata, 'LibraryMirror.metadata');
 
-  lm.declarations.values.forEach(checkDeclaration);
+  lm.types.values.forEach(checkType);
+  lm.classes.values.forEach(checkClass);
+  lm.functions.values.forEach(checkMethod);
+  lm.getters.values.forEach(checkMethod);
+  lm.setters.values.forEach(checkMethod);
+  lm.variables.values.forEach(checkVariable);
 }
 
 main() {

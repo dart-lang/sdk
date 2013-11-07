@@ -24,9 +24,8 @@ main() {
   expect("InstanceMirror on 1", reflect(1));
   expect("ClassMirror on 'Foo'", reflectClass(Foo));
   expect("VariableMirror on 'field'",
-         reflectClass(Foo).declarations[#field]);
-  expect("MethodMirror on 'method'",
-         reflectClass(Foo).declarations[#method]);
+         reflectClass(Foo).variables.values.single);
+  expect("MethodMirror on 'method'", reflectClass(Foo).methods.values.single);
   String s = reflect(main).toString();
   Expect.isTrue(s.startsWith("ClosureMirror on '"), s);
 }

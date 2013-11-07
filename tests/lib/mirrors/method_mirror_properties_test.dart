@@ -48,31 +48,31 @@ main() {
   checkKinds(closureMirror.function,
       [true, false, false, false, false]);
   var libraryMirror = reflectClass(C).owner;
-  checkKinds(libraryMirror.declarations[#topGetter],
+  checkKinds(libraryMirror.getters[#topGetter],
       [true, false, true, false, false]);
-  checkKinds(libraryMirror.declarations[const Symbol("topSetter=")],
+  checkKinds(libraryMirror.setters[const Symbol("topSetter=")],
       [true, false, false, true, false]);
   var classMirror;
   classMirror = reflectClass(C);
-  checkKinds(classMirror.declarations[#foo],
+  checkKinds(classMirror.members[#foo],
       [true, false, false, false, false]);
-  checkKinds(classMirror.declarations[#priv],
+  checkKinds(classMirror.members[#priv],
       [false, false, true, false, false]);
-  checkKinds(classMirror.declarations[const Symbol("priv=")],
+  checkKinds(classMirror.members[const Symbol("priv=")],
       [false, false, false, true, false]);
-  checkKinds(classMirror.declarations[#C],
+  checkKinds(classMirror.constructors[#C],
       [false, false, false, false, true]);
-  checkKinds(classMirror.declarations[#C.other],
+  checkKinds(classMirror.constructors[#C.other],
       [false, false, false, false, true]);
-  checkKinds(classMirror.declarations[#C.other2],
+  checkKinds(classMirror.constructors[#C.other2],
       [false, false, false, false, true]);
   classMirror = reflectClass(AbstractC);
-  checkKinds(classMirror.declarations[#AbstractC],
+  checkKinds(classMirror.constructors[#AbstractC],
       [false, false, false, false, true]);
-  checkKinds(classMirror.declarations[#bar],
+  checkKinds(classMirror.members[#bar],
       [false, true, false, false, false]);
-  checkKinds(classMirror.declarations[#priv],
+  checkKinds(classMirror.members[#priv],
       [false, true, true, false, false]);
-  checkKinds(classMirror.declarations[const Symbol("priv=")],
+  checkKinds(classMirror.members[const Symbol("priv=")],
       [false, true, false, true, false]);
 }

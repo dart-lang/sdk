@@ -45,10 +45,7 @@ class C <S extends int, T> {
 
 main() {
   ClassMirror cm = reflectClass(B);
-  var constructors = new Map<Symbol, MethodMirror>();
-  cm.declarations.forEach((k, v) {
-    if (v is MethodMirror && v.isConstructor) constructors[k] = v;
-  });
+  Map<Symbol, MethodMirror> constructors = cm.constructors;
 
   List<Symbol> constructorKeys =
       [#B, #B.bar, #B.baz, #B.foo, #B.quux, #B.qux, #B.corge];
@@ -127,31 +124,31 @@ main() {
   expect('Class(s(B) in s(test.parameter_test), top-level)',
          corgeConstructor.returnType);
 
-  MethodMirror xGetter = cm.declarations[#x];
+  MethodMirror xGetter = cm.getters[#x];
   expect('Method(s(x) in s(B), getter)', xGetter);
   expect('[]', xGetter.parameters);
 
-  MethodMirror xSetter = cm.declarations[const Symbol('x=')];
+  MethodMirror xSetter = cm.setters[const Symbol('x=')];
   expect('Method(s(x=) in s(B), setter)', xSetter);
   expect('[Parameter(s(value) in s(x=), final,'
          ' type = Type(s(dynamic), top-level))]',
          xSetter.parameters);
 
-  MethodMirror grault = cm.declarations[#grault];
+  MethodMirror grault = cm.members[#grault];
   expect('Method(s(grault) in s(B))', grault);
   expect('[Parameter(s(x) in s(grault), optional,'
          ' type = Class(s(int) in s(dart.core), top-level))]',
          grault.parameters);
   expect('Instance(value = <null>)', grault.parameters[0].defaultValue);
 
-  MethodMirror garply = cm.declarations[#garply];
+  MethodMirror garply = cm.members[#garply];
   expect('Method(s(garply) in s(B))', garply);
   expect('[Parameter(s(y) in s(garply), optional, named,'
          ' type = Class(s(int) in s(dart.core), top-level))]',
          garply.parameters);
   expect('Instance(value = <null>)', garply.parameters[0].defaultValue);
 
-  MethodMirror waldo = cm.declarations[#waldo];
+  MethodMirror waldo = cm.members[#waldo];
   expect('Method(s(waldo) in s(B))', waldo);
   expect('[Parameter(s(z) in s(waldo),' 
          ' type = Class(s(int) in s(dart.core), top-level))]',
@@ -160,7 +157,7 @@ main() {
 
   cm = reflectClass(C);
 
-  MethodMirror fooInC = cm.declarations[#foo];
+  MethodMirror fooInC = cm.members[#foo];
   expect('Method(s(foo) in s(C))', fooInC);
   expect('[Parameter(s(a) in s(foo),'
          ' type = Class(s(int) in s(dart.core), top-level)), '
@@ -169,7 +166,7 @@ main() {
          ' upperBound = Class(s(int) in s(dart.core), top-level)))]',
          fooInC.parameters);
 
-  MethodMirror barInC = cm.declarations[#bar];
+  MethodMirror barInC = cm.members[#bar];
   expect('Method(s(bar) in s(C))', barInC);
   expect('[Parameter(s(a) in s(bar),'
          ' type = TypeVariable(s(S) in s(C),'
