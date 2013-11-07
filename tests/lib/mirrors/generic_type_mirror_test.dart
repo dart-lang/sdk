@@ -23,13 +23,13 @@ void testInstance() {
   ClassMirror bar = reflect(new Bar()).type;
   ClassMirror baz = reflect(new Baz()).type;
   ClassMirror hOfBaz = reflect(new H<Baz>()).type;
-  VariableMirror field = foo.declarations[#field];
-  MethodMirror getter = foo.declarations[#bar];
-  MethodMirror setter = foo.declarations[const Symbol('bar=')];
-  MethodMirror m = foo.declarations[#m];
-  MethodMirror n = foo.declarations[#n];
-  MethodMirror o = foo.declarations[#o];
-  MethodMirror p = foo.declarations[#p];
+  VariableMirror field = foo.variables.values.single;
+  MethodMirror getter = foo.getters.values.single;
+  MethodMirror setter = foo.setters.values.single;
+  MethodMirror m = foo.methods[const Symbol('m')];
+  MethodMirror n = foo.methods[const Symbol('n')];
+  MethodMirror o = foo.methods[const Symbol('o')];
+  MethodMirror p = foo.methods[const Symbol('p')];
 
   Expect.equals(foo, field.owner);
   Expect.equals(foo, getter.owner);
@@ -55,13 +55,13 @@ void testInstance() {
 void testOriginalDeclaration() {
   ClassMirror foo = reflectClass(Foo);
 
-  VariableMirror field = foo.declarations[#field];
-  MethodMirror getter = foo.declarations[#bar];
-  MethodMirror setter = foo.declarations[const Symbol('bar=')];
-  MethodMirror m = foo.declarations[#m];
-  MethodMirror n = foo.declarations[#n];
-  MethodMirror o = foo.declarations[#o];
-  MethodMirror p = foo.declarations[#p];
+  VariableMirror field = foo.variables.values.single;
+  MethodMirror getter = foo.getters.values.single;
+  MethodMirror setter = foo.setters.values.single;
+  MethodMirror m = foo.methods[const Symbol('m')];
+  MethodMirror n = foo.methods[const Symbol('n')];
+  MethodMirror o = foo.methods[const Symbol('o')];
+  MethodMirror p = foo.methods[const Symbol('p')];
   TypeVariableMirror w = foo.typeVariables[0];
   TypeVariableMirror v = foo.typeVariables[1];
 

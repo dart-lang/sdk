@@ -16,9 +16,7 @@ import 'dart:mirrors';
 main() {
   ClassMirror cls = reflectClass(MessageKind);
   Map<String, MessageKind> kinds = <String, MessageKind>{};
-  cls.declarations.forEach((Symbol name, DeclarationMirror declaration) {
-    if (declaration is! VariableMirror) return;
-    VariableMirror variable = declaration;
+  cls.variables.forEach((Symbol name, VariableMirror variable) {
     if (variable.isStatic) {
       var value = cls.getField(name).reflectee;
       if (value is MessageKind) {

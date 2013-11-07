@@ -21,6 +21,6 @@ class Foo {
 
 main() {
   var value =
-      reflectClass(Foo).declarations[#m].metadata.single.reflectee;
+      reflectClass(Foo).methods[#m].metadata.single.reflectee;
   Expect.stringEquals('ConstructedConstant($StateError)', '$value');
 }
