@@ -46,11 +46,6 @@
 /// even when the program is run on a POSIX machine.
 library path;
 
-@MirrorsUsed(targets: 'dart.dom.html.window, '
-    'dart.io.Directory.current, '
-    'dart.io.Platform.operatingSystem')
-import 'dart:mirrors';
-
 /// An internal builder for the current OS so we can provide a straight
 /// functional interface and not require users to create one.
 final _builder = new Builder();
@@ -69,33 +64,20 @@ final url = new Builder(style: Style.url);
 void _growListFront(List list, int length, fillValue) =>
   list.insertAll(0, new List.filled(length, fillValue));
 
-/// If we're running in the server-side Dart VM, this will return a
-/// [LibraryMirror] that gives access to the `dart:io` library.
-///
-/// If `dart:io` is not available, this returns null.
-LibraryMirror get _io => currentMirrorSystem().libraries[Uri.parse('dart:io')];
-
-// TODO(nweiz): when issue 6490 or 6943 are fixed, make this work under dart2js.
-/// If we're running in Dartium, this will return a [LibraryMirror] that gives
-/// access to the `dart:html` library.
-///
-/// If `dart:html` is not available, this returns null.
-LibraryMirror get _html =>
-  currentMirrorSystem().libraries[Uri.parse('dart:html')];
 
 /// Gets the path to the current working directory.
 ///
-/// In the browser, this means the current URL. When using dart2js, this
-/// currently returns `.` due to technical constraints. In the future, it will
-/// return the current URL.
+/// In the browser, this means the current URL, without the last file segment.
 String get current {
-  if (_io != null) {
-    return (_io.declarations[#Directory] as ClassMirror)
-        .getField(#current).reflectee.path;
-  } else if (_html != null) {
-    return _html.getField(#window).reflectee.location.href;
+  var uri = Uri.base;
+  if (Style.platform == Style.url) {
+    return uri.resolve('.').toString();
   } else {
-    return '.';
+    var path = uri.toFilePath();
+    // Remove trailing '/' or '\'.
+    int lastIndex = path.length - 1;
+    assert(path[lastIndex] == '/' || path[lastIndex] == '\\');
+    return path.substring(0, lastIndex);
   }
 }
 
@@ -866,13 +848,13 @@ abstract class Style {
 
   /// Gets the type of the host platform.
   static Style _getPlatformStyle() {
-    if (_io == null) return Style.url;
-
-    if ((_io.declarations[#Platform] as ClassMirror).getField(#operatingSystem)
-        .reflectee == 'windows') {
-      return Style.windows;
-    }
-
+    // If we're running a Dart file in the browser from a `file:` URI,
+    // [Uri.base] will point to a file. If we're running on the standalone,
+    // it will point to a directory. We can use that fact to determine which
+    // style to use.
+    if (Uri.base.scheme != 'file') return Style.url;
+    if (!Uri.base.path.endsWith('/')) return Style.url;
+    if (new Uri(path: 'a/b').toFilePath() == 'a\\b') return Style.windows;
     return Style.posix;
   }
 

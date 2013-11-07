@@ -14,7 +14,8 @@ main() {
   group('new Builder()', () {
     test('uses the window location if root and style are omitted', () {
       var builder = new path.Builder();
-      expect(builder.root, window.location.href);
+      expect(builder.root,
+             Uri.parse(window.location.href).resolve('.').toString());
     });
 
     test('uses "." if root is omitted', () {
@@ -33,6 +34,7 @@ main() {
   });
 
   test('current', () {
-    expect(path.current, window.location.href);
+    expect(path.current,
+           Uri.parse(window.location.href).resolve('.').toString());
   });
 }
