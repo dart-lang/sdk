@@ -29,9 +29,12 @@ main() {
   Expect.isFalse(superOfTAndInt.isOriginalDeclaration);
   Expect.isFalse(superOfStringAndInt.isOriginalDeclaration);
 
-  Symbol r(ClassMirror cm) => cm.variables[#r].type.simpleName;
-  Symbol s(ClassMirror cm) => cm.methods[#s].parameters[0].type.simpleName;
-  Symbol t(ClassMirror cm) => cm.methods[#t].returnType.simpleName;
+  Symbol r(ClassMirror cm) =>
+      (cm.declarations[#r] as VariableMirror).type.simpleName;
+  Symbol s(ClassMirror cm) =>
+      (cm.declarations[#s] as MethodMirror).parameters[0].type.simpleName;
+  Symbol t(ClassMirror cm) =>
+      (cm.declarations[#t] as MethodMirror).returnType.simpleName;
 
   Expect.equals(#T, r(genericDecl.superclass)); /// 01: ok
   Expect.equals(#int, s(genericDecl.superclass));

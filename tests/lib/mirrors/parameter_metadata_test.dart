@@ -33,23 +33,23 @@ class B {
 main() {
   ClassMirror cm = reflectClass(B);
 
-  checkMetadata(cm.constructors[#B.foo].parameters[0], []);
+  checkMetadata((cm.declarations[#B.foo] as MethodMirror).parameters[0], []);
 
-  checkMetadata(cm.constructors[#B.bar].parameters[0], [m3, m2]);
-  checkMetadata(cm.constructors[#B.bar].parameters[1], []);
+  checkMetadata((cm.declarations[#B.bar] as MethodMirror).parameters[0], [m3, m2]);
+  checkMetadata((cm.declarations[#B.bar] as MethodMirror).parameters[1], []);
 
-  checkMetadata(cm.methods[#baz].parameters[0], [m1]);
-  checkMetadata(cm.methods[#baz].parameters[1], [m2]);
-  checkMetadata(cm.methods[#baz].parameters[2], [m3]);
+  checkMetadata((cm.declarations[#baz] as MethodMirror).parameters[0], [m1]);
+  checkMetadata((cm.declarations[#baz] as MethodMirror).parameters[1], [m2]);
+  checkMetadata((cm.declarations[#baz] as MethodMirror).parameters[2], [m3]);
 
-  checkMetadata(cm.methods[#qux].parameters[0], []);
-  checkMetadata(cm.methods[#qux].parameters[1], [m3, m2, m1]);
+  checkMetadata((cm.declarations[#qux] as MethodMirror).parameters[0], []);
+  checkMetadata((cm.declarations[#qux] as MethodMirror).parameters[1], [m3, m2, m1]);
 
-  checkMetadata(cm.methods[#quux].parameters[0], []);
-  checkMetadata(cm.methods[#quux].parameters[1], []);
+  checkMetadata((cm.declarations[#quux] as MethodMirror).parameters[0], []);
+  checkMetadata((cm.declarations[#quux] as MethodMirror).parameters[1], []);
 
-  checkMetadata(cm.methods[#corge].parameters[0], [m1]);
-  checkMetadata(cm.methods[#corge].parameters[1], [m2]);
+  checkMetadata((cm.declarations[#corge] as MethodMirror).parameters[0], [m1]);
+  checkMetadata((cm.declarations[#corge] as MethodMirror).parameters[1], [m2]);
 
-  checkMetadata(cm.setters[const Symbol('x=')].parameters[0], [m2]);
+  checkMetadata((cm.declarations[const Symbol('x=')] as MethodMirror).parameters[0], [m2]);
 }

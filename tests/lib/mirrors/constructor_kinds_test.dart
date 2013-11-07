@@ -42,7 +42,8 @@ main() {
   const Class.constRedirectingFactoryConstructor();  /// 01: ok
 
   cm = reflectClass(ClassWithDefaultConstructor);
-  mm = cm.constructors.values.single;
+  mm = cm.declarations.values
+      .where((d) => d is MethodMirror && d.isConstructor).single;
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
@@ -51,42 +52,42 @@ main() {
 
   cm = reflectClass(Class);
 
-  mm = cm.constructors[#Class.generativeConstructor];
+  mm = cm.declarations[#Class.generativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#Class.redirectingGenerativeConstructor];
+  mm = cm.declarations[#Class.redirectingGenerativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
   Expect.isTrue(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#Class.factoryConstructor];
+  mm = cm.declarations[#Class.factoryConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isFalse(mm.isGenerativeConstructor);
   Expect.isTrue(mm.isFactoryConstructor);
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#Class.redirectingFactoryConstructor];
+  mm = cm.declarations[#Class.redirectingFactoryConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isFalse(mm.isGenerativeConstructor);
   Expect.isTrue(mm.isFactoryConstructor);
   Expect.isTrue(mm.isRedirectingConstructor);
   Expect.isFalse(mm.isConstConstructor);
 
-  mm = cm.constructors[#Class.constGenerativeConstructor];
+  mm = cm.declarations[#Class.constGenerativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
   Expect.isFalse(mm.isRedirectingConstructor);
   Expect.isTrue(mm.isConstConstructor);
 
-  mm = cm.constructors[#Class.constRedirectingGenerativeConstructor];
+  mm = cm.declarations[#Class.constRedirectingGenerativeConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isTrue(mm.isGenerativeConstructor);
   Expect.isFalse(mm.isFactoryConstructor);
@@ -94,14 +95,14 @@ main() {
   Expect.isTrue(mm.isConstConstructor);
 
   // Not legal.
-  // mm = cm.constructors[#Class.constFactoryConstructor];
+  // mm = cm.declarations[#Class.constFactoryConstructor];
   // Expect.isTrue(mm.isConstructor);
   // Expect.isFalse(mm.isGenerativeConstructor);
   // Expect.isTrue(mm.isFactoryConstructor);
   // Expect.isFalse(mm.isRedirectingConstructor);
   // Expect.isTrue(mm.isConstConstructor);
 
-  mm = cm.constructors[#Class.constRedirectingFactoryConstructor];
+  mm = cm.declarations[#Class.constRedirectingFactoryConstructor];
   Expect.isTrue(mm.isConstructor);
   Expect.isFalse(mm.isGenerativeConstructor);
   Expect.isTrue(mm.isFactoryConstructor);

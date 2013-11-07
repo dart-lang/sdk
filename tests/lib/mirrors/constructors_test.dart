@@ -10,6 +10,14 @@ import 'package:expect/expect.dart';
 
 import 'stringify.dart';
 
+constructorsOf(ClassMirror cm) {
+  var result = new Map();
+  cm.declarations.forEach((k,v) {
+    if(v is MethodMirror && v.isConstructor) result[k] = v;
+  });
+  return result;
+}
+
 class Foo {
 }
 
@@ -28,13 +36,13 @@ class Biz {
 
 main() {
   ClassMirror fooMirror = reflectClass(Foo);
-  Map<Symbol, MethodMirror> fooConstructors = fooMirror.constructors;
+  Map<Symbol, MethodMirror> fooConstructors = constructorsOf(fooMirror);
   ClassMirror barMirror = reflectClass(Bar);
-  Map<Symbol, MethodMirror> barConstructors = barMirror.constructors;
+  Map<Symbol, MethodMirror> barConstructors = constructorsOf(barMirror);
   ClassMirror bazMirror = reflectClass(Baz);
-  Map<Symbol, MethodMirror> bazConstructors = bazMirror.constructors;
+  Map<Symbol, MethodMirror> bazConstructors = constructorsOf(bazMirror);
   ClassMirror bizMirror = reflectClass(Biz);
-  Map<Symbol, MethodMirror> bizConstructors = bizMirror.constructors;
+  Map<Symbol, MethodMirror> bizConstructors = constructorsOf(bizMirror);
 
   expect('{Foo: Method(s(Foo) in s(Foo), constructor)}', fooConstructors);
   expect('{Bar: Method(s(Bar) in s(Bar), constructor)}', barConstructors);

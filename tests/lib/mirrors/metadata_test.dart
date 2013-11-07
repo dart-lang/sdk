@@ -54,17 +54,17 @@ main() {
   ClassMirror myClassMirror = reflectClass(MyClass);
   checkMetadata(myClassMirror, [symbol, string]);
   LibraryMirror lib = mirrors.findLibrary(#test.metadata_test);
-  MethodMirror function = lib.functions[#main];
+  MethodMirror function = lib.declarations[#main];
   checkMetadata(function, [symbol, string, symbol]);
-  MethodMirror method = myClassMirror.methods[#myMethod];
+  MethodMirror method = myClassMirror.declarations[#myMethod];
   checkMetadata(method, [string, symbol, string]);
-  method = myClassMirror.methods[#myOtherMethod];
+  method = myClassMirror.declarations[#myOtherMethod];
   checkMetadata(method, []);
 
-  VariableMirror xMirror = myClassMirror.variables[#x];
+  VariableMirror xMirror = myClassMirror.declarations[#x];
   checkMetadata(xMirror, [hest, hest, symbol]);
 
-  VariableMirror yMirror = myClassMirror.variables[#y];
+  VariableMirror yMirror = myClassMirror.declarations[#y];
   checkMetadata(yMirror, []);
 
   // TODO(ahe): Test local functions.

@@ -34,7 +34,7 @@ class Constant {
 main() {
   ParameterMirror pm;
 
-  pm = reflectClass(Class).constructors[#Class.nongeneric].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.nongeneric] as MethodMirror).parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(reflectClass(int), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -45,7 +45,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
   
-  pm = reflectClass(Class).constructors[#Class.named].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.named] as MethodMirror).parameters.single;
   Expect.equals(#boolField, pm.simpleName);
   Expect.equals(reflectClass(bool), pm.type);
   Expect.isTrue(pm.isNamed);  /// 01: ok
@@ -56,7 +56,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.optPos].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.optPos] as MethodMirror).parameters.single;
   Expect.equals(#stringField, pm.simpleName);
   Expect.equals(reflectClass(String), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -68,7 +68,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
   
-  pm = reflectClass(Class).constructors[#Class.generic].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.generic] as MethodMirror).parameters.single;
   Expect.equals(#tField, pm.simpleName);
   Expect.equals(reflectClass(Class).typeVariables.single, pm.type);  /// 02: ok
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -79,7 +79,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.private].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.private] as MethodMirror).parameters.single;
   Expect.equals(#_privateField, pm.simpleName);  /// 03: ok
   Expect.equals(currentMirrorSystem().dynamicType, pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -90,7 +90,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.explicitType].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.explicitType] as MethodMirror).parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -101,7 +101,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.withVar].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.withVar] as MethodMirror).parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(reflectClass(int), pm.type);  // N.B.   /// 02: ok
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -112,7 +112,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.withDynamic].parameters.single;
+  pm = (reflectClass(Class).declarations[#Class.withDynamic] as MethodMirror).parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(currentMirrorSystem().dynamicType, pm.type);  // N.B.
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -123,7 +123,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Constant).constructors[#Constant].parameters.single;
+  pm = (reflectClass(Constant).declarations[#Constant] as MethodMirror).parameters.single;
   Expect.equals(#value, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -134,7 +134,7 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Constant).constructors[#Constant.marked].parameters.single;
+  pm = (reflectClass(Constant).declarations[#Constant.marked] as MethodMirror).parameters.single;
   Expect.equals(#value, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok

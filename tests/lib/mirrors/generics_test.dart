@@ -145,11 +145,10 @@ main() {
 
   // Library members are all uninstantaited generics or non-generics.
   currentMirrorSystem().libraries.values.forEach((libraryMirror) {
-    libraryMirror.classes.values.forEach((classMirror) {
-      // Generic typedefs are considered in a separate test.
-      if (classMirror is! TypedefMirror) {
-        Expect.isTrue(classMirror.isOriginalDeclaration);
-        Expect.equals(classMirror, classMirror.originalDeclaration);
+    libraryMirror.declarations.values.forEach((declaration) {
+      if (declaration is ClassMirror) {
+        Expect.isTrue(declaration.isOriginalDeclaration);
+        Expect.equals(declaration, declaration.originalDeclaration);
       }
     });
   });
