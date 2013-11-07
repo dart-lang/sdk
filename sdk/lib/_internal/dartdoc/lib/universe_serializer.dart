@@ -313,7 +313,7 @@ class ClassElement extends Element {
     }
 
     mirror.declarations.values
-        .where((d) => d is MethodMirror))
+        .where((d) => d is MethodMirror)
         .forEach((childMirror) {
       if (!childMirror.isConstructor && !childMirror.isGetter) {
         var childName = childMirror.simpleName;
@@ -322,14 +322,14 @@ class ClassElement extends Element {
     });
 
     mirror.declarations.values
-        .where((d) => d is MethodMirror && d.isGetter))
+        .where((d) => d is MethodMirror && d.isGetter)
         .forEach((childMirror) {
       var childName = childMirror.simpleName;
       addChild(new GetterElement(childName, childMirror, lookupMdnComment));
     });
 
     mirror.declarations.values
-        .where((d) => d is VariableMirror))
+        .where((d) => d is VariableMirror)
         .forEach((childMirror) {
       var childName = childMirror.simpleName;
       addChild(new VariableElement(childName, childMirror,
@@ -337,7 +337,7 @@ class ClassElement extends Element {
     });
 
     mirror.declarations.values
-        .where((d) => d is MethodMirror && d.isConstructor))
+        .where((d) => d is MethodMirror && d.isConstructor)
         .forEach((childMirror) {
       var childName = childMirror.simpleName;
       addChild(new MethodElement(childName, methodMirror,
