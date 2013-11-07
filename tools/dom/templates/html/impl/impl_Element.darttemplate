@@ -586,6 +586,9 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * [selectors] should be a string using CSS selector syntax.
    *
    *     var items = element.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
   ElementList querySelectorAll(String selectors) =>

@@ -7313,6 +7313,7 @@ class Document extends Node  native "Document"
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
+   *
    *     var element1 = document.querySelector('.className');
    *     var element2 = document.querySelector('#id');
    *
@@ -7671,6 +7672,7 @@ class Document extends Node  native "Document"
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
+   *
    *     var items = document.querySelectorAll('.itemClassName');
    *
    * For details about CSS selector syntax, see the
@@ -7752,6 +7754,17 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
     children.addAll(copy);
   }
 
+  /**
+   * Finds all descendant elements of this document fragment that match the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = document.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
@@ -7816,6 +7829,18 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Finds the first descendant element of this document fragment that matches
+   * the specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var element1 = fragment.querySelector('.className');
+   *     var element2 = fragment.querySelector('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
   Element querySelector(String selectors) native;
@@ -9456,6 +9481,9 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    * [selectors] should be a string using CSS selector syntax.
    *
    *     var items = element.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
   ElementList querySelectorAll(String selectors) =>
@@ -11092,9 +11120,8 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    *     // Gets the first descendant [ImageElement]
    *     var img = element.querySelector('img');
    *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelector')
   @DocsEditable()
@@ -34143,7 +34170,41 @@ Element query(String relativeSelectors) => document.query(relativeSelectors);
 @Experimental()
 ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
 
+/**
+ * Finds the first descendant element of this document that matches the
+ * specified group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level
+ * [querySelector]
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     var element1 = document.querySelector('.className');
+ *     var element2 = document.querySelector('#id');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
 Element querySelector(String selectors) => document.querySelector(selectors);
+
+/**
+ * Finds all descendant elements of this document that match the specified
+ * group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level
+ * [querySelectorAll]
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     var items = document.querySelectorAll('.itemClassName');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
 ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

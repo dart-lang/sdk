@@ -416,6 +416,7 @@
           "   * save typing a few characters.",
           "   *",
           "   * [selectors] should be a string using CSS selector syntax.",
+          "   *",
           "   *     var element1 = document.querySelector('.className');",
           "   *     var element2 = document.querySelector('#id');",
           "   *",
@@ -461,6 +462,24 @@
           "   * handlers that are not necessarily instances of [Document].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ]
+      }
+    },
+    "DocumentFragment": {
+      "members": {
+        "querySelector": [
+          "/**",
+          "   * Finds the first descendant element of this document fragment that matches",
+          "   * the specified group of selectors.",
+          "   *",
+          "   * [selectors] should be a string using CSS selector syntax.",
+          "   *",
+          "   *     var element1 = fragment.querySelector('.className');",
+          "   *     var element2 = fragment.querySelector('#id');",
+          "   *",
+          "   * For details about CSS selector syntax, see the",
+          "   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).",
           "   */"
         ]
       }
@@ -1166,9 +1185,8 @@
           "   *     // Gets the first descendant [ImageElement]",
           "   *     var img = element.querySelector('img');",
           "   *",
-          "   * See also:",
-          "   *",
-          "   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)",
+          "   * For details about CSS selector syntax, see the",
+          "   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).",
           "   */"
         ],
         "resetEvent": [
