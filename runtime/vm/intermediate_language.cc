@@ -487,7 +487,7 @@ void Instruction::RemoveEnvironment() {
 
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
-  ASSERT(!IsControl());
+  ASSERT(!IsBranch());
   ASSERT(!IsThrow());
   ASSERT(!IsReturn());
   ASSERT(!IsReThrow());
@@ -1089,12 +1089,12 @@ BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
 }
 
 
-intptr_t ControlInstruction::SuccessorCount() const {
+intptr_t BranchInstr::SuccessorCount() const {
   return 2;
 }
 
 
-BlockEntryInstr* ControlInstruction::SuccessorAt(intptr_t index) const {
+BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
   if (index == 0) return true_successor_;
   if (index == 1) return false_successor_;
   UNREACHABLE();
@@ -2477,6 +2477,29 @@ void IfThenElseInstr::InferRange() {
   const intptr_t max = Utils::Maximum(if_true_, if_false_);
   range_ = new Range(RangeBoundary::FromConstant(min),
                      RangeBoundary::FromConstant(max));
+}
+
+
+static bool BindsToSmiConstant(Value* value) {
+  return value->BindsToConstant() && value->BoundConstant().IsSmi();
+}
+
+
+bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+                               Value* v1,
+                               Value* v2) {
+  if (!(comparison->IsStrictCompare() &&
+        !comparison->AsStrictCompare()->needs_number_check()) &&
+      !(comparison->IsEqualityCompare() &&
+        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
+    return false;
+  }
+
+  if (!BindsToSmiConstant(v1) || !BindsToSmiConstant(v2)) {
+    return false;
+  }
+
+  return true;
 }
 
 

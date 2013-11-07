@@ -127,46 +127,10 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
-static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
-  if (!val->BindsToConstant()) {
-    return false;
-  }
-
-  const Object& bound_constant = val->BoundConstant();
-  if (!bound_constant.IsSmi()) {
-    return false;
-  }
-
-  *smi_value = Smi::Cast(bound_constant).Value();
-  return true;
-}
-
-
 // Detect pattern when one value is zero and another is a power of 2.
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
          (Utils::IsPowerOfTwo(v2) && (v1 == 0));
-}
-
-
-bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
-                               Value* v1,
-                               Value* v2) {
-  if (!(comparison->IsStrictCompare() &&
-        !comparison->AsStrictCompare()->needs_number_check()) &&
-      !(comparison->IsEqualityCompare() &&
-        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
-    return false;
-  }
-
-  intptr_t v1_value, v2_value;
-
-  if (!BindsToSmiConstant(v1, &v1_value) ||
-      !BindsToSmiConstant(v2, &v2_value)) {
-    return false;
-  }
-
-  return true;
 }
 
 
@@ -505,6 +469,42 @@ static Condition FlipCondition(Condition condition) {
 }
 
 
+static void EmitBranchOnValue(FlowGraphCompiler* compiler,
+                              TargetEntryInstr* true_successor,
+                              TargetEntryInstr* false_successor,
+                              bool value) {
+  __ TraceSimMsg("ControlInstruction::EmitBranchOnValue");
+  if (value && !compiler->CanFallThroughTo(true_successor)) {
+    __ b(compiler->GetJumpLabel(true_successor));
+  } else if (!value && !compiler->CanFallThroughTo(false_successor)) {
+    __ b(compiler->GetJumpLabel(false_successor));
+  }
+}
+
+
+// The comparison result is in CMPRES1.
+static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                  TargetEntryInstr* true_successor,
+                                  TargetEntryInstr* false_successor,
+                                  Condition true_condition) {
+  __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
+  if (compiler->CanFallThroughTo(false_successor)) {
+    // If the next block is the false successor, fall through to it.
+    Label* label = compiler->GetJumpLabel(true_successor);
+    EmitBranchAfterCompare(compiler, true_condition, label);
+  } else {
+    // If the next block is not the false successor, branch to it.
+    Condition false_condition = NegateCondition(true_condition);
+    Label* label = compiler->GetJumpLabel(false_successor);
+    EmitBranchAfterCompare(compiler, false_condition, label);
+    // Fall through or jump to the true successor.
+    if (!compiler->CanFallThroughTo(true_successor)) {
+      __ b(compiler->GetJumpLabel(true_successor));
+    }
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -528,7 +528,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   }
 
   if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, true_condition);
+    EmitBranchOnCondition(compiler,
+                          branch->true_successor(),
+                          branch->false_successor(),
+                          true_condition);
   } else {
     Register result = locs.out().reg();
     Label done, is_true;
@@ -573,6 +576,87 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 }
 
 
+static void EmitDoubleCompareBranch(FlowGraphCompiler* compiler,
+                                    Condition true_condition,
+                                    FpuRegister left,
+                                    FpuRegister right,
+                                    BranchInstr* branch) {
+  ASSERT(branch != NULL);
+  __ Comment("DoubleCompareBranch");
+  __ cund(left, right);
+  BlockEntryInstr* nan_result = (true_condition == NE) ?
+      branch->true_successor() : branch->false_successor();
+  __ bc1t(compiler->GetJumpLabel(nan_result));
+
+  switch (true_condition) {
+    case EQ: __ ceqd(left, right); break;
+    case NE: __ ceqd(left, right); break;
+    case LT: __ coltd(left, right); break;
+    case LE: __ coled(left, right); break;
+    case GT: __ coltd(right, left); break;
+    case GE: __ coled(right, left); break;
+    default: {
+      // Should only passing the above conditions to this function.
+      UNREACHABLE();
+      break;
+    }
+  }
+
+  __ LoadImmediate(TMP, 1);
+  if (true_condition == NE) {
+    __ movf(CMPRES1, ZR);
+    __ movt(CMPRES1, TMP);
+  } else {
+    __ movf(CMPRES1, TMP);
+    __ movt(CMPRES1, ZR);
+  }
+  __ mov(CMPRES2, ZR);
+
+  // EmitBranchOnCondition expects ordering to be described by CMPRES1, CMPRES2.
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        EQ);
+}
+
+
+static void EmitDoubleCompareBool(FlowGraphCompiler* compiler,
+                                  Condition true_condition,
+                                  FpuRegister left,
+                                  FpuRegister right,
+                                  Register result) {
+  Label done, is_true;
+  Label* nan_label = (true_condition == NE) ? &is_true : &done;
+  __ Comment("DoubleCompareBool");
+  __ LoadObject(result, Bool::False());
+  __ cund(left, right);
+  __ bc1t(nan_label);
+
+  switch (true_condition) {
+    case EQ: __ ceqd(left, right); break;
+    case NE: __ ceqd(left, right); break;
+    case LT: __ coltd(left, right); break;
+    case LE: __ coled(left, right); break;
+    case GT: __ coltd(right, left); break;
+    case GE: __ coled(right, left); break;
+    default: {
+      // Should only passing the above conditions to this function.
+      UNREACHABLE();
+      break;
+    }
+  }
+
+  if (true_condition == NE) {
+    __ bc1t(&done);  // False is already in result.
+  } else {
+    __ bc1f(&done);
+  }
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
+}
+
+
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
@@ -584,11 +668,10 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
   if (branch != NULL) {
-    compiler->EmitDoubleCompareBranch(
-        true_condition, left, right, branch);
+    EmitDoubleCompareBranch(compiler, true_condition, left, right, branch);
   } else {
-    compiler->EmitDoubleCompareBool(
-        true_condition, left, right, locs.out().reg());
+    EmitDoubleCompareBool(compiler, true_condition,
+                          left, right, locs.out().reg());
   }
 }
 
@@ -668,7 +751,10 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     __ and_(CMPRES1, left, right.reg());
   }
   __ mov(CMPRES2, ZR);
-  branch->EmitBranchOnCondition(compiler, branch_condition);
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        branch_condition);
 }
 
 
@@ -3710,38 +3796,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
-                                           bool value) {
-  __ TraceSimMsg("ControlInstruction::EmitBranchOnValue");
-  if (value && !compiler->CanFallThroughTo(true_successor())) {
-    __ b(compiler->GetJumpLabel(true_successor()));
-  } else if (!value && !compiler->CanFallThroughTo(false_successor())) {
-    __ b(compiler->GetJumpLabel(false_successor()));
-  }
-}
-
-
-// The comparison result is in CMPRES1.
-void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                               Condition true_condition) {
-  __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
-  if (compiler->CanFallThroughTo(false_successor())) {
-    // If the next block is the false successor, fall through to it.
-    Label* label = compiler->GetJumpLabel(true_successor());
-    EmitBranchAfterCompare(compiler, true_condition, label);
-  } else {
-    // If the next block is not the false successor, branch to it.
-    Condition false_condition = NegateCondition(true_condition);
-    Label* label = compiler->GetJumpLabel(false_successor());
-    EmitBranchAfterCompare(compiler, false_condition, label);
-    // Fall through or jump to the true successor.
-    if (!compiler->CanFallThroughTo(true_successor())) {
-      __ b(compiler->GetJumpLabel(true_successor()));
-    }
-  }
-}
-
-
 LocationSummary* CurrentContextInstr::MakeLocationSummary() const {
   return LocationSummary::Make(0,
                                Location::RequiresRegister(),
@@ -3825,7 +3879,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    branch->EmitBranchOnValue(compiler, result);
+    EmitBranchOnValue(compiler,
+                      branch->true_successor(),
+                      branch->false_successor(),
+                      result);
     return;
   }
   if (left.IsConstant()) {
@@ -3846,7 +3903,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  branch->EmitBranchOnCondition(compiler, true_condition);
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        true_condition);
 }
 
 

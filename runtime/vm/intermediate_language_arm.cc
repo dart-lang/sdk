@@ -128,46 +128,10 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
-static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
-  if (!val->BindsToConstant()) {
-    return false;
-  }
-
-  const Object& bound_constant = val->BoundConstant();
-  if (!bound_constant.IsSmi()) {
-    return false;
-  }
-
-  *smi_value = Smi::Cast(bound_constant).Value();
-  return true;
-}
-
-
 // Detect pattern when one value is zero and another is a power of 2.
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
          (Utils::IsPowerOfTwo(v2) && (v1 == 0));
-}
-
-
-bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
-                               Value* v1,
-                               Value* v2) {
-  if (!(comparison->IsStrictCompare() &&
-        !comparison->AsStrictCompare()->needs_number_check()) &&
-      !(comparison->IsEqualityCompare() &&
-        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
-    return false;
-  }
-
-  intptr_t v1_value, v2_value;
-
-  if (!BindsToSmiConstant(v1, &v1_value) ||
-      !BindsToSmiConstant(v2, &v2_value)) {
-    return false;
-  }
-
-  return true;
 }
 
 
@@ -483,6 +447,38 @@ static Condition FlipCondition(Condition condition) {
 }
 
 
+static void EmitBranchOnValue(FlowGraphCompiler* compiler,
+                              TargetEntryInstr* true_successor,
+                              TargetEntryInstr* false_successor,
+                              bool value) {
+  if (value && !compiler->CanFallThroughTo(true_successor)) {
+    __ b(compiler->GetJumpLabel(true_successor));
+  } else if (!value && !compiler->CanFallThroughTo(false_successor)) {
+    __ b(compiler->GetJumpLabel(false_successor));
+  }
+}
+
+
+static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                  TargetEntryInstr* true_successor,
+                                  TargetEntryInstr* false_successor,
+                                  Condition true_condition) {
+  if (compiler->CanFallThroughTo(false_successor)) {
+    // If the next block is the false successor we will fall through to it.
+    __ b(compiler->GetJumpLabel(true_successor), true_condition);
+  } else {
+    // If the next block is not the false successor we will branch to it.
+    Condition false_condition = NegateCondition(true_condition);
+    __ b(compiler->GetJumpLabel(false_successor), false_condition);
+
+    // Fall through or jump to the true successor.
+    if (!compiler->CanFallThroughTo(true_successor)) {
+      __ b(compiler->GetJumpLabel(true_successor));
+    }
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -503,7 +499,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   }
 
   if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, true_condition);
+    EmitBranchOnCondition(compiler,
+                          branch->true_successor(),
+                          branch->false_successor(),
+                          true_condition);
   } else {
     Register result = locs.out().reg();
     __ LoadObject(result, Bool::True(), true_condition);
@@ -543,6 +542,45 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 }
 
 
+static void EmitDoubleCompareBranch(FlowGraphCompiler* compiler,
+                                    Condition true_condition,
+                                    FpuRegister left,
+                                    FpuRegister right,
+                                    BranchInstr* branch) {
+  ASSERT(branch != NULL);
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  __ vcmpd(dleft, dright);
+  __ vmstat();
+  BlockEntryInstr* nan_result = (true_condition == NE) ?
+      branch->true_successor() : branch->false_successor();
+  __ b(compiler->GetJumpLabel(nan_result), VS);
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        true_condition);
+}
+
+
+static void EmitDoubleCompareBool(FlowGraphCompiler* compiler,
+                                  Condition true_condition,
+                                  FpuRegister left,
+                                  FpuRegister right,
+                                  Register result) {
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  __ vcmpd(dleft, dright);
+  __ vmstat();
+  __ LoadObject(result, Bool::False());
+  Label done;
+  if (true_condition != NE) {
+    __ b(&done, VS);  // x == NaN -> false, x != NaN -> true.
+  }
+  __ LoadObject(result, Bool::True(), true_condition);
+  __ Bind(&done);
+}
+
+
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
@@ -552,11 +590,10 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
   if (branch != NULL) {
-    compiler->EmitDoubleCompareBranch(
-        true_condition, left, right, branch);
+    EmitDoubleCompareBranch(compiler, true_condition, left, right, branch);
   } else {
-    compiler->EmitDoubleCompareBool(
-        true_condition, left, right, locs.out().reg());
+    EmitDoubleCompareBool(compiler, true_condition,
+                          left, right, locs.out().reg());
   }
 }
 
@@ -632,7 +669,10 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   } else {
     __ tst(left, ShifterOperand(right.reg()));
   }
-  branch->EmitBranchOnCondition(compiler, branch_condition);
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        branch_condition);
 }
 
 
@@ -4381,34 +4421,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
-                                           bool value) {
-  if (value && !compiler->CanFallThroughTo(true_successor())) {
-    __ b(compiler->GetJumpLabel(true_successor()));
-  } else if (!value && !compiler->CanFallThroughTo(false_successor())) {
-    __ b(compiler->GetJumpLabel(false_successor()));
-  }
-}
-
-
-void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                               Condition true_condition) {
-  if (compiler->CanFallThroughTo(false_successor())) {
-    // If the next block is the false successor we will fall through to it.
-    __ b(compiler->GetJumpLabel(true_successor()), true_condition);
-  } else {
-    // If the next block is not the false successor we will branch to it.
-    Condition false_condition = NegateCondition(true_condition);
-    __ b(compiler->GetJumpLabel(false_successor()), false_condition);
-
-    // Fall through or jump to the true successor.
-    if (!compiler->CanFallThroughTo(true_successor())) {
-      __ b(compiler->GetJumpLabel(true_successor()));
-    }
-  }
-}
-
-
 LocationSummary* CurrentContextInstr::MakeLocationSummary() const {
   return LocationSummary::Make(0,
                                Location::RequiresRegister(),
@@ -4480,7 +4492,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    branch->EmitBranchOnValue(compiler, result);
+    EmitBranchOnValue(compiler,
+                      branch->true_successor(),
+                      branch->false_successor(),
+                      result);
     return;
   }
   if (left.IsConstant()) {
@@ -4501,7 +4516,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  branch->EmitBranchOnCondition(compiler, true_condition);
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        true_condition);
 }
 
 

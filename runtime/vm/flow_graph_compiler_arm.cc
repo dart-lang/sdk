@@ -1599,40 +1599,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
-void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
-                                                FpuRegister left,
-                                                FpuRegister right,
-                                                BranchInstr* branch) {
-  ASSERT(branch != NULL);
-  DRegister dleft = EvenDRegisterOf(left);
-  DRegister dright = EvenDRegisterOf(right);
-  assembler()->vcmpd(dleft, dright);
-  assembler()->vmstat();
-  BlockEntryInstr* nan_result = (true_condition == NE) ?
-      branch->true_successor() : branch->false_successor();
-  assembler()->b(GetJumpLabel(nan_result), VS);
-  branch->EmitBranchOnCondition(this, true_condition);
-}
-
-
-void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
-                                              FpuRegister left,
-                                              FpuRegister right,
-                                              Register result) {
-  DRegister dleft = EvenDRegisterOf(left);
-  DRegister dright = EvenDRegisterOf(right);
-  assembler()->vcmpd(dleft, dright);
-  assembler()->vmstat();
-  assembler()->LoadObject(result, Bool::False());
-  Label done;
-  if (true_condition != NE) {
-    assembler()->b(&done, VS);  // x == NaN -> false, x != NaN -> true.
-  }
-  assembler()->LoadObject(result, Bool::True(), true_condition);
-  assembler()->Bind(&done);
-}
-
-
 // Do not implement or use this function.
 FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
                                                           intptr_t index_scale,

@@ -21,7 +21,6 @@ class BlockEntryInstr;
 class BufferFormatter;
 class CatchBlockEntryInstr;
 class ComparisonInstr;
-class ControlInstruction;
 class Definition;
 class Environment;
 class FlowGraph;
@@ -746,9 +745,6 @@ class Instruction : public ZoneAllocated {
   bool IsDefinition() { return (AsDefinition() != NULL); }
   virtual Definition* AsDefinition() { return NULL; }
 
-  bool IsControl() { return (AsControl() != NULL); }
-  virtual ControlInstruction* AsControl() { return NULL; }
-
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
   void SetInputAt(intptr_t i, Value* value) {
@@ -787,7 +783,7 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsControl() || (instr == NULL));
+    ASSERT(!IsBranch() || (instr == NULL));
     ASSERT(!IsPhi());
     ASSERT(instr == NULL || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
@@ -1006,7 +1002,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
   friend class StoreInstanceFieldInstr;
-  friend class ControlInstruction;
   friend class ComparisonInstr;
   friend class TargetEntryInstr;
   friend class JoinEntryInstr;
@@ -2133,35 +2128,7 @@ class GotoInstr : public TemplateInstruction<0> {
 };
 
 
-class ControlInstruction : public Instruction {
- public:
-  ControlInstruction() : true_successor_(NULL), false_successor_(NULL) { }
-
-  virtual ControlInstruction* AsControl() { return this; }
-
-  TargetEntryInstr* true_successor() const { return true_successor_; }
-  TargetEntryInstr* false_successor() const { return false_successor_; }
-
-  TargetEntryInstr** true_successor_address() { return &true_successor_; }
-  TargetEntryInstr** false_successor_address() { return &false_successor_; }
-
-  virtual intptr_t SuccessorCount() const;
-  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  void EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                             Condition true_condition);
-
-  void EmitBranchOnValue(FlowGraphCompiler* compiler, bool result);
-
- private:
-  TargetEntryInstr* true_successor_;
-  TargetEntryInstr* false_successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(ControlInstruction);
-};
-
-
-class BranchInstr : public ControlInstruction {
+class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false);
 
@@ -2220,14 +2187,23 @@ class BranchInstr : public ControlInstruction {
 
   virtual bool MayThrow() const;
 
+  TargetEntryInstr* true_successor() const { return true_successor_; }
+  TargetEntryInstr* false_successor() const { return false_successor_; }
+
+  TargetEntryInstr** true_successor_address() { return &true_successor_; }
+  TargetEntryInstr** false_successor_address() { return &false_successor_; }
+
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
 
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
   ComparisonInstr* comparison_;
   const bool is_checked_;
-
   ConstrainedCompileType* constrained_type_;
-
   TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);

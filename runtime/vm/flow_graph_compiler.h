@@ -371,15 +371,6 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t token_index,
                        LocationSummary* locs);
 
-  void EmitDoubleCompareBranch(Condition true_condition,
-                               FpuRegister left,
-                               FpuRegister right,
-                               BranchInstr* branch);
-  void EmitDoubleCompareBool(Condition true_condition,
-                             FpuRegister left,
-                             FpuRegister right,
-                             Register result);
-
   void EmitEqualityRegConstCompare(Register reg,
                                    const Object& obj,
                                    bool needs_number_check,

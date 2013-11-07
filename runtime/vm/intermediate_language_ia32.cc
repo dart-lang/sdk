@@ -307,6 +307,57 @@ static Condition FlipCondition(Condition condition) {
 }
 
 
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return NOT_EQUAL;
+    case NOT_EQUAL:     return EQUAL;
+    case LESS:          return GREATER_EQUAL;
+    case LESS_EQUAL:    return GREATER;
+    case GREATER:       return LESS_EQUAL;
+    case GREATER_EQUAL: return LESS;
+    case BELOW:         return ABOVE_EQUAL;
+    case BELOW_EQUAL:   return ABOVE;
+    case ABOVE:         return BELOW_EQUAL;
+    case ABOVE_EQUAL:   return BELOW;
+    default:
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
+static void EmitBranchOnValue(FlowGraphCompiler* compiler,
+                              TargetEntryInstr* true_successor,
+                              TargetEntryInstr* false_successor,
+                              bool value) {
+  if (value && !compiler->CanFallThroughTo(true_successor)) {
+    __ jmp(compiler->GetJumpLabel(true_successor));
+  } else if (!value && !compiler->CanFallThroughTo(false_successor)) {
+    __ jmp(compiler->GetJumpLabel(false_successor));
+  }
+}
+
+
+static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                  TargetEntryInstr* true_successor,
+                                  TargetEntryInstr* false_successor,
+                                  Condition true_condition) {
+  if (compiler->CanFallThroughTo(false_successor)) {
+    // If the next block is the false successor, fall through to it.
+    __ j(true_condition, compiler->GetJumpLabel(true_successor));
+  } else {
+    // If the next block is not the false successor, branch to it.
+    Condition false_condition = NegateCondition(true_condition);
+    __ j(false_condition, compiler->GetJumpLabel(false_successor));
+
+    // Fall through or jump to the true successor.
+    if (!compiler->CanFallThroughTo(true_successor)) {
+      __ jmp(compiler->GetJumpLabel(true_successor));
+    }
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -329,7 +380,10 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   }
 
   if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, true_condition);
+    EmitBranchOnCondition(compiler,
+                          branch->true_successor(),
+                          branch->false_successor(),
+                          true_condition);
   } else {
     Register result = locs.out().reg();
     Label done, is_true;
@@ -400,7 +454,10 @@ static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
   __ cmpl(temp, Immediate(-1));
 
   if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, true_condition);
+    EmitBranchOnCondition(compiler,
+                          branch->true_successor(),
+                          branch->false_successor(),
+                          true_condition);
   } else {
     Register result = locs.out().reg();
     Label done, is_true;
@@ -465,7 +522,10 @@ static void EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
   __ pextrd(right_tmp, right, Immediate(0));
   __ cmpl(left_tmp, right_tmp);
   if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, lo_cond);
+    EmitBranchOnCondition(compiler,
+                          branch->true_successor(),
+                          branch->false_successor(),
+                          lo_cond);
   } else {
     Label done;
     __ j(lo_cond, &is_true);
@@ -494,6 +554,44 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 }
 
 
+static void EmitDoubleCompareBranch(FlowGraphCompiler* compiler,
+                                    Condition true_condition,
+                                    FpuRegister left,
+                                    FpuRegister right,
+                                    BranchInstr* branch) {
+  ASSERT(branch != NULL);
+  __ comisd(left, right);
+  BlockEntryInstr* nan_result = (true_condition == NOT_EQUAL) ?
+      branch->true_successor() : branch->false_successor();
+  __ j(PARITY_EVEN, compiler->GetJumpLabel(nan_result));
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        true_condition);
+}
+
+
+
+static void EmitDoubleCompareBool(FlowGraphCompiler* compiler,
+                                  Condition true_condition,
+                                  FpuRegister left,
+                                  FpuRegister right,
+                                  Register result) {
+  __ comisd(left, right);
+  Label is_false, is_true, done;
+  // x == NaN -> false, x != NaN -> true.
+  Label* nan_label = (true_condition == NOT_EQUAL) ? &is_true : &is_false;
+  __ j(PARITY_EVEN, nan_label, Assembler::kNearJump);
+  __ j(true_condition, &is_true, Assembler::kNearJump);
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ jmp(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
+}
+
+
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
@@ -503,11 +601,10 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
   if (branch != NULL) {
-    compiler->EmitDoubleCompareBranch(
-        true_condition, left, right, branch);
+    EmitDoubleCompareBranch(compiler, true_condition, left, right, branch);
   } else {
-    compiler->EmitDoubleCompareBool(
-        true_condition, left, right, locs.out().reg());
+    EmitDoubleCompareBool(compiler, true_condition,
+                          left, right, locs.out().reg());
   }
 }
 
@@ -583,7 +680,10 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   } else {
     __ testl(left, right.reg());
   }
-  branch->EmitBranchOnCondition(compiler, branch_condition);
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        branch_condition);
 }
 
 
@@ -4532,53 +4632,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQUAL:         return NOT_EQUAL;
-    case NOT_EQUAL:     return EQUAL;
-    case LESS:          return GREATER_EQUAL;
-    case LESS_EQUAL:    return GREATER;
-    case GREATER:       return LESS_EQUAL;
-    case GREATER_EQUAL: return LESS;
-    case BELOW:         return ABOVE_EQUAL;
-    case BELOW_EQUAL:   return ABOVE;
-    case ABOVE:         return BELOW_EQUAL;
-    case ABOVE_EQUAL:   return BELOW;
-    default:
-      UNIMPLEMENTED();
-      return EQUAL;
-  }
-}
-
-
-void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
-                                           bool value) {
-  if (value && !compiler->CanFallThroughTo(true_successor())) {
-    __ jmp(compiler->GetJumpLabel(true_successor()));
-  } else if (!value && !compiler->CanFallThroughTo(false_successor())) {
-    __ jmp(compiler->GetJumpLabel(false_successor()));
-  }
-}
-
-
-void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                               Condition true_condition) {
-  if (compiler->CanFallThroughTo(false_successor())) {
-    // If the next block is the false successor, fall through to it.
-    __ j(true_condition, compiler->GetJumpLabel(true_successor()));
-  } else {
-    // If the next block is not the false successor, branch to it.
-    Condition false_condition = NegateCondition(true_condition);
-    __ j(false_condition, compiler->GetJumpLabel(false_successor()));
-
-    // Fall through or jump to the true successor.
-    if (!compiler->CanFallThroughTo(true_successor())) {
-      __ jmp(compiler->GetJumpLabel(true_successor()));
-    }
-  }
-}
-
-
 LocationSummary* CurrentContextInstr::MakeLocationSummary() const {
   return LocationSummary::Make(0,
                                Location::RequiresRegister(),
@@ -4655,7 +4708,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     const bool result = (kind() == Token::kEQ_STRICT) ?
         left.constant().raw() == right.constant().raw() :
         left.constant().raw() != right.constant().raw();
-    branch->EmitBranchOnValue(compiler, result);
+    EmitBranchOnValue(compiler,
+                      branch->true_successor(),
+                      branch->false_successor(),
+                      result);
     return;
   }
   if (left.IsConstant()) {
@@ -4676,22 +4732,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  branch->EmitBranchOnCondition(compiler, true_condition);
-}
-
-
-static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
-  if (!val->BindsToConstant()) {
-    return false;
-  }
-
-  const Object& bound_constant = val->BoundConstant();
-  if (!bound_constant.IsSmi()) {
-    return false;
-  }
-
-  *smi_value = Smi::Cast(bound_constant).Value();
-  return true;
+  EmitBranchOnCondition(compiler,
+                        branch->true_successor(),
+                        branch->false_successor(),
+                        true_condition);
 }
 
 
@@ -4699,27 +4743,6 @@ static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
 static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
   return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
          (Utils::IsPowerOfTwo(v2) && (v1 == 0));
-}
-
-
-bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
-                               Value* v1,
-                               Value* v2) {
-  if (!(comparison->IsStrictCompare() &&
-        !comparison->AsStrictCompare()->needs_number_check()) &&
-      !(comparison->IsEqualityCompare() &&
-        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
-    return false;
-  }
-
-  intptr_t v1_value, v2_value;
-
-  if (!BindsToSmiConstant(v1, &v1_value) ||
-      !BindsToSmiConstant(v2, &v2_value)) {
-    return false;
-  }
-
-  return true;
 }
 
 
