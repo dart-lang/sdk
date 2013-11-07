@@ -101,6 +101,9 @@
         'NSS_ENABLE_ECC',
         'USE_UTIL_DIRECTLY',
       ],
+      'defines!': [
+        'DEBUG',
+      ],
       'dependencies': [
         # Changed by Dart.
         'zlib.gyp:zlib_dart',  # Added by Dart (the _dart postfix)

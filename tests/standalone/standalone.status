@@ -14,9 +14,6 @@ issue14236_test: Pass, Fail, Crash # Issue 14516.
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 
-[ $runtime == vm && $mode == debug]
-io/secure_socket_renegotiate_test: Fail # Issue 14896.
-
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
