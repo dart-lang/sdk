@@ -101,8 +101,6 @@ class PubHttpClient extends http.BaseClient {
               error, stackTrace);
         }
       }
-      print('Error in PubHttpClient.send (issue 12581) error: $error');
-      print('    stacktrace: $stackTrace');
       throw error;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
@@ -199,7 +197,7 @@ void handleJsonError(http.Response response) {
       errorMap['error']['message'] is! String) {
     invalidServerResponse(response);
   }
-  throw errorMap['error']['message'];
+  fail(errorMap['error']['message']);
 }
 
 /// Parses a response body, assuming it's JSON-formatted. Throws a user-friendly
