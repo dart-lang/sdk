@@ -2,17 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:scheduled_test/scheduled_test.dart';
 
-import 'utils.dart';
+import '../utils.dart';
 
-main() {
-  initConfig();
-
-  setUp(createSandbox);
-
+sharedTests() {
   test('ready does not complete until after subscription', () {
     var watcher = createWatcher(waitForReady: false);
 

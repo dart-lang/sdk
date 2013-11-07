@@ -7,14 +7,10 @@ import 'dart:async';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:watcher/watcher.dart';
 
-import 'utils.dart';
+import '../utils.dart';
 
-main() {
-  initConfig();
-
-  setUp(createSandbox);
-
-  test('does not notify for changes when there were no subscribers', () {
+sharedTests() {
+  test('does not notify for changes when there are no subscribers', () {
     // Note that this test doesn't rely as heavily on the test functions in
     // utils.dart because it needs to be very explicit about when the event
     // stream is and is not subscribed.
@@ -51,16 +47,10 @@ main() {
         expect(event.path, endsWith("added.txt"));
         completer.complete();
       }));
-    });
 
-    // The watcher will have been cancelled and then resumed in the middle of
-    // its pause between polling loops. That means the second scan to skip
-    // what changed while we were unsubscribed won't happen until after that
-    // delay is done. Wait long enough for that to happen.
-    //
-    // We're doing * 4 here because that seems to give the slower bots enough
-    // time for this to complete.
-    schedule(() => new Future.delayed(watcher.pollingDelay * 4));
+      // Wait until the watcher is ready to dispatch events again.
+      return watcher.ready;
+    });
 
     // And add a third file.
     writeFile("added.txt");

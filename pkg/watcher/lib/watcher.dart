@@ -6,3 +6,4 @@ library watcher;
 
 export 'src/watch_event.dart';
 export 'src/directory_watcher.dart';
+export 'src/directory_watcher/polling.dart';

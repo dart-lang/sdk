@@ -252,7 +252,6 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == simarm || $arch == simmips ]
 barback/test/too_many_open_files_test: Pass, Slow, Fail # 14220
 third_party/html5lib/test/tokenizer_test: Pass, Slow
-watcher/test/no_subscription_test: Pass, Fail  # Issue 13705.
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
@@ -326,3 +325,9 @@ intl/test/date_time_format_local_even_test: StaticWarning
 intl/test/date_time_format_local_odd_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
+
+[ $runtime == vm && ($system == windows || $system == macos) ]
+watcher/test/*/linux_test: Skip
+
+[ $runtime == vm && $system == linux ]
+watcher/test/*/linux_test: Pass, Slow # Issue 14606

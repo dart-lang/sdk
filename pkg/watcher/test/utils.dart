@@ -5,6 +5,7 @@
 library watcher.test.utils;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -12,6 +13,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:watcher/watcher.dart';
 import 'package:watcher/src/stat.dart';
+import 'package:watcher/src/utils.dart';
 
 /// The path to the temporary sandbox created for each test. All file
 /// operations are implicitly relative to this directory.
@@ -36,6 +38,14 @@ var _nextEvent = 0;
 /// increment the mod time for that file instantly.
 Map<String, int> _mockFileModificationTimes;
 
+typedef DirectoryWatcher WatcherFactory(String directory);
+
+/// Sets the function used to create the directory watcher.
+set watcherFactory(WatcherFactory factory) {
+  _watcherFactory = factory;
+}
+WatcherFactory _watcherFactory;
+
 void initConfig() {
   useCompactVMConfiguration();
   filterStacks = true;
@@ -54,10 +64,10 @@ void createSandbox() {
     path = p.normalize(p.relative(path, from: _sandboxDir));
 
     // Make sure we got a path in the sandbox.
-    assert(p.isRelative(path)  && !path.startsWith(".."));
+    assert(p.isRelative(path) && !path.startsWith(".."));
 
-    return new DateTime.fromMillisecondsSinceEpoch(
-        _mockFileModificationTimes[path]);
+    var mtime = _mockFileModificationTimes[path];
+    return new DateTime.fromMillisecondsSinceEpoch(mtime == null ? 0 : mtime);
   });
 
   // Delete the sandbox when done.
@@ -86,67 +96,112 @@ DirectoryWatcher createWatcher({String dir, bool waitForReady}) {
     dir = p.join(_sandboxDir, dir);
   }
 
-  // Use a short delay to make the tests run quickly.
-  _watcher = new DirectoryWatcher(dir,
-      pollingDelay: new Duration(milliseconds: 100));
+  var watcher = _watcherFactory(dir);
 
   // Wait until the scan is finished so that we don't miss changes to files
   // that could occur before the scan completes.
   if (waitForReady != false) {
-    schedule(() => _watcher.ready, "wait for watcher to be ready");
+    schedule(() => watcher.ready, "wait for watcher to be ready");
   }
 
-  currentSchedule.onComplete.schedule(() {
-    _nextEvent = 0;
-    _watcher = null;
-  }, "reset watcher");
-
-  return _watcher;
+  return watcher;
 }
 
-/// Expects that the next set of events will all be changes of [type] on
-/// [paths].
+/// The stream of events from the watcher started with [startWatcher].
+Stream _watcherEvents;
+
+/// Creates a new [DirectoryWatcher] that watches a temporary directory and
+/// starts monitoring it for events.
 ///
-/// Validates that events are delivered for all paths in [paths], but allows
-/// them in any order.
-void expectEvents(ChangeType type, Iterable<String> paths) {
-  var pathSet = paths
-      .map((path) => p.join(_sandboxDir, path))
-      .map(p.normalize)
-      .toSet();
+/// If [dir] is provided, watches a subdirectory in the sandbox with that name.
+void startWatcher({String dir}) {
+  // We want to wait until we're ready *after* we subscribe to the watcher's
+  // events.
+  _watcher = createWatcher(dir: dir, waitForReady: false);
 
-  // Create an expectation for as many paths as we have.
-  var futures = [];
+  // Schedule [_watcher.events.listen] so that the watcher doesn't start
+  // watching [dir] before it exists. Expose [_watcherEvents] immediately so
+  // that it can be accessed synchronously after this.
+  _watcherEvents = futureStream(schedule(() {
+    var allEvents = new Queue();
+    var subscription = _watcher.events.listen(allEvents.add,
+        onError: currentSchedule.signalError);
 
-  for (var i = 0; i < paths.length; i++) {
-    // Immediately create the futures. This ensures we don't register too
-    // late and drop the event before we receive it.
-    var future = _watcher.events.elementAt(_nextEvent++).then((event) {
-      expect(event.type, equals(type));
-      expect(pathSet, contains(event.path));
+    currentSchedule.onComplete.schedule(() {
+      var numEvents = _nextEvent;
+      subscription.cancel();
+      _nextEvent = 0;
+      _watcher = null;
 
-      pathSet.remove(event.path);
-    });
+      // If there are already errors, don't add this to the output and make
+      // people think it might be the root cause.
+      if (currentSchedule.errors.isEmpty) {
+        expect(allEvents, hasLength(numEvents));
+      }
+    }, "reset watcher");
 
-    // Make sure the schedule is watching it in case it fails.
-    currentSchedule.wrapFuture(future);
+    return _watcher.events;
+  }, "create watcher")).asBroadcastStream();
 
-    futures.add(future);
+  schedule(() => _watcher.ready, "wait for watcher to be ready");
+}
+
+/// A future set by [inAnyOrder] that will complete to the set of events that
+/// occur in the [inAnyOrder] block.
+Future<Set<WatchEvent>> _unorderedEventFuture;
+
+/// Runs [block] and allows multiple [expectEvent] calls in that block to match
+/// events in any order.
+void inAnyOrder(block()) {
+  var oldFuture = _unorderedEventFuture;
+  try {
+    var firstEvent = _nextEvent;
+    var completer = new Completer();
+    _unorderedEventFuture = completer.future;
+    block();
+
+    _watcherEvents.skip(firstEvent).take(_nextEvent - firstEvent).toSet()
+        .then(completer.complete, onError: completer.completeError);
+    currentSchedule.wrapFuture(_unorderedEventFuture,
+        "waiting for ${_nextEvent - firstEvent} events");
+  } finally {
+    _unorderedEventFuture = oldFuture;
   }
-
-  // Schedule it so that later file modifications don't occur until after this
-  // event is received.
-  schedule(() => Future.wait(futures),
-      "wait for $type events on ${paths.join(', ')}");
 }
 
-void expectAddEvent(String path) => expectEvents(ChangeType.ADD, [path]);
-void expectModifyEvent(String path) => expectEvents(ChangeType.MODIFY, [path]);
-void expectRemoveEvent(String path) => expectEvents(ChangeType.REMOVE, [path]);
+/// Expects that the next set of event will be a change of [type] on [path].
+///
+/// Multiple calls to [expectEvent] require that the events are received in that
+/// order unless they're called in an [inAnyOrder] block.
+void expectEvent(ChangeType type, String path) {
+  var matcher = predicate((e) {
+    return e is WatchEvent && e.type == type &&
+        e.path == p.join(_sandboxDir, path);
+  }, "is $type $path");
 
-void expectRemoveEvents(Iterable<String> paths) {
-  expectEvents(ChangeType.REMOVE, paths);
+  if (_unorderedEventFuture != null) {
+    // Assign this to a local variable since it will be un-assigned by the time
+    // the scheduled callback runs.
+    var future = _unorderedEventFuture;
+
+    expect(
+        schedule(() => future, "should fire $type event on $path"),
+        completion(contains(matcher)));
+  } else {
+    var future = currentSchedule.wrapFuture(
+        _watcherEvents.elementAt(_nextEvent),
+        "waiting for $type event on $path");
+
+    expect(
+        schedule(() => future, "should fire $type event on $path"),
+        completion(matcher));
+  }
+  _nextEvent++;
 }
+
+void expectAddEvent(String path) => expectEvent(ChangeType.ADD, path);
+void expectModifyEvent(String path) => expectEvent(ChangeType.MODIFY, path);
+void expectRemoveEvent(String path) => expectEvent(ChangeType.REMOVE, path);
 
 /// Schedules writing a file in the sandbox at [path] with [contents].
 ///
@@ -201,6 +256,21 @@ void renameFile(String from, String to) {
   }, "rename file $from to $to");
 }
 
+/// Schedules creating a directory in the sandbox at [path].
+void createDir(String path) {
+  schedule(() {
+    new Directory(p.join(_sandboxDir, path)).createSync();
+  }, "create directory $path");
+}
+
+/// Schedules renaming a directory in the sandbox from [from] to [to].
+void renameDir(String from, String to) {
+  schedule(() {
+    new Directory(p.join(_sandboxDir, from))
+        .renameSync(p.join(_sandboxDir, to));
+  }, "rename directory $from to $to");
+}
+
 /// Schedules deleting a directory in the sandbox at [path].
 void deleteDir(String path) {
   schedule(() {
@@ -208,22 +278,17 @@ void deleteDir(String path) {
   }, "delete directory $path");
 }
 
-/// A [Matcher] for [WatchEvent]s.
-class _ChangeMatcher extends Matcher {
-  /// The expected change.
-  final ChangeType type;
-
-  /// The expected path.
-  final String path;
-
-  _ChangeMatcher(this.type, this.path);
-
-  Description describe(Description description) {
-    description.add("$type $path");
+/// Runs [callback] with every permutation of non-negative [i], [j], and [k]
+/// less than [limit].
+///
+/// [limit] defaults to 3.
+void withPermutations(callback(int i, int j, int k), {int limit}) {
+  if (limit == null) limit = 3;
+  for (var i = 0; i < limit; i++) {
+    for (var j = 0; j < limit; j++) {
+      for (var k = 0; k < limit; k++) {
+        callback(i, j, k);
+      }
+    }
   }
-
-  bool matches(item, Map matchState) =>
-      item is WatchEvent &&
-      item.type == type &&
-      p.normalize(item.path) == p.normalize(path);
 }
