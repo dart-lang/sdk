@@ -35,7 +35,7 @@
         ['OS!="android"', {
           'dependencies': [
             'runtime/dart-runtime.gyp:test_extension',
-            'samples/sample_extension/sample_extension.gyp:sample_extension',
+            'runtime/dart-runtime.gyp:sample_extension',
           ],
         }],
       ],
@@ -202,7 +202,7 @@
       'conditions': [
         ['OS!="android"', {
            'dependencies': [
-             'samples/sample_extension/sample_extension.gyp:sample_extension',
+             'runtime/dart-runtime.gyp:sample_extension',
            ],
           },
         ],
