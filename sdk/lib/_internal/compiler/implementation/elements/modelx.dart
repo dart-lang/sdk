@@ -2172,11 +2172,13 @@ class MixinApplicationElementX extends BaseClassElementX
 
   Link<FunctionElement> constructors = new Link<FunctionElement>();
 
-  ClassElement mixin;
+  InterfaceType mixinType;
 
   MixinApplicationElementX(String name, Element enclosing, int id,
                            this.node, this.modifiers)
       : super(name, enclosing, id, STATE_NOT_STARTED);
+
+  ClassElement get mixin => mixinType != null ? mixinType.element : null;
 
   bool get isMixinApplication => true;
   bool get isUnnamedMixinApplication => node is! NamedMixinApplication;

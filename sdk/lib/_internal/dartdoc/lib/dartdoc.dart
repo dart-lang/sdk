@@ -1186,12 +1186,13 @@ class Dartdoc {
     subtypes.sort((x, y) => x.simpleName.compareTo(y.simpleName));
 
     // Show the chain of superclasses.
-    if (!type.superclass.isObject) {
+    var superclass = getSuperclass(type);
+    if (!superclass.isObject) {
       final supertypes = [];
-      var thisType = type.superclass;
+      var thisType = superclass;
       do {
         supertypes.add(thisType);
-        thisType = thisType.superclass;
+        thisType = getSuperclass(thisType);
       } while (!thisType.isObject);
 
       writeln('<h3>Extends</h3>');
@@ -1207,7 +1208,8 @@ class Dartdoc {
     }
 
     listTypes(subtypes, 'Subclasses');
-    listTypes(type.superinterfaces, 'Implements');
+    listTypes(getAppliedMixins(type), 'Mixins');
+    listTypes(getExplicitInterfaces(type), 'Implements');
   }
 
   /**
@@ -1572,9 +1574,7 @@ class Dartdoc {
     writeln('</h4>');
 
     if (inherited) {
-      write('<div class="inherited-from">inherited from ');
-      annotateType(host, member.owner);
-      write('</div>');
+      docInherited(host, member.owner);
     }
 
     writeln('<div class="doc">');
@@ -1587,6 +1587,21 @@ class Dartdoc {
     writeln('</div>');
 
     _currentMember = null;
+  }
+
+  /**
+   * Annotate a member as inherited or mixed in from [owner].
+   */
+  void docInherited(ContainerMirror host, ClassMirror owner) {
+    if (isMixinApplication(owner)) {
+      write('<div class="inherited-from">mixed in from ');
+      annotateType(host, owner.mixin);
+      write('</div>');
+    } else {
+      write('<div class="inherited-from">inherited from ');
+      annotateType(host, owner);
+      write('</div>');
+    }
   }
 
   void docField(ContainerMirror host, VariableMirror field,
@@ -1654,9 +1669,7 @@ class Dartdoc {
         ''');
 
     if (inherited) {
-      write('<div class="inherited-from">inherited from ');
-      annotateType(host, getter.owner);
-      write('</div>');
+      docInherited(host, getter.owner);
     }
 
     DocComment comment = getMemberComment(getter);
@@ -1779,6 +1792,9 @@ class Dartdoc {
       }
     }
     if (comment == null) return null;
+    if (isMixinApplication(inheritedFrom)) {
+      inheritedFrom = inheritedFrom.mixin;
+    }
     return new DocComment(comment, inheritedFrom, dartdocSyntaxes,
         dartdocResolver);
   }

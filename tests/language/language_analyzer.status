@@ -21,15 +21,13 @@ override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 method_override8_test/03: Fail # Issue 11496
 
-export_double_same_main_test: Fail # Issue 14772
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
 #
 
-ref_before_declaration_test/07: fail # please triage
-ref_before_declaration_test/none: fail # please triage
+ref_before_declaration_test/none: fail # test issue 14879, "P" is not defined
+bad_initializer2_negative_test: fail # tester issue 14880, Analyzer reports compile-time error, but test runner is not satisfied
 
 # test issue 11124, It is warning, not error to don't initialize final field
 field3a_negative_test: Fail # Issue 11124
@@ -70,9 +68,6 @@ compile_time_constant_e_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
-
-# test issue 11589, export D from 2 export directives
-export_cyclic_test: fail
 
 # test issue 11590, runtime only negative test
 field_method4_negative_test: fail
@@ -129,9 +124,6 @@ static_field_test/01: fail # Issue 12541
 static_field_test/02: fail # Issue 12541
 static_field_test/03: fail # Issue 12541
 static_field_test/04: fail # Issue 12541
-
-# test issue 13787; duplicate exports of the same declaration is not handled
-duplicate_export_test: fail # Issue 13787
 
 # test issue 13916, Looks as no warning should be in this redirecting factory
 redirecting_factory_infinite_steps_test/01: fail

@@ -204,6 +204,8 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
 
   String get _prettyName => 'TypeVariableMirror';
 
+  bool get isTopLevel => false;
+
   TypeMirror get upperBound {
     if (_cachedUpperBound != null) return _cachedUpperBound;
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
@@ -555,6 +557,16 @@ Map<Symbol, MethodMirror> filterMethods(List<MethodMirror> methods) {
   return result;
 }
 
+Map<Symbol, MethodMirror> filterConstructors(methods) {
+  var result = new Map();
+  for (JsMethodMirror method in methods) {
+    if (method.isConstructor) {
+      result[method.simpleName] = method;
+    }
+  }
+  return result;
+}
+
 Map<Symbol, MethodMirror> filterGetters(List<MethodMirror> methods,
                                         Map<Symbol, VariableMirror> fields) {
   var result = new Map();
@@ -571,7 +583,7 @@ Map<Symbol, MethodMirror> filterGetters(List<MethodMirror> methods,
 }
 
 Map<Symbol, MethodMirror> filterSetters(List<MethodMirror> methods,
-                                          Map<Symbol, VariableMirror> fields) {
+                                        Map<Symbol, VariableMirror> fields) {
   var result = new Map();
   for (JsMethodMirror method in methods) {
     if (method.isSetter) {
@@ -583,6 +595,24 @@ Map<Symbol, MethodMirror> filterSetters(List<MethodMirror> methods,
 
       result[method.simpleName] = method;
     }
+  }
+  return result;
+}
+
+Map<Symbol, Mirror> filterMembers(List<MethodMirror> methods,
+                                  Map<Symbol, VariableMirror> variables) {
+  Map<Symbol, Mirror> result = new Map.from(variables);
+  for (JsMethodMirror method in methods) {
+    if (method.isSetter) {
+      String name = n(method.simpleName);
+      name = name.substring(0, name.length - 1);
+      // Filter-out setters corresponding to variables.
+      if (result[s(name)] is VariableMirror) continue;
+    }
+    // Constructors aren't 'members'.
+    if (method.isConstructor) continue;
+    // Use putIfAbsent to filter-out getters corresponding to variables.
+    result.putIfAbsent(method.simpleName, () => method);
   }
   return result;
 }
@@ -861,6 +891,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
   String _typeArguments;
 
   UnmodifiableListView<TypeMirror> _cachedTypeArguments;
+  UnmodifiableMapView<Symbol, DeclarationMirror> _cachedDeclarations;
+  UnmodifiableMapView<Symbol, DeclarationMirror> _cachedMembers;
+  UnmodifiableMapView<Symbol, MethodMirror> _cachedConstructors;
   Map<Symbol, VariableMirror> _cachedVariables;
   Map<Symbol, MethodMirror> _cachedGetters;
   Map<Symbol, MethodMirror> _cachedSetters;
@@ -927,8 +960,6 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
     return _cachedTypeArguments = new UnmodifiableListView(result);
   }
 
-  Map<Symbol, MethodMirror> get constructors => _class.constructors;
-
   List<JsMethodMirror> get _methods {
     if (_cachedMethods != null) return _cachedMethods;
     return _cachedMethods =_class._getMethodsWithOwner(this);
@@ -938,6 +969,13 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
     if (_cachedMethodsMap != null) return _cachedMethodsMap;
     return _cachedMethodsMap = new UnmodifiableMapView<Symbol, MethodMirror>(
         filterMethods(_methods));
+  }
+
+  Map<Symbol, MethodMirror> get constructors {
+    if (_cachedConstructors != null) return _cachedConstructors;
+    return _cachedConstructors =
+        new UnmodifiableMapView<Symbol, MethodMirror>(
+            filterConstructors(_methods));
   }
 
   Map<Symbol, MethodMirror> get getters {
@@ -962,7 +1000,22 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
         new UnmodifiableMapView<Symbol, VariableMirror>(result);
   }
 
-  Map<Symbol, Mirror> get members => _class.members;
+  Map<Symbol, DeclarationMirror> get members {
+    if (_cachedMembers != null) return _cachedMembers;
+    return _cachedMembers = new UnmodifiableMapView<Symbol, DeclarationMirror>(
+        filterMembers(_methods, variables));
+  }
+
+  Map<Symbol, DeclarationMirror> get declarations {
+    if (_cachedDeclarations != null) return _cachedDeclarations;
+    Map<Symbol, DeclarationMirror> result =
+        new Map<Symbol, DeclarationMirror>();
+    result.addAll(members);
+    result.addAll(constructors);
+    typeVariables.forEach((tv) => result[tv.simpleName] = tv);
+    return _cachedDeclarations =
+        new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
+  }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     return _class.setField(fieldName, arg);
@@ -1068,14 +1121,9 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   Map<Symbol, MethodMirror> get constructors {
     if (_cachedConstructors != null) return _cachedConstructors;
-    var result = new Map();
-    for (JsMethodMirror method in _methods) {
-      if (method.isConstructor) {
-        result[method.simpleName] = method;
-      }
-    }
     return _cachedConstructors =
-        new UnmodifiableMapView<Symbol, MethodMirror>(result);
+        new UnmodifiableMapView<Symbol, MethodMirror>(
+            filterConstructors(_methods));
   }
 
   List<JsMethodMirror> _getMethodsWithOwner(DeclarationMirror methodOwner) {
@@ -1189,20 +1237,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   Map<Symbol, Mirror> get members {
     if (_cachedMembers != null) return _cachedMembers;
-    Map<Symbol, Mirror> result = new Map.from(variables);
-    for (JsMethodMirror method in _methods) {
-      if (method.isSetter) {
-        String name = n(method.simpleName);
-        name = name.substring(0, name.length - 1);
-        // Filter-out setters corresponding to variables.
-        if (result[s(name)] is VariableMirror) continue;
-      }
-      // Constructors aren't 'members'.
-      if (method.isConstructor) continue;
-      // Use putIfAbsent to filter-out getters corresponding to variables.
-      result.putIfAbsent(method.simpleName, () => method);
-    }
-    return _cachedMembers = new UnmodifiableMapView<Symbol, Mirror>(result);
+    return _cachedMembers = new UnmodifiableMapView<Symbol, Mirror>(
+        filterMembers(_methods, variables));
   }
 
   Map<Symbol, DeclarationMirror> get declarations {

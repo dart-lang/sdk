@@ -8,7 +8,7 @@ part of dart.io;
 /**
  * An instance of the default implementation of the [ZLibCodec].
  */
-const ZLIB = const ZLibCodec();
+const ZLibCodec ZLIB = const ZLibCodec();
 
 
 /**
@@ -45,7 +45,7 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
 /**
  * An instance of the default implementation of the [GZipCodec].
  */
-const GZIP = const GZipCodec();
+const GZipCodec GZIP = const GZipCodec();
 
 
 /**

@@ -453,6 +453,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // require allocation.
   __ EnterStubFrame();
   if (preserve_result) {
+    __ pushq(Immediate(0));  // Workaround for dropped stack slot during GC.
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }
   __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
@@ -463,6 +464,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ SmiUntag(RBX);
   if (preserve_result) {
     __ popq(RAX);  // Restore result.
+    __ Drop(1);  // Workaround for dropped stack slot during GC.
   }
   __ LeaveFrame();
 
@@ -1820,7 +1822,7 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
 //  RBX, R10: May contain arguments to runtime stub.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ EnterStubFrame();
+  __ EnterStubFrameWithPP();
   // Preserve runtime args.
   __ pushq(RBX);
   __ pushq(R10);
@@ -1832,7 +1834,7 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ popq(RAX);  // Address of original.
   __ popq(R10);  // Restore arguments.
   __ popq(RBX);
-  __ LeaveFrame();
+  __ LeaveFrameWithPP();
   __ jmp(RAX);   // Jump to original stub.
 }
 
@@ -1861,11 +1863,11 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ EnterStubFrame();
+  __ EnterStubFrameWithPP();
   __ pushq(RAX);
   __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
   __ popq(RAX);
-  __ LeaveFrame();
+  __ LeaveFrameWithPP();
 
   __ popq(R11);  // discard return address of call to this stub.
   __ LeaveFrameWithPP();

@@ -4,7 +4,7 @@
 
 part of dart.io;
 
-const SYSTEM_ENCODING = const SystemEncoding();
+const SystemEncoding SYSTEM_ENCODING = const SystemEncoding();
 
 /**
  * The system encoding is the current code page on Windows and UTF-8 on
