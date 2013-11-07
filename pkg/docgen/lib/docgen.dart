@@ -520,113 +520,26 @@ String _htmlMdn(String content, String url) {
       '<a href="' + url.trim() + '">from Mdn</a></p></div>';
 }
 
-/// Look for the specified name starting with the current member, and
-/// progressively working outward to the current library scope.
-String findElementInScope(String name, LibraryMirror currentLibrary,
+/// Converts all [foo] references in comments to <a>libraryName.foo</a>.
+markdown.Node fixReference(String name, LibraryMirror currentLibrary,
     ClassMirror currentClass, MemberMirror currentMember) {
+  var reference;
   var memberScope = currentMember == null ?
       null : currentMember.lookupInScope(name);
   if (memberScope != null) {
-    return docName(memberScope);
+    reference = docName(memberScope);
   } else {
     var classScope = currentClass == null ?
         null : currentClass.lookupInScope(name);
     if (classScope != null) {
-      return docName(classScope);
+      reference = docName(classScope);
     } else {
       var libraryScope = currentLibrary == null ?
           null : currentLibrary.lookupInScope(name);
-      if (libraryScope != null) {
-        return docName(libraryScope);
-      }
+      reference = libraryScope != null ? docName(libraryScope) : name;
     }
   }
-  return null;
-}
-
-// HTML escaped version of '<' character.
-final _LESS_THAN = '&lt;';
-
-/// Chunk the provided name into individual parts to be resolved. We take a
-/// simplistic approach to chunking, though, we break at " ", ",", "&lt;"
-/// and ">". All other characters are grouped into the name to be resolved.
-/// As a result, these characters will all be treated as part of the item to be
-/// resolved (aka the * is interpreted literally as a *, not as an indicator for
-/// bold <em>.
-List<String> _tokenizeComplexReference(String name) {
-  var tokens = [];
-  var append = false;
-  var index = 0;
-  while(index < name.length) {
-    if (name.indexOf(_LESS_THAN, index) == index) {
-      tokens.add(_LESS_THAN);
-      append = false;
-      index += _LESS_THAN.length;
-    } else if (name[index] == ' ' || name[index] == ',' ||
-        name[index] == '>') {
-      tokens.add(name[index]);
-      append = false;
-      index++;
-    } else {
-      if (append) {
-        tokens[tokens.length - 1] = tokens.last + name[index];
-      } else {
-        tokens.add(name[index]);
-        append = true;
-      }
-      index++;
-    }
-  }
-  return tokens;
-}
-
-/// This is a more complex reference. Try to break up if its of the form A<B>
-/// where A is an alphanumeric string and B is an A, a list of B ("B, B, B"),
-/// or of the form A<B>. Note: unlike other the other markdown-style links, all
-/// text inside the square brackets is treated as part of the link (aka the * is
-/// interpreted literally as a *, not as a indicator for bold <em>.
-///
-/// Example: [foo&lt;_bar_>] will produce
-/// <a>resolvedFoo</a>&lt;<a>resolved_bar_</a>> rather than an italicized
-/// version of resolvedBar.
-markdown.Node _fixComplexReference(String name, LibraryMirror currentLibrary,
-    ClassMirror currentClass, MemberMirror currentMember) {
-  // Parse into multiple elements we can try to resolve.
-  var tokens = _tokenizeComplexReference(name);
-
-  // Produce an html representation of our elements. Group unresolved and plain
-  // text are grouped into "link" elements so they display as code.
-  final textElements = [' ', ',', '>', _LESS_THAN];
-  var accumulatedHtml = '';
-
-  for (var token in tokens) {
-    bool added = false;
-    if (!textElements.contains(token)) {
-      String elementName = findElementInScope(token, currentLibrary,
-          currentClass, currentMember);
-      if (elementName != null) {
-        accumulatedHtml += markdown.renderToHtml([new markdown.Element.text(
-            'a', elementName)]);
-        added = true;
-      }
-    }
-    if (!added) {
-      accumulatedHtml += token;
-    }
-  }
-  return new markdown.Text(accumulatedHtml);
-}
-
-/// Converts all [foo] references in comments to <a>libraryName.foo</a>.
-markdown.Node fixReference(String name, LibraryMirror currentLibrary,
-    ClassMirror currentClass, MemberMirror currentMember) {
-  // Attempt the look up the whole name up in the scope.
-  String elementName =
-      findElementInScope(name, currentLibrary, currentClass, currentMember);
-  if (elementName != null) {
-    return new markdown.Element.text('a', elementName);
-  }
-  return _fixComplexReference(name, currentLibrary, currentClass, currentMember);
+  return new markdown.Element.text('a', reference);
 }
 
 /// Returns a map of [Variable] objects constructed from [mirrorMap].

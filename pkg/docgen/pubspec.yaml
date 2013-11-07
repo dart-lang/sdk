@@ -6,10 +6,7 @@ description: A documentation generator for the Dart repository.
 dependencies:
   args: ">=0.9.0 <0.10.0"
   logging: ">=0.9.0 <0.10.0"
-  markdown:
-    git:
-      ref: emilysEdits
-      url: https://github.com/efortuna/dart-markdown
+  markdown: ">=0.9.0 <0.10.0"
   path: ">=0.9.0 <0.10.0"
   yaml: ">=0.9.0 <0.10.0"
 dev_dependencies:
