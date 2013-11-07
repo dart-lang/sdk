@@ -17,13 +17,11 @@ class InvokeDynamicSpecializer {
                                      Compiler compiler) {
     Selector selector = instruction.selector;
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
-    // TODO(ngeoffray): Because we don't know yet the side effects of
-    // a JS call, we sometimes know more in the compiler about the
-    // side effects of an element (for example operator% on the int
-    // class). We should remove this check once we analyze JS calls.
-    if (!instruction.useGvn()) {
-      instruction.sideEffects =
-          compiler.world.getSideEffectsOfSelector(selector);
+    instruction.sideEffects = compiler.world.getSideEffectsOfSelector(selector);
+    if (!instruction.sideEffects.hasSideEffects()) {
+      instruction.setUseGvn();
+    } else {
+      instruction.clearUseGvn();
     }
     return type;
   }

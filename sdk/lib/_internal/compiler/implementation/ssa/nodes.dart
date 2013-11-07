@@ -811,6 +811,7 @@ abstract class HInstruction implements Spannable {
 
   bool useGvn() => _useGvn;
   void setUseGvn() { _useGvn = true; }
+  void clearUseGvn() { _useGvn = false; }
 
   void updateInput(int i, HInstruction insn) {
     assert(insn != null);
@@ -1390,41 +1391,23 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
-  final bool isSideEffectFree;
   HInvokeDynamicField(
       Selector selector, Element element, List<HInstruction> inputs,
-      TypeMask type, this.isSideEffectFree)
+      TypeMask type)
       : super(selector, element, inputs, type);
   toString() => 'invoke dynamic field: $selector';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, inputs, type, isSideEffectFree)
-    : super(selector, element, inputs, type, isSideEffectFree) {
-    sideEffects.clearAllSideEffects();
-    if (isSideEffectFree) {
-      setUseGvn();
-      sideEffects.setDependsOnInstancePropertyStore();
-    } else {
-      sideEffects.setDependsOnSomething();
-      sideEffects.setAllSideEffects();
-    }
-  }
+  HInvokeDynamicGetter(selector, element, inputs, type)
+    : super(selector, element, inputs, type);
   toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, inputs, type, isSideEffectFree)
-    : super(selector, element, inputs, type, isSideEffectFree) {
-    sideEffects.clearAllSideEffects();
-    if (isSideEffectFree) {
-      sideEffects.setChangesInstanceProperty();
-    } else {
-      sideEffects.setAllSideEffects();
-      sideEffects.setDependsOnSomething();
-    }
-  }
+  HInvokeDynamicSetter(selector, element, inputs, type)
+    : super(selector, element, inputs, type);
   toString() => 'invoke dynamic setter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
@@ -1501,6 +1484,7 @@ class HFieldGet extends HFieldAccess {
             : element.isAssignable(),
         super(element, <HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
     if (this.isAssignable) {
       sideEffects.setDependsOnInstancePropertyStore();
@@ -1539,6 +1523,7 @@ class HFieldSet extends HFieldAccess {
       : super(element, <HInstruction>[receiver, value],
               const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setChangesInstanceProperty();
   }
 
@@ -1631,6 +1616,7 @@ abstract class HInvokeBinary extends HInstruction {
   HInvokeBinary(HInstruction left, HInstruction right, this.selector, type)
       : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
   }
 
@@ -1767,6 +1753,7 @@ abstract class HInvokeUnary extends HInstruction {
   HInvokeUnary(HInstruction input, this.selector, type)
       : super(<HInstruction>[input], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
   }
 
@@ -2110,6 +2097,7 @@ class HStatic extends HInstruction {
     assert(element != null);
     assert(invariant(this, element.isDeclaration));
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     if (element.isAssignable()) {
       sideEffects.setDependsOnStaticPropertyStore();
     }
@@ -2132,6 +2120,7 @@ class HInterceptor extends HInstruction {
   HInterceptor(HInstruction receiver, TypeMask type)
       : super(<HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
   }
   String toString() => 'interceptor on $interceptedClasses';
@@ -2197,6 +2186,7 @@ class HStaticStore extends HInstruction {
   HStaticStore(this.element, HInstruction value)
       : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setChangesStaticProperty();
   }
   toString() => 'static store ${element.name}';
@@ -2223,6 +2213,7 @@ class HIndex extends HInstruction {
   HIndex(HInstruction receiver, HInstruction index, this.selector, type)
       : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setDependsOnIndexStore();
     setUseGvn();
   }
@@ -2254,6 +2245,7 @@ class HIndexAssign extends HInstruction {
       : super(<HInstruction>[receiver, index, value],
               const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setChangesIndex();
   }
   String toString() => 'index assign operator';

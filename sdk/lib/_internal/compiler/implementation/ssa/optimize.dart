@@ -692,12 +692,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
     Modifiers modifiers = field.modifiers;
-    bool isAssignable = !(modifiers.isFinal() || modifiers.isConst());
-    if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
-      // If no setter is ever used for this field it is only initialized in the
-      // initializer list.
-      isAssignable = false;
-    }
+    bool isAssignable = !compiler.world.fieldNeverChanges(field);
     if (field.isNative()) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).

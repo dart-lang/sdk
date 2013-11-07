@@ -4162,14 +4162,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.addAll(arguments);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (selector.isGetter()) {
-      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       pushWithPosition(
-          new HInvokeDynamicGetter(selector, null, inputs, type, !hasGetter),
+          new HInvokeDynamicGetter(selector, null, inputs, type),
           location);
     } else if (selector.isSetter()) {
-      bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
       pushWithPosition(
-          new HInvokeDynamicSetter(selector, null, inputs, type, !hasSetter),
+          new HInvokeDynamicSetter(selector, null, inputs, type),
           location);
     } else {
       pushWithPosition(
@@ -4233,7 +4231,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         inputs,
         type,
         isSetter: selector.isSetter() || selector.isIndexSet());
-    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
+    instruction.sideEffects = compiler.world.getSideEffectsOfSelector(selector);
     return instruction;
   }
 

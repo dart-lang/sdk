@@ -230,6 +230,13 @@ class World {
     return functionsCalledInLoop.contains(element.declaration);
   }
 
+  bool fieldNeverChanges(Element element) {
+    return element.modifiers.isFinal()
+        || element.modifiers.isConst()
+        || (element.isInstanceMember()
+            && !compiler.resolverWorld.hasInvokedSetter(element, compiler));
+  }
+
   SideEffects getSideEffectsOfElement(Element element) {
     // The type inferrer (where the side effects are being computed),
     // does not see generative constructor bodies because they are
@@ -238,6 +245,7 @@ class World {
     // implies that currently, the side effects of a constructor body
     // contain the side effects of the initializers.
     assert(!element.isGenerativeConstructorBody());
+    assert(!element.isField());
     return sideEffects.putIfAbsent(element.declaration, () {
       return new SideEffects();
     });
@@ -249,19 +257,24 @@ class World {
 
   SideEffects getSideEffectsOfSelector(Selector selector) {
     // We're not tracking side effects of closures.
-    if (selector.isClosureCall()) {
-      return new SideEffects();
-    }
+    if (selector.isClosureCall()) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
     for (Element e in allFunctions.filter(selector)) {
       if (e.isField()) {
         if (selector.isGetter()) {
-          sideEffects.setDependsOnInstancePropertyStore();
+          if (!fieldNeverChanges(e)) {
+            sideEffects.setDependsOnInstancePropertyStore();
+          }
         } else if (selector.isSetter()) {
           sideEffects.setChangesInstanceProperty();
+        } else {
+          assert(selector.isCall());
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
         }
+      } else {
+        sideEffects.add(getSideEffectsOfElement(e));
       }
-      sideEffects.add(getSideEffectsOfElement(e));
     }
     return sideEffects;
   }
