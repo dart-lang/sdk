@@ -36,7 +36,8 @@ part of dart.async;
  * There are two kinds of streams: The normal "single-subscription" streams and
  * "broadcast" streams.
  *
- * A single-subscription stream allows only a single listener at a time.
+ * A single-subscription stream allows only a single listener during the whole
+ * lifetime of the stream.
  * It holds back events until it gets a listener, and it may exhaust
  * itself when the listener is unsubscribed, even if the stream wasn't done.
  *
@@ -503,7 +504,15 @@ abstract class Stream<T> {
    * Checks whether [test] accepts any element provided by this stream.
    *
    * Completes the [Future] when the answer is known.
-   * If this stream reports an error, the [Future] will report that error.
+   *
+   * If this stream reports an error, the [Future] reports that error.
+   *
+   * Stops listening to the stream after the first matching element has been
+   * found.
+   *
+   * Internally the method cancels its subscription after this element. This
+   * means that single-subscription (non-broadcast) streams are closed and
+   * cannot be reused after a call to this method.
    */
   Future<bool> any(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
@@ -543,7 +552,15 @@ abstract class Stream<T> {
     return future;
   }
 
-  /** Reports whether this stream contains any elements. */
+  /**
+   * Reports whether this stream contains any elements.
+   *
+   * Stops listening to the stream after the first element has been received.
+   *
+   * Internally the method cancels its subscription after the first element.
+   * This means that single-subscription (non-broadcast) streams are closed and
+   * cannot be reused after a call to this getter.
+   */
   Future<bool> get isEmpty {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription subscription;
@@ -613,6 +630,13 @@ abstract class Stream<T> {
    *
    * If this stream produces fewer than [count] values before it's done,
    * so will the returned stream.
+   *
+   * Stops listening to the stream after the first [n] elements have been
+   * received.
+   *
+   * Internally the method cancels its subscription after these elements. This
+   * means that single-subscription (non-broadcast) streams are closed and
+   * cannot be reused after a call to this method.
    */
   Stream<T> take(int count) {
     return new _TakeStream(this, count);
@@ -625,6 +649,12 @@ abstract class Stream<T> {
    * as [test] returns [:true:] for the event data. The stream is done
    * when either this stream is done, or when this stream first provides
    * a value that [test] doesn't accept.
+   * 
+   * Stops listening to the stream after the accepted elements.
+   *
+   * Internally the method cancels its subscription after these elements. This
+   * means that single-subscription (non-broadcast) streams are closed and
+   * cannot be reused after a call to this method.
    */
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream(this, test);
@@ -666,6 +696,10 @@ abstract class Stream<T> {
    * Returns the first element of the stream.
    *
    * Stops listening to the stream after the first element has been received.
+   *
+   * Internally the method cancels its subscription after the first element.
+   * This means that single-subscription (non-broadcast) streams are closed
+   * and cannot be reused after a call to this getter.
    *
    * If an error event occurs before the first data event, the resulting future
    * is completed with that error.
@@ -725,6 +759,9 @@ abstract class Stream<T> {
   /**
    * Returns the single element.
    *
+   * If an error event occurs before or after the first data event, the
+   * resulting future is completed with that error.
+   *
    * If [this] is empty or has more than one element throws a [StateError].
    */
   Future<T> get single {
@@ -764,6 +801,13 @@ abstract class Stream<T> {
    * If no such element is found before this stream is done, and a
    * [defaultValue] function is provided, the result of calling [defaultValue]
    * becomes the value of the future.
+   *
+   * Stops listening to the stream after the first matching element has been
+   * received.
+   *
+   * Internally the method cancels its subscription after the first element that
+   * matches the predicate. This means that single-subscription (non-broadcast)
+   * streams are closed and cannot be reused after a call to this method.
    *
    * If an error occurs, or if this stream ends without finding a match and
    * with no [defaultValue] function provided, the future will receive an
@@ -884,7 +928,12 @@ abstract class Stream<T> {
   /**
    * Returns the value of the [index]th data event of this stream.
    *
-   * Stops listening to the stream after a value has been found.
+   * Stops listening to the stream after the [index]th data event has been
+   * received.
+   *
+   * Internally the method cancels its subscription after these elements. This
+   * means that single-subscription (non-broadcast) streams are closed and
+   * cannot be reused after a call to this method.
    *
    * If an error event occurs before the value is found, the future completes
    * with this error.
