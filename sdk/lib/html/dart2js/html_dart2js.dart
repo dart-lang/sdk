@@ -26732,7 +26732,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   /**
    * Gets an instance of the Indexed DB factory to being using Indexed DB.
    *
-   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * Use [indexed_db.IdbFactory.supported] to check if Indexed DB is supported on the
    * current platform.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')

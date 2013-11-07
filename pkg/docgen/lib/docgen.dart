@@ -29,6 +29,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart'
     as dart2js;
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
+    as dart2js_util;
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 import '../../../sdk/lib/_internal/libraries.dart';
 
@@ -40,6 +42,14 @@ const String USAGE = 'Usage: dart docgen.dart [OPTIONS] fooDir/barFile';
 List<String> skippedAnnotations = const [
     'metadata.DocsEditable', '_js_helper.JSName', '_js_helper.Creates',
     '_js_helper.Returns', 'observe-src-metadata.Reflectable'];
+
+/// Set of libraries declared in the SDK, so libraries that can be accessed
+/// when running dart by default.
+Iterable<LibraryMirror> _sdkLibraries;
+
+/// The dart:core library, which contains all types that are always available
+/// without import.
+LibraryMirror _coreLibrary;
 
 /// Current library being documented to be used for comment links.
 LibraryMirror _currentLibrary;
@@ -109,15 +119,17 @@ Future<bool> docgen(List<String> files, {String packageRoot,
       var librariesWeAskedFor = _listLibraries(files);
       var librariesWeGot = mirrorSystem.libraries.values.where(
           (each) => each.uri.scheme == 'file');
-      var sdkLibraries = mirrorSystem.libraries.values.where(
+      _sdkLibraries = mirrorSystem.libraries.values.where(
           (each) => each.uri.scheme == 'dart');
+      _coreLibrary = _sdkLibraries.singleWhere((lib) =>
+          lib.uri.toString().startsWith('dart:core'));
       var librariesWeGotByPath = new Map.fromIterables(
           librariesWeGot.map((each) => each.uri.toFilePath()),
           librariesWeGot);
       var librariesToDocument = librariesWeAskedFor.map(
           (each) => librariesWeGotByPath.putIfAbsent(each,
               () => throw "Missing library $each")).toList();
-      librariesToDocument.addAll((includeSdk || parseSdk) ? sdkLibraries : []);
+      librariesToDocument.addAll((includeSdk || parseSdk) ? _sdkLibraries : []);
       _documentLibraries(librariesToDocument, includeSdk: includeSdk,
           outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
           introduction: introduction);
@@ -513,21 +525,40 @@ String _htmlMdn(String content, String url) {
 /// progressively working outward to the current library scope.
 String findElementInScope(String name, LibraryMirror currentLibrary,
     ClassMirror currentClass, MemberMirror currentMember) {
+  determineLookupFunc(name) => name.contains('.') ?
+      dart2js_util.lookupQualifiedInScope :
+      (mirror, name) => mirror.lookupInScope(name);
+  var lookupFunc = determineLookupFunc(name);
+
   var memberScope = currentMember == null ?
-      null : currentMember.lookupInScope(name);
-  if (memberScope != null) {
-    return docName(memberScope);
-  } else {
-    var classScope = currentClass == null ?
-        null : currentClass.lookupInScope(name);
-    if (classScope != null) {
-      return docName(classScope);
-    } else {
-      var libraryScope = currentLibrary == null ?
-          null : currentLibrary.lookupInScope(name);
-      if (libraryScope != null) {
-        return docName(libraryScope);
-      }
+      null : lookupFunc(currentMember, name);
+  if (memberScope != null) return docName(memberScope);
+
+  var classScope = currentClass == null ?
+      null : lookupFunc(currentClass, name);
+  if (classScope != null) return docName(classScope);
+
+  var libraryScope = currentLibrary == null ?
+      null : lookupFunc(currentLibrary, name);
+  if (libraryScope != null) return docName(libraryScope);
+
+  // Look in the dart core library scope.
+  var coreScope = lookupFunc(_coreLibrary, name);
+  if (coreScope != null) return docName(_coreLibrary);
+
+  // If it's a reference that starts with a another library name, then it
+  // looks for a match of that library name in the other sdk libraries.
+  if(name.contains('.')) {
+    var index = name.indexOf('.');
+    var libraryName = name.substring(0, index);
+    var remainingName = name.substring(index + 1);
+    foundLibraryName(library) => library.uri.pathSegments[0] == libraryName;
+
+    if (_sdkLibraries.any(foundLibraryName)) {
+      var library = _sdkLibraries.singleWhere(foundLibraryName);
+      // Look to see if it's a fully qualified library name.
+      var scope = determineLookupFunc(remainingName)(library, remainingName);
+      if (scope != null) return docName(scope);
     }
   }
   return null;
