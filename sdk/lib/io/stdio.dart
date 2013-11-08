@@ -171,6 +171,7 @@ class _StdSink implements IOSink {
   Future get done => _sink.done;
 }
 
+/// The type of object a standard IO stream is attached to.
 class StdioType {
   static const StdioType TERMINAL = const StdioType._("terminal");
   static const StdioType PIPE = const StdioType._("pipe");
@@ -187,6 +188,7 @@ IOSink _stdout;
 IOSink _stderr;
 
 
+/// The standard input stream of data read by this program.
 Stdin get stdin {
   if (_stdin == null) {
     _stdin = _StdIOUtils._getStdioInputStream();
@@ -195,6 +197,7 @@ Stdin get stdin {
 }
 
 
+/// The standard output stream of data written by this program.
 IOSink get stdout {
   if (_stdout == null) {
     _stdout = _StdIOUtils._getStdioOutputStream(1);
@@ -203,6 +206,7 @@ IOSink get stdout {
 }
 
 
+/// The standard output stream of errors written by this program.
 IOSink get stderr {
   if (_stderr == null) {
     _stderr = _StdIOUtils._getStdioOutputStream(2);
@@ -211,6 +215,8 @@ IOSink get stderr {
 }
 
 
+/// For a stream, returns whether it is attached to a file, pipe, terminal, or
+/// something else.
 StdioType stdioType(object) {
   if (object is _StdStream) {
     object = object._stream;
