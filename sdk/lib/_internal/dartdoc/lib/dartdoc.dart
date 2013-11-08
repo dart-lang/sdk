@@ -1137,8 +1137,8 @@ class Dartdoc {
     listTypes(types, header) {
       if (types == null) return;
 
-      // Filter out injected types. (JavaScriptIndexingBehavior)
-      types = new List.from(types.where((t) => t.library != null));
+      // Filter out types from private dart libraries.
+      types = new List.from(types.where((t) => !isFromPrivateDartLibrary(t)));
 
       var publicTypes;
       if (showPrivate) {
@@ -1172,7 +1172,9 @@ class Dartdoc {
       final supertypes = [];
       var thisType = superclass;
       do {
-        supertypes.add(thisType);
+        if (!isFromPrivateDartLibrary(thisType)) {
+          supertypes.add(thisType);
+        }
         thisType = getSuperclass(thisType);
       } while (!thisType.isObject);
 
@@ -1303,6 +1305,7 @@ class Dartdoc {
       var iterable = new HierarchyIterable(host, includeType: true);
       for (ClassMirror type in iterable) {
         if (!host.isObject && !inheritFromObject && type.isObject) continue;
+        if (isFromPrivateDartLibrary(type)) continue;
 
         type.members.forEach((_, MemberMirror member) {
           if (member.isStatic) return;
@@ -1757,6 +1760,7 @@ class Dartdoc {
             new HierarchyIterable(mirror.owner,
                                   includeType: false);
         for (ClassMirror type in iterable) {
+          if (isFromPrivateDartLibrary(type)) continue;
           var inheritedMember = type.members[mirror.simpleName];
           if (inheritedMember is MemberMirror) {
             comment = computeComment(inheritedMember);
