@@ -8,15 +8,25 @@ part of dart.io;
  * FileMode describes the modes in which a file can be opened.
  */
 class FileMode {
+  /// The [FileMode] for opening a file only for reading.
   static const READ = const FileMode._internal(0);
+  /// The [FileMode] for opening a file for reading and writing. The file will
+  /// be overwritten. If the file does not exist, it will be created.
   static const WRITE = const FileMode._internal(1);
+  /// The [FileMode] for opening a file for reading a file and writing to the
+  /// end of it. If the file does not exist, it will be created.
   static const APPEND = const FileMode._internal(2);
   const FileMode._internal(int this._mode);
   final int _mode;
 }
 
+/// The [FileMode] for opening a file only for reading.
 const READ = FileMode.READ;
+/// The [FileMode] for opening a file for reading and writing. The file will be
+/// overwritten. If the file does not exist, it will be created.
 const WRITE = FileMode.WRITE;
+/// The [FileMode] for opening a file for reading a file and writing to the end
+/// of it. If the file does not exist, it will be created.
 const APPEND = FileMode.APPEND;
 
 /**
