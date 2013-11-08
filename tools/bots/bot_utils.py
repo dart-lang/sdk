@@ -165,6 +165,21 @@ class GCSNamer(object):
     return '%s-%s-%s-%s.zip' % (
         name, SYSTEM_RENAMES[system], ARCH_RENAMES[arch], mode)
 
+class GCSNamerApiDocs(object):
+  def __init__(self, channel=Channel.BLEEDING_EDGE):
+    assert channel in Channel.ALL_CHANNELS
+
+    self.channel = channel
+    self.bucket = 'gs://dartlang-api-docs'
+
+  def docs_dirpath(self, revision):
+    assert len('%s' % revision) > 0
+    return '%s/channels/%s/%s' % (self.bucket, self.channel, revision)
+
+  def docs_latestpath(self, revision):
+    assert len('%s' % revision) > 0
+    return '%s/channels/%s/latest.txt' % (self.bucket, self.channel)
+
 def run(command, env=None, shell=False):
   print "Running command: ", command
 
