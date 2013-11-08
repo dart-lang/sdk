@@ -40,6 +40,7 @@ main() {
   group('bad source', badSource);
   group('backtracking', backtracking);
   group('SDK constraint', sdkConstraint);
+  group('pre-release', prerelease);
 }
 
 void basicGraph() {
@@ -798,6 +799,60 @@ sdkConstraint() {
   }, result: {
     'myapp from root': '0.0.0'
   }, useBleedingEdgeSdkVersion: true);
+}
+
+void prerelease() {
+  testResolve('prefer stable versions over unstable', {
+    'myapp 0.0.0': {
+      'a': 'any'
+    },
+    'a 1.0.0': {},
+    'a 1.1.0-dev': {},
+    'a 2.0.0-dev': {},
+    'a 3.0.0-dev': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0'
+  });
+
+  testResolve('use latest allowed prerelease if no stable versions match', {
+    'myapp 0.0.0': {
+      'a': '<2.0.0'
+    },
+    'a 1.0.0-dev': {},
+    'a 1.1.0-dev': {},
+    'a 2.0.0-dev': {},
+    'a 3.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0-dev'
+  });
+
+  testResolve('use an earlier stable version on a < constraint', {
+    'myapp 0.0.0': {
+      'a': '<2.0.0'
+    },
+    'a 1.0.0': {},
+    'a 1.1.0': {},
+    'a 2.0.0-dev': {},
+    'a 2.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.1.0'
+  });
+
+  testResolve('prefer a stable version even if constraint mentions unstable', {
+    'myapp 0.0.0': {
+      'a': '<=2.0.0-dev'
+    },
+    'a 1.0.0': {},
+    'a 1.1.0': {},
+    'a 2.0.0-dev': {},
+    'a 2.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.1.0'
+  });
 }
 
 testResolve(description, packages, {

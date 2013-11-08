@@ -121,7 +121,12 @@ class PubspecCache {
   /// or returns `null` if not in the cache.
   Pubspec getCachedPubspec(PackageId id) => _pubspecs[id];
 
-  /// Gets the list of versions for [package] in descending order.
+  /// Gets the list of versions for [package].
+  ///
+  /// Packages are sorted in descending version order with all "stable"
+  /// versions (i.e. ones without a prerelease suffix) before pre-release
+  /// versions. This ensures that the solver prefers stable packages over
+  /// unstable ones.
   Future<List<PackageId>> getVersions(PackageRef package) {
     if (package.isRoot) {
       throw new StateError("Cannot get versions for root package $package.");
@@ -140,7 +145,14 @@ class PubspecCache {
     return source.getVersions(package.name, package.description)
         .then((versions) {
       // Sort by descending version so we try newer versions first.
-      versions.sort((a, b) => b.compareTo(a));
+      versions.sort((a, b) {
+        // Sort all prerelease versions after all normal versions. This way
+        // the solver will prefer stable packages over unstable ones.
+        if (a.isPreRelease && !b.isPreRelease) return 1;
+        if (!a.isPreRelease && b.isPreRelease) return -1;
+
+        return b.compareTo(a);
+      });
 
       var ids = versions.map((version) => package.atVersion(version)).toList();
       _versions[package] = ids;
