@@ -45,8 +45,10 @@ Stream deserializeStream(SendPort sendPort) {
   return callbackStream(() {
     var receivePort = new ReceivePort();
     sendPort.send(receivePort.sendPort);
+    // TODO(nweiz): use a const constructor for StreamTransformer when issue
+    // 14971 is fixed.
     return receivePort.transform(
-        const StreamTransformer(_deserializeTransformer));
+        new StreamTransformer(_deserializeTransformer));
   });
 }
 
