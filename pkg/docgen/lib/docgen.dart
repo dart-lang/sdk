@@ -159,7 +159,7 @@ String _findPackage(LibraryMirror mirror, [Library library]) {
       library.packageIntro = _packageIntro(rootdir);
     }
   }
-  return packageName + '/';
+  return packageName;
 }
 
 String _packageIntro(packageDir) {
@@ -546,6 +546,7 @@ String _htmlMdn(String content, String url) {
 String findElementInScope(String name, LibraryMirror currentLibrary,
     ClassMirror currentClass, MemberMirror currentMember) {
   var packagePrefix = _findPackage(currentLibrary);
+  if (packagePrefix != '') packagePrefix += '/';
 
   determineLookupFunc(name) => name.contains('.') ?
       dart2js_util.lookupQualifiedInScope :
