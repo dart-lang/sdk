@@ -1007,6 +1007,9 @@ abstract class StreamSubscription<T> {
    *
    * If the subscription is paused more than once, an equal number
    * of resumes must be performed to resume the stream.
+   *
+   * Currently DOM streams silently drop events when the stream is paused. This
+   * is a bug and will be fixed.
    */
   void pause([Future resumeSignal]);
 
