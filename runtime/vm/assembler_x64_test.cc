@@ -1625,11 +1625,14 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ negateps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -1642,11 +1645,14 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ absps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -1659,9 +1665,12 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -2208,7 +2217,7 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
-  __ LeaveDartFrame();
+  __ LeaveFrame();
   __ ret();
   __ Bind(&fail);
   __ movl(RAX, Immediate(0));  // Fail.
@@ -2546,7 +2555,10 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ DoubleAbs(XMM0);
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
