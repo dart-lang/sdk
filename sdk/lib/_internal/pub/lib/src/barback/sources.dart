@@ -23,7 +23,8 @@ import '../package_graph.dart';
 ///
 /// Returns a Future that completes when the sources are loaded and the watchers
 /// are active.
-Future watchSources(PackageGraph graph, Barback barback, WatcherType watcher) {
+Future watchSources(PackageGraph graph, Barback barback,
+    WatcherType watcherType) {
   return Future.wait(graph.packages.values.map((package) {
     // If this package comes from a cached source, its contents won't change so
     // we don't need to monitor it. `packageId` will be null for the application
@@ -42,7 +43,7 @@ Future watchSources(PackageGraph graph, Barback barback, WatcherType watcher) {
       if (!dirExists(subdirectory)) return new Future.value();
 
       // TODO(nweiz): close these watchers when [barback] is closed.
-      var watcher = watcher.create(subdirectory);
+      var watcher = watcherType.create(subdirectory);
       watcher.events.listen((event) {
         // Don't watch files symlinked into these directories.
         // TODO(rnystrom): If pub gets rid of symlinks, remove this.
@@ -142,7 +143,7 @@ class _PollingWatcherType implements WatcherType {
   String toString() => "polling";
 }
 
-class _NoneWatcherType implements {
+class _NoneWatcherType implements WatcherType {
   const _NoneWatcherType();
 
   DirectoryWatcher create(String directory) => null;

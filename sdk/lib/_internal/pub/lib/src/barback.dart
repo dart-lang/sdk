@@ -119,15 +119,11 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
     return new Future.sync(() {
-      if (watcher == WatcherType.NONE) {
-        loadSources(graph, barback);
-        return;
+      if (watcher != WatcherType.NONE) {
+        return watchSources(graph, barback, watcher);
       }
 
-      return watchSources(graph, barback, (directory) {
-        if (watcher == WatcherType.AUTO) return new DirectoryWatcher(directory);
-        return new PollingDirectoryWatcher(directory);
-      });
+      loadSources(graph, barback);
     }).then((_) {
       var completer = new Completer();
 
