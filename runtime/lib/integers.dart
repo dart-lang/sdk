@@ -289,7 +289,7 @@ class _Smi extends _IntegerImplementation implements int {
 }
 
 // Reusable buffer used by smi.toString.
-List _toStringBuffer = new Uint8List(20);
+final List _toStringBuffer = new Uint8List(20);
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
 class _Mint extends _IntegerImplementation implements int {

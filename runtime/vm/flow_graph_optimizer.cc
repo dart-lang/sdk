@@ -6313,14 +6313,28 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
         (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
       bool result = left.IsNull() ? instr->right()->Type()->IsNull()
                                   : instr->left()->Type()->IsNull();
-      if (instr->kind() == Token::kNE_STRICT) result = !result;
+      if (instr->kind() == Token::kNE_STRICT) {
+        result = !result;
+      }
       SetValue(instr, Bool::Get(result));
     } else {
-      SetValue(instr, non_constant_);
+      const intptr_t left_cid = instr->left()->Type()->ToCid();
+      const intptr_t right_cid = instr->right()->Type()->ToCid();
+      // If exact classes (cids) are known and they differ, the result
+      // of strict compare can be computed.
+      if ((left_cid != kDynamicCid) && (right_cid != kDynamicCid) &&
+          (left_cid != right_cid)) {
+        const bool result = (instr->kind() != Token::kEQ_STRICT);
+        SetValue(instr, Bool::Get(result));
+      } else {
+        SetValue(instr, non_constant_);
+      }
     }
   } else if (IsConstant(left) && IsConstant(right)) {
     bool result = (left.raw() == right.raw());
-    if (instr->kind() == Token::kNE_STRICT) result = !result;
+    if (instr->kind() == Token::kNE_STRICT) {
+      result = !result;
+    }
     SetValue(instr, Bool::Get(result));
   }
 }

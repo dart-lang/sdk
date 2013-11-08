@@ -894,6 +894,18 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     return CompileType::FromAbstractType(
         AbstractType::ZoneHandle(StaticField().type()));
   }
+  const Field& field = this->StaticField();
+  ASSERT(field.is_static());
+  if (field.is_final()) {
+    Instance& obj = Instance::Handle(field.value());
+    if ((obj.raw() != Object::sentinel().raw()) &&
+        (obj.raw() != Object::transition_sentinel().raw()) &&
+        !obj.IsNull()) {
+      return CompileType(CompileType::kNonNullable,
+                         Class::Handle(obj.clazz()).id(),
+                         NULL);
+    }
+  }
   return CompileType::Dynamic();
 }
 
