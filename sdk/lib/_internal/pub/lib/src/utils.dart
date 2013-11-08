@@ -15,6 +15,7 @@ import 'dart:mirrors';
 import "package:analyzer/analyzer.dart";
 import "package:crypto/crypto.dart";
 import 'package:path/path.dart' as path;
+import "package:stack_trace/stack_trace.dart";
 
 import 'dart.dart';
 
@@ -110,6 +111,19 @@ String pluralize(String name, int number, {String plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
   return '${name}s';
+}
+
+/// Creates a URL string for [address]:[port].
+///
+/// Handles properly formatting IPv6 addresses.
+String baseUrlForAddress(InternetAddress address, int port) {
+  // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
+  // URL ambiguity with the ":" in the address.
+  if (address.type == InternetAddressType.IP_V6) {
+    return "http://[${address.address}]:$port";
+  }
+
+  return "http://${address.address}:$port";
 }
 
 /// Flattens nested lists inside an iterable into a single list containing only

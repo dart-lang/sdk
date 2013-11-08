@@ -29,11 +29,11 @@ import 'dart:isolate';
 import 'dart:convert';
 import 'dart:mirrors';
 
-import 'http://<<HOST_AND_PORT>>/packages/source_maps/span.dart';
+import '<<URL_BASE>>/packages/source_maps/span.dart';
+import '<<URL_BASE>>/packages/stack_trace/stack_trace.dart';
+import '<<URL_BASE>>/packages/barback/barback.dart';
 // TODO(nweiz): don't import from "src" once issue 14966 is fixed.
-import 'http://<<HOST_AND_PORT>>/packages/stack_trace/stack_trace.dart';
-import 'http://<<HOST_AND_PORT>>/packages/barback/barback.dart';
-import 'http://<<HOST_AND_PORT>>/packages/barback/src/internal_asset.dart';
+import '<<URL_BASE>>/packages/barback/src/internal_asset.dart';
 
 /// Sets up the initial communication with the host isolate.
 void main(_, SendPort replyTo) {
@@ -384,10 +384,10 @@ Future<Set> loadTransformers(BarbackServer server, BarbackMode mode,
   return id.getAssetId(server.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
     // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-    var hostAndPort = '${server.address.address}:${server.port}';
-    var uri = 'http://$hostAndPort/packages/${id.package}/$path';
-    var code = 'import "$uri";' +
-        _TRANSFORMER_ISOLATE.replaceAll('<<HOST_AND_PORT>>', hostAndPort);
+    var baseUrl = baseUrlForAddress(server.address, server.port);
+    var uri = '$baseUrl/packages/${id.package}/$path';
+    var code = 'import "$uri";\n' +
+        _TRANSFORMER_ISOLATE.replaceAll('<<URL_BASE>>', baseUrl);
     log.fine("Loading transformers from $assetId");
 
     var port = new ReceivePort();
