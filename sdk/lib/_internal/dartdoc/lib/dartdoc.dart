@@ -271,18 +271,15 @@ class Dartdoc {
    */
   List<LibraryMirror> _sortedLibraries;
 
-  /** A map from absolute paths of libraries to the libraries at those paths. */
-  Map<String, LibraryMirror> _librariesByPath;
-
   /**
-   * A map from absolute paths of hidden libraries to lists of [Export]s that
-   * export those libraries from visible libraries. This is used to determine
-   * what public library any given entity belongs to.
+   * A map from hidden libraries to lists of [Export]s that export those
+   * libraries from visible libraries. This is used to determine what public
+   * library any given entity belongs to.
    *
    * The lists of exports are sorted so that exports that hide the fewest number
    * of members come first.
    */
-  Map<String, List<Export>> _hiddenLibraryExports;
+  Map<LibraryMirror, List<Export>> _hiddenLibraryExports;
 
   /** The library that we're currently generating docs for. */
   LibraryMirror _currentLibrary;
@@ -425,12 +422,6 @@ class Dartdoc {
   Future documentLibraries(List<Uri> libraryList, String libPath,
       String packageRoot) {
     _packageRoot = packageRoot;
-    _exports = new ExportMap.parse(libraryList, packageRoot);
-    var librariesToAnalyze =
-        _exports.allExportedFiles
-                .map((file) => new Uri.file(file).toString())
-                .toList();
-    librariesToAnalyze.addAll(libraryList.map((uri) => uri.toString()));
 
     // dart2js takes a String, but it expects that to be a Uri, not a file
     // system path.
@@ -444,8 +435,8 @@ class Dartdoc {
     // statements.
     print('Analyzing libraries...');
     return dart2js.analyze(
-        librariesToAnalyze.toList(), libPath,
-        packageRoot: packageRoot, options: COMPILER_OPTIONS)
+        libraryList.map((uri) => uri.toString()).toList(),
+        libPath, packageRoot: packageRoot, options: COMPILER_OPTIONS)
       .then((MirrorSystem mirrors) {
         print('Generating documentation...');
         _document(mirrors);
@@ -453,6 +444,7 @@ class Dartdoc {
   }
 
   void _document(MirrorSystem mirrors) {
+    _exports = new ExportMap(mirrors);
     _started = true;
 
 
@@ -471,14 +463,6 @@ class Dartdoc {
       return displayName(x).toUpperCase().compareTo(
           displayName(y).toUpperCase());
     });
-
-    _librariesByPath = <String, LibraryMirror>{};
-    for (var library in mirrors.libraries.values) {
-      var libraryPath = _libraryPath(library);
-      if (libraryPath == null) continue;
-      libraryPath = path.normalize(path.absolute(libraryPath));
-      _librariesByPath[libraryPath] = library;
-    }
 
     _hiddenLibraryExports = _generateHiddenLibraryExports();
 
@@ -538,41 +522,38 @@ class Dartdoc {
   }
 
   /**
-   * Generate [_hiddenLibraryExports] from [_exports] and [_librariesByPath].
+   * Generate [_hiddenLibraryExports] from [_exports].
    */
-  Map<String, List<Export>> _generateHiddenLibraryExports() {
-    // First generate a map `exported path => exporter path => Export`. The
-    // inner map makes it easier to merge multiple exports of the same library
-    // by the same exporter.
-    var hiddenLibraryExportMaps = <String, Map<String, Export>>{};
-    _exports.exports.forEach((exporter, exports) {
-      var library = _librariesByPath[exporter];
-      // TODO(nweiz): remove this check when issue 9645 is fixed.
-      if (library == null) return;
-      if (!shouldIncludeLibrary(library)) return;
-      for (var export in exports) {
-        var library = _librariesByPath[export.path];
-        // TODO(nweiz): remove this check when issue 9645 is fixed.
-        if (library == null) continue;
-        if (shouldIncludeLibrary(library)) continue;
+  Map<LibraryMirror, List<Export>> _generateHiddenLibraryExports() {
+    // First generate a map `exported library => exporter library => Export`.
+    // The inner map makes it easier to merge multiple exports of the same
+    // library by the same exporter.
+    var hiddenLibraryExportMaps =
+        new Map<LibraryMirror, Map<LibraryMirror, Export>>();
 
-        var hiddenExports = _exports.transitiveExports(export.path)
+    _exports.exports.forEach((exporter, exports) {
+      if (!shouldIncludeLibrary(exporter)) return;
+      for (var export in exports) {
+        var exported = export.exported;
+        if (shouldIncludeLibrary(exported)) continue;
+
+        var hiddenExports = _exports.transitiveExports(exported)
             .map((transitiveExport) => export.compose(transitiveExport))
             .toList();
         hiddenExports.add(export);
 
         for (var hiddenExport in hiddenExports) {
-          var exportsByExporterPath = hiddenLibraryExportMaps
-              .putIfAbsent(hiddenExport.path, () => <String, Export>{});
-          addOrMergeExport(exportsByExporterPath, exporter, hiddenExport);
+          var exportsByExporter = hiddenLibraryExportMaps.putIfAbsent(
+              hiddenExport.exported, () => new Map<LibraryMirror, Export>());
+          addOrMergeExport(exportsByExporter, exporter, hiddenExport);
         }
       }
     });
 
     // Now sort the values of the inner maps of `hiddenLibraryExportMaps` to get
     // the final value of `_hiddenLibraryExports`.
-    var hiddenLibraryExports = <String, List<Export>>{};
-    hiddenLibraryExportMaps.forEach((exporteePath, exportsByExporterPath) {
+    var hiddenLibraryExports = new Map<LibraryMirror, List<Export>>();
+    hiddenLibraryExportMaps.forEach((exportee, exportsByExporter) {
       int rank(Export export) {
         if (export.show.isEmpty && export.hide.isEmpty) return 0;
         if (export.show.isEmpty) return export.hide.length;
@@ -580,16 +561,16 @@ class Dartdoc {
         return 1000 * export.show.length;
       }
 
-      var exports = exportsByExporterPath.values.toList();
+      var exports = exportsByExporter.values.toList();
       exports.sort((export1, export2) {
         var comparison = Comparable.compare(rank(export1), rank(export2));
         if (comparison != 0) return comparison;
 
-        var library1 = _librariesByPath[export1.exporter];
-        var library2 = _librariesByPath[export2.exporter];
+        var library1 = export1.exporter;
+        var library2 = export2.exporter;
         return Comparable.compare(displayName(library1), displayName(library2));
       });
-      hiddenLibraryExports[exporteePath] = exports;
+      hiddenLibraryExports[exportee] = exports;
     });
     return hiddenLibraryExports;
   }
@@ -1258,12 +1239,8 @@ class Dartdoc {
   }();
 
   void docExports(LibraryMirror library) {
-    // TODO(nweiz): show `dart:` library exports.
-    var exportLinks = _exports.transitiveExports(_libraryPath(library))
-        .map((export) {
-      var library = _librariesByPath[export.path];
-      // TODO(nweiz): remove this check when issue 9645 is fixed.
-      if (library == null) return null;
+    var exportLinks = _exports.transitiveExports(library).map((export) {
+      var library = export.exported;
       // Only link to publically visible libraries.
       if (!shouldIncludeLibrary(library)) return null;
 
@@ -1280,7 +1257,7 @@ class Dartdoc {
       }
 
       return '<ul>${a(libraryUrl(library), displayName(library))}'
-        '$combinator</ul>';
+             '$combinator</ul>';
     }).where((link) => link != null);
 
     if (!exportLinks.isEmpty) {
@@ -2207,14 +2184,11 @@ class Dartdoc {
   List<DeclarationMirror> _libraryContents(LibraryMirror library,
       List<DeclarationMirror> fn(LibraryMirror)) {
     var contents = fn(library).toList();
-    var path = _libraryPath(library);
-    if (path == null || _exports.exports[path] == null) return contents;
+    var exports = _exports.exports[library];
+    if (exports == null) return contents;
 
-
-    contents.addAll(_exports.exports[path].expand((export) {
-      var exportedLibrary = _librariesByPath[export.path];
-      // TODO(nweiz): remove this check when issue 9645 is fixed.
-      if (exportedLibrary == null) return [];
+    contents.addAll(exports.expand((export) {
+      var exportedLibrary = export.exported;
       if (shouldIncludeLibrary(exportedLibrary)) return [];
       return fn(exportedLibrary).where((declaration) =>
           export.isMemberVisible(displayName(declaration)));
@@ -2247,14 +2221,14 @@ class Dartdoc {
   LibraryMirror _visibleLibrary(LibraryMirror library, String name) {
     if (library == null) return null;
 
-    var exports = _hiddenLibraryExports[_libraryPath(library)];
+    var exports = _hiddenLibraryExports[library];
     if (exports == null) return library;
 
     var export = exports.firstWhere(
         (exp) => exp.isMemberVisible(name),
         orElse: () => null);
     if (export == null) return library;
-    return _librariesByPath[export.exporter];
+    return export.exporter;
   }
 }
 

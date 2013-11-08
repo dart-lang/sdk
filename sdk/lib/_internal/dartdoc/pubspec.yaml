@@ -3,7 +3,6 @@ description: >
  Libraries for generating documentation from Dart source code.
 
 dependencies:
-  analyzer: ">=0.4.5 <1.0.0"
   args: ">=0.4.2 <1.0.0"
   path: ">=0.4.2 <1.0.0"
 
