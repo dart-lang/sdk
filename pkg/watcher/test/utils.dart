@@ -176,7 +176,7 @@ void inAnyOrder(block()) {
 void expectEvent(ChangeType type, String path) {
   var matcher = predicate((e) {
     return e is WatchEvent && e.type == type &&
-        e.path == p.join(_sandboxDir, path);
+        e.path == p.join(_sandboxDir, p.normalize(path));
   }, "is $type $path");
 
   if (_unorderedEventFuture != null) {
