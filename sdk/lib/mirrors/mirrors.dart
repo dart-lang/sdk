@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45,6 +45,13 @@
  * num, bool, String, a list of objects that are serializable
  * across isolates, or a map with keys and values that are all serializable across
  * isolates.
+ *
+ * ## Status: Unstable
+ *
+ * The dart:mirrors library is unstable and its API might change slightly as a
+ * result of user feedback. This library is platform dependent and therefore it
+ * has implementations for both dart2js and the Dart VM. Both are under
+ * development and may not support all operations yet.
  */
 library dart.mirrors;
 
@@ -568,7 +575,7 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * Returns a map of the top-level methods, getters and setters of the library.
    *
    * The intent is to capture those members that constitute the API of a
-   * library. Hence fields are not included, but the getters and setters 
+   * library. Hence fields are not included, but the getters and setters
    * implicitly introduced by fields are included. Synthetic getters for the
    * types exported by the library are also included.
    *
