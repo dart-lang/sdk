@@ -39,8 +39,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
+  const intptr_t exitframe_last_param_slot_from_fp = 1;
 
-  __ EnterStubFrame();
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Load current Isolate pointer from Context structure into R0.
   __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
@@ -74,7 +75,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   ASSERT(argv_offset == 2 * kWordSize);
   __ add(R2, FP, ShifterOperand(R4, LSL, 2));  // Compute argv.
   // Set argv in NativeArguments.
-  __ AddImmediate(R2, kParamEndSlotFromFp * kWordSize);
+  __ AddImmediate(R2, exitframe_last_param_slot_from_fp * kWordSize);
 
   ASSERT(retval_offset == 3 * kWordSize);
   __ add(R3, R2, ShifterOperand(kWordSize));  // Retval is next to 1st argument.
@@ -96,7 +97,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, ShifterOperand(R2));
 
-  __ LeaveStubFrame();
+  __ LeaveFrame((1 << FP) | (1 << LR));
   __ Ret();
 }
 
@@ -780,7 +781,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   R3 : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
-  __ EnterStubFrame();
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Save new context and C++ ABI callee-saved registers.
   const intptr_t kNewContextOffsetFromFp =
@@ -791,6 +792,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(2 * kAbiPreservedFpuRegCount < 16);
   // Save FPU registers. 2 D registers per Q register.
   __ vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+
+  // We now load the pool pointer(PP) as we are about to invoke dart code and we
+  // could potentially invoke some intrinsic functions which need the PP to be
+  // set up.
+  __ LoadPoolPointer();
 
   // The new Context structure contains a pointer to the current Isolate
   // structure. Cache the Context pointer in the CTX register so that it is
@@ -877,7 +883,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ PopList((1 << R3) | kAbiPreservedCpuRegs);  // Ignore restored R3.
 
   // Restore the frame pointer and return.
-  __ LeaveStubFrame();
+  __ LeaveFrame((1 << FP) | (1 << LR));
   __ Ret();
 }
 
@@ -1223,7 +1229,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ Pop(R0);  // Pop result (newly allocated object).
   // R0: new object
   // Restore the frame pointer.
-  __ LeaveStubFrame(true);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -1332,7 +1338,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // R2: new object still missing its heap tag.
     __ add(R0, R2, ShifterOperand(kHeapObjectTag));
     // R0: new object.
-    __ LeaveStubFrame(true);
+    __ LeaveStubFrame();
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1362,7 +1368,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ Pop(R0);
   // R0: new object
   // Restore the frame pointer.
-  __ LeaveStubFrame(true);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -2081,7 +2087,7 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ b(&reference_compare, NE);
   __ CompareClassId(right, kBigintCid, temp);
   __ b(&done, NE);
-  __ EnterStubFrame(0);
+  __ EnterStubFrame();
   __ ReserveAlignedFrameSpace(2 * kWordSize);
   __ stm(IA, SP,  (1 << R0) | (1 << R1));
   __ CallRuntime(kBigintCompareRuntimeEntry, 2);

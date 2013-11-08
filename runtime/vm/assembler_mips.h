@@ -175,13 +175,16 @@ class Assembler : public ValueObject {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
+  void EnterFrame();
+  void LeaveFrameAndReturn();
+
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool uses_pp = false);
-  void LeaveStubFrame(bool uses_pp = false);
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
-  void LeaveStubFrameAndReturn(Register ra = RA, bool uses_pp = false);
+  void LeaveStubFrameAndReturn(Register ra = RA);
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -801,6 +804,14 @@ class Assembler : public ValueObject {
     if (stack_elements > 0) {
       addiu(SP, SP, Immediate(stack_elements * kWordSize));
     }
+  }
+
+  void LoadPoolPointer() {
+    GetNextPC(TMP);  // TMP gets the address of the next instruction.
+    const intptr_t object_pool_pc_dist =
+        Instructions::HeaderSize() - Instructions::object_pool_offset() +
+        CodeSize();
+    lw(PP, Address(TMP, -object_pool_pc_dist));
   }
 
   void LoadImmediate(Register rd, int32_t value) {

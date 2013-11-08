@@ -32,7 +32,7 @@ Caller frame   | last parameter     | <- SP of caller frame
 static const int kDartFrameFixedSize = 4;  // PP, FP, LR, PC marker.
 static const int kSavedPcSlotFromSp = -2;
 
-static const int kFirstObjectSlotFromFp = -2;  // Used by GC to traverse stack.
+static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
 
 static const int kFirstLocalSlotFromFp = -2;
 static const int kSavedCallerPpSlotFromFp = -1;

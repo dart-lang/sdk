@@ -39,10 +39,11 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
+  const intptr_t exitframe_last_param_slot_from_fp = 1;
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallToRuntimeStub");
-  __ EnterStubFrame();
+  __ EnterFrame();
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -77,7 +78,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sll(A2, S4, 2);
   __ addu(A2, FP, A2);  // Compute argv.
   // Set argv in NativeArguments.
-  __ addiu(A2, A2, Immediate(kParamEndSlotFromFp * kWordSize));
+  __ addiu(A2, A2, Immediate(exitframe_last_param_slot_from_fp * kWordSize));
 
   ASSERT(retval_offset == 3 * kWordSize);
 
@@ -102,7 +103,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ LeaveStubFrameAndReturn();
+  __ LeaveFrameAndReturn();
 }
 
 
@@ -139,10 +140,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterFrame();
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -214,11 +212,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveFrameAndReturn();
 }
 
 
@@ -236,10 +230,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterFrame();
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -302,11 +293,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveFrameAndReturn();
 }
 
 
@@ -901,7 +888,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ TraceSimMsg("InvokeDartCodeStub");
-  __ EnterStubFrame();
+  __ EnterFrame();
 
   // Save new context and C++ ABI callee-saved registers.
 
@@ -930,6 +917,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   }
 
   __ sw(A3, Address(SP, 2 * kWordSize));
+
+  // We now load the pool pointer(PP) as we are about to invoke dart code and we
+  // could potentially invoke some intrinsic functions which need the PP to be
+  // set up.
+  __ LoadPoolPointer();
 
   // The new Context structure contains a pointer to the current Isolate
   // structure. Cache the Context pointer in the CTX register so that it is
@@ -1034,7 +1026,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(kPreservedRegSpace));
 
   // Restore the frame pointer and return.
-  __ LeaveStubFrameAndReturn();
+  __ LeaveFrameAndReturn();
 }
 
 
@@ -1408,7 +1400,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ addiu(SP, SP, Immediate(4 * kWordSize));  // Pop arguments.
   // V0: new object
   // Restore the frame pointer and return.
-  __ LeaveStubFrameAndReturn(RA, true);
+  __ LeaveStubFrameAndReturn(RA);
 }
 
 
@@ -1516,7 +1508,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // V0: new object.
     __ addiu(V0, T2, Immediate(kHeapObjectTag));
 
-    __ LeaveStubFrameAndReturn(RA, true);
+    __ LeaveStubFrameAndReturn(RA);
 
     __ Bind(&slow_case);
   }
@@ -1552,7 +1544,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 
   // V0: new object
   // Restore the frame pointer.
-  __ LeaveStubFrameAndReturn(RA, true);
+  __ LeaveStubFrameAndReturn(RA);
 }
 
 

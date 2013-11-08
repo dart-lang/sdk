@@ -721,8 +721,8 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool uses_pp = false);
-  void LeaveStubFrame(bool uses_pp = false);
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the

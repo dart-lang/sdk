@@ -630,65 +630,54 @@ void Assembler::LoadClass(Register result, Register object) {
 }
 
 
-void Assembler::EnterStubFrame(bool uses_pp) {
+void Assembler::EnterFrame() {
+  addiu(SP, SP, Immediate(-2 * kWordSize));
+  sw(RA, Address(SP, 1 * kWordSize));
+  sw(FP, Address(SP, 0 * kWordSize));
+  mov(FP, SP);
+}
+
+
+void Assembler::LeaveFrameAndReturn() {
+  mov(SP, FP);
+  lw(RA, Address(SP, 1 * kWordSize));
+  lw(FP, Address(SP, 0 * kWordSize));
+  Ret();
+  delay_slot()->addiu(SP, SP, Immediate(2 * kWordSize));
+}
+
+
+void Assembler::EnterStubFrame(bool load_pp) {
   SetPrologueOffset();
-  if (uses_pp) {
-    addiu(SP, SP, Immediate(-4 * kWordSize));
-    sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
-    sw(RA, Address(SP, 2 * kWordSize));
-    sw(FP, Address(SP, 1 * kWordSize));
-    sw(PP, Address(SP, 0 * kWordSize));
-    addiu(FP, SP, Immediate(1 * kWordSize));
+  addiu(SP, SP, Immediate(-4 * kWordSize));
+  sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
+  sw(RA, Address(SP, 2 * kWordSize));
+  sw(FP, Address(SP, 1 * kWordSize));
+  sw(PP, Address(SP, 0 * kWordSize));
+  addiu(FP, SP, Immediate(1 * kWordSize));
+  if (load_pp) {
     // Setup pool pointer for this stub.
-
-    GetNextPC(TMP);  // TMP gets the address of the next instruction.
-
-    const intptr_t object_pool_pc_dist =
-        Instructions::HeaderSize() - Instructions::object_pool_offset() +
-        CodeSize();
-
-    lw(PP, Address(TMP, -object_pool_pc_dist));
-  } else {
-    addiu(SP, SP, Immediate(-3 * kWordSize));
-    sw(ZR, Address(SP, 2 * kWordSize));  // PC marker is 0 in stubs.
-    sw(RA, Address(SP, 1 * kWordSize));
-    sw(FP, Address(SP, 0 * kWordSize));
-    mov(FP, SP);
+    LoadPoolPointer();
   }
 }
 
 
-void Assembler::LeaveStubFrame(bool uses_pp) {
-  if (uses_pp) {
-    addiu(SP, FP, Immediate(-1 * kWordSize));
-    lw(RA, Address(SP, 2 * kWordSize));
-    lw(FP, Address(SP, 1 * kWordSize));
-    lw(PP, Address(SP, 0 * kWordSize));
-    addiu(SP, SP, Immediate(4 * kWordSize));
-  } else {
-    mov(SP, FP);
-    lw(RA, Address(SP, 1 * kWordSize));
-    lw(FP, Address(SP, 0 * kWordSize));
-    addiu(SP, SP, Immediate(3 * kWordSize));
-  }
+void Assembler::LeaveStubFrame() {
+  addiu(SP, FP, Immediate(-1 * kWordSize));
+  lw(RA, Address(SP, 2 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
+  addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
-void Assembler::LeaveStubFrameAndReturn(Register ra, bool uses_pp) {
-  if (uses_pp) {
-    addiu(SP, FP, Immediate(-1 * kWordSize));
-    lw(RA, Address(SP, 2 * kWordSize));
-    lw(FP, Address(SP, 1 * kWordSize));
-    lw(PP, Address(SP, 0 * kWordSize));
-    jr(ra);
-    delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
-  } else {
-    mov(SP, FP);
-    lw(RA, Address(SP, 1 * kWordSize));
-    lw(FP, Address(SP, 0 * kWordSize));
-    jr(ra);
-    delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
-  }
+void Assembler::LeaveStubFrameAndReturn(Register ra) {
+  addiu(SP, FP, Immediate(-1 * kWordSize));
+  lw(RA, Address(SP, 2 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
+  jr(ra);
+  delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
@@ -984,4 +973,3 @@ void Assembler::TraceSimMsg(const char* message) {
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS
-
