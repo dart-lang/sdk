@@ -6,7 +6,7 @@
 library polymer.transformer;
 
 import 'package:barback/barback.dart';
-import 'package:observe/transform.dart';
+import 'package:observe/transformer.dart';
 import 'src/build/code_extractor.dart';
 import 'src/build/import_inliner.dart';
 import 'src/build/script_compactor.dart';

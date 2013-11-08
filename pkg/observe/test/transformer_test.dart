@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'package:barback/barback.dart';
-import 'package:observe/transform.dart';
+import 'package:observe/transformer.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 

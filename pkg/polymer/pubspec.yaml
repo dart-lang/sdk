@@ -1,5 +1,5 @@
 name: polymer
-version: 0.9.0
+version: 0.9.1
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Polymer.dart is a new type of library for the web, built on top of Web
@@ -16,13 +16,16 @@ dependencies:
   html5lib: ">=0.9.0 <0.10.0"
   html_import: ">=0.9.0 <0.10.0"
   logging: ">=0.9.0 <0.10.0"
-  observe: ">=0.9.0 <0.10.0"
+  observe: ">=0.9.1 <0.10.0"
   path: ">=0.9.0 <0.10.0"
   polymer_expressions: ">=0.9.0 <0.10.0"
   shadow_dom: ">=0.9.0 <0.10.0"
   source_maps: ">=0.9.0 <0.10.0"
   template_binding: ">=0.9.0 <0.10.0"
   yaml: ">=0.9.0 <0.10.0"
+transformers:
+- observe:
+    files: lib/src/instance.dart
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
