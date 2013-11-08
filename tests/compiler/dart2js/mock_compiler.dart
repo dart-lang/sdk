@@ -105,8 +105,8 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray extends Interceptor implements List, JSIndexable {
     var length;
     operator[](index) => this[index];
-    operator[]=(index, value) {}
-    add(value) {}
+    operator[]=(index, value) { this[index] = value; }
+    add(value) { this[length + 1] = value; }
     removeAt(index) {}
     insert(index, value) {}
     removeLast() {}
@@ -230,7 +230,10 @@ class MockCompiler extends Compiler {
                 bool analyzeAll: false,
                 bool analyzeOnly: false,
                 bool emitJavaScript: true,
-                bool preserveComments: false})
+                bool preserveComments: false,
+                // Our unit tests check code generation output that is
+                // affected by inlining support.
+                bool disableInlining: true})
       : warnings = [], errors = [], hints = [], infos = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
@@ -269,9 +272,7 @@ class MockCompiler extends Compiler {
     // wasn't resolved.
     objectClass.ensureResolved(this);
 
-    // Our unit tests check code generation output that is affected by
-    // inlining support.
-    disableInlining = true;
+    this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
   }

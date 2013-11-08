@@ -231,6 +231,14 @@ class World {
   }
 
   bool fieldNeverChanges(Element element) {
+    if (element.isNative()) {
+      // Some native fields are views of data that may be changed by operations.
+      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
+      // TODO(sra): Refine the effect classification so that native effects are
+      // distinct from ordinary Dart effects.
+      return false;
+    }
+
     return element.modifiers.isFinal()
         || element.modifiers.isConst()
         || (element.isInstanceMember()

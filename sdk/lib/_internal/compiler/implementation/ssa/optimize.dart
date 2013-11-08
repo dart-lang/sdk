@@ -57,6 +57,8 @@ class SsaOptimizerTask extends CompilerTask {
           // updated because they now have different inputs.
           new SsaTypePropagator(compiler),
           new SsaCodeMotion(),
+          new SsaLoadElimination(compiler),
+          new SsaTypePropagator(compiler),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for instruction simplification.
@@ -693,13 +695,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction directFieldGet(HInstruction receiver, Element field) {
     Modifiers modifiers = field.modifiers;
     bool isAssignable = !compiler.world.fieldNeverChanges(field);
-    if (field.isNative()) {
-      // Some native fields are views of data that may be changed by operations.
-      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
-      // TODO(sra): Refine the effect classification so that native effects are
-      // distinct from ordinary Dart effects.
-      isAssignable = true;
-    }
 
     TypeMask type;
     if (field.getEnclosingClass().isNative()) {
@@ -1518,6 +1513,170 @@ class SsaTypeConversionInserter extends HBaseVisitor
       changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the then block on a type
       // that knows it is not of a specific type.
+    }
+  }
+}
+
+/**
+ * Optimization phase that tries to eliminate memory loads (for
+ * example [HFieldGet]), when it knows the value stored in that memory
+ * location.
+ */
+class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
+  final Compiler compiler;
+  final String name = "SsaLoadElimination";
+  MemorySet memorySet;
+
+  SsaLoadElimination(this.compiler);
+
+  visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    // We currently only do a per-block load elimination.
+    memorySet = new MemorySet(compiler);
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  void visitFieldGet(HFieldGet instruction) {
+    if (instruction.isNullCheck) return;
+    Element element = instruction.element;
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction existing = memorySet.lookup(element, receiver);
+    if (existing != null) {
+      instruction.block.rewriteWithBetterUser(instruction, existing);
+      instruction.block.remove(instruction);
+    }
+  }
+
+  void visitFieldSet(HFieldSet instruction) {
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    memorySet.update(instruction.element, receiver, instruction.inputs.last);
+  }
+
+  void visitForeignNew(HForeignNew instruction) {
+    memorySet.addAllocation(instruction);
+  }
+
+  void visitInstruction(HInstruction instruction) {
+    memorySet.killAffectedBy(instruction);
+  }
+}
+
+/**
+ * Holds values of memory places.
+ */
+class MemorySet {
+  final Compiler compiler;
+
+  /**
+   * Maps a field to a map of receiver to value.
+   */
+  final Map<Element, Map<HInstruction, HInstruction>> places =
+      <Element, Map<HInstruction, HInstruction>> {};
+
+  /**
+   * Set of objects that we know don't escape the current function.
+   */
+  final Setlet<HInstruction> nonEscapingReceivers = new Setlet<HInstruction>();
+
+  MemorySet(this.compiler);
+
+  /**
+   * Returns whether [first] and [second] may alias to the same
+   * object.
+   */
+  bool mayAlias(HInstruction first, HInstruction second) {
+    if (first == second) return true;
+    if (first is HForeignNew && second is HForeignNew) return false;
+    if (nonEscapingReceivers.contains(first)) return false;
+    if (nonEscapingReceivers.contains(second)) return false;
+    TypeMask intersection = first.instructionType.intersection(
+        second.instructionType, compiler);
+    if (intersection.isEmpty) return false;
+    return true;
+  }
+
+  bool isFinal(Element element) {
+    return compiler.world.fieldNeverChanges(element);
+  }
+
+  /**
+   * Returns whether [receiver] escapes the current function.
+   */
+  bool escapes(HInstruction receiver) {
+    return !nonEscapingReceivers.contains(receiver);
+  }
+
+  void addAllocation(HForeignNew instruction) {
+    nonEscapingReceivers.add(instruction);
+    int argumentIndex = 0;
+    instruction.element.forEachInstanceField((_, Element member) {
+      update(member, instruction, instruction.inputs[argumentIndex++]);
+    }, includeSuperAndInjectedMembers: true);
+    // In case this instruction has as input non-escaping objects, we
+    // need to mark these objects as escaping.
+    killAffectedBy(instruction);
+  }
+
+  /**
+   * Sets `receiver.element` to contain [value].
+   */
+  void update(Element element, HInstruction receiver, HInstruction value) {
+    if (element.isNative()) return; // TODO(14955): Remove this restriction?
+    // [value] is being set in some place in memory, we remove it from
+    // the non-escaping set.
+    nonEscapingReceivers.remove(value);
+    Map<HInstruction, HInstruction> map = places.putIfAbsent(
+        element, () => <HInstruction, HInstruction> {});
+    map.forEach((key, value) {
+      if (mayAlias(receiver, key)) map[key] = null;
+    });
+    map[receiver] = value;
+  }
+
+  /**
+   * Returns the value stored in `receiver.element`. Returns null if
+   * we don't know.
+   */
+  HInstruction lookup(Element element, HInstruction receiver) {
+    Map<HInstruction, HInstruction> map = places[element];
+    if (map == null) return null;
+    return map[receiver];
+  }
+
+  /**
+   * Kill all places that may be affected by this [instruction]. Also
+   * update the set of non-escaping objects in case [instruction] has
+   * non-escaping objects in its inputs.
+   */
+  void killAffectedBy(HInstruction instruction) {
+    // Even if [instruction] does not have side effects, it may use
+    // [HForeignNew] objects and store them in a new object, which
+    // make these objects escaping.
+    // TODO(ngeoffray): We need a new side effect flag to know whether
+    // an instruction allocates an object.
+    instruction.inputs.forEach((input) {
+      if (input is HForeignNew && nonEscapingReceivers.contains(input)) {
+        nonEscapingReceivers.remove(input);
+      }
+    });
+
+    if (instruction.sideEffects.changesInstanceProperty()) {
+      places.forEach((element, map) {
+        if (isFinal(element)) return;
+        map.forEach((receiver, value) {
+          if (escapes(receiver)) {
+            map[receiver] = null;
+          }
+        });
+      });
     }
   }
 }

@@ -52,7 +52,8 @@ String compile(String code, {String entry: 'main',
                              String interceptorsSource: DEFAULT_INTERCEPTORSLIB,
                              bool enableTypeAssertions: false,
                              bool minify: false,
-                             bool analyzeAll: false}) {
+                             bool analyzeAll: false,
+                             bool disableInlining: true}) {
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
                        coreSource: coreSource,
@@ -60,7 +61,8 @@ String compile(String code, {String entry: 'main',
                        // compiling a method.
                        disableTypeInference: true,
                        interceptorsSource: interceptorsSource,
-                       enableMinification: minify);
+                       enableMinification: minify,
+                       disableInlining: disableInlining);
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(entry);
   if (element == null) return null;
@@ -84,19 +86,24 @@ String compile(String code, {String entry: 'main',
 MockCompiler compilerFor(String code, Uri uri,
                          {bool analyzeAll: false,
                           bool analyzeOnly: false,
-                          String coreSource: DEFAULT_CORELIB}) {
+                          String coreSource: DEFAULT_CORELIB,
+                          bool disableInlining: true}) {
   MockCompiler compiler = new MockCompiler(
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,
-      coreSource: coreSource);
+      coreSource: coreSource,
+      disableInlining: disableInlining);
   compiler.sourceFiles[uri.toString()] =
       new StringSourceFile(uri.toString(), code);
   return compiler;
 }
 
-Future<String> compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
+Future<String> compileAll(String code,
+                          {String coreSource: DEFAULT_CORELIB,
+                          bool disableInlining: true}) {
   Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = compilerFor(code, uri, coreSource: coreSource);
+  MockCompiler compiler = compilerFor(
+      code, uri, coreSource: coreSource, disableInlining: disableInlining);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
                    'Unexpected compilation error');
