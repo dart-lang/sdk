@@ -1068,7 +1068,7 @@ class Dartdoc {
     _totalTypes++;
     _currentType = type;
 
-    startFile(typeUrl(type));
+    startFile(typePath(type));
 
     var kind;
     if (type.isTypedef) {
@@ -1826,8 +1826,23 @@ class Dartdoc {
     return '${sanitize(displayName(library))}.html';
   }
 
-  /** Gets the URL for the documentation for [type]. */
+  /**
+   * Gets the URL for the documentation for [type] or `null` if there is no
+   * link to the documentation of [type].
+   */
   String typeUrl(ContainerMirror type) {
+    var library = type is LibraryMirror ? type : _libraryFor(type);
+    if (shouldLinkToPublicApi(library)) {
+      return "$API_LOCATION${typePath(type)}";
+    } else if (shouldIncludeLibrary(library)) {
+      return typePath(type);
+    } else {
+      return null;
+    }
+  }
+
+  /** Gets the relative path for the documentation for [type]. */
+  String typePath(ContainerMirror type) {
     if (type is LibraryMirror) {
       return '${sanitize(type.simpleName)}.html';
     }
@@ -1844,7 +1859,7 @@ class Dartdoc {
   /** Gets the URL for the documentation for [member]. */
   String memberUrl(MemberMirror member) {
     String url = typeUrl(_ownerFor(member));
-    return '$url#${memberAnchor(member)}';
+    return url != null ? '$url#${memberAnchor(member)}' : null;
   }
 
   /** Gets the anchor id for the document for [member]. */
@@ -1854,13 +1869,17 @@ class Dartdoc {
 
   /**
    * Creates a hyperlink. Handles turning the [href] into an appropriate
-   * relative path from the current file.
+   * relative path from the current file. If [href] is `null`, [contents] is
+   * not embedded in an anchor tag, and thus no link is created.
    */
   String a(String href, String contents, [String css]) {
-    // Mark outgoing external links, mainly so we can style them.
-    final rel = isAbsolute(href) ? ' ref="external"' : '';
-    final cssClass = css == null ? '' : ' class="$css"';
-    return '<a href="${relativePath(href)}"$cssClass$rel>$contents</a>';
+    if (href != null) {
+      // Mark outgoing external links, mainly so we can style them.
+      final rel = isAbsolute(href) ? ' ref="external"' : '';
+      final cssClass = css == null ? '' : ' class="$css"';
+      return '<a href="${relativePath(href)}"$cssClass$rel>$contents</a>';
+    }
+    return contents;
   }
 
   /**
@@ -1922,14 +1941,7 @@ class Dartdoc {
     assert(type is ClassMirror);
 
     // Link to the type.
-    var library = _libraryFor(type);
-    if (shouldLinkToPublicApi(library)) {
-      write('<a href="$API_LOCATION${typeUrl(type)}">${type.simpleName}</a>');
-    } else if (shouldIncludeLibrary(library)) {
-      write(a(typeUrl(type), type.simpleName));
-    } else {
-      write(type.simpleName);
-    }
+    write(a(typeUrl(type), type.simpleName));
 
     if (type.isOriginalDeclaration) {
       // Avoid calling [:typeArguments():] on a declaration.
@@ -2036,10 +2048,14 @@ class Dartdoc {
                                 ContainerMirror currentType,
                                 LibraryMirror currentLibrary}) {
     makeLink(String href) {
-      final anchor = new md.Element.text('a', name);
-      anchor.attributes['href'] = relativePath(href);
-      anchor.attributes['class'] = 'crossref';
-      return anchor;
+      if (href != null) {
+        final anchor = new md.Element.text('a', name);
+        anchor.attributes['href'] = relativePath(href);
+        anchor.attributes['class'] = 'crossref';
+        return anchor;
+      } else {
+        return new md.Element.text('code', name);
+      }
     }
 
     DeclarationMirror declaration = currentMember;
