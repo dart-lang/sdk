@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:barback/barback.dart';
+// TODO(nweiz): don't import from "src" once issue 14966 is fixed.
+import 'package:barback/src/internal_asset.dart';
 import 'package:source_maps/source_maps.dart';
 
 import '../barback.dart';
@@ -28,8 +30,10 @@ import 'dart:convert';
 import 'dart:mirrors';
 
 import 'http://<<HOST_AND_PORT>>/packages/source_maps/span.dart';
+// TODO(nweiz): don't import from "src" once issue 14966 is fixed.
 import 'http://<<HOST_AND_PORT>>/packages/stack_trace/stack_trace.dart';
 import 'http://<<HOST_AND_PORT>>/packages/barback/barback.dart';
+import 'http://<<HOST_AND_PORT>>/packages/barback/src/internal_asset.dart';
 
 /// Sets up the initial communication with the host isolate.
 void main(_, SendPort replyTo) {
@@ -99,7 +103,7 @@ class ForeignTransform implements Transform {
   /// Creates a transform from a serializable map sent from the host isolate.
   ForeignTransform(Map transform)
       : _port = transform['port'],
-        primaryInput = _deserializeAsset(transform['primaryInput']) {
+        primaryInput = deserializeAsset(transform['primaryInput']) {
     _logger = new TransformLogger((assetId, level, message, span) {
       _call(_port, {
         'type': 'log',
@@ -115,7 +119,7 @@ class ForeignTransform implements Transform {
     return _call(_port, {
       'type': 'getInput',
       'id': _serializeId(id)
-    }).then(_deserializeAsset);
+    }).then(deserializeAsset);
   }
 
   Future<String> readInputAsString(AssetId id, {Encoding encoding}) {
@@ -129,7 +133,7 @@ class ForeignTransform implements Transform {
   void addOutput(Asset output) {
     _call(_port, {
       'type': 'addOutput',
-      'output': _serializeAsset(output)
+      'output': serializeAsset(output)
     });
   }
 }
@@ -184,7 +188,7 @@ Map _serializeTransformer(Transformer transformer) {
   port.listen((wrappedMessage) {
     _respond(wrappedMessage, (message) {
       if (message['type'] == 'isPrimary') {
-        return transformer.isPrimary(_deserializeAsset(message['asset']));
+        return transformer.isPrimary(deserializeAsset(message['asset']));
       } else {
         assert(message['type'] == 'apply');
         return transformer.apply(
@@ -211,75 +215,8 @@ Map _serializeTransformerGroup(TransformerGroup group) {
   };
 }
 
-/// Converts a serializable map into an [Asset].
-Asset _deserializeAsset(Map asset) {
-  return new Asset.fromStream(
-      _deserializeId(asset['id']),
-      _deserializeStream(asset['stream']));
-}
-
-/// The body of a [StreamTransformer] that deserializes the values in a stream
-/// sent by [_serializeStream].
-StreamSubscription _deserializeTransformer(Stream input, bool cancelOnError) {
-  var subscription;
-  var transformed = input.transform(new StreamTransformer.fromHandlers(
-      handleData: (data, sink) {
-    if (data['type'] == 'data') {
-      sink.add(data['data']);
-    } else if (data['type'] == 'error') {
-      sink.addError(CrossIsolateException.deserialize(data['error']));
-    } else {
-      assert(data['type'] == 'done');
-      sink.close();
-      subscription.cancel();
-    }
-  }));
-  subscription = transformed.listen(null, cancelOnError: cancelOnError);
-  return subscription;
-}
-
-/// Convert a [SendPort] whose opposite is waiting to send us a stream into a
-/// [Stream].
-///
-/// No stream data will actually be sent across the isolate boundary until
-/// someone subscribes to the returned stream.
-Stream _deserializeStream(SendPort sendPort) {
-  return callbackStream(() {
-    var receivePort = new ReceivePort();
-    sendPort.send(receivePort.sendPort);
-    return receivePort.transform(
-        const StreamTransformer(_deserializeTransformer));
-  });
-}
-
 /// Converts a serializable map into an [AssetId].
 AssetId _deserializeId(Map id) => new AssetId(id['package'], id['path']);
-
-/// Converts [asset] into a serializable map.
-Map _serializeAsset(Asset asset) {
-  return {
-    'id': _serializeId(asset.id),
-    'stream': _serializeStream(asset.read())
-  };
-}
-
-/// Converts [stream] into a [SendPort] with which another isolate can request
-/// the data from [stream].
-SendPort _serializeStream(Stream stream) {
-  var receivePort = new ReceivePort();
-  receivePort.first.then((sendPort) {
-    stream.listen((data) => sendPort.send({'type': 'data', 'data': data}),
-        onDone: () => sendPort.send({'type': 'done'}),
-        onError: (error, stackTrace) {
-      sendPort.send({
-        'type': 'error',
-        'error': CrossIsolateException.serialize(error, stackTrace)
-      });
-    });
-  });
-
-  return receivePort.sendPort;
-}
 
 /// Converts [id] into a serializable map.
 Map _serializeId(AssetId id) => {'package': id.package, 'path': id.path};
@@ -503,7 +440,7 @@ class _ForeignTransformer extends Transformer {
   Future<bool> isPrimary(Asset asset) {
     return _call(_port, {
       'type': 'isPrimary',
-      'asset': _serializeAsset(asset)
+      'asset': serializeAsset(asset)
     });
   }
 
@@ -547,11 +484,11 @@ Map _serializeTransform(Transform transform) {
     _respond(wrappedMessage, (message) {
       if (message['type'] == 'getInput') {
         return transform.getInput(_deserializeId(message['id']))
-            .then(_serializeAsset);
+            .then((asset) => serializeAsset(asset));
       }
 
       if (message['type'] == 'addOutput') {
-        transform.addOutput(_deserializeAsset(message['output']));
+        transform.addOutput(deserializeAsset(message['output']));
         return null;
       }
 
@@ -576,49 +513,8 @@ Map _serializeTransform(Transform transform) {
 
   return {
     'port': receivePort.sendPort,
-    'primaryInput': _serializeAsset(transform.primaryInput)
+    'primaryInput': serializeAsset(transform.primaryInput)
   };
-}
-
-/// Converts a serializable map into an [Asset].
-Asset _deserializeAsset(Map asset) {
-  return new Asset.fromStream(
-      _deserializeId(asset['id']),
-      _deserializeStream(asset['stream']));
-}
-
-/// A transformer that deserializes the values in a stream sent by
-/// [_serializeStream].
-StreamSubscription _deserializeTransformer(Stream input, bool cancelOnError) {
-  var subscription;
-  var transformed = input.transform(new StreamTransformer.fromHandlers(
-      handleData: (data, sink) {
-    if (data['type'] == 'data') {
-      sink.add(data['data']);
-    } else if (data['type'] == 'error') {
-      sink.addError(CrossIsolateException.deserialize(data['error']));
-    } else {
-      assert(data['type'] == 'done');
-      sink.close();
-      subscription.cancel();
-    }
-  }));
-  subscription = transformed.listen(null, cancelOnError: cancelOnError);
-  return subscription;
-}
-
-/// Convert a [SendPort] whose opposite is waiting to send us a stream into a
-/// [Stream].
-///
-/// No stream data will actually be sent across the isolate boundary until
-/// someone subscribes to the returned stream.
-Stream _deserializeStream(SendPort sendPort) {
-  return callbackStream(() {
-    var receivePort = new ReceivePort();
-    sendPort.send(receivePort.sendPort);
-    return receivePort.transform(
-        const StreamTransformer(_deserializeTransformer));
-  });
 }
 
 /// Converts a serializable map into an [AssetId].
@@ -637,34 +533,6 @@ Location _deserializeLocation(Map location) {
   assert(location['type'] == 'fixed');
   return new FixedLocation(location['offset'], location['sourceUrl'],
       location['line'], location['column']);
-}
-
-// TODO(nweiz): add custom serialization code for assets that can be more
-// efficiently serialized.
-/// Converts [asset] into a serializable map.
-Map _serializeAsset(Asset asset) {
-  return {
-    'id': _serializeId(asset.id),
-    'stream': _serializeStream(asset.read())
-  };
-}
-
-/// Converts [stream] into a [SendPort] with which another isolate can request
-/// the data from [stream].
-SendPort _serializeStream(Stream stream) {
-  var receivePort = new ReceivePort();
-  receivePort.first.then((sendPort) {
-    stream.listen((data) => sendPort.send({'type': 'data', 'data': data}),
-        onDone: () => sendPort.send({'type': 'done'}),
-        onError: (error, stackTrace) {
-      sendPort.send({
-        'type': 'error',
-        'error': CrossIsolateException.serialize(error, stackTrace)
-      });
-    });
-  });
-
-  return receivePort.sendPort;
 }
 
 /// Converts [id] into a serializable map.

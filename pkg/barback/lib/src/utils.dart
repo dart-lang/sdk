@@ -196,3 +196,22 @@ Stream futureStream(Future<Stream> future) {
   });
   return controller.stream;
 }
+
+/// Returns a [Stream] that will emit the same values as the stream returned by
+/// [callback].
+///
+/// [callback] will only be called when the returned [Stream] gets a subscriber.
+Stream callbackStream(Stream callback()) {
+  var subscription;
+  var controller;
+  controller = new StreamController(onListen: () {
+    subscription = callback().listen(controller.add,
+        onError: controller.addError,
+        onDone: controller.close);
+  },
+      onCancel: () => subscription.cancel(),
+      onPause: () => subscription.pause(),
+      onResume: () => subscription.resume(),
+      sync: true);
+  return controller.stream;
+}

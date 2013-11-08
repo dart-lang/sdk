@@ -7,8 +7,10 @@ library barback.test.asset_test;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:barback/barback.dart';
+import 'package:barback/src/internal_asset.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 
@@ -215,4 +217,52 @@ main() {
       });
     });
   });
+
+  group("across isolates", () {
+    getBytesFromIsolate(Asset asset) {
+      var port = new ReceivePort();
+      return Isolate.spawn(_getAssetBytes, {
+        'asset': serializeAsset(asset),
+        'replyTo': port.sendPort
+      }).then((_) => port.first);
+    }
+
+    test("gets the UTF-8-encoded string for a string asset", () {
+      var asset = new Asset.fromString(id, "çøñ†éℵ™");
+      expect(getBytesFromIsolate(asset),
+          completion(equals(UTF8.encode("çøñ†éℵ™"))));
+    });
+
+    test("gets the raw bytes for a byte asset", () {
+      var asset = new Asset.fromBytes(id, binaryContents);
+      expect(getBytesFromIsolate(asset),
+          completion(equals(binaryContents)));
+    });
+
+    test("gets the raw bytes for a binary file", () {
+      var asset = new Asset.fromPath(id, binaryFilePath);
+      expect(getBytesFromIsolate(asset),
+          completion(equals(binaryContents)));
+    });
+
+    test("gets the raw bytes for a text file", () {
+      var asset = new Asset.fromPath(id, textFilePath);
+      expect(getBytesFromIsolate(asset),
+          completion(equals(UTF8.encode("çøñ†éℵ™"))));
+    });
+
+    test("gets the raw bytes for a stream", () {
+      var asset = new Asset.fromStream(id,
+          new Stream.fromFuture(new Future.value(UTF8.encode("çøñ†éℵ™"))));
+      expect(getBytesFromIsolate(asset),
+          completion(equals(UTF8.encode("çøñ†éℵ™"))));
+    });
+  });
+}
+
+void _getAssetBytes(message) {
+  var asset = deserializeAsset(message['asset']);
+  var builder = asset.read().fold(new BytesBuilder(),
+      (builder, chunk) => builder..add(chunk));
+  builder.then((builder) => message['replyTo'].send(builder.takeBytes()));
 }
