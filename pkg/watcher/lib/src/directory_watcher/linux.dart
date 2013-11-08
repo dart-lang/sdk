@@ -82,7 +82,7 @@ class _LinuxDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   Future _waitUntilReady() {
     return Future.wait(_subWatchers.values.map((watcher) => watcher.ready))
         .then((_) {
-      if (_subWatchers.values.every((watcher) => watcher.isReady)) return;
+      if (_subWatchers.values.every((watcher) => watcher.isReady)) return null;
       return _waitUntilReady();
     });
   }
