@@ -2217,6 +2217,7 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
+  __ popq(PP);  // Restore caller's pool pointer.
   __ LeaveFrame();
   __ ret();
   __ Bind(&fail);
