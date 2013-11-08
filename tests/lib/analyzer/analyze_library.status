@@ -21,7 +21,6 @@ lib/_internal/compiler/samples/leap/request_cache: CompileTimeError
 lib/_internal/dartdoc/bin/dartdoc: CompileTimeError
 lib/_internal/dartdoc/lib/dartdoc: CompileTimeError
 lib/_internal/dartdoc/lib/src/dartdoc/utils: CompileTimeError
-lib/_internal/dartdoc/lib/src/export_map: CompileTimeError
 lib/_internal/dartdoc/lib/universe_serializer: CompileTimeError
 lib/_internal/pub/bin/pub: CompileTimeError
 lib/_internal/pub/lib/src/barback: CompileTimeError
