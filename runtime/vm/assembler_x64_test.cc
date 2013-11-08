@@ -1625,13 +1625,11 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
-  __ EnterDartFrame(0);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ negateps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
-  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1644,13 +1642,11 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
-  __ EnterDartFrame(0);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ absps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
-  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1663,11 +1659,9 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
-  __ EnterDartFrame(0);
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
-  __ LeaveFrameWithPP();
   __ ret();
 }
 
@@ -1784,7 +1778,8 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
     uint32_t d;
   } constant1 =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  __ EnterDartFrame(0);
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)), PP);
   __ movups(XMM9, Address(RAX, 0));
   __ notps(XMM9);
@@ -1792,7 +1787,7 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM0);
   __ popq(RAX);
-  __ LeaveFrameWithPP();
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -2189,7 +2184,9 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
-  __ EnterDartFrame(0);
+  __ EnterFrame(0);
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ LoadObject(RAX, obj, PP);
   __ CompareObject(RAX, obj, PP);
   __ j(NOT_EQUAL, &fail);
@@ -2211,11 +2208,12 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ CompareObject(RCX, smi, PP);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
-  __ LeaveFrameWithPP();
+  __ LeaveDartFrame();
   __ ret();
   __ Bind(&fail);
   __ movl(RAX, Immediate(0));  // Fail.
-  __ LeaveFrameWithPP();
+  __ popq(PP);  // Restore caller's pool pointer.
+  __ LeaveFrame();
   __ ret();
 }
 
@@ -2426,14 +2424,15 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
 
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ EnterDartFrame(0);
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ pushq(CTX);
   __ movq(CTX, RDI);
   __ StoreIntoObject(RDX,
                      FieldAddress(RDX, GrowableObjectArray::data_offset()),
                      RSI);
   __ popq(CTX);
-  __ LeaveFrameWithPP();
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -2547,9 +2546,7 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
-  __ EnterDartFrame(0);
   __ DoubleAbs(XMM0);
-  __ LeaveFrameWithPP();
   __ ret();
 }
 

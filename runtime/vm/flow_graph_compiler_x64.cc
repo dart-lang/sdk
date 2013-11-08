@@ -977,7 +977,7 @@ void FlowGraphCompiler::CopyParameters() {
         ICData::New(function, Symbols::Call(), Object::empty_array(),
                     Isolate::kNoDeoptId, kNumArgsChecked));
     __ LoadObject(RBX, ic_data, PP);
-    __ LeaveFrameWithPP();  // The arguments are still on the stack.
+    __ LeaveDartFrame();  // The arguments are still on the stack.
     __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
     __ int3();
@@ -1176,7 +1176,7 @@ void FlowGraphCompiler::CompileGraph() {
             ICData::New(function, name, Object::empty_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(RBX, ic_data, PP);
-        __ LeaveFrameWithPP();  // The arguments are still on the stack.
+        __ LeaveDartFrame();  // The arguments are still on the stack.
         __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
         __ int3();

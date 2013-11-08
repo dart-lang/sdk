@@ -61,21 +61,24 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   ASSERT(visitor != NULL);
   NoGCScope no_gc;
-  RawObject** first = reinterpret_cast<RawObject**>(sp());
-  RawObject** last = reinterpret_cast<RawObject**>(
-      fp() + (kFirstLocalSlotFromFp * kWordSize));
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
     // Visit the code object.
     RawObject* raw_code = code.raw();
     visitor->VisitPointer(&raw_code);
-    // Visit stack based on stack maps.
+
+    // Optimized frames have a stack map. We need to visit the frame based
+    // on the stack map.
     Array maps;
     maps = Array::null();
     Stackmap map;
     map = code.GetStackmap(pc(), &maps, &map);
     if (!map.IsNull()) {
+      RawObject** first = reinterpret_cast<RawObject**>(sp());
+      RawObject** last = reinterpret_cast<RawObject**>(
+          fp() + (kFirstLocalSlotFromFp * kWordSize));
+
       // A stack map is present in the code object, use the stack map to
       // visit frame slots which are marked as having objects.
       //
@@ -108,9 +111,22 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // The last slot can be one slot (but not more) past the last slot
       // in the case that all slots were covered by the stack map.
       ASSERT((last + 1) >= first);
+      visitor->VisitPointers(first, last);
+
+      // Now visit other slots which might be part of the calling convention.
+      first = reinterpret_cast<RawObject**>(
+          fp() + ((kFirstLocalSlotFromFp + 1) * kWordSize));
+      last = reinterpret_cast<RawObject**>(
+          fp() + (kFirstObjectSlotFromFp * kWordSize));
+      visitor->VisitPointers(first, last);
+      return;
     }
   }
-  // Each slot between the first and last included are tagged objects.
+  // For normal unoptimized Dart frames and Stub frames each slot
+  // between the first and last included are tagged objects.
+  RawObject** first = reinterpret_cast<RawObject**>(sp());
+  RawObject** last = reinterpret_cast<RawObject**>(
+      fp() + (kFirstObjectSlotFromFp * kWordSize));
   visitor->VisitPointers(first, last);
 }
 

@@ -16,19 +16,23 @@ Callee frame   | ...                |
                | saved RBP          |    (RBP of current frame)
                | saved PC           |    (PC of current frame)
                +--------------------+
-Current frame  | ...                | <- RSP of current frame
-               | first local        |
-               | caller's PP        |
+Current frame  | ...               T| <- RSP of current frame
+               | first local       T|
+               | caller's PP       T|
                | PC marker          |    (current frame's code entry + offset)
                | caller's RBP       | <- RBP of current frame
                | caller's ret addr  |    (PC of caller frame)
                +--------------------+
 Caller frame   | last parameter     | <- RSP of caller frame
                |  ...               |
+
+               T against a slot indicates it needs to be traversed during GC.
 */
 
 static const int kDartFrameFixedSize = 4;  // PC marker, RBP, PP, PC.
 static const int kSavedPcSlotFromSp = -1;
+
+static const int kFirstObjectSlotFromFp = -2;  // Used by GC to traverse stack.
 
 static const int kFirstLocalSlotFromFp = -3;
 static const int kSavedCallerPpSlotFromFp = -2;
@@ -41,10 +45,9 @@ static const int kCallerSpSlotFromFp = 2;
 static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
-static const int kSavedContextSlotFromEntryFp = -10;
-static const int kExitLinkSlotFromEntryFp = -9;
+static const int kSavedContextSlotFromEntryFp = -9;
+static const int kExitLinkSlotFromEntryFp = -8;
 
 }  // namespace dart
 
 #endif  // VM_STACK_FRAME_X64_H_
-

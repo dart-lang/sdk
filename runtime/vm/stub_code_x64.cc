@@ -260,7 +260,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ popq(RAX);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
 
   __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
@@ -281,7 +281,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor array.
   __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
 }
@@ -323,7 +323,7 @@ static void PushArgumentsArray(Assembler* assembler) {
 //       called, the stub accesses the receiver from this location directly
 //       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame();
   __ PushObject(Object::null_object(), PP);  // Space for the return value.
 
   // Push the receiver as an argument.  Load the smi-tagged argument
@@ -345,7 +345,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // Remove arguments.
   __ Drop(4);
   __ popq(RAX);  // Get result into RAX.
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -418,9 +418,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ movq(RBX, Address(RBP, saved_result_slot_from_fp * kWordSize));
   }
 
-  // There is a Dart Frame on the stack. We just need the PP.
-  __ movq(PP, Address(RBP, -2 * kWordSize));
-  __ LeaveFrame();
+  // There is a Dart Frame on the stack. We must restore PP and leave frame.
+  __ LeaveDartFrame();
 
   __ popq(RCX);   // Preserve return address.
   __ movq(RSP, RBP);  // Discard optimized frame.
@@ -444,9 +443,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
-  // There is a Dart Frame on the stack. We just need the PP.
-  __ movq(PP, Address(RBP, -2 * kWordSize));
-  __ LeaveFrame();
+  // There is a Dart Frame on the stack. We must restore PP and leave frame.
+  __ LeaveDartFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
@@ -466,7 +464,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ popq(RAX);  // Restore result.
     __ Drop(1);  // Workaround for dropped stack slot during GC.
   }
-  __ LeaveFrame();
+  __ LeaveStubFrame();
 
   __ popq(RCX);  // Pop return address.
   __ addq(RSP, RBX);  // Remove materialization arguments.
@@ -493,7 +491,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame();
   // Load the receiver into RAX.  The argument count in the arguments
   // descriptor in R10 is a smi.
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -518,7 +516,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popq(RAX);  // Return value from the runtime call (instructions).
   __ popq(R10);  // Restore arguments descriptor.
   __ popq(RBX);  // Restore IC data.
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
 
   Label lookup;
   __ CompareObject(RAX, Object::null_object(), PP);
@@ -659,7 +657,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popq(RAX);  // Pop element type argument.
   __ popq(R10);  // Pop array length argument.
   __ popq(RAX);  // Pop return value from return slot.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -717,7 +715,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ movq(RAX, FieldAddress(RBX, Function::code_offset()));
 
   // Remove the stub frame as we are about to jump to the closure function.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
 
   __ Bind(&function_compiled);
   // RAX: Code.
@@ -753,7 +751,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ popq(RAX);  // Get result into RAX.
 
   // Remove the stub frame as we are about to return.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -767,16 +765,13 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 //   RCX : new context containing the current isolate pointer.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
-  __ EnterStubFrameWithPP();
+  __ EnterFrame(0);
 
   // At this point, the stack looks like:
-  // | saved RC15/PP                                  | <-- RSP / TOS
-  // | "saved PC area" = 0                            |
   // | saved RBP                                      | <-- RBP
   // | saved PC (return to DartEntry::InvokeFunction) |
 
-  // The old frame pointer, the return address, the old R15 (for PP).
-  const intptr_t kInitialOffset = 3;
+  const intptr_t kInitialOffset = 1;
   // Save arguments descriptor array and new context.
   const intptr_t kArgumentsDescOffset = -(kInitialOffset) * kWordSize;
   __ pushq(RSI);
@@ -788,7 +783,12 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(R12);
   __ pushq(R13);
   __ pushq(R14);
-  // R15 is already saved above by EnterStubFrameWithPP.
+  __ pushq(R15);
+
+  // We now load the pool pointer(PP) as we are about to invoke dart code and we
+  // could potentially invoke some intrinsic functions which need the PP to be
+  // set up.
+  __ LoadPoolPointer(PP);
 
   // If any additional (or fewer) values are pushed, the offsets in
   // kExitLinkSlotFromEntryFp and kSavedContextSlotFromEntryFp will need to be
@@ -810,7 +810,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // StackFrameIterator reads the top exit frame info saved in this frame.
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -9);
+  ASSERT(kExitLinkSlotFromEntryFp == -8);
   __ movq(RAX, Address(R8, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -822,7 +822,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // EntryFrame::SavedContext reads the context saved in this frame.
   // The constant kSavedContextSlotFromEntryFp must be kept in sync with
   // the code below.
-  ASSERT(kSavedContextSlotFromEntryFp == -10);
+  ASSERT(kSavedContextSlotFromEntryFp == -9);
   __ movq(RAX, Address(R8, Isolate::top_context_offset()));
   __ pushq(RAX);
 
@@ -880,14 +880,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), RDX);
 
   // Restore C++ ABI callee-saved registers.
-  // R15 will be restored below by LeaveFrameWithPP.
+  __ popq(R15);
   __ popq(R14);
   __ popq(R13);
   __ popq(R12);
   __ popq(RBX);
 
   // Restore the frame pointer.
-  __ LeaveFrameWithPP();
+  __ LeaveFrame();
 
   __ ret();
 }
@@ -1011,7 +1011,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ popq(RAX);  // Pop the new context object.
   // RAX: new object
   // Restore the frame pointer.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1228,7 +1228,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movq(RDX, Address(RSP, kInstantiatorTypeArgumentsOffset));
   }
   // Create a stub frame.
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame(true);  // Uses PP to access class object.
   __ pushq(R12);  // Setup space on stack for return value.
   __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
@@ -1245,7 +1245,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ popq(RAX);  // Pop result (newly allocated object).
   // RAX: new object
   // Restore the frame pointer.
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1264,7 +1264,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const Class& cls = Class::ZoneHandle(func.signature_class());
   const bool has_type_arguments = cls.NumTypeArguments() > 0;
 
-  __ EnterStubFrameWithPP();  // Uses pool pointer to refer to function.
+  __ EnterStubFrame(true);  // Uses pool pointer to refer to function.
   __ LoadObject(R12, Object::null_object(), PP);
   const intptr_t kTypeArgumentsOffset = 4 * kWordSize;
   const intptr_t kReceiverOffset = 5 * kWordSize;
@@ -1353,7 +1353,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Done allocating and initializing the instance.
     // RAX: new object.
     __ addq(RAX, Immediate(kHeapObjectTag));
-    __ LeaveFrameWithPP();
+    __ LeaveStubFrame();
     __ ret();
 
     __ Bind(&slow_case);
@@ -1388,7 +1388,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ popq(RAX);  // Pop the result.
   // RAX: New closure object.
   // Restore the calling frame.
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1424,7 +1424,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   __ popq(RAX);  // Get result into RAX.
 
   // Remove the stub frame as we are about to return.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1445,7 +1445,7 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ popq(RAX);          // Discard argument;
     __ popq(ic_reg);       // Restore.
     __ popq(func_reg);     // Restore.
-    __ LeaveFrame();
+    __ LeaveStubFrame();
   }
   __ incq(FieldAddress(func_reg, Function::usage_counter_offset()));
 }
@@ -1499,7 +1499,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ pushq(RBX);
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ popq(RBX);
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   // Load arguments descriptor into R10.
@@ -1580,7 +1580,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(RAX);  // Pop returned code object into RAX (null if not found).
   __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   Label call_target_function;
   __ cmpq(RAX, R12);
   __ j(NOT_EQUAL, &call_target_function, Assembler::kNearJump);
@@ -1616,7 +1616,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ popq(RAX);  // Restore function.
     __ popq(RBX);  // Restore IC data array.
     __ popq(R10);  // Restore arguments descriptor array.
-    __ LeaveFrame();
+    __ LeaveStubFrame();
     __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
     __ Bind(&is_compiled);
   }
@@ -1746,7 +1746,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ pushq(RBX);  // Preserve IC data object.
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ popq(RBX);
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   // RBX: IC data object (preserved).
@@ -1781,7 +1781,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ popq(RAX);  // Discard argument.
   __ popq(RBX);  // Restore IC data object.
   __ popq(R13);  // Restore target function.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ movq(RAX, FieldAddress(R13, Function::code_offset()));
 
   __ Bind(&target_is_compiled);
@@ -1814,7 +1814,7 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
   __ popq(RAX);  // Restore function.
   __ popq(RCX);  // Restore IC data array.
   __ popq(RDX);  // Restore arguments descriptor array.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1822,7 +1822,7 @@ void StubCode::GenerateCompileFunctionRuntimeCallStub(Assembler* assembler) {
 //  RBX, R10: May contain arguments to runtime stub.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame();
   // Preserve runtime args.
   __ pushq(RBX);
   __ pushq(R10);
@@ -1834,7 +1834,7 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ popq(RAX);  // Address of original.
   __ popq(R10);  // Restore arguments.
   __ popq(RBX);
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
   __ jmp(RAX);   // Jump to original stub.
 }
 
@@ -1849,7 +1849,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
   __ popq(RAX);  // Code object.
   __ popq(RBX);  // Restore IC data.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
 
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
@@ -1863,14 +1863,13 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame();
   __ pushq(RAX);
   __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
   __ popq(RAX);
-  __ LeaveFrameWithPP();
-
+  __ LeaveStubFrame();
   __ popq(R11);  // discard return address of call to this stub.
-  __ LeaveFrameWithPP();
+  __ LeaveDartFrame();
   __ ret();
 }
 
@@ -1882,7 +1881,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ pushq(RBX);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
   __ popq(RBX);
-  __ LeaveFrame();
+  __ LeaveStubFrame();
 
   // Find out which dispatch stub to call.
   Label test_two, test_three, test_four;
@@ -2044,7 +2043,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // RDI: function to be reoptimized.
 // R10: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame();
   __ LoadObject(R12, Object::null_object(), PP);
   __ pushq(R10);
   __ pushq(R12);  // Setup space on stack for return value.
@@ -2055,7 +2054,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ popq(R10);  // Restore argument descriptor.
   __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
   __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
 }
@@ -2141,7 +2140,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ j(EQUAL, &not_stepping, Assembler::kNearJump);
   __ EnterStubFrame();
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   const Register left = RAX;

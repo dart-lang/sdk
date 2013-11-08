@@ -716,7 +716,6 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
-  void LeaveFrameWithPP();
   void ReturnPatchable();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
@@ -776,11 +775,11 @@ class Assembler : public ValueObject {
   // to this frame.
   // The dart frame layout is as follows:
   //   ....
-  //   ret PC
-  //   saved RBP     <=== RBP
-  //   pc (used to derive the RawInstruction Object of the dart code)
-  //   saved PP
   //   locals space  <=== RSP
+  //   saved PP
+  //   pc (used to derive the RawInstruction Object of the dart code)
+  //   saved RBP     <=== RBP
+  //   ret PC
   //   .....
   // This code sets this up with the sequence:
   //   pushq rbp
@@ -793,6 +792,7 @@ class Assembler : public ValueObject {
   void EnterDartFrame(intptr_t frame_size);
   void EnterDartFrameWithInfo(intptr_t frame_size,
                               Register new_pp, Register new_pc);
+  void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -802,18 +802,18 @@ class Assembler : public ValueObject {
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
   // The stub frame layout is as follows:
-  //   ....
-  //   ret PC
-  //   saved RBP
+  //   ....       <=== RSP
   //   pc (used to derive the RawInstruction Object of the stub)
+  //   saved RBP  <=== RBP
+  //   ret PC
   //   .....
   // This code sets this up with the sequence:
   //   pushq rbp
   //   movq rbp, rsp
   //   pushq immediate(0)
   //   .....
-  void EnterStubFrame();
-  void EnterStubFrameWithPP();
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in dart frame prologues
   // to set up the frame and save a PC which can be used to figure out the

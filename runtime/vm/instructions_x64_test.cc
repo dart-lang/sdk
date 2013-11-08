@@ -27,21 +27,29 @@ ASSEMBLER_TEST_RUN(Call, test) {
 }
 
 
+static intptr_t prologue_code_size = -1;
+
+
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ EnterDartFrame(0);  // 20 bytes
+  ASSERT(assembler->CodeSize() == 0);
+  __ pushq(PP);
+  __ LoadPoolPointer(PP);
+  prologue_code_size = assembler->CodeSize();
   __ JmpPatchable(&StubCode::InstanceFunctionLookupLabel(), PP);
   __ JmpPatchable(&StubCode::AllocateArrayLabel(), PP);
-  __ LeaveFrameWithPP();
+  __ popq(PP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Jump, test) {
-  JumpPattern jump1(test->entry() + 20, test->code());
+  ASSERT(prologue_code_size != -1);
+  JumpPattern jump1(test->entry() + prologue_code_size, test->code());
   jump1.IsValid();
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump1.TargetAddress());
-  JumpPattern jump2(test->entry() + jump1.pattern_length_in_bytes() + 20,
+  JumpPattern jump2((test->entry() +
+                     jump1.pattern_length_in_bytes() + prologue_code_size),
                     test->code());
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump2.TargetAddress());

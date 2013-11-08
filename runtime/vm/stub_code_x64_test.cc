@@ -45,7 +45,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const Object& result = Object::ZoneHandle();
   const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   ASSERT(context.isolate() == Isolate::Current());
-  __ EnterStubFrameWithPP();
+  __ EnterStubFrame(true);
   __ LoadObject(CTX, context, PP);
   __ PushObject(result, PP);  // Push Null object for return value.
   __ PushObject(smi1, PP);  // Push argument 1 smi1.
@@ -54,7 +54,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   __ CallRuntime(kTestSmiSubRuntimeEntry, argc);  // Call SmiSub runtime func.
   __ AddImmediate(RSP, Immediate(argc * kWordSize), PP);
   __ popq(RAX);  // Pop return value from return slot.
-  __ LeaveFrameWithPP();
+  __ LeaveStubFrame();
   __ ret();
 }
 
