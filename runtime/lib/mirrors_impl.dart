@@ -419,8 +419,6 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   final bool _isGenericDeclaration;
   Type _instantiator;
 
-  TypeMirror _instantiateInContextOf(declaration) => this;
-
   bool get hasReflectedType => !_isGenericDeclaration;
   Type get reflectedType {
     if (!hasReflectedType) {
@@ -783,8 +781,8 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
-      _returnType = reflectType(_FunctionTypeMirror_return_type(_reflectee));
-      _returnType = _returnType._instantiateInContextOf(reflectType(_instantiator));
+      _returnType = reflectType(
+          _FunctionTypeMirror_return_type(_reflectee, _instantiator));
     }
     return _returnType;
   }
@@ -793,9 +791,6 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   List<ParameterMirror> get parameters {
     if (_parameters == null) {
       _parameters = _FunctionTypeMirror_parameters(_reflectee);
-      _parameters.forEach((p) {
-        p._type = p.type._instantiateInContextOf(reflectType(_instantiator));
-      });
       _parameters = new UnmodifiableListView(_parameters);
     }
     return _parameters;
@@ -814,7 +809,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
   MethodMirror _FunctionTypeMirror_call_method(reflectee)
       native "FunctionTypeMirror_call_method";
 
-  static Type _FunctionTypeMirror_return_type(reflectee)
+  static Type _FunctionTypeMirror_return_type(reflectee, instantiator)
       native "FunctionTypeMirror_return_type";
 
   List<ParameterMirror> _FunctionTypeMirror_parameters(reflectee)
@@ -908,22 +903,6 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 
   static Type _TypeVariableMirror_upper_bound(reflectee)
       native "TypeVariableMirror_upper_bound";
-
-  static Type _TypeVariableMirror_instantiate_from(reflectee, instantiator)
-      native "TypeVariableMirror_instantiate_from";
-
-  TypeMirror _instantiateInContextOf(declaration) {
-    var instantiator = declaration;
-    while (instantiator is MethodMirror) instantiator = instantiator.owner;
-    if (instantiator is LibraryMirror) return this;
-    if (!(instantiator is ClassMirror || instantiator is TypedefMirror))
-      throw "UNREACHABLE";
-    if (instantiator.isOriginalDeclaration) return this;
-
-    return reflectType(
-        _TypeVariableMirror_instantiate_from(_reflectee,
-                                             instantiator._reflectedType));
-  }
 }
 
 
@@ -1004,24 +983,10 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
     return _typeArguments;
   }
 
-  TypeMirror _instantiateInContextOf(declaration) {
-    var instantiator = declaration;
-    while (instantiator is MethodMirror) instantiator = instantiator.owner;
-    if (instantiator is LibraryMirror) return this;
-    if (!(instantiator is ClassMirror || instantiator is TypedefMirror))
-      throw "UNREACHABLE";
-
-    return reflectType(
-        _nativeInstatniateFrom(_reflectedType, instantiator._reflectedType));
-  }
-
   String toString() => "TypedefMirror on '${_n(simpleName)}'";
 
   static _nativeReferent(reflectedType)
       native "TypedefMirror_referent";
-
-  static _nativeInstatniateFrom(reflectedType, instantiator)
-      native "TypedefMirror_instantiate_from";
 
   static _nativeDeclaration(reflectedType)
       native "TypedefMirror_declaration";
@@ -1049,6 +1014,8 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
 
   // Always false for libraries.
   final bool isTopLevel = false;
+
+  Type get _instantiator => null;
 
   SourceLocation get location {
     throw new UnimplementedError('LibraryMirror.location is not implemented');
@@ -1208,15 +1175,21 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
     throw new UnimplementedError('MethodMirror.location is not implemented');
   }
 
+  Type get _instantiator {
+    var o = owner;
+    while (o is MethodMirror) o = o.owner;
+    return o._instantiator;
+  }
+
   TypeMirror _returnType = null;
   TypeMirror get returnType {
     if (_returnType == null) {
       if (isConstructor) {
         _returnType = owner;
       } else {
-        _returnType = reflectType(_MethodMirror_return_type(_reflectee));
+        _returnType = reflectType(
+            _MethodMirror_return_type(_reflectee, _instantiator));
       }
-      _returnType = _returnType._instantiateInContextOf(owner);
     }
     return _returnType;
   }
@@ -1276,7 +1249,7 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
   static dynamic _MethodMirror_owner(reflectee)
       native "MethodMirror_owner";
 
-  static dynamic _MethodMirror_return_type(reflectee)
+  static dynamic _MethodMirror_return_type(reflectee, instantiator)
       native "MethodMirror_return_type";
 
   List<ParameterMirror> _MethodMirror_parameters(reflectee)
@@ -1308,18 +1281,21 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
     throw new UnimplementedError('VariableMirror.location is not implemented');
   }
 
+  Type get _instantiator {
+    return owner._instantiator;
+  }
+
   TypeMirror _type;
   TypeMirror get type {
     if (_type == null) {
-       _type = reflectType(_VariableMirror_type(_reflectee));
-       _type = _type._instantiateInContextOf(owner);
+       _type = reflectType(_VariableMirror_type(_reflectee, _instantiator));
     }
     return _type;
   }
 
   String toString() => "VariableMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  static _VariableMirror_type(reflectee)
+  static _VariableMirror_type(reflectee, instantiator)
       native "VariableMirror_type";
 }
 
@@ -1361,22 +1337,28 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
   bool get hasDefaultValue => _defaultValueReflectee != null;
 
   List<InstanceMirror> get metadata {
-    if ( _unmirroredMetadata == null) return emptyList;
+    if (_unmirroredMetadata == null) return emptyList;
     return new UnmodifiableListView(_unmirroredMetadata.map(reflect));
+  }
+
+  Type get _instantiator {
+    var o = owner;
+    while (o is MethodMirror) o = o.owner;
+    return o._instantiator;
   }
 
   TypeMirror _type = null;
   TypeMirror get type {
     if (_type == null) {
-      _type = reflectType(_ParameterMirror_type(_reflectee, _position));
-      _type = _type._instantiateInContextOf(owner);
+      _type = reflectType(
+          _ParameterMirror_type(_reflectee, _position, _instantiator));
     }
     return _type;
   }
 
   String toString() => "ParameterMirror on '${_n(simpleName)}'";
 
-  static Type _ParameterMirror_type(_reflectee, _position)
+  static Type _ParameterMirror_type(_reflectee, _position, instantiator)
       native "ParameterMirror_type";
 }
 
@@ -1414,8 +1396,6 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   int get hashCode => simpleName.hashCode;
 
   String toString() => "TypeMirror on '${_n(simpleName)}'";
-
-  TypeMirror _instantiateInContextOf(declaration) => this;
 }
 
 class _Mirrors {

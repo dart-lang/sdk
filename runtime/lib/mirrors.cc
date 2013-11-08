@@ -841,13 +841,15 @@ static RawInstance* LookupFunctionOrFieldInLibrary(const Library& library,
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
   ASSERT(type.IsFinalized());
-  ASSERT(instantiator.IsFinalized());
   ASSERT(!type.IsMalformed());
-  ASSERT(!instantiator.IsMalformed());
 
   if (type.IsInstantiated()) {
     return type.Canonicalize();
   }
+
+  ASSERT(!instantiator.IsNull());
+  ASSERT(instantiator.IsFinalized());
+  ASSERT(!instantiator.IsMalformed());
 
   const AbstractTypeArguments& type_args =
       AbstractTypeArguments::Handle(instantiator.arguments());
@@ -982,12 +984,16 @@ DEFINE_NATIVE_ENTRY(FunctionTypeMirror_parameters, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 1) {
+DEFINE_NATIVE_ENTRY(FunctionTypeMirror_return_type, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType,
+                               instantiator,
+                               arguments->NativeArgAt(1));
   const Class& cls = Class::Handle(ref.GetClassReferent());
   const Function& func = Function::Handle(CallMethod(cls));
   ASSERT(!func.IsNull());
-  return func.result_type();
+  AbstractType& type = AbstractType::Handle(func.result_type());
+  return InstantiateType(type, instantiator);
 }
 
 
@@ -1299,25 +1305,6 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
   return param.bound();
 }
-
-
-DEFINE_NATIVE_ENTRY(TypeVariableMirror_instantiate_from, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(TypeParameter, param, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, instantiator, arguments->NativeArgAt(1));
-  ASSERT(param.parameterized_class() == instantiator.type_class());
-  return InstantiateType(param, instantiator);
-}
-
-
-DEFINE_NATIVE_ENTRY(TypedefMirror_instantiate_from, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, instantiator, arguments->NativeArgAt(1));
-  const Class& cls = Class::Handle(type.type_class());
-  // We represent typedefs as non-canonical signature classes.
-  ASSERT(cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass());
-  return InstantiateType(type, instantiator);
-}
-
 
 
 DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {
@@ -1901,12 +1888,14 @@ DEFINE_NATIVE_ENTRY(MethodMirror_parameters, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 1) {
+DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
+  GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
   // We handle constructors in Dart code.
   ASSERT(!func.IsConstructor());
-  return func.result_type();
+  const AbstractType& type = AbstractType::Handle(func.result_type());
+  return InstantiateType(type, instantiator);
 }
 
 
@@ -1952,18 +1941,23 @@ DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(ParameterMirror_type, 2) {
+DEFINE_NATIVE_ENTRY(ParameterMirror_type, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, pos, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(2));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
-  return func.ParameterTypeAt(func.NumImplicitParameters() + pos.Value());
+  const AbstractType& type = AbstractType::Handle(
+      func.ParameterTypeAt(func.NumImplicitParameters() + pos.Value()));
+  return InstantiateType(type, instantiator);
 }
 
 
-DEFINE_NATIVE_ENTRY(VariableMirror_type, 1) {
+DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Field& field = Field::Handle(ref.GetFieldReferent());
-  return field.type();
+  GET_NATIVE_ARGUMENT(AbstractType, instantiator, arguments->NativeArgAt(1));
+  const AbstractType& type = AbstractType::Handle(field.type());
+  return InstantiateType(type, instantiator);
 }
 
 }  // namespace dart
