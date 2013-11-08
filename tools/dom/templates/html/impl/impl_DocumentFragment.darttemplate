@@ -43,6 +43,17 @@ $endif
     children.addAll(copy);
   }
 
+  /**
+   * Finds all descendant elements of this document fragment that match the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = document.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 

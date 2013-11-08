@@ -19,6 +19,7 @@ $!MEMBERS
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
+   *
    *     var items = document.querySelectorAll('.itemClassName');
    *
    * For details about CSS selector syntax, see the

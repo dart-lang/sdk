@@ -1519,12 +1519,30 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * The current default path of this canvas context, if there is one.
+   *
+   * ## Other resources
+   *
+   * * [Current default path]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
+   * from WHATWG.
+   */
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
   @Experimental()
   Path get currentPath native "CanvasRenderingContext2D_currentPath_Getter";
 
+  /**
+   * The current default path of this canvas context, if there is one.
+   *
+   * ## Other resources
+   *
+   * * [Current default path]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
+   * from WHATWG.
+   */
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
@@ -1563,11 +1581,31 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
 
+  /**
+   * Whether images and patterns on this canvas will be smoothed when this
+   * canvas is scaled.
+   *
+   * ## Other resources
+   *
+   * * [Image smoothing]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
+   * from WHATWG.
+   */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
   bool get imageSmoothingEnabled native "CanvasRenderingContext2D_imageSmoothingEnabled_Getter";
 
+  /**
+   * Whether images and patterns on this canvas will be smoothed when this
+   * canvas is scaled.
+   *
+   * ## Other resources
+   *
+   * * [Image smoothing]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
+   * from WHATWG.
+   */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1669,6 +1707,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void set textBaseline(String value) native "CanvasRenderingContext2D_textBaseline_Setter";
 
+  /**
+   * The ratio between this canvas' backing store dimensions and the canvas'
+   * logical dimensions.
+   *
+   * ## Other resources
+   *
+   * * [High DPI Canvas tutorial]
+   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.
+   */
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7688,6 +7735,7 @@ class Document extends Node
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
+   *
    *     var element1 = document.querySelector('.className');
    *     var element2 = document.querySelector('#id');
    *
@@ -8034,6 +8082,7 @@ class Document extends Node
    * save typing a few characters.
    *
    * [selectors] should be a string using CSS selector syntax.
+   *
    *     var items = document.querySelectorAll('.itemClassName');
    *
    * For details about CSS selector syntax, see the
@@ -8117,6 +8166,17 @@ class DocumentFragment extends Node implements ParentNode {
     children.addAll(copy);
   }
 
+  /**
+   * Finds all descendant elements of this document fragment that match the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = document.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   ElementList querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
@@ -8181,6 +8241,18 @@ class DocumentFragment extends Node implements ParentNode {
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * Finds the first descendant element of this document fragment that matches
+   * the specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var element1 = fragment.querySelector('.className');
+   *     var element2 = fragment.querySelector('#id');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
   @DomName('DocumentFragment.querySelector')
   @DocsEditable()
   Element querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
@@ -9847,6 +9919,9 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    * [selectors] should be a string using CSS selector syntax.
    *
    *     var items = element.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
   ElementList querySelectorAll(String selectors) =>
@@ -11243,9 +11318,8 @@ abstract class Element extends Node implements ParentNode, ChildNode {
    *     // Gets the first descendant [ImageElement]
    *     var img = element.querySelector('img');
    *
-   * See also:
-   *
-   * * [CSS Selectors](http://docs.webplatform.org/wiki/css/selectors)
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelector')
   @DocsEditable()
@@ -35780,8 +35854,42 @@ Element query(String relativeSelectors) => document.query(relativeSelectors);
 @Experimental()
 ElementList queryAll(String relativeSelectors) => document.queryAll(relativeSelectors);
 
-Element querySelector(String selector) => document.querySelector(selector);
-ElementList querySelectorAll(String selector) => document.querySelectorAll(selector);
+/**
+ * Finds the first descendant element of this document that matches the
+ * specified group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level
+ * [querySelector]
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     var element1 = document.querySelector('.className');
+ *     var element2 = document.querySelector('#id');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
+Element querySelector(String selectors) => document.querySelector(selectors);
+
+/**
+ * Finds all descendant elements of this document that match the specified
+ * group of selectors.
+ *
+ * Unless your webpage contains multiple documents, the top-level
+ * [querySelectorAll]
+ * method behaves the same as this method, so you should use it instead to
+ * save typing a few characters.
+ *
+ * [selectors] should be a string using CSS selector syntax.
+ *
+ *     var items = document.querySelectorAll('.itemClassName');
+ *
+ * For details about CSS selector syntax, see the
+ * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+ */
+ElementList querySelectorAll(String selectors) => document.querySelectorAll(selectors);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

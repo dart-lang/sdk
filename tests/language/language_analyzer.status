@@ -16,7 +16,6 @@ constructor_call_as_function_test/01: fail
 function_type_alias9_test/00: crash # Issue 11987
 
 # TBF: we should check conflicts not only for methods, but for accessors too
-override_field_test/02: fail
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 method_override8_test/03: Fail # Issue 11496
@@ -71,9 +70,6 @@ instance_call_wrong_argument_count_negative_test: fail
 
 # test issue 11590, runtime only negative test
 field_method4_negative_test: fail
-
-# test issue 11592, Function type alias (typedef) is not a constant
-first_class_types_constants_test: fail
 
 # test issue 11594, Reference to a not resolve identifier is static warning
 import_combinators_negative_test: fail
