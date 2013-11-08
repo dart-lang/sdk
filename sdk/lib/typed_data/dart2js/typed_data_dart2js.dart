@@ -30,6 +30,11 @@ class Endianness {
 }
 
 
+/**
+ * A sequence of bytes underlying a typed data object.
+ * Used to process large quantities of binary or numerical data
+ * more efficiently using a typed view.
+ */
 class ByteBuffer native "ArrayBuffer" {
   @JSName('byteLength')
   final int lengthInBytes;
@@ -47,17 +52,33 @@ const fetchLength = const JS_CONST(r'''
         : function(x) { return x.length; };
 ''');
 
+/**
+ * A typed view of a sequence of bytes.
+ */
 class TypedData native "ArrayBufferView" {
+  /**
+   * Returns the byte buffer associated with this object.
+   */
   @Creates('ByteBuffer')
   @Returns('ByteBuffer|Null')
   final ByteBuffer buffer;
 
+  /**
+   * Returns the length of this view, in bytes.
+   */
   @JSName('byteLength')
   final int lengthInBytes;
 
+  /**
+   * Returns the offset in bytes into the underlying byte buffer of this view.
+   */
   @JSName('byteOffset')
   final int offsetInBytes;
 
+  /**
+   * Returns the number of bytes in the representation of each element in this
+   * list.
+   */
   @JSName('BYTES_PER_ELEMENT')
   final int elementSizeInBytes;
 
@@ -102,15 +123,58 @@ List _ensureNativeList(List list) {
 }
 
 
+/**
+ * A fixed-length, random-access sequence of bytes that also provides random
+ * and unaligned access to the fixed-width integers and floating point
+ * numbers represented by those bytes.
+ * ByteData may be used to pack and unpack data from external sources
+ * (such as networks or files systems), and to process large quantities
+ * of numerical data more efficiently than would be possible
+ * with ordinary [List] implementations. ByteData can save space, by
+ * eliminating the need for object headers, and time, by eliminating the
+ * need for data copies. Finally, ByteData may be used to intentionally
+ * reinterpret the bytes representing one arithmetic type as another.
+ * For example this code fragment determine what 32-bit signed integer
+ * is represented by the bytes of a 32-bit floating point number:
+ *
+ *     var buffer = new Uint8List(8).buffer;
+ *     var bdata = new ByteData.view(buffer);
+ *     bdata.setFloat32(0, 3.04);
+ *     int huh = bdata.getInt32(0);
+ */
 class ByteData extends TypedData native "DataView" {
+  /**
+   * Creates a [ByteData] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory ByteData(int length) => _create1(length);
 
+  /**
+   * Creates an [ByteData] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [ByteData] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   */
   factory ByteData.view(ByteBuffer buffer,
                         [int byteOffset = 0, int byteLength]) =>
       byteLength == null
           ? _create2(buffer, byteOffset)
           : _create3(buffer, byteOffset, byteLength);
 
+  /**
+   * Returns the floating point number represented by the four bytes at
+   * the specified [byteOffset] in this object, in IEEE 754
+   * single-precision binary floating-point format (binary32).
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
   num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat32(byteOffset, endian._littleEndian);
 
@@ -120,6 +184,14 @@ class ByteData extends TypedData native "DataView" {
   @Returns('num')
   num _getFloat32(int byteOffset, [bool littleEndian]) native;
 
+  /**
+   * Returns the floating point number represented by the eight bytes at
+   * the specified [byteOffset] in this object, in IEEE 754
+   * double-precision binary floating-point format (binary64).
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
   num getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat64(byteOffset, endian._littleEndian);
 
@@ -127,6 +199,16 @@ class ByteData extends TypedData native "DataView" {
   @Returns('num')
   num _getFloat64(int byteOffset, [bool littleEndian]) native;
 
+  /**
+   * Returns the (possibly negative) integer represented by the two bytes at
+   * the specified [byteOffset] in this object, in two's complement binary
+   * form.
+   * The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
   int getInt16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getInt16(byteOffset, endian._littleEndian);
 
@@ -134,6 +216,16 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getInt16(int byteOffset, [bool littleEndian]) native;
 
+  /**
+   * Returns the (possibly negative) integer represented by the four bytes at
+   * the specified [byteOffset] in this object, in two's complement binary
+   * form.
+   * The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
   int getInt32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getInt32(byteOffset, endian._littleEndian);
 
@@ -141,12 +233,39 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getInt32(int byteOffset, [bool littleEndian]) native;
 
+  /**
+   * Returns the (possibly negative) integer represented by the eight bytes at
+   * the specified [byteOffset] in this object, in two's complement binary
+   * form.
+   * The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
   int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Int64 accessor not supported by dart2js.");
   }
 
+  /**
+   * Returns the (possibly negative) integer represented by the byte at the
+   * specified [byteOffset] in this object, in two's complement binary
+   * representation. The return value will be between -128 and 127, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * greater than or equal to the length of this object.
+   */
   int getInt8(int byteOffset) native;
 
+  /**
+   * Returns the positive integer represented by the two bytes starting
+   * at the specified [byteOffset] in this object, in unsigned binary
+   * form.
+   * The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
   int getUint16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getUint16(byteOffset, endian._littleEndian);
 
@@ -154,6 +273,13 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getUint16(int byteOffset, [bool littleEndian]) native;
 
+  /**
+   * Returns the positive integer represented by the four bytes starting
+   * at the specified [byteOffset] in this object, in unsigned binary
+   * form.
+   * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
+   *
+   */
   int getUint32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getUint32(byteOffset, endian._littleEndian);
 
@@ -161,58 +287,172 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getUint32(int byteOffset, [bool littleEndian]) native;
 
+  /**
+   * Returns the positive integer represented by the eight bytes starting
+   * at the specified [byteOffset] in this object, in unsigned binary
+   * form.
+   * The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
   int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
   }
 
+  /**
+   * Returns the positive integer represented by the byte at the specified
+   * [byteOffset] in this object, in unsigned binary form. The
+   * return value will be between 0 and 255, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * greater than or equal to the length of this object.
+   */
   int getUint8(int byteOffset) native;
 
+  /**
+   * Sets the four bytes starting at the specified [byteOffset] in this
+   * object to the IEEE 754 single-precision binary floating-point
+   * (binary32) representation of the specified [value].
+   *
+   * **Note that this method can lose precision.** The input [value] is
+   * a 64-bit floating point value, which will be converted to 32-bit
+   * floating point value by IEEE 754 rounding rules before it is stored.
+   * If [value] cannot be represented exactly as a binary32, it will be
+   * converted to the nearest binary32 value.  If two binary32 values are
+   * equally close, the one whose least significant bit is zero will be used.
+   * Note that finite (but large) values can be converted to infinity, and
+   * small non-zero values can be converted to zero.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
   void setFloat32(int byteOffset, num value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setFloat32(byteOffset, value, endian._littleEndian);
 
   @JSName('setFloat32')
   void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
 
+  /**
+   * Sets the eight bytes starting at the specified [byteOffset] in this
+   * object to the IEEE 754 double-precision binary floating-point
+   * (binary64) representation of the specified [value].
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
   void setFloat64(int byteOffset, num value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setFloat64(byteOffset, value, endian._littleEndian);
 
   @JSName('setFloat64')
   void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
 
+  /**
+   * Sets the two bytes starting at the specified [byteOffset] in this
+   * object to the two's complement binary representation of the specified
+   * [value], which must fit in two bytes. In other words, [value] must lie
+   * between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
   void setInt16(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setInt16(byteOffset, value, endian._littleEndian);
 
   @JSName('setInt16')
   void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
 
+  /**
+   * Sets the four bytes starting at the specified [byteOffset] in this
+   * object to the two's complement binary representation of the specified
+   * [value], which must fit in four bytes. In other words, [value] must lie
+   * between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
   void setInt32(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setInt32(byteOffset, value, endian._littleEndian);
 
   @JSName('setInt32')
   void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
+  /**
+   * Sets the eight bytes starting at the specified [byteOffset] in this
+   * object to the two's complement binary representation of the specified
+   * [value], which must fit in eight bytes. In other words, [value] must lie
+   * between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
   void setInt64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Int64 accessor not supported by dart2js.");
   }
 
+  /**
+   * Sets the byte at the specified [byteOffset] in this object to the
+   * two's complement binary representation of the specified [value], which
+   * must fit in a single byte. In other words, [value] must be between
+   * -128 and 127, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * greater than or equal to the length of this object.
+   */
   void setInt8(int byteOffset, int value) native;
 
+  /**
+   * Sets the two bytes starting at the specified [byteOffset] in this object
+   * to the unsigned binary representation of the specified [value],
+   * which must fit in two bytes. in other words, [value] must be between
+   * 0 and 2<sup>16</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 2` is greater than the length of this object.
+   */
   void setUint16(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setUint16(byteOffset, value, endian._littleEndian);
 
   @JSName('setUint16')
   void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
 
+  /**
+   * Sets the four bytes starting at the specified [byteOffset] in this object
+   * to the unsigned binary representation of the specified [value],
+   * which must fit in four bytes. in other words, [value] must be between
+   * 0 and 2<sup>32</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
+   */
   void setUint32(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setUint32(byteOffset, value, endian._littleEndian);
 
   @JSName('setUint32')
   void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
 
+  /**
+   * Sets the eight bytes starting at the specified [byteOffset] in this object
+   * to the unsigned binary representation of the specified [value],
+   * which must fit in eight bytes. in other words, [value] must be between
+   * 0 and 2<sup>64</sup> - 1, inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 8` is greater than the length of this object.
+   */
   void setUint64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
   }
 
+  /**
+   * Sets the byte at the specified [byteOffset] in this object to the
+   * unsigned binary representation of the specified [value], which must fit
+   * in a single byte. in other words, [value] must be between 0 and 255,
+   * inclusive.
+   *
+   * Throws [RangeError] if [byteOffset] is negative,
+   * or greater than or equal to the length of this object.
+   */
   void setUint8(int byteOffset, int value) native;
 
   static ByteData _create1(arg) =>
@@ -226,16 +466,44 @@ class ByteData extends TypedData native "DataView" {
           .._setCachedLength();
 }
 
-
+/**
+ * A fixed-length list of IEEE 754 single-precision binary floating-point
+ * numbers  that is viewable as a [TypedData]. For long lists, this
+ * implementation can be considerably more space- and time-efficient than
+ * the default [List] implementation.
+ */
 class Float32List
     extends TypedData with ListMixin<double>, FixedLengthListMixin<double>
     implements JavaScriptIndexingBehavior, List<double>
     native "Float32Array" {
+  /**
+   * Creates a [Float32List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Float32List(int length) => _create1(length);
 
+  /**
+   * Creates a [Float32List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Float32List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates a [Float32List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Float32List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Float32List.view(ByteBuffer buffer,
                            [int byteOffset = 0, int length]) =>
       length == null
@@ -276,15 +544,44 @@ class Float32List
 }
 
 
+/**
+ * A fixed-length list of IEEE 754 double-precision binary floating-point
+ * numbers  that is viewable as a [TypedData]. For long lists, this
+ * implementation can be considerably more space- and time-efficient than
+ * the default [List] implementation.
+ */
 class Float64List
     extends TypedData with ListMixin<double>, FixedLengthListMixin<double>
     implements JavaScriptIndexingBehavior, List<double>
     native "Float64Array" {
+  /**
+   * Creates a [Float64List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Float64List(int length) => _create1(length);
 
+  /**
+   * Creates a [Float64List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Float64List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates a [Float64List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Float64List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Float64List.view(ByteBuffer buffer,
                            [int byteOffset = 0, int length]) =>
       length == null
@@ -328,15 +625,43 @@ class Float64List
 }
 
 
+/**
+ * A fixed-length list of 16-bit signed integers that is viewable as a
+ * [TypedData]. For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Int16List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
     native "Int16Array" {
+  /**
+   * Creates an [Int16List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Int16List(int length) => _create1(length);
 
+  /**
+   * Creates a [Int16List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Int16List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates an [Int16List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Int16List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Int16List.view(ByteBuffer buffer, [int byteOffset = 0, int length]) =>
       length == null
           ? _create2(buffer, byteOffset)
@@ -375,15 +700,43 @@ class Int16List
 }
 
 
+/**
+ * A fixed-length list of 32-bit signed integers that is viewable as a
+ * [TypedData]. For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Int32List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
     native "Int32Array" {
+  /**
+   * Creates an [Int32List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Int32List(int length) => _create1(length);
 
+  /**
+   * Creates a [Int32List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Int32List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates an [Int32List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Int32List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Int32List.view(ByteBuffer buffer, [int byteOffset = 0, int length]) =>
       length == null
           ? _create2(buffer, byteOffset)
@@ -422,15 +775,40 @@ class Int32List
 }
 
 
+/**
+ * A fixed-length list of 8-bit signed integers.
+ * For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Int8List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
     native "Int8Array" {
+  /**
+   * Creates an [Int8List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Int8List(int length) => _create1(length);
 
+  /**
+   * Creates a [Int8List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Int8List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates an [Int8List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Int8List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   */
   factory Int8List.view(ByteBuffer buffer, [int byteOffset = 0, int length]) =>
       length == null
           ? _create2(buffer, byteOffset)
@@ -469,15 +847,43 @@ class Int8List
 }
 
 
+/**
+ * A fixed-length list of 16-bit unsigned integers that is viewable as a
+ * [TypedData]. For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Uint16List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
     native "Uint16Array" {
+  /**
+   * Creates a [Uint16List] of the specified length (in elements), all
+   * of whose elements are initially zero.
+   */
   factory Uint16List(int length) => _create1(length);
 
+  /**
+   * Creates a [Uint16List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Uint16List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates a [Uint16List] _view_ of the specified region in
+   * the specified byte buffer. Changes in the [Uint16List] will be
+   * visible in the byte buffer and vice versa. If the [offsetInBytes] index
+   * of the region is not specified, it defaults to zero (the first byte in
+   * the byte buffer). If the length is not specified, it defaults to null,
+   * which indicates that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Uint16List.view(ByteBuffer buffer,
                           [int byteOffset = 0, int length]) =>
       length == null
@@ -517,15 +923,43 @@ class Uint16List
 }
 
 
+/**
+ * A fixed-length list of 32-bit unsigned integers that is viewable as a
+ * [TypedData]. For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Uint32List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
     native "Uint32Array" {
+  /**
+   * Creates a [Uint32List] of the specified length (in elements), all
+   * of whose elements are initially zero.
+   */
   factory Uint32List(int length) => _create1(length);
 
+  /**
+   * Creates a [Uint32List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Uint32List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates a [Uint32List] _view_ of the specified region in
+   * the specified byte buffer. Changes in the [Uint32] will be
+   * visible in the byte buffer and vice versa. If the [offsetInBytes] index
+   * of the region is not specified, it defaults to zero (the first byte in
+   * the byte buffer). If the length is not specified, it defaults to null,
+   * which indicates that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Uint32List.view(ByteBuffer buffer,
                           [int byteOffset = 0, int length]) =>
       length == null
@@ -565,14 +999,40 @@ class Uint32List
 }
 
 
+/**
+ * A fixed-length list of 8-bit unsigned integers.
+ * For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ * Indexed store clamps the value to range 0..0xFF.
+ */
 class Uint8ClampedList extends TypedData with ListMixin<int>,
     FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int>
     native "Uint8ClampedArray,CanvasPixelArray" {
+  /**
+   * Creates a [Uint8ClampedList] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Uint8ClampedList(int length) => _create1(length);
 
+  /**
+   * Creates a [Uint8ClampedList] of the same size as the [elements]
+   * list and copies over the values clamping when needed.
+   */
   factory Uint8ClampedList.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates a [Uint8ClampedList] _view_ of the specified region in the
+   * specified byte [buffer]. Changes in the [Uint8List] will be visible in the
+   * byte buffer and vice versa. If the [offsetInBytes] index of the region is
+   * not specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates that
+   * the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   */
   factory Uint8ClampedList.view(ByteBuffer buffer,
                                 [int byteOffset = 0, int length]) =>
       length == null
@@ -614,6 +1074,11 @@ class Uint8ClampedList extends TypedData with ListMixin<int>,
 }
 
 
+/**
+ * A fixed-length list of 8-bit unsigned integers.
+ * For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Uint8List
     extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
     implements JavaScriptIndexingBehavior, List<int>
@@ -622,11 +1087,31 @@ class Uint8List
     // the potential for Uint8ClampedArray to 'accidentally' pick up the
     // dispatch record for Uint8List.
     native "Uint8Array,!nonleaf" {
+  /**
+   * Creates a [Uint8List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Uint8List(int length) => _create1(length);
 
+  /**
+   * Creates a [Uint8List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Uint8List.fromList(List<num> list) =>
       _create1(_ensureNativeList(list));
 
+  /**
+   * Creates a [Uint8List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Uint8List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   */
   factory Uint8List.view(ByteBuffer buffer,
                          [int byteOffset = 0, int length]) =>
       length == null
@@ -666,15 +1151,43 @@ class Uint8List
 }
 
 
+/**
+ * A fixed-length list of 64-bit signed integers that is viewable as a
+ * [TypedData]. For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
+  /**
+   * Creates an [Int64List] of the specified length (in elements), all of
+   * whose elements are initially zero.
+   */
   factory Int64List(int length) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
 
+  /**
+   * Creates a [Int64List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Int64List.fromList(List<int> list) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
 
+  /**
+   * Creates an [Int64List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Int64List] will be visible in the byte buffer
+   * and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates that
+   * the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Int64List.view(ByteBuffer buffer, [int byteOffset, int length]) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
@@ -683,15 +1196,44 @@ class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<in
 }
 
 
+/**
+ * A fixed-length list of 64-bit unsigned integers that is viewable as a
+ * [TypedData]. For long lists, this implementation can be considerably
+ * more space- and time-efficient than the default [List] implementation.
+ */
 class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
+  /**
+   * Creates a [Uint64List] of the specified length (in elements), all
+   * of whose elements are initially zero.
+   */
   factory Uint64List(int length) {
     throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
+  /**
+   * Creates a [Uint64List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Uint64List.fromList(List<int> list) {
     throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
+  /**
+   * Creates an [Uint64List] _view_ of the specified region in
+   * the specified byte buffer. Changes in the [Uint64List] will be
+   * visible in the byte buffer and vice versa. If the [offsetInBytes]
+   * index of the region is not specified, it defaults to zero (the first
+   * byte in the byte buffer). If the length is not specified, it defaults
+   * to null, which indicates that the view extends to the end of the byte
+   * buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   factory Uint64List.view(ByteBuffer buffer, [int byteOffset, int length]) {
     throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
@@ -700,6 +1242,11 @@ class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<i
 }
 
 
+/**
+ * A fixed-length list of Float32x4 numbers that is viewable as a
+ * [TypedData]. For long lists, this implementation will be considerably more
+ * space- and time-efficient than the default [List] implementation.
+ */
 class Float32x4List
     extends Object with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements List<Float32x4>, TypedData {
@@ -740,6 +1287,10 @@ class Float32x4List
     return end;
   }
 
+  /**
+   * Creates a [Float32x4List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
   Float32x4List(int length) : _storage = new Float32List(length*4);
 
   Float32x4List._externalStorage(Float32List storage) : _storage = storage;
@@ -755,6 +1306,10 @@ class Float32x4List
     }
   }
 
+  /**
+   * Creates a [Float32x4List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Float32x4List.fromList(List<Float32x4> list) {
     if (list is Float32x4List) {
       Float32x4List nativeList = list as Float32x4List;
@@ -765,6 +1320,21 @@ class Float32x4List
     }
   }
 
+  /**
+   * Creates a [Float32x4List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Float32x4List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   Float32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
       : _storage = new Float32List.view(buffer, byteOffset, length);
@@ -797,6 +1367,11 @@ class Float32x4List
 }
 
 
+/**
+ * A fixed-length list of Int32x4 numbers that is viewable as a
+ * [TypedData]. For long lists, this implementation will be considerably more
+ * space- and time-efficient than the default [List] implementation.
+ */
 class Int32x4List
     extends Object with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements List<Int32x4>, TypedData {
@@ -837,6 +1412,10 @@ class Int32x4List
     return end;
   }
 
+  /**
+   * Creates a [Int32x4List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
   Int32x4List(int length) : _storage = new Uint32List(length*4);
 
   Int32x4List._externalStorage(Uint32List storage) : _storage = storage;
@@ -852,6 +1431,10 @@ class Int32x4List
     }
   }
 
+  /**
+   * Creates a [Int32x4List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
   factory Int32x4List.fromList(List<Int32x4> list) {
     if (list is Int32x4List) {
       Int32x4List nativeList = list as Int32x4List;
@@ -862,6 +1445,21 @@ class Int32x4List
     }
   }
 
+  /**
+   * Creates a [Int32x4List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Int32x4List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
   Int32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
       : _storage = new Uint32List.view(buffer, byteOffset, length);
@@ -894,6 +1492,11 @@ class Int32x4List
 }
 
 
+/**
+ * Interface of Dart Float32x4 immutable value type and operations.
+ * Float32x4 stores 4 32-bit floating point values in "lanes".
+ * The lanes are "x", "y", "z", and "w" respectively.
+ */
 class Float32x4 {
   final _storage = new Float32List(4);
 
@@ -1474,6 +2077,11 @@ class Float32x4 {
 }
 
 
+/**
+ * Interface of Dart Int32x4 and operations.
+ * Int32x4 stores 4 32-bit bit-masks in "lanes".
+ * The lanes are "x", "y", "z", and "w" respectively.
+ */
 class Int32x4 {
   final _storage = new Int32List(4);
 
