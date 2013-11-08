@@ -18,9 +18,12 @@ import '../package_graph.dart';
 /// Adds all of the source assets in the provided packages to barback and
 /// then watches the public directories for changes.
 ///
-/// Returns a Future that completes when the sources are loaded and the
-/// watchers are active.
-Future watchSources(PackageGraph graph, Barback barback) {
+/// [watcherFactory] should return a [DirectoryWatcher] watching the given
+/// directory for changes.
+///
+/// Returns a Future that completes when the sources are loaded and the watchers
+/// are active.
+Future watchSources(PackageGraph graph, Barback barback, WatcherType watcher) {
   return Future.wait(graph.packages.values.map((package) {
     // If this package comes from a cached source, its contents won't change so
     // we don't need to monitor it. `packageId` will be null for the application
@@ -39,7 +42,7 @@ Future watchSources(PackageGraph graph, Barback barback) {
       if (!dirExists(subdirectory)) return new Future.value();
 
       // TODO(nweiz): close these watchers when [barback] is closed.
-      var watcher = new DirectoryWatcher(subdirectory);
+      var watcher = watcher.create(subdirectory);
       watcher.events.listen((event) {
         // Don't watch files symlinked into these directories.
         // TODO(rnystrom): If pub gets rid of symlinks, remove this.
@@ -101,4 +104,48 @@ Iterable<String> _getPublicDirectories(Entrypoint entrypoint, Package package) {
   var directories = ["asset", "lib"];
   if (package.name == entrypoint.root.name) directories.add("web");
   return directories;
+}
+
+/// An enum describing different modes of constructing a [DirectoryWatcher].
+abstract class WatcherType {
+  /// A watcher that automatically chooses its type based on the operating
+  /// system.
+  static const AUTO = const _AutoWatcherType();
+
+  /// A watcher that always polls the filesystem for changes.
+  static const POLLING = const _PollingWatcherType();
+
+  /// No directory watcher at all.
+  static const NONE = const _NoneWatcherType();
+
+  /// Creates a new DirectoryWatcher.
+  DirectoryWatcher create(String directory);
+
+  String toString();
+}
+
+class _AutoWatcherType implements WatcherType {
+  const _AutoWatcherType();
+
+  DirectoryWatcher create(String directory) =>
+    new DirectoryWatcher(directory);
+
+  String toString() => "auto";
+}
+
+class _PollingWatcherType implements WatcherType {
+  const _PollingWatcherType();
+
+  DirectoryWatcher create(String directory) =>
+    new PollingDirectoryWatcher(directory);
+
+  String toString() => "polling";
+}
+
+class _NoneWatcherType implements {
+  const _NoneWatcherType();
+
+  DirectoryWatcher create(String directory) => null;
+
+  String toString() => "none";
 }

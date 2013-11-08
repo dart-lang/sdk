@@ -40,7 +40,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe(shouldGetFirst: true);
+    pubServe(shouldGetFirst: true);
 
     webSocketShouldReply({
       "command": "assetToUrl",

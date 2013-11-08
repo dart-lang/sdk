@@ -18,7 +18,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     waitForBuildSuccess();
     requestShouldSucceed("notmain.dart", "foo() => print('hello');");
     requestShould404("notmain.dart.js");

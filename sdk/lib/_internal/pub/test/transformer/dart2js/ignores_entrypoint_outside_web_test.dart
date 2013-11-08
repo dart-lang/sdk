@@ -18,7 +18,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShould404("packages/myapp/main.dart.js");
     endPubServe();
   });

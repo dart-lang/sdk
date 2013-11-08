@@ -61,7 +61,7 @@ class BuildCommand extends PubCommand {
       // TODO(rnystrom): Allow specifying mode.
       return barback.createServer("127.0.0.1", 0, graph, BarbackMode.RELEASE,
           builtInTransformers: [dart2jsTransformer],
-          watchForUpdates: false);
+          watcher: barback.WatcherType.NONE);
     }).then((server) {
       // Show in-progress errors, but not results. Those get handled implicitly
       // by getAllAssets().

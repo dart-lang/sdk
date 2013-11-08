@@ -21,7 +21,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("assets/myapp/foo.txt", "foo");
     requestShouldSucceed("assets/myapp/sub/bar.txt", "bar");
 

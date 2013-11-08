@@ -31,7 +31,7 @@ main() {
 
     createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("foo.out", "foo.out");
     endPubServe();
   });

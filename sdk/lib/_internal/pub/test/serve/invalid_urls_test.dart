@@ -36,7 +36,7 @@ main() {
     ]).create();
 
     pubGet();
-    startPubServe();
+    pubServe();
     requestShould404("packages");
     requestShould404("assets");
     requestShould404("packages/");

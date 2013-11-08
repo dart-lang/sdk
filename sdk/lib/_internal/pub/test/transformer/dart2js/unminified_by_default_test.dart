@@ -18,7 +18,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("main.dart.js", isUnminifiedDart2JSOutput);
     endPubServe();
   });

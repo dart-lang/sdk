@@ -17,6 +17,8 @@ import 'log.dart' as log;
 import 'package_graph.dart';
 import 'utils.dart';
 
+export 'barback/sources.dart' show WatcherType;
+
 /// An identifier for a transformer and the configuration that will be passed to
 /// it.
 ///
@@ -108,7 +110,7 @@ class TransformerId {
 /// the app when the server is started will be maintained.
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
     BarbackMode mode, {Iterable<Transformer> builtInTransformers,
-    bool watchForUpdates: true}) {
+    WatcherType watcher: WatcherType.AUTO}) {
   var provider = new PubPackageProvider(graph);
   var barback = new Barback(provider);
 
@@ -117,8 +119,15 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
     return new Future.sync(() {
-      if (watchForUpdates) return watchSources(graph, barback);
-      loadSources(graph, barback);
+      if (watcher == WatcherType.NONE) {
+        loadSources(graph, barback);
+        return;
+      }
+
+      return watchSources(graph, barback, (directory) {
+        if (watcher == WatcherType.AUTO) return new DirectoryWatcher(directory);
+        return new PollingDirectoryWatcher(directory);
+      });
     }).then((_) {
       var completer = new Completer();
 

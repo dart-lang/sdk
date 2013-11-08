@@ -36,7 +36,7 @@ main() {
       }))
     ]).create();
 
-    startPubServe(shouldGetFirst: true);
+    pubServe(shouldGetFirst: true);
     requestShouldSucceed("packages/foo/foo.dart", 'main() => "foo";');
     endPubServe();
   });

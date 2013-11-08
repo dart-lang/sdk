@@ -18,7 +18,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     waitForBuildSuccess();
     requestShouldSucceed("index.html", "body");
 

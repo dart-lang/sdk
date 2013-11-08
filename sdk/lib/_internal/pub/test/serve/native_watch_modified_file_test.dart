@@ -8,9 +8,13 @@ import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
 
+// TODO(nweiz): Default to testing the native watcher and add an explicit test
+// for the polling watcher when issue 14941 is fixed.
+
 main() {
   initConfig();
-  integration("watches modifications to files", () {
+  integration("watches modifications to files when using the native watcher",
+      () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -18,7 +22,7 @@ main() {
       ])
     ]).create();
 
-    pubServe();
+    pubServe(args: ["--no-force-poll"]);
     requestShouldSucceed("index.html", "before");
 
     d.dir(appPath, [

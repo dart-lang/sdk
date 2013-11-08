@@ -70,7 +70,7 @@ main() {
         sandbox: ['top', 'left', 'right'],
         pkg: ['barback']);
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("main.dart",
         'const TOKEN = "(((main.dart, (left, top)), (right, top)), ((myapp, '
         '(left, top)), (right, top)))";');

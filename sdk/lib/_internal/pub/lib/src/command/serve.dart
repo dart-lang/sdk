@@ -53,6 +53,9 @@ class ServeCommand extends PubCommand {
 
     commandParser.addFlag('minify', defaultsTo: false,
         help: 'Minify generated JavaScript.');
+
+    commandParser.addFlag('force-poll', defaultsTo: false,
+        help: 'Force the use of a polling filesystem watcher.');
   }
 
   Future onRun() {
@@ -77,9 +80,12 @@ class ServeCommand extends PubCommand {
         ];
       }
 
+      var watcherType = commandOptions['force-poll'] ?
+          barback.WatcherType.POLLING : barback.WatcherType.AUTO;
       // TODO(rnystrom): Allow specifying other modes.
       return barback.createServer(hostname, port, graph, BarbackMode.DEBUG,
-          builtInTransformers: builtInTransformers);
+          builtInTransformers: builtInTransformers,
+          watcher: watcherType);
     }).then((server) {
       /// This completer is used to keep pub running (by not completing) and
       /// to pipe fatal errors to pub's top-level error-handling machinery.

@@ -16,7 +16,7 @@ main() {
       d.appPubspec()
     ]).create();
 
-    startPubServe();
+    pubServe();
 
     webSocketShouldReply(
         "not even valid json",
