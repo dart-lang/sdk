@@ -380,9 +380,10 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
   _currentLibrary = library;
   var result = new Library(docName(library), _commentToHtml(library),
-      _variables(library.variables),
+      _classes(library.classes),
       _methods(library.functions),
-      _classes(library.classes), _isHidden(library));
+      _variables(library.variables),
+      _isHidden(library));
   _findPackage(result, library);
   logger.fine('Generated library for ${result.name}');
   return result;
@@ -453,10 +454,23 @@ List<Annotation> _annotations(DeclarationMirror mirror) {
   return annotations;
 }
 
+/// Update the global pointers to the current mirror to the particular mirror
+/// we're documenting.
+void _updateCurrentMirror(DeclarationMirror mirror) {
+  if (mirror is LibraryMirror) {
+    _currentLibrary = mirror;
+  } else if (mirror is ClassMirror) {
+    _currentClass = mirror;
+  } else if (mirror is MethodMirror) {
+    _currentMember = mirror;
+  }
+}
+
 /// Returns any documentation comments associated with a mirror with
 /// simple markdown converted to html.
 String _commentToHtml(DeclarationMirror mirror) {
   String commentText;
+  _updateCurrentMirror(mirror);
   mirror.metadata.forEach((metadata) {
     if (metadata is CommentInstanceMirror) {
       CommentInstanceMirror comment = metadata;
@@ -534,9 +548,12 @@ String findElementInScope(String name, LibraryMirror currentLibrary,
       null : lookupFunc(currentMember, name);
   if (memberScope != null) return docName(memberScope);
 
-  var classScope = currentClass == null ?
-      null : lookupFunc(currentClass, name);
-  if (classScope != null) return docName(classScope);
+  var classScope = currentClass;
+  while (classScope != null) {
+    var classFunc = lookupFunc(currentClass, name);
+    if (classFunc != null) return docName(classFunc);
+    classScope = classScope.superclass;
+  }
 
   var libraryScope = currentLibrary == null ?
       null : lookupFunc(currentLibrary, name);
@@ -858,8 +875,8 @@ class Library extends Indexable {
     return basic;
   }
 
-  Library(String name, String comment, this.variables,
-      this.functions, this.classes, bool isPrivate) : super(name, comment,
+  Library(String name, String comment, this.classes, this.functions,
+      this.variables, bool isPrivate) : super(name, comment,
           isPrivate, "");
 
   /// Generates a map describing the [Library] object.
