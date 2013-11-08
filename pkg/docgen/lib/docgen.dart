@@ -137,16 +137,20 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     });
 }
 
-/// For a [library] and its corresponding [mirror] that we believe come
-/// from a package (because it has a file
-/// URI) look for the package name and set it on [library].
-void _findPackage(Library library, LibraryMirror mirror) {
-    if (mirror.uri.scheme != 'file') return;
-    var filePath = mirror.uri.toFilePath();
-    // We assume that we are documenting only libraries under package/lib
-    var rootdir = path.dirname((path.dirname(filePath)));
-    var pubspec = path.join(rootdir, 'pubspec.yaml');
-    library.packageName = _packageName(pubspec);
+/// For a library's [mirror], determine the name of the package (if any) we
+/// believe it came from (because of its file URI).
+///
+/// If [library] is specified, we set the packageName field. If no package could
+/// be determined, we return an empty string.
+String _findPackage(LibraryMirror mirror, [Library library]) {
+  if (mirror.uri.scheme != 'file') return '';
+  var filePath = mirror.uri.toFilePath();
+  // We assume that we are documenting only libraries under package/lib
+  var rootdir = path.dirname((path.dirname(filePath)));
+  var pubspec = path.join(rootdir, 'pubspec.yaml');
+  var packageName = _packageName(pubspec);
+  if (library != null) {
+    library.packageName = packageName;
     // If we are the main library in a package, associate the package readme
     // with us.
     // TODO(alanknight): We can't really rely on all packages having a library
@@ -154,6 +158,8 @@ void _findPackage(Library library, LibraryMirror mirror) {
     if (library.packageName == library.name) {
       library.packageIntro = _packageIntro(rootdir);
     }
+  }
+  return packageName + '/';
 }
 
 String _packageIntro(packageDir) {
@@ -384,7 +390,7 @@ Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
       _methods(library.functions),
       _variables(library.variables),
       _isHidden(library));
-  _findPackage(result, library);
+  _findPackage(library, result);
   logger.fine('Generated library for ${result.name}');
   return result;
 }
@@ -539,6 +545,8 @@ String _htmlMdn(String content, String url) {
 /// progressively working outward to the current library scope.
 String findElementInScope(String name, LibraryMirror currentLibrary,
     ClassMirror currentClass, MemberMirror currentMember) {
+  var packagePrefix = _findPackage(currentLibrary);
+
   determineLookupFunc(name) => name.contains('.') ?
       dart2js_util.lookupQualifiedInScope :
       (mirror, name) => mirror.lookupInScope(name);
@@ -546,22 +554,22 @@ String findElementInScope(String name, LibraryMirror currentLibrary,
 
   var memberScope = currentMember == null ?
       null : lookupFunc(currentMember, name);
-  if (memberScope != null) return docName(memberScope);
+  if (memberScope != null) return packagePrefix + docName(memberScope);
 
   var classScope = currentClass;
   while (classScope != null) {
     var classFunc = lookupFunc(currentClass, name);
-    if (classFunc != null) return docName(classFunc);
+    if (classFunc != null) return packagePrefix + docName(classFunc);
     classScope = classScope.superclass;
   }
 
   var libraryScope = currentLibrary == null ?
       null : lookupFunc(currentLibrary, name);
-  if (libraryScope != null) return docName(libraryScope);
+  if (libraryScope != null) return packagePrefix + docName(libraryScope);
 
   // Look in the dart core library scope.
   var coreScope = _coreLibrary == null? null : lookupFunc(_coreLibrary, name);
-  if (coreScope != null) return docName(_coreLibrary);
+  if (coreScope != null) return packagePrefix + docName(_coreLibrary);
 
   // If it's a reference that starts with a another library name, then it
   // looks for a match of that library name in the other sdk libraries.
@@ -575,7 +583,7 @@ String findElementInScope(String name, LibraryMirror currentLibrary,
       var library = _sdkLibraries.singleWhere(foundLibraryName);
       // Look to see if it's a fully qualified library name.
       var scope = determineLookupFunc(remainingName)(library, remainingName);
-      if (scope != null) return docName(scope);
+      if (scope != null) return packagePrefix + docName(scope);
     }
   }
   return null;
