@@ -9,6 +9,8 @@ library pub.version;
 
 import 'dart:math';
 
+import 'package:collection_helpers/equality.dart';
+
 /// Regex that matches a version number at the beginning of a string.
 final _START_VERSION = new RegExp(
     r'^'                                        // Start at beginning.
@@ -23,10 +25,14 @@ final _COMPLETE_VERSION = new RegExp("${_START_VERSION.pattern}\$");
 /// a string.
 final _START_COMPARISON = new RegExp(r"^[<>]=?");
 
+/// The equality operator to use for comparing version components.
+final _equality = const IterableEquality();
+
 /// A parsed semantic version number.
 class Version implements Comparable<Version>, VersionConstraint {
   /// No released version: i.e. "0.0.0".
   static Version get none => new Version(0, 0, 0);
+
   /// The major version number: "1" in "1.2.3".
   final int major;
 
@@ -36,21 +42,45 @@ class Version implements Comparable<Version>, VersionConstraint {
   /// The patch version number: "3" in "1.2.3".
   final int patch;
 
-  /// The pre-release identifier: "foo" in "1.2.3-foo". May be `null`.
-  final String preRelease;
+  /// The pre-release identifier: "foo" in "1.2.3-foo".
+  ///
+  /// This is split into a list of components, each of which may be either a
+  /// string or a non-negative integer. It may also be empty, indicating that
+  /// this version has no pre-release identifier.
+  final List preRelease;
 
-  /// The build identifier: "foo" in "1.2.3+foo". May be `null`.
-  final String build;
+  /// The build identifier: "foo" in "1.2.3+foo".
+  ///
+  /// This is split into a list of components, each of which may be either a
+  /// string or a non-negative integer. It may also be empty, indicating that
+  /// this version has no build identifier.
+  final List build;
 
-  /// Creates a new [Version] object.
-  Version(this.major, this.minor, this.patch, {String pre, this.build})
-    : preRelease = pre {
+  /// The original string representation of the version number.
+  ///
+  /// This preserves textual artifacts like leading zeros that may be left out
+  /// of the parsed version.
+  final String _text;
+
+  Version._(this.major, this.minor, this.patch, String preRelease, String build,
+            this._text)
+      : preRelease = preRelease == null ? [] : _splitParts(preRelease), 
+        build = build == null ? [] : _splitParts(build) {
     if (major < 0) throw new ArgumentError(
         'Major version must be non-negative.');
     if (minor < 0) throw new ArgumentError(
         'Minor version must be non-negative.');
     if (patch < 0) throw new ArgumentError(
         'Patch version must be non-negative.');
+  }
+
+  /// Creates a new [Version] object.
+  factory Version(int major, int minor, int patch, {String pre, String build}) {
+    var text = "$major.$minor.$patch";
+    if (pre != null) text += "-$pre";
+    if (build != null) text += "+$build";
+
+    return new Version._(major, minor, patch, pre, build, text);
   }
 
   /// Creates a new [Version] by parsing [text].
@@ -68,7 +98,7 @@ class Version implements Comparable<Version>, VersionConstraint {
       String preRelease = match[5];
       String build = match[8];
 
-      return new Version(major, minor, patch, pre: preRelease, build: build);
+      return new Version._(major, minor, patch, preRelease, build, text);
     } on FormatException catch (ex) {
       throw new FormatException('Could not parse "$text".');
     }
@@ -88,10 +118,30 @@ class Version implements Comparable<Version>, VersionConstraint {
     return primary;
   }
 
+  /// Splits a string of dot-delimited identifiers into their component parts.
+  ///
+  /// Identifiers that are numeric are converted to numbers.
+  static List _splitParts(String text) {
+    return text.split('.').map((part) {
+      try {
+        return int.parse(part);
+      } on FormatException catch (ex) {
+        // Not a number.
+        return part;
+      }
+    }).toList();
+  }
+
   bool operator ==(other) {
     if (other is! Version) return false;
-    return compareTo(other) == 0;
+    return major == other.major && minor == other.minor &&
+        patch == other.patch &&
+        _equality.equals(preRelease, other.preRelease) &&
+        _equality.equals(build, other.build);
   }
+
+  int get hashCode => major ^ minor ^ patch ^ _equality.hash(preRelease) ^
+      _equality.hash(build);
 
   bool operator <(Version other) => compareTo(other) < 0;
   bool operator >(Version other) => compareTo(other) > 0;
@@ -102,7 +152,7 @@ class Version implements Comparable<Version>, VersionConstraint {
   bool get isEmpty => false;
 
   /// Whether or not this is a pre-release version.
-  bool get isPreRelease => preRelease != null;
+  bool get isPreRelease => preRelease.isNotEmpty;
 
   /// Tests if [other] matches this version exactly.
   bool allows(Version other) => this == other;
@@ -127,83 +177,57 @@ class Version implements Comparable<Version>, VersionConstraint {
     if (minor != other.minor) return minor.compareTo(other.minor);
     if (patch != other.patch) return patch.compareTo(other.patch);
 
-    if (preRelease != other.preRelease) {
-      // Pre-releases always come before no pre-release string.
-      if (preRelease == null) return 1;
-      if (other.preRelease == null) return -1;
+    // Pre-releases always come before no pre-release string.
+    if (!isPreRelease && other.isPreRelease) return 1;
+    if (!other.isPreRelease && isPreRelease) return -1;
 
-      return _compareStrings(preRelease, other.preRelease);
-    }
+    var comparison = _compareLists(preRelease, other.preRelease);
+    if (comparison != 0) return comparison;
 
-    if (build != other.build) {
-      // Builds always come after no build string.
-      if (build == null) return -1;
-      if (other.build == null) return 1;
-
-      return _compareStrings(build, other.build);
-    }
-
-    return 0;
+    // Builds always come after no build string.
+    if (build.isEmpty && other.build.isNotEmpty) return -1;
+    if (other.build.isEmpty && build.isNotEmpty) return 1;
+    return _compareLists(build, other.build);
   }
 
-  int get hashCode => toString().hashCode;
+  String toString() => _text;
 
-  String toString() {
-    var buffer = new StringBuffer();
-    buffer.write('$major.$minor.$patch');
-    if (preRelease != null) buffer.write('-$preRelease');
-    if (build != null) buffer.write('+$build');
-    return buffer.toString();
-  }
+  /// Compares a dot-separated component of two versions.
+  ///
+  /// This is used for the pre-release and build version parts. This follows
+  /// Rule 12 of the Semantic Versioning spec (v2.0.0-rc.1).
+  int _compareLists(List a, List b) {
+    for (var i = 0; i < max(a.length, b.length); i++) {
+      var aPart = (i < a.length) ? a[i] : null;
+      var bPart = (i < b.length) ? b[i] : null;
 
-  /// Compares the string part of two versions. This is used for the pre-release
-  /// and build version parts. This follows Rule 12. of the Semantic Versioning
-  /// spec.
-  int _compareStrings(String a, String b) {
-    var aParts = _splitParts(a);
-    var bParts = _splitParts(b);
+      if (aPart == bPart) continue;
 
-    for (int i = 0; i < max(aParts.length, bParts.length); i++) {
-      var aPart = (i < aParts.length) ? aParts[i] : null;
-      var bPart = (i < bParts.length) ? bParts[i] : null;
+      // Missing parts come before present ones.
+      if (aPart == null) return -1;
+      if (bPart == null) return 1;
 
-      if (aPart != bPart) {
-        // Missing parts come before present ones.
-        if (aPart == null) return -1;
-        if (bPart == null) return 1;
-
-        if (aPart is num) {
-          if (bPart is num) {
-            // Compare two numbers.
-            return aPart.compareTo(bPart);
-          } else {
-            // Numbers come before strings.
-            return -1;
-          }
+      if (aPart is num) {
+        if (bPart is num) {
+          // Compare two numbers.
+          return aPart.compareTo(bPart);
         } else {
-          if (bPart is num) {
-            // Strings come after numbers.
-            return 1;
-          } else {
-            // Compare two strings.
-            return aPart.compareTo(bPart);
-          }
+          // Numbers come before strings.
+          return -1;
+        }
+      } else {
+        if (bPart is num) {
+          // Strings come after numbers.
+          return 1;
+        } else {
+          // Compare two strings.
+          return aPart.compareTo(bPart);
         }
       }
     }
-  }
 
-  /// Splits a string of dot-delimited identifiers into their component parts.
-  /// Identifiers that are numeric are converted to numbers.
-  List _splitParts(String text) {
-    return text.split('.').map((part) {
-      try {
-        return int.parse(part);
-      } on FormatException catch (ex) {
-        // Not a number.
-        return part;
-      }
-    }).toList();
+    // The lists are entirely equal.
+    return 0;
   }
 }
 
