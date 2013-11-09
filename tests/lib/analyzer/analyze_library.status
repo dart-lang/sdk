@@ -60,6 +60,7 @@ lib/_internal/pub/lib/src/validator/directory: CompileTimeError
 lib/_internal/pub/lib/src/validator/lib: CompileTimeError
 lib/_internal/pub/lib/src/validator/license: CompileTimeError
 lib/_internal/pub/lib/src/validator/name: CompileTimeError
+lib/_internal/pub/lib/src/version: CompileTimeError # Issue 14982
 lib/_internal/pub/test/descriptor: CompileTimeError
 lib/_internal/pub/test/descriptor/git: CompileTimeError
 lib/_internal/pub/test/descriptor/tar: CompileTimeError
