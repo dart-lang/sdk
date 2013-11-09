@@ -35,6 +35,15 @@ $endif
   }
 
 $if DART2JS
+  /**
+   * The newest document in this window.
+   *
+   * ## Other resources
+   *
+   * * [Loading web pages]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
+   * from WHATWG.
+   */
   Document get document => JS('Document', '#.document', this);
 
   WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
@@ -173,6 +182,7 @@ $if DART2JS
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
+  /// The debugging console for this window.
   @DomName('Window.console')
   Console get console => Console._safeConsole;
 

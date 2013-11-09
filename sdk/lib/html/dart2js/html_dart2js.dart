@@ -26634,6 +26634,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
     return completer.future;
   }
 
+  /**
+   * The newest document in this window.
+   *
+   * ## Other resources
+   *
+   * * [Loading web pages]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
+   * from WHATWG.
+   */
   Document get document => JS('Document', '#.document', this);
 
   WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
@@ -26772,6 +26781,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
+  /// The debugging console for this window.
   @DomName('Window.console')
   Console get console => Console._safeConsole;
 
@@ -26989,12 +26999,33 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental()
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
+  /**
+   * Indicates that file system data cannot be cleared unless given user
+   * permission.
+   *
+   * ## Other resources
+   *
+   * * [Exploring the FileSystem APIs]
+   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API]
+   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   */
   @DomName('Window.PERSISTENT')
   @DocsEditable()
   // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
   @Experimental()
   static const int PERSISTENT = 1;
 
+  /**
+   * Indicates that file system data can be cleared at any time.
+   *
+   * ## Other resources
+   *
+   * * [Exploring the FileSystem APIs]
+   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API]
+   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   */
   @DomName('Window.TEMPORARY')
   @DocsEditable()
   // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
@@ -27002,10 +27033,28 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   static const int TEMPORARY = 0;
 
   @JSName('CSS')
+  /**
+   * Entrypoint for CSS-related functions.
+   *
+   * ## Other resources
+   *
+   * * [The CSS interface](http://dev.w3.org/csswg/css-conditional/#the-css-interface) from W3C.
+   */
   @DomName('Window.CSS')
   @DocsEditable()
   final Css css;
 
+  /**
+   * The application cache for this window.
+   *
+   * ## Other resources
+   *
+   * * [A beginner's guide to using the application cache]
+   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.
+   * * [Application cache API]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)
+   * from WHATWG.
+   */
   @DomName('Window.applicationCache')
   @DocsEditable()
   final ApplicationCache applicationCache;
@@ -27014,6 +27063,13 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   final bool closed;
 
+  /**
+   * Entrypoint for the browser's cryptographic functions.
+   *
+   * ## Other resources
+   *
+   * * [Web cryptography API](http://www.w3.org/TR/WebCryptoAPI/) from W3C.
+   */
   @DomName('Window.crypto')
   @DocsEditable()
   // http://www.w3.org/TR/WebCryptoAPI/
@@ -27022,6 +27078,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
   @DomName('Window.defaultStatus')
   @DocsEditable()
+  @Experimental() // non-standard
   String defaultStatus;
 
   @DomName('Window.defaultstatus')
@@ -27029,44 +27086,141 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental() // non-standard
   String defaultstatus;
 
+  /**
+   * The ratio between physical pixels and logical CSS pixels.
+   *
+   * ## Other resources
+   *
+   * * [devicePixelRatio]
+   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from
+   * quirksmode.
+   * * [More about devicePixelRatio]
+   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from
+   * quirksmode.
+   */
   @DomName('Window.devicePixelRatio')
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
   final double devicePixelRatio;
 
+  /**
+   * The current session history for this window's newest document.
+   *
+   * ## Other resources
+   *
+   * * [Loading web pages]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
+   * from WHATWG.
+   */
   @DomName('Window.history')
   @DocsEditable()
   final History history;
 
+  /**
+   * The height of the viewport including scrollbars.
+   *
+   * ## Other resources
+   *
+   * * [innerHeight]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from
+   * WebPlatform.org.
+   */
   @DomName('Window.innerHeight')
   @DocsEditable()
   final int innerHeight;
 
+  /**
+   * The width of the viewport including scrollbars.
+   *
+   * ## Other resources
+   *
+   * * [innerWidth]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from
+   * WebPlatform.org.
+   */
   @DomName('Window.innerWidth')
   @DocsEditable()
   final int innerWidth;
 
+  /**
+   * Storage for this window that persists across sessions.
+   *
+   * ## Other resources
+   *
+   * * [DOM storage guide]
+   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
+   * MDN.
+   * * [The past, present & future of local storage for web applications]
+   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification]
+   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.
+   */
   @DomName('Window.localStorage')
   @DocsEditable()
   final Storage localStorage;
 
+  /**
+   * This window's location bar, which displays the URL.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.locationbar')
   @DocsEditable()
   final BarProp locationbar;
 
+  /**
+   * This window's menu bar, which displays menu commands.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.menubar')
   @DocsEditable()
   final BarProp menubar;
 
+  /**
+   * The name of this window.
+   *
+   * ## Other resources
+   *
+   * * [Window name]
+   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
+   * WebPlatform.org.
+   */
   @DomName('Window.name')
   @DocsEditable()
   String name;
 
+  /**
+   * The user agent accessing this window.
+   *
+   * ## Other resources
+   *
+   * * [The navigator object]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)
+   * from WHATWG.
+   */
   @DomName('Window.navigator')
   @DocsEditable()
   final Navigator navigator;
 
+  /**
+   * Whether objects are drawn offscreen before being displayed.
+   *
+   * ## Other resources
+   *
+   * * [offscreenBuffering]
+   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from
+   * WebPlatform.org.
+   */
   @DomName('Window.offscreenBuffering')
   @DocsEditable()
   @Experimental() // non-standard
@@ -27082,18 +27236,56 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Returns('Window|=Object')
   final dynamic _get_opener;
 
+  /**
+   * The height of this window including all user interface elements.
+   *
+   * ## Other resources
+   *
+   * * [outerHeight]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from
+   * WebPlatform.org.
+   */
   @DomName('Window.outerHeight')
   @DocsEditable()
   final int outerHeight;
 
+  /**
+   * The width of the window including all user interface elements.
+   *
+   * ## Other resources
+   *
+   * * [outerWidth]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from
+   * WebPlatform.org.
+   */
   @DomName('Window.outerWidth')
   @DocsEditable()
   final int outerWidth;
 
+  /**
+   * The distance this window has been scrolled horizontally.
+   *
+   * This attribute is an alias for [scrollX].
+   *
+   * ## Other resources
+   *
+   * * [scrollX and pageXOffset]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   */
   @DomName('Window.pageXOffset')
   @DocsEditable()
   final int pageXOffset;
 
+  /**
+   * The distance this window has been scrolled vertically.
+   *
+   * This attribute is an alias for [scrollY].
+   *
+   * ## Other resources
+   *
+   * * [scrollY and pageYOffset]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   */
   @DomName('Window.pageYOffset')
   @DocsEditable()
   final int pageYOffset;
@@ -27135,6 +27327,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   final int screenY;
 
+  /**
+   * This window's scroll bars.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.scrollbars')
   @DocsEditable()
   final BarProp scrollbars;
@@ -27149,6 +27350,19 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Returns('Window|=Object')
   final dynamic _get_self;
 
+  /**
+   * Storage for this window that is cleared when this session ends.
+   *
+   * ## Other resources
+   *
+   * * [DOM storage guide]
+   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
+   * MDN.
+   * * [The past, present & future of local storage for web applications]
+   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification]
+   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
+   */
   @DomName('Window.sessionStorage')
   @DocsEditable()
   final Storage sessionStorage;
@@ -27163,6 +27377,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   String status;
 
+  /**
+   * This window's status bar.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.statusbar')
   @DocsEditable()
   final BarProp statusbar;
@@ -27173,6 +27396,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental() // nonstandard
   final StyleMedia styleMedia;
 
+  /**
+   * This window's tool bar.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.toolbar')
   @DocsEditable()
   final BarProp toolbar;

@@ -12259,7 +12259,9 @@
         "comment": "http://www.w3.org/TR/WebCryptoAPI/",
         "support_level": "experimental"
       },
-      "defaultStatus": {},
+      "defaultStatus": {
+        "support_level": "nonstandard"
+      },
       "defaultstatus": {
         "support_level": "nonstandard"
       },

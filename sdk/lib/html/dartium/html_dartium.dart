@@ -28693,22 +28693,61 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental()
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
+  /**
+   * Indicates that file system data cannot be cleared unless given user
+   * permission.
+   *
+   * ## Other resources
+   *
+   * * [Exploring the FileSystem APIs]
+   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API]
+   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   */
   @DomName('Window.PERSISTENT')
   @DocsEditable()
   // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
   @Experimental()
   static const int PERSISTENT = 1;
 
+  /**
+   * Indicates that file system data can be cleared at any time.
+   *
+   * ## Other resources
+   *
+   * * [Exploring the FileSystem APIs]
+   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API]
+   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   */
   @DomName('Window.TEMPORARY')
   @DocsEditable()
   // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
   @Experimental()
   static const int TEMPORARY = 0;
 
+  /**
+   * Entrypoint for CSS-related functions.
+   *
+   * ## Other resources
+   *
+   * * [The CSS interface](http://dev.w3.org/csswg/css-conditional/#the-css-interface) from W3C.
+   */
   @DomName('Window.CSS')
   @DocsEditable()
   Css get css native "Window_CSS_Getter";
 
+  /**
+   * The application cache for this window.
+   *
+   * ## Other resources
+   *
+   * * [A beginner's guide to using the application cache]
+   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.
+   * * [Application cache API]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)
+   * from WHATWG.
+   */
   @DomName('Window.applicationCache')
   @DocsEditable()
   ApplicationCache get applicationCache native "Window_applicationCache_Getter";
@@ -28721,6 +28760,13 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   Console get console native "Window_console_Getter";
 
+  /**
+   * Entrypoint for the browser's cryptographic functions.
+   *
+   * ## Other resources
+   *
+   * * [Web cryptography API](http://www.w3.org/TR/WebCryptoAPI/) from W3C.
+   */
   @DomName('Window.crypto')
   @DocsEditable()
   // http://www.w3.org/TR/WebCryptoAPI/
@@ -28729,10 +28775,12 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
 
   @DomName('Window.defaultStatus')
   @DocsEditable()
+  @Experimental() // non-standard
   String get defaultStatus native "Window_defaultStatus_Getter";
 
   @DomName('Window.defaultStatus')
   @DocsEditable()
+  @Experimental() // non-standard
   void set defaultStatus(String value) native "Window_defaultStatus_Setter";
 
   @DomName('Window.defaultstatus')
@@ -28745,6 +28793,18 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental() // non-standard
   void set defaultstatus(String value) native "Window_defaultstatus_Setter";
 
+  /**
+   * The ratio between physical pixels and logical CSS pixels.
+   *
+   * ## Other resources
+   *
+   * * [devicePixelRatio]
+   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from
+   * quirksmode.
+   * * [More about devicePixelRatio]
+   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from
+   * quirksmode.
+   */
   @DomName('Window.devicePixelRatio')
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
@@ -28755,6 +28815,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   Document get document native "Window_document_Getter";
 
+  /**
+   * The current session history for this window's newest document.
+   *
+   * ## Other resources
+   *
+   * * [Loading web pages]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
+   * from WHATWG.
+   */
   @DomName('Window.history')
   @DocsEditable()
   History get history native "Window_history_Getter";
@@ -28767,14 +28836,45 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental()
   IdbFactory get indexedDB native "Window_indexedDB_Getter";
 
+  /**
+   * The height of the viewport including scrollbars.
+   *
+   * ## Other resources
+   *
+   * * [innerHeight]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from
+   * WebPlatform.org.
+   */
   @DomName('Window.innerHeight')
   @DocsEditable()
   int get innerHeight native "Window_innerHeight_Getter";
 
+  /**
+   * The width of the viewport including scrollbars.
+   *
+   * ## Other resources
+   *
+   * * [innerWidth]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from
+   * WebPlatform.org.
+   */
   @DomName('Window.innerWidth')
   @DocsEditable()
   int get innerWidth native "Window_innerWidth_Getter";
 
+  /**
+   * Storage for this window that persists across sessions.
+   *
+   * ## Other resources
+   *
+   * * [DOM storage guide]
+   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
+   * MDN.
+   * * [The past, present & future of local storage for web applications]
+   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification]
+   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.
+   */
   @DomName('Window.localStorage')
   @DocsEditable()
   Storage get localStorage native "Window_localStorage_Getter";
@@ -28783,26 +28883,80 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   Location get location native "Window_location_Getter";
 
+  /**
+   * This window's location bar, which displays the URL.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.locationbar')
   @DocsEditable()
   BarProp get locationbar native "Window_locationbar_Getter";
 
+  /**
+   * This window's menu bar, which displays menu commands.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.menubar')
   @DocsEditable()
   BarProp get menubar native "Window_menubar_Getter";
 
+  /**
+   * The name of this window.
+   *
+   * ## Other resources
+   *
+   * * [Window name]
+   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
+   * WebPlatform.org.
+   */
   @DomName('Window.name')
   @DocsEditable()
   String get name native "Window_name_Getter";
 
+  /**
+   * The name of this window.
+   *
+   * ## Other resources
+   *
+   * * [Window name]
+   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
+   * WebPlatform.org.
+   */
   @DomName('Window.name')
   @DocsEditable()
   void set name(String value) native "Window_name_Setter";
 
+  /**
+   * The user agent accessing this window.
+   *
+   * ## Other resources
+   *
+   * * [The navigator object]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)
+   * from WHATWG.
+   */
   @DomName('Window.navigator')
   @DocsEditable()
   Navigator get navigator native "Window_navigator_Getter";
 
+  /**
+   * Whether objects are drawn offscreen before being displayed.
+   *
+   * ## Other resources
+   *
+   * * [offscreenBuffering]
+   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from
+   * WebPlatform.org.
+   */
   @DomName('Window.offscreenBuffering')
   @DocsEditable()
   @Experimental() // non-standard
@@ -28812,18 +28966,56 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   WindowBase get opener native "Window_opener_Getter";
 
+  /**
+   * The height of this window including all user interface elements.
+   *
+   * ## Other resources
+   *
+   * * [outerHeight]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from
+   * WebPlatform.org.
+   */
   @DomName('Window.outerHeight')
   @DocsEditable()
   int get outerHeight native "Window_outerHeight_Getter";
 
+  /**
+   * The width of the window including all user interface elements.
+   *
+   * ## Other resources
+   *
+   * * [outerWidth]
+   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from
+   * WebPlatform.org.
+   */
   @DomName('Window.outerWidth')
   @DocsEditable()
   int get outerWidth native "Window_outerWidth_Getter";
 
+  /**
+   * The distance this window has been scrolled horizontally.
+   *
+   * This attribute is an alias for [scrollX].
+   *
+   * ## Other resources
+   *
+   * * [scrollX and pageXOffset]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   */
   @DomName('Window.pageXOffset')
   @DocsEditable()
   int get pageXOffset native "Window_pageXOffset_Getter";
 
+  /**
+   * The distance this window has been scrolled vertically.
+   *
+   * This attribute is an alias for [scrollY].
+   *
+   * ## Other resources
+   *
+   * * [scrollY and pageYOffset]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   */
   @DomName('Window.pageYOffset')
   @DocsEditable()
   int get pageYOffset native "Window_pageYOffset_Getter";
@@ -28867,6 +29059,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   int get scrollY native "Window_scrollY_Getter";
 
+  /**
+   * This window's scroll bars.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.scrollbars')
   @DocsEditable()
   BarProp get scrollbars native "Window_scrollbars_Getter";
@@ -28875,6 +29076,19 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   WindowBase get self native "Window_self_Getter";
 
+  /**
+   * Storage for this window that is cleared when this session ends.
+   *
+   * ## Other resources
+   *
+   * * [DOM storage guide]
+   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
+   * MDN.
+   * * [The past, present & future of local storage for web applications]
+   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification]
+   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
+   */
   @DomName('Window.sessionStorage')
   @DocsEditable()
   Storage get sessionStorage native "Window_sessionStorage_Getter";
@@ -28893,6 +29107,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   void set status(String value) native "Window_status_Setter";
 
+  /**
+   * This window's status bar.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.statusbar')
   @DocsEditable()
   BarProp get statusbar native "Window_statusbar_Getter";
@@ -28903,6 +29126,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental() // nonstandard
   StyleMedia get styleMedia native "Window_styleMedia_Getter";
 
+  /**
+   * This window's tool bar.
+   *
+   * ## Other resources
+   *
+   * * [Browser interface elements]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
+   * from WHATWG.
+   */
   @DomName('Window.toolbar')
   @DocsEditable()
   BarProp get toolbar native "Window_toolbar_Getter";

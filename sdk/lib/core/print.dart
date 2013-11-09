@@ -4,6 +4,7 @@
 
 part of dart.core;
 
+/// Prints a string representation of the object to the console.
 void print(Object object) {
   String line = "$object";
   if (printToZone == null) {

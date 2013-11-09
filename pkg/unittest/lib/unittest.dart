@@ -295,13 +295,16 @@ String _uncaughtErrorMessage = null;
 /** Time since we last gave non-sync code a chance to be scheduled. */
 var _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 
-/** Test case result strings. */
+/* Test case result strings. */
 // TODO(gram) we should change these constants to use a different string
 // (so that writing 'FAIL' in the middle of a test doesn't
 // imply that the test fails). We can't do it without also changing
 // the testrunner and test.dart though.
+/// Result string for a passing test case.
 const PASS  = 'pass';
+/// Result string for a failing test case.
 const FAIL  = 'fail';
+/// Result string for an test case with an error.
 const ERROR = 'error';
 
 /**
