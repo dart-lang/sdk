@@ -16,7 +16,30 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_snapshots',
+          'action_name': 'generate_dart2js_snapshot',
+          'inputs': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '../../sdk/lib/_internal/libraries.dart',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$",'
+            ' "../../sdk/lib/_internal/compiler", "../../runtime/lib"])',
+            '../../sdk/lib/_internal/libraries.dart',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            # Note: we don't store the snapshot in the location where
+            # the dart2js script is looking for it.  The motivation
+            # for that is to support an incremental development model
+            # for dart2js compiler engineers.  However, we install the
+            # snapshot in the proper location when building the SDK.
+            '--snapshot=<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',
+            '../../sdk/lib/_internal/compiler/implementation/dart2js.dart',
+          ],
+        },
+        {
+          'action_name': 'generate_dartdoc_snapshot',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/libraries.dart',
@@ -26,7 +49,6 @@
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
-            '<(SHARED_INTERMEDIATE_DIR)/dart2js.dart.snapshot',
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
