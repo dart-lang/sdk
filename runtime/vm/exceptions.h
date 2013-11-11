@@ -37,7 +37,7 @@ class Exceptions : AllStatic {
                                       const String& src_type_name,
                                       const String& dst_type_name,
                                       const String& dst_name,
-                                      const String& bound_error);
+                                      const String& error_msg);
 
   enum ExceptionType {
     kNone,

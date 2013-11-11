@@ -4230,7 +4230,9 @@ class TypeParameter : public AbstractType {
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
   // Returns true if bounded_type is below upper_bound, otherwise return false
-  // and set bound_error if not NULL.
+  // and set bound_error if both bounded_type and upper_bound are instantiated.
+  // If one or both are not instantiated, returning false only means that the
+  // bound cannot be checked yet and this is not an error.
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* bound_error) const;
@@ -4308,6 +4310,10 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated() const {
+    // It is not possible to encounter an instantiated bounded type with an
+    // uninstantiated upper bound. Therefore, we do not need to check if the
+    // bound is instantiated. Moreover, doing so could lead into cycles, as in
+    // class C<T extends C<C>> { }.
     return AbstractType::Handle(type()).IsInstantiated();
   }
   virtual bool Equals(const Instance& other) const;

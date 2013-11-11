@@ -1669,11 +1669,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type reflected by the class mirror.
-      Error& malformed_error = Error::Handle();
+      Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
-                                                     &malformed_error);
-      if (!malformed_error.IsNull()) {
-        ThrowInvokeError(malformed_error);
+                                                     &bound_error);
+      if (!bound_error.IsNull()) {
+        ThrowInvokeError(bound_error);
         UNREACHABLE();
       }
     }

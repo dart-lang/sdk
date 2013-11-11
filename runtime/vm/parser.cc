@@ -1596,6 +1596,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         signature_type ^= ClassFinalizer::FinalizeType(
             signature_class, signature_type, ClassFinalizer::kCanonicalize);
       }
+      // A signature type itself cannot be malformed or malbounded, only its
+      // signature function's result type or parameter types may be.
+      ASSERT(!signature_type.IsMalformed());
+      ASSERT(!signature_type.IsMalbounded());
       // The type of the parameter is now the signature type.
       parameter.type = &signature_type;
     }
@@ -3167,7 +3171,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
           method->name->ToCString(),
           String::Handle(type.UserVisibleName()).ToCString());
     } else {
-      // TODO(regis): What if the redirection type is malbounded?
+      // We handle malformed and malbounded redirection type at run time.
       redirection_type ^= type.raw();
     }
     if (CurrentToken() == Token::kPERIOD) {
@@ -5672,27 +5676,23 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // The call to ClassFinalizer::FinalizeType may have
     // extended the vector of type arguments.
     signature_type_arguments = signature_type.arguments();
-    ASSERT(signature_type.IsMalformed() ||
-           signature_type_arguments.IsNull() ||
+    ASSERT(signature_type_arguments.IsNull() ||
            (signature_type_arguments.Length() ==
             signature_class.NumTypeArguments()));
 
     // The signature_class should not have changed.
-    ASSERT(signature_type.IsMalformed() ||
-           (signature_type.type_class() == signature_class.raw()));
+    ASSERT(signature_type.type_class() == signature_class.raw());
   }
+
+  // A signature type itself cannot be malformed or malbounded, only its
+  // signature function's result type or parameter types may be.
+  ASSERT(!signature_type.IsMalformed());
+  ASSERT(!signature_type.IsMalbounded());
 
   if (variable_name != NULL) {
     // Patch the function type of the variable now that the signature is known.
     function_type.set_type_class(signature_class);
     function_type.set_arguments(signature_type_arguments);
-
-    // Mark the function type as malformed if the signature type is malformed.
-    if (signature_type.IsMalformed()) {
-      const Error& error = Error::Handle(signature_type.malformed_error());
-      function_type.set_malformed_error(error);
-    }
-    // TODO(regis): What if the signature is malbounded?
 
     // The function type was initially marked as instantiated, but it may
     // actually be uninstantiated.
@@ -9934,19 +9934,29 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
-      if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
+      Error& error = Error::Handle();
+      if (!redirect_type.IsMalformed() && !redirect_type.IsMalbounded() &&
+          !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
-        Error& malformed_error = Error::Handle();
-        redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
-                                                       &malformed_error);
-        if (!malformed_error.IsNull()) {
-          redirect_type.set_malformed_error(malformed_error);
+        redirect_type ^= redirect_type.InstantiateFrom(type_arguments, &error);
+        if (!error.IsNull()) {
+          redirect_type = ClassFinalizer::NewFinalizedMalformedType(
+              error,
+              script_,
+              call_pos,
+              "redirecting factory type '%s' cannot be instantiated",
+              String::Handle(redirect_type.UserVisibleName()).ToCString());
+          error = Error::null();
         }
       }
-      if (redirect_type.IsMalformed()) {
+      if (redirect_type.IsMalformed() ||
+          redirect_type.IsMalboundedWithError(&error)) {
         if (is_const) {
-          ErrorMsg(Error::Handle(redirect_type.malformed_error()));
+          if (redirect_type.IsMalformed()) {
+            error = type.malformed_error();
+          }
+          ErrorMsg(error);
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
@@ -10013,9 +10023,12 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
 
   // Return a throw in case of a malformed type or report a compile-time error
   // if the constructor is const.
-  if (type.IsMalformed()) {
+  Error& error = Error::Handle();
+  if (type.IsMalformed() || type.IsMalboundedWithError(&error)) {
     if (is_const) {
-      const Error& error = Error::Handle(type.malformed_error());
+      if (type.IsMalformed()) {
+        error = type.malformed_error();
+      }
       ErrorMsg(error);
     }
     return ThrowTypeError(type_pos, type);

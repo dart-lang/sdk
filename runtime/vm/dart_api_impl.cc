@@ -2880,11 +2880,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type argument.
-      Error& malformed_error = Error::Handle();
+      Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
-                                                     &malformed_error);
-      if (!malformed_error.IsNull()) {
-        return Api::NewHandle(isolate, malformed_error.raw());
+                                                     &bound_error);
+      if (!bound_error.IsNull()) {
+        return Api::NewHandle(isolate, bound_error.raw());
       }
     }
 

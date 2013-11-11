@@ -501,16 +501,16 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 
 
 // Allocate, initialize, and throw a TypeError or CastError.
-// If bound_error is not null, throw a TypeError, even for a type cast.
+// If error_msg is not null, throw a TypeError, even for a type cast.
 void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,
-                                         const String& bound_error) {
+                                         const String& error_msg) {
   const Array& args = Array::Handle(Array::New(7));
 
   ExceptionType exception_type =
-      (bound_error.IsNull() && dst_name.Equals(kCastErrorDstName)) ?
+      (error_msg.IsNull() && dst_name.Equals(kCastErrorDstName)) ?
           kCast : kType;
 
   DartFrameIterator iterator;
@@ -527,17 +527,17 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
   args.SetAt(1, Smi::Handle(Smi::New(line)));
   args.SetAt(2, Smi::Handle(Smi::New(column)));
 
-  // Initialize '_srcType', '_dstType', '_dstName', and '_boundError'.
+  // Initialize '_srcType', '_dstType', '_dstName', and '_errorMsg'.
   args.SetAt(3, src_type_name);
   args.SetAt(4, dst_type_name);
   args.SetAt(5, dst_name);
-  args.SetAt(6, bound_error);
+  args.SetAt(6, error_msg);
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stacktrace_at_throw) {
-    if (!bound_error.IsNull()) {
-      OS::Print("%s\n", bound_error.ToCString());
+    if (!error_msg.IsNull()) {
+      OS::Print("%s\n", error_msg.ToCString());
     }
     OS::Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
               String::Handle(script.url()).ToCString(), line, column);
@@ -547,7 +547,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
                 dst_type_name.ToCString(),
                 dst_name.ToCString());
     } else {
-      OS::Print("malbounded type used.\n");
+      OS::Print("type error.\n");
     }
   }
   // Throw TypeError or CastError instance.

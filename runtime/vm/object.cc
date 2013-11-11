@@ -4843,6 +4843,7 @@ const char* Function::ToFullyQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
   ASSERT(FLAG_error_on_bad_override);
+  ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
   if (!TypeTest(kIsSubtypeOf, Object::null_abstract_type_arguments(),
@@ -11307,11 +11308,30 @@ RawAbstractType* AbstractType::Canonicalize() const {
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   if (IsBoundedType()) {
-    // TODO(regis): Should the bound be visible in the name for debug purposes
-    // if name_visibility is kInternalName?
     const AbstractType& type = AbstractType::Handle(
         BoundedType::Cast(*this).type());
-    return type.BuildName(name_visibility);
+    if (name_visibility == kUserVisibleName) {
+      return type.BuildName(kUserVisibleName);
+    }
+    String& type_name = String::Handle(type.BuildName(kInternalName));
+    type_name = String::Concat(type_name, Symbols::SpaceExtendsSpace());
+    // Building the bound name may lead into cycles.
+    const AbstractType& bound = AbstractType::Handle(
+        BoundedType::Cast(*this).bound());
+    String& bound_name = String::Handle();
+    if (bound.IsTypeParameter()) {
+      bound_name = TypeParameter::Cast(bound).name();
+    } else if (bound.IsType()) {
+      const Class& cls = Class::Handle(Type::Cast(bound).type_class());
+      bound_name = cls.Name();
+      if (Type::Cast(bound).arguments() != AbstractTypeArguments::null()) {
+        bound_name = String::Concat(bound_name, Symbols::OptimizedOut());
+      }
+    } else {
+      bound_name = String::New(Symbols::OptimizedOut());
+    }
+    type_name = String::Concat(type_name, bound_name);
+    return Symbols::New(type_name);
   }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).name();
@@ -12070,62 +12090,49 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  // Bound checks may appear in the instantiator type arguments, as is the case
-  // with a pair of type parameters of the same class referring to each other
-  // via their bounds.
-  AbstractType& type_arg = AbstractType::Handle(
-      instantiator_type_arguments.TypeAt(index()));
-  if (type_arg.IsBoundedType()) {
-    const BoundedType& bounded_type = BoundedType::Cast(type_arg);
-    // Bounds checking of a type is postponed to run time if the type is still
-    // uninstantiated at compile time, or if the bound and the type are mutually
-    // recursive. In the latter case, the type may already be instantiated.
-    if (!bounded_type.IsInstantiated()) {
-      ASSERT(AbstractType::Handle(bounded_type.bound()).IsInstantiated());
-      type_arg = bounded_type.InstantiateFrom(AbstractTypeArguments::Handle(),
-                                              bound_error);
-    }
-  }
-  return type_arg.raw();
+  return instantiator_type_arguments.TypeAt(index());
 }
 
 
 bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
                                Error* bound_error) const {
-  ASSERT((bound_error == NULL) || bound_error->IsNull());
+  ASSERT((bound_error != NULL) && bound_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
   if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
     return true;
   }
-  if ((bound_error != NULL) && bound_error->IsNull()) {
-    // Report the bound error.
-    const String& bounded_type_name = String::Handle(
-        bounded_type.UserVisibleName());
-    const String& upper_bound_name = String::Handle(
-        upper_bound.UserVisibleName());
-    const AbstractType& declared_bound = AbstractType::Handle(bound());
-    const String& declared_bound_name = String::Handle(
-        declared_bound.UserVisibleName());
-    const String& type_param_name = String::Handle(UserVisibleName());
-    const Class& cls = Class::Handle(parameterized_class());
-    const String& class_name = String::Handle(cls.Name());
-    const Script& script = Script::Handle(cls.script());
-    // Since the bound may have been canonicalized, its token index is
-    // meaningless, therefore use the token index of this type parameter.
-    *bound_error = FormatError(
-        *bound_error,
-        script,
-        token_pos(),
-        "type parameter '%s' of class '%s' must extend bound '%s', "
-        "but type argument '%s' is not a subtype of '%s'\n",
-        type_param_name.ToCString(),
-        class_name.ToCString(),
-        declared_bound_name.ToCString(),
-        bounded_type_name.ToCString(),
-        upper_bound_name.ToCString());
+  if (bound_error->IsNull()) {
+    // Report the bound error only if both the bounded type and the upper bound
+    // are instantiated. Otherwise, we cannot tell yet it is a bound error.
+    if (bounded_type.IsInstantiated() && upper_bound.IsInstantiated()) {
+      const String& bounded_type_name = String::Handle(
+          bounded_type.UserVisibleName());
+      const String& upper_bound_name = String::Handle(
+          upper_bound.UserVisibleName());
+      const AbstractType& declared_bound = AbstractType::Handle(bound());
+      const String& declared_bound_name = String::Handle(
+          declared_bound.UserVisibleName());
+      const String& type_param_name = String::Handle(UserVisibleName());
+      const Class& cls = Class::Handle(parameterized_class());
+      const String& class_name = String::Handle(cls.Name());
+      const Script& script = Script::Handle(cls.script());
+      // Since the bound may have been canonicalized, its token index is
+      // meaningless, therefore use the token index of this type parameter.
+      *bound_error = FormatError(
+          *bound_error,
+          script,
+          token_pos(),
+          "type parameter '%s' of class '%s' must extend bound '%s', "
+          "but type argument '%s' is not a subtype of '%s'\n",
+          type_param_name.ToCString(),
+          class_name.ToCString(),
+          declared_bound_name.ToCString(),
+          bounded_type_name.ToCString(),
+          upper_bound_name.ToCString());
+    }
   }
   return false;
 }
@@ -12218,18 +12225,17 @@ bool BoundedType::IsMalformed() const {
 
 
 bool BoundedType::IsMalboundedWithError(Error* bound_error) const {
-  if (!FLAG_enable_type_checks && !FLAG_error_on_bad_type) {
-    return false;
-  }
-  const AbstractType& upper_bound = AbstractType::Handle(bound());
-  if (upper_bound.IsMalformed()) {
-    if (bound_error != NULL) {
-      *bound_error = upper_bound.malformed_error();
-      ASSERT(!bound_error->IsNull());
+  if (FLAG_enable_type_checks || FLAG_error_on_bad_type) {
+    const AbstractType& upper_bound = AbstractType::Handle(bound());
+    if (upper_bound.IsMalformed()) {
+      if (bound_error != NULL) {
+        *bound_error = upper_bound.malformed_error();
+        ASSERT(!bound_error->IsNull());
+      }
+      return true;
     }
-    return true;
   }
-  return false;
+  return AbstractType::Handle(type()).IsMalboundedWithError(bound_error);
 }
 
 
@@ -12315,7 +12321,15 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error);
     }
     if (bound_error->IsNull()) {
-      type_param.CheckBound(bounded_type, upper_bound, bound_error);
+      if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
+          bound_error->IsNull()) {
+        // We cannot determine yet whether the bounded_type is below the
+        // upper_bound, because one or both of them is still uninstantiated.
+        ASSERT(!bounded_type.IsInstantiated() || !upper_bound.IsInstantiated());
+        // Postpone bound check by returning a new BoundedType with partially
+        // instantiated bounded_type and upper_bound, but keeping type_param.
+        bounded_type = BoundedType::New(bounded_type, upper_bound, type_param);
+      }
     }
     set_is_being_checked(false);
   }
@@ -12373,19 +12387,22 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
 
 
 const char* BoundedType::ToCString() const {
-  const char* format = "BoundedType: type %s; bound: %s; class: %s";
+  const char* format = "BoundedType: type %s; bound: %s; type param: %s of %s";
   const char* type_cstr = String::Handle(AbstractType::Handle(
       type()).Name()).ToCString();
   const char* bound_cstr = String::Handle(AbstractType::Handle(
       bound()).Name()).ToCString();
+  const char* type_param_cstr = String::Handle(TypeParameter::Handle(
+      type_parameter()).name()).ToCString();
   const Class& cls = Class::Handle(TypeParameter::Handle(
       type_parameter()).parameterized_class());
   const char* cls_cstr =
       cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
   intptr_t len = OS::SNPrint(
-      NULL, 0, format, type_cstr, bound_cstr, cls_cstr) + 1;
+      NULL, 0, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, cls_cstr);
+  OS::SNPrint(
+      chars, len, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr);
   return chars;
 }
 

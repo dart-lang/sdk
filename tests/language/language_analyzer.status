@@ -55,6 +55,8 @@ factory5_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
+malbounded_redirecting_factory_test/none: fail # Issue 11578
+malbounded_redirecting_factory2_test/none: fail # Issue 11578
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail

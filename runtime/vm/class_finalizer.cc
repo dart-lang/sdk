@@ -289,6 +289,10 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
       if (type.IsMalformed()) {
         ReportError(Error::Handle(type.malformed_error()));
       }
+      Error& error = Error::Handle();
+      if (type.IsMalboundedWithError(&error)) {
+        ReportError(error);
+      }
     }
   }
 }
@@ -316,8 +320,8 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // Check if target is already resolved.
   Type& type = Type::Handle(factory.RedirectionType());
   Function& target = Function::Handle(factory.RedirectionTarget());
-  if (type.IsMalformed()) {
-    // Already resolved to a malformed type. Will throw on usage.
+  if (type.IsMalformed() || (type.IsResolved() && type.IsMalbounded())) {
+    // Already resolved to a malformed or malbounded type. Will throw on usage.
     ASSERT(target.IsNull());
     return;
   }
@@ -334,7 +338,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   ResolveType(cls, type, kCanonicalize);
   type ^= FinalizeType(cls, type, kCanonicalize);
   factory.SetRedirectionType(type);
-  if (type.IsMalformed()) {
+  if (type.IsMalformed() || type.IsMalbounded()) {
     ASSERT(factory.RedirectionTarget() == Function::null());
     return;
   }
@@ -430,13 +434,14 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     if (!target_type.IsInstantiated()) {
       const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
           type.arguments());
-      Error& malformed_error = Error::Handle();
-      target_type ^= target_type.InstantiateFrom(type_args, &malformed_error);
-      if (malformed_error.IsNull()) {
+      Error& bound_error = Error::Handle();
+      target_type ^= target_type.InstantiateFrom(type_args, &bound_error);
+      if (bound_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type, kCanonicalize);
       } else {
+        ASSERT(target_type.IsInstantiated() && type_args.IsInstantiated());
         const Script& script = Script::Handle(target_class.script());
-        FinalizeMalformedType(malformed_error, script, target_type,
+        FinalizeMalformedType(bound_error, script, target_type,
                               "cannot resolve redirecting factory");
         target_target = Function::null();
       }
@@ -596,14 +601,16 @@ void ClassFinalizer::FinalizeTypeArguments(
       if (!super_type_args.IsNull()) {
         super_type_arg = super_type_args.TypeAt(super_offset + i);
         if (!super_type_arg.IsInstantiated()) {
-          Error& malformed_error = Error::Handle();
-          super_type_arg = super_type_arg.InstantiateFrom(arguments,
-                                                          &malformed_error);
-          if (!malformed_error.IsNull()) {
-            if (!super_type_arg.IsInstantiated()) {
-              // CheckTypeArgumentBounds will insert a BoundedType.
-            } else if (bound_error->IsNull()) {
-              *bound_error = malformed_error.raw();
+          Error& error = Error::Handle();
+          super_type_arg = super_type_arg.InstantiateFrom(arguments, &error);
+          if (!error.IsNull()) {
+            // InstantiateFrom does not report an error if the type is still
+            // uninstantiated. Instead, it will return a new BoundedType so that
+            // the check is postponed to run time.
+            ASSERT(super_type_arg.IsInstantiated());
+            // Keep only the first bound error.
+            if (bound_error->IsNull()) {
+              *bound_error = error.raw();
             }
           }
         }
@@ -665,14 +672,13 @@ void ClassFinalizer::CheckTypeArgumentBounds(
         type_param.set_bound(declared_bound);
       }
       ASSERT(declared_bound.IsFinalized() || declared_bound.IsBeingFinalized());
-      Error& malformed_error = Error::Handle();
+      Error& error = Error::Handle();
       // Note that the bound may be malformed, in which case the bound check
       // will return an error and the bound check will be postponed to run time.
       if (declared_bound.IsInstantiated()) {
         instantiated_bound = declared_bound.raw();
       } else {
-        instantiated_bound =
-            declared_bound.InstantiateFrom(arguments, &malformed_error);
+        instantiated_bound = declared_bound.InstantiateFrom(arguments, &error);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone
@@ -684,34 +690,20 @@ void ClassFinalizer::CheckTypeArgumentBounds(
         arguments.SetTypeAt(offset + i, type_arg);
         continue;
       }
-      // TODO(regis): We could simplify this code if we could differentiate
-      // between a failed bound check and a bound check that is undecidable at
-      // compile time.
       // Shortcut the special case where we check a type parameter against its
       // declared upper bound.
-      bool below_bound = true;
-      if (malformed_error.IsNull() &&
-          (!type_arg.Equals(type_param) ||
-           !instantiated_bound.Equals(declared_bound))) {
-        // Pass NULL to prevent expensive and unnecessary error formatting in
-        // the case the bound check is postponed to run time.
-        below_bound = type_param.CheckBound(type_arg, instantiated_bound, NULL);
-      }
-      if (!malformed_error.IsNull() || !below_bound) {
-        if (!type_arg.IsInstantiated() ||
-            !instantiated_bound.IsInstantiated()) {
+      if (error.IsNull() &&
+          !(type_arg.Equals(type_param) &&
+            instantiated_bound.Equals(declared_bound))) {
+        if (!type_param.CheckBound(type_arg, instantiated_bound, &error) &&
+            error.IsNull()) {
+          // The bound cannot be checked at compile time; postpone to run time.
           type_arg = BoundedType::New(type_arg, instantiated_bound, type_param);
           arguments.SetTypeAt(offset + i, type_arg);
-        } else if (bound_error->IsNull()) {
-          if (malformed_error.IsNull()) {
-            // Call CheckBound again to format error message.
-            type_param.CheckBound(type_arg,
-                                  instantiated_bound,
-                                  &malformed_error);
-          }
-          ASSERT(!malformed_error.IsNull());
-          *bound_error = malformed_error.raw();
         }
+      }
+      if (!error.IsNull() && bound_error->IsNull()) {
+        *bound_error = error.raw();
       }
     }
   }

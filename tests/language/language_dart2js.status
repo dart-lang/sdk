@@ -41,6 +41,10 @@ type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 closure_type_test: Fail # Issue 12745
+malbounded_redirecting_factory_test/02: Fail # Issue 12825
+malbounded_redirecting_factory_test/03: Fail # Issue 12825
+malbounded_redirecting_factory2_test/02: Fail # Issue 12825
+malbounded_redirecting_factory2_test/03: Fail # Issue 12825
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
