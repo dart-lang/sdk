@@ -41,11 +41,11 @@ type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 closure_type_test: Fail # Issue 12745
-redirecting_factory_malbounded_test/01: Fail # Issue 12825
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
+default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
@@ -191,6 +191,7 @@ mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
 factory3_test: Fail # Issue 13077
+redirecting_factory_long_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
 
 # Mixins fail on the VM.

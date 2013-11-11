@@ -3851,10 +3851,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     bool isRedirected = functionElement.isRedirectingFactory;
     InterfaceType type = elements.getType(node);
-    DartType expectedType = type;
-    if (isRedirected) {
-      type = functionElement.computeTargetType(compiler, type);
-    }
+    InterfaceType expectedType = functionElement.computeTargetType(type);
 
     if (checkTypeVariableBounds(node, type)) return;
 
@@ -3881,14 +3878,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     if (backend.classNeedsRti(cls)) {
       Link<DartType> typeVariable = cls.typeVariables;
-      type.typeArguments.forEach((DartType argument) {
+      expectedType.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument));
         typeVariable = typeVariable.tail;
       });
       assert(typeVariable.isEmpty);
     }
 
-    if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
+    if (constructor.isFactoryConstructor() &&
+        !expectedType.typeArguments.isEmpty) {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
     TypeMask elementType = computeType(constructor);
@@ -3912,7 +3910,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Finally, if we called a redirecting factory constructor, check the type.
     if (isRedirected) {
-      HInstruction checked = potentiallyCheckType(newInstance, expectedType);
+      HInstruction checked = potentiallyCheckType(newInstance, type);
       if (checked != newInstance) {
         pop();
         stack.add(checked);

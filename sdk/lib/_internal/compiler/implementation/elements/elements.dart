@@ -793,14 +793,10 @@ abstract class FunctionElement extends Element {
   bool get isRedirectingFactory;
 
   /**
-   * Compute the type of the target of a redirecting constructor or factory
-   * for an instantiation site with type [:newType:].
-   *
-   * TODO(karlklose): get rid of this method and resolve the target type
-   * during resolution when we correctly resolve chains of redirections.
+   * Compute the type of the target of a constructor for an instantiation site
+   * with type [:newType:].
    */
-  InterfaceType computeTargetType(Compiler compiler,
-                                  InterfaceType newType);
+  InterfaceType computeTargetType(InterfaceType newType);
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
   void set patch(FunctionElement value);

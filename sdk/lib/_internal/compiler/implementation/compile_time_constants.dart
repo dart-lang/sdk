@@ -722,13 +722,10 @@ class CompileTimeConstantEvaluator extends Visitor {
   Constant makeConstructedConstant(
       Spannable node, InterfaceType type, FunctionElement constructor,
       List<Constant> getArguments(FunctionElement constructor)) {
-    if (constructor.isRedirectingFactory) {
-      type = constructor.computeTargetType(compiler, type);
-    }
-
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);
+    InterfaceType constructedType = constructor.computeTargetType(type);
     constructor = constructor.redirectionTarget;
     ClassElement classElement = constructor.getEnclosingClass();
     // The constructor must be an implementation to ensure that field
@@ -742,7 +739,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
-    return new ConstructedConstant(type, jsNewArguments);
+    return new ConstructedConstant(constructedType, jsNewArguments);
   }
 
   Constant visitParenthesizedExpression(ParenthesizedExpression node) {

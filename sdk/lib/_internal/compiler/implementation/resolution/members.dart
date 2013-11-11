@@ -604,29 +604,54 @@ class ResolverTask extends CompilerTask {
   }
 
   void resolveRedirectionChain(FunctionElement constructor, Spannable node) {
-    FunctionElementX current = constructor;
+    FunctionElementX target = constructor;
+    InterfaceType targetType;
     List<Element> seen = new List<Element>();
     // Follow the chain of redirections and check for cycles.
-    while (current != current.defaultImplementation) {
-      if (current.internalRedirectionTarget != null) {
+    while (target != target.defaultImplementation) {
+      if (target.internalRedirectionTarget != null) {
         // We found a constructor that already has been processed.
-        current = current.internalRedirectionTarget;
+        targetType = target.redirectionTargetType;
+        assert(invariant(target, targetType != null,
+            message: 'Redirection target type has not been computed for '
+                     '$target'));
+        target = target.internalRedirectionTarget;
         break;
       }
-      Element target = current.defaultImplementation;
-      if (seen.contains(target)) {
+
+      Element nextTarget = target.defaultImplementation;
+      if (seen.contains(nextTarget)) {
         error(node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
         break;
       }
-      seen.add(current);
-      current = target;
+      seen.add(target);
+      target = nextTarget;
     }
-    // [current] is now the actual target of the redirections.  Run through
+
+    if (targetType == null) {
+      assert(!target.isRedirectingFactory);
+      targetType = target.getEnclosingClass().thisType;
+    }
+
+    // [target] is now the actual target of the redirections.  Run through
     // the constructors again and set their [redirectionTarget], so that we
-    // do not have to run the loop for these constructors again.
+    // do not have to run the loop for these constructors again. Furthermore,
+    // compute [redirectionTargetType] for each factory by computing the
+    // substitution of the target type with respect to the factory type.
     while (!seen.isEmpty) {
       FunctionElementX factory = seen.removeLast();
-      factory.redirectionTarget = current;
+
+      TreeElements treeElements =
+          compiler.enqueuer.resolution.getCachedElements(factory);
+      FunctionExpression functionNode = factory.parseNode(compiler);
+      Return redirectionNode = functionNode.body;
+      InterfaceType factoryType =
+          treeElements.getType(redirectionNode.expression);
+
+      targetType = targetType.subst(factoryType.typeArguments,
+                                    factoryType.element.typeVariables);
+      factory.redirectionTarget = target;
+      factory.redirectionTargetType = targetType;
     }
   }
 

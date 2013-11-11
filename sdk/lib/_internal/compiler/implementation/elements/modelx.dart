@@ -1435,13 +1435,14 @@ class FunctionElementX extends ElementX implements FunctionElement {
 
   /// This field is set by the post process queue when checking for cycles.
   FunctionElement internalRedirectionTarget;
+  DartType redirectionTargetType;
 
   set redirectionTarget(FunctionElement constructor) {
     assert(constructor != null && internalRedirectionTarget == null);
     internalRedirectionTarget = constructor;
   }
 
-  get redirectionTarget {
+  FunctionElement get redirectionTarget {
     if (Elements.isErroneousElement(defaultImplementation)) {
       return defaultImplementation;
     }
@@ -1449,17 +1450,13 @@ class FunctionElementX extends ElementX implements FunctionElement {
     return isRedirectingFactory ? internalRedirectionTarget : this;
   }
 
-  InterfaceType computeTargetType(Compiler compiler,
-                                  InterfaceType newType) {
+  InterfaceType computeTargetType(InterfaceType newType) {
     if (!isRedirectingFactory) return newType;
-    ClassElement targetClass = getEnclosingClass();
-    TreeElements treeElements =
-        compiler.enqueuer.resolution.getCachedElements(
-            declaration);
-    FunctionExpression functionNode = parseNode(compiler);
-    Return redirectionNode = functionNode.body;
-    return treeElements.getType(redirectionNode.expression)
-        .subst(newType.typeArguments, targetClass.typeVariables);
+    assert(invariant(this, redirectionTargetType != null,
+        message: 'Redirection target type has not yet been computed for '
+                 '$this.'));
+    return redirectionTargetType.subst(newType.typeArguments,
+                                       newType.element.typeVariables);
   }
 
   /**
