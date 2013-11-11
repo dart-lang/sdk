@@ -379,6 +379,7 @@ class SimpleTypeInferrerVisitor<T>
   T returnType;
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
+  bool seenSuperConstructorCall = false;
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
   final InferrerEngine<T, TypeSystem<T>> inferrer;
@@ -460,6 +461,7 @@ class SimpleTypeInferrerVisitor<T>
         }
         locals.update(element, parameterType, node);
       });
+      ClassElement cls = analyzedElement.getEnclosingClass();
       if (analyzedElement.isSynthesized) {
         node = analyzedElement;
         synthesizeForwardingCall(node, analyzedElement.targetConstructor);
@@ -468,8 +470,19 @@ class SimpleTypeInferrerVisitor<T>
         visit(node.initializers);
         visitingInitializers = false;
         visit(node.body);
+        // For a generative constructor like: `Foo();`, we synthesize
+        // a call to the default super constructor (the one that takes
+        // no argument). Resolution ensures that such a constructor
+        // exists.
+        if (!isConstructorRedirect
+            && !seenSuperConstructorCall
+            && !cls.isObject(compiler)) {
+          Selector selector =
+              new Selector.callDefaultConstructor(analyzedElement.getLibrary());
+          FunctionElement target = cls.superclass.lookupConstructor(selector);
+          synthesizeForwardingCall(analyzedElement, target);
+        }
       }
-      ClassElement cls = analyzedElement.getEnclosingClass();
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
         // fields that we haven't initialized for sure.
@@ -785,6 +798,9 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitSuperSend(Send node) {
+    if (visitingInitializers) {
+      seenSuperConstructorCall = true;
+    }
     Element element = elements[node];
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): We could do better here if we knew what we
@@ -830,8 +846,12 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitStaticSend(Send node) {
-    if (visitingInitializers && Initializers.isConstructorRedirect(node)) {
-      isConstructorRedirect = true;
+    if (visitingInitializers) {
+      if (Initializers.isConstructorRedirect(node)) {
+        isConstructorRedirect = true;
+      } else if (Initializers.isSuperConstructorCall(node)) {
+        seenSuperConstructorCall = true;
+      }
     }
     Element element = elements[node];
     if (element.isForeign(compiler)) {
