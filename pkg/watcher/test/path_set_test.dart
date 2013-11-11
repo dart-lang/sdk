@@ -218,7 +218,7 @@ void main() {
       set.add("root/path/to/two");
       set.remove("root/path/to/two");
 
-      expect(set.toSet(), unorderedEquals([p.normalizze("root/path/to/one")]));
+      expect(set.toSet(), unorderedEquals([p.normalize("root/path/to/one")]));
     });
   });
 
