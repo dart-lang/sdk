@@ -141,6 +141,8 @@ final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
 final String _packageRoot =
     '${path.dirname(Uri.parse(window.location.href).path)}/packages/';
 
+final Logger _loaderLog = new Logger('polymer.loader');
+
 /**
  * Reads the library at [uriString] (which can be an absolute URI or a relative
  * URI from the root library), and:
@@ -164,7 +166,7 @@ void _loadLibrary(String uriString) {
   }
 
   if (lib == null) {
-    print('warning: $uri library not found');
+    _loaderLog.info('$uri library not found');
     return;
   }
 
