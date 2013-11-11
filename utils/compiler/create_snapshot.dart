@@ -42,6 +42,22 @@ void main(List<String> arguments) {
   });
 }
 
+Future<String> getDart2jsSnapshotGenerationFile(var args, var rootPath) {
+  var dart2js = rootPath.resolve(args["dart2js_main"]);
+  return getVersion(rootPath).then((version) {
+    var snapshotGenerationText =
+"""
+import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
+
+void main(List<String> arguments) {
+  dart2jsMain.BUILD_ID = "$version";
+  dart2jsMain.main(arguments);
+}
+""";
+    return snapshotGenerationText;
+  });
+}
+
 void writeSnapshotFile(var path, var content) {
     File file = new File(path);
     var writer = file.openSync(mode: FileMode.WRITE);
@@ -91,4 +107,11 @@ void main(List<String> arguments) {
     writeSnapshotFile(wrapper, result);
     createSnapshot(wrapper, args["package_root"]);
   });
+
+  getDart2jsSnapshotGenerationFile(args, rootPath).then((result) {
+    var wrapper = "${args['output_dir']}/dart2js.dart";
+    writeSnapshotFile(wrapper, result);
+    createSnapshot(wrapper, args["package_root"]);
+  });
+
 }
