@@ -330,5 +330,11 @@ unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
 
+[ $runtime == vm && ($system == windows || $system == linux) ]
+watcher/test/*/mac_os_test: Skip
+
 [ $runtime == vm && $system == linux ]
 watcher/test/*/linux_test: Pass, Slow # Issue 14606
+
+[ $runtime == vm && $system == macos ]
+watcher/test/no_subscribers/mac_os_test: Fail # Issue 14793 (see test file for details)

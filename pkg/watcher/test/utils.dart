@@ -137,6 +137,8 @@ void startWatcher({String dir}) {
       // people think it might be the root cause.
       if (currentSchedule.errors.isEmpty) {
         expect(allEvents, hasLength(numEvents));
+      } else {
+        currentSchedule.addDebugInfo("Events fired:\n${allEvents.join('\n')}");
       }
     }, "reset watcher");
 

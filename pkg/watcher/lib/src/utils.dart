@@ -18,6 +18,10 @@ bool isDirectoryNotFoundException(error) {
   return error.osError.errorCode == notFoundCode;
 }
 
+/// Returns the union of all elements in each set in [sets].
+Set unionAll(Iterable<Set> sets) =>
+  sets.fold(new Set(), (union, set) => union.union(set));
+
 /// Returns a buffered stream that will emit the same values as the stream
 /// returned by [future] once [future] completes.
 ///

@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'watch_event.dart';
 import 'directory_watcher/linux.dart';
+import 'directory_watcher/mac_os.dart';
 import 'directory_watcher/polling.dart';
 
 /// Watches the contents of a directory and emits [WatchEvent]s when something
@@ -54,6 +55,7 @@ abstract class DirectoryWatcher {
   /// watchers.
   factory DirectoryWatcher(String directory, {Duration pollingDelay}) {
     if (Platform.isLinux) return new LinuxDirectoryWatcher(directory);
+    if (Platform.isMacOS) return new MacOSDirectoryWatcher(directory);
     return new PollingDirectoryWatcher(directory, pollingDelay: pollingDelay);
   }
 }

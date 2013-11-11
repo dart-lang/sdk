@@ -12,8 +12,6 @@ import '../utils.dart';
 import '../watch_event.dart';
 import 'resubscribable.dart';
 
-import 'package:stack_trace/stack_trace.dart';
-
 /// Uses the inotify subsystem to watch for filesystem events.
 ///
 /// Inotify doesn't suport recursively watching subdirectories, nor does

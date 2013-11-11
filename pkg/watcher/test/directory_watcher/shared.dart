@@ -6,6 +6,8 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
 
+import 'dart:async';
+
 sharedTests() {
   test('does not notify for files that already exist when started', () {
     // Make some pre-existing files.
@@ -216,6 +218,22 @@ sharedTests() {
           expectRemoveEvent("dir/old/sub-$i/sub-$j/file-$k.txt");
           expectAddEvent("dir/new/sub-$i/sub-$j/file-$k.txt");
         });
+      });
+    });
+
+    test("emits events for many files added at once in a subdirectory with the "
+        "same name as a removed file", () {
+      writeFile("dir/sub");
+      withPermutations((i, j, k) =>
+          writeFile("old/sub-$i/sub-$j/file-$k.txt"));
+      startWatcher(dir: "dir");
+
+      deleteFile("dir/sub");
+      renameDir("old", "dir/sub");
+      inAnyOrder(() {
+        expectRemoveEvent("dir/sub");
+        withPermutations((i, j, k)  =>
+            expectAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
       });
     });
   });
