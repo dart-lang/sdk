@@ -54,7 +54,7 @@ void main() {
     test("that's in the set removes and returns that path", () {
       set.add("root/path/to/file");
       expect(set.remove("root/path/to/file"),
-          unorderedEquals(["root/path/to/file"]));
+          unorderedEquals([p.normalize("root/path/to/file")]));
       expect(set, isNot(containsPath("root/path/to/file")));
     });
 
@@ -73,7 +73,7 @@ void main() {
         "root/path/to/one",
         "root/path/to/two",
         "root/path/to/sub/three"
-      ]));
+      ].map(p.normalize)));
 
       expect(set, containsPath("root/outside"));
       expect(set, isNot(containsPath("root/path/to/one")));
@@ -93,7 +93,7 @@ void main() {
         "root/path/to/one",
         "root/path/to/two",
         "root/path/to/sub/three"
-      ]));
+      ].map(p.normalize)));
 
       expect(set, isNot(containsPath("root/path")));
       expect(set, isNot(containsPath("root/path/to/one")));
@@ -104,13 +104,13 @@ void main() {
     test("that's not normalized removes and returns the normalized path", () {
       set.add("root/path/to/file");
       expect(set.remove("root/../root/path/to/../to/./file"),
-          unorderedEquals(["root/path/to/file"]));
+          unorderedEquals([p.normalize("root/path/to/file")]));
     });
 
     test("that's absolute removes and returns the normalized path", () {
       set.add("root/path/to/file");
       expect(set.remove(p.absolute("root/path/to/file")),
-          unorderedEquals(["root/path/to/file"]));
+          unorderedEquals([p.normalize("root/path/to/file")]));
     });
 
     test("that's not beneath the root throws an error", () {
@@ -210,7 +210,7 @@ void main() {
         "root/path",
         "root/path/to/one",
         "root/path/to/two",
-      ]));
+      ].map(p.normalize)));
     });
 
     test("doesn't return paths removed from the set", () {
@@ -218,7 +218,7 @@ void main() {
       set.add("root/path/to/two");
       set.remove("root/path/to/two");
 
-      expect(set.toSet(), unorderedEquals(["root/path/to/one"]));
+      expect(set.toSet(), unorderedEquals([p.normalizze("root/path/to/one")]));
     });
   });
 
