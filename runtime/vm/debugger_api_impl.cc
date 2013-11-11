@@ -599,6 +599,44 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetClosureInfo(
+                            Dart_Handle closure,
+                            Dart_Handle* name,
+                            Dart_CodeLocation* location) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  UNWRAP_AND_CHECK_PARAM(Instance, instance, closure);
+  CHECK_NOT_NULL(location);
+
+  if (!instance.IsClosure()) {
+    return Api::NewError("%s: parameter 0 is not a closure", CURRENT_FUNC);
+  }
+  const Function& func = Function::Handle(Closure::function(instance));
+  ASSERT(!func.IsNull());
+  if (name != NULL) {
+    *name = Api::NewHandle(isolate, func.QualifiedUserVisibleName());
+  }
+  if (location != NULL) {
+    if (func.token_pos() >= 0) {
+      const Class& cls = Class::Handle(func.origin());
+      ASSERT(!cls.IsNull());
+      const Library& lib = Library::Handle(isolate, cls.library());
+      ASSERT(!lib.IsNull());
+      const Script& script = Script::Handle(cls.script());
+      ASSERT(!script.IsNull());
+      location->script_url = Api::NewHandle(isolate, script.url());
+      location->library_id = lib.index();
+      location->token_pos = func.token_pos();
+    } else {
+      location->script_url = Api::NewHandle(isolate, String::null());
+      location->library_id = -1;
+      location->token_pos = -1;
+    }
+  }
+  return Api::True();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetClassInfo(
                             intptr_t cls_id,
                             Dart_Handle* class_name,

@@ -1875,6 +1875,36 @@ TEST_CASE(Debug_EvaluateExpr) {
 }
 
 
+TEST_CASE(Debug_GetClosureInfo) {
+  const char* kScriptChars =
+      "void foo() { return 43; } \n"
+      "                          \n"
+      "main() {                  \n"
+      "  return foo;             \n"
+      "}                         \n";
+
+  LoadScript(kScriptChars);
+  Dart_Handle clo = Invoke("main");
+  EXPECT_VALID(clo);
+  EXPECT(Dart_IsClosure(clo));
+  Dart_Handle name;
+  Dart_CodeLocation loc;
+  loc.script_url = Dart_Null();
+  loc.library_id = -1;
+  loc.token_pos = -1;
+  Dart_Handle res = Dart_GetClosureInfo(clo, &name, &loc);
+  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
+  EXPECT_VALID(name);
+  EXPECT(Dart_IsString(name));
+  EXPECT_STREQ("foo", ToCString(name));
+  EXPECT(Dart_IsString(loc.script_url));
+  EXPECT_STREQ("dart:test-lib", ToCString(loc.script_url));
+  EXPECT_EQ(0, loc.token_pos);
+  EXPECT(loc.library_id > 0);
+}
+
+
 TEST_CASE(Debug_GetSupertype) {
   const char* kScriptChars =
       "class Test {\n"

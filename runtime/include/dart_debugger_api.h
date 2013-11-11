@@ -559,6 +559,25 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t class_id,
                                           Dart_Handle* static_fields);
 
 
+/** Returns info about the given closure \closure.
+ *
+ * \param name receives handle to closure name (string).
+ *        Receives a null handle if the closure is anonymous.
+ * \param location.script_url receives a string handle with the url of
+ *        the source script that contains the closure.
+ *        Receives a null handle if there is no textual location
+ *        that corresponds to the fucntion.
+ * \param location.library_id receives the id of the library in which the
+ *        function in this frame is defined.
+ * \param location.token_pos receives the token position in the script.
+ *
+ * \return A handle to the value true if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetClosureInfo(Dart_Handle closure,
+                                            Dart_Handle* name,
+                                            Dart_CodeLocation* location);
+
+
 /**
  * Returns an array containing all instance field names and values of
  * the given \object.
