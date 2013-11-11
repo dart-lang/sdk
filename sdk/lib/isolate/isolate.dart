@@ -40,7 +40,7 @@ class Isolate {
    *
    * The argument [entryPoint] specifies the entry point of the spawned
    * isolate. It must be a static top-level function or a static method that
-   * takes no arguments. It is not allowed to pass a function closure.
+   * takes one argument. It is not allowed to pass a function closure.
    *
    * The entry-point function is invoked with the initial [message].
    * Usually the initial [message] contains a [SendPort] so
