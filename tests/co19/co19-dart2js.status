@@ -23,7 +23,6 @@ Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with s
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 Language/03_Overview/1_Scoping_A02_t05: CompileTimeError # TODO(ahe): Please triage this failure.
 Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19-roll r576: Please triage this failure
 Language/05_Variables/05_Variables_A11_t01: fail
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
@@ -181,6 +180,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19 issue 648
 Language/03_Overview/2_Privacy_A01_t09: RuntimeError, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # http://dartbug.com/5021
