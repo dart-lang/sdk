@@ -23,6 +23,7 @@
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib/_internal/compiler", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
             'create_snapshot.dart',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+            '../../tools/VERSION',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
