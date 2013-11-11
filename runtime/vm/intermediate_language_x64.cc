@@ -409,18 +409,6 @@ static Condition FlipCondition(Condition condition) {
 }
 
 
-static void EmitBranchOnValue(FlowGraphCompiler* compiler,
-                              TargetEntryInstr* true_successor,
-                              TargetEntryInstr* false_successor,
-                              bool value) {
-  if (value && !compiler->CanFallThroughTo(true_successor)) {
-    __ jmp(compiler->GetJumpLabel(true_successor));
-  } else if (!value && !compiler->CanFallThroughTo(false_successor)) {
-    __ jmp(compiler->GetJumpLabel(false_successor));
-  }
-}
-
-
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                   TargetEntryInstr* true_successor,
                                   TargetEntryInstr* false_successor,
@@ -553,12 +541,10 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((kind() == Token::kEQ) || (kind() == Token::kNE));
   BranchInstr* kNoBranch = NULL;
   if (operation_cid() == kSmiCid) {
-    // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
   if (operation_cid() == kDoubleCid) {
-    // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
@@ -570,12 +556,10 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                           BranchInstr* branch) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
   if (operation_cid() == kSmiCid) {
-    // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
   if (operation_cid() == kDoubleCid) {
-    // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
@@ -4449,7 +4433,11 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterOrConstant(left()));
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  // Only one of the inputs can be a constant. Choose register if the first one
+  // is a constant.
+  locs->set_in(1, locs->in(0).IsConstant()
+                      ? Location::RequiresRegister()
+                      : Location::RegisterOrConstant(right()));
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
@@ -4460,14 +4448,7 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
   Location left = locs()->in(0);
   Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = (kind() == Token::kEQ_STRICT) ?
-        left.constant().raw() == right.constant().raw() :
-        left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), Bool::Get(result), PP);
-    return;
-  }
+  ASSERT(!left.IsConstant() || !right.IsConstant());
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
@@ -4502,17 +4483,7 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
   Location left = locs()->in(0);
   Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = (kind() == Token::kEQ_STRICT) ?
-        left.constant().raw() == right.constant().raw() :
-        left.constant().raw() != right.constant().raw();
-    EmitBranchOnValue(compiler,
-                      branch->true_successor(),
-                      branch->false_successor(),
-                      result);
-    return;
-  }
+  ASSERT(!left.IsConstant() || !right.IsConstant());
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
