@@ -6391,7 +6391,7 @@ class DataTransfer extends Interceptor native "Clipboard" {
    * Gets the data for the specified type.
    *
    * The data is only available from within a drop operation (such as an
-   * [Element.onDrop] event) and will return `null` before the event is
+   * [Element.onDrop] event) and will return null before the event is
    * triggered.
    *
    * Data transfer is prohibited across domains. If a drag originates
@@ -11244,7 +11244,7 @@ abstract class Element extends Node implements ParentNode, ChildNode native "Ele
    *
    * ## Other resources
    *
-   * * [Using the full-screen API]
+   * * [Using the fullscreen API]
    * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
    * tutorial from WebPlatform.org.
    * * [Fullscreen specification]
@@ -13814,6 +13814,19 @@ class HtmlDocument extends Document native "HTMLDocument" {
     _title = value;
   }
 
+  /**
+   * Returns page to standard layout.
+   *
+   * Has no effect if the page is not in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
+   * WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -13830,12 +13843,43 @@ class HtmlDocument extends Document native "HTMLDocument" {
     _webkitExitPointerLock();
   }
 
+  /**
+   * Returns the element, if any, that is currently displayed in fullscreen.
+   *
+   * Returns null if there is currently no fullscreen element. You can use
+   * this to determine if the page is in fullscreen mode.
+   *
+   *     myVideo = new VideoElement();
+   *     if (document.fullscreenElement == null) {
+   *       myVideo.requestFullscreen();
+   *       print(document.fullscreenElement == myVideo); // true
+   *     }
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
+   * WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   Element get fullscreenElement => _webkitFullscreenElement;
 
+  /**
+   * Returns true if this document can display elements in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
+   * WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -14570,7 +14614,7 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
   String getAllResponseHeaders() native;
 
   /**
-   * Return the response header named `header`, or `null` if not found.
+   * Return the response header named `header`, or null if not found.
    *
    * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
    * for a list of common response headers.
@@ -19638,7 +19682,7 @@ class Node extends EventTarget native "Node" {
   /**
    * The document this node belongs to.
    *
-   * Returns `null` if this node does not belong to any document.
+   * Returns null if this node does not belong to any document.
    *
    * ## Other resources
    *
@@ -19654,7 +19698,7 @@ class Node extends EventTarget native "Node" {
   /**
    * The parent element of this node.
    *
-   * Returns `null` if this node either does not have a parent or its parent is
+   * Returns null if this node either does not have a parent or its parent is
    * not an element.
    *
    * ## Other resources
@@ -26777,7 +26821,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
   @Experimental()
   IdbFactory get indexedDB =>
-      JS('IdbFactory|Null',  // If not supported, returns `null`.
+      JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
@@ -28674,7 +28718,7 @@ class _ClientRect extends Interceptor implements Rectangle native "ClientRect,DO
    * The intersection of two axis-aligned rectangles, if any, is always another
    * axis-aligned rectangle.
    *
-   * Returns the intersection of this and `other`, or `null` if they don't
+   * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
   Rectangle intersection(Rectangle other) {
@@ -30463,10 +30507,10 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    *
-   * If this corresponds to one element. Returns `true` if [value] was added to
-   * the set, otherwise `false`.
+   * If this corresponds to one element. Returns true if [value] was added to
+   * the set, otherwise false.
    *
-   * If this corresponds to many elements, `null` is always returned.
+   * If this corresponds to many elements, null is always returned.
    */
   bool add(String value);
 

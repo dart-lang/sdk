@@ -105,6 +105,19 @@ $endif
     _title = value;
   }
 
+  /**
+   * Returns page to standard layout.
+   *
+   * Has no effect if the page is not in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
+   * WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -121,12 +134,43 @@ $endif
     _webkitExitPointerLock();
   }
 
+  /**
+   * Returns the element, if any, that is currently displayed in fullscreen.
+   *
+   * Returns null if there is currently no fullscreen element. You can use
+   * this to determine if the page is in fullscreen mode.
+   *
+   *     myVideo = new VideoElement();
+   *     if (document.fullscreenElement == null) {
+   *       myVideo.requestFullscreen();
+   *       print(document.fullscreenElement == myVideo); // true
+   *     }
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
+   * WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   Element get fullscreenElement => _webkitFullscreenElement;
 
+  /**
+   * Returns true if this document can display elements in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen API]
+   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
+   * WebPlatform.org.
+   * * [Fullscreen specification]
+   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   */
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
