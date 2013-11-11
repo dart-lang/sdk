@@ -896,23 +896,12 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
   return CreateTypeMirror(type);
 }
 
+
 DEFINE_NATIVE_ENTRY(Mirrors_mangleName, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& lib = Library::Handle(ref.GetLibraryReferent());
   return lib.IsPrivate(name) ? lib.PrivateName(name) : name.raw();
-}
-
-DEFINE_NATIVE_ENTRY(Mirrors_unmangleName, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
-  // It would be nice to unconditionally use IdentifierPrettyName, alas it
-  // cannot cope with the symbols for the names of anonymous mixin applications.
-  if (Library::IsPrivate(name) ||
-      Field::IsGetterName(name) ||
-      Field::IsSetterName(name)) {
-    return String::IdentifierPrettyName(name);
-  }
-  return name.raw();
 }
 
 

@@ -1217,7 +1217,8 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
               'Internal error in MethodMirror.constructorName: '
               'malformed name <$simpleName>');
         } else if (parts.length == 2) {
-          _constructorName = _s(parts[1]);
+          LibraryMirror definingLibrary = owner.owner;
+          _constructorName = MirrorSystem.getSymbol(parts[1], definingLibrary);
         } else {
           _constructorName = _s('');
         }

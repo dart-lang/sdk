@@ -16,6 +16,7 @@ mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 14025
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/closures_test/none: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
+mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
 mirrors/equality_test/02: RuntimeError # Issue 12333
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
@@ -46,6 +47,7 @@ mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
 mirrors/invoke_named_test/none: RuntimeError # Issue 12863
 mirrors/invoke_private_test: CompileTimeError # Issue 12164
+mirrors/invoke_private_wrong_library_test: CompileTimeError # Issue 12164
 mirrors/invoke_subscript_test: RuntimeError # Issue 13002
 mirrors/invoke_throws_test: RuntimeError # Issue 11954
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
@@ -73,6 +75,7 @@ mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_test: RuntimeError # Issue 12607
+mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
 mirrors/static_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/set_field_with_final_inheritance_test: RuntimeError # Issue 13919
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
@@ -251,6 +254,7 @@ mirrors/fake_function_without_call_test: StaticWarning, OK # Implements Function
 mirrors/find_in_context_fake_function_test: StaticWarning, OK # Implements Function without defining call.
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
+mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/library_metadata2_test/01: CompileTimeError # Test issue 14682
 
 mirrors/basic_types_in_dart_core_test: StaticWarning, OK # API being removed.
