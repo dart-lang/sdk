@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 
 import '../async_queue.dart';
-import '../directory_watcher.dart';
 import '../stat.dart';
 import '../utils.dart';
 import '../watch_event.dart';

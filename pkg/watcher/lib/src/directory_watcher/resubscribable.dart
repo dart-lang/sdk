@@ -5,10 +5,8 @@
 library watcher.directory_watcher.resubscribable;
 
 import 'dart:async';
-import 'dart:io';
 
 import '../directory_watcher.dart';
-import '../utils.dart';
 import '../watch_event.dart';
 
 typedef ManuallyClosedDirectoryWatcher WatcherFactory();

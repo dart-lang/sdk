@@ -6,8 +6,6 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
 
-import 'dart:async';
-
 sharedTests() {
   test('does not notify for files that already exist when started', () {
     // Make some pre-existing files.

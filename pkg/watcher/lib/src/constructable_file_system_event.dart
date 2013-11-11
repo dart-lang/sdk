@@ -9,7 +9,7 @@ import 'dart:io';
 abstract class _ConstructableFileSystemEvent implements FileSystemEvent {
   final bool isDirectory;
   final String path;
-  final int type;
+  int get type;
 
   _ConstructableFileSystemEvent(this.path, this.isDirectory);
 }

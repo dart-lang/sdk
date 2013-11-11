@@ -176,11 +176,6 @@ void inAnyOrder(block()) {
 /// Multiple calls to [expectEvent] require that the events are received in that
 /// order unless they're called in an [inAnyOrder] block.
 void expectEvent(ChangeType type, String path) {
-  var matcher = predicate((e) {
-    return e is WatchEvent && e.type == type &&
-        e.path == p.join(_sandboxDir, p.normalize(path));
-  }, "is $type $path");
-
   if (_unorderedEventFuture != null) {
     // Assign this to a local variable since it will be un-assigned by the time
     // the scheduled callback runs.
@@ -188,7 +183,7 @@ void expectEvent(ChangeType type, String path) {
 
     expect(
         schedule(() => future, "should fire $type event on $path"),
-        completion(contains(matcher)));
+        completion(contains(isWatchEvent(type, path))));
   } else {
     var future = currentSchedule.wrapFuture(
         _watcherEvents.elementAt(_nextEvent),
@@ -196,9 +191,18 @@ void expectEvent(ChangeType type, String path) {
 
     expect(
         schedule(() => future, "should fire $type event on $path"),
-        completion(matcher));
+        completion(isWatchEvent(type, path)));
   }
   _nextEvent++;
+}
+
+/// Returns a matcher that matches a [WatchEvent] with the given [type] and
+/// [path].
+Match isWatchEvent(ChangeType type, String path) {
+  return predicate((e) {
+    return e is WatchEvent && e.type == type &&
+        e.path == p.join(_sandboxDir, p.normalize(path));
+  }, "is $type $path");
 }
 
 void expectAddEvent(String path) => expectEvent(ChangeType.ADD, path);

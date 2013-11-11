@@ -7,7 +7,6 @@ library watcher.directory_watcher.linux;
 import 'dart:async';
 import 'dart:io';
 
-import '../directory_watcher.dart';
 import '../utils.dart';
 import '../watch_event.dart';
 import 'resubscribable.dart';

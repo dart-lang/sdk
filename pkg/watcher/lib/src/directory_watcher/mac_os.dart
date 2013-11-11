@@ -13,8 +13,6 @@ import '../utils.dart';
 import '../watch_event.dart';
 import 'resubscribable.dart';
 
-import 'package:path/path.dart' as p;
-
 /// Uses the FSEvents subsystem to watch for filesystem events.
 ///
 /// FSEvents has two main idiosyncrasies that this class works around. First, it
@@ -337,7 +335,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// Emit an error, then close the watcher.
   void _emitError(error, StackTrace stackTrace) {
-    _eventsController.add(error, stackTrace);
+    _eventsController.addError(error, stackTrace);
     close();
   }
 
