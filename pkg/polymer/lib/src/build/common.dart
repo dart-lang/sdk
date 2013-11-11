@@ -62,8 +62,14 @@ class TransformOptions {
    */
   final bool directlyIncludeJS;
 
+  /**
+   * Run transformers to create a releasable app. For example, include the
+   * minified versions of the polyfills rather than the debug versions.
+   */
+  final bool releaseMode;
+
   TransformOptions({entryPoints, this.contentSecurityPolicy: false,
-      this.directlyIncludeJS: true})
+      this.directlyIncludeJS: true, this.releaseMode: true})
       : entryPoints = entryPoints == null ? null
           : entryPoints.map(_systemToAssetPath).toList();
 

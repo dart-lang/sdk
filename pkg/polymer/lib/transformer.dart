@@ -7,11 +7,13 @@ library polymer.transformer;
 
 import 'package:barback/barback.dart';
 import 'package:observe/transformer.dart';
+
+import 'src/build/build_filter.dart';
 import 'src/build/code_extractor.dart';
-import 'src/build/import_inliner.dart';
-import 'src/build/script_compactor.dart';
-import 'src/build/polyfill_injector.dart';
 import 'src/build/common.dart';
+import 'src/build/import_inliner.dart';
+import 'src/build/polyfill_injector.dart';
+import 'src/build/script_compactor.dart';
 
 /**
  * The Polymer transformer, which internally runs several phases that will:
@@ -36,13 +38,14 @@ class PolymerTransformerGroup implements TransformerGroup {
 
 TransformOptions _parseSettings(BarbackSettings settings) {
   var args = settings.configuration;
-  bool release = settings.mode == BarbackMode.RELEASE;
+  bool releaseMode = settings.mode == BarbackMode.RELEASE;
   bool jsOption = args['js'];
   bool csp = args['csp'] == true; // defaults to false
   return new TransformOptions(
       entryPoints: _readEntrypoints(args['entry_points']),
-      directlyIncludeJS: jsOption == null ? release : jsOption,
-      contentSecurityPolicy: csp);
+      directlyIncludeJS: jsOption == null ? releaseMode : jsOption,
+      contentSecurityPolicy: csp,
+      releaseMode: releaseMode);
 }
 
 _readEntrypoints(value) {
@@ -70,6 +73,7 @@ List<List<Transformer>> _createDeployPhases(TransformOptions options) {
     [new ObservableTransformer()],
     [new ImportInliner(options)],
     [new ScriptCompactor(options)],
-    [new PolyfillInjector(options)]
+    [new PolyfillInjector(options)],
+    [new BuildFilter(options)]
   ];
 }
