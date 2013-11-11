@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 
-const String TEST_ONE = """
+const String TEST_1 = """
 class A {
   var a = 42;
 }
@@ -17,7 +17,7 @@ void main() {
 }
 """;
 
-const String TEST_TWO = """
+const String TEST_2 = """
 class A {
   var a = 42;
 }
@@ -27,7 +27,7 @@ void main() {
 }
 """;
 
-const String TEST_THREE = """
+const String TEST_3 = """
 class A {
   var a = 42;
 }
@@ -38,7 +38,7 @@ void main() {
 }
 """;
 
-const String TEST_FOUR = """
+const String TEST_4 = """
 class A {
   var a = 42;
 }
@@ -52,7 +52,7 @@ void main() {
 }
 """;
 
-const String TEST_FIVE = """
+const String TEST_5 = """
 class A {
   var a = 42;
 }
@@ -65,7 +65,7 @@ void main() {
 }
 """;
 
-const String TEST_SIX = """
+const String TEST_6 = """
 class A {
   var a = 42;
 }
@@ -79,7 +79,7 @@ void main() {
 }
 """;
 
-const String TEST_SEVEN = """
+const String TEST_7 = """
 class A {
   var a = 42;
 }
@@ -92,7 +92,7 @@ void main() {
 }
 """;
 
-const String TEST_EIGHT = """
+const String TEST_8 = """
 class A {
   var a = 42;
 }
@@ -107,7 +107,7 @@ void main() {
 }
 """;
 
-const String TEST_NINE = """
+const String TEST_9 = """
 class A {
   var a = 42;
 }
@@ -119,7 +119,7 @@ void main() {
 }
 """;
 
-const String TEST_TEN = """
+const String TEST_10 = """
 class A {
   var a = 42;
 }
@@ -131,7 +131,7 @@ void main() {
 }
 """;
 
-const String TEST_ELEVEN = """
+const String TEST_11 = """
 class A {
   var a;
   var b;
@@ -152,6 +152,61 @@ void main() {
 }
 """;
 
+const String TEST_12 = """
+var a;
+var b;
+
+void main() {
+  a = 10;
+  b = 4;
+  return a - b;
+}
+""";
+
+const String TEST_13 = """
+var a = [1, 2];
+
+void main() {
+  a[0] = 10;
+  a[1] = 4;
+  return a[0] - a[1];
+}
+""";
+
+const String TEST_14 = """
+var a = [1, 2];
+var b = [1, 2];
+
+void main() {
+  a[0] = 10;
+  b[0] = 4;
+  return a[0];
+}
+""";
+
+const String TEST_15 = """
+var a;
+
+void main() {
+  a = 42;
+  if (true) {
+  }
+  return a;
+}
+""";
+
+const String TEST_16 = """
+var a;
+
+void main() {
+  a = 42;
+  if (true) {
+    a = 0;
+  }
+  return a;
+}
+""";
+
 
 main() {
   test(String code, Function f) {
@@ -159,15 +214,20 @@ main() {
       Expect.isTrue(f(generated));
     }));
   }
-  test(TEST_ONE, (generated) => generated.contains('return 42'));
-  test(TEST_TWO, (generated) => generated.contains('return 42'));
-  test(TEST_THREE, (generated) => generated.contains('return 84'));
-  test(TEST_FOUR, (generated) => generated.contains('return t1 + t1'));
-  test(TEST_FIVE, (generated) => generated.contains('return 84'));
-  test(TEST_SIX, (generated) => generated.contains('return 84'));
-  test(TEST_SEVEN, (generated) => generated.contains('return 32'));
-  test(TEST_EIGHT, (generated) => generated.contains('return a.a'));
-  test(TEST_NINE, (generated) => generated.contains('return a.a'));
-  test(TEST_TEN, (generated) => generated.contains('return 2'));
-  test(TEST_ELEVEN, (generated) => generated.contains('return a.a'));
+  test(TEST_1, (generated) => generated.contains('return 42'));
+  test(TEST_2, (generated) => generated.contains('return 42'));
+  test(TEST_3, (generated) => generated.contains('return 84'));
+  test(TEST_4, (generated) => generated.contains('return t1 + t1'));
+  test(TEST_5, (generated) => generated.contains('return 84'));
+  test(TEST_6, (generated) => generated.contains('return 84'));
+  test(TEST_7, (generated) => generated.contains('return 32'));
+  test(TEST_8, (generated) => generated.contains('return a.a'));
+  test(TEST_9, (generated) => generated.contains('return a.a'));
+  test(TEST_10, (generated) => generated.contains('return 2'));
+  test(TEST_11, (generated) => generated.contains('return a.a'));
+  test(TEST_12, (generated) => generated.contains('return 6'));
+  test(TEST_13, (generated) => generated.contains('return 6'));
+  test(TEST_14, (generated) => generated.contains('return t1[0]'));
+  test(TEST_15, (generated) => generated.contains('return 42'));
+  test(TEST_16, (generated) => generated.contains('return \$.a'));
 }

@@ -25,7 +25,7 @@ main() {
 const String TEST3 = r"""
 main() {
   var a = new List(42);
-  a[0] = 42;
+  a[a.length - 1] = 42;
   return a[0] + 42;
 }
 """;
@@ -33,7 +33,7 @@ main() {
 const String TEST4 = r"""
 main() {
   var a = new List.filled(42, null);
-  a[0] = 42;
+  a[a.length - 1] = 42;
   return 42 + a[0];
 }
 """;
