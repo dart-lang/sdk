@@ -343,7 +343,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   getLibrary() => enclosingElement.getLibrary();
 
-  computeTargetType(Compiler compiler, InterfaceType newType) => unsupported();
+  computeTargetType(InterfaceType newType) => unsupported();
 
   String get message => '${messageKind.message(messageArguments)}';
 
