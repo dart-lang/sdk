@@ -75,18 +75,22 @@ void _makeHttpRequest(String uri) {
   _httpRequestResponseCode = 0;
   _httpRequestStatusString = null;
   _httpRequestResponse = null;
-  Uri requestUri = Uri.parse(uri);
-  _client.getUrl(requestUri)
-      .then((HttpClientRequest request) => request.close())
-      .then((HttpClientResponse response) {
-        return response
-            .fold(new BytesBuilder(), (b, d) => b..add(d))
-            .then((builder) {
-              _requestCompleted(builder.takeBytes(), response);
-            });
-      }).catchError((error) {
-        _requestFailed(error);
-      });
+  try {
+    Uri requestUri = Uri.parse(uri);
+    _client.getUrl(requestUri)
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+          return response
+              .fold(new BytesBuilder(), (b, d) => b..add(d))
+              .then((builder) {
+                _requestCompleted(builder.takeBytes(), response);
+              });
+        }).catchError((error) {
+          _requestFailed(error);
+        });
+  } catch (error) {
+    _requestFailed(error);
+  }
 }
 
 
