@@ -198,7 +198,7 @@ void expectEvent(ChangeType type, String path) {
 
 /// Returns a matcher that matches a [WatchEvent] with the given [type] and
 /// [path].
-Match isWatchEvent(ChangeType type, String path) {
+Matcher isWatchEvent(ChangeType type, String path) {
   return predicate((e) {
     return e is WatchEvent && e.type == type &&
         e.path == p.join(_sandboxDir, p.normalize(path));
