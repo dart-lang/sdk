@@ -63,6 +63,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '<(PRODUCT_DIR)/dartanalyzer/dartanalyzer.jar',
+            'tools/VERSION'
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart-sdk/README',
