@@ -1266,12 +1266,14 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
                            this.owner,
                            this._type,
                            this.isStatic,
-                           this.isFinal)
+                           this.isFinal,
+                           this.isConst)
       : super(reflectee, _s(simpleName));
 
   final DeclarationMirror owner;
   final bool isStatic;
   final bool isFinal;
+  final bool isConst;
 
   bool get isPrivate => _n(simpleName).startsWith('_');
 
@@ -1315,7 +1317,9 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
               owner,
               null,  // We override the type.
               false, // isStatic does not apply.
-              isFinal);
+              isFinal,
+              false  // Not const.
+              );
 
   final int _position;
   final bool isOptional;

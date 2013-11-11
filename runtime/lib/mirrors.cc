@@ -300,13 +300,14 @@ static RawInstance* CreateVariableMirror(const Field& field,
 
   const String& name = String::Handle(field.name());
 
-  const Array& args = Array::Handle(Array::New(6));
+  const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, field_ref);
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
   args.SetAt(3, Object::null_instance());  // Null for type.
   args.SetAt(4, Bool::Get(field.is_static()));
   args.SetAt(5, Bool::Get(field.is_final()));
+  args.SetAt(6, Bool::Get(field.is_const()));
 
   return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
 }

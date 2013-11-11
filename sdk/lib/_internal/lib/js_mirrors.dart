@@ -1768,6 +1768,8 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
   // TODO(ahe): Implement this.
   bool get isFinal => false;
 
+  bool get isConst => false;
+
   // TODO(ahe): Implement this.
   bool get isOptional => false;
 
