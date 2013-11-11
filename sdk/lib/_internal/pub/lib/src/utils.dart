@@ -590,12 +590,18 @@ String libraryPath(String libraryName) {
   return path.fromUri(lib.uri);
 }
 
-/// Gets a "special" string (ANSI escape or Unicode). On Windows, returns
-/// something else since those aren't supported.
+/// Gets a "special" string (ANSI escape or Unicode).
+///
+/// On Windows or when not printing to a terminal, returns something else since
+/// those aren't supported.
 String getSpecial(String color, [String onWindows = '']) {
   // No ANSI escapes on windows or when running tests.
-  if (runningAsTest || Platform.operatingSystem == 'windows') return onWindows;
-  return color;
+  if (runningAsTest || Platform.operatingSystem == 'windows' ||
+      stdioType(stdout) != StdioType.TERMINAL) {
+    return onWindows;
+  } else {
+    return color;
+  }
 }
 
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
