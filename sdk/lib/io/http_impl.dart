@@ -1578,9 +1578,11 @@ class _HttpClient implements HttpClient {
       throw new ArgumentError(method);
     }
     if (method != "CONNECT") {
-      if (uri.host.isEmpty ||
-          (uri.scheme != "http" && uri.scheme != "https")) {
-        throw new ArgumentError("Unsupported scheme '${uri.scheme}' in $uri");
+      if (uri.host.isEmpty) {
+        throw new ArgumentError("No host specified in URI $uri");
+      } else if (uri.scheme != "http" && uri.scheme != "https") {
+        throw new ArgumentError(
+            "Unsupported scheme '${uri.scheme}' in URI $uri");
       }
     }
 
