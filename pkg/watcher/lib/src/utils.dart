@@ -36,9 +36,10 @@ Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
   var controller;
 
   future = future.catchError((e, stackTrace) {
-    if (controller == null) return;
-    controller.addError(e, stackTrace);
-    controller.close();
+    // Since [controller] is synchronous, it's likely that emitting an error
+    // will cause it to be cancelled before we call close.
+    if (controller != null) controller.addError(e, stackTrace);
+    if (controller != null) controller.close();
     controller = null;
   });
 
