@@ -7,8 +7,6 @@ library watcher.directory_watcher.mac_os;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
 import '../constructable_file_system_event.dart';
 import '../path_set.dart';
 import '../utils.dart';
@@ -80,12 +78,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       if (entity is! Directory) _files.add(entity.path);
     },
         onError: _emitError,
-        onDone: () {
-      if (_runningOnBuildbot) {
-        print("watcher is ready");
-      }
-      _readyCompleter.complete();
-    },
+        onDone: _readyCompleter.complete,
         cancelOnError: true);
   }
 
@@ -101,38 +94,12 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// The callback that's run when [Directory.watch] emits a batch of events.
   void _onBatch(List<FileSystemEvent> batch) {
-    if (_runningOnBuildbot) {
-      print("======== batch:");
-      for (var event in batch) {
-        print("  ${_formatEvent(event)}");
-      }
-
-      print("known files:");
-      for (var foo in _files.toSet()) {
-        print("  ${p.relative(foo, from: directory)}");
-      }
-    }
-
     batches++;
 
     _sortEvents(batch).forEach((path, events) {
-      var relativePath = p.relative(path, from: directory);
-      if (_runningOnBuildbot) {
-        print("events for $relativePath:\n");
-        for (var event in events) {
-          print("  ${_formatEvent(event)}");
-        }
-      }
-
       var canonicalEvent = _canonicalEvent(events);
       events = canonicalEvent == null ?
           _eventsBasedOnFileSystem(path) : [canonicalEvent];
-      if (_runningOnBuildbot) {
-        print("canonical event for $relativePath: "
-            "${_formatEvent(canonicalEvent)}");
-        print("actionable events for $relativePath: "
-            "${events.map(_formatEvent)}");
-      }
 
       for (var event in events) {
         if (event is FileSystemCreateEvent) {
@@ -146,12 +113,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
             if (entity is Directory) return;
             _emitEvent(ChangeType.ADD, entity.path);
             _files.add(entity.path);
-          }, onError: (e, stackTrace) {
-            if (_runningOnBuildbot) {
-              print("got error listing $relativePath: $e");
-            }
-            _emitError(e, stackTrace);
-          }, cancelOnError: true);
+          }, onError: _emitError, cancelOnError: true);
         } else if (event is FileSystemModifyEvent) {
           assert(!event.isDirectory);
           _emitEvent(ChangeType.MODIFY, path);
@@ -163,10 +125,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         }
       }
     });
-
-    if (_runningOnBuildbot) {
-      print("========");
-    }
   }
 
   /// Sort all the events in a batch into sets based on their path.
@@ -303,13 +261,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     var fileExists = new File(path).existsSync();
     var dirExists = new Directory(path).existsSync();
 
-    if (_runningOnBuildbot) {
-      print("file existed: $fileExisted");
-      print("dir existed: $dirExisted");
-      print("file exists: $fileExists");
-      print("dir exists: $dirExists");
-    }
-
     var events = [];
     if (fileExisted) {
       if (fileExists) {
@@ -379,10 +330,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     // watch beginning.
     if (type == ChangeType.ADD && _files.contains(path)) return;
 
-    if (_runningOnBuildbot) {
-      print("emitting $type ${p.relative(path, from: directory)}");
-    }
-
     _eventsController.add(new WatchEvent(type, path));
   }
 
@@ -403,27 +350,4 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     }, cancelOnError: cancelOnError);
     _subscriptions.add(subscription);
   }
-
-  /// Return a human-friendly string representation of [event].
-  String _formatEvent(FileSystemEvent event) {
-    if (event == null) return 'null';
-
-    var path = p.relative(event.path, from: directory);
-    var type = event.isDirectory ? 'directory' : 'file';
-    if (event is FileSystemCreateEvent) {
-      return "create $type $path";
-    } else if (event is FileSystemDeleteEvent) {
-      return "delete $type $path";
-    } else if (event is FileSystemModifyEvent) {
-      return "modify $type $path";
-    } else if (event is FileSystemMoveEvent) {
-      return "move $type $path to "
-          "${p.relative(event.destination, from: directory)}";
-    }
-  }
-
-  // TODO(nweiz): remove this when the buildbots calm down.
-  /// Whether this code is running on a buildbot.
-  bool get _runningOnBuildbot =>
-    Platform.environment.containsKey('BUILDBOT_BUILDERNAME');
 }
