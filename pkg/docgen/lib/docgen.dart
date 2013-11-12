@@ -904,13 +904,13 @@ class Library extends Indexable {
 }
 
 /// A class containing contents of a Dart class.
-class Class extends Indexable {
+class Class extends Indexable implements Comparable {
 
   /// List of the names of interfaces that this class implements.
   List<Class> interfaces = [];
 
   /// Names of classes that extends or implements this class.
-  Set<String> subclasses = new Set<String>();
+  Set<Class> subclasses = new Set<Class>();
 
   /// Top-level variables in the class.
   Map<String, Variable> variables;
@@ -969,7 +969,7 @@ class Class extends Indexable {
         interface.addSubclass(subclass);
       });
     } else {
-      subclasses.add(subclass.qualifiedName);
+      subclasses.add(subclass);
     }
   }
 
@@ -998,7 +998,7 @@ class Class extends Indexable {
       entityMap.values.where((e) => e.owner == qualifiedName)
         .forEach((element) => element.isPrivate = true);
       // Move the subclass up to the next public superclass
-      subclasses.forEach((subclass) => addSubclass(entityMap[subclass]));
+      subclasses.forEach((subclass) => addSubclass(subclass));
     }
   }
 
@@ -1027,7 +1027,8 @@ class Class extends Indexable {
     'superclass': validSuperclass(),
     'implements': interfaces.where(_isVisible)
         .map((e) => e.qualifiedName).toList(),
-    'subclass': subclasses.toList(),
+    'subclass': (subclasses.toList()..sort())
+        .map((x) => x.qualifiedName).toList(),
     'variables': recurseMap(variables),
     'inheritedVariables': recurseMap(inheritedVariables),
     'methods': methods.toMap(),
@@ -1035,6 +1036,8 @@ class Class extends Indexable {
     'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
+
+  int compareTo(aClass) => name.compareTo(aClass.name);
 }
 
 /// A container to categorize classes into the following groups: abstract
