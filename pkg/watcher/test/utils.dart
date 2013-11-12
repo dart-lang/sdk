@@ -143,7 +143,7 @@ void startWatcher({String dir}) {
     }, "reset watcher");
 
     return _watcher.events;
-  }, "create watcher")).asBroadcastStream();
+  }, "create watcher"), broadcast: true);
 
   schedule(() => _watcher.ready, "wait for watcher to be ready");
 }
