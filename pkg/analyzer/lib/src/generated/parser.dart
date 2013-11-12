@@ -1,6 +1,8 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.parser;
+
 import 'dart:collection';
 import 'java_core.dart';
 import 'instrumentation.dart';
@@ -11,6 +13,7 @@ import 'ast.dart';
 import 'utilities_dart.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_collection.dart' show TokenMap;
+
 /**
  * Instances of the class `CommentAndMetadata` implement a simple data-holder for a method
  * that needs to return multiple values.
@@ -18,7 +21,6 @@ import 'utilities_collection.dart' show TokenMap;
  * @coverage dart.engine.parser
  */
 class CommentAndMetadata {
-
   /**
    * The documentation comment that was parsed, or `null` if none was given.
    */
@@ -40,6 +42,7 @@ class CommentAndMetadata {
     this.metadata = metadata;
   }
 }
+
 /**
  * Instances of the class `FinalConstVarOrType` implement a simple data-holder for a method
  * that needs to return multiple values.
@@ -47,7 +50,6 @@ class CommentAndMetadata {
  * @coverage dart.engine.parser
  */
 class FinalConstVarOrType {
-
   /**
    * The 'final', 'const' or 'var' keyword, or `null` if none was given.
    */
@@ -69,6 +71,7 @@ class FinalConstVarOrType {
     this.type = type;
   }
 }
+
 /**
  * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
  * to return multiple values.
@@ -76,7 +79,6 @@ class FinalConstVarOrType {
  * @coverage dart.engine.parser
  */
 class Modifiers {
-
   /**
    * The token representing the keyword 'abstract', or `null` if the keyword was not found.
    */
@@ -111,6 +113,7 @@ class Modifiers {
    * The token representing the keyword 'var', or `null` if the keyword was not found.
    */
   Token varKeyword;
+
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     bool needsSpace = appendKeyword(builder, false, abstractKeyword);
@@ -143,6 +146,7 @@ class Modifiers {
     return needsSpace;
   }
 }
+
 /**
  * Instances of the class `IncrementalParseDispatcher` implement a dispatcher that will invoke
  * the right parse method when re-parsing a specified child of the visited node. All of the methods
@@ -151,7 +155,6 @@ class Modifiers {
  * some reason.
  */
 class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
-
   /**
    * The parser used to parse the replacement for the node.
    */
@@ -172,12 +175,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     this._parser = parser;
     this._oldNode = oldNode;
   }
+
   ASTNode visitAdjacentStrings(AdjacentStrings node) {
     if (node.strings.contains(_oldNode)) {
       return _parser.parseStringLiteral();
     }
     return notAChild(node);
   }
+
   ASTNode visitAnnotation(Annotation node) {
     if (identical(_oldNode, node.name)) {
       throw new InsufficientContextException();
@@ -188,18 +193,21 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     if (identical(_oldNode, node.identifier)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitArgumentList(ArgumentList node) {
     if (node.arguments.contains(_oldNode)) {
       return _parser.parseArgument();
     }
     return notAChild(node);
   }
+
   ASTNode visitAsExpression(AsExpression node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseBitwiseOrExpression();
@@ -208,12 +216,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitAssertStatement(AssertStatement node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
+
   ASTNode visitAssignmentExpression(AssignmentExpression node) {
     if (identical(_oldNode, node.leftHandSide)) {
       throw new InsufficientContextException();
@@ -225,6 +235,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitBinaryExpression(BinaryExpression node) {
     if (identical(_oldNode, node.leftOperand)) {
       throw new InsufficientContextException();
@@ -233,25 +244,30 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitBlock(Block node) {
     if (node.statements.contains(_oldNode)) {
       return _parser.parseStatement2();
     }
     return notAChild(node);
   }
+
   ASTNode visitBlockFunctionBody(BlockFunctionBody node) {
     if (identical(_oldNode, node.block)) {
       return _parser.parseBlock();
     }
     return notAChild(node);
   }
+
   ASTNode visitBooleanLiteral(BooleanLiteral node) => notAChild(node);
+
   ASTNode visitBreakStatement(BreakStatement node) {
     if (identical(_oldNode, node.label)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitCascadeExpression(CascadeExpression node) {
     if (identical(_oldNode, node.target)) {
       return _parser.parseConditionalExpression();
@@ -260,6 +276,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitCatchClause(CatchClause node) {
     if (identical(_oldNode, node.exceptionType)) {
       return _parser.parseTypeName();
@@ -272,6 +289,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitClassDeclaration(ClassDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -292,6 +310,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitClassTypeAlias(ClassTypeAlias node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -310,18 +329,22 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitComment(Comment node) {
     throw new InsufficientContextException();
   }
+
   ASTNode visitCommentReference(CommentReference node) {
     if (identical(_oldNode, node.identifier)) {
       return _parser.parsePrefixedIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitCompilationUnit(CompilationUnit node) {
     throw new InsufficientContextException();
   }
+
   ASTNode visitConditionalExpression(ConditionalExpression node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseLogicalOrExpression();
@@ -332,6 +355,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -352,6 +376,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (identical(_oldNode, node.fieldName)) {
       return _parser.parseSimpleIdentifier();
@@ -360,6 +385,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitConstructorName(ConstructorName node) {
     if (identical(_oldNode, node.type)) {
       return _parser.parseTypeName();
@@ -368,12 +394,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitContinueStatement(ContinueStatement node) {
     if (identical(_oldNode, node.label)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -386,6 +414,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (identical(_oldNode, node.parameter)) {
       return _parser.parseNormalFormalParameter();
@@ -394,6 +423,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitDoStatement(DoStatement node) {
     if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
@@ -402,9 +432,13 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitDoubleLiteral(DoubleLiteral node) => notAChild(node);
+
   ASTNode visitEmptyFunctionBody(EmptyFunctionBody node) => notAChild(node);
+
   ASTNode visitEmptyStatement(EmptyStatement node) => notAChild(node);
+
   ASTNode visitExportDirective(ExportDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -417,24 +451,28 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
+
   ASTNode visitExpressionStatement(ExpressionStatement node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
+
   ASTNode visitExtendsClause(ExtendsClause node) {
     if (identical(_oldNode, node.superclass)) {
       return _parser.parseTypeName();
     }
     return notAChild(node);
   }
+
   ASTNode visitFieldDeclaration(FieldDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -445,6 +483,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFieldFormalParameter(FieldFormalParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -459,6 +498,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitForEachStatement(ForEachStatement node) {
     if (identical(_oldNode, node.loopVariable)) {
       throw new InsufficientContextException();
@@ -469,9 +509,11 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFormalParameterList(FormalParameterList node) {
     throw new InsufficientContextException();
   }
+
   ASTNode visitForStatement(ForStatement node) {
     if (identical(_oldNode, node.variables)) {
       throw new InsufficientContextException();
@@ -486,6 +528,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -500,12 +543,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     if (identical(_oldNode, node.functionDeclaration)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
+
   ASTNode visitFunctionExpression(FunctionExpression node) {
     if (identical(_oldNode, node.parameters)) {
       return _parser.parseFormalParameterList();
@@ -514,6 +559,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (identical(_oldNode, node.function)) {
       throw new InsufficientContextException();
@@ -522,6 +568,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -538,6 +585,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -552,12 +600,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitHideCombinator(HideCombinator node) {
     if (node.hiddenNames.contains(_oldNode)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitIfStatement(IfStatement node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
@@ -568,12 +618,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitImplementsClause(ImplementsClause node) {
     if (node.interfaces.contains(node)) {
       return _parser.parseTypeName();
     }
     return notAChild(node);
   }
+
   ASTNode visitImportDirective(ImportDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -588,6 +640,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitIndexExpression(IndexExpression node) {
     if (identical(_oldNode, node.target)) {
       throw new InsufficientContextException();
@@ -596,6 +649,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (identical(_oldNode, node.constructorName)) {
       return _parser.parseConstructorName();
@@ -604,7 +658,9 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitIntegerLiteral(IntegerLiteral node) => notAChild(node);
+
   ASTNode visitInterpolationExpression(InterpolationExpression node) {
     if (identical(_oldNode, node.expression)) {
       if (node.leftBracket == null) {
@@ -614,9 +670,11 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitInterpolationString(InterpolationString node) {
     throw new InsufficientContextException();
   }
+
   ASTNode visitIsExpression(IsExpression node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseBitwiseOrExpression();
@@ -625,12 +683,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitLabel(Label node) {
     if (identical(_oldNode, node.label)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitLabeledStatement(LabeledStatement node) {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
@@ -639,6 +699,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitLibraryDirective(LibraryDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -649,12 +710,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitLibraryIdentifier(LibraryIdentifier node) {
     if (node.components.contains(_oldNode)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitListLiteral(ListLiteral node) {
     if (identical(_oldNode, node.typeArguments)) {
       return _parser.parseTypeArgumentList();
@@ -663,6 +726,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitMapLiteral(MapLiteral node) {
     if (identical(_oldNode, node.typeArguments)) {
       return _parser.parseTypeArgumentList();
@@ -671,6 +735,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitMapLiteralEntry(MapLiteralEntry node) {
     if (identical(_oldNode, node.key)) {
       return _parser.parseExpression2();
@@ -679,6 +744,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitMethodDeclaration(MethodDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -696,6 +762,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitMethodInvocation(MethodInvocation node) {
     if (identical(_oldNode, node.target)) {
       throw new IncrementalParseException();
@@ -706,6 +773,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitNamedExpression(NamedExpression node) {
     if (identical(_oldNode, node.name)) {
       return _parser.parseLabel();
@@ -714,25 +782,30 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitNativeClause(NativeClause node) {
     if (identical(_oldNode, node.name)) {
       return _parser.parseStringLiteral();
     }
     return notAChild(node);
   }
+
   ASTNode visitNativeFunctionBody(NativeFunctionBody node) {
     if (identical(_oldNode, node.stringLiteral)) {
       return _parser.parseStringLiteral();
     }
     return notAChild(node);
   }
+
   ASTNode visitNullLiteral(NullLiteral node) => notAChild(node);
+
   ASTNode visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
+
   ASTNode visitPartDirective(PartDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -743,6 +816,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitPartOfDirective(PartOfDirective node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -753,12 +827,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitPostfixExpression(PostfixExpression node) {
     if (identical(_oldNode, node.operand)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
+
   ASTNode visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (identical(_oldNode, node.prefix)) {
       return _parser.parseSimpleIdentifier();
@@ -767,12 +843,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitPrefixExpression(PrefixExpression node) {
     if (identical(_oldNode, node.operand)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
+
   ASTNode visitPropertyAccess(PropertyAccess node) {
     if (identical(_oldNode, node.target)) {
       throw new InsufficientContextException();
@@ -781,6 +859,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     if (identical(_oldNode, node.constructorName)) {
       return _parser.parseSimpleIdentifier();
@@ -789,20 +868,25 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitRethrowExpression(RethrowExpression node) => notAChild(node);
+
   ASTNode visitReturnStatement(ReturnStatement node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
     }
     return notAChild(node);
   }
+
   ASTNode visitScriptTag(ScriptTag node) => notAChild(node);
+
   ASTNode visitShowCombinator(ShowCombinator node) {
     if (node.shownNames.contains(_oldNode)) {
       return _parser.parseSimpleIdentifier();
     }
     return notAChild(node);
   }
+
   ASTNode visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -815,14 +899,18 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitSimpleIdentifier(SimpleIdentifier node) => notAChild(node);
+
   ASTNode visitSimpleStringLiteral(SimpleStringLiteral node) => notAChild(node);
+
   ASTNode visitStringInterpolation(StringInterpolation node) {
     if (node.elements.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
+
   ASTNode visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     if (identical(_oldNode, node.constructorName)) {
       return _parser.parseSimpleIdentifier();
@@ -831,7 +919,9 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitSuperExpression(SuperExpression node) => notAChild(node);
+
   ASTNode visitSwitchCase(SwitchCase node) {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
@@ -842,6 +932,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitSwitchDefault(SwitchDefault node) {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
@@ -850,6 +941,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitSwitchStatement(SwitchStatement node) {
     if (identical(_oldNode, node.expression)) {
       return _parser.parseExpression2();
@@ -858,8 +950,11 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitSymbolLiteral(SymbolLiteral node) => notAChild(node);
+
   ASTNode visitThisExpression(ThisExpression node) => notAChild(node);
+
   ASTNode visitThrowExpression(ThrowExpression node) {
     if (identical(_oldNode, node.expression)) {
       if (isCascadeAllowed2(node)) {
@@ -869,6 +964,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -879,6 +975,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitTryStatement(TryStatement node) {
     if (identical(_oldNode, node.body)) {
       return _parser.parseBlock();
@@ -889,12 +986,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitTypeArgumentList(TypeArgumentList node) {
     if (node.arguments.contains(_oldNode)) {
       return _parser.parseTypeName();
     }
     return notAChild(node);
   }
+
   ASTNode visitTypeName(TypeName node) {
     if (identical(_oldNode, node.name)) {
       return _parser.parsePrefixedIdentifier();
@@ -903,6 +1002,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitTypeParameter(TypeParameter node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -915,12 +1015,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitTypeParameterList(TypeParameterList node) {
     if (node.typeParameters.contains(node)) {
       return _parser.parseTypeParameter();
     }
     return notAChild(node);
   }
+
   ASTNode visitVariableDeclaration(VariableDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -933,6 +1035,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitVariableDeclarationList(VariableDeclarationList node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -943,12 +1046,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (identical(_oldNode, node.variables)) {
       throw new InsufficientContextException();
     }
     return notAChild(node);
   }
+
   ASTNode visitWhileStatement(WhileStatement node) {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
@@ -957,6 +1062,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     }
     return notAChild(node);
   }
+
   ASTNode visitWithClause(WithClause node) {
     if (node.mixinTypes.contains(node)) {
       return _parser.parseTypeName();
@@ -995,12 +1101,12 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     throw new IncrementalParseException.con1("Internal error: the visited node (a ${visitedNode.runtimeType.toString()}) was not the parent of the node to be replaced (a ${_oldNode.runtimeType.toString()})");
   }
 }
+
 /**
  * Instances of the class `IncrementalParseException` represent an exception that occurred
  * while attempting to parse a replacement for a specified node in an existing AST structure.
  */
 class IncrementalParseException extends RuntimeException {
-
   /**
    * Initialize a newly created exception to have no message and to be its own cause.
    */
@@ -1020,12 +1126,12 @@ class IncrementalParseException extends RuntimeException {
    */
   IncrementalParseException.con2(Exception cause) : super(cause: cause);
 }
+
 /**
  * Instances of the class `IncrementalParser` re-parse a single AST structure within a larger
  * AST structure.
  */
 class IncrementalParser {
-
   /**
    * The source being parsed.
    */
@@ -1146,13 +1252,13 @@ class IncrementalParser {
     return null;
   }
 }
+
 /**
  * Instances of the class `InsufficientContextException` represent a situation in which an AST
  * node cannot be re-parsed because there is not enough context to know how to re-parse the node.
  * Clients can attempt to re-parse the parent of the node.
  */
 class InsufficientContextException extends IncrementalParseException {
-
   /**
    * Initialize a newly created exception to have no message and to be its own cause.
    */
@@ -1172,13 +1278,13 @@ class InsufficientContextException extends IncrementalParseException {
    */
   InsufficientContextException.con2(Exception cause) : super.con2(cause);
 }
+
 /**
  * Instances of the class `Parser` are used to parse tokens into an AST structure.
  *
  * @coverage dart.engine.parser
  */
 class Parser {
-
   /**
    * The source being parsed.
    */
@@ -1203,10 +1309,15 @@ class Parser {
    * A flag indicating whether the parser is currently in a switch statement.
    */
   bool _inSwitch = false;
+
   static String _HIDE = "hide";
+
   static String _OF = "of";
+
   static String _ON = "on";
+
   static String _NATIVE = "native";
+
   static String _SHOW = "show";
 
   /**
@@ -1367,7 +1478,7 @@ class Parser {
       arguments.add(argument);
       if (foundNamedArgument) {
         if (!generatedError && argument is! NamedExpression) {
-          reportError8(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
+          reportError9(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
           generatedError = true;
         }
       } else if (argument is NamedExpression) {
@@ -1423,7 +1534,7 @@ class Parser {
         statements.add(statement);
       }
       if (identical(_currentToken, statementStart)) {
-        reportError9(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -1476,7 +1587,7 @@ class Parser {
           validateModifiersForOperator(modifiers);
           return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
         }
-        reportError9(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+        reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
     } else if (matches(Keyword.GET) && matchesIdentifier2(peek())) {
@@ -1493,7 +1604,7 @@ class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
-      reportError9(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      reportError10(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && matches4(peek2(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, parseSimpleIdentifier(), andAdvance, parseSimpleIdentifier(), parseFormalParameterList());
@@ -1508,7 +1619,7 @@ class Parser {
       return parseMethodDeclaration2(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null, methodName, parameters);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
-        reportError8(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError9(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
       return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), null);
     }
@@ -1530,7 +1641,7 @@ class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
       }
-      reportError9(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      reportError10(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
@@ -1583,18 +1694,18 @@ class Parser {
     Token memberStart = _currentToken;
     while (!matches5(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT) && !matches4(peek(), TokenType.OPEN_PAREN)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
-          reportError8(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
+          reportError9(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
           directiveFoundAfterDeclaration = true;
         }
         if (directive is LibraryDirective) {
           if (libraryDirectiveFound) {
-            reportError8(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
+            reportError9(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
           } else {
             if (directives.length > 0) {
-              reportError8(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
+              reportError9(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
             }
             libraryDirectiveFound = true;
           }
@@ -1602,28 +1713,28 @@ class Parser {
           partDirectiveFound = true;
         } else if (partDirectiveFound) {
           if (directive is ExportDirective) {
-            reportError9(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, ((directive as NamespaceDirective)).keyword, []);
+            reportError10(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, (directive as NamespaceDirective).keyword, []);
           } else if (directive is ImportDirective) {
-            reportError9(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, ((directive as NamespaceDirective)).keyword, []);
+            reportError10(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, (directive as NamespaceDirective).keyword, []);
           }
         }
         if (directive is PartOfDirective) {
           if (partOfDirectiveFound) {
-            reportError8(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
+            reportError9(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
           } else {
             for (Directive precedingDirective in directives) {
-              reportError9(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, precedingDirective.keyword, []);
+              reportError10(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, precedingDirective.keyword, []);
             }
             partOfDirectiveFound = true;
           }
         } else {
           if (partOfDirectiveFound) {
-            reportError9(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
+            reportError10(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
           }
         }
         directives.add(directive);
       } else if (matches5(TokenType.SEMICOLON)) {
-        reportError9(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
@@ -1632,7 +1743,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError9(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
         while (!matches5(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
           advance();
@@ -1818,9 +1929,9 @@ class Parser {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
         if (getEndToken(leftParenthesis) != null) {
-          reportError8(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
+          reportError9(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
         } else {
-          reportError9(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
+          reportError10(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
           break;
         }
       }
@@ -1828,11 +1939,11 @@ class Parser {
       if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
         wasOptionalParameter = true;
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
-          reportError8(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
+          reportError9(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
           reportedMuliplePositionalGroups = true;
         }
         if (leftCurlyBracket != null && !reportedMixedGroups) {
-          reportError8(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportError9(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftSquareBracket = andAdvance;
@@ -1841,11 +1952,11 @@ class Parser {
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
         wasOptionalParameter = true;
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
-          reportError8(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
+          reportError9(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
           reportedMulipleNamedGroups = true;
         }
         if (leftSquareBracket != null && !reportedMixedGroups) {
-          reportError8(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportError9(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftCurlyBracket = andAdvance;
@@ -1863,11 +1974,11 @@ class Parser {
         currentParameters = normalParameters;
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
-            reportError8(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+            reportError9(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
             rightCurlyBracket = rightSquareBracket;
             rightSquareBracket = null;
           } else {
-            reportError8(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
+            reportError9(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
           }
         }
         kind = ParameterKind.REQUIRED;
@@ -1876,11 +1987,11 @@ class Parser {
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
-            reportError8(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+            reportError9(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
             rightSquareBracket = rightCurlyBracket;
             rightCurlyBracket = null;
           } else {
-            reportError8(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
+            reportError9(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
           }
         }
         kind = ParameterKind.REQUIRED;
@@ -1888,10 +1999,10 @@ class Parser {
     } while (!matches5(TokenType.CLOSE_PAREN) && initialToken != _currentToken);
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
     if (leftSquareBracket != null && rightSquareBracket == null) {
-      reportError8(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+      reportError9(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
-      reportError8(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+      reportError9(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
     }
     if (leftSquareBracket == null) {
       leftSquareBracket = leftCurlyBracket;
@@ -2047,7 +2158,7 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       if (thisKeyword == null) {
         if (holder.keyword != null) {
-          reportError9(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
+          reportError10(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
         }
         return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
       } else {
@@ -2057,9 +2168,9 @@ class Parser {
     TypeName type = holder.type;
     if (type != null) {
       if (matches3(type.name.beginToken, Keyword.VOID)) {
-        reportError9(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
+        reportError10(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
       } else if (holder.keyword != null && matches3(holder.keyword, Keyword.VAR)) {
-        reportError9(ParserErrorCode.VAR_AND_TYPE, holder.keyword, []);
+        reportError10(ParserErrorCode.VAR_AND_TYPE, holder.keyword, []);
       }
     }
     if (thisKeyword != null) {
@@ -2121,7 +2232,7 @@ class Parser {
     if (matchesIdentifier()) {
       return new SimpleIdentifier.full(andAdvance);
     }
-    reportError8(ParserErrorCode.MISSING_IDENTIFIER, []);
+    reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
     return createSyntheticIdentifier();
   }
 
@@ -2169,7 +2280,7 @@ class Parser {
       }
     }
     if (strings.length < 1) {
-      reportError8(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
+      reportError9(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
       return createSyntheticStringLiteral();
     } else if (strings.length == 1) {
       return strings[0];
@@ -2215,13 +2326,13 @@ class Parser {
   TypeName parseTypeName() {
     Identifier typeName;
     if (matches(Keyword.VAR)) {
-      reportError8(ParserErrorCode.VAR_AS_TYPE_NAME, []);
+      reportError9(ParserErrorCode.VAR_AS_TYPE_NAME, []);
       typeName = new SimpleIdentifier.full(andAdvance);
     } else if (matchesIdentifier()) {
       typeName = parsePrefixedIdentifier();
     } else {
       typeName = createSyntheticIdentifier();
-      reportError8(ParserErrorCode.EXPECTED_TYPE_NAME, []);
+      reportError9(ParserErrorCode.EXPECTED_TYPE_NAME, []);
     }
     TypeArgumentList typeArguments = null;
     if (matches5(TokenType.LT)) {
@@ -2291,6 +2402,7 @@ class Parser {
     }
     return new WithClause.full(with2, types);
   }
+
   void set currentToken(Token currentToken) {
     this._currentToken = currentToken;
   }
@@ -2315,7 +2427,7 @@ class Parser {
    */
   void appendScalarValue(JavaStringBuilder builder, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
-      reportError8(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
+      reportError9(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
@@ -2458,7 +2570,7 @@ class Parser {
    */
   void ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable) {
-      reportError8(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
+      reportError9(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
     }
   }
 
@@ -2473,7 +2585,7 @@ class Parser {
     if (matches(keyword)) {
       return andAdvance;
     }
-    reportError8(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
+    reportError9(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
   }
 
@@ -2489,9 +2601,9 @@ class Parser {
       return andAdvance;
     }
     if (identical(type, TokenType.SEMICOLON)) {
-      reportError9(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
+      reportError10(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
     } else {
-      reportError8(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
+      reportError9(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     }
     return _currentToken;
   }
@@ -2514,6 +2626,7 @@ class Parser {
     }
     return null;
   }
+
   void gatherTodoComments(Token token) {
     while (token != null && token.type != TokenType.EOF) {
       Token commentToken = token.precedingComments;
@@ -2590,7 +2703,7 @@ class Parser {
    */
   Token getEndToken(Token beginToken) {
     if (beginToken is BeginToken) {
-      return ((beginToken as BeginToken)).endToken;
+      return (beginToken as BeginToken).endToken;
     }
     return null;
   }
@@ -2757,14 +2870,17 @@ class Parser {
    * @return `true` if the given token appears to be the beginning of an operator declaration
    */
   bool isOperator(Token startToken) {
-    if (startToken.isOperator) {
-      Token token = startToken.next;
-      while (token.isOperator) {
-        token = token.next;
-      }
-      return matches4(token, TokenType.OPEN_PAREN);
+    if (!startToken.isOperator) {
+      return false;
     }
-    return false;
+    if (identical(startToken.type, TokenType.EQ)) {
+      return false;
+    }
+    Token token = startToken.next;
+    while (token.isOperator) {
+      token = token.next;
+    }
+    return matches4(token, TokenType.OPEN_PAREN);
   }
 
   /**
@@ -2778,7 +2894,7 @@ class Parser {
       token = token.next.next;
     }
     if (identical(token.type, TokenType.KEYWORD)) {
-      Keyword keyword = ((token as KeywordToken)).keyword;
+      Keyword keyword = (token as KeywordToken).keyword;
       return identical(keyword, Keyword.CASE) || identical(keyword, Keyword.DEFAULT);
     }
     return false;
@@ -2850,7 +2966,7 @@ class Parser {
    * @param keyword the keyword that is being tested for
    * @return `true` if the given token matches the given keyword
    */
-  bool matches3(Token token, Keyword keyword) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword);
+  bool matches3(Token token, Keyword keyword) => identical(token.type, TokenType.KEYWORD) && identical((token as KeywordToken).keyword, keyword);
 
   /**
    * Return `true` if the given token has the given type.
@@ -2941,7 +3057,7 @@ class Parser {
    *
    * @return `true` if the given token is a valid identifier
    */
-  bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && ((token as KeywordToken)).keyword.isPseudoKeyword);
+  bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && (token as KeywordToken).keyword.isPseudoKeyword);
 
   /**
    * If the current token has the given type, then advance to the next token and return `true`
@@ -2996,7 +3112,7 @@ class Parser {
   ArgumentDefinitionTest parseArgumentDefinitionTest() {
     Token question = expect2(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
-    reportError9(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
+    reportError10(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
     return new ArgumentDefinitionTest.full(question, identifier);
   }
 
@@ -3103,7 +3219,7 @@ class Parser {
       return new PropertyAccess.full(prefix, period, parseSimpleIdentifier());
     } else {
       if (!optional) {
-        reportError8(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+        reportError9(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
       }
       return prefix;
     }
@@ -3176,7 +3292,7 @@ class Parser {
       label = parseSimpleIdentifier();
     }
     if (!_inLoop && !_inSwitch && label == null) {
-      reportError9(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
+      reportError10(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new BreakStatement.full(breakKeyword, label, semicolon);
@@ -3212,7 +3328,7 @@ class Parser {
       expression = new IndexExpression.forCascade_full(period, leftBracket, index, rightBracket);
       period = null;
     } else {
-      reportError9(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
+      reportError10(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
       functionName = createSyntheticIdentifier();
     }
     if (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
@@ -3298,29 +3414,29 @@ class Parser {
         if (extendsClause == null) {
           extendsClause = parseExtendsClause();
           if (withClause != null) {
-            reportError9(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
+            reportError10(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
           } else if (implementsClause != null) {
-            reportError9(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
+            reportError10(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
           }
         } else {
-          reportError9(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
+          reportError10(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
           parseExtendsClause();
         }
       } else if (matches(Keyword.WITH)) {
         if (withClause == null) {
           withClause = parseWithClause();
           if (implementsClause != null) {
-            reportError9(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
+            reportError10(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
           }
         } else {
-          reportError9(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
+          reportError10(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
           parseWithClause();
         }
       } else if (matches(Keyword.IMPLEMENTS)) {
         if (implementsClause == null) {
           implementsClause = parseImplementsClause();
         } else {
-          reportError9(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
+          reportError10(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
           parseImplementsClause();
         }
       } else {
@@ -3328,7 +3444,7 @@ class Parser {
       }
     }
     if (withClause != null && extendsClause == null) {
-      reportError9(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
+      reportError10(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
     }
     NativeClause nativeClause = null;
     if (matches2(_NATIVE) && matches4(peek(), TokenType.STRING)) {
@@ -3344,7 +3460,7 @@ class Parser {
     } else {
       leftBracket = createSyntheticToken2(TokenType.OPEN_CURLY_BRACKET);
       rightBracket = createSyntheticToken2(TokenType.CLOSE_CURLY_BRACKET);
-      reportError8(ParserErrorCode.MISSING_CLASS_BODY, []);
+      reportError9(ParserErrorCode.MISSING_CLASS_BODY, []);
     }
     ClassDeclaration classDeclaration = new ClassDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
     classDeclaration.nativeClause = nativeClause;
@@ -3369,7 +3485,7 @@ class Parser {
     Token memberStart = _currentToken;
     while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && (closingBracket != null || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
       if (matches5(TokenType.SEMICOLON)) {
-        reportError9(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         ClassMember member = parseClassMember(className);
@@ -3378,7 +3494,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError9(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       memberStart = _currentToken;
@@ -3426,12 +3542,12 @@ class Parser {
       semicolon = andAdvance;
     } else {
       if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
-        reportError8(ParserErrorCode.EXPECTED_TOKEN, [TokenType.SEMICOLON.lexeme]);
+        reportError9(ParserErrorCode.EXPECTED_TOKEN, [TokenType.SEMICOLON.lexeme]);
         Token leftBracket = andAdvance;
         parseClassMembers(className.name, getEndToken(leftBracket));
         expect2(TokenType.CLOSE_CURLY_BRACKET);
       } else {
-        reportError9(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [TokenType.SEMICOLON.lexeme]);
+        reportError10(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [TokenType.SEMICOLON.lexeme]);
       }
       semicolon = createSyntheticToken2(TokenType.SEMICOLON);
     }
@@ -3508,7 +3624,7 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_15(errorFound);
+      AnalysisErrorListener listener = new AnalysisErrorListener_16(errorFound);
       Scanner scanner = new Scanner(null, new SubSequenceReader(new CharSequence(referenceSource), sourceOffset), listener);
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
@@ -3616,7 +3732,7 @@ class Parser {
     Modifiers modifiers = parseModifiers();
     if (matches(Keyword.CLASS)) {
       return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
-    } else if (matches(Keyword.TYPEDEF) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+    } else if (matches(Keyword.TYPEDEF) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT) && !matches4(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
@@ -3626,7 +3742,7 @@ class Parser {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
       } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-        reportError9(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+        reportError10(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
         return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
       } else if (matchesIdentifier() && matchesAny(peek(), [
           TokenType.OPEN_PAREN,
@@ -3641,24 +3757,24 @@ class Parser {
             return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
           }
         }
-        reportError9(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+        reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      reportError9(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+      reportError10(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, null));
     } else if (!matchesIdentifier()) {
-      reportError9(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+      reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
-        reportError8(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError9(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
       return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
     }
@@ -3667,12 +3783,12 @@ class Parser {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      reportError9(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+      reportError10(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
     } else if (matches5(TokenType.AT)) {
       return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
-      reportError9(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+      reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       Token semicolon;
       if (matches5(TokenType.SEMICOLON)) {
         semicolon = andAdvance;
@@ -3716,6 +3832,7 @@ class Parser {
     }
     return parseInstanceCreationExpression(keyword);
   }
+
   ConstructorDeclaration parseConstructor(CommentAndMetadata commentAndMetadata, Token externalKeyword, Token constKeyword, Token factoryKeyword, SimpleIdentifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters) {
     bool bodyAllowed = externalKeyword == null;
     Token separator = null;
@@ -3753,10 +3870,10 @@ class Parser {
     } else {
       body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null && factoryKeyword != null) {
-        reportError9(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
+        reportError10(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
       } else if (body is EmptyFunctionBody) {
         if (factoryKeyword != null && externalKeyword == null) {
-          reportError9(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword, []);
+          reportError10(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword, []);
         }
       } else {
         if (constKeyword != null) {
@@ -3817,14 +3934,14 @@ class Parser {
   Statement parseContinueStatement() {
     Token continueKeyword = expect(Keyword.CONTINUE);
     if (!_inLoop && !_inSwitch) {
-      reportError9(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
+      reportError10(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
     }
     SimpleIdentifier label = null;
     if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (_inSwitch && !_inLoop && label == null) {
-      reportError9(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
+      reportError10(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new ContinueStatement.full(continueKeyword, label, semicolon);
@@ -4031,7 +4148,7 @@ class Parser {
       if (isTypedIdentifier(_currentToken)) {
         type = parseReturnType();
       } else if (!optional) {
-        reportError8(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError9(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
     }
     return new FinalConstVarOrType(keyword, type);
@@ -4059,7 +4176,7 @@ class Parser {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.NAMED)) {
-        reportError9(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
+        reportError10(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
         reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
@@ -4068,7 +4185,7 @@ class Parser {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.POSITIONAL)) {
-        reportError9(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
+        reportError10(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
         reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
@@ -4122,15 +4239,15 @@ class Parser {
           DeclaredIdentifier loopVariable = null;
           SimpleIdentifier identifier = null;
           if (variableList == null) {
-            reportError8(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
+            reportError9(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
             NodeList<VariableDeclaration> variables = variableList.variables;
             if (variables.length > 1) {
-              reportError8(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
+              reportError9(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
             }
             VariableDeclaration variable = variables[0];
             if (variable.initializer != null) {
-              reportError8(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
+              reportError9(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
@@ -4197,7 +4314,7 @@ class Parser {
     try {
       if (matches5(TokenType.SEMICOLON)) {
         if (!mayBeEmpty) {
-          reportError8(emptyErrorCode, []);
+          reportError9(emptyErrorCode, []);
         }
         return new EmptyFunctionBody.full(andAdvance);
       } else if (matches5(TokenType.FUNCTION)) {
@@ -4218,7 +4335,7 @@ class Parser {
         }
         return new NativeFunctionBody.full(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
       } else {
-        reportError8(emptyErrorCode, []);
+        reportError9(emptyErrorCode, []);
         return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } finally {
@@ -4259,10 +4376,10 @@ class Parser {
         parameters = parseFormalParameterList();
         validateFormalParameterList(parameters);
       } else {
-        reportError8(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
+        reportError9(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
       }
     } else if (matches5(TokenType.OPEN_PAREN)) {
-      reportError8(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+      reportError9(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       parseFormalParameterList();
     }
     FunctionBody body;
@@ -4307,10 +4424,10 @@ class Parser {
     FunctionDeclaration declaration = parseFunctionDeclaration(commentAndMetadata, null, returnType);
     Token propertyKeyword = declaration.propertyKeyword;
     if (propertyKeyword != null) {
-      if (identical(((propertyKeyword as KeywordToken)).keyword, Keyword.GET)) {
-        reportError9(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword, []);
+      if (identical((propertyKeyword as KeywordToken).keyword, Keyword.GET)) {
+        reportError10(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword, []);
       } else {
-        reportError9(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
+        reportError10(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
       }
     }
     return new FunctionDeclarationStatement.full(declaration);
@@ -4342,12 +4459,12 @@ class Parser {
       typeParameters = parseTypeParameterList();
     }
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.EOF)) {
-      reportError8(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+      reportError9(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       FormalParameterList parameters = new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN));
       Token semicolon = expect2(TokenType.SEMICOLON);
       return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
     } else if (!matches5(TokenType.OPEN_PAREN)) {
-      reportError8(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+      reportError9(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN)), createSyntheticToken2(TokenType.SEMICOLON));
     }
     FormalParameterList parameters = parseFormalParameterList();
@@ -4379,13 +4496,13 @@ class Parser {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
     if (matches5(TokenType.OPEN_PAREN) && matches4(peek(), TokenType.CLOSE_PAREN)) {
-      reportError8(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+      reportError9(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       advance();
       advance();
     }
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.STATIC_GETTER_WITHOUT_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError8(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
+      reportError9(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, null, body);
   }
@@ -4543,7 +4660,7 @@ class Parser {
       StringLiteral string = parseStringLiteral();
       reportError(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
     } else {
-      reportError9(missingNameError, missingNameToken, []);
+      reportError10(missingNameError, missingNameToken, []);
     }
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
     components.add(createSyntheticIdentifier());
@@ -4614,7 +4731,7 @@ class Parser {
     } else if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
       return parseListLiteral(modifier, typeArguments);
     }
-    reportError8(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
+    reportError9(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
     return new ListLiteral.full(modifier, typeArguments, createSyntheticToken2(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken2(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
@@ -4740,51 +4857,54 @@ class Parser {
     Modifiers modifiers = new Modifiers();
     bool progress = true;
     while (progress) {
-      if (matches(Keyword.ABSTRACT) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      if (matches4(peek(), TokenType.PERIOD) || matches4(peek(), TokenType.LT) || matches4(peek(), TokenType.OPEN_PAREN)) {
+        return modifiers;
+      }
+      if (matches(Keyword.ABSTRACT)) {
         if (modifiers.abstractKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.abstractKeyword = andAdvance;
         }
       } else if (matches(Keyword.CONST)) {
         if (modifiers.constKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.constKeyword = andAdvance;
         }
       } else if (matches(Keyword.EXTERNAL) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.externalKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.externalKeyword = andAdvance;
         }
       } else if (matches(Keyword.FACTORY) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.factoryKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.factoryKeyword = andAdvance;
         }
       } else if (matches(Keyword.FINAL)) {
         if (modifiers.finalKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.finalKeyword = andAdvance;
         }
       } else if (matches(Keyword.STATIC) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.staticKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.staticKeyword = andAdvance;
         }
       } else if (matches(Keyword.VAR)) {
         if (modifiers.varKeyword != null) {
-          reportError8(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.varKeyword = andAdvance;
@@ -4882,8 +5002,8 @@ class Parser {
         }
       }
       return parseBlock();
-    } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword) {
-      Keyword keyword = ((_currentToken as KeywordToken)).keyword;
+    } else if (matches5(TokenType.KEYWORD) && !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
+      Keyword keyword = (_currentToken as KeywordToken).keyword;
       if (identical(keyword, Keyword.ASSERT)) {
         return parseAssertStatement();
       } else if (identical(keyword, Keyword.BREAK)) {
@@ -4926,7 +5046,7 @@ class Parser {
           } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
             return parseVariableDeclarationStatement2(commentAndMetadata, null, returnType);
           }
-          reportError8(ParserErrorCode.MISSING_STATEMENT, []);
+          reportError9(ParserErrorCode.MISSING_STATEMENT, []);
           return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
         }
       } else if (identical(keyword, Keyword.CONST)) {
@@ -4948,7 +5068,7 @@ class Parser {
       } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
         return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
-        reportError8(ParserErrorCode.MISSING_STATEMENT, []);
+        reportError9(ParserErrorCode.MISSING_STATEMENT, []);
         return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } else if (matches5(TokenType.SEMICOLON)) {
@@ -4958,7 +5078,7 @@ class Parser {
     } else if (isFunctionDeclaration()) {
       return parseFunctionDeclarationStatement();
     } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
-      reportError8(ParserErrorCode.MISSING_STATEMENT, []);
+      reportError9(ParserErrorCode.MISSING_STATEMENT, []);
       return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
     } else {
       return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
@@ -4988,17 +5108,17 @@ class Parser {
     if (matches(Keyword.OPERATOR)) {
       operatorKeyword = andAdvance;
     } else {
-      reportError9(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
+      reportError10(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
       operatorKeyword = createSyntheticToken(Keyword.OPERATOR);
     }
     if (!_currentToken.isUserDefinableOperator) {
-      reportError8(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
+      reportError9(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
     if (matches5(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((matches4(previous, TokenType.EQ_EQ) || matches4(previous, TokenType.BANG_EQ)) && _currentToken.offset == previous.offset + 2) {
-        reportError8(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
+        reportError9(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
         advance();
       }
     }
@@ -5006,7 +5126,7 @@ class Parser {
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError8(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
+      reportError9(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, null, returnType, null, operatorKeyword, name, parameters, body);
   }
@@ -5091,7 +5211,7 @@ class Parser {
       return operand;
     }
     if (operand is Literal || operand is FunctionExpressionInvocation) {
-      reportError8(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+      reportError9(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
     }
     Token operator = andAdvance;
     return new PostfixExpression.full(operand, operator);
@@ -5184,13 +5304,13 @@ class Parser {
     } else if (matches5(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
     } else if (matches(Keyword.VOID)) {
-      reportError8(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
+      reportError9(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
       return parsePrimaryExpression();
     } else if (matches5(TokenType.HASH)) {
       return parseSymbolLiteral();
     } else {
-      reportError8(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
     }
   }
@@ -5311,7 +5431,7 @@ class Parser {
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.STATIC_SETTER_WITHOUT_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError8(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
+      reportError9(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, parameters, body);
   }
@@ -5357,7 +5477,7 @@ class Parser {
     while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
-        reportError9(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -5455,7 +5575,7 @@ class Parser {
           SimpleIdentifier identifier = parseSimpleIdentifier();
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
-            reportError9(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
+            reportError10(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
           } else {
             javaSetAdd(definedLabels, label);
           }
@@ -5468,17 +5588,17 @@ class Parser {
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchCase.full(labels, caseKeyword, caseExpression, colon, parseStatements2()));
           if (defaultKeyword != null) {
-            reportError9(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
+            reportError10(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
           }
         } else if (matches(Keyword.DEFAULT)) {
           if (defaultKeyword != null) {
-            reportError9(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
+            reportError10(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
           }
           defaultKeyword = andAdvance;
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchDefault.full(labels, defaultKeyword, colon, parseStatements2()));
         } else {
-          reportError8(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
+          reportError9(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
           while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
             advance();
           }
@@ -5511,7 +5631,7 @@ class Parser {
         if (matchesIdentifier()) {
           components.add(andAdvance);
         } else {
-          reportError8(ParserErrorCode.MISSING_IDENTIFIER, []);
+          reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
           components.add(createSyntheticToken2(TokenType.IDENTIFIER));
           break;
         }
@@ -5519,7 +5639,7 @@ class Parser {
     } else if (_currentToken.isOperator) {
       components.add(andAdvance);
     } else {
-      reportError8(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
       components.add(createSyntheticToken2(TokenType.IDENTIFIER));
     }
     return new SymbolLiteral.full(poundSign, new List.from(components));
@@ -5538,7 +5658,7 @@ class Parser {
   Expression parseThrowExpression() {
     Token keyword = expect(Keyword.THROW);
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
-      reportError9(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
+      reportError10(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression.full(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpression2();
@@ -5558,7 +5678,7 @@ class Parser {
   Expression parseThrowExpressionWithoutCascade() {
     Token keyword = expect(Keyword.THROW);
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
-      reportError9(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
+      reportError10(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression.full(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpressionWithoutCascade();
@@ -5622,7 +5742,7 @@ class Parser {
       finallyClause = parseBlock();
     } else {
       if (catchClauses.isEmpty) {
-        reportError8(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
+        reportError9(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
       }
     }
     return new TryStatement.full(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
@@ -5663,12 +5783,12 @@ class Parser {
         next = skipTypeParameterList(next);
         if (next != null && matches4(next, TokenType.EQ)) {
           TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
-          reportError9(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
+          reportError10(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
           return typeAlias;
         }
       } else if (matches4(next, TokenType.EQ)) {
         TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
-        reportError9(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
+        reportError10(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
         return typeAlias;
       }
     }
@@ -5714,13 +5834,13 @@ class Parser {
           operator.previous.setNext(firstOperator);
           return new PrefixExpression.full(firstOperator, new PrefixExpression.full(secondOperator, new SuperExpression.full(andAdvance)));
         } else {
-          reportError8(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
+          reportError9(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
           return new PrefixExpression.full(operator, new SuperExpression.full(andAdvance));
         }
       }
       return new PrefixExpression.full(operator, parseAssignableExpression(false));
     } else if (matches5(TokenType.PLUS)) {
-      reportError8(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
     }
     return parsePostfixExpression();
@@ -5781,7 +5901,7 @@ class Parser {
    */
   VariableDeclarationList parseVariableDeclarationList2(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
     if (type != null && keyword != null && matches3(keyword, Keyword.VAR)) {
-      reportError9(ParserErrorCode.VAR_AND_TYPE, keyword, []);
+      reportError10(ParserErrorCode.VAR_AND_TYPE, keyword, []);
     }
     List<VariableDeclaration> variables = new List<VariableDeclaration>();
     variables.add(parseVariableDeclaration());
@@ -5896,8 +6016,8 @@ class Parser {
    * @param errorCode the error code of the error to be reported
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError8(ParserErrorCode errorCode, List<Object> arguments) {
-    reportError9(errorCode, _currentToken, arguments);
+  void reportError9(ParserErrorCode errorCode, List<Object> arguments) {
+    reportError10(errorCode, _currentToken, arguments);
   }
 
   /**
@@ -5907,7 +6027,7 @@ class Parser {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError9(ParserErrorCode errorCode, Token token, List<Object> arguments) {
+  void reportError10(ParserErrorCode errorCode, Token token, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
   }
 
@@ -5945,8 +6065,12 @@ class Parser {
   Token skipFinalConstVarOrType(Token startToken) {
     if (matches3(startToken, Keyword.FINAL) || matches3(startToken, Keyword.CONST)) {
       Token next = startToken.next;
-      if (matchesIdentifier2(next.next) || matches4(next.next, TokenType.LT) || matches3(next.next, Keyword.THIS)) {
-        return skipTypeName(next);
+      if (matchesIdentifier2(next)) {
+        Token next2 = next.next;
+        if (matchesIdentifier2(next2) || matches4(next2, TokenType.LT) || matches4(next2, TokenType.PERIOD)) {
+          return skipTypeName(next);
+        }
+        return next;
       }
     } else if (matches3(startToken, Keyword.VAR)) {
       return startToken.next;
@@ -6037,7 +6161,7 @@ class Parser {
     if (startToken is! BeginToken) {
       return null;
     }
-    Token closeParen = ((startToken as BeginToken)).endToken;
+    Token closeParen = (startToken as BeginToken).endToken;
     if (closeParen == null) {
       return null;
     }
@@ -6111,7 +6235,7 @@ class Parser {
    * @return the token following the simple identifier that was parsed
    */
   Token skipSimpleIdentifier(Token startToken) {
-    if (matches4(startToken, TokenType.IDENTIFIER) || (matches4(startToken, TokenType.KEYWORD) && ((startToken as KeywordToken)).keyword.isPseudoKeyword)) {
+    if (matches4(startToken, TokenType.IDENTIFIER) || (matches4(startToken, TokenType.KEYWORD) && (startToken as KeywordToken).keyword.isPseudoKeyword)) {
       return startToken.next;
     }
     return null;
@@ -6359,13 +6483,13 @@ class Parser {
       builder.appendChar(0xB);
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
-        reportError8(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportError9(ParserErrorCode.INVALID_HEX_ESCAPE, []);
         return length;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
-        reportError8(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportError9(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
         builder.appendChar(((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) as int);
       }
@@ -6373,14 +6497,14 @@ class Parser {
     } else if (currentChar == 0x75) {
       currentIndex++;
       if (currentIndex >= length) {
-        reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+        reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         return length;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
       if (currentChar == 0x7B) {
         currentIndex++;
         if (currentIndex >= length) {
-          reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
@@ -6388,7 +6512,7 @@ class Parser {
         int value = 0;
         while (currentChar != 0x7D) {
           if (!isHexDigit(currentChar)) {
-            reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
             while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
@@ -6399,19 +6523,19 @@ class Parser {
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
           if (currentIndex >= length) {
-            reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
-          reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         }
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
-          reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
         int firstDigit = currentChar;
@@ -6419,7 +6543,7 @@ class Parser {
         int thirdDigit = lexeme.codeUnitAt(currentIndex + 2);
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit) || !isHexDigit(fourthDigit)) {
-          reportError8(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
           appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), (((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16), index, currentIndex + 3);
         }
@@ -6439,7 +6563,7 @@ class Parser {
   void validateFormalParameterList(FormalParameterList parameterList) {
     for (FormalParameter parameter in parameterList.parameters) {
       if (parameter is FieldFormalParameter) {
-        reportError(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, ((parameter as FieldFormalParameter)).identifier, []);
+        reportError(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, (parameter as FieldFormalParameter).identifier, []);
       }
     }
   }
@@ -6453,16 +6577,16 @@ class Parser {
   Token validateModifiersForClass(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.constKeyword != null) {
-      reportError9(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportError10(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError9(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError9(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportError10(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
+      reportError10(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
     }
     return modifiers.abstractKeyword;
   }
@@ -6476,25 +6600,25 @@ class Parser {
    */
   Token validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError8(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError9(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
+      reportError10(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError9(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
+      reportError10(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError10(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword = modifiers.externalKeyword;
     Token constKeyword = modifiers.constKeyword;
     Token factoryKeyword = modifiers.factoryKeyword;
     if (externalKeyword != null && constKeyword != null && constKeyword.offset < externalKeyword.offset) {
-      reportError9(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
     }
     if (externalKeyword != null && factoryKeyword != null && factoryKeyword.offset < externalKeyword.offset) {
-      reportError9(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
     }
     return constKeyword;
   }
@@ -6508,13 +6632,13 @@ class Parser {
    */
   Token validateModifiersForField(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError8(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError9(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError9(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError10(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     Token staticKeyword = modifiers.staticKeyword;
     Token constKeyword = modifiers.constKeyword;
@@ -6522,23 +6646,23 @@ class Parser {
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
       if (finalKeyword != null) {
-        reportError9(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
+        reportError10(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
       if (varKeyword != null) {
-        reportError9(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
+        reportError10(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
       if (staticKeyword != null && constKeyword.offset < staticKeyword.offset) {
-        reportError9(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
+        reportError10(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {
-        reportError9(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
+        reportError10(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
       if (staticKeyword != null && finalKeyword.offset < staticKeyword.offset) {
-        reportError9(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
+        reportError10(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
       }
     } else if (varKeyword != null && staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
-      reportError9(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
+      reportError10(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
     }
     return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
@@ -6550,7 +6674,7 @@ class Parser {
    */
   void validateModifiersForFunctionDeclarationStatement(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null || modifiers.constKeyword != null || modifiers.externalKeyword != null || modifiers.factoryKeyword != null || modifiers.finalKeyword != null || modifiers.staticKeyword != null || modifiers.varKeyword != null) {
-      reportError8(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
+      reportError9(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
     }
   }
 
@@ -6561,24 +6685,24 @@ class Parser {
    */
   void validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError8(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError9(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportError10(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError9(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError10(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError9(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportError10(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError10(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword = modifiers.externalKeyword;
     Token staticKeyword = modifiers.staticKeyword;
     if (externalKeyword != null && staticKeyword != null && staticKeyword.offset < externalKeyword.offset) {
-      reportError9(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
     }
   }
 
@@ -6589,22 +6713,22 @@ class Parser {
    */
   void validateModifiersForOperator(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError8(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError9(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportError10(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError9(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError10(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError9(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportError10(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError9(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
+      reportError10(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError10(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
 
@@ -6615,10 +6739,10 @@ class Parser {
    */
   void validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
     if (modifiers.factoryKeyword != null) {
-      reportError9(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
+      reportError10(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError9(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
+      reportError10(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
     }
   }
 
@@ -6630,16 +6754,16 @@ class Parser {
   void validateModifiersForTopLevelFunction(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError8(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
+      reportError9(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError9(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportError10(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError9(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportError10(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError10(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
 
@@ -6653,24 +6777,24 @@ class Parser {
   Token validateModifiersForTopLevelVariable(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError8(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
+      reportError9(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError9(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     Token constKeyword = modifiers.constKeyword;
     Token finalKeyword = modifiers.finalKeyword;
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
       if (finalKeyword != null) {
-        reportError9(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
+        reportError10(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
       if (varKeyword != null) {
-        reportError9(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
+        reportError10(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {
-        reportError9(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
+        reportError10(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
     }
     return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
@@ -6685,27 +6809,27 @@ class Parser {
   void validateModifiersForTypedef(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
+      reportError10(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError9(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
+      reportError10(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError9(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
+      reportError10(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError9(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
+      reportError10(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
+      reportError10(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
     }
   }
 }
+
 /**
  * Instances of the class `SyntheticKeywordToken` implement a synthetic keyword token.
  */
 class Parser_SyntheticKeywordToken extends KeywordToken {
-
   /**
    * Initialize a newly created token to represent the given keyword.
    *
@@ -6713,16 +6837,22 @@ class Parser_SyntheticKeywordToken extends KeywordToken {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   Parser_SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+
   Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
+
   int get length => 0;
 }
-class AnalysisErrorListener_15 implements AnalysisErrorListener {
+
+class AnalysisErrorListener_16 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_15(this.errorFound);
+
+  AnalysisErrorListener_16(this.errorFound);
+
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }
 }
+
 /**
  * The enumeration `ParserErrorCode` defines the error codes used for errors detected by the
  * parser. The convention for this class is for the name of the error code to indicate the problem
@@ -6733,137 +6863,269 @@ class AnalysisErrorListener_15 implements AnalysisErrorListener {
  */
 class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
   static final ParserErrorCode ABSTRACT_CLASS_MEMBER = new ParserErrorCode.con3('ABSTRACT_CLASS_MEMBER', 0, "Members of classes cannot be declared to be 'abstract'");
+
   static final ParserErrorCode ABSTRACT_STATIC_METHOD = new ParserErrorCode.con3('ABSTRACT_STATIC_METHOD', 1, "Static methods cannot be declared to be 'abstract'");
+
   static final ParserErrorCode ABSTRACT_TOP_LEVEL_FUNCTION = new ParserErrorCode.con3('ABSTRACT_TOP_LEVEL_FUNCTION', 2, "Top-level functions cannot be declared to be 'abstract'");
+
   static final ParserErrorCode ABSTRACT_TOP_LEVEL_VARIABLE = new ParserErrorCode.con3('ABSTRACT_TOP_LEVEL_VARIABLE', 3, "Top-level variables cannot be declared to be 'abstract'");
+
   static final ParserErrorCode ABSTRACT_TYPEDEF = new ParserErrorCode.con3('ABSTRACT_TYPEDEF', 4, "Type aliases cannot be declared to be 'abstract'");
+
   static final ParserErrorCode ASSERT_DOES_NOT_TAKE_ASSIGNMENT = new ParserErrorCode.con3('ASSERT_DOES_NOT_TAKE_ASSIGNMENT', 5, "Assert cannot be called on an assignment");
+
   static final ParserErrorCode ASSERT_DOES_NOT_TAKE_CASCADE = new ParserErrorCode.con3('ASSERT_DOES_NOT_TAKE_CASCADE', 6, "Assert cannot be called on cascade");
+
   static final ParserErrorCode ASSERT_DOES_NOT_TAKE_THROW = new ParserErrorCode.con3('ASSERT_DOES_NOT_TAKE_THROW', 7, "Assert cannot be called on throws");
+
   static final ParserErrorCode ASSERT_DOES_NOT_TAKE_RETHROW = new ParserErrorCode.con3('ASSERT_DOES_NOT_TAKE_RETHROW', 8, "Assert cannot be called on rethrows");
+
   static final ParserErrorCode BREAK_OUTSIDE_OF_LOOP = new ParserErrorCode.con3('BREAK_OUTSIDE_OF_LOOP', 9, "A break statement cannot be used outside of a loop or switch statement");
+
   static final ParserErrorCode CONST_AND_FINAL = new ParserErrorCode.con3('CONST_AND_FINAL', 10, "Members cannot be declared to be both 'const' and 'final'");
+
   static final ParserErrorCode CONST_AND_VAR = new ParserErrorCode.con3('CONST_AND_VAR', 11, "Members cannot be declared to be both 'const' and 'var'");
+
   static final ParserErrorCode CONST_CLASS = new ParserErrorCode.con3('CONST_CLASS', 12, "Classes cannot be declared to be 'const'");
+
   static final ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con3('CONST_CONSTRUCTOR_WITH_BODY', 13, "'const' constructors cannot have a body");
+
   static final ParserErrorCode CONST_FACTORY = new ParserErrorCode.con3('CONST_FACTORY', 14, "Only redirecting factory constructors can be declared to be 'const'");
+
   static final ParserErrorCode CONST_METHOD = new ParserErrorCode.con3('CONST_METHOD', 15, "Getters, setters and methods cannot be declared to be 'const'");
+
   static final ParserErrorCode CONST_TYPEDEF = new ParserErrorCode.con3('CONST_TYPEDEF', 16, "Type aliases cannot be declared to be 'const'");
+
   static final ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE = new ParserErrorCode.con3('CONSTRUCTOR_WITH_RETURN_TYPE', 17, "Constructors cannot have a return type");
+
   static final ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = new ParserErrorCode.con3('CONTINUE_OUTSIDE_OF_LOOP', 18, "A continue statement cannot be used outside of a loop or switch statement");
+
   static final ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE = new ParserErrorCode.con3('CONTINUE_WITHOUT_LABEL_IN_CASE', 19, "A continue statement in a switch statement must have a label as a target");
+
   static final ParserErrorCode DEPRECATED_ARGUMENT_DEFINITION_TEST = new ParserErrorCode.con3('DEPRECATED_ARGUMENT_DEFINITION_TEST', 20, "The argument definition test ('?' operator) has been deprecated");
+
   static final ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS = new ParserErrorCode.con3('DEPRECATED_CLASS_TYPE_ALIAS', 21, "The 'typedef' mixin application was replaced with 'class'");
+
   static final ParserErrorCode DIRECTIVE_AFTER_DECLARATION = new ParserErrorCode.con3('DIRECTIVE_AFTER_DECLARATION', 22, "Directives must appear before any declarations");
+
   static final ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = new ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 23, "The label %s was already used in this switch statement");
+
   static final ParserErrorCode DUPLICATED_MODIFIER = new ParserErrorCode.con3('DUPLICATED_MODIFIER', 24, "The modifier '%s' was already specified.");
+
   static final ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND = new ParserErrorCode.con3('EQUALITY_CANNOT_BE_EQUALITY_OPERAND', 25, "Equality expression cannot be operand of another equality expression.");
+
   static final ParserErrorCode EXPECTED_CASE_OR_DEFAULT = new ParserErrorCode.con3('EXPECTED_CASE_OR_DEFAULT', 26, "Expected 'case' or 'default'");
+
   static final ParserErrorCode EXPECTED_CLASS_MEMBER = new ParserErrorCode.con3('EXPECTED_CLASS_MEMBER', 27, "Expected a class member");
+
   static final ParserErrorCode EXPECTED_EXECUTABLE = new ParserErrorCode.con3('EXPECTED_EXECUTABLE', 28, "Expected a method, getter, setter or operator declaration");
+
   static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con3('EXPECTED_LIST_OR_MAP_LITERAL', 29, "Expected a list or map literal");
+
   static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con3('EXPECTED_STRING_LITERAL', 30, "Expected a string literal");
+
   static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con3('EXPECTED_TOKEN', 31, "Expected to find '%s'");
+
   static final ParserErrorCode EXPECTED_TYPE_NAME = new ParserErrorCode.con3('EXPECTED_TYPE_NAME', 32, "Expected a type name");
+
   static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con3('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 33, "Export directives must preceed part directives");
+
   static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con3('EXTERNAL_AFTER_CONST', 34, "The modifier 'external' should be before the modifier 'const'");
+
   static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con3('EXTERNAL_AFTER_FACTORY', 35, "The modifier 'external' should be before the modifier 'factory'");
+
   static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con3('EXTERNAL_AFTER_STATIC', 36, "The modifier 'external' should be before the modifier 'static'");
+
   static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con3('EXTERNAL_CLASS', 37, "Classes cannot be declared to be 'external'");
+
   static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_CONSTRUCTOR_WITH_BODY', 38, "External constructors cannot have a body");
+
   static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con3('EXTERNAL_FIELD', 39, "Fields cannot be declared to be 'external'");
+
   static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_GETTER_WITH_BODY', 40, "External getters cannot have a body");
+
   static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_METHOD_WITH_BODY', 41, "External methods cannot have a body");
+
   static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_OPERATOR_WITH_BODY', 42, "External operators cannot have a body");
+
   static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con3('EXTERNAL_SETTER_WITH_BODY', 43, "External setters cannot have a body");
+
   static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con3('EXTERNAL_TYPEDEF', 44, "Type aliases cannot be declared to be 'external'");
+
   static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con3('FACTORY_TOP_LEVEL_DECLARATION', 45, "Top-level declarations cannot be declared to be 'factory'");
+
   static final ParserErrorCode FACTORY_WITHOUT_BODY = new ParserErrorCode.con3('FACTORY_WITHOUT_BODY', 46, "A non-redirecting 'factory' constructor must have a body");
+
   static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con3('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 47, "Field initializers can only be used in a constructor");
+
   static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con3('FINAL_AND_VAR', 48, "Members cannot be declared to be both 'final' and 'var'");
+
   static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con3('FINAL_CLASS', 49, "Classes cannot be declared to be 'final'");
+
   static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con3('FINAL_CONSTRUCTOR', 50, "A constructor cannot be declared to be 'final'");
+
   static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con3('FINAL_METHOD', 51, "Getters, setters and methods cannot be declared to be 'final'");
+
   static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con3('FINAL_TYPEDEF', 52, "Type aliases cannot be declared to be 'final'");
+
   static final ParserErrorCode FUNCTION_TYPED_PARAMETER_VAR = new ParserErrorCode.con3('FUNCTION_TYPED_PARAMETER_VAR', 53, "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type");
+
   static final ParserErrorCode GETTER_IN_FUNCTION = new ParserErrorCode.con3('GETTER_IN_FUNCTION', 54, "Getters cannot be defined within methods or functions");
+
   static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con3('GETTER_WITH_PARAMETERS', 55, "Getter should be declared without a parameter list");
+
   static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con3('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 56, "Illegal assignment to non-assignable expression");
+
   static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con3('IMPLEMENTS_BEFORE_EXTENDS', 57, "The extends clause must be before the implements clause");
+
   static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con3('IMPLEMENTS_BEFORE_WITH', 58, "The with clause must be before the implements clause");
+
   static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con3('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 59, "Import directives must preceed part directives");
+
   static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con3('INITIALIZED_VARIABLE_IN_FOR_EACH', 60, "The loop variable in a for-each loop cannot be initialized");
+
   static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con3('INVALID_CODE_POINT', 61, "The escape sequence '%s' is not a valid code point");
+
   static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con3('INVALID_COMMENT_REFERENCE', 62, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
+
   static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con3('INVALID_HEX_ESCAPE', 63, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
+
   static final ParserErrorCode INVALID_OPERATOR = new ParserErrorCode.con3('INVALID_OPERATOR', 64, "The string '%s' is not a valid operator");
+
   static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 65, "The operator '%s' cannot be used with 'super'");
+
   static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con3('INVALID_UNICODE_ESCAPE', 66, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
+
   static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con3('LIBRARY_DIRECTIVE_NOT_FIRST', 67, "The library directive must appear before all other directives");
+
   static final ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER = new ParserErrorCode.con3('LOCAL_FUNCTION_DECLARATION_MODIFIER', 68, "Local function declarations cannot specify any modifier");
+
   static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con3('MISSING_ASSIGNABLE_SELECTOR', 69, "Missing selector such as \".<identifier>\" or \"[0]\"");
+
   static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con3('MISSING_CATCH_OR_FINALLY', 70, "A try statement must have either a catch or finally clause");
+
   static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con3('MISSING_CLASS_BODY', 71, "A class definition must have a body, even if it is empty");
+
   static final ParserErrorCode MISSING_CLOSING_PARENTHESIS = new ParserErrorCode.con3('MISSING_CLOSING_PARENTHESIS', 72, "The closing parenthesis is missing");
+
   static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con3('MISSING_CONST_FINAL_VAR_OR_TYPE', 73, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
+
   static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con3('MISSING_EXPRESSION_IN_THROW', 74, "Throw expressions must compute the object to be thrown");
+
   static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con3('MISSING_FUNCTION_BODY', 75, "A function body must be provided");
+
   static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con3('MISSING_FUNCTION_PARAMETERS', 76, "Functions must have an explicit list of parameters");
+
   static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con3('MISSING_IDENTIFIER', 77, "Expected an identifier");
+
   static final ParserErrorCode MISSING_KEYWORD_OPERATOR = new ParserErrorCode.con3('MISSING_KEYWORD_OPERATOR', 78, "Operator declarations must be preceeded by the keyword 'operator'");
+
   static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con3('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 79, "Library directives must include a library name");
+
   static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con3('MISSING_NAME_IN_PART_OF_DIRECTIVE', 80, "Library directives must include a library name");
+
   static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con3('MISSING_STATEMENT', 81, "Expected a statement");
+
   static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 82, "There is no '%s' to close the parameter group");
+
   static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con3('MISSING_TYPEDEF_PARAMETERS', 83, "Type aliases for functions must have an explicit list of parameters");
+
   static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con3('MISSING_VARIABLE_IN_FOR_EACH', 84, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
+
   static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con3('MIXED_PARAMETER_GROUPS', 85, "Cannot have both positional and named parameters in a single parameter list");
+
   static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con3('MULTIPLE_EXTENDS_CLAUSES', 86, "Each class definition can have at most one extends clause");
+
   static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con3('MULTIPLE_IMPLEMENTS_CLAUSES', 87, "Each class definition can have at most one implements clause");
+
   static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con3('MULTIPLE_LIBRARY_DIRECTIVES', 88, "Only one library directive may be declared in a file");
+
   static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con3('MULTIPLE_NAMED_PARAMETER_GROUPS', 89, "Cannot have multiple groups of named parameters in a single parameter list");
+
   static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con3('MULTIPLE_PART_OF_DIRECTIVES', 90, "Only one part-of directive may be declared in a file");
+
   static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con3('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 91, "Cannot have multiple groups of positional parameters in a single parameter list");
+
   static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 92, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+
   static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con3('MULTIPLE_WITH_CLAUSES', 93, "Each class definition can have at most one with clause");
+
   static final ParserErrorCode NAMED_FUNCTION_EXPRESSION = new ParserErrorCode.con3('NAMED_FUNCTION_EXPRESSION', 94, "Function expressions cannot be named");
+
   static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con3('NAMED_PARAMETER_OUTSIDE_GROUP', 95, "Named parameters must be enclosed in curly braces ('{' and '}')");
+
   static final ParserErrorCode NATIVE_CLAUSE_IN_NON_SDK_CODE = new ParserErrorCode.con3('NATIVE_CLAUSE_IN_NON_SDK_CODE', 96, "Native clause can only be used in the SDK and code that is loaded through native extensions");
+
   static final ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = new ParserErrorCode.con3('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 97, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
+
   static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con3('NON_CONSTRUCTOR_FACTORY', 98, "Only constructors can be declared to be a 'factory'");
+
   static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con3('NON_IDENTIFIER_LIBRARY_NAME', 99, "The name of a library must be an identifier");
+
   static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con3('NON_PART_OF_DIRECTIVE_IN_PART', 100, "The part-of directive must be the only directive in a part");
+
   static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 101, "The operator '%s' is not user definable");
+
   static final ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = new ParserErrorCode.con3('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 102, "Normal parameters must occur before optional parameters");
+
   static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con3('POSITIONAL_AFTER_NAMED_ARGUMENT', 103, "Positional arguments must occur before named arguments");
+
   static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con3('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 104, "Positional parameters must be enclosed in square brackets ('[' and ']')");
+
   static final ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR = new ParserErrorCode.con3('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR', 105, "Only factory constructor can specify '=' redirection.");
+
   static final ParserErrorCode SETTER_IN_FUNCTION = new ParserErrorCode.con3('SETTER_IN_FUNCTION', 106, "Setters cannot be defined within methods or functions");
+
   static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con3('STATIC_AFTER_CONST', 107, "The modifier 'static' should be before the modifier 'const'");
+
   static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con3('STATIC_AFTER_FINAL', 108, "The modifier 'static' should be before the modifier 'final'");
+
   static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con3('STATIC_AFTER_VAR', 109, "The modifier 'static' should be before the modifier 'var'");
+
   static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con3('STATIC_CONSTRUCTOR', 110, "Constructors cannot be static");
+
   static final ParserErrorCode STATIC_GETTER_WITHOUT_BODY = new ParserErrorCode.con3('STATIC_GETTER_WITHOUT_BODY', 111, "A 'static' getter must have a body");
+
   static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con3('STATIC_OPERATOR', 112, "Operators cannot be static");
+
   static final ParserErrorCode STATIC_SETTER_WITHOUT_BODY = new ParserErrorCode.con3('STATIC_SETTER_WITHOUT_BODY', 113, "A 'static' setter must have a body");
+
   static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con3('STATIC_TOP_LEVEL_DECLARATION', 114, "Top-level declarations cannot be declared to be 'static'");
+
   static final ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = new ParserErrorCode.con3('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 115, "The 'default' case should be the last case in a switch statement");
+
   static final ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = new ParserErrorCode.con3('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 116, "The 'default' case can only be declared once");
+
   static final ParserErrorCode TOP_LEVEL_OPERATOR = new ParserErrorCode.con3('TOP_LEVEL_OPERATOR', 117, "Operators must be declared within a class");
+
   static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 118, "There is no '%s' to open a parameter group");
+
   static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con3('UNEXPECTED_TOKEN', 119, "Unexpected token '%s'");
+
   static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con3('WITH_BEFORE_EXTENDS', 120, "The extends clause must be before the with clause");
+
   static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con3('WITH_WITHOUT_EXTENDS', 121, "The with clause cannot be used without an extends clause");
+
   static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con3('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 122, "The default value of a named parameter should be preceeded by ':'");
+
   static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con3('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 123, "The default value of a positional parameter should be preceeded by '='");
+
   static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 124, "Expected '%s' to close parameter group");
+
   static final ParserErrorCode VAR_AND_TYPE = new ParserErrorCode.con3('VAR_AND_TYPE', 125, "Variables cannot be declared using both 'var' and a type name; remove the 'var'");
+
   static final ParserErrorCode VAR_AS_TYPE_NAME = new ParserErrorCode.con3('VAR_AS_TYPE_NAME', 126, "The keyword 'var' cannot be used as a type name");
+
   static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con3('VAR_CLASS', 127, "Classes cannot be declared to be 'var'");
+
   static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con3('VAR_RETURN_TYPE', 128, "The return type cannot be 'var'");
+
   static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con3('VAR_TYPEDEF', 129, "Type aliases cannot be declared to be 'var'");
+
   static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con3('VOID_PARAMETER', 130, "Parameters cannot have a type of 'void'");
+
   static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con3('VOID_VARIABLE', 131, "Variables cannot have a type of 'void'");
+
   static final List<ParserErrorCode> values = [
       ABSTRACT_CLASS_MEMBER,
       ABSTRACT_STATIC_METHOD,
@@ -7044,18 +7306,22 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con3(String name, int ordinal, String message) : this.con1(name, ordinal, ErrorSeverity.ERROR, message);
+
   String get correction => correction8;
+
   ErrorSeverity get errorSeverity => _severity;
+
   String get message => _message;
+
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 }
+
 /**
  * Instances of the class `ResolutionCopier` copies resolution information from one AST
  * structure to another as long as the structures of the corresponding children of a pair of nodes
  * are the same.
  */
 class ResolutionCopier implements ASTVisitor<bool> {
-
   /**
    * Copy resolution data from one node to another.
    *
@@ -7072,10 +7338,12 @@ class ResolutionCopier implements ASTVisitor<bool> {
    * beginning of each visit method (until [isEqual] is invoked).
    */
   ASTNode _toNode;
+
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings toNode = this._toNode as AdjacentStrings;
     return isEqual2(node.strings, toNode.strings);
   }
+
   bool visitAnnotation(Annotation node) {
     Annotation toNode = this._toNode as Annotation;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.atSign, toNode.atSign), isEqual(node.name, toNode.name)), isEqual3(node.period, toNode.period)), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.arguments, toNode.arguments))) {
@@ -7084,6 +7352,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     ArgumentDefinitionTest toNode = this._toNode as ArgumentDefinitionTest;
     if (javaBooleanAnd(isEqual3(node.question, toNode.question), isEqual(node.identifier, toNode.identifier))) {
@@ -7093,10 +7362,12 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitArgumentList(ArgumentList node) {
     ArgumentList toNode = this._toNode as ArgumentList;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftParenthesis, toNode.leftParenthesis), isEqual2(node.arguments, toNode.arguments)), isEqual3(node.rightParenthesis, toNode.rightParenthesis));
   }
+
   bool visitAsExpression(AsExpression node) {
     AsExpression toNode = this._toNode as AsExpression;
     if (javaBooleanAnd(javaBooleanAnd(isEqual(node.expression, toNode.expression), isEqual3(node.asOperator, toNode.asOperator)), isEqual(node.type, toNode.type))) {
@@ -7106,10 +7377,12 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitAssertStatement(AssertStatement node) {
     AssertStatement toNode = this._toNode as AssertStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression toNode = this._toNode as AssignmentExpression;
     if (javaBooleanAnd(javaBooleanAnd(isEqual(node.leftHandSide, toNode.leftHandSide), isEqual3(node.operator, toNode.operator)), isEqual(node.rightHandSide, toNode.rightHandSide))) {
@@ -7121,6 +7394,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitBinaryExpression(BinaryExpression node) {
     BinaryExpression toNode = this._toNode as BinaryExpression;
     if (javaBooleanAnd(javaBooleanAnd(isEqual(node.leftOperand, toNode.leftOperand), isEqual3(node.operator, toNode.operator)), isEqual(node.rightOperand, toNode.rightOperand))) {
@@ -7132,14 +7406,17 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitBlock(Block node) {
     Block toNode = this._toNode as Block;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual2(node.statements, toNode.statements)), isEqual3(node.rightBracket, toNode.rightBracket));
   }
+
   bool visitBlockFunctionBody(BlockFunctionBody node) {
     BlockFunctionBody toNode = this._toNode as BlockFunctionBody;
     return isEqual(node.block, toNode.block);
   }
+
   bool visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral toNode = this._toNode as BooleanLiteral;
     if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), identical(node.value, toNode.value))) {
@@ -7149,10 +7426,12 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement toNode = this._toNode as BreakStatement;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.label, toNode.label)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitCascadeExpression(CascadeExpression node) {
     CascadeExpression toNode = this._toNode as CascadeExpression;
     if (javaBooleanAnd(isEqual(node.target, toNode.target), isEqual2(node.cascadeSections, toNode.cascadeSections))) {
@@ -7162,26 +7441,32 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitCatchClause(CatchClause node) {
     CatchClause toNode = this._toNode as CatchClause;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.onKeyword, toNode.onKeyword), isEqual(node.exceptionType, toNode.exceptionType)), isEqual3(node.catchKeyword, toNode.catchKeyword)), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.exceptionParameter, toNode.exceptionParameter)), isEqual3(node.comma, toNode.comma)), isEqual(node.stackTraceParameter, toNode.stackTraceParameter)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
   }
+
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration toNode = this._toNode as ClassDeclaration;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.abstractKeyword, toNode.abstractKeyword)), isEqual3(node.classKeyword, toNode.classKeyword)), isEqual(node.name, toNode.name)), isEqual(node.typeParameters, toNode.typeParameters)), isEqual(node.extendsClause, toNode.extendsClause)), isEqual(node.withClause, toNode.withClause)), isEqual(node.implementsClause, toNode.implementsClause)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.members, toNode.members)), isEqual3(node.rightBracket, toNode.rightBracket));
   }
+
   bool visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias toNode = this._toNode as ClassTypeAlias;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.name, toNode.name)), isEqual(node.typeParameters, toNode.typeParameters)), isEqual3(node.equals, toNode.equals)), isEqual3(node.abstractKeyword, toNode.abstractKeyword)), isEqual(node.superclass, toNode.superclass)), isEqual(node.withClause, toNode.withClause)), isEqual(node.implementsClause, toNode.implementsClause)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitComment(Comment node) {
     Comment toNode = this._toNode as Comment;
     return isEqual2(node.references, toNode.references);
   }
+
   bool visitCommentReference(CommentReference node) {
     CommentReference toNode = this._toNode as CommentReference;
     return javaBooleanAnd(isEqual3(node.newKeyword, toNode.newKeyword), isEqual(node.identifier, toNode.identifier));
   }
+
   bool visitCompilationUnit(CompilationUnit node) {
     CompilationUnit toNode = this._toNode as CompilationUnit;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.beginToken, toNode.beginToken), isEqual(node.scriptTag, toNode.scriptTag)), isEqual2(node.directives, toNode.directives)), isEqual2(node.declarations, toNode.declarations)), isEqual3(node.endToken, toNode.endToken))) {
@@ -7190,6 +7475,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression toNode = this._toNode as ConditionalExpression;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.condition, toNode.condition), isEqual3(node.question, toNode.question)), isEqual(node.thenExpression, toNode.thenExpression)), isEqual3(node.colon, toNode.colon)), isEqual(node.elseExpression, toNode.elseExpression))) {
@@ -7199,6 +7485,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.externalKeyword, toNode.externalKeyword)), isEqual3(node.constKeyword, toNode.constKeyword)), isEqual3(node.factoryKeyword, toNode.factoryKeyword)), isEqual(node.returnType, toNode.returnType)), isEqual3(node.period, toNode.period)), isEqual(node.name, toNode.name)), isEqual(node.parameters, toNode.parameters)), isEqual3(node.separator, toNode.separator)), isEqual2(node.initializers, toNode.initializers)), isEqual(node.redirectedConstructor, toNode.redirectedConstructor)), isEqual(node.body, toNode.body))) {
@@ -7207,10 +7494,12 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     ConstructorFieldInitializer toNode = this._toNode as ConstructorFieldInitializer;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.period, toNode.period)), isEqual(node.fieldName, toNode.fieldName)), isEqual3(node.equals, toNode.equals)), isEqual(node.expression, toNode.expression));
   }
+
   bool visitConstructorName(ConstructorName node) {
     ConstructorName toNode = this._toNode as ConstructorName;
     if (javaBooleanAnd(javaBooleanAnd(isEqual(node.type, toNode.type), isEqual3(node.period, toNode.period)), isEqual(node.name, toNode.name))) {
@@ -7219,22 +7508,27 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement toNode = this._toNode as ContinueStatement;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.label, toNode.label)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     DeclaredIdentifier toNode = this._toNode as DeclaredIdentifier;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual(node.identifier, toNode.identifier));
   }
+
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
     DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.parameter, toNode.parameter), identical(node.kind, toNode.kind)), isEqual3(node.separator, toNode.separator)), isEqual(node.defaultValue, toNode.defaultValue));
   }
+
   bool visitDoStatement(DoStatement node) {
     DoStatement toNode = this._toNode as DoStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.doKeyword, toNode.doKeyword), isEqual(node.body, toNode.body)), isEqual3(node.whileKeyword, toNode.whileKeyword)), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral toNode = this._toNode as DoubleLiteral;
     if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), node.value == toNode.value)) {
@@ -7244,14 +7538,17 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitEmptyFunctionBody(EmptyFunctionBody node) {
     EmptyFunctionBody toNode = this._toNode as EmptyFunctionBody;
     return isEqual3(node.semicolon, toNode.semicolon);
   }
+
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement toNode = this._toNode as EmptyStatement;
     return isEqual3(node.semicolon, toNode.semicolon);
   }
+
   bool visitExportDirective(ExportDirective node) {
     ExportDirective toNode = this._toNode as ExportDirective;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.uri, toNode.uri)), isEqual2(node.combinators, toNode.combinators)), isEqual3(node.semicolon, toNode.semicolon))) {
@@ -7260,46 +7557,57 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
     ExpressionFunctionBody toNode = this._toNode as ExpressionFunctionBody;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.functionDefinition, toNode.functionDefinition), isEqual(node.expression, toNode.expression)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitExpressionStatement(ExpressionStatement node) {
     ExpressionStatement toNode = this._toNode as ExpressionStatement;
     return javaBooleanAnd(isEqual(node.expression, toNode.expression), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause toNode = this._toNode as ExtendsClause;
     return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.superclass, toNode.superclass));
   }
+
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration toNode = this._toNode as FieldDeclaration;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.staticKeyword, toNode.staticKeyword)), isEqual(node.fields, toNode.fields)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     FieldFormalParameter toNode = this._toNode as FieldFormalParameter;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual3(node.thisToken, toNode.thisToken)), isEqual3(node.period, toNode.period)), isEqual(node.identifier, toNode.identifier));
   }
+
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement toNode = this._toNode as ForEachStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.forKeyword, toNode.forKeyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.loopVariable, toNode.loopVariable)), isEqual3(node.inKeyword, toNode.inKeyword)), isEqual(node.iterator, toNode.iterator)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
   }
+
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList toNode = this._toNode as FormalParameterList;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftParenthesis, toNode.leftParenthesis), isEqual2(node.parameters, toNode.parameters)), isEqual3(node.leftDelimiter, toNode.leftDelimiter)), isEqual3(node.rightDelimiter, toNode.rightDelimiter)), isEqual3(node.rightParenthesis, toNode.rightParenthesis));
   }
+
   bool visitForStatement(ForStatement node) {
     ForStatement toNode = this._toNode as ForStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.forKeyword, toNode.forKeyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.variables, toNode.variables)), isEqual(node.initialization, toNode.initialization)), isEqual3(node.leftSeparator, toNode.leftSeparator)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightSeparator, toNode.rightSeparator)), isEqual2(node.updaters, toNode.updaters)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
   }
+
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionDeclaration toNode = this._toNode as FunctionDeclaration;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.externalKeyword, toNode.externalKeyword)), isEqual(node.returnType, toNode.returnType)), isEqual3(node.propertyKeyword, toNode.propertyKeyword)), isEqual(node.name, toNode.name)), isEqual(node.functionExpression, toNode.functionExpression));
   }
+
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     FunctionDeclarationStatement toNode = this._toNode as FunctionDeclarationStatement;
     return isEqual(node.functionDeclaration, toNode.functionDeclaration);
   }
+
   bool visitFunctionExpression(FunctionExpression node) {
     FunctionExpression toNode = this._toNode as FunctionExpression;
     if (javaBooleanAnd(isEqual(node.parameters, toNode.parameters), isEqual(node.body, toNode.body))) {
@@ -7310,6 +7618,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation toNode = this._toNode as FunctionExpressionInvocation;
     if (javaBooleanAnd(isEqual(node.function, toNode.function), isEqual(node.argumentList, toNode.argumentList))) {
@@ -7321,26 +7630,32 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAlias toNode = this._toNode as FunctionTypeAlias;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.returnType, toNode.returnType)), isEqual(node.name, toNode.name)), isEqual(node.typeParameters, toNode.typeParameters)), isEqual(node.parameters, toNode.parameters)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter toNode = this._toNode as FunctionTypedFormalParameter;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.returnType, toNode.returnType)), isEqual(node.identifier, toNode.identifier)), isEqual(node.parameters, toNode.parameters));
   }
+
   bool visitHideCombinator(HideCombinator node) {
     HideCombinator toNode = this._toNode as HideCombinator;
     return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual2(node.hiddenNames, toNode.hiddenNames));
   }
+
   bool visitIfStatement(IfStatement node) {
     IfStatement toNode = this._toNode as IfStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.ifKeyword, toNode.ifKeyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.thenStatement, toNode.thenStatement)), isEqual3(node.elseKeyword, toNode.elseKeyword)), isEqual(node.elseStatement, toNode.elseStatement));
   }
+
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause toNode = this._toNode as ImplementsClause;
     return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual2(node.interfaces, toNode.interfaces));
   }
+
   bool visitImportDirective(ImportDirective node) {
     ImportDirective toNode = this._toNode as ImportDirective;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.uri, toNode.uri)), isEqual3(node.asToken, toNode.asToken)), isEqual(node.prefix, toNode.prefix)), isEqual2(node.combinators, toNode.combinators)), isEqual3(node.semicolon, toNode.semicolon))) {
@@ -7349,6 +7664,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitIndexExpression(IndexExpression node) {
     IndexExpression toNode = this._toNode as IndexExpression;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.target, toNode.target), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual(node.index, toNode.index)), isEqual3(node.rightBracket, toNode.rightBracket))) {
@@ -7361,6 +7677,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression toNode = this._toNode as InstanceCreationExpression;
     if (javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.argumentList, toNode.argumentList))) {
@@ -7371,6 +7688,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral toNode = this._toNode as IntegerLiteral;
     if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), identical(node.value, toNode.value))) {
@@ -7380,14 +7698,17 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitInterpolationExpression(InterpolationExpression node) {
     InterpolationExpression toNode = this._toNode as InterpolationExpression;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual(node.expression, toNode.expression)), isEqual3(node.rightBracket, toNode.rightBracket));
   }
+
   bool visitInterpolationString(InterpolationString node) {
     InterpolationString toNode = this._toNode as InterpolationString;
     return javaBooleanAnd(isEqual3(node.contents, toNode.contents), node.value == toNode.value);
   }
+
   bool visitIsExpression(IsExpression node) {
     IsExpression toNode = this._toNode as IsExpression;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.expression, toNode.expression), isEqual3(node.isOperator, toNode.isOperator)), isEqual3(node.notOperator, toNode.notOperator)), isEqual(node.type, toNode.type))) {
@@ -7397,18 +7718,22 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitLabel(Label node) {
     Label toNode = this._toNode as Label;
     return javaBooleanAnd(isEqual(node.label, toNode.label), isEqual3(node.colon, toNode.colon));
   }
+
   bool visitLabeledStatement(LabeledStatement node) {
     LabeledStatement toNode = this._toNode as LabeledStatement;
     return javaBooleanAnd(isEqual2(node.labels, toNode.labels), isEqual(node.statement, toNode.statement));
   }
+
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective toNode = this._toNode as LibraryDirective;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.libraryToken, toNode.libraryToken)), isEqual(node.name, toNode.name)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitLibraryIdentifier(LibraryIdentifier node) {
     LibraryIdentifier toNode = this._toNode as LibraryIdentifier;
     if (isEqual2(node.components, toNode.components)) {
@@ -7418,6 +7743,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitListLiteral(ListLiteral node) {
     ListLiteral toNode = this._toNode as ListLiteral;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.constKeyword, toNode.constKeyword), isEqual(node.typeArguments, toNode.typeArguments)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.elements, toNode.elements)), isEqual3(node.rightBracket, toNode.rightBracket))) {
@@ -7427,6 +7753,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral toNode = this._toNode as MapLiteral;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.constKeyword, toNode.constKeyword), isEqual(node.typeArguments, toNode.typeArguments)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.entries, toNode.entries)), isEqual3(node.rightBracket, toNode.rightBracket))) {
@@ -7436,14 +7763,17 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     MapLiteralEntry toNode = this._toNode as MapLiteralEntry;
     return javaBooleanAnd(javaBooleanAnd(isEqual(node.key, toNode.key), isEqual3(node.separator, toNode.separator)), isEqual(node.value, toNode.value));
   }
+
   bool visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration toNode = this._toNode as MethodDeclaration;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.externalKeyword, toNode.externalKeyword)), isEqual3(node.modifierKeyword, toNode.modifierKeyword)), isEqual(node.returnType, toNode.returnType)), isEqual3(node.propertyKeyword, toNode.propertyKeyword)), isEqual3(node.propertyKeyword, toNode.propertyKeyword)), isEqual(node.name, toNode.name)), isEqual(node.parameters, toNode.parameters)), isEqual(node.body, toNode.body));
   }
+
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation toNode = this._toNode as MethodInvocation;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.target, toNode.target), isEqual3(node.period, toNode.period)), isEqual(node.methodName, toNode.methodName)), isEqual(node.argumentList, toNode.argumentList))) {
@@ -7453,6 +7783,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitNamedExpression(NamedExpression node) {
     NamedExpression toNode = this._toNode as NamedExpression;
     if (javaBooleanAnd(isEqual(node.name, toNode.name), isEqual(node.expression, toNode.expression))) {
@@ -7462,14 +7793,17 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitNativeClause(NativeClause node) {
     NativeClause toNode = this._toNode as NativeClause;
     return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.name, toNode.name));
   }
+
   bool visitNativeFunctionBody(NativeFunctionBody node) {
     NativeFunctionBody toNode = this._toNode as NativeFunctionBody;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.nativeToken, toNode.nativeToken), isEqual(node.stringLiteral, toNode.stringLiteral)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral toNode = this._toNode as NullLiteral;
     if (isEqual3(node.literal, toNode.literal)) {
@@ -7479,6 +7813,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression toNode = this._toNode as ParenthesizedExpression;
     if (javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftParenthesis, toNode.leftParenthesis), isEqual(node.expression, toNode.expression)), isEqual3(node.rightParenthesis, toNode.rightParenthesis))) {
@@ -7488,6 +7823,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitPartDirective(PartDirective node) {
     PartDirective toNode = this._toNode as PartDirective;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.partToken, toNode.partToken)), isEqual(node.uri, toNode.uri)), isEqual3(node.semicolon, toNode.semicolon))) {
@@ -7496,6 +7832,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitPartOfDirective(PartOfDirective node) {
     PartOfDirective toNode = this._toNode as PartOfDirective;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.partToken, toNode.partToken)), isEqual3(node.ofToken, toNode.ofToken)), isEqual(node.libraryName, toNode.libraryName)), isEqual3(node.semicolon, toNode.semicolon))) {
@@ -7504,6 +7841,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression toNode = this._toNode as PostfixExpression;
     if (javaBooleanAnd(isEqual(node.operand, toNode.operand), isEqual3(node.operator, toNode.operator))) {
@@ -7515,6 +7853,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
     if (javaBooleanAnd(javaBooleanAnd(isEqual(node.prefix, toNode.prefix), isEqual3(node.period, toNode.period)), isEqual(node.identifier, toNode.identifier))) {
@@ -7524,6 +7863,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitPrefixExpression(PrefixExpression node) {
     PrefixExpression toNode = this._toNode as PrefixExpression;
     if (javaBooleanAnd(isEqual3(node.operator, toNode.operator), isEqual(node.operand, toNode.operand))) {
@@ -7535,6 +7875,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitPropertyAccess(PropertyAccess node) {
     PropertyAccess toNode = this._toNode as PropertyAccess;
     if (javaBooleanAnd(javaBooleanAnd(isEqual(node.target, toNode.target), isEqual3(node.operator, toNode.operator)), isEqual(node.propertyName, toNode.propertyName))) {
@@ -7544,6 +7885,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation toNode = this._toNode as RedirectingConstructorInvocation;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.period, toNode.period)), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.argumentList, toNode.argumentList))) {
@@ -7552,6 +7894,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitRethrowExpression(RethrowExpression node) {
     RethrowExpression toNode = this._toNode as RethrowExpression;
     if (isEqual3(node.keyword, toNode.keyword)) {
@@ -7561,22 +7904,27 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitReturnStatement(ReturnStatement node) {
     ReturnStatement toNode = this._toNode as ReturnStatement;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.expression, toNode.expression)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitScriptTag(ScriptTag node) {
     ScriptTag toNode = this._toNode as ScriptTag;
     return isEqual3(node.scriptTag, toNode.scriptTag);
   }
+
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator toNode = this._toNode as ShowCombinator;
     return javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual2(node.shownNames, toNode.shownNames));
   }
+
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual(node.identifier, toNode.identifier));
   }
+
   bool visitSimpleIdentifier(SimpleIdentifier node) {
     SimpleIdentifier toNode = this._toNode as SimpleIdentifier;
     if (isEqual3(node.token, toNode.token)) {
@@ -7589,6 +7937,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral toNode = this._toNode as SimpleStringLiteral;
     if (javaBooleanAnd(isEqual3(node.literal, toNode.literal), identical(node.value, toNode.value))) {
@@ -7598,6 +7947,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitStringInterpolation(StringInterpolation node) {
     StringInterpolation toNode = this._toNode as StringInterpolation;
     if (isEqual2(node.elements, toNode.elements)) {
@@ -7607,6 +7957,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation toNode = this._toNode as SuperConstructorInvocation;
     if (javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.period, toNode.period)), isEqual(node.constructorName, toNode.constructorName)), isEqual(node.argumentList, toNode.argumentList))) {
@@ -7615,6 +7966,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitSuperExpression(SuperExpression node) {
     SuperExpression toNode = this._toNode as SuperExpression;
     if (isEqual3(node.keyword, toNode.keyword)) {
@@ -7624,18 +7976,22 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitSwitchCase(SwitchCase node) {
     SwitchCase toNode = this._toNode as SwitchCase;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual2(node.labels, toNode.labels), isEqual3(node.keyword, toNode.keyword)), isEqual(node.expression, toNode.expression)), isEqual3(node.colon, toNode.colon)), isEqual2(node.statements, toNode.statements));
   }
+
   bool visitSwitchDefault(SwitchDefault node) {
     SwitchDefault toNode = this._toNode as SwitchDefault;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual2(node.labels, toNode.labels), isEqual3(node.keyword, toNode.keyword)), isEqual3(node.colon, toNode.colon)), isEqual2(node.statements, toNode.statements));
   }
+
   bool visitSwitchStatement(SwitchStatement node) {
     SwitchStatement toNode = this._toNode as SwitchStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.expression, toNode.expression)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual3(node.leftBracket, toNode.leftBracket)), isEqual2(node.members, toNode.members)), isEqual3(node.rightBracket, toNode.rightBracket));
   }
+
   bool visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral toNode = this._toNode as SymbolLiteral;
     if (javaBooleanAnd(isEqual3(node.poundSign, toNode.poundSign), isEqual4(node.components, toNode.components))) {
@@ -7645,6 +8001,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitThisExpression(ThisExpression node) {
     ThisExpression toNode = this._toNode as ThisExpression;
     if (isEqual3(node.keyword, toNode.keyword)) {
@@ -7654,6 +8011,7 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitThrowExpression(ThrowExpression node) {
     ThrowExpression toNode = this._toNode as ThrowExpression;
     if (javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual(node.expression, toNode.expression))) {
@@ -7663,18 +8021,22 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     TopLevelVariableDeclaration toNode = this._toNode as TopLevelVariableDeclaration;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.variables, toNode.variables)), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitTryStatement(TryStatement node) {
     TryStatement toNode = this._toNode as TryStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.tryKeyword, toNode.tryKeyword), isEqual(node.body, toNode.body)), isEqual2(node.catchClauses, toNode.catchClauses)), isEqual3(node.finallyKeyword, toNode.finallyKeyword)), isEqual(node.finallyBlock, toNode.finallyBlock));
   }
+
   bool visitTypeArgumentList(TypeArgumentList node) {
     TypeArgumentList toNode = this._toNode as TypeArgumentList;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual2(node.arguments, toNode.arguments)), isEqual3(node.rightBracket, toNode.rightBracket));
   }
+
   bool visitTypeName(TypeName node) {
     TypeName toNode = this._toNode as TypeName;
     if (javaBooleanAnd(isEqual(node.name, toNode.name), isEqual(node.typeArguments, toNode.typeArguments))) {
@@ -7683,30 +8045,37 @@ class ResolutionCopier implements ASTVisitor<bool> {
     }
     return false;
   }
+
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter toNode = this._toNode as TypeParameter;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.name, toNode.name)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.bound, toNode.bound));
   }
+
   bool visitTypeParameterList(TypeParameterList node) {
     TypeParameterList toNode = this._toNode as TypeParameterList;
     return javaBooleanAnd(javaBooleanAnd(isEqual3(node.leftBracket, toNode.leftBracket), isEqual2(node.typeParameters, toNode.typeParameters)), isEqual3(node.rightBracket, toNode.rightBracket));
   }
+
   bool visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration toNode = this._toNode as VariableDeclaration;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual(node.name, toNode.name)), isEqual3(node.equals, toNode.equals)), isEqual(node.initializer, toNode.initializer));
   }
+
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     VariableDeclarationList toNode = this._toNode as VariableDeclarationList;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual(node.documentationComment, toNode.documentationComment), isEqual2(node.metadata, toNode.metadata)), isEqual3(node.keyword, toNode.keyword)), isEqual(node.type, toNode.type)), isEqual2(node.variables, toNode.variables));
   }
+
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     VariableDeclarationStatement toNode = this._toNode as VariableDeclarationStatement;
     return javaBooleanAnd(isEqual(node.variables, toNode.variables), isEqual3(node.semicolon, toNode.semicolon));
   }
+
   bool visitWhileStatement(WhileStatement node) {
     WhileStatement toNode = this._toNode as WhileStatement;
     return javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(javaBooleanAnd(isEqual3(node.keyword, toNode.keyword), isEqual3(node.leftParenthesis, toNode.leftParenthesis)), isEqual(node.condition, toNode.condition)), isEqual3(node.rightParenthesis, toNode.rightParenthesis)), isEqual(node.body, toNode.body));
   }
+
   bool visitWithClause(WithClause node) {
     WithClause toNode = this._toNode as WithClause;
     return javaBooleanAnd(isEqual3(node.withKeyword, toNode.withKeyword), isEqual2(node.mixinTypes, toNode.mixinTypes));
@@ -7731,13 +8100,13 @@ class ResolutionCopier implements ASTVisitor<bool> {
       return fromNode.accept(this);
     }
     if (toNode is PrefixedIdentifier) {
-      SimpleIdentifier prefix = ((toNode as PrefixedIdentifier)).prefix;
+      SimpleIdentifier prefix = (toNode as PrefixedIdentifier).prefix;
       if (fromNode.runtimeType == prefix.runtimeType) {
         this._toNode = prefix;
         return fromNode.accept(this);
       }
     } else if (toNode is PropertyAccess) {
-      Expression target = ((toNode as PropertyAccess)).target;
+      Expression target = (toNode as PropertyAccess).target;
       if (fromNode.runtimeType == target.runtimeType) {
         this._toNode = target;
         return fromNode.accept(this);
@@ -7812,17 +8181,19 @@ class ResolutionCopier implements ASTVisitor<bool> {
     return true;
   }
 }
+
 /**
  * Instances of the class {link ToFormattedSourceVisitor} write a source representation of a visited
  * AST node (and all of it's children) to a writer.
  */
 class ToFormattedSourceVisitor implements ASTVisitor<Object> {
-
   /**
    * The writer to which the source is to be written.
    */
   PrintWriter _writer;
+
   int _indentLevel = 0;
+
   String _indentString = "";
 
   /**
@@ -7834,10 +8205,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   ToFormattedSourceVisitor(PrintWriter writer) {
     this._writer = writer;
   }
+
   Object visitAdjacentStrings(AdjacentStrings node) {
     visitList5(node.strings, " ");
     return null;
   }
+
   Object visitAnnotation(Annotation node) {
     _writer.print('@');
     visit(node.name);
@@ -7845,29 +8218,34 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.arguments);
     return null;
   }
+
   Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     _writer.print('?');
     visit(node.identifier);
     return null;
   }
+
   Object visitArgumentList(ArgumentList node) {
     _writer.print('(');
     visitList5(node.arguments, ", ");
     _writer.print(')');
     return null;
   }
+
   Object visitAsExpression(AsExpression node) {
     visit(node.expression);
     _writer.print(" as ");
     visit(node.type);
     return null;
   }
+
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert(");
     visit(node.condition);
     _writer.print(");");
     return null;
   }
+
   Object visitAssignmentExpression(AssignmentExpression node) {
     visit(node.leftHandSide);
     _writer.print(' ');
@@ -7876,6 +8254,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.rightHandSide);
     return null;
   }
+
   Object visitBinaryExpression(BinaryExpression node) {
     visit(node.leftOperand);
     _writer.print(' ');
@@ -7884,36 +8263,42 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.rightOperand);
     return null;
   }
+
   Object visitBlock(Block node) {
     _writer.print('{');
     {
       indentInc();
-      visitList5(node.statements, "\n");
+      visitList7("\n", node.statements, "\n");
       indentDec();
     }
     nl2();
     _writer.print('}');
     return null;
   }
+
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     visit(node.block);
     return null;
   }
+
   Object visitBooleanLiteral(BooleanLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitBreakStatement(BreakStatement node) {
     _writer.print("break");
     visit7(" ", node.label);
     _writer.print(";");
     return null;
   }
+
   Object visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
     visitList(node.cascadeSections);
     return null;
   }
+
   Object visitCatchClause(CatchClause node) {
     visit7("on ", node.exceptionType);
     if (node.catchKeyword != null) {
@@ -7930,6 +8315,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitClassDeclaration(ClassDeclaration node) {
     visit(node.documentationComment);
     visit8(node.abstractKeyword, " ");
@@ -7942,13 +8328,14 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(" {");
     {
       indentInc();
-      visitList5(node.members, "\n");
+      visitList7("\n", node.members, "\n\n");
       indentDec();
     }
     nl2();
     _writer.print("}");
     return null;
   }
+
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _writer.print("typedef ");
     visit(node.name);
@@ -7963,6 +8350,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+
   Object visitComment(Comment node) {
     Token token = node.beginToken;
     while (token != null) {
@@ -7970,9 +8358,6 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
       for (String line in StringUtils.split(token.lexeme, "\n")) {
         if (firstLine) {
           firstLine = false;
-          if (node.isDocumentation) {
-            nl2();
-          }
         } else {
           line = " ${line.trim()}";
           line = StringUtils.replace(line, "/*", "/ *");
@@ -7986,17 +8371,21 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitCommentReference(CommentReference node) => null;
+
   Object visitCompilationUnit(CompilationUnit node) {
     ScriptTag scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
     visit(scriptTag);
     String prefix = scriptTag == null ? "" : " ";
     visitList7(prefix, directives, "\n");
-    prefix = scriptTag == null && directives.isEmpty ? "" : "\n\n";
-    visitList7(prefix, node.declarations, "\n");
+    nl();
+    prefix = scriptTag == null && directives.isEmpty ? "" : "\n";
+    visitList7(prefix, node.declarations, "\n\n");
     return null;
   }
+
   Object visitConditionalExpression(ConditionalExpression node) {
     visit(node.condition);
     _writer.print(" ? ");
@@ -8005,6 +8394,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.elseExpression);
     return null;
   }
+
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     visit(node.documentationComment);
     visit8(node.externalKeyword, " ");
@@ -8021,6 +8411,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     visit8(node.keyword, ".");
     visit(node.fieldName);
@@ -8028,23 +8419,27 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.expression);
     return null;
   }
+
   Object visitConstructorName(ConstructorName node) {
     visit(node.type);
     visit7(".", node.name);
     return null;
   }
+
   Object visitContinueStatement(ContinueStatement node) {
     _writer.print("continue");
     visit7(" ", node.label);
     _writer.print(";");
     return null;
   }
+
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     visit8(node.keyword, " ");
     visit6(node.type, " ");
     visit(node.identifier);
     return null;
   }
+
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
@@ -8054,6 +8449,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitDoStatement(DoStatement node) {
     _writer.print("do ");
     visit(node.body);
@@ -8062,18 +8458,22 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(");");
     return null;
   }
+
   Object visitDoubleLiteral(DoubleLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
     _writer.print(';');
     return null;
   }
+
   Object visitEmptyStatement(EmptyStatement node) {
     _writer.print(';');
     return null;
   }
+
   Object visitExportDirective(ExportDirective node) {
     _writer.print("export ");
     visit(node.uri);
@@ -8081,6 +8481,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(';');
     return null;
   }
+
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _writer.print("=> ");
     visit(node.expression);
@@ -8089,16 +8490,19 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
     _writer.print(';');
     return null;
   }
+
   Object visitExtendsClause(ExtendsClause node) {
     _writer.print("extends ");
     visit(node.superclass);
     return null;
   }
+
   Object visitFieldDeclaration(FieldDeclaration node) {
     visit(node.documentationComment);
     visit8(node.staticKeyword, " ");
@@ -8106,6 +8510,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     visit8(node.keyword, " ");
     visit6(node.type, " ");
@@ -8114,6 +8519,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.parameters);
     return null;
   }
+
   Object visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     _writer.print("for (");
@@ -8128,6 +8534,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
@@ -8155,6 +8562,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(')');
     return null;
   }
+
   Object visitForStatement(ForStatement node) {
     Expression initialization = node.initialization;
     _writer.print("for (");
@@ -8171,6 +8579,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     visit6(node.returnType, " ");
     visit8(node.propertyKeyword, " ");
@@ -8178,22 +8587,26 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.functionExpression);
     return null;
   }
+
   Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     visit(node.functionDeclaration);
     _writer.print(';');
     return null;
   }
+
   Object visitFunctionExpression(FunctionExpression node) {
     visit(node.parameters);
     _writer.print(' ');
     visit(node.body);
     return null;
   }
+
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     visit(node.function);
     visit(node.argumentList);
     return null;
   }
+
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _writer.print("typedef ");
     visit6(node.returnType, " ");
@@ -8203,17 +8616,20 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     visit6(node.returnType, " ");
     visit(node.identifier);
     visit(node.parameters);
     return null;
   }
+
   Object visitHideCombinator(HideCombinator node) {
     _writer.print("hide ");
     visitList5(node.hiddenNames, ", ");
     return null;
   }
+
   Object visitIfStatement(IfStatement node) {
     _writer.print("if (");
     visit(node.condition);
@@ -8222,11 +8638,13 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit7(" else ", node.elseStatement);
     return null;
   }
+
   Object visitImplementsClause(ImplementsClause node) {
     _writer.print("implements ");
     visitList5(node.interfaces, ", ");
     return null;
   }
+
   Object visitImportDirective(ImportDirective node) {
     _writer.print("import ");
     visit(node.uri);
@@ -8235,6 +8653,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(';');
     return null;
   }
+
   Object visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
       _writer.print("..");
@@ -8246,16 +8665,19 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print(']');
     return null;
   }
+
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     visit8(node.keyword, " ");
     visit(node.constructorName);
     visit(node.argumentList);
     return null;
   }
+
   Object visitIntegerLiteral(IntegerLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
       _writer.print("\${");
@@ -8267,10 +8689,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitInterpolationString(InterpolationString node) {
     _writer.print(node.contents.lexeme);
     return null;
   }
+
   Object visitIsExpression(IsExpression node) {
     visit(node.expression);
     if (node.notOperator == null) {
@@ -8281,16 +8705,19 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.type);
     return null;
   }
+
   Object visitLabel(Label node) {
     visit(node.label);
     _writer.print(":");
     return null;
   }
+
   Object visitLabeledStatement(LabeledStatement node) {
     visitList6(node.labels, " ", " ");
     visit(node.statement);
     return null;
   }
+
   Object visitLibraryDirective(LibraryDirective node) {
     _writer.print("library ");
     visit(node.name);
@@ -8298,10 +8725,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     nl();
     return null;
   }
+
   Object visitLibraryIdentifier(LibraryIdentifier node) {
     _writer.print(node.name);
     return null;
   }
+
   Object visitListLiteral(ListLiteral node) {
     if (node.constKeyword != null) {
       _writer.print(node.constKeyword.lexeme);
@@ -8323,6 +8752,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print("]");
     return null;
   }
+
   Object visitMapLiteral(MapLiteral node) {
     if (node.constKeyword != null) {
       _writer.print(node.constKeyword.lexeme);
@@ -8334,12 +8764,14 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print("}");
     return null;
   }
+
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
     _writer.print(" : ");
     visit(node.value);
     return null;
   }
+
   Object visitMethodDeclaration(MethodDeclaration node) {
     visit(node.documentationComment);
     visit8(node.externalKeyword, " ");
@@ -8357,6 +8789,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
       _writer.print("..");
@@ -8367,60 +8800,71 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.argumentList);
     return null;
   }
+
   Object visitNamedExpression(NamedExpression node) {
     visit(node.name);
     visit7(" ", node.expression);
     return null;
   }
+
   Object visitNativeClause(NativeClause node) {
     _writer.print("native ");
     visit(node.name);
     return null;
   }
+
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     _writer.print("native ");
     visit(node.stringLiteral);
     _writer.print(';');
     return null;
   }
+
   Object visitNullLiteral(NullLiteral node) {
     _writer.print("null");
     return null;
   }
+
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
     _writer.print('(');
     visit(node.expression);
     _writer.print(')');
     return null;
   }
+
   Object visitPartDirective(PartDirective node) {
     _writer.print("part ");
     visit(node.uri);
     _writer.print(';');
     return null;
   }
+
   Object visitPartOfDirective(PartOfDirective node) {
     _writer.print("part of ");
     visit(node.libraryName);
     _writer.print(';');
     return null;
   }
+
   Object visitPostfixExpression(PostfixExpression node) {
     visit(node.operand);
     _writer.print(node.operator.lexeme);
     return null;
   }
+
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     visit(node.prefix);
     _writer.print('.');
     visit(node.identifier);
     return null;
   }
+
   Object visitPrefixExpression(PrefixExpression node) {
     _writer.print(node.operator.lexeme);
     visit(node.operand);
     return null;
   }
+
   Object visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
       _writer.print("..");
@@ -8430,16 +8874,19 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.propertyName);
     return null;
   }
+
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _writer.print("this");
     visit7(".", node.constructorName);
     visit(node.argumentList);
     return null;
   }
+
   Object visitRethrowExpression(RethrowExpression node) {
     _writer.print("rethrow");
     return null;
   }
+
   Object visitReturnStatement(ReturnStatement node) {
     Expression expression = node.expression;
     if (expression == null) {
@@ -8451,43 +8898,52 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitScriptTag(ScriptTag node) {
     _writer.print(node.scriptTag.lexeme);
     return null;
   }
+
   Object visitShowCombinator(ShowCombinator node) {
     _writer.print("show ");
     visitList5(node.shownNames, ", ");
     return null;
   }
+
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     visit8(node.keyword, " ");
     visit6(node.type, " ");
     visit(node.identifier);
     return null;
   }
+
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _writer.print(node.token.lexeme);
     return null;
   }
+
   Object visitSimpleStringLiteral(SimpleStringLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitStringInterpolation(StringInterpolation node) {
     visitList(node.elements);
     return null;
   }
+
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _writer.print("super");
     visit7(".", node.constructorName);
     visit(node.argumentList);
     return null;
   }
+
   Object visitSuperExpression(SuperExpression node) {
     _writer.print("super");
     return null;
   }
+
   Object visitSwitchCase(SwitchCase node) {
     visitList6(node.labels, " ", " ");
     _writer.print("case ");
@@ -8500,6 +8956,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitSwitchDefault(SwitchDefault node) {
     visitList6(node.labels, " ", " ");
     _writer.print("default: ");
@@ -8510,6 +8967,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitSwitchStatement(SwitchStatement node) {
     _writer.print("switch (");
     visit(node.expression);
@@ -8523,24 +8981,29 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     _writer.print('}');
     return null;
   }
+
   Object visitSymbolLiteral(SymbolLiteral node) {
     _writer.print("#");
-    visitList8(node.components, ".");
+    visitList9(node.components, ".");
     return null;
   }
+
   Object visitThisExpression(ThisExpression node) {
     _writer.print("this");
     return null;
   }
+
   Object visitThrowExpression(ThrowExpression node) {
     _writer.print("throw ");
     visit(node.expression);
     return null;
   }
+
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     visit6(node.variables, ";");
     return null;
   }
+
   Object visitTryStatement(TryStatement node) {
     _writer.print("try ");
     visit(node.body);
@@ -8548,44 +9011,52 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit7(" finally ", node.finallyBlock);
     return null;
   }
+
   Object visitTypeArgumentList(TypeArgumentList node) {
     _writer.print('<');
     visitList5(node.arguments, ", ");
     _writer.print('>');
     return null;
   }
+
   Object visitTypeName(TypeName node) {
     visit(node.name);
     visit(node.typeArguments);
     return null;
   }
+
   Object visitTypeParameter(TypeParameter node) {
     visit(node.name);
     visit7(" extends ", node.bound);
     return null;
   }
+
   Object visitTypeParameterList(TypeParameterList node) {
     _writer.print('<');
     visitList5(node.typeParameters, ", ");
     _writer.print('>');
     return null;
   }
+
   Object visitVariableDeclaration(VariableDeclaration node) {
     visit(node.name);
     visit7(" = ", node.initializer);
     return null;
   }
+
   Object visitVariableDeclarationList(VariableDeclarationList node) {
     visit8(node.keyword, " ");
     visit6(node.type, " ");
     visitList5(node.variables, ", ");
     return null;
   }
+
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     visit(node.variables);
     _writer.print(";");
     return null;
   }
+
   Object visitWhileStatement(WhileStatement node) {
     _writer.print("while (");
     visit(node.condition);
@@ -8593,25 +9064,31 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitWithClause(WithClause node) {
     _writer.print("with ");
     visitList5(node.mixinTypes, ", ");
     return null;
   }
+
   void indent() {
     _writer.print(_indentString);
   }
+
   void indentDec() {
     _indentLevel -= 2;
     _indentString = StringUtils.repeat(" ", _indentLevel);
   }
+
   void indentInc() {
     _indentLevel += 2;
     _indentString = StringUtils.repeat(" ", _indentLevel);
   }
+
   void nl() {
     _writer.print("\n");
   }
+
   void nl2() {
     nl();
     indent();
@@ -8685,18 +9162,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param separator the separator to be printed between adjacent nodes
    */
   void visitList5(NodeList<ASTNode> nodes, String separator) {
-    if (nodes != null) {
-      int size = nodes.length;
-      for (int i = 0; i < size; i++) {
-        if ("\n" == separator) {
-          _writer.print("\n");
-          indent();
-        } else if (i > 0) {
-          _writer.print(separator);
-        }
-        nodes[i].accept(this);
-      }
-    }
+    visitList8("", nodes, separator, "");
   }
 
   /**
@@ -8707,18 +9173,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param suffix the suffix to be printed if the list is not empty
    */
   void visitList6(NodeList<ASTNode> nodes, String separator, String suffix) {
-    if (nodes != null) {
-      int size = nodes.length;
-      if (size > 0) {
-        for (int i = 0; i < size; i++) {
-          if (i > 0) {
-            _writer.print(separator);
-          }
-          nodes[i].accept(this);
-        }
-        _writer.print(suffix);
-      }
-    }
+    visitList8("", nodes, separator, suffix);
   }
 
   /**
@@ -8729,16 +9184,36 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param separator the separator to be printed between adjacent nodes
    */
   void visitList7(String prefix, NodeList<ASTNode> nodes, String separator) {
+    visitList8(prefix, nodes, separator, "");
+  }
+
+  /**
+   * Print a list of nodes, separated by the given separator.
+   *
+   * @param prefix the prefix to be printed if the list is not empty
+   * @param nodes the nodes to be printed
+   * @param separator the separator to be printed between adjacent nodes
+   * @param suffix the suffix to be printed if the list is not empty
+   */
+  void visitList8(String prefix, NodeList<ASTNode> nodes, String separator, String suffix) {
     if (nodes != null) {
       int size = nodes.length;
-      if (size > 0) {
+      if (size != 0) {
         _writer.print(prefix);
+        if (prefix.endsWith("\n")) {
+          indent();
+        }
+        bool newLineSeparator = separator.endsWith("\n");
         for (int i = 0; i < size; i++) {
           if (i > 0) {
             _writer.print(separator);
+            if (newLineSeparator) {
+              indent();
+            }
           }
           nodes[i].accept(this);
         }
+        _writer.print(suffix);
       }
     }
   }
@@ -8749,7 +9224,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    * @param tokens the tokens to be printed
    * @param separator the separator to be printed between adjacent tokens
    */
-  void visitList8(List<Token> tokens, String separator) {
+  void visitList9(List<Token> tokens, String separator) {
     int size = tokens.length;
     for (int i = 0; i < size; i++) {
       if ("\n" == separator) {

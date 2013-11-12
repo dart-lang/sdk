@@ -1,13 +1,15 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.sdk;
+
 import 'source.dart' show ContentCache, Source, UriKind;
 import 'engine.dart' show AnalysisContext;
+
 /**
  * Represents a single library in the SDK
  */
 abstract class SdkLibrary {
-
   /**
    * Return the name of the category containing the library.
    *
@@ -72,6 +74,7 @@ abstract class SdkLibrary {
    */
   bool get isVmLibrary;
 }
+
 /**
  * Instances of the class `SdkLibrary` represent the information known about a single library
  * within the SDK.
@@ -79,7 +82,6 @@ abstract class SdkLibrary {
  * @coverage dart.engine.sdk
  */
 class SdkLibraryImpl implements SdkLibrary {
-
   /**
    * The short name of the library. This is the name used after `dart:` in a URI.
    */
@@ -132,12 +134,19 @@ class SdkLibraryImpl implements SdkLibrary {
   SdkLibraryImpl(String name) {
     this._shortName = name;
   }
+
   String get category => _category;
+
   String get path => _path;
+
   String get shortName => _shortName;
+
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
+
   bool get isDocumented => _documented;
+
   bool get isImplementation => _implementation;
+
   bool get isInternal => "Internal" == _category;
 
   /**
@@ -203,6 +212,7 @@ class SdkLibraryImpl implements SdkLibrary {
     _platforms |= VM_PLATFORM;
   }
 }
+
 /**
  * Instances of the class `LibraryMap` map Dart library URI's to the [SdkLibraryImpl
  ].
@@ -210,7 +220,6 @@ class SdkLibraryImpl implements SdkLibrary {
  * @coverage dart.engine.sdk
  */
 class LibraryMap {
-
   /**
    * A table mapping Dart library URI's to the library.
    */
@@ -255,13 +264,13 @@ class LibraryMap {
    */
   int size() => _libraryMap.length;
 }
+
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
  *
  * @coverage dart.engine.sdk
  */
 abstract class DartSdk {
-
   /**
    * The short name of the dart SDK core library.
    */

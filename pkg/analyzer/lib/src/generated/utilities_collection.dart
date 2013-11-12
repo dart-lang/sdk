@@ -1,14 +1,16 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.utilities.collection;
+
 import 'java_core.dart';
 import 'scanner.dart' show Token;
+
 /**
  * The class `BooleanArray` defines methods for operating on integers as if they were arrays
  * of booleans. These arrays can be indexed by either integers or by enumeration constants.
  */
 class BooleanArray {
-
   /**
    * Return the value of the element at the given index.
    *
@@ -73,11 +75,11 @@ class BooleanArray {
     }
   }
 }
+
 /**
  * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
  */
 class TokenMap {
-
   /**
    * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
    * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
@@ -104,12 +106,12 @@ class TokenMap {
     _map[key] = value;
   }
 }
+
 /**
  * The class `ListUtilities` defines utility methods useful for working with [List
  ].
  */
 class ListUtilities {
-
   /**
    * Add all of the elements in the given array to the given list.
    *
