@@ -5,22 +5,20 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Draft Version 0.8}}
+{\large Version 1.0}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
 
 \tableofcontents
 
+
 \newpage
 
 \pagestyle{myheadings}
-\markright{{\bf Draft}  Dart Programming Language Specification {\bf Draft}}
+\markright{Dart Programming Language Specification}
 
 \section{Notes}
-
-Expect the contents and language rules to change over time.
-%Please mail comments to gbracha@google.com.
 
 \subsection{Licensing}
 \label{licensing}
@@ -34,502 +32,6 @@ Except as otherwise noted at http://code.google.com/policies.html\#restrictions,
   
   http://code.google.com/google\_bsd\_license.html.
   
-\subsection{Change Log}
-\label{changes}
-
-\subsubsection{Changes Since Version 0.02}
-
-The following changes have been made in version 0.03 since version 0.02. In addition, various typographical errors have been corrected. The changes are listed by section number.
-
-\ref{notation}: Expanded examples of grammar.
-
-\ref{factories}: Corrected reference to undefined production {\em typeVariables} to {\em typeParameters}.
-
- \ref{superinterfaces}: Removed static warning when imported superinterface of a class contains private members.
-
-The former section on factories and constructors in interfaces (now removed): Removed redundant prohibition on default values.
-
-\ref{interfaceSuperinterfaces}: Removed static warning when imported superinterface of an interface contains private members.
-
-\ref{expressions}: Fixed typo in grammar.
-
-\ref{new}, \ref{const} : made explicit accessibility requirement for class being constructed.
-
-\ref{const}: make clear that referenced constructor must be marked \CONST{}.
-
-\ref{superInvocation}: fixed botched sentence where superclass $S$ is introduced.
-
-\ref{postfixExpressions}: qualified definition of $v++$ so it is clear that $v$ is an identifier.
-
-
-
-\subsubsection{Changes Since Version 0.03}
-
-\ref{instanceMethods}. The former section on interface methods (now removed): Added missing requirement that overriding methods have same number of required parameters and all optional parameters as overridden method, in same order.
-
-\ref{generics}:  Added prohibition against cyclic type hierarchy for type parameters.
-
-\ref{instanceCreation}: Clarified requirements on use of parameterized types in instance creation expressions.
-
-\ref{bindingActualsToFormals}: Added requirement that $q_i$ are distinct.
-
-\ref{staticInvocation}. Static method invocation determines the function (which may involve evaluating a getter) before evaluating the arguments, so that static invocation and top-level function invocation agree.
-
-\ref{typeTest}: Added missing test that type being tested against is in scope and is indeed a type.
-
-\ref{forLoop}:  Changed for loop to introduce fresh variable for each iteration.
-
-\ref{parameterizedTypes}: Malformed parameterized types generate warnings, not errors(except when used in reified contexts like instance creation and superclasses/interfaces).
-
-
-\subsubsection{Changes Since Version 0.04}
-
-Added hyperlinks in PDF.
-
-\ref{operators}: Removed unary plus operator. Clarified that operator formals must be required.
-
-\ref{constantConstructors}:  Filled in a lot of missing detail.
-
-The former section on factories and constructors in interfaces (now removed): Allowed factory class to be declared via a qualified name.
-
-\ref{numbers}:  Changed production for $Number$. 
-
-\ref{const}: Added requirements that actuals be constant, rules for dealing with inappropriate types of actuals, and examples. Also explicitly prohibit type parameters.
-
-\ref{functionExpressionInvocation}: Modified final bullet to keep it inline with similar clauses in other sections. Exact wording of these sections also tweaked slightly.
-
-\ref{unaryExpressions}: Specified !  operator. Eliminated section on prefix expressions and moved contents to section on unary expressions.
-
-\ref{lexicalRules}: Specified unicode form of Dart source.
-
-
-\subsubsection{Changes Since Version 0.05}
-
-\ref{generativeConstructors}: Clarified how initializing formals can act as optional parameters of generative constructors.
-
-\ref{factories}: Treat factories as constructors, so type parameters are implicitly in scope.
-
-The former section on factories and constructors in interfaces (now removed): Simplify rules for interface factory clauses. Use the keyword \DEFAULT{} instead of \FACTORY{}.
-
-\ref{generics}: Mention that typedefs can have type parameters.
-
-\ref{typeTest}: Added checked mode test that type arguments match generic type.
-
-\ref{dynamicTypeSystem}: Added definition of malformed types, and requirement on their handling in checked mode.
-
-\subsubsection{Changes Since Version 0.06}
-
-\ref{variables}: library variable initializers must be constant.
-
-\ref{classes}: Added \ABSTRACT{} modifier to grammar. 
-
-\ref{classes}, \ref{staticMethods}, \ref{staticVariables}, \ref{unqualifiedInvocation},\ref{identifierReference}: Superclass static members are not in scope in subclasses, and do not conflict with subclass members.
-
-\ref{operators}:  \code{[]=} must return \VOID{}. Operator \CALL{} added to support function emulation. Removed operator \code{$>>>$}. Made explicit restriction on methods named \CALL{} or \NEGATE{}.
-
-\ref{constants}: Added \code{!$e$} as constant expression. Clarified what happens if evaluation of a constant fails.
-
-\ref{maps}: Map keys need not be constants. However, they are always string literals.
-
-\ref{this}: State restrictions on use of \THIS{}.
-
-\ref{instanceCreation}, \ref{new}: Rules for bounds checking of constructor arguments when calling default constructors for interfaces refined.
-
-\ref{ordinaryInvocation}: Revised semantics to account for function emulation.
-
-\ref{staticInvocation}: Revised semantics to account for function emulation.
-
-\ref{superInvocation}: Factory constructors cannot contain super invocations. Revised semantics to account for function emulation.
-
-\ref{assignment}: Specified assignment involving \code{[]=} operator.
-
-\ref{compoundAssignment}: Removed operator \code{$>>>$}.
-
-\ref{shift}: Removed operator \code{$>>>$}.
-
-\ref{postfixExpressions}: Postfix \code{-{}-} operator specified.  Behavior of postfix operations on subscripted expressions specified.
-
-\ref{identifierReference}: Added built-in identifier \CALL{}.  Banned use of built-in identifiers as types made other uses warnings.
-
-\ref{typeTest}: Moved specification of test that type arguments match generic type to \ref{dynamicTypeSystem}.
-
-\ref{switch}: Corrected evaluation of case clauses so that case expression is the receiver of ==.  Revised specification to correctly deal with blank  statements in case clauses.
-
-\ref{assert}: Fixed bug in \ASSERT{} specification that could lead to puzzlers.
-
-\ref{dynamicTypeSystem}: Consolidated definition of malformed types.
-
-\ref{functionTypes}: Revised semantics to account for function emulation.
-
-
-\subsubsection{Changes Since Version 0.07}
-
-\ref{variables}: Static variables are lazily initialized, but need not be constants. Orthogonal notion of constant variable introduced.
-
-\ref{operators}: Added \EQUALS{} operator as part of revised \code{==} treatment.
-
-\ref{generativeConstructors}: Initializing formals have the same type as the field they correspond to.
-
-\ref{staticVariables}: Static variable getter rules revised to deal with lazy initialization.
-
-\ref{expressions}: Modified syntax to support cascaded method invocations.
-
-\ref{constants}:  Removed support for + operator on Strings.  Extended string constants to support certain cases of string interpolation. Revised constants to deal with constant variables.
-
-\ref{strings}: Corrected definition of \code{HEX\_DIGIT\_SEQUENCE}. Support implicit concatenation of adjacent single line strings. 
-
-\ref{bindingActualsToFormals}: Centralized and corrected type rules for function invocation.
-
-\ref{methodInvocation}: Moved rules for checking function/method invocations to \ref{bindingActualsToFormals}. Added definition of cascaded method invocations.
-
-\ref{getterInvocation}, \ref{assignment}: Updated \code{noSuchMethod()} call for getters and setters to conform to planned API.
-
-\ref{conditional}: Modified syntax to support cascaded method invocations.
-
-\ref{equality}: Revised semantics for \code{==}.
-
-\ref{identifierReference}: Removed \IMPORT{}, \LIBRARY{} and \SOURCE{} from list of built-in identifiers and added \EQUALS{}. Revised rules for evaluating identifiers to deal with lazy static variable initialization.
-
-\ref{continue}: Fixed bug that allowed \CONTINUE{} labeled on non-loops.
-
-\ref{librariesAndScripts}: Revised syntax so no space is permitted between \code{\#} and directives. Introduced \code{show:} combinator. Describe \code{prefix:} as a combinator. Added initial discussion of namespaces. Preclude string interpolation in arguments to directives.
-
-\subsubsection{Changes Since Version 0.08}
-
-\ref{instanceMethods}, \ref{abstractInstanceMembers}: Abstract methods may specify default values.
-
-\ref{interfaces}, The former section on interface methods (now removed): Interface methods may specify default values.
-
-\ref{constants}: The \code{\~{}/ } operator can apply to doubles.
-
-\ref{instanceCreation}: Refined rules regarding abstract class instantiation, allowing factories to be used.
-
-\ref{switch}: \SWITCH{} statement specification revised.
-
-\ref{throw}: \THROW{} may not throw \NULL{}.
-
-\ref{imports}: Imports introduce a scope separate from the library scope. Multiple libraries may share prefix. 
-
-\ref{typedef}: Recursive typedefs disallowed.
-
-\subsubsection{Changes Since Version 0.09}
-
-\ref{scoping}: Consolidated discussion of namespaces and scopes. Started to tighten up definitions of scopes.
-
-\ref{classes}: Overriding of fields allowed.
-
-\ref{operators}: \CALL{} is no longer an operator.
-
-The former section on variables in interfaces (now removed): Added specification of variable declarations in interfaces.
-
-\ref{constants}: Static methods and top-level functions are compile-time constants.
-
-\ref{strings}: Multiline strings can be implicitly concatenated and contain interpolated expressions.
-
-\ref{typeCast}: Type cast expression added.
-
-\ref{expressionStatements}: Map literals cannot be expression statements.
-
-\ref{try}, \ref{throw}: Clarified type of stack trace.
-
-\ref{exports}, \ref{imports}: Added re-export facility.
-
-
-\subsubsection{Changes Since Version 0.10}
-
-\ref{overview}: Discuss reified runtime types.
-
-\ref{scoping}: Removed shadowing warnings. Allow overloading of \code{-}.
-
-\ref{variables}: Centralized discussion of implicit getters and setters.
-
-\ref{externalFunctions}: External functions added.
-
-\ref{classes}: Abstract classes must now be declared explicitly.
-
-\ref{operators}: Eliminate \NEGATE{} in favor of overloaded unary minus. Eliminate \EQUALS{} in favor of operator \code{==}.
-
-\ref{setters}: Setter syntax no longer includes = sign after the name.
-
-\ref{abstractInstanceMembers}:  Clarify  that getters and setters may be abstract. Eliminate \ABSTRACT{} modifier for abstract members. Added static warning if abstract class has abstract member.
-
-\ref{instanceVariables}: Instance variables can be initialized to non-constants. Moved discussion of implicit getters and setters to \ref{variables}.
-
-\ref{generativeConstructors}:  Clarify that finals can only be set once.
-
-\ref{redirectingFactoryConstructors}: Added redirecting factories.
-
-\ref{staticVariables}: Moved discussion of implicit getters and setters to \ref{variables}.
-
-\ref{interfaces}: Eliminated interface declarations.
-
-\ref{metadata}: Added metadata.
-
-\ref{constants}: Refined definition constant identity/caching.
-
-\ref{throw}: Stack traces moved to \ref{try}.
-
-\ref{new}: Creating an instance via \NEW{} using an undefined class or constructor is a dynamic error and a static warning, not a compile-time error.  Evaluation rules to allow instance variables with non-constant initializers.  Instantiating an abstract class via a generative constructor is now a dynamic error.
-
-\ref{equality}: Replaced \code{===} with built-in function \code{identical()}. Equality does not special case identity.
-
-\ref{identifierReference}: Type names have meaning as expressions. \ASSERT{} is not a built-in identifier anymore, but \EXPORT{}, \IMPORT{}, \LIBRARY{} and \PART{} are. Removed warning on use of built-in identifiers as variable/function names.
-
-\ref{typeCast}: type cast accepts \NULL{}.
-
-\ref{argumentDefinitionTest}: Added operation to determine if optional argument was actually passed.
-
-\ref{localFunctionDeclaration}: Added section on local functions.
-
-\ref{switch}: Allow switch on compile-time constants of any one type.
-
-\ref{try}: Revised syntax for \CATCH{} clauses. Specification of stack traces moved from \ref{throw}.
-
-\ref{return}: Made explicit that checked mode tests returns.
-
-\ref{assert}:  \ASSERT{} is now a reserved word.
-
-\ref{librariesAndScripts}: Revised library syntax and semantics.
-
-\ref{typeDynamic}: Renamed {\bf Dynamic} to \DYNAMIC{}.
-
-\ref{reservedWords}:  \ASSERT{} is a reserved word.
-
-
-\subsubsection{Changes Since Version 0.11}
-
-\ref{notation}: Moved discussion of tokenization to section \ref{reference}.
-
-\ref{numbers}: Removed unary plus.
-
-\ref{librariesAndScripts}: Refined definition of show and hide to handle getters and setters in pairs.
-
-\ref{functionTypes}: All function types are subtypes of \code{Function}.
-
-\ref{reference}: Added discussion of tokenization.
-
-\ref{reservedWords}: Defined meaning of reserved word.
-
-\ref{comments}: Added initial discussion of dartdoc comments.
-
-\subsubsection{Changes Since Version 0.12}
-
-\ref{classes}: Removed \ABSTRACT{} modifier from grammar of members. Added grammar for \WITH{} clause.
-
-\ref{superclasses}: Added discussion of new \WITH{} clause for mixins.
-
-\ref{mixins}: Added specification of mixins.
-
-\ref{constants}: Revised description of \code{identical()} so that it always returns \TRUE{} on numbers with the same class and value. 
-
-\ref{null}: Invocations on \NULL{} throw \code{NoSuchMethodError} only.
-
-\ref{throw}: \THROW{} of \NULL{} raises \code{NullThrownError}.
-
-\ref{instanceCreation} Using undefined types as type arguments to a constructor is a dynamic failure.
-
-\ref{librariesAndScripts}: Added discussion of compilation units.  Allow name clause to be optional for libraries, allow export clauses in scripts. Support fully qualified name for libraries. Allow different imports to share same prefix. Added mixin application as a top level declaration.
-
-\ref{typedef}: Typedefs for mixin applications added.
-
-\ref{interfaceTypes}: Add effects of mixin clause on subtyping.
-
-\ref{leastUpperBounds}: Corrected definition of LUBs.
-
-\ref{reservedWords}: Added keyword \WITH{}.
-
-
-\subsubsection{Changes Since Version 0.20}
-
-\ref{getters}: Getters cannot return \VOID{}.
-
-\ref{superinterfaces}: Added requirement that superclass cannot appear in \IMPLEMENTS{} clause.
-
-\ref{interfaceInheritanceAndOverriding}: Clarified status of getter/setter vs. method conflicts in multiple interface inheritance.
-
-\ref{throw}: Separated \THROW{} into \code{\THROW{} e} and \code{\RETHROW{}}.
-
-\ref{new}:  Arguments to constructor are evaluated before allocating new object.
-
-\ref{unqualifiedInvocation}: Calling an undeclared method in a static context is a dynamic error (and a static warning) not a compile-time one.
-
-\ref{ordinaryInvocation}, \ref{superInvocation}, \ref{getterInvocation}, \ref{assignment}: Refined description of \code{InvocationMirror} instance passed to \code{noSuchMethod()}.
-
-\ref{lexicalRules}: Abandoned requirement for Unicode Normalization Form C.
-
-\subsubsection{Changes Since Version 0.30}
-
-\ref{superclasses}, \ref{superinterfaces}: Clarified that super types with wrong number of type arguments cause a compilation error.
-
-\subsubsection{Changes Since Version 0.31}
-
-\ref{abstractInstanceMembers}: Abstract methods act as pure declarations.
-
-\ref{mixins}: Mixin application has forwarding constructors for all superclass constructors.
-
-\ref{instanceCreation}, \ref{new}: Revised so that wrong generic arity is a runtime error with static warning. 
-
-\ref{typeTest}, \ref{typeCast}:  Eliminated special treatment of malformed types.
-
-\ref{rethrow}:  Rethrow is a statement, not an expression.
-
-\ref{librariesAndScripts}: Semicolon required after top-level external declarations.
-
-\ref{imports}: Removed requirement that library names be unique within an isolate.
-
-\ref{dynamicTypeSystem}: Revised definition of malformed types. Revised behavior of checked and production modes wrt to malformed and malbounded types. Refined assignability rules wrt new function type subtyping.
-
-\ref{interfaceTypes}: Corrected oversight wrt type variables and \cd{Object}.
-
-\ref{functionTypes}: Liberalized function subtyping rules. Special assignability rules.
-
-\ref{parameterizedTypes}: Out with misconstructed types, in with malbounded ones.
-
-\subsubsection{Changes Since Version 0.40}
-
-\ref{expressions}: Argument definition test construct dropped.
-
-\ref{maps}: Map literals can be keyed by arbitrary expressions.
-
-\ref{librariesAndScripts}: Implicitly named libraries are named `'. Script tags are allowed in all libraries. It is a warning to import or export two libraries with the same name.
-
-\subsubsection{Changes Since Version 0.41}
-
-\ref{variables}: Uninitialized final is now just a static warning.
-
-\ref{typeOfAFunction}: Added details about the run time type of functions.
-
-\ref{instanceVariables}: Disallowed const inst vars.
-
-\ref{redirectingConstructors}: Uninitialized final is now just a static warning.
-
-\ref{objectIdentity}, \ref{constants}: Clarified rules for double identity.
-
-\ref{maps}: Adjusted rules for constant map literals.
-
-\ref{propertyExtraction}: If the same method is extracted repeatedly from the same object, the results are equal.  Furthermore, the type of the property extraction is based on the method being closurized. Also described handling of  property extractions on \SUPER{} explicitly.
-
-\ref{getterInvocation}:  Explicitly described getter invocations on \SUPER{}.
-
-\subsubsection{Changes Since Version 0.50}
-
-% there was no public 0.50!
-
-\ref{variables}: Final variables introduce setters that trap on execution. Not initializing a final is a warning, not an error.  Initializing a final variable declared with an initializer is a warning, not an error. 
-
-\ref{requiredFormals}: Initializing formals can specify function types.  These may not specify defaults.
-
-\ref{instanceMethods}: Corrected override rules to fit with earlier relaxation of function subtype rules. Furthermore, bad overrides provoke warnings not errors. Also, methods and corresponding setters yield warnings.
-
-\ref{generativeConstructors}:  Initializing a final variable declared with an initializer is a warning, not an error. 
-
-\ref{staticMethods}: Corresponding setters yield warnings.
-
-\ref{inheritanceAndOverriding}: Refined definitions of inheritance and overriding to correctly account for library privacy.
-
-\ref{superinterfaces}: Suppress type warnings for unimplemented members of superinterfaces if the class declares \code{noSuchMethod()}.
-
-\ref{interfaceInheritanceAndOverriding}: Refined definitions of inheritance and overriding to correctly account for library privacy.
-
-\ref{constants}: Literal symbols are constants.
-
-\ref{numbers}, \ref{booleans}, \ref{strings}: Specified the runtime type of numbers, booleans and strings.
-
-\ref{strings}: Implicit concatenation works among all kinds of strings.
-
-\ref{symbols}: Added literal symbols.
-
-\ref{if}, \ref{for}, \ref{while}, \ref{do}: Single statements in control constructs implicitly introduce a block.
-
-\ref{imports}: Introduced special treatment for imports conflicts with \code{dart:core}. Ambiguous names are treated as malformed types or \code{NoSuchMethodError}s.
-
-\ref{typedef}: Tightened restrictions on recursive typedefs.
-
-%\ref{typeDynamic}: Clarified that \DYNAMIC{} is not an expression.
-
-\subsubsection{Changes Since Version 0.51}
-
-\ref{classes}: Mixin applications are a kind of class definition.
-
-\ref{generativeConstructors}: Clarify that executing repeated initialization of a final variable by an initializer or initializing formal is a run-time error.
-
-\ref{mixins}: Mixin applications are defined using  \CLASS{}  rather than \TYPEDEF{}.
-
-\ref{objectIdentity}: Refined definition of \code{identical()}.
-
-\ref{propertyExtraction}:  Abstract methods are ignored for purposes of property extraction.
-
-\ref{bindingActualsToFormals}: Mismatched arguments lead to \cd{NoSuchMethodError}.
-
-\ref{ordinaryInvocation}, \ref{superInvocation}: Correctly account for calls to \cd{noSuchMethod} due to mismatched arguments.
-
-\ref{imports}, \ref{exports}:  Provenance of declarations allowed to disambiguate imports and exports.
-
-\ref{typedef}: Mixin applications are no longer defined via a \TYPEDEF{}.
-
-\ref{functionTypes}: All functions must implement \CALL{}.
-
-\ref{comments}: Doc comments details are unspecified.
-
-\subsubsection{Changes Since Version 0.6}
-
-\ref{variables}: Type promotion support added.
-
-\ref{formalParameters}: refined scope rules.
-
-\ref{classes}: Banned name clashes between type variables and members etc.
-
-\ref{factories}: Banned default values in redirecting factories.
-
-\ref{constants}: Added constant conditional expressions.
-
-\ref{strings}: Allow adjacent single and multiline strings to concatenate. Allow escaped newlines in multiline strings.
-
-\ref{const}: Allow parameterized types in const instance creation.
-
-\ref{conditional}: Type promotion support added.
-
-\ref{logicalBooleanExpressions}: Type promotion support added.
-
-\ref{logicalBooleanExpressions} - \ref{bitwiseExpressions}, \ref{operatorPrecedence}: Increased precedence of bitwise operations to be higher than equality and relational expressions.
-
-\ref{identifierReference}: Clarified static type rules. Type promotion support added.
-
-\ref{typeTest}: Type promotion support added.
-
-\ref{if}: Type promotion support added.
-
-\ref{try}: \ON{} with no \CATCH{} implies \DYNAMIC{}, not \cd{Object}.
-
-\ref{return}: Added warning if \RETURN{} without expression mixed with \RETURN{} with an expression.
-
-\ref{exports}: Ensure that exports treat \code{dart:} libs specially, like imports do.
-
-\ref{typePromotion}: Added notion of type promotion.
-
-\ref{typedef}: Banned all recursion in typedefs.
-
-\subsubsection{Changes Since Version 0.7}
-
-
-\ref{variables}: Final variables no longer introduce setters.
-
-\ref{superinterfaces}: Described \cd{@proxy} annotation's effects on typechecking.
-
-\ref{metadata}: Banned use of types as metadata.
-
-\ref{new}: Instantiating subclasses of malbounded types is a dynamic error.
-
-\ref{typeTest}, \ref{typeCast}, \ref{try}: Use of malformed type in casts, type tests and catch clauses is a dynamic error.
-
-\ref{scripts}: Corrected rules for running scripts.
-
-\ref{dynamicTypeSystem}: In checked mode, subtype tests against malbounded types are dynamic errors.
-
-\ref{leastUpperBounds}:  Extended LUBs to all types.
-
-
-
 \section{Notation}
 \label{notation}
 
@@ -636,7 +138,7 @@ Dart programs are organized in a modular fashion into units called {\em librarie
 \subsection{Scoping}
 \label{scoping}
 
-A {\em namespace} is a mapping of identifiers to declarations.  Let $NS$ be a namespace. We say that a name $n$ {\em is in }$NS$ if $n$ is a key of $NS$. We say a declaration $d$ {\em is in }$NS$ if a key of $NS$ maps to $d$.
+A {\em namespace} is a mapping of names denoting declarations to actual declarations.  Let $NS$ be a namespace. We say that a name $n$ {\em is in }$NS$ if $n$ is a key of $NS$. We say a declaration $d$ {\em is in }$NS$ if a key of $NS$ maps to $d$.
 
 A scope $S_0$ induces a namespace $NS_0$ that maps the simple name of each variable, type or function declaration $d$ declared in $S_0$ to $d$. Labels are not included in the induced namespace of a scope; instead they have their own dedicated namespace.
 
@@ -891,7 +393,8 @@ perverse() \{
 }
 
 \rationale{
-As a rule, type annotations are ignored in production mode. However, we do not want to allow programs to compile legally in one mode and not another, and in this extremely odd situation, that consideration takes precedence.
+As a rule, type annotations are ignored in production mode. However, we do 
+ not want to allow programs to compile legally in one mode and not another, and in this extremely odd situation, that consideration takes precedence.
 }
 
 \end{dartCode}
@@ -2029,7 +1532,7 @@ For convenience, here is a summary of the relevant rules. Remember that this is 
 
 \begin{enumerate}
 
-\item There is only one namespace for getters, setters, methods and constructors (\ref{scoping}). A field $f$ introduces a getter $f$ and a setter $f=$ (\ref{instanceVariables}, \ref{staticVariables}). When we speak of members here, we mean accessible fields, getters, setters and methods (\ref{classes}).
+\item There is only one namespace for getters, setters, methods and constructors (\ref{scoping}). A field $f$ introduces a getter $f$ and a non-final field $f$ also introduces a setter $f=$ (\ref{instanceVariables}, \ref{staticVariables}). When we speak of members here, we mean accessible fields, getters, setters and methods (\ref{classes}).
 \item You cannot have two  members with the same name in the same class - be they declared or inherited (\ref{scoping}, \ref{classes}).
 \item Static members are never inherited.
 \item It is a warning if you have an  static member named $m$ in your class or any superclass (even though it is not inherited) and an  instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
@@ -2060,7 +1563,7 @@ If two members override each other, it is a static warning if the overriding mem
   \item  If possible the interface gets a member named $m$ that has the minimum number of required parameters among all the members in the superinterfaces, the maximal number of    positionals, and the superset of named parameters.  The types of these are all \DYNAMIC{}. If this is impossible then no member $m$ appears in the interface.
   \end{itemize}  (\ref{interfaceInheritanceAndOverriding})
 \item  Rule \ref{typeSigAssignable} applies to interfaces as well as classes  (\ref{interfaceInheritanceAndOverriding}).
-\item  It is a static warning if a concrete class does not have an implementation for a  method in any of its superinterfaces  unless it declares  its own \cd{noSuchMethod} method (\ref{superinterfaces}).
+\item  It is a static warning if a concrete class does not have an implementation for a  method in any of its superinterfaces  unless it declares  its own \cd{noSuchMethod} method (\ref{superinterfaces}) or is annotated with \cd{@proxy}.
 \item The identifier of a named constructor cannot be the same as the name of a member declared (as opposed to inherited) in the same class (\ref{constructors}).
 \end{enumerate}
 }
@@ -2288,13 +1791,23 @@ The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the 
 Dart does not directly support mixin composition, but the concept is useful when defining how the superclass of a class with a mixin clause is created.
 }
 
-The {\em composition of two mixins}, $M_1<T_1 \ldots T_{k_{M_1}}>$ and $M_2<U_1  \ldots U_{k_{M_2}}>$, written $M_1<T_1 \ldots T_{k_{M_1}}> * M_2<U_1  \ldots U_{k_{M_2}}>$ defines an anonymous mixin such that for any class $S<V_1 \ldots V_{k_S}>$, the application of $M_1<T_1 \ldots T_{k_{M_1}}> * M_2<U_1  \ldots U_{k_{M_2}}>$  to $S<V_1 \ldots V_{k_S}>$ is equivalent to 
+The {\em composition of two mixins}, $M_1<T_1 \ldots T_{k_{M_1}}>$ and $M_2<U_1  \ldots U_{k_{M_2}}>$, written $M_1<T_1 \ldots T_{k_{M_1}}> * M_2<U_1  \ldots U_{k_{M_2}}>$ defines an anonymous mixin such that for any class $S<V_1 \ldots V_{k_S}>$, the application of 
 
-\code{\ABSTRACT{} \CLASS{} $Id_1<T_1  \ldots T_{k_{M_1}}, U_1  \ldots U_{k_{M_2}}, V_1  \ldots V_{k_S}> = Id_2<U_1  \ldots U_{k_{M_2}}, V_1  \ldots V_{k_S}>$ \WITH{} $M_1 <T_1  \ldots T_{k_{M_1}}>$;}
+$M_1<T_1 \ldots T_{k_{M_1}}> * M_2<U_1  \ldots U_{k_{M_2}}>$  
+
+to $S<V_1 \ldots V_{k_S}>$ is equivalent to 
+
+\begin{dartCode}
+\ABSTRACT{} \CLASS{} $Id_1<T_1  \ldots T_{k_{M_1}}, U_1  \ldots U_{k_{M_2}}, V_1  \ldots V_{k_S}> = $
+      $Id_2<U_1  \ldots U_{k_{M_2}}, V_1  \ldots V_{k_S}>$ \WITH{} $M_1 <T_1  \ldots T_{k_{M_1}}>$;
+\end{dartCode}
 
 where $Id_2$ denotes 
 
-\code{\ABSTRACT{}  \CLASS{} $Id_2<U_1 \ldots U_{k_{M_2}}, V_1 \ldots V_{k_S}> = S<V_1 \ldots V_{k_S}>$ \WITH{} $M_2<U_1  \ldots U_{k_{M_2}}>$; }
+\begin{dartCode}
+\ABSTRACT{}  \CLASS{} $Id_2<U_1 \ldots U_{k_{M_2}}, V_1 \ldots V_{k_S}> =$
+                         $S<V_1 \ldots V_{k_S}>$ \WITH{} $M_2<U_1  \ldots U_{k_{M_2}}>$; 
+\end{dartCode}
 
 and $Id_1$ and $Id_2$ are unique identifiers that do not exist anywhere in the program. 
 
@@ -2575,9 +2088,7 @@ On the other hand, since implementations are free to compile code late, some com
     \IF{} (\TRUE{}) \{\RETURN{} y; \}
     \ELSE{} \{ \RETURN{} 3;\}
   \}  
-  
 \}
-
 \end{dartCode}
 
 \commentary{An implementation is free to immediately issue a compilation error for  \code{x}, but it is not required to do so.  It could defer errors if it does not immediately compile the declarations that reference \code{x}. For example, it could delay giving a compilation error about the method \code{m1} until the first invocation of \code{m1}. However, it could not choose to execute \code{m1},  see that the branch that refers to \code{x} is not taken and return 2 successfully. 
@@ -2848,7 +2359,9 @@ Strings support escape sequences for special characters. The escapes are:
 \item $\backslash$b for backspace, equivalent to $\backslash$x08.
 \item $\backslash$t for tab, equivalent to $\backslash$x09.
 \item $\backslash$v for vertical tab, equivalent to $\backslash$x0B
-\item $\backslash$x $HEX\_DIGIT_1$ $HEX\_DIGIT_2$, equivalent to $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
+\item $\backslash$x $HEX\_DIGIT_1$ $HEX\_DIGIT_2$, equivalent to 
+
+$\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
 \item $\backslash$u $HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$, equivalent to $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$\}.
 \item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the unicode scalar value represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid unicode scalar value.
 \item \$ indicating the beginning of an interpolated expression.
@@ -3028,7 +2541,9 @@ A runtime map literal $<K, V>\{k_1:e_1\ldots k_n :e_n\}$  is evaluated as follow
 \begin{itemize}
 \item
 First, the expression $k_i$ is evaluated yielding object $u_i$, the $e_i$ is vaulted yielding object $o_i$, for $i \in 1..n$ in left to right order, yielding objects $u_1, o_1\ldots u_n, o_n$.
-\item  A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class $Map<K, V>$ is allocated. 
+\item  A fresh instance (\ref{generativeConstructors}) $m$ whose class implements the built-in class
+ 
+ $Map<K, V>$ is allocated. 
 \item
 The operator \code{[]=} is invoked on $m$ with  first  argument $u_i$ and second argument $o_i,  i \in 1.. n$.
 \item
@@ -3036,7 +2551,9 @@ The result of the evaluation is $m$.
 \end{itemize}
 
 
-A runtime map literal  $\{k_1:e_1\ldots k_n :e_n\}$ is evaluated as  $<\DYNAMIC{},  \DYNAMIC{}>\{k_1:e_1\ldots k_n :e_n\}$.
+A runtime map literal  $\{k_1:e_1\ldots k_n :e_n\}$ is evaluated as  
+
+$<\DYNAMIC{},  \DYNAMIC{}>\{k_1:e_1\ldots k_n :e_n\}$.
 
 Iff all the keys in a map literal are compile-time constants, it is a static warning if the values of any two keys in a map literal are equal.
 
@@ -3105,13 +2622,29 @@ The class of a function literal implements the built-in class \code{Function}.
 
 %Q{Can anyone implement it? Then we should define things via call}
 
-The static type of a function literal of the form $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k]) => e$ is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T_0$, where $T_0$ is the static type of $e$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+The static type of a function literal of the form 
 
-The static type of a function literal of the form $(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\}) => e$ is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow T_0$, where $T_0$ is the static type of $e$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k]) => e$ 
 
-The static type of a function literal of the form  $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])\{s\}$ is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow  \DYNAMIC{}$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T_0$, where $T_0$ is the static type of $e$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
 
-The static type of a function literal of the form  $(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})\{s\}$ is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  \DYNAMIC{}$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+The static type of a function literal of the form 
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\}) => e$ 
+
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow T_0$, where $T_0$ is the static type of $e$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k}= d_k])\{s\}$ 
+
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow  \DYNAMIC{}$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
+
+The static type of a function literal of the form  
+
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})\{s\}$ 
+
+is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  \DYNAMIC{}$. In any case where $T_i, 1 \le i \le n+k$, is not specified, it is considered to have been specified as  \DYNAMIC{}.
 
 %** Now that declared return types are precluded, do we need some better return type rule for (x){s} and friends?
 
@@ -3226,7 +2759,9 @@ Next,  $q$ is executed  with \THIS{} bound to $i$,  the type parameters (if any)
 
 Otherwise, $q$ is a factory constructor (\ref{factories}). Then:
 
-If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots, p_{n+k}) = c;$ or of the form  $T.id(p_1, \ldots, p_{n+k}) = c;$ then the result of the evaluation of $e$ is equivalent to evaluating the expression $[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.
+If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots, p_{n+k}) = c;$ or of the form  $T.id(p_1, \ldots, p_{n+k}) = c;$ then the result of the evaluation of $e$ is equivalent to evaluating the expression 
+
+$[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.
 
 Otherwise, the body of $q$ is executed with respect to the bindings that resulted from the evaluation of the argument list and the type parameters (if any) of $q$ bound to the actual type arguments $V_1, \ldots, V_l$ resulting in an object $i$. The result of the evaluation of $e$ is $i$.
 
@@ -3263,7 +2798,11 @@ A {\em constant object expression} invokes a constant constructor (\ref{constant
 .
 \end{grammar}
 
-Let $e$ be a constant object expression of the form  \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ or the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. It is a compile-time error if $T$ does not denote a class accessible in the current scope. 
+Let $e$ be a constant object expression of the form  
+
+\CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
+
+or the form  \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. It is a compile-time error if $T$ does not denote a class accessible in the current scope. 
 
 \commentary{In particular, $T$ may not be a type variable.}
 
@@ -3279,11 +2818,23 @@ In all of the above cases, it is a compile-time error if $a_i,  i\in 1 .. n + k$
 
 Evaluation of $e$ proceeds as follows:
 
-First, if $e$ is of the form \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ then let $i$ be the value of the expression \NEW{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. Otherwise, $e$ must be of the form  
+First, if $e$ is of the form 
+
+\CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
+
+then let $i$ be the value of the expression 
+
+\NEW{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. 
+
+Otherwise, $e$ must be of the form  
 
 \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$, 
 
-in which case let $i$ be the result of evaluating \NEW{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. Then:
+in which case let $i$ be the result of evaluating 
+
+\NEW{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. 
+
+Then:
 \begin{itemize}
 \item If during execution of the program, a constant object expression has already evaluated to an instance $j$ of class $R$ with type arguments $V_i, 1 \le i \le m$, then: 
 \begin{itemize}
@@ -3358,16 +2909,23 @@ As discussed in section \ref{errorsAndWarnings}, the handling of a suspended iso
 If $e$ is an expression that evaluates to an object $o$, and if $m$ is the name of a concrete method member of $e$, then $e.m$ is defined to be equivalent to:
 
 \begin{itemize}
- %\item $(r_1, \ldots, r_n)\{\RETURN{}$ $o.m(r_1, \ldots, r_n);\}$ if $m$ has only required parameters $r_1, \ldots r_n$.
-%\item $(r_1, \ldots, r_n, rest)\{return$  $o.m(r_1, \ldots, r_n, rest);\}$ if $m$ has required parameters $r_1, \ldots r_n$, and a rest parameter $rest$.
-%\item
 
-% so the issue is that o is not an expression, but we don't want to bind to e, as its evaluation
-% could have side effects, result in different objects at different times etc.
-% so we use  u, where u is a fresh final variable bound to o 
-%
-\item  $(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})\{$\RETURN{} $u.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);\}$ if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\item $(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])\{$\RETURN{} $u.m(r_1, \ldots, r_n, p_1, \ldots, p_k);\}$ if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\item  
+\begin{dartCode}
+$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+  \RETURN{} $ u.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
+\} 
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\item 
+\begin{dartCode}
+$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
+  \RETURN{} $u.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
+\}
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
 \end{itemize}
 
 where $u$ is a fresh final variable bound to $o$, except that:
@@ -3403,8 +2961,22 @@ Let $S$ be the superclass of the immediately enclosing class. If $m$ is the name
  %\item $(r_1, \ldots, r_n)\{\RETURN{}$ $o.m(r_1, \ldots, r_n);\}$ if $m$ has only required parameters $r_1, \ldots r_n$.
 %\item $(r_1, \ldots, r_n, rest)\{return$  $o.m(r_1, \ldots, r_n, rest);\}$ if $m$ has required parameters $r_1, \ldots r_n$, and a rest parameter $rest$.
 %\item
-\item  $(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})\{$\RETURN{} $\SUPER{}.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);\}$ if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\item $(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])\{$\RETURN{} $\SUPER{}.m(r_1, \ldots, r_n, p_1, \ldots, p_k);\}$ if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\item  
+\begin{dartCode}
+$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$\{
+   \RETURN{} \SUPER{}$.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k)$;
+\}
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\item 
+\begin{dartCode}
+$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
+   \RETURN{} \SUPER{}$.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
+\} 
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
 \end{itemize}
 
 Except that:
@@ -3452,7 +3024,11 @@ Function invocation involves evaluation of the list of actual arguments to the f
     .
  \end{grammar}
 
-Evaluation of an actual argument list of the form $(a_1, \ldots, a_m, q_1: a_{m+1}, \ldots, q_l: a_{m+l})$ proceeds as follows:
+Evaluation of an actual argument list of the form 
+
+$(a_1, \ldots, a_m, q_1: a_{m+1}, \ldots, q_l: a_{m+l})$ 
+
+proceeds as follows:
 
 The arguments $a_1, \ldots, a_{m+l}$ are evaluated in the order they appear in the program, yielding objects $o_1, \ldots, o_{m+l}$.
 
@@ -3629,7 +3205,10 @@ A cascaded method invocation expression of the form {\em e..suffix} is equivalen
 \label{staticInvocation}
 
 A static method invocation $i$ has the form 
-$C.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ where $C$ denotes a class in the current scope.
+
+$C.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
+
+where $C$ denotes a class in the current scope.
 
 It is a static warning if $C$ does not declare a static method or getter $m$.
 
@@ -4193,19 +3772,33 @@ A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is eq
 \rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below. 
 }
 
-A postfix expression of the form \code{$C.v$ ++} is equivalent to \code{()\{var r = $C.v$; $C.v$ = r + 1; return r\}()}.
+A postfix expression of the form \code{$C.v$ ++} is equivalent to 
 
-A postfix expression of the form \code{$e_1.v$++} is equivalent to \code{(x)\{var r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
+\code{()\{var r = $C.v$; $C.v$ = r + 1; return r\}()}.
 
-A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to \code{(a, i)\{var r = a[i]; a[i] = r + 1; return r\}($e_1$, $e_2$)}.
+A postfix expression of the form \code{$e_1.v$++} is equivalent to 
 
-A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to \code{()\{var r = $v$; $v$ = r - 1; return r\}()}.
+\code{(x)\{var r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
 
-A postfix expression of the form \code{$C.v$-{}-} is equivalent to \code{()\{var r = $C.v$; $C.v$ = r - 1; return r\}()}.
+A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to 
 
-A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to \code{(x)\{var r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+\code{(a, i)\{var r = a[i]; a[i] = r + 1; return r\}($e_1$, $e_2$)}.
 
-A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to \code{(a, i)\{var r = a[i]; a[i] = r - 1; return r\}($e_1$, $e_2$)}.
+A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to 
+
+\code{()\{var r = $v$; $v$ = r - 1; return r\}()}.
+
+A postfix expression of the form \code{$C.v$-{}-} is equivalent to 
+
+\code{()\{var r = $C.v$; $C.v$ = r - 1; return r\}()}.
+
+A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to 
+
+\code{(x)\{var r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+
+A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to 
+
+\code{(a, i)\{var r = a[i]; a[i] = r - 1; return r\}($e_1$, $e_2$)}.
  
 
 \subsection{ Assignable Expressions}
@@ -4775,7 +4368,28 @@ The {\em switch statement} supports dispatching control among a large number of 
     .
  \end{grammar}
  
- Given a switch statement of the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \DEFAULT{}: $s_{n+1}$ \}} or the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \}}, it is a compile-time error if the expressions $e_k$ are not compile-time constants for all  $k \in 1..n$.  It is a compile-time error if the values of the expressions $e_k$ are not either:
+ Given a switch statement of the form 
+ 
+\begin{dartCode}
+\SWITCH{} ($e$) \{ 
+   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
+   $\ldots$  
+   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+   \DEFAULT{}: $s_{n+1}$ 
+\}
+\end{dartCode}
+ 
+ or the form 
+ 
+\begin{dartCode}
+\SWITCH{} ($e$) \{ 
+   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
+   $\ldots$  
+   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\}
+\end{dartCode}
+ 
+ it is a compile-time error if the expressions $e_k$ are not compile-time constants for all  $k \in 1..n$.  It is a compile-time error if the values of the expressions $e_k$ are not either:
  \begin{itemize}
  \item instances of the same class $C$, for all $k \in 1..n$,  or 
  \item instances of a class that implements \cd{int}, for all $k \in 1..n$,  or 
@@ -4796,7 +4410,28 @@ It is a compile-time error if the class $C$ has an implementation of the operato
 The \SWITCH{}  statement should only be used in very limited situations (e.g., interpreters or scanners).  
 }
 
-Execution of a switch statement of the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \DEFAULT{}: $s_{n+1}$ \}} or the form \code{\SWITCH{} ($e$) \{ \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1 \ldots$  \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ \}} proceeds as follows:
+Execution of a switch statement of the form
+
+\begin{dartCode}
+\SWITCH{} ($e$) \{ 
+   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
+   $\ldots$  
+   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+   \DEFAULT{}: $s_{n+1}$ 
+\}
+\end{dartCode}
+ 
+or the form 
+ 
+\begin{dartCode}
+\SWITCH{} ($e$) \{ 
+   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
+   $\ldots$  
+   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\}
+\end{dartCode}
+
+proceeds as follows:
 
 The statement \code{\VAR{} id = $e$;} is evaluated, where \code{id} is a variable whose name is distinct from any other variable in the program. In checked mode, it is a run time error if the value of $e$ is not an instance of the same class as the constants $e_1 \ldots e_n$. 
 
@@ -4806,14 +4441,35 @@ Next, the case clause \CASE{} $e_{1}: s_{1}$ is executed if it exists. If \CASE{
 
 A case clause introduces a new scope, nested in the lexically surrounding scope. The scope of a case clause ends immediately after the case clause's statement list.
 
-Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  \code{\SWITCH{} ($e$) \{  $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1 \ldots$ $label_{n1} \ldots label_{nj_n}$ \CASE{}  $e_n: s_n$ \DEFAULT{}: $s_{n+1}$ \}} proceeds as follows:
+Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
+
+\begin{dartCode}
+\SWITCH{} ($e$) \{ 
+   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
+   $\ldots$  
+   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+   \DEFAULT{}: $s_{n+1}$ 
+\}
+\end{dartCode}
+
+proceeds as follows:
 
 The expression \code{$e_k$ == id} is evaluated to an object $o$ which is then subjected to boolean conversion yielding a value $v$. 
 If $v$ is not  \TRUE{} the following case,  \CASE{} $e_{k+1}: s_{k+1}$ is executed if it exists. If  \CASE{} $e_{k+1}: s_{k+1}$ does not exist, then the \DEFAULT{} clause is executed by executing $s_{n+1}$.
 If $v$ is \TRUE{},   let $h$ be the smallest number such that $h \ge k$ and $s_h$ is non-empty. If no such $h$ exists, let $h = n + 1$. The  sequence of statements $s_h$ is then executed.
 If execution reaches the point after $s_h$  then  a runtime error occurs, unless $h = n+1$.
 
-Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  \code{\SWITCH{} ($e$) \{  $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1 \ldots$ $label_{n1} \ldots label_{nj_n}$ \CASE{}  $e_n: s_n$ \}} proceeds as follows:
+Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
+
+\begin{dartCode}
+\SWITCH{} ($e$) \{ 
+   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
+   $\ldots$  
+   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\}
+\end{dartCode}
+
+proceeds as follows:
 
 The expression \code{$e_k$ == id} is evaluated to an object $o$ which is then subjected to boolean conversion yielding a value $v$. 
 If $v$ is not  \TRUE{} the following case,  \CASE{} $e_{k+1}: s_{k+1}$ is executed if it exists. 
@@ -4902,11 +4558,14 @@ A \FINALLY{} clause, which consists of a block statement.
 The syntax is designed to be upward compatible with existing Javascript programs. The \ON{} clause can be omitted, leaving what looks like a Javascript catch clause.
 }
 
-An \ON{}-\CATCH{} clause of   the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$}  {\em matches} an object $o$  if the type of $o$ is a subtype of $T$.  If $T$ is a malformed type, then performing a match causes a run time error.
+An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$}  {\em matches} an object $o$  if the type of $o$ is a subtype of $T$.  If $T$ is a malformed type, then performing a match causes a run time error.
 
 \commentary {
 It is of course a static warning if $T$ is a malformed type (\ref{staticTypes}).
 }
+
+An \ON{}-\CATCH{} clause of the form   \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} introduces a new scope $CS$ in which local variables specified by $p_1$ and $p_2$ are defined. The statement $s$ is enclosed within $CS$.
+
 
 An \ON{}-\CATCH{} clause of the form  \code{\ON{} $T$ \CATCH{} ($p_1$) $s$} is equivalent to an \ON{}-\CATCH{} clause  \code{\ON{} $T$ \CATCH{} ($p_1, p_2$) $s$} where $p_2$ is an identifier that does not occur anywhere else in the program. 
 
@@ -5040,7 +4699,7 @@ The motivation for formulating \code{\RETURN{};} in this way stems from the basi
 The question then becomes, what value should a return statement return when no return expression is given. In a generative constructor, it is obviously the object being constructed (\THIS{}). A void function is not expected to participate in an expression, which is why it is marked \VOID{} in the first place. Hence, this situation is a mistake which should be detected as soon as possible. The static rules help here, but if the code is executed, using \NULL{} leads to fast failure, which is desirable in this case. The same rationale applies for function bodies that do not contain a return statement at all.
 }
 
-It is a static warning if a function contains both one or more return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
+It is a static warning if a function contains both one or more explicit return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
 
 
 \subsection{ Labels}
@@ -5286,6 +4945,9 @@ where $hide(l, n)$ takes a list of identfiers $l$ and a namespace $n$, and produ
 Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS =  prefix(p, NS_n)$ where $prefix(id, n)$, takes an identifier $id$ and produces a namespace that has, for each entry mapping key $k$ to declaration $d$ in $n$,  an entry mapping $id.k$ to $d$. Otherwise, let $NS = NS_n$.
 It is a compile-time error if the current library declares a top-level member named $p$.
 
+% This is problematic, because it implies that p.T would be available even in a scope that declared p. We really need to think of p as a single object with properties p.T etc., except it isn't really that
+% either. After all, p isn't actually available as a stand alone name.
+
 Then, for each entry mapping key $k$ to declaration $d$ in $NS$,  $d$ is made available in the top level scope of $L$ under the name $k$ unless either:
 \begin{itemize}
 \item
@@ -5440,10 +5102,10 @@ Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart syste
 \subsection{Scripts}
 \label{scripts}
 
-A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main()}. 
+A {\em script} is a library whose exported namespace  (\ref{exports}) includes a top-level function \code{main}. 
 A script $S$ may be executed as follows:
 
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main()} that is in the exported namespace of $S$ is invoked with no arguments. It is a run time error if $S$ does not declare or import a top-level function \code{main()}.
+First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked with no arguments. It is a run time error if $S$ does not declare or import a top-level function \code{main}.
 
 \rationale{
 The names of scripts are optional, in the interests of interactive, informal use. However, any script of long term value should be given a name as a matter of good practice. 
@@ -5987,10 +5649,41 @@ The least upper bound relation is symmetric and reflexive.
 The least upper bound of a function type and an interface type $T$ is the least upper bound of \cd{Function} and $T$.
 Let $F$ and $G$ be function types. If $F$ and $G$ differ in their number of required parameters, then the least upper bound of $F$ and $G$ is \cd{Function}.  Otherwise:
 \begin{itemize}
-\item If $F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, [S_{r+1}, \ldots, S_k]) \longrightarrow S_0$ where $k \le n$ then the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r, [L_{r+1}, \ldots, L_k]) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..k$.
-\item If $F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, \{ \ldots \}) \longrightarrow S_0$ then the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$.
-\item If $F= (T_1 \ldots T_r, \{T_{r+1}$  $p_{r+1}, \ldots, T_f$ $p_f\}) \longrightarrow T_0$ and $G= (S_1 \ldots S_r, \{ S_{r+1}$  $q_{r+1}, \ldots, S_g$ $q_g\}) \longrightarrow S_0$ then let $\{x_m, \ldots x_n\}  = \{p_{r+1}, \ldots, p_f\} \cap \{q_{r+1}, \ldots, q_g\}$ and let $X_j$ be the least upper bound of the types of $x_j$ in $F$ and $G, j \in m..n$. Then
-the least upper bound of $F$ and $G$ is $(L_1 \ldots L_r, \{ X_m$ $x_m, \ldots, X_n$ $x_n\}) \longrightarrow L_0$ where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$ 
+\item If 
+
+$F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$, 
+
+$G= (S_1 \ldots S_r, [S_{r+1}, \ldots, S_k]) \longrightarrow S_0$ 
+
+where $k \le n$ then the least upper bound of $F$ and $G$ is 
+
+$(L_1 \ldots L_r, [L_{r+1}, \ldots, L_k]) \longrightarrow L_0$ 
+
+where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..k$.
+\item If 
+
+$F= (T_1 \ldots T_r, [T_{r+1}, \ldots, T_n]) \longrightarrow T_0$,
+
+$G= (S_1 \ldots S_r, \{ \ldots \}) \longrightarrow S_0$ 
+
+then the least upper bound of $F$ and $G$ is 
+
+$(L_1 \ldots L_r) \longrightarrow L_0$ 
+
+where $L_i$ 
+is the least upper bound of $T_i$ and $S_i, i \in 0..r$.
+\item If 
+
+$F= (T_1 \ldots T_r, \{T_{r+1}$  $p_{r+1}, \ldots, T_f$ $p_f\}) \longrightarrow T_0$,  
+
+$G= (S_1 \ldots S_r, \{ S_{r+1}$  $q_{r+1}, \ldots, S_g$ $q_g\}) \longrightarrow S_0$ 
+
+then let $\{x_m, \ldots x_n\}  = \{p_{r+1}, \ldots, p_f\} \cap \{q_{r+1}, \ldots, q_g\}$ and let $X_j$ be the least upper bound of the types of $x_j$ in $F$ and $G, j \in m..n$. Then
+the least upper bound of $F$ and $G$ is
+
+$(L_1 \ldots L_r, \{ X_m$ $x_m, \ldots, X_n$ $x_n\}) \longrightarrow L_0$ 
+
+where $L_i$ is the least upper bound of $T_i$ and $S_i, i \in 0..r$ 
 \end{itemize}
 
 
