@@ -180,18 +180,19 @@ class GCSNamerApiDocs(object):
     assert len('%s' % revision) > 0
     return '%s/channels/%s/latest.txt' % (self.bucket, self.channel)
 
-def run(command, env=None, shell=False):
+def run(command, env=None, shell=False, throw_on_error=True):
   print "Running command: ", command
 
   p = subprocess.Popen(command, stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE, env=env, shell=shell)
   (stdout, stderr) = p.communicate()
-  if p.returncode != 0:
+  if throw_on_error and p.returncode != 0:
     print >> sys.stderr, "Failed to execute '%s'. Exit code: %s." % (
         command, p.returncode)
     print >> sys.stderr, "stdout: ", stdout
     print >> sys.stderr, "stderr: ", stderr
     raise Exception("Failed to execute %s." % command)
+  return (stdout, stderr, p.returncode)
 
 class GSUtil(object):
   GSUTIL_IS_SHELL_SCRIPT = False
