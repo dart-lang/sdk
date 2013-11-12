@@ -69,7 +69,7 @@ class UploaderCommand extends PubCommand {
               "${Uri.encodeComponent(package)}/uploaders");
           return client.post(url,
               headers: PUB_API_HEADERS,
-              fields: {"email": uploader});
+              body: {"email": uploader});
         } else { // command == 'remove'
           var url = server.resolve("/api/packages/"
               "${Uri.encodeComponent(package)}/uploaders/"

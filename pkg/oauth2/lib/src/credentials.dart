@@ -173,7 +173,7 @@ class Credentials {
       };
       if (!scopes.isEmpty) fields["scope"] = scopes.join(' ');
 
-      return httpClient.post(tokenEndpoint, fields: fields);
+      return httpClient.post(tokenEndpoint, body: fields);
     }).then((response) {
       return handleAccessTokenResponse(
           response, tokenEndpoint, startTime, scopes);

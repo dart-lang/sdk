@@ -73,7 +73,8 @@ Future startServer() {
         var requestBody;
         if (requestBodyBytes.isEmpty) {
           requestBody = null;
-        } else if (request.headers.contentType.charset != null) {
+        } else if (request.headers.contentType != null &&
+            request.headers.contentType.charset != null) {
           var encoding = requiredEncodingForCharset(
               request.headers.contentType.charset);
           requestBody = encoding.decode(requestBodyBytes);

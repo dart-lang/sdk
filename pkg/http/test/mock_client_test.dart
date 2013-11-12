@@ -22,7 +22,7 @@ void main() {
           request: request, headers: {'content-type': 'application/json'}));
     });
 
-    expect(client.post("http://example.com/foo", fields: {
+    expect(client.post("http://example.com/foo", body: {
       'field1': 'value1',
       'field2': 'value2'
     }).then((response) => response.body), completion(parse(equals({

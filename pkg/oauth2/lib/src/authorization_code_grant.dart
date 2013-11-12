@@ -228,7 +228,7 @@ class AuthorizationCodeGrant {
   /// the state beforehand.
   Future<Client> _handleAuthorizationCode(String authorizationCode) {
     var startTime = new DateTime.now();
-    return _httpClient.post(this.tokenEndpoint, fields: {
+    return _httpClient.post(this.tokenEndpoint, body: {
       "grant_type": "authorization_code",
       "code": authorizationCode,
       "redirect_uri": this._redirectEndpoint.toString(),

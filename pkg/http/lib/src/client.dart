@@ -5,6 +5,7 @@
 library client;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'base_client.dart';
@@ -39,25 +40,47 @@ abstract class Client {
   /// For more fine-grained control over the request, use [send] instead.
   Future<Response> get(url, {Map<String, String> headers});
 
-  /// Sends an HTTP POST request with the given headers and fields to the given
-  /// URL, which can be a [Uri] or a [String]. If any fields are specified, the
-  /// content-type is automatically set to
-  /// `"application/x-www-form-urlencoded"`.
+  /// Sends an HTTP POST request with the given headers and body to the given
+  /// URL, which can be a [Uri] or a [String].
+  ///
+  /// [body] sets the body of the request. It can be a [String], a [List<int>]
+  /// or a [Map<String, String>]. If it's a String, it's encoded using
+  /// [encoding] and used as the body of the request. The content-type of the
+  /// request will default to "text/plain".
+  ///
+  /// If [body] is a List, it's used as a list of bytes for the body of the
+  /// request.
+  ///
+  /// If [body] is a Map, it's encoded as form fields using [encoding]. The
+  /// content-type of the request will be set to
+  /// `"application/x-www-form-urlencoded"`; this cannot be overridden.
+  ///
+  /// [encoding] defaults to [UTF8].
   ///
   /// For more fine-grained control over the request, use [send] instead.
-  Future<Response> post(url,
-      {Map<String, String> headers,
-       Map<String, String> fields});
+  Future<Response> post(url, {Map<String, String> headers, body,
+      Encoding encoding});
 
-  /// Sends an HTTP PUT request with the given headers and fields to the given
-  /// URL, which can be a [Uri] or a [String]. If any fields are specified, the
-  /// content-type is automatically set to
-  /// `"application/x-www-form-urlencoded"`.
+  /// Sends an HTTP PUT request with the given headers and body to the given
+  /// URL, which can be a [Uri] or a [String].
+  ///
+  /// [body] sets the body of the request. It can be a [String], a [List<int>]
+  /// or a [Map<String, String>]. If it's a String, it's encoded using
+  /// [encoding] and used as the body of the request. The content-type of the
+  /// request will default to "text/plain".
+  ///
+  /// If [body] is a List, it's used as a list of bytes for the body of the
+  /// request.
+  ///
+  /// If [body] is a Map, it's encoded as form fields using [encoding]. The
+  /// content-type of the request will be set to
+  /// `"application/x-www-form-urlencoded"`; this cannot be overridden.
+  ///
+  /// [encoding] defaults to [UTF8].
   ///
   /// For more fine-grained control over the request, use [send] instead.
-  Future<Response> put(url,
-      {Map<String, String> headers,
-       Map<String, String> fields});
+  Future<Response> put(url, {Map<String, String> headers, body,
+      Encoding encoding});
 
   /// Sends an HTTP DELETE request with the given headers to the given URL,
   /// which can be a [Uri] or a [String].
