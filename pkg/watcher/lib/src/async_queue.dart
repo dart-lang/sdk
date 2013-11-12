@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 
 typedef Future ItemProcessor<T>(T item);
-typedef void ErrorHandler(error);
 
 /// A queue of items that are sequentially, asynchronously processed.
 ///
@@ -35,9 +34,9 @@ class AsyncQueue<T> {
   /// The handler for errors thrown during processing.
   ///
   /// Used to avoid top-leveling asynchronous errors.
-  final ErrorHandler _errorHandler;
+  final Function _errorHandler;
 
-  AsyncQueue(this._processor, {ErrorHandler onError})
+  AsyncQueue(this._processor, {Function onError})
       : _errorHandler = onError;
 
   /// Enqueues [item] to be processed and starts asynchronously processing it

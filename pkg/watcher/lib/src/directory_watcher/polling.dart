@@ -72,7 +72,9 @@ class _PollingDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   _PollingDirectoryWatcher(this.directory, this._pollingDelay) {
     _filesToProcess = new AsyncQueue<String>(_processFile,
-        onError: _events.addError);
+        onError: (e, stackTrace) {
+      if (!_events.isClosed) _events.addError(e, stackTrace);
+    });
 
     _poll();
   }
