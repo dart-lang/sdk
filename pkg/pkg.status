@@ -340,4 +340,3 @@ watcher/test/*/linux_test: Pass, Slow # Issue 14606
 
 [ $runtime == vm && $system == macos ]
 watcher/test/no_subscribers/mac_os_test: Fail # Issue 14793 (see test file for details)
-watcher/test/directory_watcher/mac_os_test: Pass, Fail # Issue 15042
