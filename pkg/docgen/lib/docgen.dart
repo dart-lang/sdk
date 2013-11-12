@@ -41,7 +41,7 @@ const String USAGE = 'Usage: dart docgen.dart [OPTIONS] fooDir/barFile';
 
 List<String> skippedAnnotations = const [
     'metadata.DocsEditable', '_js_helper.JSName', '_js_helper.Creates',
-    '_js_helper.Returns', 'observe-src-metadata.Reflectable'];
+    '_js_helper.Returns'];
 
 /// Set of libraries declared in the SDK, so libraries that can be accessed
 /// when running dart by default.
