@@ -77,21 +77,22 @@ def _WriteFile(path, lines):
       _logger.info('Mkdir - %s' % dir)
       os.makedirs(dir)
 
-  # Remove file if pre-existing.
+  # If file exists and is unchanged, return.
+  new_contents = ''.join(lines)
   if os.path.exists(path):
-    _logger.info('Removing - %s' % path)
-    os.remove(path)
-    if os.path.exists(path):
-      _logger.info('Warning: File still exists- %s' % path)
+    with open(path) as fd:
+      contents = fd.read()
+    if new_contents == contents:
+      _logger.info('Unchanged file %s' % path)
+      return
 
   # Write the file.
   num_attempts = 4
   for i in range(num_attempts):
     try:
       _logger.info('Writing (attempt %d) - %s' % (i + 1, path))
-      f = open(path, 'w')
-      f.writelines(lines)
-      f.close()
+      with open(path, 'w') as fd:
+        fd.write(new_contents)
       return
     except IOError as error:
       last_attempt = (i == (num_attempts - 1))
@@ -114,4 +115,3 @@ def _WriteFile(path, lines):
             _logger.info("Couldn't find %s. Not printing open handles."
                          % handle_file)
         raise error
-
