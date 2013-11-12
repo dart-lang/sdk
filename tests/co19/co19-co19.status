@@ -13,6 +13,7 @@
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Issue 635
 LibTest/core/Stopwatch/start_A01_t01: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/start_A01_t02: PASS, FAIL, OK # co19 issue 657
+LibTest/core/Stopwatch/elapsedTicks_A01_t01: PASS, FAIL, OK # co19 issue 657
 
 LibTest/json/BuildJsonListener/BuildJsonListener_A01_t01: Fail, OK # Issue 637
 LibTest/json/JsonParser/JsonParser_A01_t01: Fail, OK # Issue 637
