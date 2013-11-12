@@ -295,6 +295,12 @@ struct CompileAssert {
 
 
 #if defined(TESTING)
+
+// EXPECT and FAIL are equivalent to ASSERT and FATAL except that they do not
+// cause early termination of the unit test. This allows testing to proceed
+// further to be able to report other failures before reporting the overall
+// unit tests as failing.
+
 #define EXPECT(condition)                                                      \
   if (!(condition)) {                                                          \
     dart::Expect(__FILE__, __LINE__).Fail("expected: %s", #condition);         \
@@ -332,20 +338,16 @@ struct CompileAssert {
 
 #define EXPECT_NOTNULL(ptr)                                                    \
   dart::Expect(__FILE__, __LINE__).NotNull((ptr))
-#endif
 
-// TODO(iposva): provide a better way to get extra info on an EXPECT
-// fail - you suggested EXPECT_EQ(expected, actual, msg_format,
-// parameters_for_msg...), I quite like the google3 method
-// EXPECT_EQ(a, b) << "more stuff here...". (benl).
-
-#define WARN(error)                                                           \
+#define FAIL(error)                                                            \
   dart::Expect(__FILE__, __LINE__).Fail("%s", error)
 
-#define WARN1(format, p1)                                                     \
+#define FAIL1(format, p1)                                                      \
   dart::Expect(__FILE__, __LINE__).Fail(format, (p1))
 
-#define WARN2(format, p1, p2)                                                 \
+#define FAIL2(format, p1, p2)                                                  \
   dart::Expect(__FILE__, __LINE__).Fail(format, (p1), (p2))
+
+#endif  // defined(TESTING)
 
 #endif  // PLATFORM_ASSERT_H_

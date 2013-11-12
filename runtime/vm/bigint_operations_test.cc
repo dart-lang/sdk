@@ -978,7 +978,7 @@ static void TestBigintRightShift(
   const char* str_shifted = BigintOperations::ToHexCString(shifted,
                                                            &ZoneAllocator);
   if (strcmp(result, str_shifted)) {
-    WARN2("%s >> %d", a, amount);
+    FAIL2("%s >> %d", a, amount);
   }
   EXPECT_STREQ(result, str_shifted);
 }

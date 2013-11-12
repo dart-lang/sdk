@@ -43,7 +43,7 @@ class Scavenger {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
 #if defined(DEBUG)
     if (FLAG_gc_at_alloc && !scavenging_) {
-      Scavenge("debugging");
+      Scavenge();
     }
 #endif
     uword result = top_;

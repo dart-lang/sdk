@@ -190,7 +190,7 @@ static Dart_Handle GetLocalVariable(Dart_ActivationFrame frame,
       return value_handle;
     }
   }
-  EXPECT(!"local variable not found");
+  FAIL("local variable not found");
   return Dart_Null();
 }
 
