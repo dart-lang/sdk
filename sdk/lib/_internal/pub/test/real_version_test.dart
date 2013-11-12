@@ -19,11 +19,9 @@ main() {
   // This test is a bit funny.
   //
   // Pub parses the "version" file that gets generated and shipped with the SDK.
-  // Most of the pub tests here generate a synthetic SDK directory so that we
-  // can tests against a known SDK state. But we want to make sure that the
-  // actual version file that gets created is also one pub can parse. If this
-  // test fails, it means the version file's format has changed in a way pub
-  // didn't expect.
+  // We want to make sure that the actual version file that gets created is
+  // also one pub can parse. If this test fails, it means the version file's
+  // format has changed in a way pub didn't expect.
   //
   // Note that this test expects to be invoked from a Dart executable that is
   // in the built SDK's "bin" directory. Note also that this invokes pub from

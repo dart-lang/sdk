@@ -248,10 +248,6 @@ String _sandboxDir;
 /// sandbox directory.
 final String cachePath = "cache";
 
-/// The path of the mock SDK directory used for tests. Relative to the sandbox
-/// directory.
-final String sdkPath = "sdk";
-
 /// The path of the mock app directory used for tests. Relative to the sandbox
 /// directory.
 final String appPath = "myapp";
@@ -339,11 +335,6 @@ void _integration(String description, void body(), [Function testFn]) {
     if (Platform.operatingSystem == "windows") {
       currentSchedule.timeout = new Duration(seconds: 10);
     }
-
-    // Ensure the SDK version is always available.
-    d.dir(sdkPath, [
-      d.file('version', '0.1.2.3')
-    ]).create();
 
     _sandboxDir = createSystemTempDir();
     d.defaultRoot = sandboxDir;
@@ -483,7 +474,10 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
     var environment = {};
     environment['_PUB_TESTING'] = 'true';
     environment['PUB_CACHE'] = pathInSandbox(cachePath);
-    environment['DART_SDK'] = pathInSandbox(sdkPath);
+
+    // Ensure a known SDK version is set for the tests that rely on that.
+    environment['_PUB_TEST_SDK_VERSION'] = "0.1.2+3";
+
     if (tokenEndpoint != null) {
       environment['_PUB_TEST_TOKEN_ENDPOINT'] =
         tokenEndpoint.toString();

@@ -122,7 +122,7 @@ ArgParser initArgParser() {
 /// an error message and exits. Completes when the validation is done.
 Future validatePlatform() {
   return new Future.sync(() {
-    if (Platform.operatingSystem != 'windows') return;
+    if (Platform.operatingSystem != 'windows') return null;
 
     return runProcess('ver', []).then((result) {
       if (result.stdout.join('\n').contains('XP')) {
