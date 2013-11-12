@@ -326,6 +326,9 @@ intl/test/date_time_format_local_odd_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
 
+[ $runtime == vm ]
+watcher/test/directory_watcher/polling_test: Pass, Fail # Issue 15034
+
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
 
