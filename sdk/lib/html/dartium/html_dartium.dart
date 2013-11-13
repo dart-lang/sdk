@@ -36469,7 +36469,7 @@ class _Utils {
     addForClass(ClassMirror mirror, bool isStatic) {
       if (mirror == null)
         return;
-      addAll(mirror.members, isStatic);
+      addAll(mirror.declarations, isStatic);
       if (mirror.superclass != null)
         addForClass(mirror.superclass, isStatic);
       for (var interface in mirror.superinterfaces) {
@@ -36590,7 +36590,9 @@ class _Utils {
     }
     var className = MirrorSystem.getName(cls.simpleName);
     var createdConstructor = cls.constructors[new Symbol('$className.created')];
-    if (createdConstructor == null) {
+    if (createdConstructor == null ||
+        createdConstructor is! MethodMirror ||
+        !createdConstructor.isConstructor) {
       throw new UnsupportedError(
           'Class is missing constructor $className.created');
     }
