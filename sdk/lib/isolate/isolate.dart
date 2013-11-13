@@ -15,7 +15,6 @@
 library dart.isolate;
 
 import "dart:async";
-import "dart:collection" show HashMap;
 
 /**
  * Thrown when an isolate cannot be created.
@@ -39,8 +38,11 @@ class Isolate {
    * isolate.
    *
    * The argument [entryPoint] specifies the entry point of the spawned
-   * isolate. It must be a static top-level function or a static method that
-   * takes one argument. It is not allowed to pass a function closure.
+   * isolate. It must be a top-level function or a static method that
+   * takes one argument - that is, one-parameter functions that can be
+   * compile-time constant function values.
+   * It is not allowed to pass the value of function expressions or an instance
+   * method extracted from an object.
    *
    * The entry-point function is invoked with the initial [message].
    * Usually the initial [message] contains a [SendPort] so
@@ -58,14 +60,14 @@ class Isolate {
    * The isolate starts executing the top-level `main` function of the library
    * with the given URI.
    *
-   * The target `main` may have one of the four following signatures:
+   * The target `main` may have one of three signatures:
    *
    * * `main()`
    * * `main(args)`
    * * `main(args, message)`
    *
-   * When present, the argument `message` is set to the initial [message].
-   * When present, the argument `args` is set to the provided [args] list.
+   * When present, the parameter `args` is set to the provided [args] list.
+   * When present, the parameter `message` is set to the initial [message].
    *
    * Returns a future that will complete with an [Isolate] instance. The
    * isolate instance can be used to control the spawned isolate.
@@ -78,7 +80,7 @@ class Isolate {
  * Sends messages to its [ReceivePort]s.
  *
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
- * a [SendPort] is delivered to its respective [ReceivePort]. There might be
+ * a [SendPort] is delivered to its corresponding [ReceivePort]. There might be
  * many [SendPort]s for the same [ReceivePort].
  *
  * [SendPort]s can be transmitted to other isolates.
@@ -86,15 +88,15 @@ class Isolate {
 abstract class SendPort {
 
   /**
-   * Sends an asynchronous [message] to this send port. The message is copied to
-   * the receiving isolate.
+   * Sends an asynchronous [message] through this send port, to its
+   * corresponding `ReceivePort`.
    *
    * The content of [message] can be: primitive values (null, num, bool, double,
    * String), instances of [SendPort], and lists and maps whose elements are any
    * of these. List and maps are also allowed to be cyclic.
    *
    * In the special circumstances when two isolates share the same code and are
-   * running in the same process (e.g. isolates created via [spawnFunction]), it
+   * running in the same process (e.g. isolates created via [Isolate.spawn]), it
    * is also possible to send object instances (which would be copied in the
    * process). This is currently only supported by the dartvm.  For now, the
    * dart2js compiler only supports the restricted messages described above.
@@ -117,10 +119,10 @@ abstract class SendPort {
 /**
  * Together with [SendPort], the only means of communication between isolates.
  *
- * [ReceivePort]s have a `sendport` getter which returns a [SendPort].
+ * [ReceivePort]s have a `sendPort` getter which returns a [SendPort].
  * Any message that is sent through this [SendPort]
  * is delivered to the [ReceivePort] it has been created from. There, the
- * message is dispatched to its listener.
+ * message is dispatched to the `ReceivePort`'s listener.
  *
  * A [ReceivePort] is a non-broadcast stream. This means that it buffers
  * incoming messages until a listener is registered. Only one listener can
@@ -154,8 +156,11 @@ abstract class ReceivePort implements Stream {
   /**
    * Inherited from [Stream].
    *
-   * Note that all named arguments are ignored since a ReceivePort will never
-   * receive an error, or done message.
+   * Note that [onError] and [cancelOnError] are ignored since a ReceivePort
+   * will never receive an error.
+   *
+   * The [onDone] handler will be called when the stream closes.
+   * The stream closes when [close] is called.
    */
   StreamSubscription listen(void onData(var message),
                             { Function onError,
