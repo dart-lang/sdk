@@ -859,6 +859,13 @@ class LiteralNull extends Literal {
 class LiteralString extends Literal {
   final String value;
 
+  /**
+   * Constructs a LiteralString from a string value.
+   *
+   * The constructor does not add the required quotes.  If [value] is
+   * not surrounded by quotes, the resulting object is invalid as a JS
+   * value.
+   */
   LiteralString(this.value);
 
   accept(NodeVisitor visitor) => visitor.visitLiteralString(this);
