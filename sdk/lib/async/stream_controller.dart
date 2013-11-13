@@ -364,7 +364,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   }
 
   // StreamSink interface.
-  Future addStream(Stream<T> source, { bool cancelOnError: true }) {
+  Future addStream(Stream<T> source, {bool cancelOnError: true}) {
     if (!_mayAddEvent) throw _badEventState();
     if (_isCanceled) return new _Future.immediate(null);
     _StreamControllerAddStreamState addState =
@@ -659,7 +659,8 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
     _target.addError(error, stackTrace);
   }
   Future close() => _target.close();
-  Future addStream(Stream<T> source) => _target.addStream(source);
+  Future addStream(Stream<T> source, {bool cancelOnError: true}) =>
+      _target.addStream(source, cancelOnError: cancelOnError);
   Future get done => _target.done;
 }
 
