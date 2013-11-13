@@ -12,6 +12,7 @@
 
 import "dart:io";
 import "browser_controller.dart";
+import "utils.dart";
 
 void printHelp() {
   print("Usage pattern:");
@@ -34,7 +35,7 @@ void main() {
     return;
   }
 
-  var executable = Locations.getBrowserExecutable(name, {});
+  var executable = Locations.getBrowserLocation(name, {});
   var browser = new Browser.byName(name, executable);
   browser.start(args[1]);
 }
