@@ -1432,6 +1432,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
+  static final int REFLECTION_MARKER = 45;
 
   // TODO(ahe): The values in these fields are virtually untested.
   final String _jsName;
@@ -1439,12 +1440,10 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   final bool isStatic;
   final _metadataFunction;
   final DeclarationMirror _owner;
-  final int _type;
   List _metadata;
 
   JsVariableMirror(Symbol simpleName,
                    this._jsName,
-                   this._type,
                    this.isFinal,
                    this.isStatic,
                    this._metadataFunction,
@@ -1455,16 +1454,18 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
                                 metadataFunction,
                                 JsDeclarationMirror owner,
                                 bool isStatic) {
-    List<String> fieldInformation = descriptor.split(':');
-    if (fieldInformation.length == 1) {
+    int length = descriptor.length;
+    var code = fieldCode(descriptor.codeUnitAt(length - 1));
+    if (code == REFLECTION_MARKER) {
+      // If the field descriptor has a reflection marker, remove it by
+      // changing length and getting the real getter/setter code.  The
+      // descriptor will be truncated below.
+      length--;
+      code = fieldCode(descriptor.codeUnitAt(length - 1));
+    } else {
       // The field is not available for reflection.
-      // TODO(ahe): Should return an unreflectable field.
       return null;
     }
-
-    String field = fieldInformation[0];
-    int length = field.length;
-    var code = fieldCode(field.codeUnitAt(length - 1));
     bool isFinal = false;
     if (code == 0) return null; // Inherited field.
     bool hasGetter = (code & 3) != 0;
@@ -1472,11 +1473,11 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     isFinal = !hasSetter;
     length--;
     String jsName;
-    String accessorName = jsName = field.substring(0, length);
-    int divider = field.indexOf(':');
+    String accessorName = jsName = descriptor.substring(0, length);
+    int divider = descriptor.indexOf(':');
     if (divider > 0) {
       accessorName = accessorName.substring(0, divider);
-      jsName = field.substring(divider + 1);
+      jsName = descriptor.substring(divider + 1);
     }
     var unmangledName;
     if (isStatic) {
@@ -1496,21 +1497,14 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
         }
       }
     }
-    int type = int.parse(fieldInformation[1]);
-    return new JsVariableMirror(s(unmangledName),
-                                jsName,
-                                type,
-                                isFinal,
-                                isStatic,
-                                metadataFunction,
-                                owner);
+    return new JsVariableMirror(
+        s(unmangledName), jsName, isFinal, isStatic, metadataFunction, owner);
   }
 
   String get _prettyName => 'VariableMirror';
 
-  TypeMirror get type {
-    return typeMirrorFromRuntimeTypeRepresentation(owner, getMetadata(_type));
-  }
+  // TODO(ahe): Improve this information and test it.
+  TypeMirror get type => JsMirrorSystem._dynamicType;
 
   DeclarationMirror get owner => _owner;
 
@@ -1524,6 +1518,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   }
 
   static int fieldCode(int code) {
+    if (code == REFLECTION_MARKER) return code;
     if (code >= 60 && code <= 64) return code - 59;
     if (code >= 123 && code <= 126) return code - 117;
     if (code >= 37 && code <= 43) return code - 27;
@@ -1994,17 +1989,17 @@ List<JsVariableMirror> parseCompactFieldSpecification(
     bool isStatic,
     List<Mirror> result) {
   List fieldsMetadata = null;
-  List<String> fields;
+  List<String> fieldNames;
   if (fieldSpecification is List) {
-    fields = splitFields(fieldSpecification[0], ',');
+    fieldNames = splitFields(fieldSpecification[0], ',');
     fieldsMetadata = fieldSpecification.sublist(1);
   } else if (fieldSpecification is String) {
-    fields = splitFields(fieldSpecification, ',');
+    fieldNames = splitFields(fieldSpecification, ',');
   } else {
-    fields = [];
+    fieldNames = [];
   }
   int fieldNumber = 0;
-  for (String field in fields) {
+  for (String field in fieldNames) {
     var metadata;
     if (fieldsMetadata != null) {
       metadata = fieldsMetadata[fieldNumber++];

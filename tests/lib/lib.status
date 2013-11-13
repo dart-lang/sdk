@@ -31,7 +31,9 @@ mirrors/generic_interface_test: RuntimeError # Issue 12087
 mirrors/generic_local_function_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
+mirrors/generic_type_mirror_test/01: RuntimeError # 6490
 mirrors/generics_substitution_test/01: RuntimeError # Issue 12087
+mirrors/generics_double_substitution_test: RuntimeError
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/immutable_collections_test: RuntimeError # Issue 14030
 mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
@@ -263,8 +265,9 @@ mirrors/equality_test/01: StaticWarning, OK # API being removed.
 mirrors/equality_test/none: StaticWarning, OK # API being removed.
 mirrors/fake_function_with_call_test: StaticWarning, OK # API being removed.
 mirrors/generic_function_typedef_test: StaticWarning, OK # API being removed.
-mirrors/generic_type_mirror_test: StaticWarning, OK # API being removed.
-mirrors/field_type_test: StaticWarning, OK # API being removed.
+mirrors/generic_type_mirror_test/01: StaticWarning, OK # API being removed.
+mirrors/generic_type_mirror_test/02: StaticWarning, OK # API being removed.
+mirrors/generic_type_mirror_test/none: StaticWarning, OK # API being removed.
 mirrors/generics_substitution_test: StaticWarning, OK # API being removed.
 mirrors/inherit_field_test: StaticWarning, OK # API being removed.
 mirrors/initializing_formals_test/01: StaticWarning, OK # API being removed.
