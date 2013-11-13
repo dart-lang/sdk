@@ -137,16 +137,14 @@ class CodeEmitterTask extends CompilerTask {
     String reflectableField = namer.reflectableField;
 
     // function generateAccessor(field, prototype, cls) {
-    jsAst.Fun fun = js.fun(['field', 'accessors', 'cls'], [
+    jsAst.Fun fun = js.fun(['fieldDescriptor', 'accessors', 'cls'], [
+      js('var fieldInformation = fieldDescriptor.split(":")'),
+      js('var field = fieldInformation[0]'),
       js('var len = field.length'),
       js('var code = field.charCodeAt(len - 1)'),
-      js('var reflectable = false'),
-      js.if_('code == $REFLECTION_MARKER', [
-          js('len--'),
-          js('code = field.charCodeAt(len - 1)'),
-          js('field = field.substring(0, len)'),
-          js('reflectable = true')
-      ]),
+      js('var reflectable'),
+      js.if_('fieldInformation.length > 1', js('reflectable = true'),
+             js('reflectable = false')),
       js('code = ((code >= $RANGE1_FIRST) && (code <= $RANGE1_LAST))'
           '    ? code - $RANGE1_ADJUST'
           '    : ((code >= $RANGE2_FIRST) && (code <= $RANGE2_LAST))'
