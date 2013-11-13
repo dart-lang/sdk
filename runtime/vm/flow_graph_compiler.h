@@ -23,6 +23,13 @@ template <typename T> class GrowableArray;
 class ParsedFunction;
 
 
+struct BranchLabels {
+  Label* true_label;
+  Label* false_label;
+  Label* fall_through;
+};
+
+
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -388,9 +395,15 @@ class FlowGraphCompiler : public ValueObject {
   Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
   bool WasCompacted(BlockEntryInstr* block_entry) const;
 
+  // Returns the label of the fall-through of the current block.
+  Label* NextNonEmptyLabel() const;
+
   // Returns true if there is a next block after the current one in
   // the block order and if it is the given block.
   bool CanFallThroughTo(BlockEntryInstr* block_entry) const;
+
+  // Return true-, false- and fall-through label for a branch instruction.
+  BranchLabels CreateBranchLabels(BranchInstr* branch) const;
 
   void AddExceptionHandler(intptr_t try_index,
                            intptr_t outer_try_index,

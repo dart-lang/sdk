@@ -317,10 +317,23 @@ bool FlowGraphCompiler::WasCompacted(
 }
 
 
-bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
+Label* FlowGraphCompiler::NextNonEmptyLabel() const {
   const intptr_t current_index = current_block()->postorder_number();
-  Label* next_nonempty = block_info_[current_index]->next_nonempty_label();
-  return next_nonempty == GetJumpLabel(block_entry);
+  return block_info_[current_index]->next_nonempty_label();
+}
+
+
+bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
+  return NextNonEmptyLabel() == GetJumpLabel(block_entry);
+}
+
+
+BranchLabels FlowGraphCompiler::CreateBranchLabels(BranchInstr* branch) const {
+  Label* true_label = GetJumpLabel(branch->true_successor());
+  Label* false_label = GetJumpLabel(branch->false_successor());
+  Label* fall_through = NextNonEmptyLabel();
+  BranchLabels result = { true_label, false_label, fall_through };
+  return result;
 }
 
 

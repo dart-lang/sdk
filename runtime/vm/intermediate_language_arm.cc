@@ -448,31 +448,29 @@ static Condition FlipCondition(Condition condition) {
 
 
 static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                  TargetEntryInstr* true_successor,
-                                  TargetEntryInstr* false_successor,
-                                  Condition true_condition) {
-  if (compiler->CanFallThroughTo(false_successor)) {
+                                  Condition true_condition,
+                                  BranchLabels labels) {
+  if (labels.fall_through == labels.false_label) {
     // If the next block is the false successor we will fall through to it.
-    __ b(compiler->GetJumpLabel(true_successor), true_condition);
+    __ b(labels.true_label, true_condition);
   } else {
     // If the next block is not the false successor we will branch to it.
     Condition false_condition = NegateCondition(true_condition);
-    __ b(compiler->GetJumpLabel(false_successor), false_condition);
+    __ b(labels.false_label, false_condition);
 
     // Fall through or jump to the true successor.
-    if (!compiler->CanFallThroughTo(true_successor)) {
-      __ b(compiler->GetJumpLabel(true_successor));
+    if (labels.fall_through != labels.true_label) {
+      __ b(labels.true_label);
     }
   }
 }
 
 
-static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
-                                const LocationSummary& locs,
-                                Token::Kind kind,
-                                BranchInstr* branch) {
-  Location left = locs.in(0);
-  Location right = locs.in(1);
+static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
+                                     LocationSummary* locs,
+                                     Token::Kind kind) {
+  Location left = locs->in(0);
+  Location right = locs->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   Condition true_condition = TokenKindToSmiCondition(kind);
@@ -485,33 +483,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   } else {
     __ cmp(left.reg(), ShifterOperand(right.reg()));
   }
-
-  if (branch != NULL) {
-    EmitBranchOnCondition(compiler,
-                          branch->true_successor(),
-                          branch->false_successor(),
-                          true_condition);
-  } else {
-    Register result = locs.out().reg();
-    __ LoadObject(result, Bool::True(), true_condition);
-    __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
-  }
-}
-
-
-static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
-                                      const LocationSummary& locs,
-                                      Token::Kind kind,
-                                      BranchInstr* branch) {
-  UNIMPLEMENTED();
-}
-
-
-static void EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
-                                        const LocationSummary& locs,
-                                        Token::Kind kind,
-                                        BranchInstr* branch) {
-  UNIMPLEMENTED();
+  return true_condition;
 }
 
 
@@ -530,97 +502,61 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 }
 
 
-static void EmitDoubleCompareBranch(FlowGraphCompiler* compiler,
-                                    Condition true_condition,
-                                    FpuRegister left,
-                                    FpuRegister right,
-                                    BranchInstr* branch) {
-  ASSERT(branch != NULL);
-  DRegister dleft = EvenDRegisterOf(left);
-  DRegister dright = EvenDRegisterOf(right);
-  __ vcmpd(dleft, dright);
-  __ vmstat();
-  BlockEntryInstr* nan_result = (true_condition == NE) ?
-      branch->true_successor() : branch->false_successor();
-  __ b(compiler->GetJumpLabel(nan_result), VS);
-  EmitBranchOnCondition(compiler,
-                        branch->true_successor(),
-                        branch->false_successor(),
-                        true_condition);
-}
-
-
-static void EmitDoubleCompareBool(FlowGraphCompiler* compiler,
-                                  Condition true_condition,
-                                  FpuRegister left,
-                                  FpuRegister right,
-                                  Register result) {
-  DRegister dleft = EvenDRegisterOf(left);
-  DRegister dright = EvenDRegisterOf(right);
-  __ vcmpd(dleft, dright);
-  __ vmstat();
-  __ LoadObject(result, Bool::False());
-  Label done;
-  if (true_condition != NE) {
-    __ b(&done, VS);  // x == NaN -> false, x != NaN -> true.
-  }
-  __ LoadObject(result, Bool::True(), true_condition);
-  __ Bind(&done);
-}
-
-
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
-                                   const LocationSummary& locs,
-                                   Token::Kind kind,
-                                   BranchInstr* branch) {
-  QRegister left = locs.in(0).fpu_reg();
-  QRegister right = locs.in(1).fpu_reg();
-
-  Condition true_condition = TokenKindToDoubleCondition(kind);
-  if (branch != NULL) {
-    EmitDoubleCompareBranch(compiler, true_condition, left, right, branch);
-  } else {
-    EmitDoubleCompareBool(compiler, true_condition,
-                          left, right, locs.out().reg());
-  }
+                                   LocationSummary* locs) {
+  QRegister left = locs->in(0).fpu_reg();
+  QRegister right = locs->in(1).fpu_reg();
+  DRegister dleft = EvenDRegisterOf(left);
+  DRegister dright = EvenDRegisterOf(right);
+  __ vcmpd(dleft, dright);
+  __ vmstat();
 }
 
 
 void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
-  BranchInstr* kNoBranch = NULL;
+
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
-    return;
+    Condition true_condition = EmitSmiComparisonOp(compiler, locs(), kind());
+    Register result = locs()->out().reg();
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    EmitDoubleComparisonOp(compiler, locs());
+
+    Register result = locs()->out().reg();
+    Condition true_condition = TokenKindToDoubleCondition(kind());
+    Label done;
+    __ LoadObject(result, Bool::False());
+    if (true_condition != NE) {
+      __ b(&done, VS);  // x == NaN -> false, x != NaN -> true.
+    }
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ Bind(&done);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), kNoBranch);
-    return;
-  }
-  if (operation_cid() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
-    return;
-  }
-  UNREACHABLE();
 }
 
 
 void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                           BranchInstr* branch) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
+
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
+  Condition true_condition = kNoCondition;
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
-    return;
+    true_condition = EmitSmiComparisonOp(compiler, locs(), kind());
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    true_condition = TokenKindToDoubleCondition(kind());
+    EmitDoubleComparisonOp(compiler, locs());
+
+    Label* nan_result = (true_condition == NE) ?
+        labels.true_label : labels.false_label;
+    __ b(nan_result, VS);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  if (operation_cid() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  UNREACHABLE();
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -645,7 +581,9 @@ void TestSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                   BranchInstr* branch) {
-  Condition branch_condition = (kind() == Token::kNE) ? NE : EQ;
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
+  Condition true_condition = (kind() == Token::kNE) ? NE : EQ;
   Register left = locs()->in(0).reg();
   Location right = locs()->in(1);
   if (right.IsConstant()) {
@@ -656,10 +594,7 @@ void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   } else {
     __ tst(left, ShifterOperand(right.reg()));
   }
-  EmitBranchOnCondition(compiler,
-                        branch->true_successor(),
-                        branch->false_successor(),
-                        branch_condition);
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -701,30 +636,44 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
 
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL);
-    return;
+    Condition true_condition = EmitSmiComparisonOp(compiler, locs(), kind());
+    Register result = locs()->out().reg();
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    EmitDoubleComparisonOp(compiler, locs());
+
+    Register result = locs()->out().reg();
+    Condition true_condition = TokenKindToDoubleCondition(kind());
+    Label done;
+    __ LoadObject(result, Bool::False());
+    if (true_condition != NE) {
+      __ b(&done, VS);  // x == NaN -> false, x != NaN -> true.
+    }
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ Bind(&done);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), NULL);
-    return;
-  }
-  ASSERT(operation_cid() == kDoubleCid);
-  EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
 }
 
 
 void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
+  Condition true_condition = kNoCondition;
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
-    return;
+    true_condition = EmitSmiComparisonOp(compiler, locs(), kind());
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    true_condition = TokenKindToDoubleCondition(kind());
+    EmitDoubleComparisonOp(compiler, locs());
+
+    Label* nan_result = (true_condition == NE) ?
+        labels.true_label : labels.false_label;
+    __ b(nan_result, VS);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  ASSERT(operation_cid() == kDoubleCid);
-  EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -4479,28 +4428,38 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
 }
 
 
-// Special code for numbers (compare values instead of references.)
-void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
+static void EmitStrictComparison(FlowGraphCompiler* compiler,
+                                 StrictCompareInstr* compare) {
+  LocationSummary* locs = compare->locs();
+  bool needs_number_check = compare->needs_number_check();
+  intptr_t token_pos = compare->token_pos();
+  Location left = locs->in(0);
+  Location right = locs->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+                                          needs_number_check,
+                                          token_pos);
   } else if (right.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(left.reg(),
                                           right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
+                                          needs_number_check,
+                                          token_pos);
   } else {
     compiler->EmitEqualityRegRegCompare(left.reg(),
                                        right.reg(),
-                                       needs_number_check(),
-                                       token_pos());
+                                       needs_number_check,
+                                       token_pos);
   }
+}
+
+
+// Special code for numbers (compare values instead of references.)
+void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+
+  EmitStrictComparison(compiler, this);
 
   Register result = locs()->out().reg();
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
@@ -4512,31 +4471,12 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                         BranchInstr* branch) {
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
-  if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
-  } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
-  } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                        right.reg(),
-                                        needs_number_check(),
-                                        token_pos());
-  }
 
+  EmitStrictComparison(compiler, this);
+
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  EmitBranchOnCondition(compiler,
-                        branch->true_successor(),
-                        branch->false_successor(),
-                        true_condition);
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
