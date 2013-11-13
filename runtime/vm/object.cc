@@ -2845,9 +2845,11 @@ bool Class::TypeTestNonRecursive(
     for (intptr_t i = 0; i < interfaces.Length(); i++) {
       interface ^= interfaces.At(i);
       if (!interface.IsFinalized()) {
-        // We may be checking bounds at finalization time. Skipping this
-        // unfinalized interface will postpone bound checking to run time.
-        continue;
+        // We may be checking bounds at finalization time and can encounter
+        // a still unfinalized interface.
+        ClassFinalizer::FinalizeType(
+            thsi, interface, ClassFinalizer::kCanonicalize);
+        interfaces.SetAt(i, interface);
       }
       error = Error::null();
       if (interface.IsMalboundedWithError(&error)) {
@@ -12404,22 +12406,28 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
 
 
 const char* BoundedType::ToCString() const {
-  const char* format = "BoundedType: type %s; bound: %s; type param: %s of %s";
+  const char* format = "BoundedType: type %s; bound: %s; type param: %s%s%s";
   const char* type_cstr = String::Handle(AbstractType::Handle(
       type()).Name()).ToCString();
   const char* bound_cstr = String::Handle(AbstractType::Handle(
       bound()).Name()).ToCString();
-  const char* type_param_cstr = String::Handle(TypeParameter::Handle(
-      type_parameter()).name()).ToCString();
-  const Class& cls = Class::Handle(TypeParameter::Handle(
-      type_parameter()).parameterized_class());
-  const char* cls_cstr =
-      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
-  intptr_t len = OS::SNPrint(
-      NULL, 0, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr) + 1;
+  const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
+  const char* type_param_cstr = "null";
+  const char* of_cstr = "";
+  const char* cls_cstr = "";
+  if (!type_param.IsNull()) {
+    type_param_cstr = String::Handle(type_param.name()).ToCString();
+    const Class& cls = Class::Handle(type_param.parameterized_class());
+    if (!cls.IsNull()) {
+      of_cstr = " of ";
+      cls_cstr = String::Handle(cls.Name()).ToCString();
+    }
+  }
+  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
+                             type_param_cstr, of_cstr, cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(
-      chars, len, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr);
+  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
+              of_cstr, cls_cstr);
   return chars;
 }
 
