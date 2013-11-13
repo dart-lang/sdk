@@ -52,6 +52,7 @@ class PubHttpClient extends http.BaseClient {
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _requestStopwatches[request] = new Stopwatch()..start();
+    request.headers[HttpHeaders.USER_AGENT] = "Dart pub ${sdk.version}";
     _logRequest(request);
 
     // TODO(nweiz): remove this when issue 4061 is fixed.
