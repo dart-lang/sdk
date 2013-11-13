@@ -36,4 +36,18 @@ main() {
   test('current', () {
     expect(path.current, io.Directory.current.path);
   });
+
+  test('registers changes to the working directory', () {
+    expect(path.absolute('foo/bar'),
+        equals(path.join(io.Directory.current.path, 'foo/bar')));
+
+    var sandbox = io.Directory.systemTemp.createTempSync('path_test_').path;
+    try {
+      io.Directory.current = sandbox;
+
+      expect(path.absolute('foo/bar'), equals(path.join(sandbox, 'foo/bar')));
+    } finally {
+      new io.Directory(sandbox).deleteSync(recursive: true);
+    }
+  });
 }

@@ -46,10 +46,6 @@
 /// even when the program is run on a POSIX machine.
 library path;
 
-/// An internal builder for the current OS so we can provide a straight
-/// functional interface and not require users to create one.
-final _builder = new Builder();
-
 /// A default builder for manipulating POSIX paths.
 final posix = new Builder(style: Style.posix);
 
@@ -64,6 +60,22 @@ final url = new Builder(style: Style.url);
 void _growListFront(List list, int length, fillValue) =>
   list.insertAll(0, new List.filled(length, fillValue));
 
+/// The result of [Uri.base] last time the current working directory was
+/// calculated.
+///
+/// This is used to invalidate [_cachedBuilder] when the working directory has
+/// changed since the last time a function was called.
+Uri _lastBaseUri;
+
+/// An internal builder for the current OS so we can provide a straight
+/// functional interface and not require users to create one.
+Builder get _builder {
+  if (_cachedBuilder != null && Uri.base == _lastBaseUri) return _cachedBuilder;
+  _lastBaseUri = Uri.base;
+  _cachedBuilder = new Builder();
+  return _cachedBuilder;
+}
+Builder _cachedBuilder;
 
 /// Gets the path to the current working directory.
 ///
