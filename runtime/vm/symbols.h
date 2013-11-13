@@ -60,7 +60,7 @@ class ObjectPointerVisitor;
   V(SavedEntryContextVar, ":saved_entry_context_var")                          \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionVar, ":exception_var")                                            \
-  V(StacktraceVar, ":stacktrace_var")                                          \
+  V(StackTraceVar, ":stack_trace_var")                                         \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
   V(ClosureFunctionField, ":function")                                         \

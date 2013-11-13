@@ -147,6 +147,33 @@ class TryCatchTest {
     }
   }
 
+  static void test11() {
+    var e0 = 11;
+    try {
+      throw "up";
+    } on int catch (e0) {
+      Expect.fail("unreachable");
+    } on String catch (e1) {
+      // e0 from the other catch clause is not in scope.
+      Expect.equals(11, e0);
+    }
+  }
+
+  static void test12() {
+    const x = const [];
+    try {
+      throw "up";
+    } catch (e) {
+      Expect.equals("up", e);
+    } on String catch (e) {
+      // Compile-time constants in unreachable catch blocks are still
+      // compiled.
+      const y = x[0];  /// 01: compile-time error
+      Expect.fail("unreachable");
+    }
+  }
+      
+
   static void testMain() {
     test1();
     test2();
@@ -158,6 +185,8 @@ class TryCatchTest {
     test8();
     test9();
     test10();
+    test11();
+    test12();
   }
 }
 

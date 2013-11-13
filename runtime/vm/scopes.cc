@@ -439,21 +439,6 @@ SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
 }
 
 
-SourceLabel* LocalScope::LookupInnermostCatchLabel() {
-  LocalScope* current_scope = this;
-  while (current_scope != NULL) {
-    for (intptr_t i = 0; i < current_scope->labels_.length(); i++) {
-      SourceLabel* label = current_scope->labels_[i];
-      if (label->kind() == SourceLabel::kCatch) {
-        return label;
-      }
-    }
-    current_scope = current_scope->parent();
-  }
-  return NULL;
-}
-
-
 LocalScope* LocalScope::LookupSwitchScope() {
   LocalScope* current_scope = this->parent();
   int this_level = this->function_level();

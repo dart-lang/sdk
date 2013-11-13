@@ -7,29 +7,33 @@
 
 #include "include/dart_api.h"
 
+#include "platform/assert.h"
+#include "platform/globals.h"
 #include "lib/invocation_mirror.h"
+#include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
-#include "vm/scanner.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
+#include "vm/token.h"
 
 namespace dart {
 
 // Forward declarations.
 class ArgumentsDescriptor;
-class Function;
 class Isolate;
-class LiteralToken;
-class Script;
-class TokenStream;
+class LocalScope;
+class LocalVariable;
+class SourceLabel;
+template <typename T> class GrowableArray;
 
-struct TopLevel;
+struct CatchParamDesc;
 class ClassDesc;
 struct MemberDesc;
 struct ParamList;
 struct QualIdent;
-struct CatchParamDesc;
-struct FieldInitExpression;
+struct TopLevel;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -506,9 +510,15 @@ class Parser : public ValueObject {
   AstNode* ParseSwitchStatement(String* label_name);
 
   // try/catch/finally parsing.
-  void AddCatchParamsToScope(const CatchParamDesc& exception_param,
-                             const CatchParamDesc& stack_trace_param,
+  void AddCatchParamsToScope(CatchParamDesc* exception_param,
+                             CatchParamDesc* stack_trace_param,
                              LocalScope* scope);
+  // Parse all the catch clause of a try.
+  SequenceNode* ParseCatchClauses(intptr_t handler_pos,
+                                  LocalVariable* exception_var,
+                                  LocalVariable* stack_trace_var,
+                                  const GrowableObjectArray& handler_types,
+                                  bool* needs_stack_trace);
   // Parse finally block and create an AST for it.
   SequenceNode* ParseFinallyBlock();
   // Adds try block to the list of try blocks seen so far.

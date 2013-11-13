@@ -3599,11 +3599,12 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                catch_block->stacktrace_var(),
                                catch_block->needs_stacktrace());
   owner()->AddCatchEntry(catch_entry);
-  ASSERT(!for_catch.is_open());
   AppendFragment(catch_entry, for_catch);
 
-  JoinEntryInstr* join = node->end_catch_label()->join_for_continue();
-  if (join != NULL) {
+  if (for_catch.is_open()) {
+    JoinEntryInstr* join = new JoinEntryInstr(owner()->AllocateBlockId(),
+                                              original_handler_index);
+    for_catch.Goto(join);
     if (is_open()) Goto(join);
     exit_ = join;
   }

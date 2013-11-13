@@ -1672,14 +1672,12 @@ class TryCatchNode : public AstNode {
  public:
   TryCatchNode(intptr_t token_pos,
                SequenceNode* try_block,
-               SourceLabel* end_catch_label,
                const LocalVariable* context_var,
                CatchClauseNode* catch_block,
                SequenceNode* finally_block,
                intptr_t try_index)
       : AstNode(token_pos),
         try_block_(try_block),
-        end_catch_label_(end_catch_label),
         context_var_(*context_var),
         catch_block_(catch_block),
         finally_block_(finally_block),
@@ -1687,11 +1685,9 @@ class TryCatchNode : public AstNode {
     ASSERT(try_block_ != NULL);
     ASSERT(context_var != NULL);
     ASSERT(catch_block_ != NULL || finally_block_ != NULL);
-    ASSERT(end_catch_label_ != NULL);
   }
 
   SequenceNode* try_block() const { return try_block_; }
-  SourceLabel* end_catch_label() const { return end_catch_label_; }
   CatchClauseNode* catch_block() const { return catch_block_; }
   SequenceNode* finally_block() const { return finally_block_; }
   const LocalVariable& context_var() const { return context_var_; }
@@ -1711,7 +1707,6 @@ class TryCatchNode : public AstNode {
 
  private:
   SequenceNode* try_block_;
-  SourceLabel* end_catch_label_;
   const LocalVariable& context_var_;
   CatchClauseNode* catch_block_;
   SequenceNode* finally_block_;

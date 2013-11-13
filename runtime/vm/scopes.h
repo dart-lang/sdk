@@ -287,9 +287,6 @@ class LocalScope : public ZoneAllocated {
   // statement.
   SourceLabel* LookupInnermostLabel(Token::Kind jump_kind);
 
-  // Lookup the label for the "innermost" catch block if one exists.
-  SourceLabel* LookupInnermostCatchLabel();
-
   // Lookup scope of outer switch statement at same function level.
   // Returns NULL if this scope is not embedded in a switch.
   LocalScope* LookupSwitchScope();
