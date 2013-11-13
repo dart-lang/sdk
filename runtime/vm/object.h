@@ -1443,6 +1443,8 @@ class Function : public Object {
   RawString* QualifiedUserVisibleName() const;
   virtual RawString* DictionaryName() const { return name(); }
 
+  RawString* GetSource();
+
   // Build a string of the form 'C<T, R>(T, {b: B, c: C}) => R' representing the
   // internal signature of the given function. In this example, T and R are
   // type parameters of class C, the owner of the function.
@@ -2368,7 +2370,8 @@ class Script : public Object {
   void Tokenize(const String& private_key) const;
 
   RawString* GetLine(intptr_t line_number) const;
-
+  RawString* GetSnippet(intptr_t from_token_pos,
+                        intptr_t to_token_pos) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,

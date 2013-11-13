@@ -5447,6 +5447,13 @@ RawString* Function::QualifiedUserVisibleName() const {
 }
 
 
+RawString* Function::GetSource() {
+  const Script& func_script = Script::Handle(script());
+  // Without the + 1 the final "}" is not included.
+  return func_script.GetSnippet(token_pos(), end_token_pos() + 1);
+}
+
+
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
@@ -6965,6 +6972,16 @@ RawString* Script::GetLine(intptr_t line_number) const {
   } else {
     return Symbols::Empty().raw();
   }
+}
+
+
+RawString* Script::GetSnippet(intptr_t from_token_pos,
+                              intptr_t to_token_pos) const {
+  intptr_t from_line, from_column;
+  intptr_t to_line, to_column;
+  GetTokenLocation(from_token_pos, &from_line, &from_column);
+  GetTokenLocation(to_token_pos, &to_line, &to_column);
+  return GetSnippet(from_line, from_column, to_line, to_column);
 }
 
 
