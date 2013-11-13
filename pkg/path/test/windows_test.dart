@@ -46,9 +46,7 @@ main() {
     expect(builder.rootPrefix(r'C:\a\c'), r'C:\');
     expect(builder.rootPrefix('C:\\'), r'C:\');
     expect(builder.rootPrefix('C:/'), 'C:/');
-
-    // TODO(nweiz): enable this once issue 7323 is fixed.
-    // expect(builder.rootPrefix(r'\\server\a\b'), r'\\server\');
+    expect(builder.rootPrefix(r'\\server\share\a\b'), r'\\server\share');
   });
 
   test('dirname', () {
@@ -71,6 +69,8 @@ main() {
     expect(builder.dirname(r'a\b\\'), 'a');
     expect(builder.dirname(r'a\\b'), 'a');
     expect(builder.dirname(r'foo bar\gule fisk'), 'foo bar');
+    expect(builder.dirname(r'\\server\share'), r'\\server\share');
+    expect(builder.dirname(r'\\server\share\dir'), r'\\server\share');
   });
 
   test('basename', () {
@@ -95,6 +95,8 @@ main() {
     expect(builder.basename(r'a\\b'), 'b');
     expect(builder.basename(r'a\\b'), 'b');
     expect(builder.basename(r'a\fisk hest.ma pa'), 'fisk hest.ma pa');
+    expect(builder.basename(r'\\server\share'), r'\\server\share');
+    expect(builder.basename(r'\\server\share\dir'), r'dir');
   });
 
   test('basenameWithoutExtension', () {
@@ -136,8 +138,8 @@ main() {
     expect(builder.isAbsolute(r'B:\'), true);
     expect(builder.isAbsolute(r'c:\a'), true);
     expect(builder.isAbsolute(r'C:\a'), true);
-    expect(builder.isAbsolute(r'\\a'), true);
-    expect(builder.isAbsolute(r'\\'), true);
+    expect(builder.isAbsolute(r'\\server\share'), true);
+    expect(builder.isAbsolute(r'\\server\share\path'), true);
   });
 
   test('isRelative', () {
@@ -157,8 +159,8 @@ main() {
     expect(builder.isRelative(r'B:\'), false);
     expect(builder.isRelative(r'c:\a'), false);
     expect(builder.isRelative(r'C:\a'), false);
-    expect(builder.isRelative(r'\\a'), false);
-    expect(builder.isRelative(r'\\'), false);
+    expect(builder.isRelative(r'\\server\share'), false);
+    expect(builder.isRelative(r'\\server\share\path'), false);
   });
 
   group('join', () {
@@ -184,7 +186,7 @@ main() {
     test('ignores parts before an absolute path', () {
       expect(builder.join('a', '/b', '/c', 'd'), r'a/b/c\d');
       expect(builder.join('a', r'c:\b', 'c', 'd'), r'c:\b\c\d');
-      expect(builder.join('a', r'\\b', r'\\c', 'd'), r'\\c\d');
+      expect(builder.join('a', r'\\b\c', r'\\d\e', 'f'), r'\\d\e\f');
     });
 
     test('ignores trailing nulls', () {
@@ -230,7 +232,7 @@ main() {
     test('ignores parts before an absolute path', () {
       expect(builder.joinAll(['a', '/b', '/c', 'd']), r'a/b/c\d');
       expect(builder.joinAll(['a', r'c:\b', 'c', 'd']), r'c:\b\c\d');
-      expect(builder.joinAll(['a', r'\\b', r'\\c', 'd']), r'\\c\d');
+      expect(builder.joinAll(['a', r'\\b\c', r'\\d\e', 'f']), r'\\d\e\f');
     });
   });
 
@@ -257,10 +259,9 @@ main() {
           equals([r'C:\', 'foo', 'bar', 'baz']));
       expect(builder.split(r'C:\\'), equals([r'C:\']));
 
-      // TODO(nweiz): enable these once issue 7323 is fixed.
-      // expect(builder.split(r'\\server\foo\bar\baz'),
-      //     equals([r'\\server\', 'foo', 'bar', 'baz']));
-      // expect(builder.split(r'\\server\'), equals([r'\\server\']));
+      expect(builder.split(r'\\server\share\foo\bar\baz'),
+          equals([r'\\server\share', 'foo', 'bar', 'baz']));
+      expect(builder.split(r'\\server\share'), equals([r'\\server\share']));
     });
   });
 
@@ -274,7 +275,7 @@ main() {
       expect(builder.normalize('/'), r'.');
       expect(builder.normalize('C:/'), r'C:\');
       expect(builder.normalize(r'C:\'), r'C:\');
-      expect(builder.normalize(r'\\'), r'\\');
+      expect(builder.normalize(r'\\server\share'), r'\\server\share');
       expect(builder.normalize('a\\.\\\xc5\u0bf8-;\u{1f085}\u{00}\\c\\d\\..\\'),
              'a\\\xc5\u0bf8-;\u{1f085}\u{00}\x5cc');
     });
@@ -288,8 +289,7 @@ main() {
       expect(builder.normalize(r'.\'), '.');
       expect(builder.normalize(r'c:\.'), r'c:\');
       expect(builder.normalize(r'B:\.\'), r'B:\');
-      expect(builder.normalize(r'\\.'), r'\\');
-      expect(builder.normalize(r'\\.\'), r'\\');
+      expect(builder.normalize(r'\\server\share\.'), r'\\server\share');
       expect(builder.normalize(r'.\.'), '.');
       expect(builder.normalize(r'a\.\b'), r'a\b');
       expect(builder.normalize(r'a\.b\c'), r'a\.b\c');
@@ -303,10 +303,9 @@ main() {
       expect(builder.normalize(r'..\'), '..');
       expect(builder.normalize(r'..\..\..'), r'..\..\..');
       expect(builder.normalize(r'../..\..\'), r'..\..\..');
-      // TODO(rnystrom): Is this how Python handles absolute paths on Windows?
-      expect(builder.normalize(r'\\..'), r'\\');
-      expect(builder.normalize(r'\\..\..\..'), r'\\');
-      expect(builder.normalize(r'\\..\../..\a'), r'\\a');
+      expect(builder.normalize(r'\\server\share\..'), r'\\server\share');
+      expect(builder.normalize(r'\\server\share\..\../..\a'),
+          r'\\server\share\a');
       expect(builder.normalize(r'c:\..'), r'c:\');
       expect(builder.normalize(r'A:/..\..\..'), r'A:\');
       expect(builder.normalize(r'b:\..\..\..\a'), r'b:\a');
@@ -434,7 +433,7 @@ main() {
 
     test('given absolute with different root prefix', () {
       expect(builder.relative(r'D:\a\b'), r'D:\a\b');
-      expect(builder.relative(r'\\a\b'), r'\\a\b');
+      expect(builder.relative(r'\\server\share\a\b'), r'\\server\share\a\b');
     });
 
     test('from a . root', () {
@@ -466,7 +465,7 @@ main() {
     test('ignores parts before an absolute path', () {
       expect(builder.resolve('a', '/b', '/c', 'd'), r'C:\root\path\a/b/c\d');
       expect(builder.resolve('a', r'c:\b', 'c', 'd'), r'c:\b\c\d');
-      expect(builder.resolve('a', r'\\b', r'\\c', 'd'), r'\\c\d');
+      expect(builder.resolve('a', r'\\b\c', r'\\d\e', 'f'), r'\\d\e\f');
     });
   });
 
@@ -492,19 +491,20 @@ main() {
   test('fromUri', () {
     expect(builder.fromUri(Uri.parse('file:///C:/path/to/foo')),
         r'C:\path\to\foo');
-    expect(builder.fromUri(Uri.parse('file://hostname/path/to/foo')),
-        r'\\hostname\path\to\foo');
+    expect(builder.fromUri(Uri.parse('file://server/share/path/to/foo')),
+        r'\\server\share\path\to\foo');
     expect(builder.fromUri(Uri.parse('file:///C:/')), r'C:\');
-    expect(builder.fromUri(Uri.parse('file://hostname/')), r'\\hostname\');
+    expect(builder.fromUri(Uri.parse('file://server/share')),
+        r'\\server\share');
     expect(builder.fromUri(Uri.parse('foo/bar')), r'foo\bar');
     expect(builder.fromUri(Uri.parse('/C:/path/to/foo')), r'C:\path\to\foo');
     expect(builder.fromUri(Uri.parse('///C:/path/to/foo')), r'C:\path\to\foo');
-    expect(builder.fromUri(Uri.parse('//hostname/path/to/foo')),
-        r'\\hostname\path\to\foo');
+    expect(builder.fromUri(Uri.parse('//server/share/path/to/foo')),
+        r'\\server\share\path\to\foo');
     expect(builder.fromUri(Uri.parse('file:///C:/path/to/foo%23bar')),
         r'C:\path\to\foo#bar');
-    expect(builder.fromUri(Uri.parse('file://hostname/path/to/foo%23bar')),
-        r'\\hostname\path\to\foo#bar');
+    expect(builder.fromUri(Uri.parse('file://server/share/path/to/foo%23bar')),
+        r'\\server\share\path\to\foo#bar');
     expect(builder.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
         r'_{_}_`_^_ _"_%_');
     expect(() => builder.fromUri(Uri.parse('http://dartlang.org')),
@@ -517,12 +517,14 @@ main() {
     expect(builder.toUri(r'C:\path\to\foo\'),
         Uri.parse('file:///C:/path/to/foo/'));
     expect(builder.toUri(r'C:\'), Uri.parse('file:///C:/'));
-    expect(builder.toUri(r'\\hostname\'), Uri.parse('file://hostname/'));
+    expect(builder.toUri(r'\\server\share'), Uri.parse('file://server/share'));
+    expect(builder.toUri(r'\\server\share\'),
+        Uri.parse('file://server/share/'));
     expect(builder.toUri(r'foo\bar'), Uri.parse('foo/bar'));
     expect(builder.toUri(r'C:\path\to\foo#bar'),
         Uri.parse('file:///C:/path/to/foo%23bar'));
-    expect(builder.toUri(r'\\hostname\path\to\foo#bar'),
-        Uri.parse('file://hostname/path/to/foo%23bar'));
+    expect(builder.toUri(r'\\server\share\path\to\foo#bar'),
+        Uri.parse('file://server/share/path/to/foo%23bar'));
     expect(builder.toUri(r'C:\_{_}_`_^_ _"_%_'),
         Uri.parse('file:///C:/_%7B_%7D_%60_%5E_%20_%22_%25_'));
     expect(builder.toUri(r'_{_}_`_^_ _"_%_'),

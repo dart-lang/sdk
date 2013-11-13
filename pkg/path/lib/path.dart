@@ -981,7 +981,7 @@ class _WindowsStyle extends Style {
   final separator = '\\';
   final separatorPattern = new RegExp(r'[/\\]');
   final needsSeparatorPattern = new RegExp(r'[^/\\]$');
-  final rootPattern = new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+  final rootPattern = new RegExp(r'^(\\\\[^\\]+\\[^\\/]+|[a-zA-Z]:[/\\])');
 
   String pathFromUri(Uri uri) {
     if (uri.scheme != '' && uri.scheme != 'file') {
@@ -1002,23 +1002,22 @@ class _WindowsStyle extends Style {
 
   Uri absolutePathToUri(String path) {
     var parsed = builder._parse(path);
-    if (parsed.root == r'\\') {
-      // Network paths become "file://hostname/path/to/file".
+    if (parsed.root.startsWith(r'\\')) {
+      // Network paths become "file://server/share/path/to/file".
 
-      var host = parsed.parts.removeAt(0);
+      // The root is of the form "\\server\share". We want "server" to be the
+      // URI host, and "share" to be the first element of the path.
+      var rootParts = parsed.root.split('\\').where((part) => part != '');
+      parsed.parts.insert(0, rootParts.last);
 
-      if (parsed.parts.isEmpty) {
-        // If the path is a bare root (e.g. "\\hostname"), [parsed.parts] will
-        // currently be empty. We add two empty components so the URL
-        // constructor produces "file://hostname/", with a trailing slash.
-        parsed.parts.addAll(["", ""]);
-      } else if (parsed.hasTrailingSeparator) {
+      if (parsed.hasTrailingSeparator) {
         // If the path has a trailing slash, add a single empty component so the
         // URI has a trailing slash as well.
         parsed.parts.add("");
       }
 
-      return new Uri(scheme: 'file', host: host, pathSegments: parsed.parts);
+      return new Uri(scheme: 'file', host: rootParts.first,
+          pathSegments: parsed.parts);
     } else {
       // Drive-letter paths become "file:///C:/path/to/file".
 
