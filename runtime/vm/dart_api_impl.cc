@@ -2960,6 +2960,21 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(isolate, type_obj.type_class());
 
+  // Mark all fields as nullable.
+  Class& iterate_cls = Class::Handle(isolate, cls.raw());
+  Field& field = Field::Handle(isolate);
+  Array& fields = Array::Handle(isolate);
+  while (!iterate_cls.IsNull()) {
+    fields = iterate_cls.fields();
+    iterate_cls = iterate_cls.SuperClass();
+    for (int field_num = 0; field_num < fields.Length(); field_num++) {
+      field ^= fields.At(field_num);
+      if (field.is_static()) {
+        continue;
+      }
+      field.UpdateGuardedCidAndLength(Object::null_object());
+    }
+  }
   // Allocate an object for the given class.
   return Api::NewHandle(isolate, Instance::New(cls));
 }
