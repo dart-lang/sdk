@@ -6197,8 +6197,11 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
   } else if (IsConstant(value)) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    // TODO(kmillikin): Handle constants.
-    SetValue(instr, non_constant_);
+    if (instr->value()->Type()->IsAssignableTo(instr->dst_type())) {
+      SetValue(instr, value);
+    } else {
+      SetValue(instr, non_constant_);
+    }
   }
 }
 
@@ -6208,8 +6211,11 @@ void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(value)) {
-    // TODO(kmillikin): Handle assertion.
-    SetValue(instr, non_constant_);
+    if (value.IsBool()) {
+      SetValue(instr, value);
+    } else {
+      SetValue(instr, non_constant_);
+    }
   }
 }
 
