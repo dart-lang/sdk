@@ -39,14 +39,14 @@ void testInstance() {
   Expect.equals(foo, o.owner);
   Expect.equals(foo, p.owner);
 
-  Expect.equals(baz, field.type); /// 01: ok
+  Expect.equals(baz, field.type);
   Expect.equals(baz, getter.returnType);
   Expect.equals(bar, m.returnType);
   Expect.equals(baz, n.returnType);
   Expect.equals(bar, o.parameters.single.type);
-  Expect.equals(hOfBaz, p.returnType);  /// 02: ok
+  Expect.equals(hOfBaz, p.returnType);
   Expect.equals(1, p.returnType.typeArguments.length);
-  Expect.equals(baz, p.returnType.typeArguments[0]); /// 02: ok
+  Expect.equals(baz, p.returnType.typeArguments[0]);
 
   Expect.equals(baz, setter.parameters.single.type);
 
@@ -73,7 +73,7 @@ void testOriginalDeclaration() {
   Expect.equals(foo, o.owner);
   Expect.equals(foo, p.owner);
 
-  Expect.equals(v, field.type); /// 01: ok
+  Expect.equals(v, field.type);
   Expect.equals(v, getter.returnType);
   Expect.equals(w, m.returnType);
   Expect.equals(v, n.returnType);

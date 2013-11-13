@@ -212,7 +212,11 @@ class ClassEmitter extends CodeEmitterHelper {
             }
           }
           if (backend.isAccessibleByReflection(field)) {
-            buffer.write(new String.fromCharCode(REFLECTION_MARKER));
+            buffer.write('-');
+            if (backend.isNeededForReflection(field)) {
+              DartType type = field.computeType(compiler);
+              buffer.write('${task.metadataEmitter.reifyType(type)}');
+            }
           }
         }
       });
