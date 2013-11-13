@@ -24,6 +24,9 @@ class BuildFilter extends Transformer with PolymerTransformer {
   Future<bool> isPrimary(Asset input) => new Future.value(
       // nothing is filtered in debug mode
       options.releaseMode &&
+      // TODO(sigmund): remove this exclusion once we have dev_transformers
+      // (dartbug.com/14187)
+      input.id.path.startsWith('web/') &&
       // may filter non-entry HTML files and internal artifacts
       (input.id.extension == '.html' || input.id.extension == '.scriptUrls') &&
       // keep any entry points
