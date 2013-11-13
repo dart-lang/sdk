@@ -4507,6 +4507,10 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
@@ -4535,6 +4539,10 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -4568,6 +4576,10 @@ class BoxInt32x4Instr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedInt32x4;
@@ -4599,6 +4611,10 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
