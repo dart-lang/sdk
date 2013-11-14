@@ -26,6 +26,7 @@ import "test_suite.dart";
 import "utils.dart";
 import 'record_and_replay.dart';
 
+const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
@@ -660,7 +661,7 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
     if (io.Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
-      if (exitCode == 3) {
+      if (exitCode == 3 || exitCode == CRASHING_BROWSER_EXITCODE) {
         return !timedOut;
       }
       // If a program receives an uncaught system exception, the program
@@ -1366,6 +1367,7 @@ class BatchRunnerProcess {
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
+    if (outcome == "CRASH") exitCode = CRASHING_BROWSER_EXITCODE;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     var output = createCommandOutput(_command,
                         exitCode,

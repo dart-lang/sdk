@@ -302,14 +302,6 @@ Note: currently only implemented for dart2js.''',
               'bool'
               ),
           new _TestOptionSpecification(
-              'use_browser_controller',
-              'Use the new selenium replacement browser-controller.',
-              ['--use_browser_controller'],
-              [],
-              true,
-              'bool'
-              ),
-          new _TestOptionSpecification(
               'clear_safari_cache',
               'Clear the safari cache (i.e., delete it).',
               ['--clear_safari_cache'],
