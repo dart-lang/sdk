@@ -560,10 +560,13 @@ class Builder {
       if (this.isRootRelative(part) && isAbsoluteAndNotRootRelative) {
         // If the new part is root-relative, it preserves the previous root but
         // replaces the path after it.
-        var oldRoot = this.rootPrefix(buffer.toString());
+        var parsed = _parse(part);
+        parsed.root = this.rootPrefix(buffer.toString());
+        if (parsed.root.contains(style.needsSeparatorPattern)) {
+          parsed.separators[0] = style.separator;
+        }
         buffer.clear();
-        buffer.write(oldRoot);
-        buffer.write(part);
+        buffer.write(parsed);
       } else if (this.isAbsolute(part)) {
         isAbsoluteAndNotRootRelative = !this.isRootRelative(part);
         // An absolute path discards everything before it.
@@ -982,6 +985,10 @@ class _WindowsStyle extends Style {
   final separatorPattern = new RegExp(r'[/\\]');
   final needsSeparatorPattern = new RegExp(r'[^/\\]$');
   final rootPattern = new RegExp(r'^(\\\\[^\\]+\\[^\\/]+|[a-zA-Z]:[/\\])');
+
+  // Matches a back or forward slash that's not followed by another back or
+  // forward slash.
+  final relativeRootPattern = new RegExp(r"^[/\\](?![/\\])");
 
   String pathFromUri(Uri uri) {
     if (uri.scheme != '' && uri.scheme != 'file') {

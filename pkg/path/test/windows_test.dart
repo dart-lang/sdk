@@ -47,6 +47,10 @@ main() {
     expect(builder.rootPrefix('C:\\'), r'C:\');
     expect(builder.rootPrefix('C:/'), 'C:/');
     expect(builder.rootPrefix(r'\\server\share\a\b'), r'\\server\share');
+    expect(builder.rootPrefix(r'\a\b'), r'\');
+    expect(builder.rootPrefix(r'/a/b'), r'/');
+    expect(builder.rootPrefix(r'\'), r'\');
+    expect(builder.rootPrefix(r'/'), r'/');
   });
 
   test('dirname', () {
@@ -71,6 +75,10 @@ main() {
     expect(builder.dirname(r'foo bar\gule fisk'), 'foo bar');
     expect(builder.dirname(r'\\server\share'), r'\\server\share');
     expect(builder.dirname(r'\\server\share\dir'), r'\\server\share');
+    expect(builder.dirname(r'\a'), r'\');
+    expect(builder.dirname(r'/a'), r'/');
+    expect(builder.dirname(r'\'), r'\');
+    expect(builder.dirname(r'/'), r'/');
   });
 
   test('basename', () {
@@ -97,6 +105,10 @@ main() {
     expect(builder.basename(r'a\fisk hest.ma pa'), 'fisk hest.ma pa');
     expect(builder.basename(r'\\server\share'), r'\\server\share');
     expect(builder.basename(r'\\server\share\dir'), r'dir');
+    expect(builder.basename(r'\a'), r'a');
+    expect(builder.basename(r'/a'), r'a');
+    expect(builder.basename(r'\'), r'\');
+    expect(builder.basename(r'/'), r'/');
   });
 
   test('basenameWithoutExtension', () {
@@ -127,8 +139,10 @@ main() {
     expect(builder.isAbsolute('..'), false);
     expect(builder.isAbsolute('a'), false);
     expect(builder.isAbsolute(r'a\b'), false);
-    expect(builder.isAbsolute(r'\a'), false);
-    expect(builder.isAbsolute(r'\a\b'), false);
+    expect(builder.isAbsolute(r'\a\b'), true);
+    expect(builder.isAbsolute(r'\'), true);
+    expect(builder.isAbsolute(r'/a/b'), true);
+    expect(builder.isAbsolute(r'/'), true);
     expect(builder.isAbsolute('~'), false);
     expect(builder.isAbsolute('.'), false);
     expect(builder.isAbsolute(r'..\a'), false);
@@ -148,8 +162,10 @@ main() {
     expect(builder.isRelative('..'), true);
     expect(builder.isRelative('a'), true);
     expect(builder.isRelative(r'a\b'), true);
-    expect(builder.isRelative(r'\a'), true);
-    expect(builder.isRelative(r'\a\b'), true);
+    expect(builder.isRelative(r'\a\b'), false);
+    expect(builder.isRelative(r'\'), false);
+    expect(builder.isRelative(r'/a/b'), false);
+    expect(builder.isRelative(r'/'), false);
     expect(builder.isRelative('~'), true);
     expect(builder.isRelative('.'), true);
     expect(builder.isRelative(r'..\a'), true);
@@ -161,6 +177,29 @@ main() {
     expect(builder.isRelative(r'C:\a'), false);
     expect(builder.isRelative(r'\\server\share'), false);
     expect(builder.isRelative(r'\\server\share\path'), false);
+  });
+
+  test('isRootRelative', () {
+    expect(builder.isRootRelative(''), false);
+    expect(builder.isRootRelative('.'), false);
+    expect(builder.isRootRelative('..'), false);
+    expect(builder.isRootRelative('a'), false);
+    expect(builder.isRootRelative(r'a\b'), false);
+    expect(builder.isRootRelative(r'\a\b'), true);
+    expect(builder.isRootRelative(r'\'), true);
+    expect(builder.isRootRelative(r'/a/b'), true);
+    expect(builder.isRootRelative(r'/'), true);
+    expect(builder.isRootRelative('~'), false);
+    expect(builder.isRootRelative('.'), false);
+    expect(builder.isRootRelative(r'..\a'), false);
+    expect(builder.isRootRelative(r'a:/a\b'), false);
+    expect(builder.isRootRelative(r'D:/a/b'), false);
+    expect(builder.isRootRelative(r'c:\'), false);
+    expect(builder.isRootRelative(r'B:\'), false);
+    expect(builder.isRootRelative(r'c:\a'), false);
+    expect(builder.isRootRelative(r'C:\a'), false);
+    expect(builder.isRootRelative(r'\\server\share'), false);
+    expect(builder.isRootRelative(r'\\server\share\path'), false);
   });
 
   group('join', () {
@@ -179,14 +218,15 @@ main() {
     test('does not add separator if a part ends or begins in one', () {
       expect(builder.join(r'a\', 'b', r'c\', 'd'), r'a\b\c\d');
       expect(builder.join('a/', 'b'), r'a/b');
-      expect(builder.join('a', '/b'), 'a/b');
-      expect(builder.join('a', r'\b'), r'a\b');
     });
 
     test('ignores parts before an absolute path', () {
-      expect(builder.join('a', '/b', '/c', 'd'), r'a/b/c\d');
+      expect(builder.join('a', r'\b', r'\c', 'd'), r'\c\d');
+      expect(builder.join('a', '/b', '/c', 'd'), r'/c\d');
       expect(builder.join('a', r'c:\b', 'c', 'd'), r'c:\b\c\d');
       expect(builder.join('a', r'\\b\c', r'\\d\e', 'f'), r'\\d\e\f');
+      expect(builder.join('a', r'c:\b', r'\c', 'd'), r'c:\c\d');
+      expect(builder.join('a', r'\\b\c\d', r'\e', 'f'), r'\\b\c\e\f');
     });
 
     test('ignores trailing nulls', () {
@@ -225,14 +265,15 @@ main() {
     test('does not add separator if a part ends or begins in one', () {
       expect(builder.joinAll([r'a\', 'b', r'c\', 'd']), r'a\b\c\d');
       expect(builder.joinAll(['a/', 'b']), r'a/b');
-      expect(builder.joinAll(['a', '/b']), 'a/b');
-      expect(builder.joinAll(['a', r'\b']), r'a\b');
     });
 
     test('ignores parts before an absolute path', () {
-      expect(builder.joinAll(['a', '/b', '/c', 'd']), r'a/b/c\d');
+      expect(builder.joinAll(['a', r'\b', r'\c', 'd']), r'\c\d');
+      expect(builder.joinAll(['a', '/b', '/c', 'd']), r'/c\d');
       expect(builder.joinAll(['a', r'c:\b', 'c', 'd']), r'c:\b\c\d');
       expect(builder.joinAll(['a', r'\\b\c', r'\\d\e', 'f']), r'\\d\e\f');
+      expect(builder.joinAll(['a', r'c:\b', r'\c', 'd']), r'c:\c\d');
+      expect(builder.joinAll(['a', r'\\b\c\d', r'\e', 'f']), r'\\b\c\e\f');
     });
   });
 
@@ -262,6 +303,10 @@ main() {
       expect(builder.split(r'\\server\share\foo\bar\baz'),
           equals([r'\\server\share', 'foo', 'bar', 'baz']));
       expect(builder.split(r'\\server\share'), equals([r'\\server\share']));
+
+      expect(builder.split(r'\foo\bar\baz'),
+          equals([r'\', 'foo', 'bar', 'baz']));
+      expect(builder.split(r'\'), equals([r'\']));
     });
   });
 
@@ -271,8 +316,10 @@ main() {
       expect(builder.normalize('.'), '.');
       expect(builder.normalize('..'), '..');
       expect(builder.normalize('a'), 'a');
-      expect(builder.normalize(r'\'), '.');
-      expect(builder.normalize('/'), r'.');
+      expect(builder.normalize('/a/b'), r'\a\b');
+      expect(builder.normalize(r'\'), r'\');
+      expect(builder.normalize(r'\a\b'), r'\a\b');
+      expect(builder.normalize('/'), r'\');
       expect(builder.normalize('C:/'), r'C:\');
       expect(builder.normalize(r'C:\'), r'C:\');
       expect(builder.normalize(r'\\server\share'), r'\\server\share');
@@ -296,6 +343,8 @@ main() {
       expect(builder.normalize(r'a\./.\b\.\c'), r'a\b\c');
       expect(builder.normalize(r'.\./a'), 'a');
       expect(builder.normalize(r'a/.\.'), 'a');
+      expect(builder.normalize(r'\.'), r'\');
+      expect(builder.normalize('/.'), r'\');
     });
 
     test('eliminates ".." parts', () {
@@ -313,8 +362,7 @@ main() {
       expect(builder.normalize(r'a\..'), '.');
       expect(builder.normalize(r'..\a'), r'..\a');
       expect(builder.normalize(r'c:\..\a'), r'c:\a');
-      // A path starting with '\' is not an absolute path on Windows.
-      expect(builder.normalize(r'\..\a'), r'..\a');
+      expect(builder.normalize(r'\..\a'), r'\a');
       expect(builder.normalize(r'a\b\..'), 'a');
       expect(builder.normalize(r'..\a\b\..'), r'..\a');
       expect(builder.normalize(r'a\..\b'), 'b');
@@ -342,8 +390,11 @@ main() {
       test('given absolute path in root', () {
         expect(builder.relative(r'C:\'), r'..\..');
         expect(builder.relative(r'C:\root'), '..');
+        expect(builder.relative(r'\root'), '..');
         expect(builder.relative(r'C:\root\path'), '.');
+        expect(builder.relative(r'\root\path'), '.');
         expect(builder.relative(r'C:\root\path\a'), 'a');
+        expect(builder.relative(r'\root\path\a'), 'a');
         expect(builder.relative(r'C:\root\path\a\b.txt'), r'a\b.txt');
         expect(builder.relative(r'C:\root\a\b.txt'), r'..\a\b.txt');
         expect(builder.relative(r'C:/'), r'..\..');
@@ -354,6 +405,7 @@ main() {
 
       test('given absolute path outside of root', () {
         expect(builder.relative(r'C:\a\b'), r'..\..\a\b');
+        expect(builder.relative(r'\a\b'), r'..\..\a\b');
         expect(builder.relative(r'C:\root\path\a'), 'a');
         expect(builder.relative(r'C:\root\path\a\b.txt'), r'a\b.txt');
         expect(builder.relative(r'C:\root\a\b.txt'), r'..\a\b.txt');
@@ -391,6 +443,33 @@ main() {
       test('given absolute path', () {
         expect(r.relative(r'C:\'), equals(r'C:\'));
         expect(r.relative(r'C:\a\b'), equals(r'C:\a\b'));
+        expect(r.relative(r'\'), equals(r'\'));
+        expect(r.relative(r'\a\b'), equals(r'\a\b'));
+      });
+
+      test('given relative path', () {
+        // The path is considered relative to the root, so it basically just
+        // normalizes.
+        expect(r.relative(''), '.');
+        expect(r.relative('.'), '.');
+        expect(r.relative('..'), '..');
+        expect(r.relative('a'), 'a');
+        expect(r.relative(r'a\b.txt'), r'a\b.txt');
+        expect(r.relative(r'..\a/b.txt'), r'..\a\b.txt');
+        expect(r.relative(r'a\./b\../c.txt'), r'a\c.txt');
+      });
+    });
+
+    group('from root-relative root', () {
+      var r = new path.Builder(style: path.Style.windows, root: r'\foo\bar');
+
+      test('given absolute path', () {
+        expect(r.relative(r'C:\'), equals(r'C:\'));
+        expect(r.relative(r'C:\a\b'), equals(r'C:\a\b'));
+        expect(r.relative(r'\'), equals(r'..\..'));
+        expect(r.relative(r'\a\b'), equals(r'..\..\a\b'));
+        expect(r.relative('/'), equals(r'..\..'));
+        expect(r.relative('/a/b'), equals(r'..\..\a\b'));
       });
 
       test('given relative path', () {
@@ -440,6 +519,7 @@ main() {
       var r = new path.Builder(style: path.Style.windows, root: '.');
       expect(r.relative(r'C:\foo\bar\baz'), equals(r'C:\foo\bar\baz'));
       expect(r.relative(r'foo\bar\baz'), equals(r'foo\bar\baz'));
+      expect(r.relative(r'\foo\bar\baz'), equals(r'\foo\bar\baz'));
     });
   });
 
@@ -463,7 +543,8 @@ main() {
     });
 
     test('ignores parts before an absolute path', () {
-      expect(builder.resolve('a', '/b', '/c', 'd'), r'C:\root\path\a/b/c\d');
+      expect(builder.resolve('a', '/b', '/c', 'd'), r'C:\c\d');
+      expect(builder.resolve('a', r'\b', r'\c', 'd'), r'C:\c\d');
       expect(builder.resolve('a', r'c:\b', 'c', 'd'), r'c:\b\c\d');
       expect(builder.resolve('a', r'\\b\c', r'\\d\e', 'f'), r'\\d\e\f');
     });
