@@ -32,9 +32,11 @@ class Constant {
 }
 
 main() {
+  MethodMirror mm;
   ParameterMirror pm;
 
-  pm = reflectClass(Class).constructors[#Class.nongeneric].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.nongeneric];
+  pm = mm.parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(reflectClass(int), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -45,7 +47,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
   
-  pm = reflectClass(Class).constructors[#Class.named].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.named];
+  pm = mm.parameters.single;
   Expect.equals(#boolField, pm.simpleName);
   Expect.equals(reflectClass(bool), pm.type);
   Expect.isTrue(pm.isNamed);  /// 01: ok
@@ -56,7 +59,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.optPos].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.optPos];
+  pm = mm.parameters.single;
   Expect.equals(#stringField, pm.simpleName);
   Expect.equals(reflectClass(String), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -68,7 +72,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
   
-  pm = reflectClass(Class).constructors[#Class.generic].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.generic];
+  pm = mm.parameters.single;
   Expect.equals(#tField, pm.simpleName);
   Expect.equals(reflectClass(Class).typeVariables.single, pm.type);  /// 02: ok
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -79,7 +84,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.private].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.private];
+  pm = mm.parameters.single;
   Expect.equals(#_privateField, pm.simpleName);  /// 03: ok
   Expect.equals(currentMirrorSystem().dynamicType, pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -90,7 +96,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.explicitType].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.explicitType];
+  pm = mm.parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -101,7 +108,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.withVar].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.withVar];
+  pm = mm.parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(reflectClass(int), pm.type);  // N.B.   /// 02: ok
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -112,7 +120,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Class).constructors[#Class.withDynamic].parameters.single;
+  mm = reflectClass(Class).declarations[#Class.withDynamic];
+  pm = mm.parameters.single;
   Expect.equals(#intField, pm.simpleName);
   Expect.equals(currentMirrorSystem().dynamicType, pm.type);  // N.B.
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -123,7 +132,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Constant).constructors[#Constant].parameters.single;
+  mm = reflectClass(Constant).declarations[#Constant];
+  pm = mm.parameters.single;
   Expect.equals(#value, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
@@ -134,7 +144,8 @@ main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  pm = reflectClass(Constant).constructors[#Constant.marked].parameters.single;
+  mm = reflectClass(Constant).declarations[#Constant.marked];
+  pm = mm.parameters.single;
   Expect.equals(#value, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok

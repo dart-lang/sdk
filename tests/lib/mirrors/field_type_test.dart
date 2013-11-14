@@ -26,11 +26,12 @@ class H<T> {}
 
 testOriginalDeclaration() {
   ClassMirror a = reflectClass(A);
-  VariableMirror staticField = a.variables[#staticField];
-  VariableMirror field = a.variables[#field];
-  VariableMirror dynamicTypeField = a.variables[#dynamicTypeField];
-  VariableMirror typeVariableField = a.variables[#typeVariableField];
-  VariableMirror parameterizedTypeField = a.variables[#parameterizedTypeField];
+  VariableMirror staticField = a.declarations[#staticField];
+  VariableMirror field = a.declarations[#field];
+  VariableMirror dynamicTypeField = a.declarations[#dynamicTypeField];
+  VariableMirror typeVariableField = a.declarations[#typeVariableField];
+  VariableMirror parameterizedTypeField =
+      a.declarations[#parameterizedTypeField];
 
   Expect.equals(reflectType(int), staticField.type);
   Expect.equals(reflectClass(String), field.type);
@@ -45,12 +46,12 @@ testOriginalDeclaration() {
 
 testInstance() {
   ClassMirror aOfString = reflect(new A<String>()).type;
-  VariableMirror staticField = aOfString.variables[#staticField];
-  VariableMirror field = aOfString.variables[#field];
-  VariableMirror dynamicTypeField = aOfString.variables[#dynamicTypeField];
-  VariableMirror typeVariableField = aOfString.variables[#typeVariableField];
+  VariableMirror staticField = aOfString.declarations[#staticField];
+  VariableMirror field = aOfString.declarations[#field];
+  VariableMirror dynamicTypeField = aOfString.declarations[#dynamicTypeField];
+  VariableMirror typeVariableField = aOfString.declarations[#typeVariableField];
   VariableMirror parameterizedTypeField =
-      aOfString.variables[#parameterizedTypeField];
+      aOfString.declarations[#parameterizedTypeField];
 
   Expect.equals(reflectType(int), staticField.type);
   Expect.equals(reflectClass(String), field.type);
@@ -65,7 +66,7 @@ testInstance() {
 
 testTopLevel() {
   LibraryMirror currentLibrary = currentMirrorSystem().findLibrary(#field_test);
-  VariableMirror topLevel = currentLibrary.variables.values.first;
+  VariableMirror topLevel = currentLibrary.declarations[#toplevelVariable];
   Expect.equals(reflectClass(String), topLevel.type);
 }
 

@@ -100,15 +100,15 @@ main() {
     {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType},  /// 01: ok
 
     {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,   /// 02: ok
-     'thisLibrary.functions[#subroutine].returnType' :                    /// 02: ok
-          thisLibrary.functions[#subroutine].returnType},  /// 02: ok
+     'thisLibrary.declarations[#subroutine].returnType' :                    /// 02: ok
+          (thisLibrary.declarations[#subroutine] as MethodMirror).returnType},  /// 02: ok
 
     {'currentMirrorSystem().dynamicType' : currentMirrorSystem().dynamicType,
-     'thisLibrary.functions[#main].returnType' :
-          thisLibrary.functions[#main].returnType},
+     'thisLibrary.declarations[#main].returnType' :
+          (thisLibrary.declarations[#main] as MethodMirror).returnType},
 
     {'reflectClass(A)' : reflectClass(A),
-     'thisLibrary.classes[#A]' : thisLibrary.classes[#A],
+     'thisLibrary.declarations[#A]' : thisLibrary.declarations[#A],
      'reflect(new A<int>()).type.originalDeclaration' :
           reflect(new A<int>()).type.originalDeclaration},
 
@@ -116,31 +116,31 @@ main() {
      'reflect(new A<int>()).type' : reflect(new A<int>()).type}, /// 02: ok
 
     {'reflectClass(B)' : reflectClass(B),
-     'thisLibrary.classes[#B]' : thisLibrary.classes[#B],
+     'thisLibrary.declarations[#B]' : thisLibrary.declarations[#B],
      'reflect(new B()).type' : reflect(new B()).type},
 
-    {'reflectClass(BadEqualityHash).methods[#==]'  /// 02: ok
-        : reflectClass(BadEqualityHash).methods[#==],  /// 02: ok
-     'reflect(new BadEqualityHash()).type.methods[#==]'  /// 02: ok
-        : reflect(new BadEqualityHash()).type.methods[#==]},  /// 02: ok
+    {'reflectClass(BadEqualityHash).declarations[#==]'  /// 02: ok
+        : reflectClass(BadEqualityHash).declarations[#==],  /// 02: ok
+     'reflect(new BadEqualityHash()).type.declarations[#==]'  /// 02: ok
+        : reflect(new BadEqualityHash()).type.declarations[#==]},  /// 02: ok
 
-    {'reflectClass(BadEqualityHash).methods[#==].parameters[0]'  /// 02: ok
-        : reflectClass(BadEqualityHash).methods[#==].parameters[0],  /// 02: ok
-     'reflect(new BadEqualityHash()).type.methods[#==].parameters[0]'  /// 02: ok
-        : reflect(new BadEqualityHash()).type.methods[#==].parameters[0]},  /// 02: ok
+    {'reflectClass(BadEqualityHash).declarations[#==].parameters[0]'  /// 02: ok
+        : (reflectClass(BadEqualityHash).declarations[#==] as MethodMirror).parameters[0],  /// 02: ok
+     'reflect(new BadEqualityHash()).type.declarations[#==].parameters[0]'  /// 02: ok
+        : (reflect(new BadEqualityHash()).type.declarations[#==] as MethodMirror).parameters[0]},  /// 02: ok
 
-    {'reflectClass(BadEqualityHash).variables[#count]'  /// 02: ok
-        : reflectClass(BadEqualityHash).variables[#count],  /// 02: ok
-     'reflect(new BadEqualityHash()).type.variables[#count]'  /// 02: ok
-        : reflect(new BadEqualityHash()).type.variables[#count]},  /// 02: ok
+    {'reflectClass(BadEqualityHash).declarations[#count]'  /// 02: ok
+        : reflectClass(BadEqualityHash).declarations[#count],  /// 02: ok
+     'reflect(new BadEqualityHash()).type.declarations[#count]'  /// 02: ok
+        : reflect(new BadEqualityHash()).type.declarations[#count]},  /// 02: ok
 
     {'reflectType(Predicate)' : reflectType(Predicate),  /// 02: ok
-     'thisLibrary.variables[#somePredicate].type'  /// 02: ok
-        : thisLibrary.variables[#somePredicate].type},  /// 02: ok
+     'thisLibrary.declarations[#somePredicate].type'  /// 02: ok
+        : (thisLibrary.declarations[#somePredicate] as VariableMirror).type},  /// 02: ok
 
     {'reflectType(Predicate).referent' : (reflectType(Predicate) as TypedefMirror).referent,  /// 02: ok
-     'thisLibrary.variables[#somePredicate].type.referent'  /// 02: ok
-        : (thisLibrary.variables[#somePredicate].type as TypedefMirror).referent},  /// 02: ok
+     'thisLibrary.declarations[#somePredicate].type.referent'  /// 02: ok
+        : ((thisLibrary.declarations[#somePredicate] as VariableMirror).type as TypedefMirror).referent},  /// 02: ok
 
     {'reflectClass(A).typeVariables.single'  /// 02: ok
         : reflectClass(A).typeVariables.single,  /// 02: ok

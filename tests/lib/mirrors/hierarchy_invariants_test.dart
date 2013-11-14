@@ -20,9 +20,9 @@ check(classMirror) {
   Expect.isTrue(classMirror.owner is LibraryMirror);
   if (!isAnonymousMixinApplication(classMirror)) {
     Expect.equals(classMirror.originalDeclaration,
-                  classMirror.owner.classes[classMirror.simpleName]);
+                  classMirror.owner.declarations[classMirror.simpleName]);
   } else {
-    Expect.isNull(classMirror.owner.classes[classMirror.simpleName]);
+    Expect.isNull(classMirror.owner.declarations[classMirror.simpleName]);
   }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
@@ -34,8 +34,8 @@ check(classMirror) {
 
 main() {
   currentMirrorSystem().libraries.values.forEach((libraryMirror) {
-    libraryMirror.classes.values.forEach((classMirror) {
-      check(classMirror);
+    libraryMirror.declarations.values.forEach((declaration) {
+      if (declaration is ClassMirror) check(declaration);
     });
   });
 

@@ -12,7 +12,7 @@ main() {
   Function expectedError = (e) => e is ArgumentError || e is TypeError;
 
   Expect.throws(() => reflectClass(dynamic), expectedError);
-  Expect.throws(() => reflectClass(1), expectedError);
-  Expect.throws(() => reflectClass("string"), expectedError);
+  Expect.throws(() => reflectClass(1), expectedError);  /// 01: static type warning
+  Expect.throws(() => reflectClass("string"), expectedError);  /// 02: static type warning
   Expect.throws(() => reflectClass(FooFunction), expectedError);
 }
