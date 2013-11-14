@@ -960,10 +960,10 @@ class Class : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
-  bool is_mixin_typedef() const {
-    return MixinTypedefBit::decode(raw_ptr()->state_bits_);
+  bool is_mixin_app_alias() const {
+    return MixinAppAliasBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_mixin_typedef() const;
+  void set_is_mixin_app_alias() const;
 
   bool is_mixin_type_applied() const {
     return MixinTypeAppliedBit::decode(raw_ptr()->state_bits_);
@@ -1062,7 +1062,7 @@ class Class : public Object {
     kPatchBit = 6,
     kSynthesizedClassBit = 7,
     kMarkedForParsingBit = 8,
-    kMixinTypedefBit = 9,
+    kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
@@ -1074,7 +1074,7 @@ class Class : public Object {
   class PatchBit : public BitField<bool, kPatchBit, 1> {};
   class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
-  class MixinTypedefBit : public BitField<bool, kMixinTypedefBit, 1> {};
+  class MixinAppAliasBit : public BitField<bool, kMixinAppAliasBit, 1> {};
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
 
   void set_name(const String& value) const;

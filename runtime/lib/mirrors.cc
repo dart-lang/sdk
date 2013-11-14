@@ -348,7 +348,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   }
 
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
-  const Bool& is_mixin_typedef = Bool::Get(cls.is_mixin_typedef());
+  const Bool& is_mixin_app_alias = Bool::Get(cls.is_mixin_app_alias());
 
   const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
@@ -360,7 +360,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
     args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, is_generic);
-  args.SetAt(4, is_mixin_typedef);
+  args.SetAt(4, is_mixin_app_alias);
   args.SetAt(5, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
   return CreateMirror(Symbols::_LocalClassMirrorImpl(), args);
 }

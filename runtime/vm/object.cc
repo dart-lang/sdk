@@ -2613,8 +2613,8 @@ void Class::set_is_const() const {
 }
 
 
-void Class::set_is_mixin_typedef() const {
-  set_state_bits(MixinTypedefBit::update(true, raw_ptr()->state_bits_));
+void Class::set_is_mixin_app_alias() const {
+  set_state_bits(MixinAppAliasBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -2665,7 +2665,7 @@ bool Class::IsMixinApplication() const {
 }
 
 bool Class::IsAnonymousMixinApplication() const {
-  return IsMixinApplication() && !is_mixin_typedef();
+  return IsMixinApplication() && !is_mixin_app_alias();
 }
 
 void Class::set_patch_class(const Class& cls) const {

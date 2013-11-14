@@ -406,7 +406,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
                         reflectedType,
                         String simpleName,
                         this._isGeneric,
-                        this._isMixinTypedef,
+                        this._isMixinAlias,
                         this._isGenericDeclaration)
       : this._simpleName = _s(simpleName),
         this._reflectedType = reflectedType,
@@ -415,7 +415,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   final Type _reflectedType;
   final bool _isGeneric;
-  final bool _isMixinTypedef;
+  final bool _isMixinAlias;
   final bool _isGenericDeclaration;
   Type _instantiator;
 
@@ -477,7 +477,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     return _trueSuperclassField;
   }
   ClassMirror get superclass {
-    return _isMixinTypedef ? _trueSuperclass._trueSuperclass : _trueSuperclass;
+    return _isMixinAlias ? _trueSuperclass._trueSuperclass : _trueSuperclass;
   }
 
   var _superinterfaces;
@@ -508,7 +508,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   var _mixin;
   ClassMirror get mixin {
     if (_mixin == null) {
-      if (_isMixinTypedef) {
+      if (_isMixinAlias) {
         Type mixinType = _nativeMixinInstantiated(_trueSuperclass._reflectedType,
                                                   _instantiator);
         _mixin = reflectType(mixinType);
@@ -539,7 +539,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   Map<Symbol, Mirror> _members;
   Map<Symbol, Mirror> get members {
     if (_members == null) {
-      var whoseMembers = _isMixinTypedef ? _trueSuperclass : this;
+      var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
       _members = _makeMemberMap(mixin._computeMembers(whoseMembers._reflectee));
     }
     return _members;
@@ -597,7 +597,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   bool get _isAnonymousMixinApplication {
-    if (_isMixinTypedef) return false;  // Named mixin application.
+    if (_isMixinAlias) return false;  // Named mixin application.
     if (mixin == this) return false;  // Not a mixin application.
     return true;
   }

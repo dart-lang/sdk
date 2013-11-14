@@ -658,9 +658,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
 }
 
 
-// TODO(regis): Is this entry still used for malformed types or just malbounded
-// types? Revisit.
-// Report that the type of the type check is malformed.
+// Report that the type of the type check is malformed or malbounded.
 // Arg0: src value.
 // Arg1: name of destination being assigned to.
 // Arg2: type of destination being assigned to.

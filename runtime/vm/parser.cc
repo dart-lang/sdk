@@ -2436,7 +2436,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
       current_class(), receiver, &initialized_fields);
   receiver->set_invisible(false);
 
-  // If the class of this implicit constructor is a mixin typedef class,
+  // If the class of this implicit constructor is a mixin application alias,
   // it is a forwarding constructor of the aliased mixin application class.
   // If the class of this implicit constructor is a mixin application class,
   // it is a forwarding constructor of the mixin. The forwarding
@@ -2444,7 +2444,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (current_class().is_mixin_typedef() ||
+  if (current_class().is_mixin_app_alias() ||
       current_class().IsMixinApplication()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
@@ -3900,7 +3900,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       super_type = ParseMixins(super_type);
     }
     if (is_mixin_declaration) {
-      cls.set_is_mixin_typedef();
+      cls.set_is_mixin_app_alias();
       cls.set_is_synthesized_class();
     }
   } else {
@@ -4057,13 +4057,15 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 }
 
 
-void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
-                               intptr_t metadata_pos) {
-  TRACE_PARSER("ParseMixinTypedef");
+void Parser::ParseMixinAppAlias(
+    const GrowableObjectArray& pending_classes,
+    intptr_t metadata_pos) {
+  TRACE_PARSER("ParseMixinAppAlias");
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
-    OS::Print("toplevel parsing typedef class '%s'\n", class_name.ToCString());
+    OS::Print("toplevel parsing mixin application alias class '%s'\n",
+              class_name.ToCString());
   }
   const Object& obj = Object::Handle(library_.LookupLocalObject(class_name));
   if (!obj.IsNull()) {
@@ -4072,7 +4074,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   const Class& mixin_application =
       Class::Handle(Class::New(class_name, script_, classname_pos));
-  mixin_application.set_is_mixin_typedef();
+  mixin_application.set_is_mixin_app_alias();
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
@@ -4100,7 +4102,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
-  // This mixin application typedef needs an implicit constructor, but it is
+  // This mixin application alias needs an implicit constructor, but it is
   // too early to call 'AddImplicitConstructor(mixin_application)' here,
   // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
@@ -4137,7 +4139,7 @@ bool Parser::IsFunctionTypeAliasName() {
 
 // Look ahead to detect if we are seeing ident [ TypeParameters ] "=".
 // Token position remains unchanged.
-bool Parser::IsMixinTypedef() {
+bool Parser::IsMixinAppAlias() {
   if (IsIdentifier() && (LookaheadToken(1) == Token::kASSIGN)) {
     return true;
   }
@@ -4159,11 +4161,11 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
 
-  if (IsMixinTypedef()) {
+  if (IsMixinAppAlias()) {
     if (FLAG_warn_mixin_typedef) {
-      Warning("deprecated mixin typedef");
+      Warning("deprecated mixin application typedef");
     }
-    ParseMixinTypedef(pending_classes, metadata_pos);
+    ParseMixinAppAlias(pending_classes, metadata_pos);
     return;
   }
 
@@ -4173,7 +4175,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     ConsumeToken();
     result_type = Type::VoidType();
   } else if (!IsFunctionTypeAliasName()) {
-    // Type annotations in typedef are never ignored, even in unchecked mode.
+    // Type annotations in typedef are never ignored, even in production mode.
     // Wait until we have an owner class before resolving the result type.
     result_type = ParseType(ClassFinalizer::kDoNotResolve);
   }

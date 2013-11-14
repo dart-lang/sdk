@@ -356,8 +356,8 @@ class Parser : public ValueObject {
   void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                              intptr_t metadata_pos);
   void ParseClassDefinition(const Class& cls);
-  void ParseMixinTypedef(const GrowableObjectArray& pending_classes,
-                         intptr_t metadata_pos);
+  void ParseMixinAppAlias(const GrowableObjectArray& pending_classes,
+                          intptr_t metadata_pos);
   void ParseTypedef(const GrowableObjectArray& pending_classes,
                     intptr_t metadata_pos);
   void ParseTopLevelVariable(TopLevel* top_level, intptr_t metadata_pos);
@@ -545,7 +545,7 @@ class Parser : public ValueObject {
   bool IsIdentifier();
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
-  bool IsMixinTypedef();
+  bool IsMixinAppAlias();
   bool TryParseTypeParameters();
   bool TryParseOptionalType();
   bool TryParseReturnType();

@@ -1486,17 +1486,17 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
     }
     mixin_app_class.set_type_parameters(cloned_type_params);
   }
-  // If the mixin class is a mixin application typedef class, we insert a new
+  // If the mixin class is a mixin application alias class, we insert a new
   // synthesized mixin application class in the super chain of this mixin
   // application class. The new class will have the aliased mixin as actual
   // mixin.
-  if (mixin_class.is_mixin_typedef()) {
-    ApplyMixinTypedef(mixin_app_class);
+  if (mixin_class.is_mixin_app_alias()) {
+    ApplyMixinAppAlias(mixin_app_class);
   }
 }
 
 
-/* Support for mixin typedef.
+/* Support for mixin alias.
 Consider the following example:
 
 class I<T> { }
@@ -1506,7 +1506,7 @@ class M<T> { }
 class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
-Before the call to ApplyMixinTypedef, the VM has already synthesized 2 mixin
+Before the call to ApplyMixinAppAlias, the VM has already synthesized 2 mixin
 application classes Object&M and S&A:
 
 Object&M<T> extends Object implements M<T> { ... members of M applied here ... }
@@ -1519,19 +1519,19 @@ In theory, class A should be an alias of Object&M instead of extending it.
 In practice, the additional class provides a hook for implemented interfaces
 (e.g. I<V>) and for type argument substitution via the super type relation (e.g.
 type parameter T of Object&M is substituted with Map<U, V>, U and V being the
-type parameters of the typedef A).
+type parameters of the alias A).
 
 Similarly, class C should be an alias of S&A instead of extending it.
 
 Since A is used as a mixin, it must extend Object. The fact that it extends
 Object&M must be hidden so that no error is wrongly reported.
 
-Now, A does not have any members to be mixed into S&A, because A is a typedef.
+Now, A does not have any members to be mixed into S&A, because A is an alias.
 The members to be mixed in are actually those of M, and they should appear in a
 scope where the type parameter T is visible. The class S&A declares the type
 parameters of A, i.e. U and V, but not T.
 
-Therefore, the call to ApplyMixinTypedef inserts another synthesized class S&A`
+Therefore, the call to ApplyMixinAppAlias inserts another synthesized class S&A`
 as the superclass of S&A. The class S&A` declares a type argument T:
 
 Instead of
@@ -1552,15 +1552,14 @@ The instantiator vector must end with the type parameters U and V of S&A.
 The offset of the first type parameter U of S&A must be at the finalized index
 of type parameter U of A.
 */
-// TODO(regis): The syntax does not use 'typedef' anymore. Rename to 'alias'?
-void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
-  // If this mixin typedef is aliasing another mixin typedef, another class
+void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class) {
+  // If this mixin alias is aliasing another mixin alias, another class
   // will be inserted via recursion. No need to check here.
   // The mixin type may or may not be finalized yet.
   AbstractType& super_type = AbstractType::Handle(mixin_app_class.super_type());
   const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
-  ASSERT(mixin_class.is_mixin_typedef());
+  ASSERT(mixin_class.is_mixin_app_alias());
   const Class& aliased_mixin_app_class = Class::Handle(
       mixin_class.SuperClass());
   const Type& aliased_mixin_type = Type::Handle(
@@ -1582,7 +1581,7 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
     library.AddClass(inserted_class);
 
     if (FLAG_trace_class_finalization) {
-      OS::Print("Creating mixin typedef application %s\n",
+      OS::Print("Creating mixin application alias %s\n",
                 inserted_class.ToCString());
     }
 
@@ -1615,9 +1614,9 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
   // old super type arguments (propagating type arguments to the super class)
   // with new type arguments providing type arguments to the mixin.
   // The appended type arguments are those of the super type of the mixin
-  // typedef that are forwarding to the aliased mixin type, except
+  // application alias that are forwarding to the aliased mixin type, except
   // that they must refer to the type parameters of the mixin application
-  // class rather than to those of the mixin typedef class.
+  // class rather than to those of the mixin application alias class.
   // This type parameter substitution is performed by an instantiation step.
   // It is important that the type parameters of the mixin application class
   // are not finalized yet, because new type parameters may have been added
@@ -1692,12 +1691,12 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
                          new_super_type_args,
                          mixin_app_class.token_pos());
   mixin_app_class.set_super_type(super_type);
-  // Mark this mixin application class as being a typedef.
-  mixin_app_class.set_is_mixin_typedef();
+  // Mark this mixin application class as being an alias.
+  mixin_app_class.set_is_mixin_app_alias();
   ASSERT(!mixin_app_class.is_type_finalized());
   ASSERT(!mixin_app_class.is_mixin_type_applied());
   if (FLAG_trace_class_finalization) {
-    OS::Print("Inserting class %s to mixin typedef application %s "
+    OS::Print("Inserting class %s to mixin application alias %s "
               "with super type '%s'\n",
               inserted_class.ToCString(),
               mixin_app_class.ToCString(),
@@ -1736,10 +1735,10 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
 
   // Check that the super class of the mixin class is class Object.
   Class& mixin_super_class = Class::Handle(mixin_class.SuperClass());
-  // Skip over mixin application typedef classes, which are aliases (but are
-  // implemented as subclasses) of the mixin application classes they name.
-  if (!mixin_super_class.IsNull() && mixin_class.is_mixin_typedef()) {
-    while (mixin_super_class.is_mixin_typedef()) {
+  // Skip over mixin application alias classes, which are implemented as
+  // subclasses of the mixin application classes they name.
+  if (!mixin_super_class.IsNull() && mixin_class.is_mixin_app_alias()) {
+    while (mixin_super_class.is_mixin_app_alias()) {
       mixin_super_class = mixin_super_class.SuperClass();
     }
     mixin_super_class = mixin_super_class.SuperClass();
@@ -1773,7 +1772,7 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
   // to avoid cycles while finalizing its mixin type.
   mixin_app_class.set_is_mixin_type_applied();
   // Finalize the mixin type, which may have been changed in case
-  // mixin_app_class is a typedef.
+  // mixin_app_class is an alias.
   mixin_type = mixin_app_class.mixin();
   ASSERT(!mixin_type.IsBeingFinalized());
   mixin_type ^=
@@ -1848,14 +1847,14 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   ASSERT(mixin_type.HasResolvedTypeClass());
   const Class& mixin_cls = Class::Handle(isolate, mixin_type.type_class());
   mixin_cls.EnsureIsFinalized(isolate);
-  // If the mixin is a mixin application typedef class, there are no members to
+  // If the mixin is a mixin application alias class, there are no members to
   // apply here. A new synthesized class representing the aliased mixin
   // application class was inserted in the super chain of this mixin application
   // class. Members of the actual mixin class will be applied when visiting
   // the mixin application class referring to the actual mixin.
-  ASSERT(!mixin_cls.is_mixin_typedef() ||
+  ASSERT(!mixin_cls.is_mixin_app_alias() ||
          Class::Handle(isolate, cls.SuperClass()).IsMixinApplication());
-  // A default constructor will be created for the typedef class.
+  // A default constructor will be created for the mixin app alias class.
 
   if (FLAG_trace_class_finalization) {
     OS::Print("Applying mixin members of %s to %s at pos %" Pd "\n",
@@ -2069,8 +2068,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as parsed and finalized.
   cls.Finalize();
-  // Mixin typedef classes may still lack their forwarding constructor.
-  if (cls.is_mixin_typedef() &&
+  // Mixin app alias classes may still lack their forwarding constructor.
+  if (cls.is_mixin_app_alias() &&
       (cls.functions() == Object::empty_array().raw())) {
     const GrowableObjectArray& cloned_funcs =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
