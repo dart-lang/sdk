@@ -10,7 +10,7 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("generates unminified JS by default", () {
+  integration("generates minified JS in release mode", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -18,8 +18,8 @@ main() {
       ])
     ]).create();
 
-    pubServe();
-    requestShouldSucceed("main.dart.js", isUnminifiedDart2JSOutput);
+    pubServe(args: ["--mode", "release"]);
+    requestShouldSucceed("main.dart.js", isMinifiedDart2JSOutput);
     endPubServe();
   });
 }

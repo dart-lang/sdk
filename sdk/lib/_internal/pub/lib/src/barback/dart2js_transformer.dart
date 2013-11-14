@@ -26,8 +26,8 @@ import '../package_graph.dart';
 class Dart2JSTransformer extends Transformer {
   final PackageGraph _graph;
 
-  /// Whether the JavaScript output should be minified.
-  final bool _minify;
+  /// The mode that the transformer is running in.
+  final BarbackMode _mode;
 
   /// The [AssetId]s the transformer has discovered so far. Used by pub build
   /// to determine where to copy the JS bootstrap files.
@@ -44,8 +44,7 @@ class Dart2JSTransformer extends Transformer {
   /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
   Future _running;
 
-  Dart2JSTransformer(this._graph, {bool minify})
-      : _minify = minify == true ? true : false;
+  Dart2JSTransformer(this._graph, this._mode);
 
   /// Only ".dart" files within "web/" are processed.
   Future<bool> isPrimary(Asset asset) {
@@ -79,10 +78,10 @@ class Dart2JSTransformer extends Transformer {
         }
 
         var parsed = parseCompilationUnit(code, name: name);
-        if (!dart.isEntrypoint(parsed)) return;
+        if (!dart.isEntrypoint(parsed)) return null;
       } on AnalyzerErrorGroup catch (e) {
         transform.logger.error(e.message);
-        return;
+        return null;
       }
 
       var provider = new _BarbackInputProvider(_graph, transform);
@@ -103,7 +102,7 @@ class Dart2JSTransformer extends Transformer {
       // path so they can understand them.
       return dart.compile(entrypoint,
           packageRoot: packageRoot,
-          minify: _minify,
+          minify: _mode == BarbackMode.RELEASE,
           inputProvider: provider.readStringFromUri,
           diagnosticHandler: provider.handleDiagnostic).then((js) {
         var id = transform.primaryInput.id.changeExtension(".dart.js");
@@ -115,7 +114,7 @@ class Dart2JSTransformer extends Transformer {
       }).catchError((error) {
         // The compile failed and errors have been reported through the
         // diagnostic handler, so just do nothing here.
-        if (error is CompilerException) return;
+        if (error is dart.CompilerException) return;
         throw error;
       });
     }).whenComplete(() {

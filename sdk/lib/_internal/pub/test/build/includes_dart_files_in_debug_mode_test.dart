@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:scheduled_test/scheduled_test.dart';
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
   initConfig();
 
-  integration("ignores non-entrypoint Dart files", () {
+  integration("includes Dart files in debug mode", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir('web', [
@@ -19,20 +21,20 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ["build"],
-        output: new RegExp(r"Built 0 files!"),
+    schedulePub(args: ["build", "--mode", "debug"],
+        output: new RegExp(r"Built 4 files!"),
         exitCode: 0);
 
     d.dir(appPath, [
       d.dir('build', [
         d.nothing('file1.dart.js'),
-        d.nothing('file1.dart'),
+        d.matcherFile('file1.dart', isNot(isEmpty)),
         d.nothing('file2.dart.js'),
-        d.nothing('file2.dart'),
+        d.matcherFile('file2.dart', isNot(isEmpty)),
         d.nothing('file3.dart.js'),
-        d.nothing('file3.dart'),
+        d.matcherFile('file3.dart', isNot(isEmpty)),
         d.nothing('file4.dart.js'),
-        d.nothing('file4.dart')
+        d.matcherFile('file4.dart', isNot(isEmpty))
       ])
     ]).validate();
   });

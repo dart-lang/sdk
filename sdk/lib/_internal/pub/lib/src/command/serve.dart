@@ -33,8 +33,8 @@ class ServeCommand extends PubCommand {
   /// `true` if Dart entrypoints should be compiled to JavaScript.
   bool get useDart2JS => commandOptions['dart2js'];
 
-  /// `true` if generated JavaScript should be minified.
-  bool get minify => commandOptions['minify'];
+  /// The build mode.
+  BarbackMode get mode => new BarbackMode(commandOptions['mode']);
 
   ServeCommand() {
     commandParser.addOption('port', defaultsTo: '8080',
@@ -47,15 +47,12 @@ class ServeCommand extends PubCommand {
     commandParser.addOption('hostname',
                             defaultsTo: 'localhost',
                             hide: true);
-
     commandParser.addFlag('dart2js', defaultsTo: true,
         help: 'Compile Dart to JavaScript.');
-
-    commandParser.addFlag('minify', defaultsTo: false,
-        help: 'Minify generated JavaScript.');
-
     commandParser.addFlag('force-poll', defaultsTo: false,
         help: 'Force the use of a polling filesystem watcher.');
+    commandParser.addOption('mode', defaultsTo: BarbackMode.DEBUG.toString(),
+        help: 'Mode to run transformers in.');
   }
 
   Future onRun() {
@@ -71,19 +68,15 @@ class ServeCommand extends PubCommand {
     return entrypoint.ensureLockFileIsUpToDate().then((_) {
       return entrypoint.loadPackageGraph();
     }).then((graph) {
-      // TODO(rnystrom): Add support for dart2dart transformer here.
-      var builtInTransformers = null;
+      var builtInTransformers = [new DartForwardingTransformer(mode)];
       if (useDart2JS) {
-        builtInTransformers = [
-          new Dart2JSTransformer(graph, minify: minify),
-          new DartForwardingTransformer()
-        ];
+        builtInTransformers.add(new Dart2JSTransformer(graph, mode));
+        // TODO(rnystrom): Add support for dart2dart transformer here.
       }
 
       var watcherType = commandOptions['force-poll'] ?
           barback.WatcherType.POLLING : barback.WatcherType.AUTO;
-      // TODO(rnystrom): Allow specifying other modes.
-      return barback.createServer(hostname, port, graph, BarbackMode.DEBUG,
+      return barback.createServer(hostname, port, graph, mode,
           builtInTransformers: builtInTransformers,
           watcher: watcherType);
     }).then((server) {

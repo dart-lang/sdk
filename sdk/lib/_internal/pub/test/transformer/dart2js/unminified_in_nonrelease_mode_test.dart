@@ -10,7 +10,7 @@ import '../../serve/utils.dart';
 
 main() {
   initConfig();
-  integration("generates minified JS if the flag is set", () {
+  integration("generates unminified JS when not in release mode", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("web", [
@@ -18,8 +18,8 @@ main() {
       ])
     ]).create();
 
-    pubServe(args: ["--minify"]);
-    requestShouldSucceed("main.dart.js", isMinifiedDart2JSOutput);
+    pubServe(args: ["--mode", "whatever"]);
+    requestShouldSucceed("main.dart.js", isUnminifiedDart2JSOutput);
     endPubServe();
   });
 }

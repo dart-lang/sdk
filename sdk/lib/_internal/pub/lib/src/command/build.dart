@@ -10,6 +10,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 
 import '../barback/dart2js_transformer.dart';
+import '../barback/dart_forwarding_transformer.dart';
 import '../barback.dart' as barback;
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;
@@ -33,12 +34,12 @@ class BuildCommand extends PubCommand {
   /// The path to the application's build output directory.
   String get target => path.join(entrypoint.root.dir, 'build');
 
-  /// `true` if generated JavaScript should be minified.
-  bool get minify => commandOptions['minify'];
+  /// The build mode.
+  BarbackMode get mode => new BarbackMode(commandOptions['mode']);
 
   BuildCommand() {
-    commandParser.addFlag('minify', defaultsTo: true,
-        help: 'Minify generated JavaScript.');
+    commandParser.addOption('mode', defaultsTo: BarbackMode.RELEASE.toString(),
+        help: 'Mode to run transformers in.');
   }
 
   Future onRun() {
@@ -53,14 +54,18 @@ class BuildCommand extends PubCommand {
     return entrypoint.ensureLockFileIsUpToDate().then((_) {
       return entrypoint.loadPackageGraph();
     }).then((graph) {
-      dart2jsTransformer = new Dart2JSTransformer(graph, minify: minify);
+      dart2jsTransformer = new Dart2JSTransformer(graph, mode);
+      var builtInTransformers = [
+        dart2jsTransformer,
+        new DartForwardingTransformer(mode)
+      ];
 
       // Since this server will only be hit by the transformer loader and isn't
       // user-facing, just use an IPv4 address to avoid a weird bug on the
       // OS X buildbots.
       // TODO(rnystrom): Allow specifying mode.
-      return barback.createServer("127.0.0.1", 0, graph, BarbackMode.RELEASE,
-          builtInTransformers: [dart2jsTransformer],
+      return barback.createServer("127.0.0.1", 0, graph, mode,
+          builtInTransformers: builtInTransformers,
           watcher: barback.WatcherType.NONE);
     }).then((server) {
       // Show in-progress errors, but not results. Those get handled implicitly
@@ -72,10 +77,6 @@ class BuildCommand extends PubCommand {
       return log.progress("Building ${entrypoint.root.name}",
           () => server.barback.getAllAssets());
     }).then((assets) {
-      // Don't copy Dart libraries. Their contents will already be included
-      // in the generated JavaScript.
-      assets = assets.where((asset) => asset.id.extension != ".dart");
-
       return Future.wait(assets.map((asset) {
         // Figure out the output directory for the asset, which is the same
         // as the path pub serve would use to serve it.
