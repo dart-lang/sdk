@@ -105,14 +105,11 @@ class Scanner : ValueObject {
     Token::Kind kind;
     const char* keyword_chars;
     int keyword_len;
-    String* keyword_symbol;
+    const String* keyword_symbol;
   };
 
   // Rewind scanner position to token 0.
   void Reset();
-
-  // Initialize Scanner tables.
-  void InitKeywordTable();
 
   // Reads next lookahead character.
   void ReadChar();
@@ -216,8 +213,8 @@ class Scanner : ValueObject {
   const String& private_key_;
 
   SourcePosition c0_pos_;      // Source position of lookahead character c0_.
-  KeywordTable keywords_[Token::numKeywords];
-  Array& keyword_symbol_table_;  // Access to keyword symbols in object store.
+
+  static KeywordTable keywords_[Token::numKeywords];
 };
 
 

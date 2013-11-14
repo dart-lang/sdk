@@ -5,6 +5,7 @@
 #include "vm/scanner.h"
 
 #include "platform/assert.h"
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -17,28 +18,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
 
-void Scanner::InitKeywordTable() {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  keyword_symbol_table_ = object_store->keyword_symbols();
-  if (keyword_symbol_table_.IsNull()) {
-    object_store->InitKeywordTable();
-    keyword_symbol_table_ = object_store->keyword_symbols();
-    ASSERT(!keyword_symbol_table_.IsNull());
-    String& symbol = String::Handle();
-    for (int i = 0; i < Token::numKeywords; i++) {
-      Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
-      symbol = Symbols::New(Token::Str(token));
-      keyword_symbol_table_.SetAt(i, symbol);
-    }
-  }
-  for (int i = 0; i < Token::numKeywords; i++) {
-    Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
-    keywords_[i].kind = token;
-    keywords_[i].keyword_chars = Token::Str(token);
-    keywords_[i].keyword_len = strlen(Token::Str(token));
-    keywords_[i].keyword_symbol = NULL;
-  }
-}
+
+Scanner::KeywordTable Scanner::keywords_[Token::numKeywords];
 
 
 void Scanner::Reset() {
@@ -76,10 +57,8 @@ Scanner::Scanner(const String& src, const String& private_key)
     : source_(src),
       source_length_(src.Length()),
       saved_context_(NULL),
-      private_key_(String::ZoneHandle(private_key.raw())),
-      keyword_symbol_table_(Array::ZoneHandle()) {
+      private_key_(String::ZoneHandle(private_key.raw())) {
   Reset();
-  InitKeywordTable();
 }
 
 Scanner::~Scanner() {
@@ -321,12 +300,6 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
         char_pos++;
       }
       if (char_pos == ident_length) {
-        if (keywords_[i].keyword_symbol == NULL) {
-          String& symbol = String::ZoneHandle();
-          symbol ^= keyword_symbol_table_.At(i);
-          ASSERT(!symbol.IsNull());
-          keywords_[i].keyword_symbol = &symbol;
-        }
         current_token_.literal = keywords_[i].keyword_symbol;
         current_token_.kind = keywords_[i].kind;
         return;
@@ -974,6 +947,14 @@ RawString* Scanner::AllocatePrivateKey(const Library& library) {
 
 
 void Scanner::InitOnce() {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  for (int i = 0; i < Token::numKeywords; i++) {
+    Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
+    keywords_[i].kind = token;
+    keywords_[i].keyword_chars = Token::Str(token);
+    keywords_[i].keyword_len = strlen(Token::Str(token));
+    keywords_[i].keyword_symbol = &Symbols::Keyword(token);
+  }
 }
 
 }  // namespace dart

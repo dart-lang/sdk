@@ -315,6 +315,13 @@ class Symbols : public AllStatic {
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
 
+    kKwTableStart,  // First keyword at kKwTableStart + 1.
+
+#define DEFINE_KEYWORD_SYMBOL_INDEX(token, chars, ignore1, ignore2)            \
+    token##Id,
+    DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
+#undef DEFINE_KEYWORD_SYMBOL_INDEX
+
     kNullCharId,  // One char code symbol starts here and takes up 256 entries.
     kMaxPredefinedId = kNullCharId + kMaxOneCharCodeSymbol + 1,
   };
@@ -396,6 +403,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& symbol() { return *(symbol_handles_[k##symbol##Id]); }
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
+
+  // Get symbol for scanner keyword.
+  static const String& Keyword(Token::Kind keyword);
 
   // Initialize frequently used symbols in the vm isolate.
   static void InitOnce(Isolate* isolate);

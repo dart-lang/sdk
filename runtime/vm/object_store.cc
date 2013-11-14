@@ -68,7 +68,6 @@ ObjectStore::ObjectStore()
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
     preallocated_stack_trace_(Stacktrace::null()),
-    keyword_symbols_(Array::null()),
     receive_port_create_function_(Function::null()),
     lookup_receive_port_function_(Function::null()),
     handle_message_function_(Function::null()) {
@@ -141,16 +140,6 @@ bool ObjectStore::PreallocateObjects() {
   set_preallocated_stack_trace(stack_trace);
 
   return true;
-}
-
-
-void ObjectStore::InitKeywordTable() {
-  // Set up the keywords symbol array so that we can access it while scanning.
-  Array& keywords = Array::Handle(keyword_symbols());
-  ASSERT(keywords.IsNull());
-  keywords = Array::New(Token::numKeywords, Heap::kOld);
-  ASSERT(!keywords.IsError() && !keywords.IsNull());
-  set_keyword_symbols(keywords);
 }
 
 }  // namespace dart

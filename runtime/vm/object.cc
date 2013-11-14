@@ -6778,13 +6778,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
         Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
     ASSERT(kind < Token::kNumTokens);
     if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
-      Isolate* isolate = Isolate::Current();
-      ObjectStore* object_store = isolate->object_store();
-      const Array& symbols = Array::Handle(isolate,
-                                           object_store->keyword_symbols());
-      ASSERT(!symbols.IsNull());
-      ASSERT(symbols.At(kind - Token::kFirstKeyword) != Object::null());
-      return String::RawCast(symbols.At(kind - Token::kFirstKeyword));
+      return Symbols::Keyword(kind).raw();
     }
     return Symbols::New(Token::Str(kind));
   } else {

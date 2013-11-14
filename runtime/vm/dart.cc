@@ -116,8 +116,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce();
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
-    Scanner::InitOnce();
     Symbols::InitOnce(vm_isolate_);
+    Scanner::InitOnce();
     Object::CreateInternalMetaData();
     CPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)

@@ -26,6 +26,13 @@ static const char* names[] = {
   literal,
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
+
+  "",  // matches kKwTableStart.
+
+#define DEFINE_KEYWORD_SYMBOL_INDEX(token, chars, ignore1, ignore2)            \
+  chars,
+  DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
+#undef DEFINE_KEYWORD_SYMBOL_INDEX
 };
 
 intptr_t Symbols::num_of_grows_;
@@ -37,6 +44,16 @@ DEFINE_FLAG(bool, dump_symbol_stats, false, "Dump symbol table statistics");
 const char* Symbols::Name(SymbolId symbol) {
   ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
   return names[symbol];
+}
+
+
+const String& Symbols::Keyword(Token::Kind keyword) {
+  const int kw_index = keyword - Token::kFirstKeyword;
+  ASSERT((0 <= kw_index) && (kw_index < Token::numKeywords));
+  ASSERT(Token::kABSTRACT == Token::kFirstKeyword);
+  const intptr_t keyword_id = Symbols::kABSTRACTId + kw_index;
+  ASSERT(symbol_handles_[keyword_id] != NULL);
+  return *symbol_handles_[keyword_id];
 }
 
 
@@ -61,7 +78,7 @@ void Symbols::InitOnce(Isolate* isolate) {
 
 
   // First set up all the predefined string symbols.
-  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
+  for (intptr_t i = 1; i < Symbols::kKwTableStart; i++) {
     // The symbol_table needs to be reloaded as it might have grown in the
     // previous iteration.
     symbol_table = object_store->symbol_table();
@@ -71,6 +88,15 @@ void Symbols::InitOnce(Isolate* isolate) {
     symbol_handles_[i] = str;
   }
   Object::RegisterSingletonClassNames();
+
+  // Create symbols for language keywords. Some keywords are equal to
+  // symbols we already created, so use New() instead of Add() to ensure
+  // that the symbols are canonicalized.
+  for (intptr_t i = Symbols::kKwTableStart; i < Symbols::kNullCharId; i++) {
+    String* str = String::ReadOnlyHandle();
+    *str = New(names[i]);
+    symbol_handles_[i] = str;
+  }
 
   // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
   for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {

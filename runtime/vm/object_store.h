@@ -379,12 +379,6 @@ class ObjectStore {
     preallocated_stack_trace_ = value.raw();
   }
 
-  RawArray* keyword_symbols() const { return keyword_symbols_; }
-  void set_keyword_symbols(const Array& value) {
-    keyword_symbols_ = value.raw();
-  }
-  void InitKeywordTable();
-
   RawFunction* receive_port_create_function() const {
     return receive_port_create_function_;
   }
@@ -484,11 +478,12 @@ class ObjectStore {
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
   RawStacktrace* preallocated_stack_trace_;
-  RawArray* keyword_symbols_;
   RawFunction* receive_port_create_function_;
   RawFunction* lookup_receive_port_function_;
   RawFunction* handle_message_function_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&handle_message_function_);
+  }
 
   friend class SnapshotReader;
 
