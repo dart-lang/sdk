@@ -405,6 +405,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
   _LocalClassMirrorImpl(reflectee,
                         reflectedType,
                         String simpleName,
+                        this._owner,
                         this._isGeneric,
                         this._isMixinAlias,
                         this._isGenericDeclaration)
@@ -757,7 +758,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirrorImpl(reflectee, reflectedType)
-      : super(reflectee, reflectedType, null, false, false, false);
+      : super(reflectee, reflectedType, null, null, false, false, false);
 
   bool get _isAnonymousMixinApplication => false;
 

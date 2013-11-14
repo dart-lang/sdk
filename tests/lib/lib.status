@@ -207,9 +207,6 @@ mirrors/immutable_collections_test: Fail # Issue 11857, Issue 14321
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 mirrors/local_isolate_test: Skip # http://dartbug.com/12188
 
-[ $compiler == none && $runtime == drt && $mode == debug ]
-mirrors/hierarchy_invariants_test: Pass, Slow # Issue 14449
-
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
