@@ -495,8 +495,8 @@ class BinaryObserver extends ExpressionObserver<BinaryOperator>
       _value = null;
     } else {
       if (operator == '|' && left._value is ObservableList) {
-        _subscription = left._value.listChanges.listen(
-            (_) => _invalidate(scope));
+        _subscription = (left._value as ObservableList).listChanges
+            .listen((_) => _invalidate(scope));
       }
       _value = f(left._value, right._value);
     }
