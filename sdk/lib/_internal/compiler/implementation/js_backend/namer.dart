@@ -440,29 +440,64 @@ class Namer implements ClosureNamer {
   String invocationMirrorInternalName(Selector selector)
       => invocationName(selector);
 
-  String instanceFieldName(Element element) {
+  /**
+   * Returns name of accessor (root to getter and setter) for a static or
+   * instance field.
+   */
+  String fieldAccessorName(Element element) {
+    return element.isInstanceMember()
+        ? instanceFieldAccessorName(element)
+        : getNameOfField(element);
+  }
+
+  /**
+   * Returns name of the JavaScript property used to store a static or instance
+   * field.
+   */
+  String fieldPropertyName(Element element) {
+    return element.isInstanceMember()
+        ? instanceFieldPropertyName(element)
+        : getNameOfField(element);
+  }
+
+  /**
+   * Returns name of accessor (root to getter and setter) for an instance field.
+   */
+  String instanceFieldAccessorName(Element element) {
     String proposedName = privateName(element.getLibrary(), element.name);
     return getMappedInstanceName(proposedName);
   }
 
-  // Construct a new name for the element based on the library and class it is
-  // in.  The name here is not important, we just need to make sure it is
-  // unique.  If we are minifying, we actually construct the name from the
-  // minified versions of the class and instance names, but the result is
-  // minified once again, so that is not visible in the end result.
-  String shadowedFieldName(Element fieldElement) {
-    // Check for following situation: Native field ${fieldElement.name} has
-    // fixed JSName ${fieldElement.nativeName()}, but a subclass shadows this
-    // name.  We normally handle that by renaming the superclass field, but we
-    // can't do that because native fields have fixed JavaScript names.
-    // In practice this can't happen because we can't inherit from native
-    // classes.
-    assert (!fieldElement.hasFixedBackendName());
+  /**
+   * Returns name of the JavaScript property used to store an instance field.
+   */
+  String instanceFieldPropertyName(Element element) {
+    if (element.hasFixedBackendName()) {
+      return element.fixedBackendName();
+    }
+    // If a class is used anywhere as a mixin, we must make the name unique so
+    // that it does not accidentally shadow.  Also, the mixin name must be
+    // constant over all mixins.
+    if (compiler.world.isUsedAsMixin(element.getEnclosingClass()) ||
+        shadowingAnotherField(element)) {
+      // Construct a new name for the element based on the library and class it
+      // is in.  The name here is not important, we just need to make sure it is
+      // unique.  If we are minifying, we actually construct the name from the
+      // minified version of the class name, but the result is minified once
+      // again, so that is not visible in the end result.
+      String libraryName = getNameOfLibrary(element.getLibrary());
+      String className = getNameOfClass(element.getEnclosingClass());
+      String instanceName = privateName(element.getLibrary(), element.name);
+      return getMappedInstanceName('$libraryName\$$className\$$instanceName');
+    }
 
-    String libraryName = getNameOfLibrary(fieldElement.getLibrary());
-    String className = getNameOfClass(fieldElement.getEnclosingClass());
-    String instanceName = instanceFieldName(fieldElement);
-    return getMappedInstanceName('$libraryName\$$className\$$instanceName');
+    String proposedName = privateName(element.getLibrary(), element.name);
+    return getMappedInstanceName(proposedName);
+  }
+
+
+  bool shadowingAnotherField(Element element) {
+    return element.getEnclosingClass().hasFieldShadowedBy(element);
   }
 
   String setterName(Element element) {
@@ -718,7 +753,9 @@ class Namer implements ClosureNamer {
       } else if (element.kind == ElementKind.SETTER) {
         return setterName(element);
       } else if (element.kind == ElementKind.FIELD) {
-        return instanceFieldName(element);
+        compiler.internalError(
+            'use instanceFieldPropertyName or instanceFieldAccessorName',
+            node: element.parseNode(compiler));
       } else {
         compiler.internalError('getName for bad kind: ${element.kind}',
                                node: element.parseNode(compiler));

@@ -133,7 +133,9 @@ mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
-super_field_2_test: RuntimeError # Issue 14805
+type_promotion_test/12: RuntimeError # Issue 14933
+type_promotion_test/13: RuntimeError # Issue 14933
+type_promotion_test/14: RuntimeError # Issue 14933
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
