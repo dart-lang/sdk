@@ -111,6 +111,10 @@ class _PackageName {
   /// Returns a [PackageId] for this package with the given concrete version.
   PackageId atVersion(Version version) =>
     new PackageId(name, source, version, description);
+
+  /// Returns a [PackageDep] for this package with the given version constraint.
+  PackageDep withConstraint(VersionConstraint constraint) =>
+    new PackageDep(name, source, constraint, description);
 }
 
 /// A reference to a [Package], but not any particular version(s) of it.

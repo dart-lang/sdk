@@ -889,36 +889,31 @@ _testResolve(void testFn(String description, Function body),
 
     // Build the test package graph.
     var root;
-    packages.forEach((nameVersion, dependencies) {
-      var parsed = parseSource(nameVersion, (isDev, nameVersion, source) {
-        var parts = nameVersion.split(' ');
-        var name = parts[0];
-        var version = parts[1];
-
-        var package = mockPackage(name, version, dependencies);
-        if (name == 'myapp') {
-          // Don't add the root package to the server, so we can verify that Pub
-          // doesn't try to look up information about the local package on the
-          // remote server.
-          root = package;
-        } else {
-          (cache.sources[source] as MockSource).addPackage(name, package);
-        }
-      });
+    packages.forEach((description, dependencies) {
+      var id = parseSpec(description);
+      var package = mockPackage(id, dependencies);
+      if (id.name == 'myapp') {
+        // Don't add the root package to the server, so we can verify that Pub
+        // doesn't try to look up information about the local package on the
+        // remote server.
+        root = package;
+      } else {
+        (cache.sources[id.source] as MockSource).addPackage(
+            id.description, package);
+      }
     });
 
     // Clean up the expectation.
     if (result != null) {
       var newResult = {};
-      result.forEach((name, version) {
-        parseSource(name, (isDev, name, source) {
-          version = new Version.parse(version);
-          newResult[name] = new PackageId(name, source, version, name);
-        });
+      result.forEach((description, version) {
+        var id = parseSpec(description, version);
+        newResult[id.name] = id;
       });
       result = newResult;
     }
 
+    // Parse the lockfile.
     var realLockFile = new LockFile.empty();
     if (lockfile != null) {
       lockfile.forEach((name, version) {
@@ -1195,58 +1190,85 @@ class MockSource extends Source {
   }
 }
 
-Package mockPackage(String description, String version,
-                    Map dependencyStrings) {
+Package mockPackage(PackageId id, Map dependencyStrings) {
   var sdkConstraint = null;
 
   // Build the pubspec dependencies.
   var dependencies = <PackageDep>[];
   var devDependencies = <PackageDep>[];
 
-  dependencyStrings.forEach((name, constraint) {
-    parseSource(name, (isDev, name, source) {
-      var packageName = name.replaceFirst(new RegExp(r"-[^-]+$"), "");
-      constraint = new VersionConstraint.parse(constraint);
+  dependencyStrings.forEach((description, constraint) {
+    var isDev = description.startsWith("(dev) ");
+    if (isDev) {
+      description = description.substring("(dev) ".length);
+    }
 
-      if (name == 'sdk') {
-        sdkConstraint = constraint;
-        return;
-      }
+    var dep = parseSpec(description).withConstraint(
+        new VersionConstraint.parse(constraint));
 
-      var dep = new PackageDep(packageName, source, constraint, name);
+    if (dep.name == 'sdk') {
+      sdkConstraint = dep.constraint;
+      return;
+    }
 
-      if (isDev) {
-        devDependencies.add(dep);
-      } else {
-        dependencies.add(dep);
-      }
-    });
+    if (isDev) {
+      devDependencies.add(dep);
+    } else {
+      dependencies.add(dep);
+    }
   });
 
-  var name = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
-  var pubspec = new Pubspec(
-      name, new Version.parse(version), dependencies, devDependencies,
-      new PubspecEnvironment(sdkConstraint), []);
+  var pubspec = new Pubspec(id.name, id.version, dependencies,
+      devDependencies, new PubspecEnvironment(sdkConstraint), []);
   return new Package.inMemory(pubspec);
 }
 
-void parseSource(String description,
-    callback(bool isDev, String name, String source)) {
-  var isDev = false;
-
-  if (description.startsWith("(dev) ")) {
-    description = description.substring("(dev) ".length);
-    isDev = true;
+/// Creates a new [PackageId] parsed from [text], which looks something like
+/// this:
+///
+///   foo-xyz 1.0.0 from mock
+///
+/// The package name is "foo". A hyphenated suffix like "-xyz" here is part
+/// of the package description, but not its name, so the description here is
+/// "foo-xyz".
+///
+/// This is followed by an optional [Version]. If [version] is provided, then
+/// it is parsed to a [Version], and [text] should *not* also contain a
+/// version string.
+///
+/// The "from mock" optional suffix is the name of a source for the package.
+/// If omitted, it defaults to "mock1".
+PackageId parseSpec(String text, [String version]) {
+  var pattern = new RegExp(r"(([a-z]*)(-[a-z]+)?)( ([^ ]+))?( from (.*))?$");
+  var match = pattern.firstMatch(text);
+  if (match == null) {
+    throw new FormatException("Could not parse spec '$text'.");
   }
 
-  var name = description;
+  var description = match[1];
+  var name = match[2];
+
+  var parsedVersion;
+  if (version != null) {
+    // Spec string shouldn't also contain a version.
+    if (match[5] != null) {
+      throw new ArgumentError("Spec '$text' should not contain a version "
+          "since '$version' was passed in explicitly.");
+    }
+    parsedVersion = new Version.parse(version);
+  } else {
+    if (match[5] != null) {
+      parsedVersion = new Version.parse(match[5]);
+    } else {
+      parsedVersion = Version.none;
+    }
+  }
+
   var source = "mock1";
-  var match = new RegExp(r"(.*) from (.*)").firstMatch(description);
-  if (match != null) {
-    name = match[1];
-    source = match[2];
+  if (match[7] != null) {
+    source = match[7];
     if (source == "root") source = null;
   }
 
-  callback(isDev, name, source);
+  return new PackageId(name, source, parsedVersion, description);
 }
