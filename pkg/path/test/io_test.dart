@@ -38,16 +38,15 @@ main() {
   });
 
   test('registers changes to the working directory', () {
-    expect(path.absolute('foo/bar'),
-        equals(path.join(io.Directory.current.path, 'foo/bar')));
-
-    var sandbox = io.Directory.systemTemp.createTempSync('path_test_').path;
+    var dir = io.Directory.current.path;
     try {
-      io.Directory.current = sandbox;
+      expect(path.absolute('foo/bar'), equals(path.join(dir, 'foo/bar')));
 
-      expect(path.absolute('foo/bar'), equals(path.join(sandbox, 'foo/bar')));
+      io.Directory.current = path.dirname(dir);
+      expect(path.normalize(path.absolute('foo/bar')),
+          equals(path.normalize(path.join(dir, '../foo/bar'))));
     } finally {
-      new io.Directory(sandbox).deleteSync(recursive: true);
+      io.Directory.current = dir;
     }
   });
 }
