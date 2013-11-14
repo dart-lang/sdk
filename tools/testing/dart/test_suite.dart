@@ -1112,7 +1112,8 @@ class StandardTestSuite extends TestSuite {
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
               dartFlags, configurationDir));
-        } else if (configuration['use_browser_controller']) {
+        } else {
+          assert(configuration['use_browser_controller']);
           // This command is not actually run, it is used for reproducing
           // the failure.
           args = ['tools/testing/dart/launch_browser.dart',
@@ -1121,24 +1122,6 @@ class StandardTestSuite extends TestSuite {
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
               runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
               args, configurationDir, checkedMode: configuration['checked']));
-        } else {
-          assert(TestUtils.usesWebDriver(runtime));
-          args = [
-              dartDir.append('tools/testing/run_selenium.py').toNativePath(),
-              '--browser=$runtime',
-              // NOTE: This value will be overridden by the test runner
-              '--timeout=${configuration['timeout']}',
-              '--out=$fullHtmlPath'];
-          if (runtime == 'dartium') {
-            var dartiumLocation =
-                Locations.getBrowserLocation('dartium', configuration);
-            args.add('--executable=$dartiumLocation');
-          }
-          if (subtestIndex != 0) {
-            args.add('--force-refresh');
-          }
-          commandSet.add(CommandBuilder.instance.getSeleniumTestCommand(
-                  runtime, fullHtmlPath, 'python', args, configurationDir));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1917,8 +1900,9 @@ class TestUtils {
     return args;
   }
 
-  static bool usesWebDriver(String runtime) {
+  static bool isBrowserRuntime(String runtime) {
     const BROWSERS = const [
+      'drt',
       'dartium',
       'ie9',
       'ie10',
@@ -1932,9 +1916,6 @@ class TestUtils {
     ];
     return BROWSERS.contains(runtime);
   }
-
-  static bool isBrowserRuntime(String runtime) =>
-      runtime == 'drt' || TestUtils.usesWebDriver(runtime);
 
   static bool isJsCommandLineRuntime(String runtime) =>
       const ['d8', 'jsshell'].contains(runtime);

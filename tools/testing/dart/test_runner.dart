@@ -26,7 +26,6 @@ import "test_suite.dart";
 import "utils.dart";
 import 'record_and_replay.dart';
 
-const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
@@ -309,33 +308,6 @@ class BrowserTestCommand extends Command {
   }
 }
 
-class SeleniumTestCommand extends Command {
-  final String browser;
-  final String url;
-
-  SeleniumTestCommand._(String _browser,
-                        this.url,
-                        String executable,
-                        List<String> arguments,
-                        String configurationDir)
-      : super._(_browser, executable, arguments, configurationDir),
-        browser = _browser;
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.add(browser);
-    builder.add(url);
-  }
-
-  bool _equal(Command other) {
-    return
-        other is SeleniumTestCommand &&
-        super._equal(other) &&
-        browser == other.browser &&
-        url == other.url;
-  }
-}
-
 class AnalysisCommand extends Command {
   final String flavor;
 
@@ -412,16 +384,6 @@ class CommandBuilder {
     var command = new BrowserTestCommand._(
         browser, url, executable, arguments, configurationDir,
         checkedMode: checkedMode);
-    return _getUniqueCommand(command);
-  }
-
-  SeleniumTestCommand getSeleniumTestCommand(String browser,
-                                             String url,
-                                             String executable,
-                                             List<String> arguments,
-                                             String configurationDir) {
-    var command = new SeleniumTestCommand._(
-        browser, url, executable, arguments, configurationDir);
     return _getUniqueCommand(command);
   }
 
@@ -563,8 +525,6 @@ class TestCase extends UniqueObject {
 
   List<String> get batchTestArguments => commands.last.arguments;
 
-  bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
-
   bool get isFlaky {
       if (expectedOutcomes.contains(Expectation.SKIP) ||
           expectedOutcomes.contains(Expectation.SKIP_BY_DESIGN)) {
@@ -701,11 +661,6 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
       if (exitCode == 3) {
-        return !timedOut;
-      }
-      // TODO(ricow): Remove this dirty hack ones we have a selenium
-      // replacement.
-      if (exitCode == CRASHING_BROWSER_EXITCODE) {
         return !timedOut;
       }
       // If a program receives an uncaught system exception, the program
@@ -1167,10 +1122,6 @@ CommandOutput createCommandOutput(Command command,
     return new HTMLBrowserCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr,
         time, compilationSkipped);
-  } else if (command is SeleniumTestCommand) {
-    return new BrowserCommandOutputImpl(
-        command, exitCode, timedOut, stdout, stderr,
-        time, compilationSkipped);
   } else if (command is AnalysisCommand) {
     return new AnalysisCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr,
@@ -1189,18 +1140,6 @@ CommandOutput createCommandOutput(Command command,
   return new CommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr,
       time, compilationSkipped);
-}
-
-
-/** Modifies the --timeout=XX parameter passed to run_selenium.py */
-List<String> _modifySeleniumTimeout(List<String> arguments, int timeout) {
-  return arguments.map((argument) {
-    if (argument.startsWith('--timeout=')) {
-      return "--timeout=$timeout";
-    } else {
-      return argument;
-    }
-  }).toList();
 }
 
 
@@ -1241,11 +1180,9 @@ class RunningProcess {
         _commandComplete(0);
       } else {
         var processEnvironment = _createProcessEnvironment();
-        var commandArguments = _modifySeleniumTimeout(command.arguments,
-                                                      timeout);
         Future processFuture =
             io.Process.start(command.executable,
-                             commandArguments,
+                             command.arguments,
                              environment: processEnvironment);
         processFuture.then((io.Process process) {
           // Close stdin so that tests that try to block on input will fail.
@@ -1318,24 +1255,17 @@ class BatchRunnerProcess {
   static bool isWindows = io.Platform.operatingSystem == 'windows';
 
   final batchRunnerTypes = {
-      'selenium' : {
-          'run_executable' : 'python',
-          'run_arguments' : ['tools/testing/run_selenium.py', '--batch'],
-          'terminate_command' : ['--terminate'],
-      },
       'dartanalyzer' : {
         'run_executable' :
            isWindows ?
              'sdk\\bin\\dartanalyzer_developer.bat'
               : 'sdk/bin/dartanalyzer_developer',
         'run_arguments' : ['--batch'],
-        'terminate_command' : null,
       },
       'dart2analyzer' : {
         // This is a unix shell script, no windows equivalent available
         'run_executable' : 'editor/tools/analyzer',
         'run_arguments' : ['--batch'],
-        'terminate_command' : null,
     },
   };
 
@@ -1403,18 +1333,7 @@ class BatchRunnerProcess {
       if (killTimer != null) killTimer.cancel();
       terminateCompleter.complete(true);
     };
-    var shutdownCommand = batchRunnerTypes[_runnerType]['terminate_command'];
-    if (shutdownCommand != null && !shutdownCommand.isEmpty) {
-      // Use a graceful shutdown so our Selenium script can close
-      // the open browser processes. On Windows, signals do not exist
-      // and a kill is a hard kill.
-      _process.stdin.writeln(shutdownCommand.join(' '));
-
-      // In case the run_selenium process didn't close, kill it after 30s
-      killTimer = new Timer(new Duration(seconds: 30), _process.kill);
-    } else {
-      _process.kill();
-    }
+    _process.kill();
 
     return terminateCompleter.future;
   }
@@ -1438,7 +1357,6 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
-    arguments = _modifySeleniumTimeout(arguments, timeout);
     return arguments.join(' ') + '\n';
   }
 
@@ -1448,7 +1366,6 @@ class BatchRunnerProcess {
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
-    if (outcome == "CRASH") exitCode = CRASHING_BROWSER_EXITCODE;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     var output = createCommandOutput(_command,
                         exitCode,
@@ -1767,9 +1684,7 @@ class CommandQueue {
 
     if (_numProcesses < _maxProcesses && !_runQueue.isEmpty) {
       Command command = _runQueue.removeFirst();
-      var isBrowserCommand =
-          command is SeleniumTestCommand ||
-          command is BrowserTestCommand;
+      var isBrowserCommand = command is BrowserTestCommand;
 
       if (isBrowserCommand && _numBrowserProcesses == _maxBrowserProcesses) {
         // If there is no free browser runner, put it back into the queue.
@@ -1855,7 +1770,7 @@ class CommandExecutorImpl implements CommandExecutor {
   final int maxProcesses;
   final int maxBrowserProcesses;
 
-  // For dartc/selenium batch processing we keep a list of batch processes.
+  // For dartanalyzer batch processing we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
   // We keep a BrowserTestRunner for every "browserName-checked" configuration.
   final _browserTestRunners = new Map<String, BrowserTestRunner>();
@@ -1908,11 +1823,6 @@ class CommandExecutorImpl implements CommandExecutor {
 
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
-    } else if (command is SeleniumTestCommand && batchMode) {
-      var arguments = ['--force-refresh', '--browser=${command.browser}',
-                       '--timeout=${timeout}', '--out', '${command.url}'];
-      return _getBatchRunner(command.browser)
-          .runCommand('selenium', command, timeout, arguments);
     } else if (command is AnalysisCommand && batchMode) {
       return _getBatchRunner(command.flavor)
           .runCommand(command.flavor, command, timeout, command.arguments);
@@ -2076,11 +1986,6 @@ bool shouldRetryCommand(CommandOutput output) {
       if (stdout.any(containsFailureMsg) || stderr.any(containsFailureMsg)) {
         return true;
       }
-    }
-
-    // Selenium tests can be flaky. Try re-running.
-    if (command is SeleniumTestCommand) {
-      return true;
     }
 
     // We currently rerun dartium tests, see issue 14074
