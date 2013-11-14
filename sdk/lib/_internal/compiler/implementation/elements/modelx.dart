@@ -1904,25 +1904,25 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   }
 
   /**
-   * Returns true if the [fieldMember] is shadowed by another field. The given
-   * [fieldMember] must be a member of this class.
+   * Returns true if the [fieldMember] shadows another field.  The given
+   * [fieldMember] must be a member of this class, i.e. if there is a field of
+   * the same name in the superclass chain.
    *
    * This method also works if the [fieldMember] is private.
    */
-  bool isShadowedByField(Element fieldMember) {
+  bool hasFieldShadowedBy(Element fieldMember) {
     assert(fieldMember.isField());
     String fieldName = fieldMember.name;
     bool isPrivate = isPrivateName(fieldName);
     LibraryElement memberLibrary = fieldMember.getLibrary();
-    ClassElement lookupClass = this;
+    ClassElement lookupClass = this.superclass;
     while (lookupClass != null) {
       Element foundMember = lookupClass.lookupLocalMember(fieldName);
       if (foundMember != null) {
-        if (foundMember == fieldMember) return false;
         if (foundMember.isField()) {
           if (!isPrivate || memberLibrary == foundMember.getLibrary()) {
-            // Private fields can only be shadowed by a field declared
-            // in the same library.
+            // Private fields can only be shadowed by a field declared in the
+            // same library.
             return true;
           }
         }
