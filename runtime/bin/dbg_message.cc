@@ -227,29 +227,47 @@ static void FormatTextualValue(dart::TextBuffer* buf,
 
 
 static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
+  bool print_text_field = true;
   if (Dart_IsNumber(object)) {
-    buf->Printf("\"kind\":\"number\",");
+    buf->Printf("\"kind\":\"number\"");
   } else if (Dart_IsString(object)) {
-    buf->Printf("\"kind\":\"string\",");
+    buf->Printf("\"kind\":\"string\"");
   } else if (Dart_IsBoolean(object)) {
-    buf->Printf("\"kind\":\"boolean\",");
+    buf->Printf("\"kind\":\"boolean\"");
   } else if (Dart_IsList(object)) {
     intptr_t len = 0;
     Dart_Handle res = Dart_ListLength(object, &len);
     ASSERT_NOT_ERROR(res);
-    buf->Printf("\"kind\":\"list\",\"length\":%" Pd ",", len);
+    buf->Printf("\"kind\":\"list\",\"length\":%" Pd "", len);
+  } else if (Dart_IsClosure(object)) {
+    Dart_Handle name, signature;
+    Dart_CodeLocation location;
+    Dart_Handle res = Dart_GetClosureInfo(object, &name, &signature, &location);
+    ASSERT_NOT_ERROR(res);
+    buf->Printf("\"kind\":\"function\",\"name\":\"%s\"", GetStringChars(name));
+    buf->Printf(",\"signature\":\"%s\"", GetStringChars(signature));
+    if (!Dart_IsNull(location.script_url)) {
+      ASSERT(Dart_IsString(location.script_url));
+      buf->Printf(",\"location\": { \"url\":");
+      FormatEncodedString(buf, location.script_url);
+      buf->Printf(",\"libraryId\":%d,", location.library_id);
+      buf->Printf("\"tokenOffset\":%d}", location.token_pos);
+    }
+    print_text_field = false;
   } else {
-    buf->Printf("\"kind\":\"object\",");
+    buf->Printf("\"kind\":\"object\"");
     intptr_t class_id = 0;
     Dart_Handle res = Dart_GetObjClassId(object, &class_id);
     if (!Dart_IsError(res)) {
-      buf->Printf("\"classId\":%" Pd ",", class_id);
+      buf->Printf(",\"classId\":%" Pd ",", class_id);
     }
   }
-  buf->Printf("\"text\":\"");
-  const intptr_t max_chars = 250;
-  FormatTextualValue(buf, object, max_chars, true);
-  buf->Printf("\"");
+  if (print_text_field) {
+    buf->Printf(",\"text\":\"");
+    const intptr_t max_chars = 250;
+    FormatTextualValue(buf, object, max_chars, true);
+    buf->Printf("\"");
+  }
 }
 
 

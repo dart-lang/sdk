@@ -602,6 +602,7 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
 DART_EXPORT Dart_Handle Dart_GetClosureInfo(
                             Dart_Handle closure,
                             Dart_Handle* name,
+                            Dart_Handle* signature,
                             Dart_CodeLocation* location) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -616,6 +617,10 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
   if (name != NULL) {
     *name = Api::NewHandle(isolate, func.QualifiedUserVisibleName());
   }
+  if (signature != NULL) {
+    *signature = Api::NewHandle(isolate, func.UserVisibleSignature());
+  }
+
   if (location != NULL) {
     if (func.token_pos() >= 0) {
       const Class& cls = Class::Handle(func.origin());

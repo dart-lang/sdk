@@ -563,6 +563,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t class_id,
  *
  * \param name receives handle to closure name (string).
  *        Receives a null handle if the closure is anonymous.
+ * \param signature receives handle to closure signature (string).
  * \param location.script_url receives a string handle with the url of
  *        the source script that contains the closure.
  *        Receives a null handle if there is no textual location
@@ -575,6 +576,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(intptr_t class_id,
  */
 DART_EXPORT Dart_Handle Dart_GetClosureInfo(Dart_Handle closure,
                                             Dart_Handle* name,
+                                            Dart_Handle* signature,
                                             Dart_CodeLocation* location);
 
 
