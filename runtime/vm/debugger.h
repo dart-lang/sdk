@@ -217,27 +217,19 @@ class ActivationFrame : public ZoneAllocated {
 class DebuggerStackTrace : public ZoneAllocated {
  public:
   explicit DebuggerStackTrace(int capacity)
-      : trace_(capacity),
-        user_trace_(capacity) { }
+      : trace_(capacity) { }
 
-  intptr_t Length() const { return user_trace_.length(); }
+  intptr_t Length() const { return trace_.length(); }
 
   ActivationFrame* FrameAt(int i) const {
-    return user_trace_[i];
+    return trace_[i];
   }
 
   ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
 
  private:
-  intptr_t UnfilteredLength() const { return trace_.length(); }
-
-  ActivationFrame* UnfilteredFrameAt(int i) const {
-    return trace_[i];
-  }
-
   void AddActivation(ActivationFrame* frame);
   ZoneGrowableArray<ActivationFrame*> trace_;
-  ZoneGrowableArray<ActivationFrame*> user_trace_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);

@@ -414,9 +414,9 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
   AbstractType& type = Type::Handle();
   const TypeArguments& no_instantiator = TypeArguments::Handle();
   for (intptr_t frame_index = 0;
-       frame_index < UnfilteredLength();
+       frame_index < Length();
        frame_index++) {
-    ActivationFrame* frame = UnfilteredFrameAt(frame_index);
+    ActivationFrame* frame = FrameAt(frame_index);
     intptr_t try_index = frame->TryIndex();
     if (try_index < 0) continue;
     handlers = frame->code().exception_handlers();
@@ -662,9 +662,8 @@ const char* ActivationFrame::ToCString() {
 
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  trace_.Add(frame);
-  if (frame->IsDebuggable()) {
-    user_trace_.Add(frame);
+  if (frame->function().is_visible()) {
+    trace_.Add(frame);
   }
 }
 
@@ -1888,8 +1887,8 @@ void Debugger::SignalBpReached() {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
-  ASSERT(stack_trace->UnfilteredLength() > 0);
-  ActivationFrame* top_frame = stack_trace->UnfilteredFrameAt(0);
+  ASSERT(stack_trace->Length() > 0);
+  ActivationFrame* top_frame = stack_trace->FrameAt(0);
   ASSERT(top_frame != NULL);
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
