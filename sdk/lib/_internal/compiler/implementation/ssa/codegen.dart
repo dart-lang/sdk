@@ -1617,7 +1617,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerStaticUse(superMethod);
     ClassElement superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
-      String fieldName = backend.namer.instanceFieldPropertyName(superMethod);
+      String fieldName = superMethod.hasFixedBackendName()
+          ? superMethod.fixedBackendName()
+          : node.caller.isShadowedByField(superMethod)
+              ? backend.namer.shadowedFieldName(superMethod)
+              : backend.namer.instanceFieldName(superMethod);
       use(node.inputs[0]);
       js.PropertyAccess access =
           new js.PropertyAccess.field(pop(), fieldName);
@@ -1685,7 +1689,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         push(new js.PropertyAccess.field(pop(), 'length'), node);
       }
     } else {
-      String name = backend.namer.instanceFieldPropertyName(element);
+      String name = _fieldPropertyName(element);
       push(new js.PropertyAccess.field(pop(), name), node);
       world.registerFieldGetter(element);
     }
@@ -1694,13 +1698,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
     world.registerFieldSetter(element);
-    String name = backend.namer.instanceFieldPropertyName(element);
+    String name = _fieldPropertyName(element);
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
     push(new js.Assignment(new js.PropertyAccess.field(receiver, name), pop()),
         node);
   }
+
+  String _fieldPropertyName(Element element) => element.hasFixedBackendName()
+      ? element.fixedBackendName()
+      : backend.namer.getNameOfInstanceMember(element);
 
   visitLocalGet(HLocalGet node) {
     use(node.receiver);

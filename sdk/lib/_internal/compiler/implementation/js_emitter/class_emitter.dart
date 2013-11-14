@@ -160,6 +160,8 @@ class ClassEmitter extends CodeEmitterHelper {
             buffer.write(accessorName);
             if (name != accessorName) {
               buffer.write(':$name');
+              // Only the native classes can have renaming accessors.
+              assert(classIsNative);
             }
 
             int getterCode = 0;
@@ -421,16 +423,26 @@ class ClassEmitter extends CodeEmitterHelper {
       // setters.
       bool needsGetter = false;
       bool needsSetter = false;
+      // We need to name shadowed fields differently, so they don't clash with
+      // the non-shadowed field.
+      bool isShadowed = false;
       if (isLibrary || isMixinNativeField || holder == element) {
         needsGetter = fieldNeedsGetter(field);
         needsSetter = fieldNeedsSetter(field);
+      } else {
+        ClassElement cls = element;
+        isShadowed = cls.isShadowedByField(field);
       }
 
       if ((isInstantiated && !holder.isNative())
           || needsGetter
           || needsSetter) {
-        String accessorName = namer.fieldAccessorName(field);
-        String fieldName = namer.fieldPropertyName(field);
+        String accessorName = isShadowed
+            ? namer.shadowedFieldName(field)
+            : namer.getNameOfField(field);
+        String fieldName = field.hasFixedBackendName()
+            ? field.fixedBackendName()
+            : (isMixinNativeField ? name : accessorName);
         bool needsCheckedSetter = false;
         if (compiler.enableTypeAssertions
             && needsSetter

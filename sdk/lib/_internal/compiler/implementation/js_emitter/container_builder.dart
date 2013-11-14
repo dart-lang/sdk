@@ -402,7 +402,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool inInterceptor = backend.isInterceptedMethod(member);
     List<String> fieldNames = <String>[];
     compiler.boundClosureClass.forEachInstanceField((_, Element field) {
-      fieldNames.add(namer.instanceFieldPropertyName(field));
+      fieldNames.add(namer.getNameOfInstanceMember(field));
     });
 
     ClassElement classElement = member.getEnclosingClass();
@@ -525,7 +525,9 @@ class ContainerBuilder extends CodeEmitterHelper {
                 ? <jsAst.Expression>[js(receiverArgumentName)]
                 : <jsAst.Expression>[]);
       } else {
-        String fieldName = namer.instanceFieldPropertyName(member);
+        String fieldName = member.hasFixedBackendName()
+            ? member.fixedBackendName()
+            : namer.instanceFieldName(member);
         return js('this')[fieldName];
       }
     }

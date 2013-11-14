@@ -877,7 +877,7 @@ abstract class ClassElement extends TypeDeclarationElement
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
   bool implementsInterface(ClassElement intrface);
-  bool hasFieldShadowedBy(Element fieldMember);
+  bool isShadowedByField(Element fieldMember);
 
   ClassElement ensureResolved(Compiler compiler);
 
