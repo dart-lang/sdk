@@ -1093,35 +1093,7 @@ class StandardTestSuite extends TestSuite {
 
         List<String> args = <String>[];
 
-        if (configuration['use_browser_controller']) {
-          // This command is not actually run, it is used for reproducing
-          // the failure.
-          args = ['tools/testing/dart/launch_browser.dart',
-                  runtime,
-                  fullHtmlPath];
-          commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
-              args, configurationDir, checkedMode: configuration['checked']));
-        } else if (TestUtils.usesWebDriver(runtime)) {
-          args = [
-              dartDir.append('tools/testing/run_selenium.py').toNativePath(),
-              '--browser=$runtime',
-              // NOTE: This value will be overridden by the test runner
-              '--timeout=${configuration['timeout']}',
-              '--out=$fullHtmlPath'];
-          if (runtime == 'dartium') {
-            var dartiumLocation =
-                Locations.getBrowserLocation('dartium', configuration);
-            args.add('--executable=$dartiumLocation');
-          }
-          if (subtestIndex != 0) {
-            args.add('--force-refresh');
-          }
-          commandSet.add(CommandBuilder.instance.getSeleniumTestCommand(
-                  runtime, fullHtmlPath, 'python', args, configurationDir));
-        } else {
-          assert(runtime == "drt");
-
+        if (runtime == "drt") {
           var dartFlags = [];
           var contentShellOptions = [];
 
@@ -1140,6 +1112,33 @@ class StandardTestSuite extends TestSuite {
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
               dartFlags, configurationDir));
+        } else if (configuration['use_browser_controller']) {
+          // This command is not actually run, it is used for reproducing
+          // the failure.
+          args = ['tools/testing/dart/launch_browser.dart',
+                  runtime,
+                  fullHtmlPath];
+          commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
+              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
+              args, configurationDir, checkedMode: configuration['checked']));
+        } else {
+          assert(TestUtils.usesWebDriver(runtime));
+          args = [
+              dartDir.append('tools/testing/run_selenium.py').toNativePath(),
+              '--browser=$runtime',
+              // NOTE: This value will be overridden by the test runner
+              '--timeout=${configuration['timeout']}',
+              '--out=$fullHtmlPath'];
+          if (runtime == 'dartium') {
+            var dartiumLocation =
+                Locations.getBrowserLocation('dartium', configuration);
+            args.add('--executable=$dartiumLocation');
+          }
+          if (subtestIndex != 0) {
+            args.add('--force-refresh');
+          }
+          commandSet.add(CommandBuilder.instance.getSeleniumTestCommand(
+                  runtime, fullHtmlPath, 'python', args, configurationDir));
         }
 
         // Create BrowserTestCase and queue it.
