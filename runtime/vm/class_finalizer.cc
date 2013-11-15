@@ -4,12 +4,12 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/code_generator.h"
 #include "vm/flags.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
-#include "vm/parser.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -2614,14 +2614,11 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
                                          const Type& type,
                                          const char* format,
                                          va_list args) {
-  LanguageError& error = LanguageError::Handle();
-  if (prev_error.IsNull()) {
-    error ^= Parser::FormatError(
-        script, type.token_pos(), "Error", format, args);
-  } else {
-    error ^= Parser::FormatErrorWithAppend(
-        prev_error, script, type.token_pos(), "Error", format, args);
-  }
+  LanguageError& error = LanguageError::Handle(
+      LanguageError::NewFormattedV(
+          prev_error, script, type.token_pos(),
+          LanguageError::kMalformedType, Heap::kOld,
+          format, args));
   if (FLAG_error_on_bad_type) {
     ReportError(error);
   }
@@ -2684,13 +2681,11 @@ void ClassFinalizer::ReportError(const Error& prev_error,
                                  const char* format, ...) {
   va_list args;
   va_start(args, format);
-  Error& error = Error::Handle();
-  if (prev_error.IsNull()) {
-    error ^= Parser::FormatError(script, token_pos, "Error", format, args);
-  } else {
-    error ^= Parser::FormatErrorWithAppend(
-        prev_error, script, token_pos, "Error", format, args);
-  }
+  Error& error = Error::Handle(
+      LanguageError::NewFormattedV(
+          prev_error, script, token_pos,
+          LanguageError::kError, Heap::kNew,
+          format, args));
   va_end(args);
   ReportError(error);
 }

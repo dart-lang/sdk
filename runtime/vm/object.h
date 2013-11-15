@@ -3760,9 +3760,6 @@ class Error : public Object {
 class ApiError : public Error {
  public:
   RawString* message() const { return raw_ptr()->message_; }
-  static intptr_t message_offset() {
-    return OFFSET_OF(RawApiError, message_);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawApiError));
@@ -3785,22 +3782,61 @@ class ApiError : public Error {
 
 class LanguageError : public Error {
  public:
-  RawString* message() const { return raw_ptr()->message_; }
-  static intptr_t message_offset() {
-    return OFFSET_OF(RawLanguageError, message_);
-  }
+  enum Kind {
+    kWarning,
+    kError,
+    kMalformedType,
+    kMalboundedType,
+  };
+
+  // Build, cache, and return formatted message.
+  RawString* FormatMessage() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLanguageError));
   }
 
-  static RawLanguageError* New(const String& message,
+  // A null script means no source and a negative token_pos means no position.
+  static RawLanguageError* NewFormatted(const Error& prev_error,
+                                        const Script& script,
+                                        intptr_t token_pos,
+                                        Kind kind,
+                                        Heap::Space space,
+                                        const char* format, ...)
+    PRINTF_ATTRIBUTE(6, 7);
+
+  static RawLanguageError* NewFormattedV(const Error& prev_error,
+                                         const Script& script,
+                                         intptr_t token_pos,
+                                         Kind kind,
+                                         Heap::Space space,
+                                         const char* format, va_list args);
+
+  static RawLanguageError* New(const String& formatted_message,
                                Heap::Space space = Heap::kNew);
 
   virtual const char* ToErrorCString() const;
 
  private:
-  void set_message(const String& message) const;
+  RawError* previous_error() const {
+    return raw_ptr()->previous_error_;
+  }
+  void set_previous_error(const Error& value) const;
+
+  RawScript* script() const { return raw_ptr()->script_; }
+  void set_script(const Script& value) const;
+
+  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(intptr_t value) const;
+
+  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
+  void set_kind(uint8_t value) const;
+
+  RawString* message() const { return raw_ptr()->message_; }
+  void set_message(const String& value) const;
+
+  RawString* formatted_message() const { return raw_ptr()->formatted_message_; }
+  void set_formatted_message(const String& value) const;
 
   static RawLanguageError* New();
 
@@ -3843,9 +3879,6 @@ class UnhandledException : public Error {
 class UnwindError : public Error {
  public:
   RawString* message() const { return raw_ptr()->message_; }
-  static intptr_t message_offset() {
-    return OFFSET_OF(RawUnwindError, message_);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUnwindError));

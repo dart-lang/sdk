@@ -1092,12 +1092,17 @@ class RawLanguageError : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->message_);
+    return reinterpret_cast<RawObject**>(&ptr()->previous_error_);
   }
+  RawError* previous_error_;  // May be null.
+  RawScript* script_;
   RawString* message_;
+  RawString* formatted_message_;  // Incl. previous error's formatted message.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->message_);
+    return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
+  intptr_t token_pos_;  // Source position in script_.
+  int8_t kind_;  // Of type LanguageError::Kind.
 };
 
 

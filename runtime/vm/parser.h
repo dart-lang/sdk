@@ -163,34 +163,6 @@ class Parser : public ValueObject {
   };
   static RawObject* ParseFunctionParameters(const Function& func);
 
-  // Format and print a message with source location.
-  // A null script means no source and a negative token_pos means no position.
-  static void PrintMessage(const Script& script,
-                           intptr_t token_pos,
-                           const char* message_header,
-                           const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
-
-  // Build an error object containing a formatted error or warning message.
-  // A null script means no source and a negative token_pos means no position.
-  static RawError* FormatError(const Script& script,
-                               intptr_t token_pos,
-                               const char* message_header,
-                               const char* format,
-                               va_list args);
-  static RawError* FormatErrorMsg(const Script& script,
-                                  intptr_t token_pos,
-                                  const char* message_header,
-                                  const char* format, ...)
-      PRINTF_ATTRIBUTE(4, 5);
-
-  // Same as FormatError, but appends the new error to the 'prev_error'.
-  static RawError* FormatErrorWithAppend(const Error& prev_error,
-                                         const Script& script,
-                                         intptr_t token_pos,
-                                         const char* message_header,
-                                         const char* format,
-                                         va_list args);
-
  private:
   friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
 
@@ -317,7 +289,7 @@ class Parser : public ValueObject {
   // A null script means no source and a negative token_pos means no position.
   static RawString* FormatMessage(const Script& script,
                                   intptr_t token_pos,
-                                  const char* message_header,
+                                  LanguageError::Kind kind,
                                   const char* format,
                                   va_list args);
 

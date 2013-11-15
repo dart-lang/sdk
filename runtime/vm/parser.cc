@@ -5228,8 +5228,10 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
   if (!Utils::IsInt(16, params->num_fixed_parameters) ||
       !Utils::IsInt(16, params->num_optional_parameters)) {
     const Script& script = Script::Handle(Class::Handle(func.Owner()).script());
-    const Error& error = Error::Handle(FormatErrorMsg(
-        script, func.token_pos(), "Error", "too many formal parameters"));
+    const Error& error = Error::Handle(LanguageError::NewFormatted(
+        Error::Handle(), script, func.token_pos(),
+        LanguageError::kError, Heap::kNew,
+        "too many formal parameters"));
     ErrorMsg(error);
   }
   func.set_num_fixed_parameters(params->num_fixed_parameters);
@@ -7233,116 +7235,12 @@ AstNode* Parser::ParseStatement() {
 }
 
 
-RawError* Parser::FormatErrorWithAppend(const Error& prev_error,
-                                        const Script& script,
-                                        intptr_t token_pos,
-                                        const char* message_header,
-                                        const char* format,
-                                        va_list args) {
-  const String& msg1 = String::Handle(String::New(prev_error.ToErrorCString()));
-  const String& msg2 = String::Handle(
-      FormatMessage(script, token_pos, message_header, format, args));
-  return LanguageError::New(String::Handle(String::Concat(msg1, msg2)));
-}
-
-
-RawError* Parser::FormatError(const Script& script,
-                              intptr_t token_pos,
-                              const char* message_header,
-                              const char* format,
-                              va_list args) {
-  const String& msg = String::Handle(
-      FormatMessage(script, token_pos, message_header, format, args));
-  return LanguageError::New(msg);
-}
-
-
-RawError* Parser::FormatErrorMsg(const Script& script,
-                                 intptr_t token_pos,
-                                 const char* message_header,
-                                 const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const Error& error = Error::Handle(
-      FormatError(script, token_pos, message_header, format, args));
-  va_end(args);
-  return error.raw();
-}
-
-
-RawString* Parser::FormatMessage(const Script& script,
-                                 intptr_t token_pos,
-                                 const char* message_header,
-                                 const char* format, va_list args) {
-  String& result = String::Handle();
-  const String& msg = String::Handle(String::NewFormattedV(format, args));
-  if (!script.IsNull()) {
-    const String& script_url = String::Handle(script.url());
-    if (token_pos >= 0) {
-      intptr_t line, column;
-      script.GetTokenLocation(token_pos, &line, &column);
-      // Only report the line position if we have the original source. We still
-      // need to get a valid column so that we can report the ^ mark below the
-      // snippet.
-      if (script.HasSource()) {
-        result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
-                                      script_url.ToCString(),
-                                      message_header,
-                                      line,
-                                      column);
-      } else {
-        result = String::NewFormatted("'%s': %s: line %" Pd ": ",
-                                      script_url.ToCString(),
-                                      message_header,
-                                      line);
-      }
-      // Append the formatted error or warning message.
-      result = String::Concat(result, msg);
-      const String& new_line = String::Handle(String::New("\n"));
-      // Append the source line.
-      const String& script_line = String::Handle(script.GetLine(line));
-      ASSERT(!script_line.IsNull());
-      result = String::Concat(result, new_line);
-      result = String::Concat(result, script_line);
-      result = String::Concat(result, new_line);
-      // Append the column marker.
-      const String& column_line = String::Handle(
-          String::NewFormatted("%*s\n", static_cast<int>(column), "^"));
-      result = String::Concat(result, column_line);
-    } else {
-      // Token position is unknown.
-      result = String::NewFormatted("'%s': %s: ",
-                                    script_url.ToCString(),
-                                    message_header);
-      result = String::Concat(result, msg);
-    }
-  } else {
-    // Script is unknown.
-    // Append the formatted error or warning message.
-    result = msg.raw();
-  }
-  return result.raw();
-}
-
-
-void Parser::PrintMessage(const Script& script,
-                          intptr_t token_pos,
-                          const char* message_header,
-                          const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const String& buf = String::Handle(
-      FormatMessage(script, token_pos, message_header, format, args));
-  va_end(args);
-  OS::Print("%s", buf.ToCString());
-}
-
-
 void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) const {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(
-      FormatError(script_, token_pos, "Error", format, args));
+  const Error& error = Error::Handle(LanguageError::NewFormattedV(
+      Error::Handle(), script_, token_pos,
+      LanguageError::kError, Heap::kNew, format, args));
   va_end(args);
   isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
@@ -7352,8 +7250,9 @@ void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) const {
 void Parser::ErrorMsg(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(
-      FormatError(script_, TokenPos(), "Error", format, args));
+  const Error& error = Error::Handle(LanguageError::NewFormattedV(
+      Error::Handle(), script_, TokenPos(),
+      LanguageError::kError, Heap::kNew, format, args));
   va_end(args);
   isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
@@ -7370,8 +7269,11 @@ void Parser::AppendErrorMsg(
       const Error& prev_error, intptr_t token_pos, const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const Error& error = Error::Handle(FormatErrorWithAppend(
-      prev_error, script_, token_pos, "Error", format, args));
+  const Error& error = Error::Handle(
+      LanguageError::NewFormattedV(
+          prev_error, script_, token_pos,
+          LanguageError::kError, Heap::kNew,
+          format, args));
   va_end(args);
   isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
@@ -7383,7 +7285,10 @@ void Parser::Warning(intptr_t token_pos, const char* format, ...) {
   va_list args;
   va_start(args, format);
   const Error& error = Error::Handle(
-      FormatError(script_, token_pos, "Warning", format, args));
+      LanguageError::NewFormattedV(
+          Error::Handle(), script_, token_pos,
+          LanguageError::kWarning, Heap::kNew,
+          format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
     isolate()->long_jump_base()->Jump(1, error);
@@ -7399,7 +7304,10 @@ void Parser::Warning(const char* format, ...) {
   va_list args;
   va_start(args, format);
   const Error& error = Error::Handle(
-      FormatError(script_, TokenPos(), "Warning", format, args));
+      LanguageError::NewFormattedV(
+          Error::Handle(), script_, TokenPos(),
+          LanguageError::kWarning, Heap::kNew,
+          format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
     isolate()->long_jump_base()->Jump(1, error);
