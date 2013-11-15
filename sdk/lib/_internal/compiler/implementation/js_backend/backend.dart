@@ -231,6 +231,8 @@ class JavaScriptBackend extends Backend {
   TypeMask extendableArrayType;
   TypeMask nonNullType;
 
+  /// Maps special classes to their implementation (JSXxx) class.
+  Map<ClassElement, ClassElement> implementationClasses;
 
   Element getNativeInterceptorMethod;
   bool needToInitializeDispatchProperty = false;
@@ -577,6 +579,14 @@ class JavaScriptBackend extends Backend {
       jsUnknownJavaScriptObjectClass =
           compiler.findInterceptor('UnknownJavaScriptObject'),
     ];
+
+    implementationClasses = <ClassElement, ClassElement>{};
+    implementationClasses[compiler.intClass] = jsIntClass;
+    implementationClasses[compiler.boolClass] = jsBoolClass;
+    implementationClasses[compiler.numClass] = jsNumberClass;
+    implementationClasses[compiler.doubleClass] = jsDoubleClass;
+    implementationClasses[compiler.stringClass] = jsStringClass;
+    implementationClasses[compiler.listClass] = jsArrayClass;
 
     jsIndexableClass = compiler.findInterceptor('JSIndexable');
     jsMutableIndexableClass = compiler.findInterceptor('JSMutableIndexable');
@@ -1294,22 +1304,22 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  Element getImplementationClass(Element element) {
-    if (element == compiler.intClass) {
-      return jsIntClass;
-    } else if (element == compiler.boolClass) {
-      return jsBoolClass;
-    } else if (element == compiler.numClass) {
-      return jsNumberClass;
-    } else if (element == compiler.doubleClass) {
-      return jsDoubleClass;
-    } else if (element == compiler.stringClass) {
-      return jsStringClass;
-    } else if (element == compiler.listClass) {
-      return jsArrayClass;
-    } else {
-      return element;
+  Element getDartClass(Element element) {
+    for (ClassElement dartClass in implementationClasses.keys) {
+      if (element == implementationClasses[dartClass]) {
+        return dartClass;
+      }
     }
+    return element;
+  }
+
+  Element getImplementationClass(Element element) {
+    for (ClassElement dartClass in implementationClasses.keys) {
+      if (element == dartClass) {
+        return implementationClasses[dartClass];
+      }
+    }
+    return element;
   }
 
   /**
@@ -1737,6 +1747,7 @@ class JavaScriptBackend extends Backend {
    * need to access it.
    */
   bool isNeededForReflection(Element element) {
+    element = getDartClass(element);
     if (hasInsufficientMirrorsUsed) return isTreeShakingDisabled;
     /// Record the name of [element] in [symbolsUsed]. Return true for
     /// convenience.
