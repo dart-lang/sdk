@@ -26694,6 +26694,16 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   WindowBase _open3(url, name, options) =>
       JS('Window', '#.open(#,#,#)', this, url, name, options);
 
+  /**
+   * Opens a new window.
+   *
+   * ## Other resources
+   *
+   * * [Window.open]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.open) from MDN.
+   * * [Window open]
+   * (http://docs.webplatform.org/wiki/dom/methods/open) from WebPlatform.org.
+   */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
@@ -27792,31 +27802,93 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   void print() native;
 
+  /**
+   * Resizes this window by an offset.
+   *
+   * ## Other resources
+   *
+   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)
+   * from WebPlatform.org.
+   */
   @DomName('Window.resizeBy')
   @DocsEditable()
   void resizeBy(num x, num y) native;
 
+  /**
+   * Resizes this window to a specific width and height.
+   *
+   * ## Other resources
+   *
+   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)
+   * from WebPlatform.org.
+   */
   @DomName('Window.resizeTo')
   @DocsEditable()
   void resizeTo(num width, num height) native;
 
+  /**
+   * Scrolls the page horizontally and vertically to a specific point.
+   *
+   * This method is identical to [scrollTo].
+   *
+   * ## Other resources
+   *
+   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
+   * from WebPlatform.org.
+   */
   @DomName('Window.scroll')
   @DocsEditable()
   void scroll(int x, int y) native;
 
+  /**
+   * Scrolls the page horizontally and vertically by an offset.
+   *
+   * ## Other resources
+   *
+   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   * from WebPlatform.org.
+   */
   @DomName('Window.scrollBy')
   @DocsEditable()
   void scrollBy(int x, int y) native;
 
+  /**
+   * Scrolls the page horizontally and vertically to a specific point.
+   *
+   * This method is identical to [scroll].
+   *
+   * ## Other resources
+   *
+   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   * from WebPlatform.org.
+   */
   @DomName('Window.scrollTo')
   @DocsEditable()
   void scrollTo(int x, int y) native;
 
+  /**
+   * Opens a new page as a modal dialog.
+   *
+   * ## Other resources
+   *
+   * * [Dialogs implemented using separate documents]
+   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
+   * from W3C.
+   */
   @DomName('Window.showModalDialog')
   @DocsEditable()
   @Creates('Null')
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
+  /**
+   * Stops the window from loading.
+   *
+   * ## Other resources
+   *
+   * * [The Window object]
+   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
+   * from W3C.
+   */
   @DomName('Window.stop')
   @DocsEditable()
   void stop() native;
@@ -27866,6 +27938,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   }
 
   @JSName('webkitResolveLocalFileSystemURL')
+  /**
+   * Asynchronously retrieves a local filesystem entry.
+   *
+   * ## Other resources
+   *
+   * * [Obtaining access to file system entry points]
+   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)
+   * from W3C.
+   */
   @DomName('Window.webkitResolveLocalFileSystemURL')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27874,6 +27955,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
+  /**
+   * Asynchronously retrieves a local filesystem entry.
+   *
+   * ## Other resources
+   *
+   * * [Obtaining access to file system entry points]
+   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)
+   * from W3C.
+   */
   @DomName('Window.webkitResolveLocalFileSystemURL')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)

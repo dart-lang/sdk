@@ -51,6 +51,16 @@ $if DART2JS
   WindowBase _open3(url, name, options) =>
       JS('Window', '#.open(#,#,#)', this, url, name, options);
 
+  /**
+   * Opens a new window.
+   *
+   * ## Other resources
+   *
+   * * [Window.open]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.open) from MDN.
+   * * [Window open]
+   * (http://docs.webplatform.org/wiki/dom/methods/open) from WebPlatform.org.
+   */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));

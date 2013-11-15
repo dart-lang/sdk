@@ -3761,12 +3761,32 @@
           "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.",
           "   */"
         ],
+        "resizeBy": [
+          "/**",
+          "   * Resizes this window by an offset.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
         "resizeEvent": [
           "/**",
           "   * Static factory designed to expose `resize` events to event",
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "resizeTo": [
+          "/**",
+          "   * Resizes this window to a specific width and height.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)",
+          "   * from WebPlatform.org.",
           "   */"
         ],
         "screen": [
@@ -3820,6 +3840,18 @@
           "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
           "   */"
         ],
+        "scroll": [
+          "/**",
+          "   * Scrolls the page horizontally and vertically to a specific point.",
+          "   *",
+          "   * This method is identical to [scrollTo].",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
         "scrollbars": [
           "/**",
           "   * This window's scroll bars.",
@@ -3829,6 +3861,28 @@
           "   * * [Browser interface elements]",
           "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
           "   * from WHATWG.",
+          "   */"
+        ],
+        "scrollBy": [
+          "/**",
+          "   * Scrolls the page horizontally and vertically by an offset.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
+        "scrollTo": [
+          "/**",
+          "   * Scrolls the page horizontally and vertically to a specific point.",
+          "   *",
+          "   * This method is identical to [scroll].",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)",
+          "   * from WebPlatform.org.",
           "   */"
         ],
         "self": [
@@ -3856,6 +3910,17 @@
           "   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.",
           "   */"
         ],
+        "showModalDialog": [
+          "/**",
+          "   * Opens a new page as a modal dialog.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Dialogs implemented using separate documents]",
+          "   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)",
+          "   * from W3C.",
+          "   */"
+        ],
         "speechSynthesis": [
           "/**",
           "   * Access to speech synthesis in the browser.",
@@ -3879,6 +3944,17 @@
           "   * * [Browser interface elements]",
           "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
           "   * from WHATWG.",
+          "   */"
+        ],
+        "stop": [
+          "/**",
+          "   * Stops the window from loading.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Window object]",
+          "   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)",
+          "   * from W3C.",
           "   */"
         ],
         "storageEvent": [
@@ -3953,6 +4029,17 @@
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitResolveLocalFileSystemURL": [
+          "/**",
+          "   * Asynchronously retrieves a local filesystem entry.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Obtaining access to file system entry points]",
+          "   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)",
+          "   * from W3C.",
           "   */"
         ],
         "window": [
