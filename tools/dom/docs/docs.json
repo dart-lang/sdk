@@ -1447,6 +1447,62 @@
         ]
       }
     },
+    "Event": {
+      "members": {
+        "AT_TARGET": [
+          "/**",
+          "   * This event is being handled by the event target.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "BUBBLING_PHASE": [
+          "/**",
+          "   * This event is bubbling up through the target's ancestors.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "CAPTURING_PHASE": [
+          "/**",
+          "   * This event is propagating through the target's ancestors, starting from the",
+          "   * document.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "clipboardData": [
+          "/**",
+          "   * Access to the system's clipboard data during copy, cut, and paste events.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [clipboardData specification]",
+          "   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.",
+          "   */"
+        ],
+        "path": [
+          "/**",
+          "   * This event's path, taking into account shadow DOM.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Shadow DOM extensions to Event]",
+          "   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from",
+          "   * W3C.",
+          "   */"
+        ]
+      }
+    },
     "EventSource": {
       "members": {
         "errorEvent": [

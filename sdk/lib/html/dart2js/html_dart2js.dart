@@ -12034,14 +12034,39 @@ class Event extends Interceptor native "Event" {
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }
 
+  /**
+   * This event is being handled by the event target.
+   *
+   * ## Other resources
+   *
+   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
+   * from W3C.
+   */
   @DomName('Event.AT_TARGET')
   @DocsEditable()
   static const int AT_TARGET = 2;
 
+  /**
+   * This event is bubbling up through the target's ancestors.
+   *
+   * ## Other resources
+   *
+   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   * from W3C.
+   */
   @DomName('Event.BUBBLING_PHASE')
   @DocsEditable()
   static const int BUBBLING_PHASE = 3;
 
+  /**
+   * This event is propagating through the target's ancestors, starting from the
+   * document.
+   *
+   * ## Other resources
+   *
+   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   * from W3C.
+   */
   @DomName('Event.CAPTURING_PHASE')
   @DocsEditable()
   static const int CAPTURING_PHASE = 1;
@@ -12054,6 +12079,14 @@ class Event extends Interceptor native "Event" {
   @DocsEditable()
   final bool cancelable;
 
+  /**
+   * Access to the system's clipboard data during copy, cut, and paste events.
+   *
+   * ## Other resources
+   *
+   * * [clipboardData specification]
+   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
+   */
   @DomName('Event.clipboardData')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -12081,6 +12114,15 @@ class Event extends Interceptor native "Event" {
   @DocsEditable()
   final int eventPhase;
 
+  /**
+   * This event's path, taking into account shadow DOM.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM extensions to Event]
+   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
+   * W3C.
+   */
   @DomName('Event.path')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
