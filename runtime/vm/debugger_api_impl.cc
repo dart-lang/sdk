@@ -221,8 +221,33 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_NOT_NULL(trace);
-  *trace = reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
+  *trace = reinterpret_cast<Dart_StackTrace>(
+      isolate->debugger()->CurrentStackTrace());
   return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
+                                                    Dart_StackTrace* trace) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_NOT_NULL(trace);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
+  if (obj.IsUnhandledException()) {
+    const UnhandledException& error = UnhandledException::Cast(obj);
+    Stacktrace& dart_stacktrace = Stacktrace::Handle(isolate);
+    dart_stacktrace ^= error.stacktrace();
+    if (dart_stacktrace.IsNull()) {
+      *trace = NULL;
+    } else {
+      *trace = reinterpret_cast<Dart_StackTrace>(
+        isolate->debugger()->StackTraceFrom(dart_stacktrace));
+    }
+    return Api::Success();
+  } else {
+    return Api::NewError("Can only get stacktraces from error handles or "
+                         "instances of Error.");
+  }
 }
 
 
@@ -231,7 +256,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
                             Dart_Handle* function_name,
                             Dart_Handle* script_url,
                             intptr_t* line_number,
-                            intptr_t* library_id) {
+                            intptr_t* column_number) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
@@ -244,9 +269,8 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
   if (line_number != NULL) {
     *line_number = frame->LineNumber();
   }
-  if (library_id != NULL) {
-    const Library& lib = Library::Handle(frame->Library());
-    *library_id = lib.index();
+  if (column_number != NULL) {
+    *column_number = frame->ColumnNumber();
   }
   return Api::Success();
 }

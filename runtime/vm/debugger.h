@@ -144,6 +144,7 @@ class ActivationFrame : public ZoneAllocated {
   RawLibrary* Library();
   intptr_t TokenPos();
   intptr_t LineNumber();
+  intptr_t ColumnNumber();
   void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
 
   // Returns true if this frame is for a function that is visible
@@ -196,6 +197,7 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t token_pos_;
   intptr_t pc_desc_index_;
   intptr_t line_number_;
+  intptr_t column_number_;
   intptr_t context_level_;
 
   // Some frames are deoptimized into a side array in order to inspect them.
@@ -300,7 +302,17 @@ class Debugger {
   // Checks for both user-defined and internal temporary breakpoints.
   bool HasBreakpoint(const Function& func);
 
+  // Returns a stack trace with frames corresponding to invisible functions
+  // omitted. CurrentStackTrace always returns a new trace on the current stack.
+  // The trace returned by StackTrace may have been cached; it is suitable for
+  // use when stepping, but otherwise may be out of sync with the current stack.
   DebuggerStackTrace* StackTrace();
+  DebuggerStackTrace* CurrentStackTrace();
+
+  // Returns a debugger stack trace corresponding to a dart.core.Stacktrace.
+  // Frames corresponding to invisible functions are omitted. It is not valid
+  // to query local variables in the returned stack.
+  DebuggerStackTrace* StackTraceFrom(const Stacktrace& dart_stacktrace);
 
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);

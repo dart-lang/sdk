@@ -6153,6 +6153,7 @@ class Stacktrace : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;
+  friend class Debugger;
 };
 
 

@@ -140,6 +140,7 @@ ActivationFrame::ActivationFrame(
       token_pos_(-1),
       pc_desc_index_(-1),
       line_number_(-1),
+      column_number_(-1),
       context_level_(-1),
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
@@ -292,6 +293,20 @@ intptr_t ActivationFrame::LineNumber() {
     script.GetTokenLocation(TokenPos(), &line_number_, NULL);
   }
   return line_number_;
+}
+
+
+intptr_t ActivationFrame::ColumnNumber() {
+  // Compute column number lazily since it causes scanning of the script.
+  if ((column_number_ < 0) && (TokenPos() >= 0)) {
+    const Script& script = Script::Handle(SourceScript());
+    if (script.HasSource()) {
+      script.GetTokenLocation(TokenPos(), &line_number_, &column_number_);
+    } else {
+      column_number_ = -1;
+    }
+  }
+  return column_number_;
 }
 
 
@@ -1267,6 +1282,57 @@ ActivationFrame* Debugger::TopDartFrame() const {
 
 DebuggerStackTrace* Debugger::StackTrace() {
   return (stack_trace_ != NULL) ? stack_trace_ : CollectStackTrace();
+}
+
+DebuggerStackTrace* Debugger::CurrentStackTrace() {
+  return CollectStackTraceNew();
+}
+
+DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+  Function& function = Function::Handle();
+  Code& code = Code::Handle();
+
+  const uword fp = 0;
+  const uword sp = 0;
+  const Array& deopt_frame = Array::Handle();
+  const intptr_t deopt_frame_offset = -1;
+
+  for (intptr_t i = 0; i < ex_trace.Length(); i++) {
+    function = ex_trace.FunctionAtFrame(i);
+    if (function.IsNull()) {
+      // Check if null function object indicates a stack trace overflow.
+      // Preallocated stacktraces like StackOverflow or OutOfMemory make skip
+      // frames.
+      ASSERT((i < (ex_trace.Length() - 1)) &&
+          (ex_trace.FunctionAtFrame(i + 1) != Function::null()));
+    } else if (function.is_visible()) {
+      code = ex_trace.CodeAtFrame(i);
+      ASSERT(function.raw() == code.function());
+      uword pc = code.EntryPoint() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
+      if (code.is_optimized() && ex_trace.expand_inlined()) {
+        // Traverse inlined frames.
+        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
+          function = it.function();
+          code = it.code();
+          ASSERT(function.raw() == code.function());
+          uword pc = it.pc();
+          ASSERT(pc != 0);
+          ASSERT(code.EntryPoint() <= pc);
+          ASSERT(pc < (code.EntryPoint() + code.Size()));
+
+          ActivationFrame* activation = new ActivationFrame(
+            pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+          stack_trace->AddActivation(activation);
+        }
+      } else {
+        ActivationFrame* activation = new ActivationFrame(
+          pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+        stack_trace->AddActivation(activation);
+      }
+    }
+  }
+  return stack_trace;
 }
 
 

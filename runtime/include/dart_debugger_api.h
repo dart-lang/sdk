@@ -352,14 +352,25 @@ DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
 DART_EXPORT Dart_ExceptionPauseInfo Dart_GetExceptionPauseInfo();
 
 /**
- * Returns in \trace the the current stack trace, or NULL if the
+ * Returns in \trace the current stack trace, or NULL if the
  * VM is not paused.
  *
  * Requires there to be a current isolate.
  *
- * \return A handle to the True object if no error occurs.
+ * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
+
+
+/**
+ * Returns in \trace the stack trace associated with the error given in \handle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
+                                                    Dart_StackTrace* trace);
 
 
 /**
@@ -390,29 +401,27 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
 
 
 /**
- * DEPRECATED -- Use Dart_ActivationFrameGetLocation instead.
- *
  * Returns information about the given activation frame.
  * \function_name receives a string handle with the qualified
  *    function name.
  * \script_url receives a string handle with the url of the
  *    source script that contains the frame's function.
  * \line_number receives the line number in the script.
- * \library_id receives the id of the library in which the
- *    function in this frame is defined.
+ * \col_number receives the column number in the script, or -1 if column
+ *    information is not available
  *
  * Any or all of the out parameters above may be NULL.
  *
  * Requires there to be a current isolate.
  *
- * \return A handle to the True object if no error occurs.
+ * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* function_name,
                             Dart_Handle* script_url,
                             intptr_t* line_number,
-                            intptr_t* library_id);
+                            intptr_t* column_number);
 
 
 /**
