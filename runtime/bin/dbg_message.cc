@@ -259,7 +259,7 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
     intptr_t class_id = 0;
     Dart_Handle res = Dart_GetObjClassId(object, &class_id);
     if (!Dart_IsError(res)) {
-      buf->Printf(",\"classId\":%" Pd ",", class_id);
+      buf->Printf(",\"classId\":%" Pd "", class_id);
     }
   }
   if (print_text_field) {
