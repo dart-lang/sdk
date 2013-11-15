@@ -33,6 +33,16 @@ abstract class WindowBase implements EventTarget {
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
   LocationBase get location;
+
+  /**
+   * The current session history for this window.
+   *
+   * ## Other resources
+   *
+   * * [Session history and navigation specification]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html)
+   * from WHATWG.
+   */
   HistoryBase get history;
 
   /**
@@ -118,6 +128,19 @@ abstract class WindowBase implements EventTarget {
    * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
    */
   void close();
+
+  /**
+   * Sends a cross-origin message.
+   *
+   * ## Other resources
+   *
+   * * [window.postMessage]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage) from
+   * MDN.
+   * * [Cross-document messaging]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/web-messaging.html)
+   * from WHATWG.
+   */
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 

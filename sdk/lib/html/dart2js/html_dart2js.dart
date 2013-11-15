@@ -26705,6 +26705,12 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
   Location get location {
     // Firefox work-around for Location.  The Firefox location object cannot be
     // made to behave like a Dart object so must be wrapped.
@@ -26773,6 +26779,14 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
     return _requestAnimationFrame(_wrapZone(callback));
   }
 
+  /**
+   * Cancels an animation frame request.
+   *
+   * ## Other resources
+   *
+   * * [Window.cancelAnimationFrame]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame) from MDN.
+   */
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
@@ -26842,6 +26856,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
     return _requestFileSystem(persistent? 1 : 0, size);
   }
 
+  /**
+   * Converts a point from node coordinates to this window's coordinates.
+   *
+   * ## Other resources
+   *
+   * * [webkitConvertPointFromPageToNode]
+   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromNodeToPage)
+   * from Safari Development Library.
+   */
   @DomName('Window.convertPointFromNodeToPage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -26852,6 +26875,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
     return new Point(result.x, result.y);
   }
 
+  /**
+   * Converts a point from this window's coordinates to node coordinates.
+   *
+   * ## Other resources
+   *
+   * * [webkitConvertPointFromPageToNode]
+   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromPageToNode)
+   * from Safari Development Library.
+   */
   @DomName('Window.convertPointFromPageToNode')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -27120,11 +27152,13 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Experimental()
   final Crypto crypto;
 
+  /// *Deprecated*.
   @DomName('Window.defaultStatus')
   @DocsEditable()
   @Experimental() // non-standard
   String defaultStatus;
 
+  /// *Deprecated*.
   @DomName('Window.defaultstatus')
   @DocsEditable()
   @Experimental() // non-standard
@@ -27313,6 +27347,8 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
    *
    * ## Other resources
    *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
    * * [scrollX and pageXOffset]
    * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
    */
@@ -27327,6 +27363,8 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
    *
    * ## Other resources
    *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
    * * [scrollY and pageYOffset]
    * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
    */
@@ -27344,6 +27382,17 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Returns('Window|=Object')
   final dynamic _get_parent;
 
+  /**
+   * Timing and navigation data for this window.
+   *
+   * ## Other resources
+   *
+   * * [Measuring page load speed with navigation timeing]
+   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from
+   * HTML5Rocks.
+   * * [Navigation timing specification]
+   * (http://www.w3.org/TR/navigation-timing/) from W3C.
+   */
   @DomName('Window.performance')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27351,22 +27400,63 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
+  /**
+   * Information about the screen displaying this window.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   */
   @DomName('Window.screen')
   @DocsEditable()
   final Screen screen;
 
+  /**
+   * The distance from the left side of the screen to the left side of this
+   * window.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   */
   @DomName('Window.screenLeft')
   @DocsEditable()
   final int screenLeft;
 
+  /**
+   * The distance from the top of the screen to the top of this window.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   */
   @DomName('Window.screenTop')
   @DocsEditable()
   final int screenTop;
 
+  /**
+   * The distance from the left side of the screen to the mouse pointer.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   */
   @DomName('Window.screenX')
   @DocsEditable()
   final int screenX;
 
+  /**
+   * The distance from the top of the screen to the mouse pointer.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   */
   @DomName('Window.screenY')
   @DocsEditable()
   final int screenY;
@@ -27384,10 +27474,26 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   final BarProp scrollbars;
 
+  /**
+   * The current window.
+   *
+   * ## Other resources
+   *
+   * * [Window.self]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.
+   */
   @DomName('Window.self')
   @DocsEditable()
   WindowBase get self => _convertNativeToDart_Window(this._get_self);
   @JSName('self')
+  /**
+   * The current window.
+   *
+   * ## Other resources
+   *
+   * * [Window.self]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.
+   */
   @DomName('Window.self')
   @DocsEditable()
   @Creates('Window|=Object')
@@ -27411,12 +27517,22 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   final Storage sessionStorage;
 
+  /**
+   * Access to speech synthesis in the browser.
+   *
+   * ## Other resources
+   *
+   * * [Web speech specification]
+   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
+   * from W3C.
+   */
   @DomName('Window.speechSynthesis')
   @DocsEditable()
   // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
   @Experimental()
   final SpeechSynthesis speechSynthesis;
 
+  /// *Deprecated*.
   @DomName('Window.status')
   @DocsEditable()
   String status;
@@ -27434,6 +27550,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   final BarProp statusbar;
 
+  /**
+   * Access to CSS media queries.
+   *
+   * ## Other resources
+   *
+   * * [StyleMedia class reference]
+   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)
+   * from Safari Developer Library.
+   */
   @DomName('Window.styleMedia')
   @DocsEditable()
   // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
@@ -27463,10 +27588,26 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Returns('Window|=Object')
   final dynamic _get_top;
 
+  /**
+   * The current window.
+   *
+   * ## Other resources
+   *
+   * * [Window.window]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.
+   */
   @DomName('Window.window')
   @DocsEditable()
   WindowBase get window => _convertNativeToDart_Window(this._get_window);
   @JSName('window')
+  /**
+   * The current window.
+   *
+   * ## Other resources
+   *
+   * * [Window.window]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.
+   */
   @DomName('Window.window')
   @DocsEditable()
   @Creates('Window|=Object')
@@ -27499,6 +27640,15 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Returns('Window|=Object')
   __getter___2(String name) native;
 
+  /**
+   * Displays a modal alert to the user.
+   *
+   * ## Other resources
+   *
+   * * [User prompts]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)
+   * from WHATWG.
+   */
   @DomName('Window.alert')
   @DocsEditable()
   void alert(String message) native;
@@ -27507,10 +27657,27 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   void close() native;
 
+  /**
+   * Displays a modal OK/Cancel prompt to the user.
+   *
+   * ## Other resources
+   *
+   * * [User prompts]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)
+   * from WHATWG.
+   */
   @DomName('Window.confirm')
   @DocsEditable()
   bool confirm(String message) native;
 
+  /**
+   * Finds text in this window.
+   *
+   * ## Other resources
+   *
+   * * [Window.find]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.
+   */
   @DomName('Window.find')
   @DocsEditable()
   @Experimental() // non-standard
@@ -27522,6 +27689,9 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) native;
 
   @JSName('getMatchedCSSRules')
+  /**
+   * Returns all CSS rules that apply to the element's pseudo-element.
+   */
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
   @Experimental() // non-standard
@@ -27529,14 +27699,46 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @Creates('_CssRuleList')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
 
+  /**
+   * Returns the currently selected text.
+   *
+   * ## Other resources
+   *
+   * * [Window.getSelection]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
+   * from MDN.
+   */
   @DomName('Window.getSelection')
   @DocsEditable()
   Selection getSelection() native;
 
+  /**
+   * Returns a list of media queries for the given query string.
+   *
+   * ## Other resources
+   *
+   * * [Testing media queries]
+   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
+   * from MDN.
+   * * [The MediaQueryList specification]
+   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
+   */
   @DomName('Window.matchMedia')
   @DocsEditable()
   MediaQueryList matchMedia(String query) native;
 
+  /**
+   * Moves this window.
+   *
+   * x and y can be negative.
+   *
+   * ## Other resources
+   *
+   * * [Window.moveBy]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.
+   * * [Window.moveBy]
+   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
+   */
   @DomName('Window.moveBy')
   @DocsEditable()
   void moveBy(num x, num y) native;
@@ -27546,6 +27748,7 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   void _moveTo(num x, num y) native;
 
+  /// *Deprecated.*
   @DomName('Window.openDatabase')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27577,6 +27780,14 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DocsEditable()
   void _postMessage_2(message, targetOrigin) native;
 
+  /**
+   * Opens the print dialog for this window.
+   *
+   * ## Other resources
+   *
+   * * [Window.print]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.
+   */
   @DomName('Window.print')
   @DocsEditable()
   void print() native;
@@ -28017,12 +28228,45 @@ class Window extends EventTarget implements WindowBase, _WindowTimers, WindowBas
   @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
+  /**
+   * Moves this window to a specific position.
+   *
+   * x and y can be negative.
+   *
+   * ## Other resources
+   *
+   * * [Window.moveTo]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
+   * * [Window.moveTo]
+   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
   }
 
+  /**
+   * The distance this window has been scrolled horizontally.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   */
   int get scrollX => JS('bool', '("scrollX" in #)', this) ? JS('int',
       '#.scrollX', this) : document.documentElement.scrollLeft;
+
+  /**
+   * The distance this window has been scrolled vertically.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   */
   int get scrollY => JS('bool', '("scrollY" in #)', this) ? JS('int',
       '#.scrollY', this) : document.documentElement.scrollTop;
 }
@@ -30373,6 +30617,16 @@ abstract class WindowBase implements EventTarget {
    *     print(currentLocation.href); // 'http://www.example.com:80/'
    */
   LocationBase get location;
+
+  /**
+   * The current session history for this window.
+   *
+   * ## Other resources
+   *
+   * * [Session history and navigation specification]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html)
+   * from WHATWG.
+   */
   HistoryBase get history;
 
   /**
@@ -30458,6 +30712,19 @@ abstract class WindowBase implements EventTarget {
    * * [Window close discussion](http://www.w3.org/TR/html5/browsers.html#dom-window-close) from the W3C
    */
   void close();
+
+  /**
+   * Sends a cross-origin message.
+   *
+   * ## Other resources
+   *
+   * * [window.postMessage]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage) from
+   * MDN.
+   * * [Cross-document messaging]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/web-messaging.html)
+   * from WHATWG.
+   */
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
 

@@ -3198,6 +3198,17 @@
         " */"
       ],
       "members": {
+        "alert": [
+          "/**",
+          "   * Displays a modal alert to the user.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [User prompts]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)",
+          "   * from WHATWG.",
+          "   */"
+        ],
         "applicationCache": [
           "/**",
           "   * The application cache for this window.",
@@ -3208,6 +3219,17 @@
           "   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.",
           "   * * [Application cache API]",
           "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "confirm": [
+          "/**",
+          "   * Displays a modal OK/Cancel prompt to the user.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [User prompts]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)",
           "   * from WHATWG.",
           "   */"
         ],
@@ -3228,6 +3250,12 @@
           "   *",
           "   * * [The CSS interface](http://dev.w3.org/csswg/css-conditional/#the-css-interface) from W3C.",
           "   */"
+        ],
+        "defaultStatus": [
+          "/// *Deprecated*."
+        ],
+        "defaultstatus": [
+          "/// *Deprecated*."
         ],
         "devicemotionEvent": [
           "/**",
@@ -3265,6 +3293,32 @@
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "find": [
+          "/**",
+          "   * Finds text in this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.find]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.",
+          "   */"
+        ],
+        "getMatchedCSSRules": [
+          "/**",
+          "   * Returns all CSS rules that apply to the element's pseudo-element.",
+          "   */"
+        ],
+        "getSelection": [
+          "/**",
+          "   * Returns the currently selected text.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.getSelection]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)",
+          "   * from MDN.",
           "   */"
         ],
         "hashchangeEvent": [
@@ -3334,6 +3388,19 @@
           "   * from WHATWG.",
           "   */"
         ],
+        "matchMedia": [
+          "/**",
+          "   * Returns a list of media queries for the given query string.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Testing media queries]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)",
+          "   * from MDN.",
+          "   * * [The MediaQueryList specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.",
+          "   */"
+        ],
         "menubar": [
           "/**",
           "   * This window's menu bar, which displays menu commands.",
@@ -3351,6 +3418,20 @@
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "moveBy": [
+          "/**",
+          "   * Moves this window.",
+          "   *",
+          "   * x and y can be negative.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.moveBy]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.",
+          "   * * [Window.moveBy]",
+          "   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.",
           "   */"
         ],
         "name": [
@@ -3567,6 +3648,9 @@
         "onwebkitAnimationStart": [
           "/// Stream of `animationstart` events handled by this [Window]."
         ],
+        "openDatabase": [
+          "/// *Deprecated.*"
+        ],
         "outerHeight": [
           "/**",
           "   * The height of this window including all user interface elements.",
@@ -3613,6 +3697,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
           "   * * [scrollX and pageXOffset]",
           "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.",
           "   */"
@@ -3625,8 +3711,23 @@
           "   *",
           "   * ## Other resources",
           "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
           "   * * [scrollY and pageYOffset]",
           "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.",
+          "   */"
+        ],
+        "performance": [
+          "/**",
+          "   * Timing and navigation data for this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Measuring page load speed with navigation timeing]",
+          "   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from",
+          "   * HTML5Rocks.",
+          "   * * [Navigation timing specification]",
+          "   * (http://www.w3.org/TR/navigation-timing/) from W3C.",
           "   */"
         ],
         "PERSISTENT": [
@@ -3650,12 +3751,73 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "print": [
+          "/**",
+          "   * Opens the print dialog for this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.print]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.",
+          "   */"
+        ],
         "resizeEvent": [
           "/**",
           "   * Static factory designed to expose `resize` events to event",
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "screen": [
+          "/**",
+          "   * Information about the screen displaying this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenLeft": [
+          "/**",
+          "   * The distance from the left side of the screen to the left side of this",
+          "   * window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenTop": [
+          "/**",
+          "   * The distance from the top of the screen to the top of this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenX": [
+          "/**",
+          "   * The distance from the left side of the screen to the mouse pointer.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenY": [
+          "/**",
+          "   * The distance from the top of the screen to the mouse pointer.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
           "   */"
         ],
         "scrollbars": [
@@ -3667,6 +3829,16 @@
           "   * * [Browser interface elements]",
           "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
           "   * from WHATWG.",
+          "   */"
+        ],
+        "self": [
+          "/**",
+          "   * The current window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.self]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.",
           "   */"
         ],
         "sessionStorage": [
@@ -3683,6 +3855,20 @@
           "   * * [Local storage specification]",
           "   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.",
           "   */"
+        ],
+        "speechSynthesis": [
+          "/**",
+          "   * Access to speech synthesis in the browser.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Web speech specification]",
+          "   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "status": [
+          "/// *Deprecated*."
         ],
         "statusbar": [
           "/**",
@@ -3701,6 +3887,17 @@
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "styleMedia": [
+          "/**",
+          "   * Access to CSS media queries.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [StyleMedia class reference]",
+          "   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)",
+          "   * from Safari Developer Library.",
           "   */"
         ],
         "TEMPORARY": [
@@ -3756,6 +3953,16 @@
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "window": [
+          "/**",
+          "   * The current window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.window]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.",
           "   */"
         ]
       }

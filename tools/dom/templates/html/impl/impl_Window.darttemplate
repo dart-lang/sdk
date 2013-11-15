@@ -62,6 +62,12 @@ $if DART2JS
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
   Location get location {
     // Firefox work-around for Location.  The Firefox location object cannot be
     // made to behave like a Dart object so must be wrapped.
@@ -130,6 +136,14 @@ $if DART2JS
     return _requestAnimationFrame(_wrapZone(callback));
   }
 
+  /**
+   * Cancels an animation frame request.
+   *
+   * ## Other resources
+   *
+   * * [Window.cancelAnimationFrame]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame) from MDN.
+   */
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
@@ -221,6 +235,15 @@ $endif
     return _requestFileSystem(persistent? 1 : 0, size);
   }
 
+  /**
+   * Converts a point from node coordinates to this window's coordinates.
+   *
+   * ## Other resources
+   *
+   * * [webkitConvertPointFromPageToNode]
+   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromNodeToPage)
+   * from Safari Development Library.
+   */
   @DomName('Window.convertPointFromNodeToPage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -231,6 +254,15 @@ $endif
     return new Point(result.x, result.y);
   }
 
+  /**
+   * Converts a point from this window's coordinates to node coordinates.
+   *
+   * ## Other resources
+   *
+   * * [webkitConvertPointFromPageToNode]
+   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromPageToNode)
+   * from Safari Development Library.
+   */
   @DomName('Window.convertPointFromPageToNode')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -262,13 +294,46 @@ $!MEMBERS
   @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
+  /**
+   * Moves this window to a specific position.
+   *
+   * x and y can be negative.
+   *
+   * ## Other resources
+   *
+   * * [Window.moveTo]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
+   * * [Window.moveTo]
+   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
   }
 
 $if DART2JS
+  /**
+   * The distance this window has been scrolled horizontally.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   */
   int get scrollX => JS('bool', '("scrollX" in #)', this) ? JS('int',
       '#.scrollX', this) : document.documentElement.scrollLeft;
+
+  /**
+   * The distance this window has been scrolled vertically.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   */
   int get scrollY => JS('bool', '("scrollY" in #)', this) ? JS('int',
       '#.scrollY', this) : document.documentElement.scrollTop;
 $endif
