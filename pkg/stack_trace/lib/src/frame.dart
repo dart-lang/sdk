@@ -118,6 +118,10 @@ class Frame {
     // always be found. The column is optional.
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
     var uri = Uri.parse(match[2]);
+    // Work around issue 11901.
+    if (uri == new Uri(path: 'timer_impl.dart')) {
+      uri = Uri.parse('dart:async/timer_impl.dart');
+    }
     var line = int.parse(match[3]);
     var column = null;
     var columnMatch = match[4];
