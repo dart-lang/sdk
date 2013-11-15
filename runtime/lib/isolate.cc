@@ -220,7 +220,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
   Function& func = Function::Handle();
   if (closure.IsClosure()) {
     func = Closure::function(closure);
-    if (!(func.IsImplicitClosureFunction() && func.is_static())) {
+    const Class& cls = Class::Handle(func.Owner());
+    if (!func.IsClosureFunction() || !func.is_static() || !cls.IsTopLevel()) {
       throw_exception = true;
     }
   } else {
@@ -228,7 +229,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
   }
   if (throw_exception) {
     const String& msg = String::Handle(String::New(
-        "Isolate.spawn expects to be passed a static or top-level function"));
+        "Isolate.spawn expects to be passed a top-level function"));
     Exceptions::ThrowArgumentError(msg);
   }
 
