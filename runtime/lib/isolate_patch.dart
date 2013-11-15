@@ -113,7 +113,7 @@ class _RawReceivePortImpl implements RawReceivePort {
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
   void send(var message) {
-    _sendInternal(_id, 0, message);
+    _sendInternal(_id, message);
   }
 
   bool operator==(var other) {
@@ -142,8 +142,7 @@ class _SendPortImpl implements SendPort {
 
   // Forward the implementation of sending messages to the VM. Only port ids
   // are being handed to the VM.
-  // TODO(14731): Remove replyId argument.
-  static _sendInternal(int sendId, int replyId, var message)
+  static _sendInternal(int sendId, var message)
       native "SendPortImpl_sendInternal_";
 
   final int _id;

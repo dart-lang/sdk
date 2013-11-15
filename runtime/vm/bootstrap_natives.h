@@ -44,7 +44,7 @@ namespace dart {
   V(Bool_fromEnvironment, 3)                                                   \
   V(RawReceivePortImpl_factory, 1)                                             \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
-  V(SendPortImpl_sendInternal_, 3)                                             \
+  V(SendPortImpl_sendInternal_, 2)                                             \
   V(Smi_shlFromInt, 2)                                                         \
   V(Smi_shrFromInt, 2)                                                         \
   V(Smi_bitNegate, 1)                                                          \

@@ -95,18 +95,17 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
+DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, send_id, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, reply_id, arguments->NativeArgAt(1));
   // TODO(iposva): Allow for arbitrary messages to be sent.
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(send_id.Value(), reply_id.Value(),
+  PortMap::PostMessage(new Message(send_id.Value(), Message::kIllegalPort,
                                    data, writer.BytesWritten(),
                                    Message::kNormalPriority));
   return Object::null();
