@@ -541,6 +541,7 @@ class IsolateSpawnState {
   void set_isolate(Isolate* value) { isolate_ = value; }
   char* script_url() const { return script_url_; }
   char* library_url() const { return library_url_; }
+  char* class_name() const { return class_name_; }
   char* function_name() const { return function_name_; }
   char* exception_callback_name() const { return exception_callback_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
@@ -552,6 +553,7 @@ class IsolateSpawnState {
   Isolate* isolate_;
   char* script_url_;
   char* library_url_;
+  char* class_name_;
   char* function_name_;
   char* exception_callback_name_;
 };
