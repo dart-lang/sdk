@@ -7,6 +7,8 @@ library path.test.posix_test;
 import 'package:unittest/unittest.dart';
 import 'package:path/path.dart' as path;
 
+import 'utils.dart';
+
 main() {
   var builder = new path.Builder(style: path.Style.posix, root: '/root/path');
 
@@ -398,7 +400,7 @@ main() {
     test('with a root parameter and a relative root', () {
       var r = new path.Builder(style: path.Style.posix, root: 'relative/root');
       expect(r.relative('/foo/bar/baz', from: '/foo/bar'), equals('baz'));
-      expect(() => r.relative('..', from: '/foo/bar'), throwsArgumentError);
+      expect(() => r.relative('..', from: '/foo/bar'), throwsPathException);
       expect(r.relative('/foo/bar/baz', from: 'foo/bar'),
           equals('/foo/bar/baz'));
       expect(r.relative('..', from: 'foo/bar'), equals('../../..'));
@@ -408,6 +410,27 @@ main() {
       var r = new path.Builder(style: path.Style.posix, root: '.');
       expect(r.relative('/foo/bar/baz'), equals('/foo/bar/baz'));
       expect(r.relative('foo/bar/baz'), equals('foo/bar/baz'));
+    });
+  });
+
+  group('isWithin', () {
+    test('simple cases', () {
+      expect(builder.isWithin('foo/bar', 'foo/bar'), isFalse);
+      expect(builder.isWithin('foo/bar', 'foo/bar/baz'), isTrue);
+      expect(builder.isWithin('foo/bar', 'foo/baz'), isFalse);
+      expect(builder.isWithin('foo/bar', '../path/foo/bar/baz'), isTrue);
+      expect(builder.isWithin('/', '/foo/bar'), isTrue);
+      expect(builder.isWithin('baz', '/root/path/baz/bang'), isTrue);
+      expect(builder.isWithin('baz', '/root/path/bang/baz'), isFalse);
+    });
+
+    test('from a relative root', () {
+      var r = new path.Builder(style: path.Style.posix, root: 'foo/bar');
+      expect(builder.isWithin('.', 'a/b/c'), isTrue);
+      expect(builder.isWithin('.', '../a/b/c'), isFalse);
+      expect(builder.isWithin('.', '../../a/foo/b/c'), isFalse);
+      expect(builder.isWithin('/', '/baz/bang'), isTrue);
+      expect(builder.isWithin('.', '/baz/bang'), isFalse);
     });
   });
 

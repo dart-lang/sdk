@@ -615,6 +615,39 @@ main() {
     });
   });
 
+  group('isWithin', () {
+    test('simple cases', () {
+      expect(builder.isWithin('foo/bar', 'foo/bar'), isFalse);
+      expect(builder.isWithin('foo/bar', 'foo/bar/baz'), isTrue);
+      expect(builder.isWithin('foo/bar', 'foo/baz'), isFalse);
+      expect(builder.isWithin('foo/bar', '../path/foo/bar/baz'), isTrue);
+      expect(builder.isWithin(
+              'http://dartlang.org', 'http://dartlang.org/foo/bar'),
+          isTrue);
+      expect(builder.isWithin(
+              'http://dartlang.org', 'http://pub.dartlang.org/foo/bar'),
+          isFalse);
+      expect(builder.isWithin('http://dartlang.org', '/foo/bar'), isTrue);
+      expect(builder.isWithin('http://dartlang.org/foo', '/foo/bar'), isTrue);
+      expect(builder.isWithin('http://dartlang.org/foo', '/bar/baz'), isFalse);
+      expect(builder.isWithin('baz', 'http://dartlang.org/root/path/baz/bang'),
+          isTrue);
+      expect(builder.isWithin('baz', 'http://dartlang.org/root/path/bang/baz'),
+          isFalse);
+    });
+
+    test('from a relative root', () {
+      var r = new path.Builder(style: path.Style.url, root: 'foo/bar');
+      expect(builder.isWithin('.', 'a/b/c'), isTrue);
+      expect(builder.isWithin('.', '../a/b/c'), isFalse);
+      expect(builder.isWithin('.', '../../a/foo/b/c'), isFalse);
+      expect(builder.isWithin(
+              'http://dartlang.org/', 'http://dartlang.org/baz/bang'),
+          isTrue);
+      expect(builder.isWithin('.', 'http://dartlang.org/baz/bang'), isFalse);
+    });
+  });
+
   group('resolve', () {
     test('allows up to seven parts', () {
       expect(builder.resolve('a'), 'http://dartlang.org/root/path/a');

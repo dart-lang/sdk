@@ -301,6 +301,13 @@ String normalize(String path) => _builder.normalize(path);
 String relative(String path, {String from}) =>
     _builder.relative(path, from: from);
 
+/// Returns `true` if [child] is a path beneath `parent`, and `false` otherwise.
+///
+///     path.isWithin('/root/path', '/root/path/a'); // -> true
+///     path.isWithin('/root/path', '/root/other'); // -> false
+///     path.isWithin('/root/path', '/root/path') // -> false
+bool isWithin(String parent, String child) => _builder.isWithin(parent, child);
+
 /// Removes a trailing extension from the last part of [path].
 ///
 ///     withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
@@ -664,6 +671,11 @@ class Builder {
   ///
   ///     var builder = new Builder(r'some/relative/path');
   ///     builder.relative(r'/absolute/path'); // -> '/absolute/path'
+  ///
+  /// If [root] is relative, it may be impossible to determine a path from
+  /// [from] to [path]. For example, if [root] and [path] are "." and [from] is
+  /// "/", no path can be determined. In this case, a [PathException] will be
+  /// thrown.
   String relative(String path, {String from}) {
     from = from == null ? root : this.join(root, from);
 
@@ -681,7 +693,7 @@ class Builder {
     // If the path is still relative and `from` is absolute, we're unable to
     // find a path from `from` to `path`.
     if (this.isRelative(path) && this.isAbsolute(from)) {
-      throw new ArgumentError('Unable to find a path to "$path" from "$from".');
+      throw new PathException('Unable to find a path to "$path" from "$from".');
     }
 
     var fromParsed = _parse(from)..normalize();
@@ -715,7 +727,7 @@ class Builder {
     // out of them. If a directory left in the from path is '..', it cannot
     // be cancelled by adding a '..'.
     if (fromParsed.parts.length > 0 && fromParsed.parts[0] == '..') {
-      throw new ArgumentError('Unable to find a path to "$path" from "$from".');
+      throw new PathException('Unable to find a path to "$path" from "$from".');
     }
     _growListFront(pathParsed.parts, fromParsed.parts.length, '..');
     pathParsed.separators[0] = '';
@@ -737,6 +749,27 @@ class Builder {
     pathParsed.removeTrailingSeparators();
 
     return pathParsed.toString();
+  }
+
+  /// Returns `true` if [child] is a path beneath `parent`, and `false`
+  /// otherwise.
+  ///
+  ///     path.isWithin('/root/path', '/root/path/a'); // -> true
+  ///     path.isWithin('/root/path', '/root/other'); // -> false
+  ///     path.isWithin('/root/path', '/root/path') // -> false
+  bool isWithin(String parent, String child) {
+    var relative;
+    try {
+      relative = this.relative(child, from: parent);
+    } on PathException catch (_) {
+      // If no relative path from [parent] to [child] is found, [child]
+      // definitely isn't a child of [parent].
+      return false;
+    }
+
+    var parts = this.split(relative);
+    return this.isRelative(relative) && parts.first != '..' &&
+        parts.first != '.';
   }
 
   /// Removes a trailing extension from the last part of [path].
@@ -1203,4 +1236,14 @@ class _ParsedPath {
   _ParsedPath clone() => new _ParsedPath(
       style, root, isRootRelative,
       new List.from(parts), new List.from(separators));
+}
+
+/// An exception class that's thrown when a path operation is unable to be
+/// computed accurately.
+class PathException implements Exception {
+  String message;
+
+  PathException(this.message);
+
+  String toString() => "PathException: $message";
 }

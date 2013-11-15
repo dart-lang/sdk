@@ -7,6 +7,8 @@
 import "package:unittest/unittest.dart";
 import "package:path/path.dart" as path;
 
+import "utils.dart";
+
 void main() {
   test("test relative", () {
     relativeTest(new path.Builder(style: path.Style.posix, root: '.'), '/');
@@ -75,11 +77,11 @@ void relativeTest(path.Builder builder, String prefix) {
 
   // Should always throw - no relative path can be constructed.
   if (isRelative) {
-    expect(() => builder.relative('.', from: '..'), throwsArgumentError);
+    expect(() => builder.relative('.', from: '..'), throwsPathException);
     expect(() => builder.relative('a/b', from: '../../d'),
-           throwsArgumentError);
+           throwsPathException);
     expect(() => builder.relative('a/b', from: '${prefix}a/b'),
-           throwsArgumentError);
+           throwsPathException);
     // An absolute path relative from a relative path returns the absolute path.
     expectRelative('${prefix}a/b', '${prefix}a/b', 'c/d');
   }

@@ -7,6 +7,8 @@ library path.test.windows_test;
 import 'package:unittest/unittest.dart';
 import 'package:path/path.dart' as path;
 
+import 'utils.dart';
+
 main() {
   var builder = new path.Builder(style: path.Style.windows,
                                  root: r'C:\root\path');
@@ -504,7 +506,7 @@ main() {
     test('with a root parameter and a relative root', () {
       var r = new path.Builder(style: path.Style.windows, root: r'relative\root');
       expect(r.relative(r'C:\foo\bar\baz', from: r'C:\foo\bar'), equals('baz'));
-      expect(() => r.relative('..', from: r'C:\foo\bar'), throwsArgumentError);
+      expect(() => r.relative('..', from: r'C:\foo\bar'), throwsPathException);
       expect(r.relative(r'C:\foo\bar\baz', from: r'foo\bar'),
           equals(r'C:\foo\bar\baz'));
       expect(r.relative('..', from: r'foo\bar'), equals(r'..\..\..'));
@@ -520,6 +522,31 @@ main() {
       expect(r.relative(r'C:\foo\bar\baz'), equals(r'C:\foo\bar\baz'));
       expect(r.relative(r'foo\bar\baz'), equals(r'foo\bar\baz'));
       expect(r.relative(r'\foo\bar\baz'), equals(r'\foo\bar\baz'));
+    });
+  });
+
+  group('isWithin', () {
+    test('simple cases', () {
+      expect(builder.isWithin(r'foo\bar', r'foo\bar'), isFalse);
+      expect(builder.isWithin(r'foo\bar', r'foo\bar\baz'), isTrue);
+      expect(builder.isWithin(r'foo\bar', r'foo\baz'), isFalse);
+      expect(builder.isWithin(r'foo\bar', r'..\path\foo\bar\baz'), isTrue);
+      expect(builder.isWithin(r'C:\', r'C:\foo\bar'), isTrue);
+      expect(builder.isWithin(r'C:\', r'D:\foo\bar'), isFalse);
+      expect(builder.isWithin(r'C:\', r'\foo\bar'), isTrue);
+      expect(builder.isWithin(r'C:\foo', r'\foo\bar'), isTrue);
+      expect(builder.isWithin(r'C:\foo', r'\bar\baz'), isFalse);
+      expect(builder.isWithin(r'baz', r'C:\root\path\baz\bang'), isTrue);
+      expect(builder.isWithin(r'baz', r'C:\root\path\bang\baz'), isFalse);
+    });
+
+    test('from a relative root', () {
+      var r = new path.Builder(style: path.Style.windows, root: r'foo\bar');
+      expect(builder.isWithin('.', r'a\b\c'), isTrue);
+      expect(builder.isWithin('.', r'..\a\b\c'), isFalse);
+      expect(builder.isWithin('.', r'..\..\a\foo\b\c'), isFalse);
+      expect(builder.isWithin(r'C:\', r'C:\baz\bang'), isTrue);
+      expect(builder.isWithin('.', r'C:\baz\bang'), isFalse);
     });
   });
 
