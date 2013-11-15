@@ -26,14 +26,21 @@ import 'resubscribable.dart';
 /// This also works around issues 14793, 14806, and 14849 in the implementation
 /// of [Directory.watch].
 class MacOSDirectoryWatcher extends ResubscribableDirectoryWatcher {
-  // TODO(nweiz): remove this when issue 15042 is fixed.
-  static bool logDebugInfo = false;
+  // TODO(nweiz): remove these when issue 15042 is fixed.
+  static var logDebugInfo = false;
+  static var _count = 0;
+  final int _id;
 
   MacOSDirectoryWatcher(String directory)
-      : super(directory, () => new _MacOSDirectoryWatcher(directory));
+      : _id = _count++,
+        super(directory, () => new _MacOSDirectoryWatcher(directory, _count));
 }
 
 class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
+  // TODO(nweiz): remove these when issue 15042 is fixed.
+  static var _count = 0;
+  final String _id;
+
   final String directory;
 
   Stream<WatchEvent> get events => _eventsController.stream;
@@ -73,9 +80,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// watcher is closed. This does not include [_watchSubscription].
   final _subscriptions = new Set<StreamSubscription>();
 
-  _MacOSDirectoryWatcher(String directory)
+  _MacOSDirectoryWatcher(String directory, int parentId)
       : directory = directory,
-        _files = new PathSet(directory) {
+        _files = new PathSet(directory),
+        _id = "$parentId/${_count++}" {
     _startWatch();
 
     _listen(new Directory(directory).list(recursive: true),
@@ -85,7 +93,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         onError: _emitError,
         onDone: () {
       if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("watcher is ready");
+        print("[$_id] watcher is ready, known files:");
+        for (var file in _files.toSet()) {
+          print("[$_id]   ${p.relative(file, from: directory)}");
+        }
       }
       _readyCompleter.complete();
     },
@@ -93,6 +104,9 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   }
 
   void close() {
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] watcher is closed");
+    }
     for (var subscription in _subscriptions) {
       subscription.cancel();
     }
@@ -105,14 +119,14 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// The callback that's run when [Directory.watch] emits a batch of events.
   void _onBatch(List<FileSystemEvent> batch) {
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("======== batch:");
+      print("[$_id] ======== batch:");
       for (var event in batch) {
-        print("  ${_formatEvent(event)}");
+        print("[$_id]   ${_formatEvent(event)}");
       }
 
-      print("known files:");
-      for (var foo in _files.toSet()) {
-        print("  ${p.relative(foo, from: directory)}");
+      print("[$_id] known files:");
+      for (var file in _files.toSet()) {
+        print("[$_id]   ${p.relative(file, from: directory)}");
       }
     }
 
@@ -121,9 +135,9 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     _sortEvents(batch).forEach((path, events) {
       var relativePath = p.relative(path, from: directory);
       if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("events for $relativePath:\n");
+        print("[$_id] events for $relativePath:\n");
         for (var event in events) {
-          print("  ${_formatEvent(event)}");
+          print("[$_id]   ${_formatEvent(event)}");
         }
       }
 
@@ -131,9 +145,9 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       events = canonicalEvent == null ?
           _eventsBasedOnFileSystem(path) : [canonicalEvent];
       if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("canonical event for $relativePath: "
+        print("[$_id] canonical event for $relativePath: "
             "${_formatEvent(canonicalEvent)}");
-        print("actionable events for $relativePath: "
+        print("[$_id] actionable events for $relativePath: "
             "${events.map(_formatEvent)}");
       }
 
@@ -151,7 +165,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
             _files.add(entity.path);
           }, onError: (e, stackTrace) {
             if (MacOSDirectoryWatcher.logDebugInfo) {
-              print("got error listing $relativePath: $e");
+              print("[$_id] got error listing $relativePath: $e");
             }
             _emitError(e, stackTrace);
           }, cancelOnError: true);
@@ -168,7 +182,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     });
 
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("========");
+      print("[$_id] ======== batch complete");
     }
   }
 
@@ -307,10 +321,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     var dirExists = new Directory(path).existsSync();
 
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("file existed: $fileExisted");
-      print("dir existed: $dirExisted");
-      print("file exists: $fileExists");
-      print("dir exists: $dirExists");
+      print("[$_id] file existed: $fileExisted");
+      print("[$_id] dir existed: $dirExisted");
+      print("[$_id] file exists: $fileExists");
+      print("[$_id] dir exists: $dirExists");
     }
 
     var events = [];
@@ -383,7 +397,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     if (type == ChangeType.ADD && _files.contains(path)) return;
 
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("emitting $type ${p.relative(path, from: directory)}");
+      print("[$_id] emitting $type ${p.relative(path, from: directory)}");
     }
 
     _eventsController.add(new WatchEvent(type, path));
