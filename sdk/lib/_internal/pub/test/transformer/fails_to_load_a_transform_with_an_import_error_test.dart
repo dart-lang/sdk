@@ -29,7 +29,7 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
     var pub = startPubServe();
     expect(pub.nextErrLine(), completion(matches(new RegExp(
-        r"Error: line 1 pos 1: library handler failed$"))));
+        r"error: line 1 pos 1: library handler failed$"))));
     pub.shouldExit(1);
   });
 }
