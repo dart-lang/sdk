@@ -202,7 +202,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     args.SetAt(6, is_final);
     args.SetAt(7, default_value);
     args.SetAt(8, metadata);
-    param ^= CreateMirror(Symbols::_LocalParameterMirrorImpl(), args);
+    param ^= CreateMirror(Symbols::_LocalParameterMirror(), args);
     results.SetAt(i, param);
   }
   results.MakeImmutable();
@@ -216,7 +216,7 @@ static RawInstance* CreateTypeVariableMirror(const TypeParameter& param,
   args.SetAt(0, param);
   args.SetAt(1, String::Handle(param.name()));
   args.SetAt(2, owner_mirror);
-  return CreateMirror(Symbols::_LocalTypeVariableMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalTypeVariableMirror(), args);
 }
 
 
@@ -254,7 +254,7 @@ static RawInstance* CreateTypedefMirror(const Class& cls,
   args.SetAt(3, Bool::Get(cls.NumTypeParameters() != 0));
   args.SetAt(4, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
   args.SetAt(5, owner_mirror);
-  return CreateMirror(Symbols::_LocalTypedefMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalTypedefMirror(), args);
 }
 
 
@@ -263,7 +263,7 @@ static RawInstance* CreateFunctionTypeMirror(const Class& cls,
   const Array& args = Array::Handle(Array::New(2));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  return CreateMirror(Symbols::_LocalFunctionTypeMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalFunctionTypeMirror(), args);
 }
 
 
@@ -289,7 +289,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(10, Bool::Get(isConstructor && func.is_redirecting()));
   args.SetAt(11, Bool::Get(isConstructor && func.IsFactory()));
 
-  return CreateMirror(Symbols::_LocalMethodMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalMethodMirror(), args);
 }
 
 
@@ -309,7 +309,7 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(5, Bool::Get(field.is_final()));
   args.SetAt(6, Bool::Get(field.is_const()));
 
-  return CreateMirror(Symbols::_LocalVariableMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalVariableMirror(), args);
 }
 
 static RawFunction* CallMethod(const Class& cls) {
@@ -363,7 +363,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   args.SetAt(4, is_generic);
   args.SetAt(5, is_mixin_app_alias);
   args.SetAt(6, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
-  return CreateMirror(Symbols::_LocalClassMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
 
@@ -375,7 +375,7 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
   args.SetAt(1, str);
   str = lib.url();
   args.SetAt(2, str);
-  return CreateMirror(Symbols::_LocalLibraryMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalLibraryMirror(), args);
 }
 
 
@@ -389,12 +389,12 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Void());
       // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
-      return CreateMirror(Symbols::_SpecialTypeMirrorImpl(), args);
+      return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     } else if (cls.IsDynamicClass()) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Dynamic());
       // TODO(mlippautz): Create once in the VM isolate and retrieve from there.
-      return CreateMirror(Symbols::_SpecialTypeMirrorImpl(), args);
+      return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     }
     return CreateClassMirror(cls, type, Bool::False(), Object::null_instance());
   } else if (type.IsTypeParameter()) {
@@ -421,7 +421,7 @@ static RawInstance* CreateIsolateMirror() {
   const Array& args = Array::Handle(Array::New(2));
   args.SetAt(0, debug_name);
   args.SetAt(1, root_library_mirror);
-  return CreateMirror(Symbols::_LocalIsolateMirrorImpl(), args);
+  return CreateMirror(Symbols::_LocalIsolateMirror(), args);
 }
 
 
@@ -446,7 +446,7 @@ static RawInstance* CreateMirrorSystem() {
   const Array& args = Array::Handle(Array::New(2));
   args.SetAt(0, library_mirrors);
   args.SetAt(1, isolate_mirror);
-  return CreateMirror(Symbols::_LocalMirrorSystemImpl(), args);
+  return CreateMirror(Symbols::_LocalMirrorSystem(), args);
 }
 
 

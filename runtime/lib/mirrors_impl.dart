@@ -122,9 +122,9 @@ String _makeSignatureString(TypeMirror returnType,
 List _metadata(reflectee)
   native 'DeclarationMirror_metadata';
 
-class _LocalMirrorSystemImpl extends MirrorSystem {
+class _LocalMirrorSystem extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
-  _LocalMirrorSystemImpl(List<LibraryMirror> libraries, this.isolate)
+  _LocalMirrorSystem(List<LibraryMirror> libraries, this.isolate)
       : this.libraries = new Map<Uri, LibraryMirror>.fromIterable(
             libraries, key: (e) => e.uri);
 
@@ -134,7 +134,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   TypeMirror _dynamicType = null;
   TypeMirror get dynamicType {
     if (_dynamicType == null) {
-      _dynamicType = new _SpecialTypeMirrorImpl('dynamic');
+      _dynamicType = new _SpecialTypeMirror('dynamic');
     }
     return _dynamicType;
   }
@@ -142,7 +142,7 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   TypeMirror _voidType = null;
   TypeMirror get voidType {
     if (_voidType == null) {
-      _voidType = new _SpecialTypeMirrorImpl('void');
+      _voidType = new _SpecialTypeMirror('void');
     }
     return _voidType;
   }
@@ -150,11 +150,10 @@ class _LocalMirrorSystemImpl extends MirrorSystem {
   String toString() => "MirrorSystem for isolate '${isolate.debugName}'";
 }
 
-abstract class _LocalMirrorImpl implements Mirror {}
+abstract class _LocalMirror implements Mirror {}
 
-class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
-    implements IsolateMirror {
-  _LocalIsolateMirrorImpl(this.debugName, this.rootLibrary);
+class _LocalIsolateMirror extends _LocalMirror implements IsolateMirror {
+  _LocalIsolateMirror (this.debugName, this.rootLibrary);
 
   final String debugName;
   final bool isCurrent = true;
@@ -175,9 +174,8 @@ class _InvocationTrampoline implements Function {
   }
 }
 
-abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
-    implements ObjectMirror {
-  _LocalObjectMirrorImpl(this._reflectee);
+abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
+  _LocalObjectMirror(this._reflectee);
 
   final _reflectee; // May be a MirrorReference or an ordinary object.
 
@@ -219,12 +217,12 @@ abstract class _LocalObjectMirrorImpl extends _LocalMirrorImpl
   }
 }
 
-class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
+class _LocalInstanceMirror extends _LocalObjectMirror
     implements InstanceMirror {
   // TODO(ahe): This is a hack, see delegate below.
   static Function _invokeOnClosure;
 
-  _LocalInstanceMirrorImpl(reflectee) : super(reflectee);
+  _LocalInstanceMirror(reflectee) : super(reflectee);
 
   ClassMirror _type;
   ClassMirror get type {
@@ -247,11 +245,10 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       // system to access a private field in a different library.  For
       // some reason, that works.  On the other hand, calling a
       // private method does not work.
-
-      _LocalInstanceMirrorImpl mirror =
-          reflect(invocation);
-      _invokeOnClosure = reflectClass(invocation.runtimeType)
-          .getField(MirrorSystem.getSymbol('_invokeOnClosure', mirror.type.owner)).reflectee;
+      ClassMirror invocationImplClass = reflect(invocation).type;
+      Symbol fieldName = MirrorSystem.getSymbol('_invokeOnClosure',
+                                                invocationImplClass.owner);
+      _invokeOnClosure = invocationImplClass.getField(fieldName).reflectee;
     }
     return _invokeOnClosure(reflectee, invocation);
   }
@@ -259,7 +256,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
   bool operator ==(other) {
-    return other is _LocalInstanceMirrorImpl &&
+    return other is _LocalInstanceMirror &&
            identical(_reflectee, other._reflectee);
   }
 
@@ -325,9 +322,9 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       native 'InstanceMirror_computeType';
 }
 
-class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
+class _LocalClosureMirror extends _LocalInstanceMirror
     implements ClosureMirror {
-  _LocalClosureMirrorImpl(reflectee) : super(reflectee);
+  _LocalClosureMirror(reflectee) : super(reflectee);
 
   MethodMirror _function;
   MethodMirror get function {
@@ -400,15 +397,15 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
       native 'ClosureMirror_find_in_context';
 }
 
-class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
+class _LocalClassMirror extends _LocalObjectMirror
     implements ClassMirror {
-  _LocalClassMirrorImpl(reflectee,
-                        reflectedType,
-                        String simpleName,
-                        this._owner,
-                        this._isGeneric,
-                        this._isMixinAlias,
-                        this._isGenericDeclaration)
+  _LocalClassMirror(reflectee,
+                    reflectedType,
+                    String simpleName,
+                    this._owner,
+                    this._isGeneric,
+                    this._isMixinAlias,
+                    this._isGenericDeclaration)
       : this._simpleName = _s(simpleName),
         this._reflectedType = reflectedType,
         this._instantiator = reflectedType,
@@ -613,7 +610,7 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       ClassMirror owner = originalDeclaration;
       var mirror;
       for (var i = 0; i < params.length; i += 2) {
-        mirror = new _LocalTypeVariableMirrorImpl(
+        mirror = new _LocalTypeVariableMirror(
             params[i + 1], params[i], owner);
         _typeVariables.add(mirror);
       }
@@ -755,9 +752,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       native "ClassMirror_type_arguments";
 }
 
-class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
+class _LocalFunctionTypeMirror extends _LocalClassMirror
     implements FunctionTypeMirror {
-  _LocalFunctionTypeMirrorImpl(reflectee, reflectedType)
+  _LocalFunctionTypeMirror(reflectee, reflectedType)
       : super(reflectee, reflectedType, null, null, false, false, false);
 
   bool get _isAnonymousMixinApplication => false;
@@ -817,9 +814,9 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
       native "FunctionTypeMirror_parameters";
 }
 
-abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
+abstract class _LocalDeclarationMirror extends _LocalMirror
     implements DeclarationMirror {
-  _LocalDeclarationMirrorImpl(this._reflectee, this._simpleName);
+  _LocalDeclarationMirror(this._reflectee, this._simpleName);
 
   final _reflectee;
 
@@ -848,11 +845,11 @@ abstract class _LocalDeclarationMirrorImpl extends _LocalMirrorImpl
   int get hashCode => simpleName.hashCode;
 }
 
-class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
+class _LocalTypeVariableMirror extends _LocalDeclarationMirror
     implements TypeVariableMirror {
-  _LocalTypeVariableMirrorImpl(reflectee,
-                               String simpleName,
-                               this._owner)
+  _LocalTypeVariableMirror(reflectee,
+                           String simpleName,
+                           this._owner)
       : super(reflectee, _s(simpleName));
 
   DeclarationMirror _owner;
@@ -907,14 +904,14 @@ class _LocalTypeVariableMirrorImpl extends _LocalDeclarationMirrorImpl
 }
 
 
-class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
+class _LocalTypedefMirror extends _LocalDeclarationMirror
     implements TypedefMirror {
-  _LocalTypedefMirrorImpl(reflectee,
-                          this._reflectedType,
-                          String simpleName,
-                          this._isGeneric,
-                          this._isGenericDeclaration,
-                          this._owner)
+  _LocalTypedefMirror(reflectee,
+                      this._reflectedType,
+                      String simpleName,
+                      this._isGeneric,
+                      this._isGenericDeclaration,
+                      this._owner)
       : super(reflectee, _s(simpleName));
 
   final Type _reflectedType;
@@ -927,7 +924,7 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
-      _owner = _LocalClassMirrorImpl._library(_reflectee);
+      _owner = _LocalClassMirror._library(_reflectee);
     }
     return _owner;
   }
@@ -959,11 +956,11 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
   List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
       _typeVariables = new List<TypeVariableMirror>();
-      List params = _LocalClassMirrorImpl._ClassMirror_type_variables(_reflectee);
+      List params = _LocalClassMirror._ClassMirror_type_variables(_reflectee);
       TypedefMirror owner = originalDeclaration;
       var mirror;
       for (var i = 0; i < params.length; i += 2) {
-        mirror = new _LocalTypeVariableMirrorImpl(
+        mirror = new _LocalTypeVariableMirror(
             params[i + 1], params[i], owner);
         _typeVariables.add(mirror);
       }
@@ -978,7 +975,7 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
         _typeArguments = emptyList;
       } else {
         _typeArguments = new UnmodifiableListView(
-            _LocalClassMirrorImpl._computeTypeArguments(_reflectedType));
+            _LocalClassMirror._computeTypeArguments(_reflectedType));
       }
     }
     return _typeArguments;
@@ -993,11 +990,11 @@ class _LocalTypedefMirrorImpl extends _LocalDeclarationMirrorImpl
       native "TypedefMirror_declaration";
 }
 
-class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
+class _LocalLibraryMirror extends _LocalObjectMirror
     implements LibraryMirror {
-  _LocalLibraryMirrorImpl(reflectee,
-                          String simpleName,
-                          String url)
+  _LocalLibraryMirror(reflectee,
+                      String simpleName,
+                      String url)
       : this.simpleName = _s(simpleName),
         this.uri = Uri.parse(url),
         super(reflectee);
@@ -1126,20 +1123,20 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
       native "LibraryMirror_members";
 }
 
-class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
+class _LocalMethodMirror extends _LocalDeclarationMirror
     implements MethodMirror {
-  _LocalMethodMirrorImpl(reflectee,
-                         String simpleName,
-                         this._owner,
-                         this.isStatic,
-                         this.isAbstract,
-                         this.isGetter,
-                         this.isSetter,
-                         this.isConstructor,
-                         this.isConstConstructor,
-                         this.isGenerativeConstructor,
-                         this.isRedirectingConstructor,
-                         this.isFactoryConstructor)
+  _LocalMethodMirror(reflectee,
+                     String simpleName,
+                     this._owner,
+                     this.isStatic,
+                     this.isAbstract,
+                     this.isGetter,
+                     this.isSetter,
+                     this.isConstructor,
+                     this.isConstConstructor,
+                     this.isGenerativeConstructor,
+                     this.isRedirectingConstructor,
+                     this.isFactoryConstructor)
       : this.isOperator = _operators.contains(simpleName),
         super(reflectee, _s(simpleName));
 
@@ -1261,15 +1258,15 @@ class _LocalMethodMirrorImpl extends _LocalDeclarationMirrorImpl
       native "MethodMirror_source";
 }
 
-class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
+class _LocalVariableMirror extends _LocalDeclarationMirror
     implements VariableMirror {
-  _LocalVariableMirrorImpl(reflectee,
-                           String simpleName,
-                           this.owner,
-                           this._type,
-                           this.isStatic,
-                           this.isFinal,
-                           this.isConst)
+  _LocalVariableMirror(reflectee,
+                       String simpleName,
+                       this.owner,
+                       this._type,
+                       this.isStatic,
+                       this.isFinal,
+                       this.isConst)
       : super(reflectee, _s(simpleName));
 
   final DeclarationMirror owner;
@@ -1303,17 +1300,17 @@ class _LocalVariableMirrorImpl extends _LocalDeclarationMirrorImpl
       native "VariableMirror_type";
 }
 
-class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
+class _LocalParameterMirror extends _LocalVariableMirror
     implements ParameterMirror {
-  _LocalParameterMirrorImpl(reflectee,
-                            String simpleName,
-                            DeclarationMirror owner,
-                            this._position,
-                            this.isOptional,
-                            this.isNamed,
-                            bool isFinal,
-                            this._defaultValueReflectee,
-                            this._unmirroredMetadata)
+  _LocalParameterMirror(reflectee,
+                        String simpleName,
+                        DeclarationMirror owner,
+                        this._position,
+                        this.isOptional,
+                        this.isNamed,
+                        bool isFinal,
+                        this._defaultValueReflectee,
+                        this._unmirroredMetadata)
       : super(reflectee,
               simpleName,
               owner,
@@ -1368,9 +1365,9 @@ class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
       native "ParameterMirror_type";
 }
 
-class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
+class _SpecialTypeMirror extends _LocalMirror
     implements TypeMirror, DeclarationMirror {
-  _SpecialTypeMirrorImpl(String name) : simpleName = _s(name);
+  _SpecialTypeMirror(String name) : simpleName = _s(name);
 
   final bool isPrivate = false;
   final DeclarationMirror owner = null;
@@ -1393,7 +1390,7 @@ class _SpecialTypeMirrorImpl extends _LocalMirrorImpl
   // TODO(11955): Remove once dynamicType and voidType are canonical objects in
   // the object store.
   bool operator ==(other) {
-    if (other is! _SpecialTypeMirrorImpl) {
+    if (other is! _SpecialTypeMirror) {
       return false;
     }
     return this.simpleName == other.simpleName;
@@ -1425,8 +1422,8 @@ class _Mirrors {
   // Creates a new local mirror for some Object.
   static InstanceMirror reflect(Object reflectee) {
     return reflectee is Function
-        ? new _LocalClosureMirrorImpl(reflectee)
-        : new _LocalInstanceMirrorImpl(reflectee);
+        ? new _LocalClosureMirror(reflectee)
+        : new _LocalInstanceMirror(reflectee);
   }
 
   static ClassMirror makeLocalClassMirror(Type key)

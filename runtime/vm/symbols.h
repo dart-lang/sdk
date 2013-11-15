@@ -282,17 +282,17 @@ class ObjectPointerVisitor;
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
   V(_stackTrace, "_stackTrace")                                                \
-  V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
-  V(_LocalClassMirrorImpl, "_LocalClassMirrorImpl")                            \
-  V(_LocalFunctionTypeMirrorImpl, "_LocalFunctionTypeMirrorImpl")              \
-  V(_LocalLibraryMirrorImpl, "_LocalLibraryMirrorImpl")                        \
-  V(_LocalMethodMirrorImpl, "_LocalMethodMirrorImpl")                          \
-  V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
-  V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \
-  V(_LocalIsolateMirrorImpl, "_LocalIsolateMirrorImpl")                        \
-  V(_LocalMirrorSystemImpl, "_LocalMirrorSystemImpl")                          \
-  V(_LocalTypedefMirrorImpl, "_LocalTypedefMirrorImpl")                        \
-  V(_LocalTypeVariableMirrorImpl, "_LocalTypeVariableMirrorImpl")              \
+  V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
+  V(_LocalClassMirror, "_LocalClassMirror")                                    \
+  V(_LocalFunctionTypeMirror, "_LocalFunctionTypeMirror")                      \
+  V(_LocalLibraryMirror, "_LocalLibraryMirror")                                \
+  V(_LocalMethodMirror, "_LocalMethodMirror")                                  \
+  V(_LocalVariableMirror, "_LocalVariableMirror")                              \
+  V(_LocalParameterMirror, "_LocalParameterMirror")                            \
+  V(_LocalIsolateMirror, "_LocalIsolateMirror")                                \
+  V(_LocalMirrorSystem, "_LocalMirrorSystem")                                  \
+  V(_LocalTypedefMirror, "_LocalTypedefMirror")                                \
+  V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
