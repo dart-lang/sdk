@@ -1144,6 +1144,16 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
   CanvasRenderingContext2D get context2D =>
       JS('Null|CanvasRenderingContext2D', '#.getContext(#)', this, '2d');
 
+  /**
+   * Returns a new Web GL context for this canvas.
+   *
+   * ## Other resources
+   *
+   * * [WebGL fundamentals]
+   * (http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/) from
+   * HTML5Rocks.
+   * * [WebGL homepage] (http://get.webgl.org/).
+   */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()

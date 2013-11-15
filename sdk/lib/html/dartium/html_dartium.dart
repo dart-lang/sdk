@@ -1322,6 +1322,16 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D => getContext('2d');
 
+  /**
+   * Returns a new Web GL context for this canvas.
+   *
+   * ## Other resources
+   *
+   * * [WebGL fundamentals]
+   * (http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/) from
+   * HTML5Rocks.
+   * * [WebGL homepage] (http://get.webgl.org/).
+   */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
