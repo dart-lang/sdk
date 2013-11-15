@@ -71,7 +71,6 @@ class TestCase {
   bool get isComplete => !enabled || result != null;
 
   Function _errorHandler(String stage) => (e, stack) {
-    var stack;
     if (stack == null && e is Error) {
       stack = e.stackTrace;
     }
