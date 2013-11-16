@@ -15,9 +15,6 @@ import 'package:watcher/watcher.dart';
 import 'package:watcher/src/stat.dart';
 import 'package:watcher/src/utils.dart';
 
-// TODO(nweiz): remove this when issue 15042 is fixed.
-import 'package:watcher/src/directory_watcher/mac_os.dart';
-
 /// The path to the temporary sandbox created for each test. All file
 /// operations are implicitly relative to this directory.
 String _sandboxDir;
@@ -118,11 +115,6 @@ Stream _watcherEvents;
 ///
 /// If [dir] is provided, watches a subdirectory in the sandbox with that name.
 void startWatcher({String dir}) {
-  var testCase = currentTestCase.description;
-  if (MacOSDirectoryWatcher.logDebugInfo) {
-    print("starting watcher for $testCase");
-  }
-
   // We want to wait until we're ready *after* we subscribe to the watcher's
   // events.
   _watcher = createWatcher(dir: dir, waitForReady: false);
@@ -136,10 +128,6 @@ void startWatcher({String dir}) {
         onError: currentSchedule.signalError);
 
     currentSchedule.onComplete.schedule(() {
-      if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("stopping watcher for $testCase");
-      }
-
       var numEvents = _nextEvent;
       subscription.cancel();
       _nextEvent = 0;
