@@ -7,6 +7,7 @@ library barback.internal_asset;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'asset.dart';
 import 'asset_id.dart';
@@ -19,16 +20,10 @@ import 'utils.dart';
 Map serializeAsset(Asset asset) {
   var id = serializeId(asset.id);
   if (asset is BinaryAsset) {
-    // If [_contents] is a custom subclass of List, it won't be serializable, so
-    // we have to convert it to a built-in [List] first.
-    // TODO(nweiz): Send a typed array if that works after issue 14703 is fixed.
-    var contents = asset._contents.runtimeType == List ?
-        asset._contents : asset._contents.toList();
-
     return {
       'type': 'binary',
       'id': id,
-      'contents': contents
+      'contents': asset._contents
     };
   } else if (asset is FileAsset) {
     return {
@@ -72,9 +67,10 @@ Asset deserializeAsset(Map asset) {
 class BinaryAsset implements Asset {
   final AssetId id;
 
-  final List<int> _contents;
+  final Uint8List _contents;
 
-  BinaryAsset(this.id, this._contents);
+  BinaryAsset(this.id, List<int> contents)
+      : _contents = toUint8List(contents);
 
   Future<String> readAsString({Encoding encoding}) {
     if (encoding == null) encoding = UTF8;

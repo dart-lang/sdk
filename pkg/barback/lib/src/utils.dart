@@ -5,6 +5,7 @@
 library barback.utils;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 /// A pair of values.
 class Pair<E, F> {
@@ -77,6 +78,15 @@ String byteToHex(int byte) {
 
   const DIGITS = "0123456789abcdef";
   return DIGITS[(byte ~/ 16) % 16] + DIGITS[byte % 16];
+}
+
+/// Converts [input] into a [Uint8List].
+///
+/// If [input] is a [TypedData], this just returns a view on [input].
+Uint8List toUint8List(List<int> input) {
+  if (input is Uint8List) return input;
+  if (input is TypedData) return new Uint8List.view(input.buffer);
+  return new Uint8List.fromList(input);
 }
 
 /// Group the elements in [iter] by the value returned by [fn].
