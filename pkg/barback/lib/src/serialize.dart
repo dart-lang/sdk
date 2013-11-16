@@ -61,7 +61,8 @@ StreamSubscription _deserializeTransformer(Stream input, bool cancelOnError) {
     if (data['type'] == 'data') {
       sink.add(data['data']);
     } else if (data['type'] == 'error') {
-      sink.addError(new CrossIsolateException.deserialize(data['error']));
+      var exception = new CrossIsolateException.deserialize(data['error']);
+      sink.addError(exception, exception.stackTrace);
     } else {
       assert(data['type'] == 'done');
       sink.close();

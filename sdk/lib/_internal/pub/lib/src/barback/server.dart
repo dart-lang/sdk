@@ -130,7 +130,7 @@ class BarbackServer {
         trace = new Trace.from(trace);
         _logRequest(request, "$error\n$trace");
 
-        _resultsController.addError(error);
+        _resultsController.addError(error, trace);
         close();
         return;
       }
@@ -208,12 +208,8 @@ class BarbackServer {
             _webSocketError(socket, 'Unknown command "${command["command"]}".');
             break;
         }
-      }, onError: (error) {
-        _resultsController.addError(error);
-      }, cancelOnError: true);
-    }).catchError((error) {
-      _resultsController.addError(error);
-    });
+      }, onError: _resultsController.addError, cancelOnError: true);
+    }).catchError(_resultsController.addError);
   }
 
   /// Converts a [url] served by pub serve into an [AssetId] that can be

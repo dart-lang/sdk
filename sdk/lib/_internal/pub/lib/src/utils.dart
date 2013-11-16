@@ -64,11 +64,11 @@ class FutureGroup<T> {
         completed = true;
         _completer.complete(_values);
       }
-    }).catchError((e) {
+    }).catchError((e, stackTrace) {
       if (completed) return;
 
       completed = true;
-      _completer.completeError(e);
+      _completer.completeError(e, stackTrace);
     }));
 
     return task;
@@ -292,8 +292,7 @@ String sha1(String source) {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.then((value) => completer.complete(value),
-      onError: (e) => completer.completeError(e));
+  future.then(completer.complete, onError: completer.completeError);
 }
 
 /// Ensures that [stream] can emit at least one value successfully (or close
@@ -641,8 +640,8 @@ Future resetStack(fn()) {
   // first and second cases described above.
   newFuture(fn).then((val) {
     scheduleMicrotask(() => completer.complete(val));
-  }).catchError((err) {
-    scheduleMicrotask(() => completer.completeError(err));
+  }).catchError((err, stackTrace) {
+    scheduleMicrotask(() => completer.completeError(err, stackTrace));
   });
   return completer.future;
 }

@@ -28,8 +28,7 @@ class Pair<E, F> {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.then((value) => completer.complete(value),
-      onError: completer.completeError);
+  future.then(completer.complete, onError: completer.completeError);
 }
 
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the

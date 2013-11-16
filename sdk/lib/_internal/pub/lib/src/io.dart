@@ -12,6 +12,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;
+import 'package:stack_trace/stack_trace.dart';
+
 import 'error_group.dart';
 import 'log.dart' as log;
 import 'sdk.dart' as sdk;
@@ -462,19 +464,16 @@ Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
 Future store(Stream stream, EventSink sink,
     {bool cancelOnError: true, bool closeSink: true}) {
   var completer = new Completer();
-  stream.listen(sink.add,
-      onError: (e, [stackTrace]) {
-        // TODO(floitsch): Sink.addError without stack trace.
-        sink.addError(e);
-        if (cancelOnError) {
-          completer.complete();
-          if (closeSink) sink.close();
-        }
-      },
-      onDone: () {
-        if (closeSink) sink.close();
-        completer.complete();
-      }, cancelOnError: cancelOnError);
+  stream.listen(sink.add, onError: (e, stackTrace) {
+    sink.addError(e, stackTrace);
+    if (cancelOnError) {
+      completer.complete();
+      if (closeSink) sink.close();
+    }
+  }, onDone: () {
+    if (closeSink) sink.close();
+    completer.complete();
+  }, cancelOnError: cancelOnError);
   return completer.future;
 }
 
@@ -634,16 +633,17 @@ Future timeout(Future input, int milliseconds, String description) {
   var completer = new Completer();
   var timer = new Timer(new Duration(milliseconds: milliseconds), () {
     completer.completeError(new TimeoutException(
-        'Timed out while $description.'));
+        'Timed out while $description.'),
+        new Trace.current());
   });
   input.then((value) {
     if (completer.isCompleted) return;
     timer.cancel();
     completer.complete(value);
-  }).catchError((e) {
+  }).catchError((e, stackTrace) {
     if (completer.isCompleted) return;
     timer.cancel();
-    completer.completeError(e);
+    completer.completeError(e, stackTrace);
   });
   return completer.future;
 }
@@ -775,10 +775,10 @@ ByteStream createTarGz(List contents, {baseDir}) {
     // file and pass them in via --files-from for tar and -i@filename for 7zip.
     startProcess("tar", args).then((process) {
       store(process.stdout, controller);
-    }).catchError((e) {
+    }).catchError((e, stackTrace) {
       // We don't have to worry about double-signaling here, since the store()
       // above will only be reached if startProcess succeeds.
-      controller.addError(e);
+      controller.addError(e, stackTrace);
       controller.close();
     });
     return new ByteStream(controller.stream);
@@ -807,10 +807,10 @@ ByteStream createTarGz(List contents, {baseDir}) {
       // occurs.
       return store(process.stdout, controller);
     });
-  }).catchError((e) {
+  }).catchError((e, stackTrace) {
     // We don't have to worry about double-signaling here, since the store()
     // above will only be reached if everything succeeds.
-    controller.addError(e);
+    controller.addError(e, stackTrace);
     controller.close();
   });
   return new ByteStream(controller.stream);

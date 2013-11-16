@@ -266,7 +266,7 @@ class AssetCascade {
       // TODO(rnystrom): Put some useful data in here.
       _resultsController.add(
           new BuildResult(_accumulatedErrors));
-    }).catchError((error) {
+    }).catchError((error, stackTrace) {
       // If we get here, it's an unexpected error. Runtime errors like missing
       // assets should be handled earlier. Errors from transformers or other
       // external code that barback calls into should be caught at that API
@@ -275,7 +275,7 @@ class AssetCascade {
       // On the off chance we get here, pipe the error to the results stream
       // as an error. That will let applications handle it without it appearing
       // in the same path as "normal" errors that get reported.
-      _resultsController.addError(error);
+      _resultsController.addError(error, stackTrace);
     }).whenComplete(() {
       _processDone = null;
       _accumulatedErrors = null;

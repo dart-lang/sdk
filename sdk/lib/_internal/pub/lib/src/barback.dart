@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
@@ -133,7 +134,9 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
       var subscriptions = [
         server.barback.errors.listen((error) {
           if (error is TransformerException) error = error.error;
-          if (!completer.isCompleted) completer.completeError(error);
+          if (!completer.isCompleted) {
+            completer.completeError(error, new Trace.current());
+          }
         }),
         server.barback.results.listen((_) {}, onError: (error, stackTrace) {
           if (completer.isCompleted) return;
