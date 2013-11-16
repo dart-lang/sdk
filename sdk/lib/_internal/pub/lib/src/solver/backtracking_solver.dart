@@ -59,6 +59,13 @@ class BacktrackingSolver {
   /// only allow the very latest version for each of these packages.
   final _forceLatest = new Set<String>();
 
+  /// The set of packages whose dependecy is being overridden by the root
+  /// package, keyed by the name of the package.
+  ///
+  /// Any dependency on a package that appears in this map will be overriden
+  /// to use the one here.
+  final _overrides = new Map<String, PackageDep>();
+
   /// Every time a package is encountered when traversing the dependency graph,
   /// the solver must select a version for it, sometimes when multiple versions
   /// are valid. This keeps track of which versions have been selected so far
@@ -83,12 +90,16 @@ class BacktrackingSolver {
   var _attemptedSolutions = 1;
 
   BacktrackingSolver(SourceRegistry sources, this.root, this.lockFile,
-                     List<String> useLatest)
+                     Iterable<PackageDep> overrides, List<String> useLatest)
       : sources = sources,
         cache = new PubspecCache(sources) {
     for (var package in useLatest) {
       forceLatestVersion(package);
       lockFile.packages.remove(package);
+    }
+
+    for (var override in overrides) {
+      _overrides[override.name] = override;
     }
   }
 
@@ -381,10 +392,25 @@ class Traverser {
     return _solver.cache.getPubspec(id).then((pubspec) {
       _validateSdkConstraint(pubspec);
 
-      var deps = pubspec.dependencies.toList();
+      var deps = pubspec.dependencies.toSet();
 
-      // Include dev dependencies of the root package.
-      if (id.isRoot) deps.addAll(pubspec.devDependencies);
+      if (id.isRoot) {
+        // Include dev dependencies of the root package.
+        deps.addAll(pubspec.devDependencies);
+
+        // Add all overrides. This ensures a dependency only present as an
+        // override is still included.
+        deps.addAll(_solver._overrides.values);
+      }
+
+      // Replace any overridden dependencies.
+      deps = deps.map((dep) {
+        var override = _solver._overrides[dep.name];
+        if (override != null) return override;
+
+        // Not overridden.
+        return dep;
+      });
 
       // Make sure the package doesn't have any bad dependencies.
       for (var dep in deps) {

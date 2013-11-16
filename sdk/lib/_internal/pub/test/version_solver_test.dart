@@ -41,6 +41,7 @@ main() {
   group('backtracking', backtracking);
   group('SDK constraint', sdkConstraint);
   group('pre-release', prerelease);
+  group('override', override);
 }
 
 void basicGraph() {
@@ -855,27 +856,158 @@ void prerelease() {
   });
 }
 
-testResolve(description, packages, {
-             lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool useBleedingEdgeSdkVersion}) {
-  _testResolve(test, description, packages, lockfile: lockfile, result: result,
-      error: error, maxTries: maxTries,
+void override() {
+  testResolve('chooses best version matching override constraint', {
+    'myapp 0.0.0': {
+      'a': 'any'
+    },
+    'a 1.0.0': {},
+    'a 2.0.0': {},
+    'a 3.0.0': {}
+  }, overrides: {
+    'a': '<3.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0'
+  });
+
+  testResolve('uses override as dependency', {
+    'myapp 0.0.0': {},
+    'a 1.0.0': {},
+    'a 2.0.0': {},
+    'a 3.0.0': {}
+  }, overrides: {
+    'a': '<3.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0'
+  });
+
+  testResolve('ignores other constraints on overridden package', {
+    'myapp 0.0.0': {
+      'b': 'any',
+      'c': 'any'
+    },
+    'a 1.0.0': {},
+    'a 2.0.0': {},
+    'a 3.0.0': {},
+    'b 1.0.0': {
+      'a': '1.0.0'
+    },
+    'c 1.0.0': {
+      'a': '3.0.0'
+    }
+  }, overrides: {
+    'a': '2.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0',
+    'b': '1.0.0',
+    'c': '1.0.0'
+  });
+
+  testResolve('backtracks on overidden package for its constraints', {
+    'myapp 0.0.0': {
+      'shared': '2.0.0'
+    },
+    'a 1.0.0': {
+      'shared': 'any'
+    },
+    'a 2.0.0': {
+      'shared': '1.0.0'
+    },
+    'shared 1.0.0': {},
+    'shared 2.0.0': {}
+  }, overrides: {
+    'a': '<3.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0',
+    'shared': '2.0.0'
+  }, maxTries: 2);
+
+  testResolve('override compatible with locked dependency', {
+    'myapp 0.0.0': {
+      'foo': 'any'
+    },
+    'foo 1.0.0': { 'bar': '1.0.0' },
+    'foo 1.0.1': { 'bar': '1.0.1' },
+    'foo 1.0.2': { 'bar': '1.0.2' },
+    'bar 1.0.0': {},
+    'bar 1.0.1': {},
+    'bar 1.0.2': {}
+  }, lockfile: {
+    'foo': '1.0.1'
+  }, overrides: {
+    'foo': '<1.0.2'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '1.0.1',
+    'bar': '1.0.1'
+  });
+
+  testResolve('override incompatible with locked dependency', {
+    'myapp 0.0.0': {
+      'foo': 'any'
+    },
+    'foo 1.0.0': { 'bar': '1.0.0' },
+    'foo 1.0.1': { 'bar': '1.0.1' },
+    'foo 1.0.2': { 'bar': '1.0.2' },
+    'bar 1.0.0': {},
+    'bar 1.0.1': {},
+    'bar 1.0.2': {}
+  }, lockfile: {
+    'foo': '1.0.1'
+  }, overrides: {
+    'foo': '>1.0.1'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '1.0.2',
+    'bar': '1.0.2'
+  });
+
+  testResolve('no version that matches override', {
+    'myapp 0.0.0': {},
+    'foo 2.0.0': {},
+    'foo 2.1.3': {}
+  }, overrides: {
+    'foo': '>=1.0.0 <2.0.0'
+  }, error: noVersion(['myapp']));
+
+  testResolve('override a bad source without error', {
+    'myapp 0.0.0': {
+      'foo from bad': 'any'
+    },
+    'foo 0.0.0': {}
+  }, overrides: {
+    'foo': 'any'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '0.0.0'
+  });
+}
+
+testResolve(String description, Map packages, {
+    Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
+  _testResolve(test, description, packages, lockfile: lockfile,
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
       useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
 }
 
-solo_testResolve(description, packages, {
-             lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool useBleedingEdgeSdkVersion}) {
+solo_testResolve(String description, Map packages, {
+    Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   log.showSolver();
   _testResolve(solo_test, description, packages, lockfile: lockfile,
-      result: result, error: error, maxTries: maxTries,
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
       useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
 }
 
 _testResolve(void testFn(String description, Function body),
-             description, packages, {
-             lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool useBleedingEdgeSdkVersion}) {
+    String description, Map packages, {
+    Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   if (maxTries == null) maxTries = 1;
   if (useBleedingEdgeSdkVersion == null) useBleedingEdgeSdkVersion = false;
 
@@ -923,6 +1055,15 @@ _testResolve(void testFn(String description, Function body),
       });
     }
 
+    // Parse the overrides.
+    var realOverrides = [];
+    if (overrides != null) {
+      overrides.forEach((spec, constraint) {
+        realOverrides.add(parseSpec(spec).withConstraint(
+            new VersionConstraint.parse(constraint)));
+      });
+    }
+
     // Make a version number like the continuous build's version.
     var previousVersion = sdk.version;
     if (useBleedingEdgeSdkVersion) {
@@ -931,7 +1072,7 @@ _testResolve(void testFn(String description, Function body),
 
     // Resolve the versions.
     var future = resolveVersions(cache.sources, root,
-        lockFile: realLockFile);
+        lockFile: realLockFile, overrides: realOverrides);
 
     var matcher;
     if (result != null) {
