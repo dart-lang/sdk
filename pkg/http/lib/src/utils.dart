@@ -112,7 +112,10 @@ bool isPlainAscii(String string) => _ASCII_ONLY.hasMatch(string);
 /// If [input] is a [TypedData], this just returns a view on [input].
 Uint8List toUint8List(List<int> input) {
   if (input is Uint8List) return input;
-  if (input is TypedData) return new Uint8List.view(input.buffer);
+  if (input is TypedData) {
+    // TODO(nweiz): remove "as" when issue 11080 is fixed.
+    return new Uint8List.view((input as TypedData).buffer);
+  }
   return new Uint8List.fromList(input);
 }
 
