@@ -934,11 +934,11 @@ char* Isolate::GetStatusDetails() {
   char buffer[300];
   int64_t address = reinterpret_cast<int64_t>(this);
   int n = OS::SNPrint(buffer, 300, format, address, name(), main_port(),
-                      (start_time() / 1000L), saved_stack_limit(),
-                      heap()->Used(Heap::kNew) / KB,
-                      heap()->Capacity(Heap::kNew) / KB,
-                      heap()->Used(Heap::kOld) / KB,
-                      heap()->Capacity(Heap::kOld) / KB);
+                      start_time() / 1000L, saved_stack_limit(),
+                      RoundWordsToKB(heap()->UsedInWords(Heap::kNew)),
+                      RoundWordsToKB(heap()->CapacityInWords(Heap::kNew)),
+                      RoundWordsToKB(heap()->UsedInWords(Heap::kOld)),
+                      RoundWordsToKB(heap()->CapacityInWords(Heap::kOld)));
   ASSERT(n < 300);
   return strdup(buffer);
 }

@@ -24,7 +24,7 @@ DECLARE_FLAG(bool, gc_at_alloc);
 
 class Scavenger {
  public:
-  Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment);
+  Scavenger(Heap* heap, intptr_t max_capacity_in_words, uword object_alignment);
   ~Scavenger();
 
   // Check whether this Scavenger contains this address.
@@ -69,8 +69,10 @@ class Scavenger {
   static intptr_t top_offset() { return OFFSET_OF(Scavenger, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Scavenger, end_); }
 
-  intptr_t in_use() const { return (top_ - FirstObjectStart()); }
-  intptr_t capacity() const { return space_->size(); }
+  intptr_t UsedInWords() const {
+    return (top_ - FirstObjectStart()) >> kWordSizeLog2;
+  }
+  intptr_t CapacityInWords() const { return space_->size() >> kWordSizeLog2; }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;

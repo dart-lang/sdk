@@ -121,7 +121,8 @@ class PageSpaceController {
   // heap_growth_ratio % of memory got deallocated by the garbage collector.
   // In this case garbage collection will be performed next time. Otherwise
   // the heap will grow.
-  void EvaluateGarbageCollection(intptr_t in_use_before, intptr_t in_use_after,
+  void EvaluateGarbageCollection(intptr_t used_before_in_words,
+                                 intptr_t used_after_in_words,
                                  int64_t start, int64_t end);
 
   int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
@@ -178,15 +179,15 @@ class PageSpace {
     kForceGrowth
   };
 
-  PageSpace(Heap* heap, intptr_t max_capacity);
+  PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
 
   uword TryAllocate(intptr_t size,
                     HeapPage::PageType type = HeapPage::kData,
                     GrowthPolicy growth_policy = kControlGrowth);
 
-  intptr_t in_use() const { return in_use_; }
-  intptr_t capacity() const { return capacity_; }
+  intptr_t UsedInWords() const { return used_in_words_; }
+  intptr_t CapacityInWords() const { return capacity_in_words_; }
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
@@ -244,9 +245,9 @@ class PageSpace {
 
   static intptr_t LargePageSizeFor(intptr_t size);
 
-  bool CanIncreaseCapacity(intptr_t increase) {
-    ASSERT(capacity_ <= max_capacity_);
-    return increase <= (max_capacity_ - capacity_);
+  bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
+    ASSERT(capacity_in_words_ <= max_capacity_in_words_);
+    return increase_in_words <= (max_capacity_in_words_ - capacity_in_words_);
   }
 
   FreeList freelist_[HeapPage::kNumPageTypes];
@@ -258,9 +259,9 @@ class PageSpace {
   HeapPage* large_pages_;
 
   // Various sizes being tracked for this generation.
-  intptr_t max_capacity_;
-  intptr_t capacity_;
-  intptr_t in_use_;
+  intptr_t max_capacity_in_words_;
+  intptr_t capacity_in_words_;
+  intptr_t used_in_words_;
 
   // Keep track whether a MarkSweep is currently running.
   bool sweeping_;

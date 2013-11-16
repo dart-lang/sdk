@@ -112,15 +112,15 @@ void HeapPage::WriteProtect(bool read_only) {
 }
 
 
-PageSpace::PageSpace(Heap* heap, intptr_t max_capacity)
+PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : freelist_(),
       heap_(heap),
       pages_(NULL),
       pages_tail_(NULL),
       large_pages_(NULL),
-      max_capacity_(max_capacity),
-      capacity_(0),
-      in_use_(0),
+      max_capacity_in_words_(max_capacity_in_words),
+      capacity_in_words_(0),
+      used_in_words_(0),
       sweeping_(false),
       page_space_controller_(FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
@@ -149,7 +149,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     pages_tail_->set_next(page);
   }
   pages_tail_ = page;
-  capacity_ += kPageSize;
+  capacity_in_words_ += (kPageSize >> kWordSizeLog2);
   page->set_object_end(page->memory_->end());
   return page;
 }
@@ -160,7 +160,7 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   HeapPage* page = HeapPage::Allocate(page_size, type);
   page->set_next(large_pages_);
   large_pages_ = page;
-  capacity_ += page_size;
+  capacity_in_words_ += (page_size >> kWordSizeLog2);
   // Only one object in this page.
   page->set_object_end(page->object_start() + size);
   return page;
@@ -168,7 +168,7 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
 
 
 void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
-  capacity_ -= page->memory_->size();
+  capacity_in_words_ -= (page->memory_->size() >> kWordSizeLog2);
   // Remove the page from the list.
   if (previous_page != NULL) {
     previous_page->set_next(page->next());
@@ -184,7 +184,7 @@ void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
 
 
 void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
-  capacity_ -= page->memory_->size();
+  capacity_in_words_ -= (page->memory_->size() >> kWordSizeLog2);
   // Remove the page from the list.
   if (previous_page != NULL) {
     previous_page->set_next(page->next());
@@ -216,7 +216,7 @@ uword PageSpace::TryAllocate(intptr_t size,
     if ((result == 0) &&
         (page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
-        CanIncreaseCapacity(kPageSize)) {
+        CanIncreaseCapacityInWords(kPageSize >> kWordSizeLog2)) {
       HeapPage* page = AllocatePage(type);
       ASSERT(page != NULL);
       // Start of the newly allocated page is the allocated object.
@@ -237,7 +237,7 @@ uword PageSpace::TryAllocate(intptr_t size,
     }
     if ((page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
-        CanIncreaseCapacity(page_size)) {
+        CanIncreaseCapacityInWords(page_size >> kWordSizeLog2)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
@@ -245,7 +245,7 @@ uword PageSpace::TryAllocate(intptr_t size,
     }
   }
   if (result != 0) {
-    in_use_ += size;
+    used_in_words_ += (size >> kWordSizeLog2);
     if (FLAG_compiler_stats && (type == HeapPage::kExecutable)) {
       CompilerStats::code_allocated += size;
     }
@@ -482,7 +482,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid2 = OS::GetCurrentTimeMicros();
 
   GCSweeper sweeper(heap_);
-  intptr_t in_use = 0;
+  intptr_t used_in_words = 0;
 
   HeapPage* prev_page = NULL;
   HeapPage* page = pages_;
@@ -492,7 +492,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     if (page_in_use == 0) {
       FreePage(page, prev_page);
     } else {
-      in_use += page_in_use;
+      used_in_words += (page_in_use >> kWordSizeLog2);
       prev_page = page;
     }
     // Advance to the next page.
@@ -509,7 +509,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     if (page_in_use == 0) {
       FreeLargePage(page, prev_page);
     } else {
-      in_use += page_in_use;
+      used_in_words += (page_in_use >> kWordSizeLog2);
       prev_page = page;
     }
     // Advance to the next page.
@@ -517,13 +517,14 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   }
 
   // Record data and print if requested.
-  intptr_t in_use_before = in_use_;
-  in_use_ = in_use;
+  intptr_t used_before_in_words = used_in_words_;
+  used_in_words_ = used_in_words;
 
   int64_t end = OS::GetCurrentTimeMicros();
 
   // Record signals for growth control.
-  page_space_controller_.EvaluateGarbageCollection(in_use_before, in_use,
+  page_space_controller_.EvaluateGarbageCollection(used_before_in_words,
+                                                   used_in_words,
                                                    start, end);
 
   heap_->RecordTime(kMarkObjects, mid1 - start);
@@ -584,13 +585,15 @@ bool PageSpaceController::CanGrowPageSpace(intptr_t size_in_bytes) {
 
 
 void PageSpaceController::EvaluateGarbageCollection(
-    intptr_t in_use_before, intptr_t in_use_after, int64_t start, int64_t end) {
-  ASSERT(in_use_before >= in_use_after);
+    intptr_t used_before_in_words, intptr_t used_after_in_words,
+    int64_t start, int64_t end) {
+  // TODO(iposva): Reevaluate the growth policies.
+  ASSERT(used_before_in_words >= used_after_in_words);
   ASSERT(end >= start);
   history_.AddGarbageCollectionTime(start, end);
-  int collected_garbage_ratio =
-      static_cast<int>((static_cast<double>(in_use_before - in_use_after) /
-                        static_cast<double>(in_use_before))
+  int collected_garbage_ratio = static_cast<int>(
+      (static_cast<double>(used_before_in_words - used_after_in_words) /
+      static_cast<double>(used_before_in_words))
                        * 100.0);
   bool enough_free_space =
       (collected_garbage_ratio >= heap_growth_ratio_);
@@ -603,11 +606,13 @@ void PageSpaceController::EvaluateGarbageCollection(
   if (enough_free_space && enough_free_time) {
     grow_heap_ = 0;
   } else {
-    intptr_t growth_target = static_cast<intptr_t>(in_use_after /
-                                                   desired_utilization_);
-    intptr_t growth_in_bytes = Utils::RoundUp(growth_target - in_use_after,
-                                              PageSpace::kPageSize);
-    int growth_in_pages = growth_in_bytes / PageSpace::kPageSize;
+    intptr_t growth_target = static_cast<intptr_t>(
+        used_after_in_words /  desired_utilization_);
+    intptr_t growth_in_words = Utils::RoundUp(
+        growth_target - used_after_in_words,
+        PageSpace::kPageSize >> kWordSizeLog2);
+    int growth_in_pages =
+        growth_in_words / (PageSpace::kPageSize >> kWordSizeLog2);
     grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
     heap->RecordData(PageSpace::kPageGrowth, growth_in_pages);
   }

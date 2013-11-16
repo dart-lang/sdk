@@ -281,6 +281,24 @@ const intptr_t MBLog2 = KBLog2 + KBLog2;
 const intptr_t GB = MB * KB;
 const intptr_t GBLog2 = MBLog2 + KBLog2;
 
+const intptr_t KBInWords = KB >> kWordSizeLog2;
+const intptr_t KBInWordsLog2 = KBLog2 - kWordSizeLog2;
+const intptr_t MBInWords = KB * KBInWords;
+const intptr_t MBInWordsLog2 = KBLog2 + KBInWordsLog2;
+const intptr_t GBInWords = MB * KBInWords;
+const intptr_t GBInWordsLog2 = MBLog2 + KBInWordsLog2;
+
+// Helpers to round memory sizes to human readable values.
+inline intptr_t RoundWordsToKB(intptr_t size_in_words) {
+  return (size_in_words + (KBInWords >> 1)) >> KBInWordsLog2;
+}
+inline intptr_t RoundWordsToMB(intptr_t size_in_words) {
+  return (size_in_words + (MBInWords >> 1)) >> MBInWordsLog2;
+}
+inline intptr_t RoundWordsToGB(intptr_t size_in_words) {
+  return (size_in_words + (GBInWords >> 1)) >> GBInWordsLog2;
+}
+
 const intptr_t kIntptrOne = 1;
 const intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
 const intptr_t kIntptrMax = ~kIntptrMin;
@@ -295,6 +313,16 @@ const int kNanosecondsPerMillisecond = (kNanosecondsPerMicrosecond *
                                         kMicrosecondsPerMillisecond);
 const int kNanosecondsPerSecond = (kNanosecondsPerMicrosecond *
                                    kMicrosecondsPerSecond);
+
+// Helpers to round micro second times to human understandable values.
+inline double RoundMicrosecondsToSeconds(int64_t micros) {
+  const int k1M = 1000000;  // Converting us to secs.
+  return static_cast<double>(micros + (k1M >> 1)) / k1M;
+}
+inline double RoundMicrosecondsToMilliseconds(int64_t micros) {
+  const int k1K = 1000;  // Conversting us to ms.
+  return static_cast<double>(micros + (k1K >> 1)) / k1K;
+}
 
 // A macro to disallow the copy constructor and operator= functions.
 // This should be used in the private: declarations for a class.
