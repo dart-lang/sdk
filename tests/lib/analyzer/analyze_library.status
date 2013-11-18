@@ -33,10 +33,10 @@ lib/_internal/pub/lib/src/barback/pub_package_provider: CompileTimeError
 lib/_internal/pub/lib/src/barback/rewrite_import_transformer: CompileTimeError
 lib/_internal/pub/lib/src/barback/server: CompileTimeError
 lib/_internal/pub/lib/src/barback/watch_sources: CompileTimeError
-lib/_internal/pub/lib/src/command: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/command.dart)
 lib/_internal/pub/lib/src/command/build: CompileTimeError
 lib/_internal/pub/lib/src/command/lish: CompileTimeError
 lib/_internal/pub/lib/src/command/list_package_dirs: CompileTimeError
+lib/_internal/pub/lib/src/command: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/command.dart)
 lib/_internal/pub/lib/src/command/uploader: CompileTimeError
 lib/_internal/pub/lib/src/dart: CompileTimeError
 lib/_internal/pub/lib/src/directory_tree: CompileTimeError
@@ -49,6 +49,7 @@ lib/_internal/pub/lib/src/package: CompileTimeError
 lib/_internal/pub/lib/src/pubspec: CompileTimeError
 lib/_internal/pub/lib/src/safe_http_server: CompileTimeError
 lib/_internal/pub/lib/src/sdk: CompileTimeError
+lib/_internal/pub/lib/src/solver/version_solver: CompileTimeError
 lib/_internal/pub/lib/src/source: CompileTimeError
 lib/_internal/pub/lib/src/source/git: CompileTimeError
 lib/_internal/pub/lib/src/source/hosted: CompileTimeError
