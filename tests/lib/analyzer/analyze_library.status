@@ -29,9 +29,7 @@ lib/_internal/pub/lib/src/command/list_package_dirs: CompileTimeError
 lib/_internal/pub/lib/src/command: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/command.dart)
 lib/_internal/pub/lib/src/command/uploader: CompileTimeError
 lib/_internal/pub/lib/src/dart: CompileTimeError
-lib/_internal/pub/lib/src/entrypoint: CompileTimeError
 lib/_internal/pub/lib/src/safe_http_server: CompileTimeError
-lib/_internal/pub/lib/src/solver/version_solver: CompileTimeError
 lib/_internal/pub/lib/src/source/git: CompileTimeError
 lib/_internal/pub/lib/src/source/hosted: CompileTimeError
 lib/_internal/pub/test/test_pub: CompileTimeError
