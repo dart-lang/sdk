@@ -4,6 +4,8 @@
 
 part of dart.io;
 
+const int _HEADERS_BUFFER_SIZE = 8 * 1024;
+
 class _HttpIncoming extends Stream<List<int>> {
   final int _transferLength;
   final Completer _dataCompleter = new Completer();
@@ -479,6 +481,15 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   Future<T> get done => _dataSink.done;
 
   Future _writeHeaders({bool drainRequest: true}) {
+    void write() {
+      try {
+        _writeHeader();
+      } catch (error) {
+        // Headers too large.
+        throw new HttpException(
+            "Headers size exceeded the of '$_HEADERS_BUFFER_SIZE' bytes");
+      }
+    }
     if (_headersWritten) return new Future.value();
     _headersWritten = true;
     headers._synchronize();  // Be sure the 'chunked' option is updated.
@@ -503,10 +514,10 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         return response._httpRequest.drain()
             // TODO(ajohnsen): Timeout on drain?
             .catchError((_) {})  // Ignore errors.
-            .then((_) => _writeHeader());
+            .then((_) => write());
       }
     }
-    return new Future.sync(_writeHeader);
+    return new Future.sync(write);
   }
 
   Future _addStream(Stream<List<int>> stream) {
@@ -549,10 +560,10 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         return _headersSink.done;
       }
     }
-    return _writeHeaders().then((_) => _headersSink.close());
+    return _writeHeaders().whenComplete(_headersSink.close);
   }
 
-  void _writeHeader();  // TODO(ajohnsen): Better name.
+  void _writeHeader();
 }
 
 
@@ -769,21 +780,29 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   }
 
   void _writeHeader() {
-    var builder = new BytesBuilder();
-    writeSP() => builder.add(const [_CharCode.SP]);
-    writeCRLF() => builder.add(const [_CharCode.CR, _CharCode.LF]);
+    Uint8List buffer = _httpRequest._httpConnection._headersBuffer;
+    int offset = 0;
+
+    void write(List<int> bytes) {
+      int len = bytes.length;
+      for (int i = 0; i < len; i++) {
+        buffer[offset + i] = bytes[i];
+      }
+      offset += len;
+    }
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      builder.add(_Const.HTTP11);
+      write(_Const.HTTP11);
     } else {
-      builder.add(_Const.HTTP10);
+      write(_Const.HTTP10);
     }
-    writeSP();
-    builder.add(statusCode.toString().codeUnits);
-    writeSP();
-    builder.add(reasonPhrase.codeUnits);
-    writeCRLF();
+    buffer[offset++] = _CharCode.SP;
+    write(statusCode.toString().codeUnits);
+    buffer[offset++] = _CharCode.SP;
+    write(reasonPhrase.codeUnits);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
 
     var session = _httpRequest._session;
     if (session != null && !session._destroyed) {
@@ -816,9 +835,10 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(builder);
-    writeCRLF();
-    _headersSink.add(builder.takeBytes());
+    offset = headers._write(buffer, offset);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
+    _headersSink.add(new Uint8List.view(buffer.buffer, 0, offset));
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -1012,21 +1032,27 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   }
 
   void _writeHeader() {
-    var builder = new BytesBuilder();
+    Uint8List buffer = _httpClientConnection._headersBuffer;
+    int offset = 0;
 
-    writeSP() => builder.add(const [_CharCode.SP]);
-
-    writeCRLF() => builder.add(const [_CharCode.CR, _CharCode.LF]);
+    void write(List<int> bytes) {
+      int len = bytes.length;
+      for (int i = 0; i < len; i++) {
+        buffer[offset + i] = bytes[i];
+      }
+      offset += len;
+    }
 
     // Write the request method.
-    builder.add(method.codeUnits);
-    writeSP();
+    write(method.codeUnits);
+    buffer[offset++] = _CharCode.SP;
     // Write the request URI.
-    builder.add(_requestUri().codeUnits);
-    writeSP();
+    write(_requestUri().codeUnits);
+    buffer[offset++] = _CharCode.SP;
     // Write HTTP/1.1.
-    builder.add(_Const.HTTP11);
-    writeCRLF();
+    write(_Const.HTTP11);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
 
     // Add the cookies to the headers.
     if (!cookies.isEmpty) {
@@ -1043,9 +1069,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(builder);
-    writeCRLF();
-    _headersSink.add(builder.takeBytes());
+    offset = headers._write(buffer, offset);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
+    _headersSink.add(new Uint8List.view(buffer.buffer, 0, offset));
   }
 }
 
@@ -1209,6 +1236,7 @@ class _HttpClientConnection {
   Timer _idleTimer;
   bool closed = false;
   Uri _currentUri;
+  final Uint8List _headersBuffer = new Uint8List(_HEADERS_BUFFER_SIZE);
 
   Completer<_HttpIncoming> _nextResponseCompleter;
   Future _streamFuture;
@@ -1858,6 +1886,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
   Timer _idleTimer;
+  final Uint8List _headersBuffer = new Uint8List(_HEADERS_BUFFER_SIZE);
 
   Future _streamFuture;
 
@@ -2528,3 +2557,5 @@ String _getHttpVersion() {
   version = version.substring(0, index);
   return 'Dart/$version (dart:io)';
 }
+
+
