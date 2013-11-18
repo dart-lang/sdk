@@ -102,6 +102,18 @@ class Pubspec {
   }
   List<PackageDep> _devDependencies;
 
+  /// The dependency constraints that this package overrides when it is the
+  /// root package.
+  ///
+  /// Dependencies here will replace any dependency on a package with the same
+  /// name anywhere in the dependency graph.
+  List<PackageDep> get dependencyOverrides {
+    if (_dependencyOverrides != null) return _dependencyOverrides;
+    _dependencyOverrides = _parseDependencies('dependency_overrides');
+    return _dependencyOverrides;
+  }
+  List<PackageDep> _dependencyOverrides;
+
   /// The ids of the transformers to use for this package.
   List<Set<TransformerId>> get transformers {
     if (_transformers != null) return _transformers;
@@ -220,7 +232,8 @@ class Pubspec {
   }
 
   Pubspec(this._name, this._version, this._dependencies, this._devDependencies,
-          this._environment, this._transformers, [Map fields])
+          this._dependencyOverrides, this._environment, this._transformers,
+          [Map fields])
     : this.fields = fields == null ? {} : fields,
       _sources = null,
       _location = null;

@@ -90,7 +90,7 @@ class BacktrackingSolver {
   var _attemptedSolutions = 1;
 
   BacktrackingSolver(SourceRegistry sources, this.root, this.lockFile,
-                     Iterable<PackageDep> overrides, List<String> useLatest)
+                     List<String> useLatest)
       : sources = sources,
         cache = new PubspecCache(sources) {
     for (var package in useLatest) {
@@ -98,7 +98,7 @@ class BacktrackingSolver {
       lockFile.packages.remove(package);
     }
 
-    for (var override in overrides) {
+    for (var override in root.dependencyOverrides) {
       _overrides[override.name] = override;
     }
   }
@@ -110,6 +110,10 @@ class BacktrackingSolver {
 
     _logParameters();
 
+    // Sort the overrides by package name to make sure they're deterministic.
+    var overrides = _overrides.values.toList();
+    overrides.sort((a, b) => a.name.compareTo(b.name));
+
     return newFuture(() {
       stopwatch.start();
 
@@ -119,12 +123,12 @@ class BacktrackingSolver {
       _validateSdkConstraint(root.pubspec);
       return _traverseSolution();
     }).then((packages) {
-      return new SolveResult(packages, null, attemptedSolutions);
+      return new SolveResult(packages, overrides, null, attemptedSolutions);
     }).catchError((error) {
       if (error is! SolveFailure) throw error;
 
       // Wrap a failure in a result so we can attach some other data.
-      return new SolveResult(null, error, attemptedSolutions);
+      return new SolveResult(null, overrides, error, attemptedSolutions);
     }).whenComplete(() {
       // Gather some solving metrics.
       var buffer = new StringBuffer();

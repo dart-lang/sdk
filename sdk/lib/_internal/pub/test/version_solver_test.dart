@@ -1023,7 +1023,8 @@ _testResolve(void testFn(String description, Function body),
     var root;
     packages.forEach((description, dependencies) {
       var id = parseSpec(description);
-      var package = mockPackage(id, dependencies);
+      var package = mockPackage(id, dependencies,
+          id.name == 'myapp' ? overrides : null);
       if (id.name == 'myapp') {
         // Don't add the root package to the server, so we can verify that Pub
         // doesn't try to look up information about the local package on the
@@ -1055,15 +1056,6 @@ _testResolve(void testFn(String description, Function body),
       });
     }
 
-    // Parse the overrides.
-    var realOverrides = [];
-    if (overrides != null) {
-      overrides.forEach((spec, constraint) {
-        realOverrides.add(parseSpec(spec).withConstraint(
-            new VersionConstraint.parse(constraint)));
-      });
-    }
-
     // Make a version number like the continuous build's version.
     var previousVersion = sdk.version;
     if (useBleedingEdgeSdkVersion) {
@@ -1071,8 +1063,7 @@ _testResolve(void testFn(String description, Function body),
     }
 
     // Resolve the versions.
-    var future = resolveVersions(cache.sources, root,
-        lockFile: realLockFile, overrides: realOverrides);
+    var future = resolveVersions(cache.sources, root, lockFile: realLockFile);
 
     var matcher;
     if (result != null) {
@@ -1331,20 +1322,20 @@ class MockSource extends Source {
   }
 }
 
-Package mockPackage(PackageId id, Map dependencyStrings) {
+Package mockPackage(PackageId id, Map dependencyStrings, Map overrides) {
   var sdkConstraint = null;
 
   // Build the pubspec dependencies.
   var dependencies = <PackageDep>[];
   var devDependencies = <PackageDep>[];
 
-  dependencyStrings.forEach((description, constraint) {
-    var isDev = description.startsWith("(dev) ");
+  dependencyStrings.forEach((spec, constraint) {
+    var isDev = spec.startsWith("(dev) ");
     if (isDev) {
-      description = description.substring("(dev) ".length);
+      spec = spec.substring("(dev) ".length);
     }
 
-    var dep = parseSpec(description).withConstraint(
+    var dep = parseSpec(spec).withConstraint(
         new VersionConstraint.parse(constraint));
 
     if (dep.name == 'sdk') {
@@ -1359,8 +1350,17 @@ Package mockPackage(PackageId id, Map dependencyStrings) {
     }
   });
 
+  var dependencyOverrides = <PackageDep>[];
+  if (overrides != null) {
+    overrides.forEach((spec, constraint) {
+      dependencyOverrides.add(parseSpec(spec).withConstraint(
+          new VersionConstraint.parse(constraint)));
+    });
+  }
+
   var pubspec = new Pubspec(id.name, id.version, dependencies,
-      devDependencies, new PubspecEnvironment(sdkConstraint), []);
+      devDependencies, dependencyOverrides,
+      new PubspecEnvironment(sdkConstraint), []);
   return new Package.inMemory(pubspec);
 }
 

@@ -37,6 +37,9 @@ class Package {
   /// The immediate dev dependencies this package specifies in its pubspec.
   List<PackageDep> get devDependencies => pubspec.devDependencies;
 
+  /// The dependency overrides this package specifies in its pubspec.
+  List<PackageDep> get dependencyOverrides => pubspec.dependencyOverrides;
+
   /// Returns the path to the README file at the root of the entrypoint, or null
   /// if no README file is found. If multiple READMEs are found, this uses the
   /// same conventions as pub.dartlang.org for choosing the primary one: the

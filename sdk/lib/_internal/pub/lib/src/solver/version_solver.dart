@@ -25,14 +25,12 @@ import 'backtracking_solver.dart';
 /// packages will be used. This is for forcing an upgrade to one or more
 /// packages.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
-    {LockFile lockFile, List<PackageRef> overrides, List<String> useLatest}) {
+    {LockFile lockFile, List<String> useLatest}) {
   if (lockFile == null) lockFile = new LockFile.empty();
-  if (overrides == null) overrides = [];
   if (useLatest == null) useLatest = [];
 
   return log.progress('Resolving dependencies', () {
-    return new BacktrackingSolver(sources, root, lockFile, overrides,
-        useLatest).solve();
+    return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
   });
 }
 
@@ -45,6 +43,9 @@ class SolveResult {
   /// reachable from the root, or `null` if the solver failed.
   final List<PackageId> packages;
 
+  /// The dependency overrides that were used in the solution.
+  final List<PackageDep> overrides;
+
   /// The error that prevented the solver from finding a solution or `null` if
   /// it was successful.
   final SolveFailure error;
@@ -55,7 +56,8 @@ class SolveResult {
   /// solution.
   final int attemptedSolutions;
 
-  SolveResult(this.packages, this.error, this.attemptedSolutions);
+  SolveResult(this.packages, this.overrides, this.error,
+      this.attemptedSolutions);
 
   String toString() {
     if (!succeeded) {

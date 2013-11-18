@@ -143,6 +143,16 @@ class Entrypoint {
     return new Future.sync(() {
       if (!result.succeeded) throw result.error;
 
+      // Warn the user if any overrides were in effect.
+      if (result.overrides.isNotEmpty) {
+        var buffer = new StringBuffer();
+        buffer.write("Warning: You are overriding these dependencies:");
+        for (var override in result.overrides) {
+          buffer.write("\n- $override");
+        }
+        log.warning(buffer);
+      }
+
       cleanDir(packagesDir);
       return Future.wait(result.packages.map((id) {
         if (id.isRoot) return new Future.value(id);
@@ -196,7 +206,7 @@ class Entrypoint {
   /// pubspec.
   Future ensureLockFileIsUpToDate() {
     return new Future.sync(() {
-      if (isLockFileUpToDate()) return;
+      if (isLockFileUpToDate()) return null;
 
       if (lockFileExists) {
         log.message(
