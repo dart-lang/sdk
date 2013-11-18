@@ -51,21 +51,9 @@ Iterable<LibraryMirror> _sdkLibraries;
 /// without import.
 LibraryMirror _coreLibrary;
 
-/// Current library being documented to be used for comment links.
-LibraryMirror _currentLibrary;
-
-/// Current class being documented to be used for comment links.
-ClassMirror _currentClass;
-
-/// Current member being documented to be used for comment links.
-MemberMirror _currentMember;
-
 /// Support for [:foo:]-style code comments to the markdown parser.
 List<markdown.InlineSyntax> markdownSyntaxes =
   [new markdown.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
-
-/// Resolves reference links in doc comments.
-markdown.Resolver linkResolver;
 
 /// Index of all indexable items. This also ensures that no class is
 /// created more than once.
@@ -108,8 +96,6 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     }
   }
   logger.info('Package Root: ${packageRoot}');
-  linkResolver = (name) =>
-      fixReference(name, _currentLibrary, _currentClass, _currentMember);
 
   return getMirrorSystem(files, packageRoot: packageRoot, parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
@@ -143,6 +129,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
 /// If [library] is specified, we set the packageName field. If no package could
 /// be determined, we return an empty string.
 String _findPackage(LibraryMirror mirror, [Library library]) {
+  if (mirror == null) return '';
   if (library == null) {
     library = entityMap[mirror.simpleName];
   }
@@ -176,6 +163,7 @@ String _packageIntro(packageDir) {
   // If there are multiples, pick the shortest name.
   readmes.sort((a, b) => a.length.compareTo(b.length));
   var readme = readmes.first;
+  var linkResolver = (name) => fixReference(name, null, null, null);
   var contents = markdown.markdownToHtml(readme
     .readAsStringSync(), linkResolver: linkResolver,
     inlineSyntaxes: markdownSyntaxes);
@@ -333,6 +321,7 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   // Outputs a JSON file with all libraries and their preview comments.
   // This will help the viewer know what libraries are available to read in.
   var libraryMap;
+  var linkResolver = (name) => fixReference(name, null, null, null);
   if (append) {
     var docsDir = listDir('docs');
     if (!docsDir.contains('docs/library_list.json')) {
@@ -387,12 +376,12 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
-  _currentLibrary = library;
-  var result = new Library(docName(library), _commentToHtml(library),
+  var result = new Library(docName(library),
+      (actualLibrary) => _commentToHtml(library, actualLibrary),
       _classes(library.classes),
       _methods(library.functions),
       _variables(library.variables),
-      _isHidden(library));
+      _isHidden(library), library);
   _findPackage(library, result);
   logger.fine('Generated library for ${result.name}');
   return result;
@@ -463,23 +452,14 @@ List<Annotation> _annotations(DeclarationMirror mirror) {
   return annotations;
 }
 
-/// Update the global pointers to the current mirror to the particular mirror
-/// we're documenting.
-void _updateCurrentMirror(DeclarationMirror mirror) {
-  if (mirror is LibraryMirror) {
-    _currentLibrary = mirror;
-  } else if (mirror is ClassMirror) {
-    _currentClass = mirror;
-  } else if (mirror is MethodMirror) {
-    _currentMember = mirror;
-  }
-}
-
 /// Returns any documentation comments associated with a mirror with
 /// simple markdown converted to html.
-String _commentToHtml(DeclarationMirror mirror) {
+///
+/// It's possible to have a comment that comes from one mirror applied to
+/// another, in the case of an inherited comment.
+String _commentToHtml(DeclarationMirror mirror, [DeclarationMirror appliedTo]) {
+  if (appliedTo == null) appliedTo = mirror;
   String commentText;
-  _updateCurrentMirror(mirror);
   mirror.metadata.forEach((metadata) {
     if (metadata is CommentInstanceMirror) {
       CommentInstanceMirror comment = metadata;
@@ -493,6 +473,7 @@ String _commentToHtml(DeclarationMirror mirror) {
     }
   });
 
+  var linkResolver = (name) => fixReferenceWithScope(name, appliedTo);
   commentText = commentText == null ? '' :
       markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver,
           inlineSyntaxes: markdownSyntaxes);
@@ -508,7 +489,7 @@ void _mdnComment(Indexable item) {
     var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
     _mdn = JSON.decode(new File(mdnPath).readAsStringSync());
   }
-  if (item.comment.isNotEmpty) return;
+  if (item is Library) return;
   var domAnnotation = item.annotations.firstWhere(
       (e) => e.qualifiedName == 'metadata.DomName', orElse: () => null);
   if (domAnnotation == null) return;
@@ -678,18 +659,33 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
   return _fixComplexReference(name, currentLibrary, currentClass, currentMember);
 }
 
+markdown.Node fixReferenceWithScope(String name, DeclarationMirror scope) {
+  if (scope is LibraryMirror) return fixReference(name, scope, null, null);
+  if (scope is ClassMirror)
+      return fixReference(name, scope.library, scope, null);
+  if (scope is MemberMirror) {
+    var owner = scope.owner;
+    if (owner is ClassMirror) {
+        return fixReference(name, owner.library, owner, scope);
+    } else {
+      return fixReference(name, owner, null, scope);
+    }
+  }
+  return null;
+}
+
 /// Returns a map of [Variable] objects constructed from [mirrorMap].
 Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
   var data = {};
   // TODO(janicejl): When map to map feature is created, replace the below with
   // a filter. Issue(#9590).
   mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
-    _currentMember = mirror;
     if (_includePrivate || !_isHidden(mirror)) {
       entityMap[docName(mirror)] = new Variable(mirrorName, mirror.isFinal,
          mirror.isStatic, mirror.isConst, _type(mirror.type),
-         _commentToHtml(mirror), _annotations(mirror), docName(mirror),
-         _isHidden(mirror), docName(mirror.owner));
+         (actualVariable) => _commentToHtml(mirror, actualVariable),
+         _annotations(mirror), docName(mirror),
+         _isHidden(mirror), docName(mirror.owner), mirror);
       data[mirrorName] = entityMap[docName(mirror)];
     }
   });
@@ -716,11 +712,12 @@ Class _class(ClassMirror mirror) {
         _class(mirror.superclass) : null;
     var interfaces =
         mirror.superinterfaces.map((interface) => _class(interface));
-    clazz = new Class(mirror.simpleName, superclass, _commentToHtml(mirror),
+    clazz = new Class(mirror.simpleName, superclass,
+        (actualClass) => _commentToHtml(mirror, actualClass),
         interfaces.toList(), _variables(mirror.variables),
         _methods(mirror.methods), _annotations(mirror), _generics(mirror),
         docName(mirror), _isHidden(mirror), docName(mirror.owner),
-        mirror.isAbstract);
+        mirror.isAbstract, mirror);
     if (superclass != null) clazz.addInherited(superclass);
     interfaces.forEach((interface) => clazz.addInherited(interface));
     entityMap[docName(mirror)] = clazz;
@@ -741,7 +738,6 @@ ClassGroup _classes(Map<String, ClassMirror> mirrorMap) {
 Map<String, Parameter> _parameters(List<ParameterMirror> mirrorList) {
   var data = {};
   mirrorList.forEach((ParameterMirror mirror) {
-    _currentMember = mirror;
     data[mirror.simpleName] = new Parameter(mirror.simpleName,
         mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue,
         _type(mirror.type), mirror.defaultValue,
@@ -809,34 +805,52 @@ Map recurseMap(Map inputMap) {
   return outputMap;
 }
 
+/// A type for the function that generates a comment from a mirror.
+typedef String CommentGenerator(Mirror m);
+
 /// A class representing all programming constructs, like library or class.
 class Indexable {
   String name;
   String get qualifiedName => fileName;
   bool isPrivate;
+  Mirror mirror;
 
   // The qualified name (for URL purposes) and the file name are the same,
   // of the form packageName/ClassName or packageName/ClassName.methodName.
   // This defines both the URL and the directory structure.
   String get fileName => packagePrefix + ownerPrefix + name;
 
-  Indexable get owningEntity {
-    var result = entityMap[owner];
-    return result;
-  }
+  Indexable get owningEntity => entityMap[owner];
+
   String get ownerPrefix => owningEntity == null
       ? (owner == null || owner.isEmpty ? '' : owner + '.')
       : owningEntity.qualifiedName + '.';
 
   String get packagePrefix => '';
+
   /// Documentation comment with converted markdown.
-  String comment;
+  String _comment;
+
+  String get comment {
+    if (_comment != null) return _comment;
+    _comment = _commentFunction(mirror);
+    if (_comment.isEmpty) {
+      _mdnComment(this);
+    }
+    return _comment;
+  }
+
+  set comment(x) => _comment = x;
+
+  /// We defer evaluating the comment until we have all the context available
+  CommentGenerator _commentFunction;
 
   /// Qualified Name of the owner of this Indexable Item.
   /// For Library, owner will be "";
   String owner;
 
-  Indexable(this.name, this.comment, this.isPrivate, this.owner);
+  Indexable(this.name, this._commentFunction, this.isPrivate, this.owner,
+      this.mirror);
 
   /// The type of this member to be used in index.txt.
   String get typeName => '';
@@ -888,9 +902,9 @@ class Library extends Indexable {
     return basic;
   }
 
-  Library(String name, String comment, this.classes, this.functions,
-      this.variables, bool isPrivate) : super(name, comment,
-          isPrivate, "");
+  Library(String name, Function commentFunction, this.classes, this.functions,
+      this.variables, bool isPrivate, Mirror mirror)
+      : super(name, commentFunction, isPrivate, "", mirror);
 
   /// Generates a map describing the [Library] object.
   Map toMap() => {
@@ -937,12 +951,14 @@ class Class extends Indexable implements Comparable {
   /// List of the meta annotations on the class.
   List<Annotation> annotations;
 
-  Class(String name, this.superclass, String comment, this.interfaces,
+  /// Make sure that we don't check for inherited comments more than once.
+  bool _commentsEnsured = false;
+
+  Class(String name, this.superclass, Function commentFunction, this.interfaces,
       this.variables, this.methods, this.annotations, this.generics,
-      String qualifiedName, bool isPrivate, String owner, this.isAbstract)
-      : super(name, comment, isPrivate, owner) {
-    _mdnComment(this);
-  }
+      String qualifiedName, bool isPrivate, String owner, this.isAbstract,
+      Mirror mirror)
+      : super(name, commentFunction, isPrivate, owner, mirror);
 
   String get typeName => 'class';
 
@@ -1008,6 +1024,8 @@ class Class extends Indexable implements Comparable {
 
   /// Makes sure that all methods with inherited equivalents have comments.
   void ensureComments() {
+    if (_commentsEnsured) return;
+    _commentsEnsured = true;
     inheritedMethods.forEach((qualifiedName, inheritedMethod) {
       var method = methods[qualifiedName];
       if (method != null) method.ensureCommentFor(inheritedMethod);
@@ -1051,22 +1069,22 @@ class ClassGroup {
   Map<String, Typedef> typedefs = {};
   Map<String, Class> errors = {};
 
-  void addClass(ClassMirror mirror) {
-    _currentClass = mirror;
-    if (mirror.isTypedef) {
+  void addClass(ClassMirror classMirror) {
+    if (classMirror.isTypedef) {
       // This is actually a Dart2jsTypedefMirror, and it does define value,
       // but we don't have visibility to that type.
-      var mirror = _currentClass;
+      var mirror = classMirror;
       if (_includePrivate || !mirror.isPrivate) {
         entityMap[docName(mirror)] = new Typedef(mirror.simpleName,
-            docName(mirror.value.returnType), _commentToHtml(mirror),
+            docName(mirror.value.returnType),
+            (actualTypedef) => _commentToHtml(mirror, actualTypedef),
             _generics(mirror), _parameters(mirror.value.parameters),
             _annotations(mirror), docName(mirror),  _isHidden(mirror),
-            docName(mirror.owner));
+            docName(mirror.owner), mirror);
         typedefs[mirror.simpleName] = entityMap[docName(mirror)];
       }
     } else {
-      var clazz = _class(mirror);
+      var clazz = _class(classMirror);
 
       // Adding inherited parent variables and methods.
       clazz.parent().forEach((parent) {
@@ -1075,14 +1093,13 @@ class ClassGroup {
         }
       });
 
-      clazz.ensureComments();
-
       if (clazz.isError()) {
-        errors[mirror.simpleName] = clazz;
-      } else if (mirror.isClass) {
-        classes[mirror.simpleName] = clazz;
+        errors[classMirror.simpleName] = clazz;
+      } else if (classMirror.isClass) {
+        classes[classMirror.simpleName] = clazz;
       } else {
-        throw new ArgumentError('${mirror.simpleName} - no class type match. ');
+        throw new ArgumentError(
+            '${classMirror.simpleName} - no class type match. ');
       }
     }
   }
@@ -1112,10 +1129,10 @@ class Typedef extends Indexable {
   /// List of the meta annotations on the typedef.
   List<Annotation> annotations;
 
-  Typedef(String name, this.returnType, String comment, this.generics,
+  Typedef(String name, this.returnType, Function commentFunction, this.generics,
       this.parameters, this.annotations,
-      String qualifiedName, bool isPrivate, String owner)
-        : super(name, comment, isPrivate, owner);
+      String qualifiedName, bool isPrivate, String owner, Mirror mirror)
+        : super(name, commentFunction, isPrivate, owner, mirror);
 
   Map toMap() => {
     'name': name,
@@ -1142,9 +1159,9 @@ class Variable extends Indexable {
   List<Annotation> annotations;
 
   Variable(String name, this.isFinal, this.isStatic, this.isConst, this.type,
-      String comment, this.annotations, String qualifiedName, bool isPrivate,
-      String owner) : super(name, comment, isPrivate, owner) {
-    _mdnComment(this);
+      Function commentFunction, this.annotations, String qualifiedName,
+      bool isPrivate, String owner, Mirror mirror)
+        : super(name, commentFunction, isPrivate, owner, mirror) {
   }
 
   /// Generates a map describing the [Variable] object.
@@ -1160,6 +1177,15 @@ class Variable extends Indexable {
   };
 
   String get typeName => 'property';
+
+  get comment {
+    if (_comment != null) return _comment;
+    var owningClass = owningEntity;
+    if (owningClass is Class) {
+      owningClass.ensureComments();
+    }
+    return super.comment;
+  }
 }
 
 /// A class containing properties of a Dart method.
@@ -1184,18 +1210,17 @@ class Method extends Indexable {
   List<Annotation> annotations;
 
   Method(String name, this.isStatic, this.isAbstract, this.isConst,
-      this.returnType, String comment, this.parameters, this.annotations,
+      this.returnType, Function commentFunction, this.parameters,
+      this.annotations,
       String qualifiedName, bool isPrivate, String owner, this.isConstructor,
-      this.isGetter, this.isSetter, this.isOperator)
-        : super(name, comment, isPrivate, owner) {
-    _mdnComment(this);
+      this.isGetter, this.isSetter, this.isOperator, Mirror mirror)
+        : super(name, commentFunction, isPrivate, owner, mirror) {
   }
 
   /// Makes sure that the method with an inherited equivalent have comments.
   void ensureCommentFor(Method inheritedMethod) {
     if (comment.isNotEmpty) return;
-    (entityMap[inheritedMethod.owner] as Class).ensureComments();
-    comment = inheritedMethod.comment;
+    comment = inheritedMethod._commentFunction(mirror);
     commentInheritedFrom = inheritedMethod.commentInheritedFrom == '' ?
         inheritedMethod.qualifiedName : inheritedMethod.commentInheritedFrom;
   }
@@ -1217,6 +1242,15 @@ class Method extends Indexable {
   String get typeName => isConstructor ? 'constructor' :
     isGetter ? 'getter' : isSetter ? 'setter' :
     isOperator ? 'operator' : 'method';
+
+  get comment {
+    if (_comment != null) return _comment;
+    var owningClass = owningEntity;
+    if (owningClass is Class) {
+      owningClass.ensureComments();
+    }
+    return super.comment;
+  }
 }
 
 /// A container to categorize methods into the following groups: setters,
@@ -1231,12 +1265,12 @@ class MethodGroup {
   void addMethod(MethodMirror mirror) {
     var method = new Method(mirror.simpleName, mirror.isStatic,
         mirror.isAbstract, mirror.isConstConstructor, _type(mirror.returnType),
-        _commentToHtml(mirror), _parameters(mirror.parameters),
+        (actualMethod) => _commentToHtml(mirror, actualMethod),
+        _parameters(mirror.parameters),
         _annotations(mirror), docName(mirror), _isHidden(mirror),
         docName(mirror.owner), mirror.isConstructor, mirror.isGetter,
-        mirror.isSetter, mirror.isOperator);
+        mirror.isSetter, mirror.isOperator, mirror);
     entityMap[docName(mirror)] = method;
-    _currentMember = mirror;
     if (mirror.isSetter) {
       setters[mirror.simpleName] = method;
     } else if (mirror.isGetter) {
