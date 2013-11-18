@@ -538,8 +538,9 @@ class Listener {
     return skipToEof(token);
   }
 
-  void expectedIdentifier(Token token) {
+  Token expectedIdentifier(Token token) {
     error("expected identifier, but got '${token.value}'", token);
+    return skipToEof(token);
   }
 
   Token expectedType(Token token) {
