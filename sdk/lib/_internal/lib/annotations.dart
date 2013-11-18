@@ -17,7 +17,7 @@ class NoThrows {
   const NoThrows();
 }
 
-/// Tells the optmizing compiler to not inline the annotated method.
+/// Tells the optimizing compiler to not inline the annotated method.
 class NoInline {
   const NoInline();
 }
