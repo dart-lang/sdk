@@ -42,6 +42,92 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
+JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
+  if (label != label_) return NULL;
+  if (break_target_ == NULL) {
+    break_target_ =
+        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+  }
+  return break_target_;
+}
+
+
+JoinEntryInstr* NestedStatement::ContinueTargetFor(SourceLabel* label) {
+  return NULL;
+}
+
+
+// A nested statement that can be the target of a continue as well as a
+// break.
+class NestedLoop : public NestedStatement {
+ public:
+  NestedLoop(FlowGraphBuilder* owner, SourceLabel* label)
+      : NestedStatement(owner, label), continue_target_(NULL) { }
+
+  JoinEntryInstr* continue_target() const { return continue_target_; }
+
+  virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
+
+ private:
+  JoinEntryInstr* continue_target_;
+};
+
+
+JoinEntryInstr* NestedLoop::ContinueTargetFor(SourceLabel* label) {
+  if (label != this->label()) return NULL;
+  if (continue_target_ == NULL) {
+    continue_target_ =
+        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+  }
+  return continue_target_;
+}
+
+
+// A nested switch which can be the target of a break if labeled, and whose
+// cases can be the targets of continues.
+class NestedSwitch : public NestedStatement {
+ public:
+  NestedSwitch(FlowGraphBuilder* owner, SwitchNode* node);
+
+  virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
+
+ private:
+  GrowableArray<SourceLabel*> case_labels_;
+  GrowableArray<JoinEntryInstr*> case_targets_;
+};
+
+
+NestedSwitch::NestedSwitch(FlowGraphBuilder* owner, SwitchNode* node)
+    : NestedStatement(owner, node->label()),
+      case_labels_(node->body()->length()),
+      case_targets_(node->body()->length()) {
+  SequenceNode* body = node->body();
+  for (intptr_t i = 0; i < body->length(); ++i) {
+    CaseNode* case_node = body->NodeAt(i)->AsCaseNode();
+    if (case_node != NULL) {
+      case_labels_.Add(case_node->label());
+      case_targets_.Add(NULL);
+    }
+  }
+}
+
+
+JoinEntryInstr* NestedSwitch::ContinueTargetFor(SourceLabel* label) {
+  // Allocate a join for a case clause that matches the label.  This block
+  // is not necessarily targeted by a continue, but we always use a join in
+  // the graph anyway.
+  for (intptr_t i = 0; i < case_labels_.length(); ++i) {
+    if (label != case_labels_[i]) continue;
+    if (case_targets_[i] == NULL) {
+      case_targets_[i] =
+          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    }
+    return case_targets_[i];
+  }
+  return NULL;
+}
+
+
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector,
@@ -64,6 +150,7 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     graph_entry_(NULL),
     temp_count_(0),
     args_pushed_(0),
+    nesting_stack_(NULL),
     osr_id_(osr_id) { }
 
 
@@ -1567,16 +1654,14 @@ void EffectGraphVisitor::VisitIfNode(IfNode* node) {
 
 
 void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
+  NestedSwitch nested_switch(owner(), node);
   EffectGraphVisitor switch_body(owner());
   node->body()->Visit(&switch_body);
   Append(switch_body);
-  if ((node->label() != NULL) && (node->label()->join_for_break() != NULL)) {
-    if (is_open()) Goto(node->label()->join_for_break());
-    exit_ = node->label()->join_for_break();
+  if (nested_switch.break_target() != NULL) {
+    if (is_open()) Goto(nested_switch.break_target());
+    exit_ = nested_switch.break_target();
   }
-  // No continue label allowed.
-  ASSERT((node->label() == NULL) ||
-         (node->label()->join_for_continue() == NULL));
 }
 
 
@@ -1605,21 +1690,19 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   const intptr_t len = node->case_expressions()->length();
   // Create case statements instructions.
   EffectGraphVisitor for_case_statements(owner());
-  // Compute start of statements fragment.
+  // Compute the start of the statements fragment.
   JoinEntryInstr* statement_start = NULL;
-  if ((node->label() != NULL) && node->label()->is_continue_target()) {
-    // Since a labeled jump continue statement occur in a different case node,
-    // allocate JoinNode here and use it as statement start.
-    statement_start = node->label()->join_for_continue();
-    if (statement_start == NULL) {
-      statement_start = new JoinEntryInstr(owner()->AllocateBlockId(),
-                                           owner()->try_index());
-      node->label()->set_join_for_continue(statement_start);
-    }
-  } else {
+  if (node->label() == NULL) {
     statement_start = new JoinEntryInstr(owner()->AllocateBlockId(),
                                          owner()->try_index());
+  } else {
+    // The case nodes are nested inside a SequenceNode that is the body of a
+    // SwitchNode.  The SwitchNode on the nesting stack contains the
+    // continue labels for all the case clauses.
+    statement_start =
+        owner()->nesting_stack()->outer()->ContinueTargetFor(node->label());
   }
+  ASSERT(statement_start != NULL);
   node->statements()->Visit(&for_case_statements);
   Instruction* statement_exit =
       AppendFragment(statement_start, for_case_statements);
@@ -1695,7 +1778,9 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
+  NestedLoop nested_loop(owner(), node->label());
   owner()->IncrementLoopDepth();
+
   TestGraphVisitor for_test(owner(), node->condition()->token_pos());
   node->condition()->Visit(&for_test);
   ASSERT(!for_test.is_empty());  // Language spec.
@@ -1704,15 +1789,13 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   node->body()->Visit(&for_body);
 
   // Labels are set after body traversal.
-  SourceLabel* lbl = node->label();
-  ASSERT(lbl != NULL);
-  JoinEntryInstr* join = lbl->join_for_continue();
+  JoinEntryInstr* join = nested_loop.continue_target();
   if (join != NULL) {
     if (for_body.is_open()) for_body.Goto(join);
     for_body.exit_ = join;
   }
   TieLoop(node->token_pos(), for_test, for_body);
-  join = lbl->join_for_break();
+  join = nested_loop.break_target();
   if (join != NULL) {
     Goto(join);
     exit_ = join;
@@ -1730,8 +1813,10 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // f) loop-exit-target
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
+  NestedLoop nested_loop(owner(), node->label());
   owner()->IncrementLoopDepth();
-  // Traverse body first in order to generate continue and break labels.
+
+  // Traverse the body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner());
   node->body()->Visit(&for_body);
 
@@ -1746,7 +1831,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   Goto(body_entry_join);
   Instruction* body_exit = AppendFragment(body_entry_join, for_body);
 
-  JoinEntryInstr* join = node->label()->join_for_continue();
+  JoinEntryInstr* join = nested_loop.continue_target();
   if ((body_exit != NULL) || (join != NULL)) {
     if (join == NULL) {
       join = new JoinEntryInstr(owner()->AllocateBlockId(),
@@ -1762,7 +1847,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   }
 
   for_test.IfTrueGoto(body_entry_join);
-  join = node->label()->join_for_break();
+  join = nested_loop.break_target();
   if (join == NULL) {
     exit_ = for_test.CreateFalseSuccessor();
   } else {
@@ -1791,6 +1876,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   Append(for_initializer);
   ASSERT(is_open());
 
+  NestedLoop nested_loop(owner(), node->label());
   owner()->IncrementLoopDepth();
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner());
@@ -1800,7 +1886,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   node->increment()->Visit(&for_increment);
 
   // Join the loop body and increment and then tie the loop.
-  JoinEntryInstr* continue_join = node->label()->join_for_continue();
+  JoinEntryInstr* continue_join = nested_loop.continue_target();
   if ((continue_join != NULL) || for_body.is_open()) {
     JoinEntryInstr* loop_entry =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
@@ -1821,7 +1907,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   if (node->condition() == NULL) {
     // Endless loop, no test.
     Append(for_body);
-    exit_ = node->label()->join_for_break();  // May be NULL.
+    exit_ = nested_loop.break_target();  // May be NULL.
   } else {
     TestGraphVisitor for_test(owner(), node->condition()->token_pos());
     node->condition()->Visit(&for_test);
@@ -1830,11 +1916,11 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     BlockEntryInstr* body_entry = for_test.CreateTrueSuccessor();
     AppendFragment(body_entry, for_body);
 
-    if (node->label()->join_for_break() == NULL) {
+    if (nested_loop.break_target() == NULL) {
       exit_ = for_test.CreateFalseSuccessor();
     } else {
-      for_test.IfFalseGoto(node->label()->join_for_break());
-      exit_ = node->label()->join_for_break();
+      for_test.IfFalseGoto(nested_loop.break_target());
+      exit_ = nested_loop.break_target();
     }
   }
   owner()->DecrementLoopDepth();
@@ -1879,18 +1965,21 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
 
   JoinEntryInstr* jump_target = NULL;
   if (node->kind() == Token::kBREAK) {
-    if (node->label()->join_for_break() == NULL) {
-      node->label()->set_join_for_break(
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index()));
+    NestedStatement* current = owner()->nesting_stack();
+    while (current != NULL) {
+      jump_target = current->BreakTargetFor(node->label());
+      if (jump_target != NULL) break;
+      current = current->outer();
     }
-    jump_target = node->label()->join_for_break();
   } else {
-    if (node->label()->join_for_continue() == NULL) {
-      node->label()->set_join_for_continue(
-          new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index()));
+    NestedStatement* current = owner()->nesting_stack();
+    while (current != NULL) {
+      jump_target = current->ContinueTargetFor(node->label());
+      if (jump_target != NULL) break;
+      current = current->outer();
     }
-    jump_target = node->label()->join_for_continue();
   }
+  ASSERT(jump_target != NULL);
   Goto(jump_target);
 }
 
@@ -3386,6 +3475,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
   int previous_context_level = owner()->context_level();
+  // The outermost function sequence cannot contain a label.
+  ASSERT((node->label() == NULL) ||
+         (node != owner()->parsed_function()->node_sequence()));
+  NestedStatement nested_block(owner(), node->label());
+
   if (num_context_variables > 0) {
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
@@ -3415,6 +3509,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       AddInstruction(
           new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }
+
     owner()->set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy
@@ -3509,20 +3604,13 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  // No continue on sequence allowed.
-  ASSERT((node->label() == NULL) ||
-         (node->label()->join_for_continue() == NULL));
   // If this node sequence is labeled, a break out of the sequence will have
   // taken care of unchaining the context.
-  if ((node->label() != NULL) &&
-      (node->label()->join_for_break() != NULL)) {
-    if (is_open()) Goto(node->label()->join_for_break());
-    exit_ = node->label()->join_for_break();
+  if (nested_block.break_target() != NULL) {
+    if (is_open()) Goto(nested_block.break_target());
+    exit_ = nested_block.break_target();
   }
 
-  // The outermost function sequence cannot contain a label.
-  ASSERT((node->label() == NULL) ||
-         (node != owner()->parsed_function()->node_sequence()));
   owner()->set_context_level(previous_context_level);
 }
 

@@ -69,58 +69,6 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
 }
 
 
-// TODO(zerny): Remove the ChildrenVisitor and SourceLabelResetter once we have
-// moved the label/join map for control flow out of the AST and into the flow
-// graph builder.
-
-// Default visitor to traverse child nodes.
-class ChildrenVisitor : public AstNodeVisitor {
- public:
-  ChildrenVisitor() { }
-#define DEFINE_VISIT(BaseName)                                                 \
-  virtual void Visit##BaseName##Node(BaseName##Node* node) {                   \
-    node->VisitChildren(this);                                                 \
-  }
-
-  FOR_EACH_NODE(DEFINE_VISIT);
-#undef DEFINE_VISIT
-};
-
-
-// Visitor to clear each AST node containing source labels.
-class SourceLabelResetter : public ChildrenVisitor {
- public:
-  SourceLabelResetter() { }
-  virtual void VisitSequenceNode(SequenceNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitCaseNode(CaseNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitSwitchNode(SwitchNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitWhileNode(WhileNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitDoWhileNode(DoWhileNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitForNode(ForNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitJumpNode(JumpNode* node) {
-    Reset(node, node->label());
-  }
-  void Reset(AstNode* node, SourceLabel* lbl) {
-    node->VisitChildren(this);
-    if (lbl == NULL) return;
-    lbl->join_for_break_ = NULL;
-    lbl->join_for_continue_ = NULL;
-  }
-};
-
-
 // Helper to create a parameter stub from an actual argument.
 static Definition* CreateParameterStub(intptr_t i,
                                        Value* argument,
@@ -787,8 +735,6 @@ class CallSiteInliner : public ValueObject {
       ParsedFunction* parsed_function = function_cache_[i];
       if (parsed_function->function().raw() == function.raw()) {
         *in_cache = true;
-        SourceLabelResetter reset;
-        parsed_function->node_sequence()->Visit(&reset);
         return parsed_function;
       }
     }

@@ -833,7 +833,7 @@ class SwitchNode : public AstNode {
   }
 
   SourceLabel* label() const { return label_; }
-  AstNode* body() const { return body_; }
+  SequenceNode* body() const { return body_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     body()->Visit(visitor);
@@ -843,7 +843,7 @@ class SwitchNode : public AstNode {
 
  private:
   SourceLabel* label_;
-  AstNode* body_;
+  SequenceNode* body_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchNode);
 };
@@ -979,9 +979,6 @@ class JumpNode : public AstNode {
       inlined_finally_list_() {
     ASSERT(label_ != NULL);
     ASSERT(kind_ == Token::kBREAK || kind_ == Token::kCONTINUE);
-    if (kind_ == Token::kCONTINUE) {
-      label_->set_is_continue_target(true);
-    }
   }
 
   SourceLabel* label() const { return label_; }

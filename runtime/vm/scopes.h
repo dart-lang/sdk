@@ -16,7 +16,6 @@
 
 namespace dart {
 
-class JoinEntryInstr;
 class LocalScope;
 
 
@@ -151,10 +150,7 @@ class SourceLabel : public ZoneAllocated {
     : token_pos_(token_pos),
       name_(name),
       owner_(NULL),
-      kind_(kind),
-      join_for_break_(NULL),
-      join_for_continue_(NULL),
-      is_continue_target_(false) {
+      kind_(kind) {
   }
 
   static SourceLabel* New(intptr_t token_pos, String* name, Kind kind) {
@@ -177,45 +173,17 @@ class SourceLabel : public ZoneAllocated {
 
   Kind kind() const { return kind_; }
 
-  void set_join_for_continue(JoinEntryInstr* join) {
-    ASSERT(join_for_continue_ == NULL);
-    join_for_continue_ = join;
-  }
-
-  JoinEntryInstr* join_for_continue() const {
-    return join_for_continue_;
-  }
-
-  bool is_continue_target() const { return is_continue_target_; }
-  void set_is_continue_target(bool value) { is_continue_target_ = value; }
-
-  void set_join_for_break(JoinEntryInstr* join) {
-    ASSERT(join_for_break_ == NULL);
-    join_for_break_ = join;
-  }
-
-  JoinEntryInstr* join_for_break() const {
-    return join_for_break_;
-  }
-
   // Returns the function level of the scope in which the label is defined.
   int FunctionLevel() const;
 
   void ResolveForwardReference() { kind_ = kCase; }
 
  private:
-  // TODO(zerny): Remove this hack when the builder no longer stores state in
-  // the ast/scopes.
-  friend class SourceLabelResetter;
-
   const intptr_t token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this label.
 
   Kind kind_;
-  JoinEntryInstr* join_for_break_;
-  JoinEntryInstr* join_for_continue_;
-  bool is_continue_target_;  // Needed for CaseNode.
 
   DISALLOW_COPY_AND_ASSIGN(SourceLabel);
 };

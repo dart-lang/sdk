@@ -106,6 +106,8 @@ class InlineExitCollector: public ZoneAllocated {
 };
 
 
+class NestedStatement;
+
 // Build a flow graph from a parsed function's AST.
 class FlowGraphBuilder: public ValueObject {
  public:
@@ -170,11 +172,15 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t args_pushed() const { return args_pushed_; }
   void add_args_pushed(intptr_t n) { args_pushed_ += n; }
 
+  NestedStatement* nesting_stack() const { return nesting_stack_; }
+
   // When compiling for OSR, remove blocks that are not reachable from the
   // OSR entry point.
   void PruneUnreachable();
 
  private:
+  friend class NestedStatement;  // Explicit access to nesting_stack_.
+
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
   }
@@ -204,11 +210,50 @@ class FlowGraphBuilder: public ValueObject {
   // Outgoing argument stack height.
   intptr_t args_pushed_;
 
+  // A stack of enclosing nested statements.
+  NestedStatement* nesting_stack_;
+
   // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
+};
+
+
+// Base class for a stack of enclosing statements of interest (e.g.,
+// blocks (breakable) and loops (continuable)).
+class NestedStatement : public ValueObject {
+ public:
+  NestedStatement(FlowGraphBuilder* owner, const SourceLabel* label)
+      : owner_(owner),
+        label_(label),
+        outer_(owner->nesting_stack_),
+        break_target_(NULL) {
+    // Push on the owner's nesting stack.
+    owner->nesting_stack_ = this;
+  }
+
+  virtual ~NestedStatement() {
+    // Pop from the owner's nesting stack.
+    ASSERT(owner_->nesting_stack_ == this);
+    owner_->nesting_stack_ = outer_;
+  }
+
+  FlowGraphBuilder* owner() const { return owner_; }
+  const SourceLabel* label() const { return label_; }
+  NestedStatement* outer() const { return outer_; }
+  JoinEntryInstr* break_target() const { return break_target_; }
+
+  virtual JoinEntryInstr* BreakTargetFor(SourceLabel* label);
+  virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
+
+ private:
+  FlowGraphBuilder* owner_;
+  const SourceLabel* label_;
+  NestedStatement* outer_;
+
+  JoinEntryInstr* break_target_;
 };
 
 
