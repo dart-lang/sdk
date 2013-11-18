@@ -6,7 +6,7 @@ part of dart.io;
 
 class _HttpHeaders implements HttpHeaders {
   _HttpHeaders(String this.protocolVersion)
-      : _headers = new Map<String, List<String>>();
+      : _headers = new HashMap<String, List<String>>();
 
   List<String> operator[](String name) {
     name = name.toLowerCase();
@@ -484,7 +484,7 @@ class _HeaderValue implements HeaderValue {
   _HeaderValue([String this._value = "", Map<String, String> parameters]) {
     if (parameters != null) {
       _parameters =
-          new _UnmodifiableMap(new Map<String, String>.from(parameters));
+          new _UnmodifiableMap(new HashMap<String, String>.from(parameters));
     }
   }
 
@@ -501,7 +501,7 @@ class _HeaderValue implements HeaderValue {
 
   void _ensureParameters() {
     if (_parameters == null) {
-      _parameters = new _UnmodifiableMap(new Map<String, String>());
+      _parameters = new _UnmodifiableMap(new HashMap<String, String>());
     }
   }
 
@@ -559,7 +559,7 @@ class _HeaderValue implements HeaderValue {
     }
 
     void parseParameters() {
-      var parameters = new Map<String, String>();
+      var parameters = new HashMap<String, String>();
       _parameters = new _UnmodifiableMap(parameters);
 
       String parseParameterName() {

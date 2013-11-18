@@ -1488,9 +1488,9 @@ class _HttpClient implements HttpClient {
   bool _closing = false;
 
   final Map<String, Set<_HttpClientConnection>> _idleConnections
-      = new Map<String, Set<_HttpClientConnection>>();
+      = new HashMap<String, Set<_HttpClientConnection>>();
   final Set<_HttpClientConnection> _activeConnections
-      = new Set<_HttpClientConnection>();
+      = new HashSet<_HttpClientConnection>();
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   Function _authenticate;
@@ -1681,7 +1681,7 @@ class _HttpClient implements HttpClient {
       return;
     }
     if (!_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key] = new LinkedHashSet();
+      _idleConnections[connection.key] = new HashSet();
     }
     _idleConnections[connection.key].add(connection);
     connection.startTimer();
