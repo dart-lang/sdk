@@ -1842,6 +1842,13 @@ class JavaScriptBackend extends Backend {
         && mask.satisfies(jsIndexingBehaviorInterface, compiler);
   }
 
+  bool couldBeTypedArray(TypeMask mask) {
+    TypeMask indexing = new TypeMask.subtype(jsIndexingBehaviorInterface);
+    // Checking if [mask] contains [indexing] means that we want to
+    // know if [mask] is not a more specific type than [indexing].
+    return isTypedArray(mask) || mask.containsMask(indexing, compiler);
+  }
+
   /// Called when [enqueuer] is empty, but before it is closed.
   void onQueueEmpty(Enqueuer enqueuer) {
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
