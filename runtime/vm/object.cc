@@ -166,6 +166,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
   V(CoreLibrary, _OneByteString, _setAt)                                       \
+  V(CoreLibrary, _StringBase, _substringUncheckedNative)                       \
+  V(CoreLibrary, _OneByteString, _substringUncheckedNative)                    \
+  V(CoreLibrary, _GrowableList, _setData)                                      \
+  V(CoreLibrary, _GrowableList, _setLength)                                    \
   V(TypedDataLibrary, _TypedList, _getInt8)                                    \
   V(TypedDataLibrary, _TypedList, _setInt8)                                    \
   V(TypedDataLibrary, _TypedList, _getUint8)                                   \
