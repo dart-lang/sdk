@@ -1113,7 +1113,6 @@ class StandardTestSuite extends TestSuite {
               contentShellFilename, fullHtmlPath, contentShellOptions,
               dartFlags, configurationDir));
         } else {
-          assert(configuration['use_browser_controller']);
           // This command is not actually run, it is used for reproducing
           // the failure.
           args = ['tools/testing/dart/launch_browser.dart',
