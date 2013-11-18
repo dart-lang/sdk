@@ -51,7 +51,7 @@ static void ThrowInvokeError(const Error& error) {
   if (FLAG_use_mirrored_compilation_error && error.IsLanguageError()) {
     // A compilation error that was delayed by lazy compilation.
     const LanguageError& compilation_error = LanguageError::Cast(error);
-    String& message = String::Handle(compilation_error.message());
+    String& message = String::Handle(compilation_error.FormatMessage());
     ThrowMirroredCompilationError(message);
     UNREACHABLE();
   }

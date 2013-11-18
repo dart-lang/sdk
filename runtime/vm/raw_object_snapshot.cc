@@ -1563,6 +1563,10 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   language_error.set_tags(tags);
 
+  // Set all non object fields.
+  language_error.set_token_pos(reader->ReadIntptrValue());
+  language_error.set_kind(reader->Read<uint8_t>());
+
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
@@ -1589,6 +1593,10 @@ void RawLanguageError::WriteTo(SnapshotWriter* writer,
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kLanguageErrorCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the non object fields.
+  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->Write<uint8_t>(ptr()->kind_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

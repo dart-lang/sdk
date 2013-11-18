@@ -1680,28 +1680,18 @@ RawClass* Class::New() {
 }
 
 
-static RawError* FormatError(const Error& prev_error,
-                             const Script& script,
-                             intptr_t token_pos,
-                             const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  if (prev_error.IsNull()) {
-    return Parser::FormatError(script, token_pos, "Error", format, args);
-  } else {
-    return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
-                                         "Error", format, args);
-  }
-}
-
 
 static void ReportTooManyTypeArguments(const Class& cls) {
   const Error& error = Error::Handle(
-      FormatError(Error::Handle(),  // No previous error.
-                  Script::Handle(cls.script()), cls.token_pos(),
-                  "too many type parameters declared in class '%s' or in its "
-                  "super classes",
-                  String::Handle(cls.Name()).ToCString()));
+      LanguageError::NewFormatted(
+          Error::Handle(),  // No previous error.
+          Script::Handle(cls.script()),
+          cls.token_pos(),
+          LanguageError::kError,
+          Heap::kNew,
+          "too many type parameters declared in class '%s' or in its "
+          "super classes",
+          String::Handle(cls.Name()).ToCString()));
   Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
@@ -2238,9 +2228,13 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
                orig_func.UserVisibleSignature()) {
       // Compare user visible signatures to ignore different implicit parameters
       // when patching a constructor with a factory.
-      *error = FormatError(*error,  // No previous error.
-                           Script::Handle(patch.script()), func.token_pos(),
-                           "signature mismatch: '%s'", member_name.ToCString());
+      *error = LanguageError::NewFormatted(
+          *error,  // No previous error.
+          Script::Handle(patch.script()),
+          func.token_pos(),
+          LanguageError::kError,
+          Heap::kNew,
+          "signature mismatch: '%s'", member_name.ToCString());
       return false;
     }
   }
@@ -2279,9 +2273,13 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
     // Verify no duplicate additions.
     orig_field ^= LookupField(member_name);
     if (!orig_field.IsNull()) {
-      *error = FormatError(*error,  // No previous error.
-                           Script::Handle(patch.script()), field.token_pos(),
-                           "duplicate field: %s", member_name.ToCString());
+      *error = LanguageError::NewFormatted(
+          *error,  // No previous error.
+          Script::Handle(patch.script()),
+          field.token_pos(),
+          LanguageError::kError,
+          Heap::kNew,
+          "duplicate field: %s", member_name.ToCString());
       return false;
     }
     new_list.SetAt(i, field);
@@ -2843,9 +2841,11 @@ bool Class::TypeTestNonRecursive(
     for (intptr_t i = 0; i < interfaces.Length(); i++) {
       interface ^= interfaces.At(i);
       if (!interface.IsFinalized()) {
-        // We may be checking bounds at finalization time. Skipping this
-        // unfinalized interface will postpone bound checking to run time.
-        continue;
+        // We may be checking bounds at finalization time and can encounter
+        // a still unfinalized interface.
+        ClassFinalizer::FinalizeType(
+            thsi, interface, ClassFinalizer::kCanonicalize);
+        interfaces.SetAt(i, interface);
       }
       error = Error::null();
       if (interface.IsMalboundedWithError(&error)) {
@@ -4846,10 +4846,12 @@ bool Function::HasCompatibleParametersWith(const Function& other,
                 other, Object::null_abstract_type_arguments(), bound_error)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
-    *bound_error = FormatError(
+    *bound_error = LanguageError::NewFormatted(
         *bound_error,  // A bound error if non null.
         Script::Handle(other.script()),
         other.token_pos(),
+        LanguageError::kError,
+        Heap::kNew,
         "signature type '%s' of function '%s' is not a subtype of signature "
         "type '%s' of function '%s'",
         String::Handle(UserVisibleSignature()).ToCString(),
@@ -10662,7 +10664,13 @@ RawLanguageError* LanguageError::New() {
 }
 
 
-RawLanguageError* LanguageError::New(const String& message, Heap::Space space) {
+RawLanguageError* LanguageError::NewFormattedV(const Error& prev_error,
+                                               const Script& script,
+                                               intptr_t token_pos,
+                                               Kind kind,
+                                               Heap::Space space,
+                                               const char* format,
+                                               va_list args) {
   ASSERT(Object::language_error_class() != Class::null());
   LanguageError& result = LanguageError::Handle();
   {
@@ -10672,18 +10680,151 @@ RawLanguageError* LanguageError::New(const String& message, Heap::Space space) {
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_message(message);
+  result.set_previous_error(prev_error);
+  result.set_script(script);
+  result.set_token_pos(token_pos);
+  result.set_kind(kind);
+  result.set_message(String::Handle(String::NewFormattedV(format, args)));
   return result.raw();
 }
 
 
-void LanguageError::set_message(const String& message) const {
-  StorePointer(&raw_ptr()->message_, message.raw());
+RawLanguageError* LanguageError::NewFormatted(const Error& prev_error,
+                                              const Script& script,
+                                              intptr_t token_pos,
+                                              Kind kind,
+                                              Heap::Space space,
+                                              const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  RawLanguageError* result = LanguageError::NewFormattedV(
+      prev_error, script, token_pos, kind, space, format, args);
+  NoGCScope no_gc;
+  va_end(args);
+  return result;
+}
+
+
+RawLanguageError* LanguageError::New(const String& formatted_message,
+                                     Heap::Space space) {
+  ASSERT(Object::language_error_class() != Class::null());
+  LanguageError& result = LanguageError::Handle();
+  {
+    RawObject* raw = Object::Allocate(LanguageError::kClassId,
+                                      LanguageError::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_formatted_message(formatted_message);
+  return result.raw();
+}
+
+
+void LanguageError::set_previous_error(const Error& value) const {
+  StorePointer(&raw_ptr()->previous_error_, value.raw());
+}
+
+
+void LanguageError::set_script(const Script& value) const {
+  StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
+void LanguageError::set_token_pos(intptr_t value) const {
+  ASSERT(value >= 0);
+  raw_ptr()->token_pos_ = value;
+}
+
+
+void LanguageError::set_kind(uint8_t value) const {
+  raw_ptr()->kind_ = value;
+}
+
+
+void LanguageError::set_message(const String& value) const {
+  StorePointer(&raw_ptr()->message_, value.raw());
+}
+
+
+void LanguageError::set_formatted_message(const String& value) const {
+  StorePointer(&raw_ptr()->formatted_message_, value.raw());
+}
+
+
+RawString* LanguageError::FormatMessage() const {
+  if (formatted_message() != String::null()) {
+    return formatted_message();
+  }
+  const char* message_header;
+  switch (kind()) {
+    case kWarning: message_header = "warning"; break;
+    case kError: message_header = "error"; break;
+    case kMalformedType: message_header = "malformed type"; break;
+    case kMalboundedType: message_header = "malbounded type"; break;
+    default: message_header = ""; UNREACHABLE();
+  }
+  String& result = String::Handle();
+  String& msg = String::Handle(message());
+  const Script& scr = Script::Handle(script());
+  if (!scr.IsNull()) {
+    const String& script_url = String::Handle(scr.url());
+    if (token_pos() >= 0) {
+      intptr_t line, column;
+      scr.GetTokenLocation(token_pos(), &line, &column);
+      // Only report the line position if we have the original source. We still
+      // need to get a valid column so that we can report the ^ mark below the
+      // snippet.
+      if (scr.HasSource()) {
+        result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
+                                      script_url.ToCString(),
+                                      message_header,
+                                      line,
+                                      column);
+      } else {
+        result = String::NewFormatted("'%s': %s: line %" Pd ": ",
+                                      script_url.ToCString(),
+                                      message_header,
+                                      line);
+      }
+      // Append the formatted error or warning message.
+      result = String::Concat(result, msg);
+      // Append the source line.
+      const String& script_line = String::Handle(scr.GetLine(line));
+      ASSERT(!script_line.IsNull());
+      result = String::Concat(result, Symbols::NewLine());
+      result = String::Concat(result, script_line);
+      result = String::Concat(result, Symbols::NewLine());
+      // Append the column marker.
+      const String& column_line = String::Handle(
+          String::NewFormatted("%*s\n", static_cast<int>(column), "^"));
+      result = String::Concat(result, column_line);
+    } else {
+      // Token position is unknown.
+      result = String::NewFormatted("'%s': %s: ",
+                                    script_url.ToCString(),
+                                    message_header);
+      result = String::Concat(result, msg);
+    }
+  } else {
+    // Script is unknown.
+    // Append the formatted error or warning message.
+    result = String::NewFormatted("%s: ", message_header);
+    result = String::Concat(result, msg);
+  }
+  // Prepend previous error message.
+  const Error& prev_error = Error::Handle(previous_error());
+  if (!prev_error.IsNull()) {
+    msg = String::New(prev_error.ToErrorCString());
+    result = String::Concat(msg, result);
+  }
+  set_formatted_message(result);
+  return result.raw();
 }
 
 
 const char* LanguageError::ToErrorCString() const {
-  const String& msg_str = String::Handle(message());
+  const String& msg_str = String::Handle(FormatMessage());
   return msg_str.ToCString();
 }
 
@@ -12112,10 +12253,12 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
     const Script& script = Script::Handle(cls.script());
     // Since the bound may have been canonicalized, its token index is
     // meaningless, therefore use the token index of this type parameter.
-    *bound_error = FormatError(
+    *bound_error = LanguageError::NewFormatted(
         *bound_error,
         script,
         token_pos(),
+        LanguageError::kMalboundedType,
+        Heap::kNew,
         "type parameter '%s' of class '%s' must extend bound '%s', "
         "but type argument '%s' is not a subtype of '%s'\n",
         type_param_name.ToCString(),
@@ -12370,19 +12513,28 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
 
 
 const char* BoundedType::ToCString() const {
-  const char* format = "BoundedType: type %s; bound: %s; class: %s";
+  const char* format = "BoundedType: type %s; bound: %s; type param: %s%s%s";
   const char* type_cstr = String::Handle(AbstractType::Handle(
       type()).Name()).ToCString();
   const char* bound_cstr = String::Handle(AbstractType::Handle(
       bound()).Name()).ToCString();
-  const Class& cls = Class::Handle(TypeParameter::Handle(
-      type_parameter()).parameterized_class());
-  const char* cls_cstr =
-      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
-  intptr_t len = OS::SNPrint(
-      NULL, 0, format, type_cstr, bound_cstr, cls_cstr) + 1;
+  const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
+  const char* type_param_cstr = "null";
+  const char* of_cstr = "";
+  const char* cls_cstr = "";
+  if (!type_param.IsNull()) {
+    type_param_cstr = String::Handle(type_param.name()).ToCString();
+    const Class& cls = Class::Handle(type_param.parameterized_class());
+    if (!cls.IsNull()) {
+      of_cstr = " of ";
+      cls_cstr = String::Handle(cls.Name()).ToCString();
+    }
+  }
+  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
+                             type_param_cstr, of_cstr, cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, cls_cstr);
+  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
+              of_cstr, cls_cstr);
   return chars;
 }
 
