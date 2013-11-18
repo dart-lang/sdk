@@ -4,6 +4,8 @@
 
 part of js_backend;
 
+const VERBOSE_OPTIMIZER_HINTS = false;
+
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> boundsChecked = new Set<HInstruction>();
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
@@ -147,7 +149,7 @@ class FunctionInlineCache {
   }
 
   void markAsNonInlinable(FunctionElement element, {bool insideLoop}) {
-    if (insideLoop) {
+    if (insideLoop == null || insideLoop) {
       // If we can't inline a function inside a loop, then we should not inline
       // it outside a loop either.
       canBeInlined[element] = false;
@@ -204,6 +206,10 @@ class JavaScriptBackend extends Backend {
   ClassElement mapLiteralClass;
   ClassElement constMapLiteralClass;
   ClassElement typeVariableClass;
+
+  ClassElement noSideEffectsClass;
+  ClassElement noThrowsClass;
+  ClassElement noInlineClass;
 
   Element getInterceptorMethod;
   Element interceptedNames;
@@ -642,6 +648,10 @@ class JavaScriptBackend extends Backend {
     fixedArrayType = new TypeMask.nonNullExact(jsFixedArrayClass);
     extendableArrayType = new TypeMask.nonNullExact(jsExtendableArrayClass);
     nonNullType = compiler.typesTask.dynamicType.nonNullable();
+
+    noSideEffectsClass = compiler.findHelper('NoSideEffects');
+    noThrowsClass = compiler.findHelper('NoThrows');
+    noInlineClass = compiler.findHelper('NoInline');
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -1861,6 +1871,53 @@ class JavaScriptBackend extends Backend {
       }
     }
     customElementsAnalysis.onQueueEmpty(enqueuer);
+  }
+
+  void onElementResolved(Element element, TreeElements elements) {
+    LibraryElement library = element.getLibrary();
+    if (!library.isPlatformLibrary && !library.canUseNative) return;
+    bool hasNoInline = false;
+    bool hasNoThrows = false;
+    bool hasNoSideEffects = false;
+    for (MetadataAnnotation metadata in element.metadata) {
+      metadata.ensureResolved(compiler);
+      if (!metadata.value.isConstructedObject()) continue;
+      ObjectConstant value = metadata.value;
+      ClassElement cls = value.type.element;
+      if (cls == noInlineClass) {
+        hasNoInline = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHere(element, "Cannot inline");
+        }
+        inlineCache.markAsNonInlinable(element);
+      } else if (cls == noThrowsClass) {
+        hasNoThrows = true;
+        if (!Elements.isStaticOrTopLevelFunction(element)) {
+          compiler.internalErrorOnElement(
+              element,
+              "@NoThrows() is currently limited to top-level"
+              " or static functions");
+        }
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHere(element, "Cannot throw");
+        }
+        compiler.world.registerCannotThrow(element);
+      } else if (cls == noSideEffectsClass) {
+        hasNoSideEffects = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHere(element, "Has no side effects");
+        }
+        compiler.world.registerSideEffectsFree(element);
+      }
+    }
+    if (hasNoThrows && !hasNoInline) {
+      compiler.internalErrorOnElement(
+          element, "@NoThrows() should always be combined with @NoInline");
+    }
+    if (hasNoSideEffects && !hasNoInline) {
+      compiler.internalErrorOnElement(
+          element, "@NoSideEffects() should always be combined with @NoInline");
+    }
   }
 }
 

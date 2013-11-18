@@ -290,6 +290,9 @@ abstract class Backend {
   /// This is used, for example, by the JS backend to enqueue additional
   /// elements needed for reflection.
   void onQueueEmpty(Enqueuer enqueuer) {}
+
+  /// Called after [element] has been resolved.
+  void onElementResolved(Element element, TreeElements elements) {}
 }
 
 /**
@@ -1285,6 +1288,7 @@ abstract class Compiler implements DiagnosticListener {
     TreeElements result = world.getCachedElements(element);
     if (result != null) return result;
     result = analyzeElement(element);
+    backend.onElementResolved(element, result);
     return result;
   }
 

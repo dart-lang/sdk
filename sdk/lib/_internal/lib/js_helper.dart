@@ -36,6 +36,7 @@ import 'dart:_js_names' show
     mangledNames,
     unmangleGlobalNameIfPreservedAnyways;
 
+part 'annotations.dart';
 part 'constant_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';

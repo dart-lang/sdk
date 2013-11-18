@@ -27,6 +27,10 @@ class World {
   final Map<ClassElement, Set<ClassElement>> _supertypes =
       new Map<ClassElement, Set<ClassElement>>();
 
+  final Set<Element> sideEffectsFreeElements = new Set<Element>();
+
+  final Set<Element> elementsThatCannotThrow = new Set<Element>();
+
   Set<ClassElement> subclassesOf(ClassElement cls) {
     return _subclasses[cls.declaration];
   }
@@ -261,7 +265,13 @@ class World {
   }
 
   void registerSideEffects(Element element, SideEffects effects) {
+    if (sideEffectsFreeElements.contains(element)) return;
     sideEffects[element.declaration] = effects;
+  }
+
+  void registerSideEffectsFree(Element element) {
+    sideEffects[element.declaration] = new SideEffects.empty();
+    sideEffectsFreeElements.add(element);
   }
 
   SideEffects getSideEffectsOfSelector(Selector selector) {
@@ -286,5 +296,13 @@ class World {
       }
     }
     return sideEffects;
+  }
+
+  void registerCannotThrow(Element element) {
+    elementsThatCannotThrow.add(element);
+  }
+
+  bool getCannotThrow(Element element) {
+    return elementsThatCannotThrow.contains(element);
   }
 }
