@@ -143,6 +143,13 @@ Future<bool> docgen(List<String> files, {String packageRoot,
 /// If [library] is specified, we set the packageName field. If no package could
 /// be determined, we return an empty string.
 String _findPackage(LibraryMirror mirror, [Library library]) {
+  if (library == null) {
+    library = entityMap[mirror.simpleName];
+  }
+  if (library != null) {
+    if (library.hasBeenCheckedForPackage) return library.packageName;
+    library.hasBeenCheckedForPackage = true;
+  }
   if (mirror.uri.scheme != 'file') return '';
   var filePath = mirror.uri.toFilePath();
   // We assume that we are documenting only libraries under package/lib
@@ -151,13 +158,10 @@ String _findPackage(LibraryMirror mirror, [Library library]) {
   var packageName = _packageName(pubspec);
   if (library != null) {
     library.packageName = packageName;
-    // If we are the main library in a package, associate the package readme
-    // with us.
-    // TODO(alanknight): We can't really rely on all packages having a library
-    // that matches the package name. Need a better way to store this.
-    if (library.packageName == library.name) {
-      library.packageIntro = _packageIntro(rootdir);
-    }
+    // Associate the package readme with all the libraries. This is a bit
+    // wasteful, but easier than trying to figure out which partial match
+    // is best.
+    library.packageIntro = _packageIntro(rootdir);
   }
   return packageName;
 }
@@ -177,7 +181,6 @@ String _packageIntro(packageDir) {
     inlineSyntaxes: markdownSyntaxes);
   return contents;
 }
-
 
 List<String> _listLibraries(List<String> args) {
   var libraries = new List<String>();
@@ -868,6 +871,7 @@ class Library extends Indexable {
   ClassGroup classes;
 
   String packageName = '';
+  bool hasBeenCheckedForPackage = false;
 
   String get packagePrefix => packageName == null || packageName.isEmpty
       ? ''
