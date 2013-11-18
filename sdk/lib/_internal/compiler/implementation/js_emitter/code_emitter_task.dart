@@ -1366,14 +1366,15 @@ mainBuffer.add(r'''
 
       typeTestEmitter.emitRuntimeTypeSupport(mainBuffer);
       interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
+      interceptorEmitter.emitOneShotInterceptors(mainBuffer);
       // Constants in checked mode call into RTI code to set type information
-      // which may need getInterceptor methods, so we have to make sure that
-      // [emitGetInterceptorMethods] has been called.
+      // which may need getInterceptor (and one-shot interceptor) methods, so
+      // we have to make sure that [emitGetInterceptorMethods] and
+      // [emitOneShotInterceptors] have been called.
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
-      interceptorEmitter.emitOneShotInterceptors(mainBuffer);
       interceptorEmitter.emitInterceptedNames(mainBuffer);
       interceptorEmitter.emitMapTypeToInterceptor(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
