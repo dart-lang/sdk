@@ -377,8 +377,7 @@ class TypeNode : public AstNode {
   const char* TypeName() const;
 
   virtual const Instance* EvalConstExpr() const {
-    if (!type_.IsInstantiated() ||
-        type_.IsMalformed() || type_.IsMalbounded()) {
+    if (!type_.IsInstantiated() || type_.IsMalformedOrMalbounded()) {
       return NULL;
     }
     return &type();

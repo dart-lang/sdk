@@ -2874,7 +2874,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     constructor = constructor.RedirectionTarget();
     if (constructor.IsNull()) {
       ASSERT(redirect_type.IsMalformed());
-      return Api::NewHandle(isolate, redirect_type.malformed_error());
+      return Api::NewHandle(isolate, redirect_type.error());
     }
 
     if (!redirect_type.IsInstantiated()) {

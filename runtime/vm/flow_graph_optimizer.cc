@@ -3000,7 +3000,7 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
 RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
                                               const AbstractType& type) const {
   ASSERT(ic_data.num_args_tested() == 1);  // Unary checks only.
-  if (!type.IsInstantiated() || type.IsMalformed() || type.IsMalbounded()) {
+  if (!type.IsInstantiated() || type.IsMalformedOrMalbounded()) {
     return Bool::null();
   }
   const Class& type_class = Class::Handle(type.type_class());
@@ -3098,7 +3098,7 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   Definition* type_args = call->ArgumentAt(2);
   const AbstractType& type =
       AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
-  ASSERT(!type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {

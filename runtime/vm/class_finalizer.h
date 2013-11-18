@@ -57,14 +57,22 @@ class ClassFinalizer : public AllStatic {
                                             const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
 
-  // Depending on the given type, finalization mode, and execution mode, mark
-  // the given type as malformed or report a compile time error.
+  // Mark the given type as malformed.
   // If not null, prepend prev_error to the error message built from the format
   // string and its arguments.
   static void FinalizeMalformedType(const Error& prev_error,
                                     const Script& script,
                                     const Type& type,
                                     const char* format, ...)
+       PRINTF_ATTRIBUTE(4, 5);
+
+  // Mark the given type as malbounded.
+  // If not null, prepend prev_error to the error message built from the format
+  // string and its arguments.
+  static void FinalizeMalboundedType(const Error& prev_error,
+                                     const Script& script,
+                                     const Type& type,
+                                     const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
 
   // Return false if we still have classes pending to be finalized.

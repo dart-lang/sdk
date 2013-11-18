@@ -1439,7 +1439,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     const AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(instantiator_type_args, NULL));
     // If dst_type is instantiated to dynamic or Object, skip the test.
-    if (!new_dst_type.IsMalformed() && !new_dst_type.IsMalbounded() &&
+    if (!new_dst_type.IsMalformedOrMalbounded() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
       return value()->definition();
     }

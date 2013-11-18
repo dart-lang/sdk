@@ -646,7 +646,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(dst_type.IsMalformed() || dst_type.IsMalbounded() ||
+  ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   // Preserve instantiator (R2) and its type arguments (R1).
   __ PushList((1 << R1) | (1 << R2));
@@ -663,7 +663,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   }
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
-  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
+  if (dst_type.IsMalformedOrMalbounded()) {
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
     __ Push(R0);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.

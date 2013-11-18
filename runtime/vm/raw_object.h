@@ -1163,9 +1163,9 @@ class RawType : public RawAbstractType {
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
   RawAbstractTypeArguments* arguments_;
-  RawError* malformed_error_;  // Error object if type is malformed.
+  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->malformed_error_);
+    return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
   intptr_t token_pos_;
   int8_t type_state_;

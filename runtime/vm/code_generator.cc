@@ -673,14 +673,13 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
 
   String& dst_type_name = String::Handle();
-  Error& error = Error::Handle();
-  if (dst_type.IsMalformed()) {
-    error = dst_type.malformed_error();
+  LanguageError& error = LanguageError::Handle(dst_type.error());
+  ASSERT(!error.IsNull());
+  if (error.kind() == LanguageError::kMalformedType) {
     dst_type_name = Symbols::Malformed().raw();
   } else {
-    const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
+    ASSERT(error.kind() == LanguageError::kMalboundedType);
     dst_type_name = Symbols::Malbounded().raw();
-    ASSERT(is_malbounded);
   }
   const String& error_message = String::ZoneHandle(
       Symbols::New(error.ToErrorCString()));

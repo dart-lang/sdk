@@ -973,7 +973,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 
   // If the destination type is malformed or malbounded, a dynamic type error
   // must be thrown at run time.
-  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
+  if (dst_type.IsMalformedOrMalbounded()) {
     return false;
   }
 
@@ -1308,7 +1308,7 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Type::ObjectType());
@@ -1384,7 +1384,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   ValueGraphVisitor for_value(owner());
   node->left()->Visit(&for_value);
   Append(for_value);
@@ -2607,7 +2607,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
         Type::New(instantiator_class, type_arguments, token_pos, Heap::kNew));
     type ^= ClassFinalizer::FinalizeType(
         instantiator_class, type, ClassFinalizer::kFinalize);
-    ASSERT(!type.IsMalformed() && !type.IsMalbounded());
+    ASSERT(!type.IsMalformedOrMalbounded());
     type_arguments = type.arguments();
     type_arguments = type_arguments.Canonicalize();
     return Bind(new ConstantInstr(type_arguments));

@@ -3789,6 +3789,8 @@ class LanguageError : public Error {
     kMalboundedType,
   };
 
+  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
+
   // Build, cache, and return formatted message.
   RawString* FormatMessage() const;
 
@@ -3829,7 +3831,6 @@ class LanguageError : public Error {
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(intptr_t value) const;
 
-  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
   void set_kind(uint8_t value) const;
 
   RawString* message() const { return raw_ptr()->message_; }
@@ -3999,10 +4000,10 @@ class AbstractType : public Instance {
   virtual bool IsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual bool IsMalformed() const;
-  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
-  virtual bool IsMalboundedWithError(Error* bound_error) const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const;
+  virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
@@ -4143,10 +4144,10 @@ class Type : public AbstractType {
   }
   void set_is_being_finalized() const;
   virtual bool IsMalformed() const;
-  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
-  virtual bool IsMalboundedWithError(Error* bound_error) const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const { return raw_ptr()->error_; }
+  virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;  // Class and all arguments classes resolved.
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
@@ -4254,7 +4255,7 @@ class TypeParameter : public AbstractType {
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
-  virtual bool IsMalboundedWithError(Error* bound_error) const { return false; }
+  virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   RawClass* parameterized_class() const {
@@ -4321,9 +4322,9 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).IsBeingFinalized();
   }
   virtual bool IsMalformed() const;
-  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
-  virtual bool IsMalboundedWithError(Error* bound_error) const;
-  virtual RawError* malformed_error() const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const;
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
     return AbstractType::Handle(type()).HasResolvedTypeClass();
@@ -4400,6 +4401,7 @@ class MixinAppType : public AbstractType {
   // TODO(regis): Handle malformed and malbounded MixinAppType.
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
+  virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return false; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const;

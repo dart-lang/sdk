@@ -62,7 +62,6 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
-DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -2853,12 +2852,10 @@ bool Class::TypeTestNonRecursive(
             thsi, interface, ClassFinalizer::kCanonicalize);
         interfaces.SetAt(i, interface);
       }
-      error = Error::null();
-      if (interface.IsMalboundedWithError(&error)) {
+      if (interface.IsMalbounded()) {
         // Return the first bound error to the caller if it requests it.
         if ((bound_error != NULL) && bound_error->IsNull()) {
-          ASSERT(!error.IsNull());
-          *bound_error = error.raw();
+          *bound_error = interface.error();
         }
         continue;  // Another interface may work better.
       }
@@ -11412,21 +11409,28 @@ bool AbstractType::IsMalformed() const {
 }
 
 
-bool AbstractType::IsMalboundedWithError(Error* bound_error) const {
+bool AbstractType::IsMalbounded() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-RawError* AbstractType::malformed_error() const {
+bool AbstractType::IsMalformedOrMalbounded() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return Error::null();
+  return false;
 }
 
 
-void AbstractType::set_malformed_error(const Error& value) const {
+RawLanguageError* AbstractType::error() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return LanguageError::null();
+}
+
+
+void AbstractType::set_error(const LanguageError& value) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
 }
@@ -11655,16 +11659,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (IsMalbounded()) {
     ASSERT(FLAG_enable_type_checks);
     if ((bound_error != NULL) && bound_error->IsNull()) {
-      const bool is_malbounded = IsMalboundedWithError(bound_error);
-      ASSERT(is_malbounded);
+      *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
     ASSERT(FLAG_enable_type_checks);
     if ((bound_error != NULL) && bound_error->IsNull()) {
-      const bool other_is_malbounded = other.IsMalboundedWithError(bound_error);
-      ASSERT(other_is_malbounded);
+      *bound_error = other.error();
     }
     return false;
   }
@@ -11843,42 +11845,41 @@ void Type::set_is_being_finalized() const {
 
 
 bool Type::IsMalformed() const {
-  return raw_ptr()->malformed_error_ != Error::null();
-}
-
-
-bool Type::IsMalboundedWithError(Error* bound_error) const {
-  if (!FLAG_enable_type_checks && !FLAG_error_on_bad_type) {
+  if (raw_ptr()->error_ == LanguageError::null()) {
     return false;
   }
-  ASSERT(IsResolved());
-  ASSERT(!IsMalformed());  // Must be checked first.
-  if (arguments() == AbstractTypeArguments::null()) {
+  const LanguageError& type_error = LanguageError::Handle(error());
+  return type_error.kind() == LanguageError::kMalformedType;
+}
+
+
+bool Type::IsMalbounded() const {
+  if (!FLAG_enable_type_checks) {
     return false;
   }
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(arguments());
-  const intptr_t num_type_args = type_arguments.Length();
-  AbstractType& type_arg = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_type_args; i++) {
-    type_arg = type_arguments.TypeAt(i);
-    ASSERT(!type_arg.IsNull());
-    if (type_arg.IsMalboundedWithError(bound_error)) {
-      return true;
-    }
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
   }
-  return false;
+  const LanguageError& type_error = LanguageError::Handle(error());
+  return type_error.kind() == LanguageError::kMalboundedType;
 }
 
 
-void Type::set_malformed_error(const Error& value) const {
-  StorePointer(&raw_ptr()->malformed_error_, value.raw());
+bool Type::IsMalformedOrMalbounded() const {
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
+  }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  if (type_error.kind() == LanguageError::kMalformedType) {
+    return true;
+  }
+  ASSERT(type_error.kind() == LanguageError::kMalboundedType);
+  return FLAG_enable_type_checks;
 }
 
 
-RawError* Type::malformed_error() const {
-  ASSERT(IsMalformed());
-  return raw_ptr()->malformed_error_;
+void Type::set_error(const LanguageError& value) const {
+  StorePointer(&raw_ptr()->error_, value.raw());
 }
 
 
@@ -12382,23 +12383,18 @@ bool BoundedType::IsMalformed() const {
 }
 
 
-bool BoundedType::IsMalboundedWithError(Error* bound_error) const {
-  if (FLAG_enable_type_checks || FLAG_error_on_bad_type) {
-    const AbstractType& upper_bound = AbstractType::Handle(bound());
-    if (upper_bound.IsMalformed()) {
-      if (bound_error != NULL) {
-        *bound_error = upper_bound.malformed_error();
-        ASSERT(!bound_error->IsNull());
-      }
-      return true;
-    }
-  }
-  return AbstractType::Handle(type()).IsMalboundedWithError(bound_error);
+bool BoundedType::IsMalbounded() const {
+  return AbstractType::Handle(type()).IsMalbounded();
 }
 
 
-RawError* BoundedType::malformed_error() const {
-  return AbstractType::Handle(type()).malformed_error();
+bool BoundedType::IsMalformedOrMalbounded() const {
+  return AbstractType::Handle(type()).IsMalformedOrMalbounded();
+}
+
+
+RawLanguageError* BoundedType::error() const {
+  return AbstractType::Handle(type()).error();
 }
 
 
@@ -12545,28 +12541,20 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
 
 
 const char* BoundedType::ToCString() const {
-  const char* format = "BoundedType: type %s; bound: %s; type param: %s%s%s";
+  const char* format = "BoundedType: type %s; bound: %s; type param: %s of %s";
   const char* type_cstr = String::Handle(AbstractType::Handle(
       type()).Name()).ToCString();
   const char* bound_cstr = String::Handle(AbstractType::Handle(
       bound()).Name()).ToCString();
   const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-  const char* type_param_cstr = "null";
-  const char* of_cstr = "";
-  const char* cls_cstr = "";
-  if (!type_param.IsNull()) {
-    type_param_cstr = String::Handle(type_param.name()).ToCString();
-    const Class& cls = Class::Handle(type_param.parameterized_class());
-    if (!cls.IsNull()) {
-      of_cstr = " of ";
-      cls_cstr = String::Handle(cls.Name()).ToCString();
-    }
-  }
-  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
-                             type_param_cstr, of_cstr, cls_cstr) + 1;
+  const char* type_param_cstr = String::Handle(type_param.name()).ToCString();
+  const Class& cls = Class::Handle(type_param.parameterized_class());
+  const char* cls_cstr = String::Handle(cls.Name()).ToCString();
+  intptr_t len = OS::SNPrint(
+      NULL, 0, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
-              of_cstr, cls_cstr);
+  OS::SNPrint(
+      chars, len, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr);
   return chars;
 }
 

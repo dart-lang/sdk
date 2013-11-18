@@ -3882,12 +3882,14 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ConsumeToken();  // extends or =
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    if (super_type.IsMalformed() || super_type.IsDynamicType()) {
+    if (super_type.IsMalformedOrMalbounded()) {
+      ErrorMsg(Error::Handle(super_type.error()));
+    }
+    if (super_type.IsDynamicType()) {
       // Unlikely here, since super type is not resolved yet.
       ErrorMsg(type_pos,
-               "class '%s' may not extend %s",
-               class_name.ToCString(),
-               super_type.IsMalformed() ? "a malformed type" : "'dynamic'");
+               "class '%s' may not extend 'dynamic'",
+               class_name.ToCString());
     }
     if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
@@ -7424,13 +7426,8 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   // Dst name argument.
   arguments->Add(new LiteralNode(type_pos, Symbols::Empty()));
   // Malformed type error or malbounded type error.
-  Error& error = Error::Handle();
-  if (type.IsMalformed()) {
-    error = type.malformed_error();
-  } else {
-    const bool is_malbounded = type.IsMalboundedWithError(&error);
-    ASSERT(is_malbounded);
-  }
+  const Error& error = Error::Handle(type.error());
+  ASSERT(!error.IsNull());
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
       Symbols::New(error.ToErrorCString()))));
   return MakeStaticCall(Symbols::TypeError(),
@@ -7554,7 +7551,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         // In checked mode, the type may be malformed or malbounded.
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
              (op_kind == Token::kAS)) &&
-            (type.IsMalformed() || type.IsMalbounded())) {
+            type.IsMalformedOrMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test or in a type cast.
           return ThrowTypeError(type_pos, type);
@@ -9790,29 +9787,16 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
-  if (!type.IsMalformed()) {
-    if (type.IsTypeParameter() || type.IsDynamicType()) {
-      // Replace the type with a malformed type.
-      type = ClassFinalizer::NewFinalizedMalformedType(
-          Error::Handle(),  // No previous error.
-          script_,
-          type_pos,
-          "%s'%s' cannot be instantiated",
-          type.IsTypeParameter() ? "type parameter " : "",
-          type.IsTypeParameter() ?
-              String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
-    } else if (FLAG_enable_type_checks || FLAG_error_on_bad_type) {
-      Error& bound_error = Error::Handle();
-      if (type.IsMalboundedWithError(&bound_error)) {
-        // Replace the type with a malformed type.
-        type = ClassFinalizer::NewFinalizedMalformedType(
-            bound_error,
-            script_,
-            type_pos,
-            "malbounded type '%s' cannot be instantiated",
-            String::Handle(type.UserVisibleName()).ToCString());
-      }
-    }
+  if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
+    // Replace the type with a malformed type.
+    type = ClassFinalizer::NewFinalizedMalformedType(
+        Error::Handle(),  // No previous error.
+        script_,
+        type_pos,
+        "%s'%s' cannot be instantiated",
+        type.IsTypeParameter() ? "type parameter " : "",
+        type.IsTypeParameter() ?
+            String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
   }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which
@@ -9830,11 +9814,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   intptr_t call_pos = TokenPos();
   ArgumentListNode* arguments = ParseActualParameters(NULL, is_const);
 
-  // Parsing is complete, so we can return a throw in case of a malformed type
-  // or report a compile-time error if the constructor is const.
-  if (type.IsMalformed()) {
+  // Parsing is complete, so we can return a throw in case of a malformed or
+  // malbounded type or report a compile-time error if the constructor is const.
+  if (type.IsMalformedOrMalbounded()) {
     if (is_const) {
-      const Error& error = Error::Handle(type.malformed_error());
+      const Error& error = Error::Handle(type.error());
       ErrorMsg(error);
     }
     return ThrowTypeError(type_pos, type);
@@ -9875,8 +9859,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             "class '%s' has no constructor or factory named '%s'",
             String::Handle(type_class.Name()).ToCString(),
             external_constructor_name.ToCString());
-        const Error& error = Error::Handle(type.malformed_error());
-        ErrorMsg(error);
+        ErrorMsg(Error::Handle(type.error()));
       }
       return ThrowNoSuchMethodError(call_pos,
                                     type_class,
@@ -9888,11 +9871,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
-      Error& error = Error::Handle();
-      if (!redirect_type.IsMalformed() && !redirect_type.IsMalbounded() &&
+      if (!redirect_type.IsMalformedOrMalbounded() &&
           !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
+        Error& error = Error::Handle();
         redirect_type ^= redirect_type.InstantiateFrom(type_arguments, &error);
         if (!error.IsNull()) {
           redirect_type = ClassFinalizer::NewFinalizedMalformedType(
@@ -9901,16 +9884,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
               call_pos,
               "redirecting factory type '%s' cannot be instantiated",
               String::Handle(redirect_type.UserVisibleName()).ToCString());
-          error = Error::null();
         }
       }
-      if (redirect_type.IsMalformed() ||
-          redirect_type.IsMalboundedWithError(&error)) {
+      if (redirect_type.IsMalformedOrMalbounded()) {
         if (is_const) {
-          if (redirect_type.IsMalformed()) {
-            error = type.malformed_error();
-          }
-          ErrorMsg(error);
+          ErrorMsg(Error::Handle(redirect_type.error()));
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
@@ -9975,15 +9953,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                   &constructor);
   }
 
-  // Return a throw in case of a malformed type or report a compile-time error
-  // if the constructor is const.
-  Error& error = Error::Handle();
-  if (type.IsMalformed() || type.IsMalboundedWithError(&error)) {
+  // Return a throw in case of a malformed or malbounded type or report a
+  // compile-time error if the constructor is const.
+  if (type.IsMalformedOrMalbounded()) {
     if (is_const) {
-      if (type.IsMalformed()) {
-        error = type.malformed_error();
-      }
-      ErrorMsg(error);
+      ErrorMsg(Error::Handle(type.error()));
     }
     return ThrowTypeError(type_pos, type);
   }

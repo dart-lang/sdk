@@ -286,12 +286,8 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
     }
     if (factory.is_const()) {
       type = factory.RedirectionType();
-      if (type.IsMalformed()) {
-        ReportError(Error::Handle(type.malformed_error()));
-      }
-      Error& error = Error::Handle();
-      if (type.IsMalboundedWithError(&error)) {
-        ReportError(error);
+      if (type.IsMalformedOrMalbounded()) {
+        ReportError(Error::Handle(type.error()));
       }
     }
   }
@@ -320,7 +316,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // Check if target is already resolved.
   Type& type = Type::Handle(factory.RedirectionType());
   Function& target = Function::Handle(factory.RedirectionTarget());
-  if (type.IsMalformed() || (type.IsResolved() && type.IsMalbounded())) {
+  if (type.IsMalformedOrMalbounded()) {
     // Already resolved to a malformed or malbounded type. Will throw on usage.
     ASSERT(target.IsNull());
     return;
@@ -338,7 +334,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   ResolveType(cls, type, kCanonicalize);
   type ^= FinalizeType(cls, type, kCanonicalize);
   factory.SetRedirectionType(type);
-  if (type.IsMalformed() || type.IsMalbounded()) {
+  if (type.IsMalformedOrMalbounded()) {
     ASSERT(factory.RedirectionTarget() == Function::null());
     return;
   }
@@ -814,7 +810,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Specifying no type arguments indicates a raw type, which is not an error.
   // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    // Wrong number of type arguments. The type is malformed.
+    // Wrong number of type arguments. The type is mapped to the raw type.
     if (FLAG_error_on_bad_type) {
       const Script& script = Script::Handle(cls.script());
       const String& type_class_name = String::Handle(type_class.Name());
@@ -919,18 +915,17 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     FinalizeTypesInClass(type_class);
   }
 
-  // If a bound error occurred, return a BoundedType with a malformed bound.
-  // The malformed bound will be ignored in production mode.
+  // If a bound error occurred, mark the type as malbounded.
+  // The bound error will be ignored in production mode.
   if (!bound_error.IsNull()) {
     // No compile-time error during finalization.
     const String& parameterized_type_name = String::Handle(
         parameterized_type.UserVisibleName());
-    const Type& malformed_bound = Type::Handle(
-        NewFinalizedMalformedType(bound_error,
-                                  Script::Handle(cls.script()),
-                                  parameterized_type.token_pos(),
-                                  "type '%s' has an out of bound type argument",
-                                  parameterized_type_name.ToCString()));
+    FinalizeMalboundedType(bound_error,
+                           Script::Handle(cls.script()),
+                           parameterized_type,
+                           "type '%s' has an out of bound type argument",
+                           parameterized_type_name.ToCString());
 
     if (FLAG_trace_type_finalization) {
       OS::Print("Done finalizing malbounded type '%s' with bound error: %s\n",
@@ -938,9 +933,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                 bound_error.ToCString());
     }
 
-    return BoundedType::New(parameterized_type,
-                            malformed_bound,
-                            TypeParameter::Handle());
+    return parameterized_type.raw();;
   }
 
   if (FLAG_trace_type_finalization) {
@@ -1163,18 +1156,18 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         (field.value() != Object::sentinel().raw())) {
       // The parser does not preset the value if the type is a type parameter or
       // is parameterized unless the value is null.
-      Error& malformed_error = Error::Handle();
-      if (type.IsMalformed()) {
-        malformed_error = type.malformed_error();
+      Error& error = Error::Handle();
+      if (type.IsMalformedOrMalbounded()) {
+        error = type.error();
       } else {
         ASSERT(type.IsInstantiated());
       }
       const Instance& const_value = Instance::Handle(field.value());
-      if (!malformed_error.IsNull() ||
+      if (!error.IsNull() ||
           (!type.IsDynamicType() &&
            !const_value.IsInstanceOf(type,
                                      AbstractTypeArguments::Handle(),
-                                     &malformed_error))) {
+                                     &error))) {
         if (FLAG_error_on_bad_type) {
           const AbstractType& const_value_type = AbstractType::Handle(
               const_value.GetType());
@@ -1182,7 +1175,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
               const_value_type.UserVisibleName());
           const String& type_name = String::Handle(type.UserVisibleName());
           const Script& script = Script::Handle(cls.script());
-          ReportError(malformed_error, script, field.token_pos(),
+          ReportError(error, script, field.token_pos(),
                       "error initializing static %s field '%s': "
                       "type '%s' is not a subtype of type '%s'",
                       field.is_const() ? "const" : "final",
@@ -2410,8 +2403,8 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // Resolve super type. Failures lead to a longjmp.
   ResolveType(cls, super_type, kCanonicalizeWellFormed);
-  if (super_type.IsMalformed()) {
-    ReportError(Error::Handle(super_type.malformed_error()));
+  if (super_type.IsMalformedOrMalbounded()) {
+    ReportError(Error::Handle(super_type.error()));
   }
   if (super_type.IsDynamicType()) {
     const Script& script = Script::Handle(cls.script());
@@ -2488,8 +2481,9 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     interface ^= super_interfaces.At(i);
     ResolveType(cls, interface, kCanonicalizeWellFormed);
     ASSERT(!interface.IsTypeParameter());  // Should be detected by parser.
+    // A malbounded interface is only reported when involved in a type test.
     if (interface.IsMalformed()) {
-      ReportError(Error::Handle(interface.malformed_error()));
+      ReportError(Error::Handle(interface.error()));
     }
     if (interface.IsDynamicType()) {
       const Script& script = Script::Handle(cls.script());
@@ -2622,7 +2616,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
   if (FLAG_error_on_bad_type) {
     ReportError(error);
   }
-  type.set_malformed_error(error);
+  type.set_error(error);
   // Make the type raw, since it may not be possible to
   // properly finalize its type arguments.
   type.set_type_class(Class::Handle(Object::dynamic_class()));
@@ -2666,6 +2660,29 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
   va_start(args, format);
   ReportMalformedType(prev_error, script, type, format, args);
   va_end(args);
+}
+
+
+void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
+                                            const Script& script,
+                                            const Type& type,
+                                            const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  LanguageError& error = LanguageError::Handle(
+      LanguageError::NewFormattedV(
+          prev_error, script, type.token_pos(),
+          LanguageError::kMalboundedType, Heap::kOld,
+          format, args));
+  va_end(args);
+  if (FLAG_error_on_bad_type) {
+    ReportError(error);
+  }
+  type.set_error(error);
+  if (!type.IsFinalized()) {
+    type.SetIsFinalized();
+    // Do not canonicalize malbounded types.
+  }
 }
 
 
