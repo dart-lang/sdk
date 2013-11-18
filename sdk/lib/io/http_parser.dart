@@ -664,12 +664,14 @@ class _HttpParser
             if (_index == 0) {
               data = _buffer;
             } else {
-              data = new Uint8List(dataAvailable);
-              data.setRange(0, dataAvailable, _buffer, _index);
+              data = new Uint8List.view(_buffer.buffer,
+                                        _index,
+                                        dataAvailable);
             }
           } else {
-            data = new Uint8List(_remainingContent);
-            data.setRange(0, _remainingContent, _buffer, _index);
+            data = new Uint8List.view(_buffer.buffer,
+                                      _index,
+                                      _remainingContent);
           }
           _bodyController.add(data);
           if (_remainingContent != -1) {
@@ -955,7 +957,7 @@ class _HttpParser
   bool _parserCalled = false;
 
   // The data that is currently being parsed.
-  List<int> _buffer;
+  Uint8List _buffer;
   int _index;
 
   final bool _requestParser;
