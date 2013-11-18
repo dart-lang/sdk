@@ -1326,60 +1326,6 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
 }
 
 
-enum TrigonometricFunctions {
-  kSine,
-  kCosine,
-};
-
-
-static void EmitTrigonometric(Assembler* assembler,
-                              TrigonometricFunctions kind) {
-  Label fall_through, is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Argument is double and is in EAX.
-  __ fldl(FieldAddress(EAX, Double::value_offset()));
-  __ Bind(&double_op);
-  switch (kind) {
-    case kSine:   __ fsin(); break;
-    case kCosine: __ fcos(); break;
-    default:
-      UNREACHABLE();
-  }
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  Label alloc_failed;
-  __ TryAllocate(double_class,
-                 &alloc_failed,
-                 Assembler::kNearJump,
-                 EAX);  // Result register.
-  __ fstpl(FieldAddress(EAX, Double::value_offset()));
-  __ ret();
-
-  __ Bind(&is_smi);  // smi -> double.
-  __ SmiUntag(EAX);
-  __ pushl(EAX);
-  __ filds(Address(ESP, 0));
-  __ popl(EAX);
-  __ jmp(&double_op);
-
-  __ Bind(&alloc_failed);
-  __ ffree(0);
-  __ fincstp();
-
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Math_sin(Assembler* assembler) {
-  EmitTrigonometric(assembler, kSine);
-}
-
-
-void Intrinsifier::Math_cos(Assembler* assembler) {
-  EmitTrigonometric(assembler, kCosine);
-}
-
-
 //    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;

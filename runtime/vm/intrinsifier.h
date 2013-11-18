@@ -99,8 +99,6 @@ namespace dart {
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
   V(::, sqrt, Math_sqrt, 465520247)                                            \
-  V(::, sin, Math_sin, 730107143)                                              \
-  V(::, cos, Math_cos, 1282146521)                                             \
   V(_Random, _nextState, Random_nextState, 1174301422)                         \
 
 

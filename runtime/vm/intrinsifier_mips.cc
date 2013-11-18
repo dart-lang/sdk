@@ -1365,14 +1365,6 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Math_sin(Assembler* assembler) {
-}
-
-
-void Intrinsifier::Math_cos(Assembler* assembler) {
-}
-
-
 //    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
 //    _state[kSTATE_LO] = state & _MASK_32;
 //    _state[kSTATE_HI] = state >> 32;

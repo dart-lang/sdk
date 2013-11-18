@@ -1196,51 +1196,6 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 }
 
 
-enum TrigonometricFunctions {
-  kSine,
-  kCosine,
-};
-
-
-static void EmitTrigonometric(Assembler* assembler,
-                              TrigonometricFunctions kind) {
-  Label fall_through, is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Argument is double and is in EAX.
-  __ fldl(FieldAddress(RAX, Double::value_offset()));
-  __ Bind(&double_op);
-  switch (kind) {
-    case kSine:   __ fsin(); break;
-    case kCosine: __ fcos(); break;
-    default:
-      UNREACHABLE();
-  }
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  Label alloc_failed;
-  __ TryAllocate(double_class,
-                 &alloc_failed,
-                 Assembler::kNearJump,
-                 RAX,  // Result register.
-                 kNoRegister);  // Pool pointer might not be loaded.
-  __ fstpl(FieldAddress(RAX, Double::value_offset()));
-  __ ret();
-
-  __ Bind(&is_smi);  // smi -> double.
-  __ SmiUntag(RAX);
-  __ pushq(RAX);
-  __ fildl(Address(RSP, 0));
-  __ popq(RAX);
-  __ jmp(&double_op);
-
-  __ Bind(&alloc_failed);
-  __ ffree(0);
-  __ fincstp();
-
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Double_toInt(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
@@ -1278,16 +1233,6 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ cvtsi2sd(XMM1, RAX);
   __ jmp(&double_op);
   __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Math_sin(Assembler* assembler) {
-  EmitTrigonometric(assembler, kSine);
-}
-
-
-void Intrinsifier::Math_cos(Assembler* assembler) {
-  EmitTrigonometric(assembler, kCosine);
 }
 
 
