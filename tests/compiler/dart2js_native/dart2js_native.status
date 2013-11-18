@@ -14,7 +14,7 @@ call_on_native_class_test: CompileTimeError # Issue 14813
 fake_thing_test: Fail # Issue 13010
 
 [ $compiler == dart2js && $minified ]
-fake_thing_test: Skip # Test relies on unminified names.
+optimization_hints_test: Fail, OK # Test relies on unminified names.
 
 [ $browser || $runtime == jsshell ]
 only_pass_on_d8_test: Fail, OK # This test should only pass on D8.
