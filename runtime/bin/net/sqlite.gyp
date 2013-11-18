@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/third_party/sqlite/sqlite.gyp.
-# Revision 199075 (this should agree with "nss_rev" in DEPS).
+# Revision 232552 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -30,6 +30,7 @@
       # 'SQLITE_ENABLE_ICU',
       'SQLITE_ENABLE_MEMORY_MANAGEMENT',
       'SQLITE_SECURE_DELETE',
+      'SQLITE_SEPARATE_CACHE_POOLS',
       'THREADSAFE',
       '_HAS_EXCEPTIONS=0',
     ],
@@ -61,6 +62,9 @@
 
           'conditions': [
             ['OS == "ios"', {
+              'dependencies': [
+                'sqlite_regexp',
+              ],
               'link_settings': {
                 'libraries': [
                   '$(SDKROOT)/usr/lib/libsqlite3.dylib',
@@ -143,6 +147,13 @@
                 ],
               },
             }],
+            ['OS == "mac" or OS == "ios"', {
+              'link_settings': {
+                'libraries': [
+                  '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
+                ],
+              },
+            }],
             ['OS == "android"', {
               'defines': [
                 'HAVE_USLEEP=1',
@@ -195,13 +206,27 @@
           'sources': [
             '<(sqlite_directory)/src/src/shell.c',
             '<(sqlite_directory)/src/src/shell_icu_linux.c',
+            # Include a dummy c++ file to force linking of libstdc++.
+            '<(sqlite_directory)/build_as_cpp.cc',
           ],
-          'link_settings': {
-            'link_languages': ['c++'],
-          },
         },
       ],
-    },]
+    },],
+    ['OS == "ios"', {
+      'targets': [
+        {
+          'target_name': 'sqlite_regexp',
+          'type': 'static_library',
+          'dependencies': [
+            '../icu/icu.gyp:icui18n',
+            '../icu/icu.gyp:icuuc',
+          ],
+          'sources': [
+            'src/ext/icu/icu.c',
+          ],
+        },
+      ],
+    }],
   ],
   }]],
 }

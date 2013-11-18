@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's deps/third_party/nss/nss.gyp.
-# Revision 199075 (this should agree with "nss_rev" in DEPS).
+# Revision 232552 (this should agree with "nss_rev" in DEPS).
 {
   # Added by Dart. All Dart comments refer to the following block or line.
   'includes': [
@@ -660,6 +660,11 @@
         '<(nss_directory)/nss/lib/freebl/blapit.h',
         '<(nss_directory)/nss/lib/freebl/camellia.c',
         '<(nss_directory)/nss/lib/freebl/camellia.h',
+        '<(nss_directory)/nss/lib/freebl/chacha20/chacha20.c',
+        '<(nss_directory)/nss/lib/freebl/chacha20/chacha20.h',
+        '<(nss_directory)/nss/lib/freebl/chacha20/chacha20_vec.c',
+        '<(nss_directory)/nss/lib/freebl/chacha20poly1305.c',
+        '<(nss_directory)/nss/lib/freebl/chacha20poly1305.h',
         '<(nss_directory)/nss/lib/freebl/ctr.c',
         '<(nss_directory)/nss/lib/freebl/ctr.h',
         '<(nss_directory)/nss/lib/freebl/cts.c',
@@ -715,6 +720,9 @@
         '<(nss_directory)/nss/lib/freebl/mpi/mp_gf2m.c',
         '<(nss_directory)/nss/lib/freebl/mpi/mp_gf2m.h',
         '<(nss_directory)/nss/lib/freebl/mpi/primes.c',
+        '<(nss_directory)/nss/lib/freebl/poly1305/poly1305-donna-x64-sse2-incremental-source.c',
+        '<(nss_directory)/nss/lib/freebl/poly1305/poly1305.c',
+        '<(nss_directory)/nss/lib/freebl/poly1305/poly1305.h',
         '<(nss_directory)/nss/lib/freebl/pqg.c',
         '<(nss_directory)/nss/lib/freebl/pqg.h',
         '<(nss_directory)/nss/lib/freebl/rawhash.c',
@@ -1100,10 +1108,6 @@
         'SOFTOKEN_SHLIB_VERSION=\"3\"',
         'USE_UTIL_DIRECTLY',
       ],
-      'defines!': [
-        # Regrettably, NSS can't be compiled with NO_NSPR_10_SUPPORT yet.
-        'NO_NSPR_10_SUPPORT',
-      ],
       'include_dirs': [
         '<(nss_directory)/nss/lib/base',
         '<(nss_directory)/nss/lib/certdb',
@@ -1194,6 +1198,7 @@
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_amd64.c',
           ],
         }],
+        # Added by Dart.
         ['OS=="linux"', {
           'defines': [
             'XP_UNIX',
@@ -1208,6 +1213,17 @@
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_amd64.c',
             '<(nss_directory)/nss/lib/freebl/mpi/mpi_x86_asm.c',
           ],
+        }],
+        ['target_arch=="x64" and OS!="win"', {
+          'sources!': [
+            '<(nss_directory)/nss/lib/freebl/chacha20/chacha20.c',
+            '<(nss_directory)/nss/lib/freebl/poly1305/poly1305.c',
+            ],
+        }, { # else: target_arch!="x64" or OS=="win"
+          'sources!': [
+            '<(nss_directory)/nss/lib/freebl/chacha20/chacha20_vec.c',
+            '<(nss_directory)/nss/lib/freebl/poly1305/poly1305-donna-x64-sse2-incremental-source.c',
+            ],
         }],
         ['OS=="mac" or OS=="ios"', {
           'defines': [
