@@ -543,11 +543,10 @@ class Parser {
   }
 
   Token parseIdentifier(Token token) {
-    if (token.isIdentifier()) {
-      listener.handleIdentifier(token);
-    } else {
-      listener.expectedIdentifier(token);
+    if (!token.isIdentifier()) {
+      token = listener.expectedIdentifier(token);
     }
+    listener.handleIdentifier(token);
     return token.next;
   }
 

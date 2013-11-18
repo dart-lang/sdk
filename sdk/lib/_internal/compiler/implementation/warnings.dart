@@ -1335,6 +1335,12 @@ main() {}
       const MessageKind(
       "Error: Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant.");
 
+  static const MessageKind EXPECTED_IDENTIFIER_NOT_RESERVED_WORD =
+      const MessageKind(
+          "Error: '#{keyword}' is a reserved word and can't be used here.",
+          howToFix: "Try using a different name.",
+          examples: const ["do() {} main() {}"]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

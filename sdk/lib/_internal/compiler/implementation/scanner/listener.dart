@@ -948,10 +948,16 @@ class ElementListener extends Listener {
     return skipToEof(token);
   }
 
-  void expectedIdentifier(Token token) {
-    listener.cancel("expected identifier, but got '${token.value}'",
-                    token: token);
-    pushNode(null);
+  Token expectedIdentifier(Token token) {
+    if (token is KeywordToken) {
+      reportError(
+          token, MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
+          {'keyword': token.value});
+    } else {
+      listener.cancel(
+          "Error: Expected identifier, but got '${token.value}'", token: token);
+    }
+    return token;
   }
 
   Token expectedType(Token token) {
