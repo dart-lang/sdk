@@ -4,12 +4,6 @@
 
 import "package:expect/expect.dart";
 
-dynamicCheck(input, {isInt, isString}) {
-  var copy = input.toList();
-  Expect.isTrue(isInt == copy is List<int>);
-  Expect.isTrue(isString == copy is List<String>);
-}
-
 main() {
   List<int> list1 = <int>[1, 2, 3];
   List<int> list2 = const <int>[4, 5];
@@ -29,21 +23,18 @@ main() {
   Expect.isTrue(listCopy is List<int>);
   Expect.isFalse(listCopy is List<String>);
   Expect.isFalse(identical(list1, listCopy));
-  dynamicCheck(list1, isInt: true, isString: false);
 
   listCopy = list2.toList();
   Expect.listEquals(list2, listCopy);
   Expect.isTrue(listCopy is List<int>);
   Expect.isFalse(listCopy is List<String>);
   Expect.isFalse(identical(list2, listCopy));
-  dynamicCheck(list2, isInt: true, isString: false);
 
   listCopy = list3.toList();
   Expect.listEquals(list3, listCopy);
   Expect.isTrue(listCopy is List<String>);
   Expect.isFalse(listCopy is List<int>);
   Expect.isFalse(identical(list3, listCopy));
-  dynamicCheck(list3, isInt: false, isString: true);
 
   listCopy = set1.toList();
   Expect.equals(3, listCopy.length);
@@ -52,7 +43,6 @@ main() {
   Expect.isTrue(listCopy.contains(13));
   Expect.isTrue(listCopy is List<int>);
   Expect.isFalse(listCopy is List<String>);
-  dynamicCheck(set1, isInt: true, isString: false);
 
   listCopy = set2.toList();
   Expect.equals(3, listCopy.length);
@@ -61,11 +51,9 @@ main() {
   Expect.isTrue(listCopy.contains("toto"));
   Expect.isTrue(listCopy is List<String>);
   Expect.isFalse(listCopy is List<int>);
-  dynamicCheck(set2, isInt: false, isString: true);
 
   listCopy = set3.toList();
   Expect.isTrue(listCopy.isEmpty);
   Expect.isTrue(listCopy is List<int>);
   Expect.isTrue(listCopy is List<String>);
-  dynamicCheck(set3, isInt: true, isString: true);
 }

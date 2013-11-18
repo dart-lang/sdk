@@ -14,66 +14,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   const JSArray();
 
-  /**
-   * Returns a fresh JavaScript Array, marked as fixed-length.
-   *
-   * [length] must be a non-negative integer.
-   */
-  factory JSArray.fixed(int length)  {
-    // Explicit type test is necessary to guard against JavaScript conversions
-    // in unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
-    }
-    return new JSArray<E>.markFixed(JS('', 'new Array(#)', length));
-  }
-
-  /**
-   * Returns a fresh growable JavaScript Array of zero length length.
-   */
-  factory JSArray.emptyGrowable() => new JSArray<E>.markGrowable(JS('', '[]'));
-
-  /**
-   * Returns a fresh growable JavaScript Array with initial length.
-   *
-   * [validatedLength] must be a non-negative integer.
-   */
-  factory JSArray.growable(int length) {
-    // Explicit type test is necessary to guard against JavaScript conversions
-    // in unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
-    }
-    return new JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
-  }
-
-  /**
-   * Constructor for adding type parameters to an existing JavaScript Array.
-   * The compiler specially recognizes this constructor.
-   *
-   *     var a = new JSArray<int>.typed(JS('JSExtendableArray', '[]'));
-   *     a is List<int>    --> true
-   *     a is List<String> --> false
-   *
-   * Usually either the [JSArray.markFixed] or [JSArray.markGrowable]
-   * constructors is used instead.
-   *
-   * The input must be a JavaScript Array.  The JS form is just a re-assertion
-   * to help type analysis when the input type is sloppy.
-   */
-  factory JSArray.typed(allocation) => JS('JSArray', '#', allocation);
-
-  factory JSArray.markFixed(allocation) =>
-      JS('JSFixedArray', '#', markFixedList(new JSArray<E>.typed(allocation)));
-
-  factory JSArray.markGrowable(allocation) =>
-      JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation));
-
-  static List markFixedList(List list) {
-    JS('void', r'#.fixed$length = #', list, true);
-    return JS('JSFixedArray', '#', list);
-  }
-
   checkMutable(reason) {
     if (this is !JSMutableArray) {
       throw new UnsupportedError(reason);
@@ -234,9 +174,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
         throw new RangeError.range(end, start, length);
       }
     }
-    if (start == end) return <E>[];
-    return new JSArray<E>.markGrowable(
-        JS('', r'#.slice(#, #)', this, start, end));
+    // TODO(ngeoffray): Parameterize the return value.
+    if (start == end) return [];
+    return JS('JSExtendableArray', r'#.slice(#, #)', this, start, end);
   }
 
 
@@ -328,13 +268,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   String toString() => IterableMixinWorkaround.toStringIterable(this, '[', ']');
 
-  List<E> toList({ bool growable: true }) {
-    if (growable) {
-      return new JSArray<E>.markGrowable(JS('', '#.slice()', this));
-    } else {
-      return new JSArray<E>.markFixed(JS('', '#.slice()', this));
-    }
-  }
+  List<E> toList({ bool growable: true }) =>
+      new List<E>.from(this, growable: growable);
 
   Set<E> toSet() => new Set<E>.from(this);
 
@@ -374,6 +309,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
  * information about arrays through their type. The CPA type inference
  * relies on the fact that these classes do not override [] nor []=.
  */
-class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
-class JSFixedArray<E> extends JSMutableArray<E> {}
-class JSExtendableArray<E> extends JSMutableArray<E> {}
+class JSMutableArray extends JSArray implements JSMutableIndexable {}
+class JSFixedArray extends JSMutableArray {}
+class JSExtendableArray extends JSMutableArray {}

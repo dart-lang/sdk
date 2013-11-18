@@ -292,8 +292,6 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
   }
   abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray implements JSIndexable {
-    JSArray() {}
-    JSArray.typed(a) => a;
     var length;
     var removeLast;
     operator[] (_) {}

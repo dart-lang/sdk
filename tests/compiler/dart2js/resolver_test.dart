@@ -811,7 +811,7 @@ testInitializers() {
          class String {}
          class num {}
          class Function {}
-         class List<E> {}
+         class List {}
          class Map {}
          class Closure {}
          class Null {}

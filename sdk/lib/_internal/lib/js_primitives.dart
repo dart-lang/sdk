@@ -9,6 +9,10 @@ library dart2js._js_primitives;
 import 'dart:_foreign_helper' show
     JS;
 
+import 'dart:_interceptors' show
+    JSExtendableArray,
+    JSFixedArray;
+
 /**
  * This is the low-level method that is used to implement [print].  It is
  * possible to override this function from JavaScript by defining a function in
@@ -47,4 +51,17 @@ void printString(String string) {
   // dependencies to handle a situation that cannot happen. So we
   // avoid using Dart [:throw:] and Dart [toString].
   JS('void', 'throw "Unable to print message: " + String(#)', string);
+}
+
+List newGrowableList(length) {
+  return JS('JSExtendableArray', r'new Array(#)', length);
+}
+
+List newFixedList(length) {
+  return markFixedList(JS('', r'new Array(#)', length));
+}
+
+List markFixedList(List list) {
+  JS('void', r'#.fixed$length = #', list, true);
+  return JS('JSFixedArray', '#', list);
 }

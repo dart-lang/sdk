@@ -195,7 +195,6 @@ class JavaScriptBackend extends Backend {
   ClassElement jsExtendableArrayClass;
 
   Element jsIndexableLength;
-  Element jsArrayTypedConstructor;
   Element jsArrayRemoveLast;
   Element jsArrayAdd;
   Element jsStringSplit;
@@ -617,7 +616,6 @@ class JavaScriptBackend extends Backend {
     }
 
     jsArrayClass.ensureResolved(compiler);
-    jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
     jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
     jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
 
