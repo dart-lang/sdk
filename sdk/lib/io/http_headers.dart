@@ -25,12 +25,13 @@ class _HttpHeaders implements HttpHeaders {
 
   void add(String name, value) {
     _checkMutable();
+    var lowerCaseName = name.toLowerCase();
     if (value is List) {
       for (int i = 0; i < value.length; i++) {
-        _add(name, value[i]);
+        _add(lowerCaseName, value[i]);
       }
     } else {
-      _add(name, value);
+      _add(lowerCaseName, value);
     }
   }
 
@@ -207,10 +208,10 @@ class _HttpHeaders implements HttpHeaders {
     _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
   }
 
+  // [name] must be a lower-case version of the name.
   void _add(String name, value) {
-    var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (lowerCaseName == HttpHeaders.CONTENT_LENGTH) {
+    if (name == HttpHeaders.CONTENT_LENGTH) {
       if (value is int) {
         contentLength = value;
       } else if (value is String) {
@@ -218,13 +219,13 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.TRANSFER_ENCODING) {
+    } else if (name == HttpHeaders.TRANSFER_ENCODING) {
       if (value == "chunked") {
         chunkedTransferEncoding = true;
       } else {
-        _addValue(lowerCaseName, value);
+        _addValue(name, value);
       }
-    } else if (lowerCaseName == HttpHeaders.DATE) {
+    } else if (name == HttpHeaders.DATE) {
       if (value is DateTime) {
         date = value;
       } else if (value is String) {
@@ -232,7 +233,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.EXPIRES) {
+    } else if (name == HttpHeaders.EXPIRES) {
       if (value is DateTime) {
         expires = value;
       } else if (value is String) {
@@ -240,7 +241,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.IF_MODIFIED_SINCE) {
+    } else if (name == HttpHeaders.IF_MODIFIED_SINCE) {
       if (value is DateTime) {
         ifModifiedSince = value;
       } else if (value is String) {
@@ -248,7 +249,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.HOST) {
+    } else if (name == HttpHeaders.HOST) {
       if (value is String) {
         int pos = value.indexOf(":");
         if (pos == -1) {
@@ -274,10 +275,10 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.CONTENT_TYPE) {
+    } else if (name == HttpHeaders.CONTENT_TYPE) {
       _set(HttpHeaders.CONTENT_TYPE, value);
     } else {
-      _addValue(lowerCaseName, value);
+      _addValue(name, value);
     }
   }
 
