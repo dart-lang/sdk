@@ -3788,7 +3788,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   handleNewSend(NewExpression node) {
     Send send = node.send;
-    bool isListConstructor = false;
     bool isFixedList = false;
 
     TypeMask computeType(element) {
@@ -3796,7 +3795,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (Elements.isFixedListConstructorCall(originalElement, send, compiler)
           || Elements.isFilledListConstructorCall(
                   originalElement, send, compiler)) {
-        isListConstructor = true;
         isFixedList = true;
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
@@ -3805,7 +3803,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             : inferred;
       } else if (Elements.isGrowableListConstructorCall(
                     originalElement, send, compiler)) {
-        isListConstructor = true;
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
@@ -3836,6 +3833,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     final bool isSymbolConstructor =
         functionElement == compiler.symbolConstructor;
+    final bool isJSArrayTypedConstructor =
+        functionElement == backend.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
       constructor = compiler.symbolValidatedConstructor;
@@ -3901,7 +3900,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isListConstructor && backend.classNeedsRti(compiler.listClass)) {
+    if (isJSArrayTypedConstructor &&
+        backend.classNeedsRti(compiler.listClass)) {
       handleListConstructor(type, send, newInstance);
     }
 

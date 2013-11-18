@@ -44,6 +44,8 @@ class JSIndexable {
 }
 class JSMutableIndexable {}
 class JSArray {
+  JSArray() {}
+  factory JSArray.typed(a) => a;
   removeLast() => null;
   add(x) { }
 }

@@ -32,7 +32,7 @@ class int {}
 class double{}
 class String{}
 class Function{}
-class List {}
+class List<E> {}
 class Map {}
 class Closure {}
 class BoundClosure {}
@@ -57,7 +57,9 @@ class JSIndexable {
   get length;
 }
 class JSMutableIndexable {}
-class JSArray implements JSIndexable {
+class JSArray<E> implements JSIndexable {
+  JSArray() {}
+  factory JSArray.typed(a) => a;
   var removeLast;
   var add;
 }
