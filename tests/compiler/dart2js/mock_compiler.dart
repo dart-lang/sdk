@@ -102,7 +102,9 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator[](index);
   }
   abstract class JSMutableIndexable extends JSIndexable {}
-  class JSArray extends Interceptor implements List, JSIndexable {
+  class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
+    JSArray();
+    factory JSArray.typed(a) => a;
     var length;
     operator[](index) => this[index];
     operator[]=(index, value) { this[index] = value; }

@@ -11,9 +11,6 @@ import 'dart:_js_helper' show checkNull,
                               Primitives,
                               stringJoinUnchecked,
                               objectHashCode;
-import 'dart:_js_primitives' show
-    newFixedList,
-    newGrowableList;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
@@ -193,22 +190,12 @@ patch class Stopwatch {
 // Patch for List implementation.
 patch class List<E> {
   patch factory List([int length]) {
-    if (length == null) return newGrowableList(0);
-    // Explicit type test is necessary to protect [newFixedList] in
-    // unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a positive integer: $length.");
-    }
-    return newFixedList(length);
+    if (length == null) return new JSArray<E>.emptyGrowable();
+    return new JSArray<E>.fixed(length);
   }
 
   patch factory List.filled(int length, E fill) {
-    // Explicit type test is necessary to protect [newFixedList] in
-    // unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a positive integer: $length.");
-    }
-    List result = newFixedList(length);
+    List result = new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;

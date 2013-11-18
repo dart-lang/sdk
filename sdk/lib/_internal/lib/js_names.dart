@@ -8,8 +8,7 @@ import 'dart:_foreign_helper' show JS, JS_GET_NAME;
 
 import 'dart:_js_helper' show JsCache;
 
-import 'dart:_js_primitives' show
-    markFixedList;
+import 'dart:_interceptors' show JSArray;
 
 /// No-op method that is called to inform the compiler that unmangled named
 /// must be preserved.
@@ -75,7 +74,7 @@ List extractKeys(victim) {
   }
   return result;
 })(#, Object.prototype.hasOwnProperty)''', victim);
-  return markFixedList(result);
+  return new JSArray.markFixed(result);
 }
 
 /**
