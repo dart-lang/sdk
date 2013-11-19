@@ -92,10 +92,6 @@ class ClosureFieldElement extends ElementX implements VariableElement {
 
   bool isInstanceMember() => true;
   bool isAssignable() => false;
-  // The names of closure variables don't need renaming, since their use is very
-  // simple and they have 1-character names in the minified mode.
-  bool hasFixedBackendName() => true;
-  String fixedBackendName() => name;
 
   DartType computeType(Compiler compiler) {
     return variableElement.computeType(compiler);
