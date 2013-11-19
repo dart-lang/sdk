@@ -59,7 +59,7 @@ namespace dart {
 // to the scheduled list.
 
 
-DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
+DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
 
 bool ProfilerManager::initialized_ = false;
 bool ProfilerManager::shutdown_ = false;

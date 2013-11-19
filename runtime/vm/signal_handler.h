@@ -12,8 +12,9 @@
 #include <signal.h>  // NOLINT
 #include <ucontext.h>  // NOLINT
 #elif defined(TARGET_OS_ANDROID)
-#include <asm/signal.h>  // NOLINT
-#include <asm/sigcontext.h>  // NOLINT
+#include <signal.h>  // NOLINT
+#include <sys/sigcontext.h>  // NOLINT
+struct mcontext_t;
 #elif defined(TARGET_OS_MACOS)
 #include <signal.h>  // NOLINT
 #include <sys/ucontext.h>  // NOLINT
