@@ -117,7 +117,9 @@ abstract class _TypedDataBuffer<E> extends ListBase<E> {
   void setRange(int start, int end, Iterable<E> source, [int skipCount = 0]) {
     if (end > _length) throw new RangeError.range(end, 0, _length);
     if (source is _TypedDataBuffer) {
-      _buffer.setRange(start, end, source._buffer, skipCount);
+      // Remove this cast when 15156 is fixed.
+      _TypedDataBuffer sourceBuffer = source;
+      _buffer.setRange(start, end, sourceBuffer._buffer, skipCount);
     } else {
       _buffer.setRange(start, end, source, skipCount);
     }
