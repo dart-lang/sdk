@@ -666,6 +666,11 @@ class Parser : public ValueObject {
   // global variables.
   bool is_top_level_;
 
+  // True when evaluating metadata. Used to make decisions otherwise based on
+  // the current_function().
+  void set_parsing_metadata(bool value) { parsing_metadata_ = value; }
+  bool parsing_metadata_;
+
   // The member currently being parsed during "top level" parsing.
   MemberDesc* current_member_;
 

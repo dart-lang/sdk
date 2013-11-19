@@ -244,6 +244,7 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
+      parsing_metadata_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(NULL),
@@ -270,6 +271,7 @@ Parser::Parser(const Script& script,
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
+      parsing_metadata_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(parsed_function),
@@ -859,6 +861,7 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
     const Library& lib = Library::Handle(cls.library());
     Parser parser(script, lib, token_pos);
     parser.set_current_class(cls);
+    parser.set_parsing_metadata(true);
     return parser.EvaluateMetadata();
   } else {
     Error& error = Error::Handle();
@@ -8243,7 +8246,13 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     // NoSuchMethodError to be thrown.
     // In an instance method, we convert this into a getter call
     // for a field (which may be defined in a subclass.)
+    // In metadata, an unresolved identifier cannot be a compile-time constant.
     String& name = String::CheckedZoneHandle(primary->primary().raw());
+    if (parsing_metadata_) {
+      ErrorMsg(primary->token_pos(),
+               "unresolved identifier '%s' is not a compile-time constant",
+               name.ToCString());
+    }
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
       return new StaticGetterNode(primary->token_pos(),
@@ -8271,6 +8280,11 @@ AstNode* Parser::LoadClosure(PrimaryNode* primary) {
     closure = CreateImplicitClosureNode(func, primary->token_pos(), NULL);
   } else {
     // Instance function access.
+    if (parsing_metadata_) {
+      ErrorMsg(primary->token_pos(),
+               "cannot access instance method '%s' from metadata",
+               funcname.ToCString());
+    }
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
       ErrorMsg(primary->token_pos(),
@@ -8653,6 +8667,11 @@ void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
                                       const String& field_name) {
   // Fields are not accessible from a static function, except from a
   // constructor, which is considered as non-static by the compiler.
+  if (parsing_metadata_) {
+    ErrorMsg(field_pos,
+             "cannot access instance field '%s' from metadata",
+             field_name.ToCString());
+  }
   if (current_function().is_static()) {
     ErrorMsg(field_pos,
              "cannot access instance field '%s' from a static function",
