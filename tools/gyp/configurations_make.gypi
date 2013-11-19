@@ -20,7 +20,6 @@
           '-Woverloaded-virtual',
           '-g3',
           '-ggdb3',
-	        '-rdynamic',
           # TODO(iposva): Figure out if we need to pass anything else.
           #'-ansi',
           '-fno-rtti',

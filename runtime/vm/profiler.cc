@@ -201,6 +201,10 @@ void ProfilerManager::ResizeIsolates(intptr_t new_capacity) {
 
 
 void ProfilerManager::AddIsolate(Isolate* isolate) {
+  if (isolates_ == NULL) {
+    // We are shutting down.
+    return;
+  }
   // Must be called with monitor_ locked.
   if (isolates_size_ == isolates_capacity_) {
     ResizeIsolates(isolates_capacity_ == 0 ? 16 : isolates_capacity_ * 2);

@@ -28,8 +28,8 @@ static void CollectSample(IsolateProfilerData* profiler_data,
   // Issue # 14777
   sample->vm_tags = Sample::kExecuting;
   sample->runtime_tags = 0;
-  int64_t cpu_usage;
-  Thread::GetThreadCpuUsage(profiler_data->thread_id(), &cpu_usage);
+  int64_t cpu_usage = 0;
+  // TODO(johnmccutchan): Thread::GetThreadCpuUsage on MacOS.
   sample->cpu_usage = profiler_data->ComputeDeltaAndSetCpuUsage(cpu_usage);
   ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
                                         pc, fp, sp);
