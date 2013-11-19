@@ -10,7 +10,9 @@ library dart.typed_data;
 
 import 'dart:collection';
 import 'dart:_collection-dev';
-import 'dart:_js_helper' show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
+import 'dart:_interceptors' show JSIndexable;
+import 'dart:_js_helper'
+    show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
 import 'dart:_foreign_helper' show JS, JS_CONST;
 import 'dart:math' as Math;
 
@@ -119,7 +121,12 @@ class TypedData native "ArrayBufferView" {
 // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
 // returns a copy of the list.
 List _ensureNativeList(List list) {
-  return list;  // TODO: make sure.
+  if (list is JSIndexable) return list;
+  List result = new List(list.length);
+  for (int i = 0; i < list.length; i++) {
+    result[i] = list[i];
+  }
+  return result;
 }
 
 
