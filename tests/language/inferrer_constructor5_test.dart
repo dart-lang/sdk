@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class A {
   A() {
-    print(field + 42);
+    print(field + 42); /// 01: static type warning
   }
 }
 
@@ -18,5 +18,5 @@ class B extends A {
 }
 
 main() {
-  Expect.throws(() => new B(), (e) => e is NoSuchMethodError);
+  Expect.throws(() => new B(), (e) => e is NoSuchMethodError); /// 01: continued
 }
