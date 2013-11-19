@@ -29,6 +29,7 @@ collection_helpers/test/equality_test/03: Fail # Issue 1533
 collection_helpers/test/equality_test/04: Fail # Issue 1533
 collection_helpers/test/equality_test/05: Fail # Issue 1533
 collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
+collection_helpers/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -81,6 +82,7 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
+pkg/collection_helpers/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
 [ $runtime == safari ]
