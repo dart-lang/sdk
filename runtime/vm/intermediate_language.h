@@ -2128,28 +2128,131 @@ class GotoInstr : public TemplateInstruction<0> {
 };
 
 
+template<intptr_t N>
+class TemplateDefinition : public Definition {
+ public:
+  TemplateDefinition<N>() : locs_(NULL) { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  // Returns a structure describing the location constraints required
+  // to emit native code for this definition.
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  friend class BranchInstr;
+
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
+
+  LocationSummary* locs_;
+};
+
+
+class ComparisonInstr : public TemplateDefinition<2> {
+ public:
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  virtual ComparisonInstr* AsComparison() { return this; }
+
+  intptr_t token_pos() const { return token_pos_; }
+  Token::Kind kind() const { return kind_; }
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch) = 0;
+
+  void SetDeoptId(intptr_t deopt_id) {
+    deopt_id_ = deopt_id;
+  }
+
+  // Operation class id is computed from collected ICData.
+  void set_operation_cid(intptr_t value) { operation_cid_ = value; }
+  intptr_t operation_cid() const { return operation_cid_; }
+
+  void NegateComparison() {
+    kind_ = Token::NegateComparison(kind_);
+  }
+
+ protected:
+  ComparisonInstr(intptr_t token_pos,
+                  Token::Kind kind,
+                  Value* left,
+                  Value* right)
+      : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
+ private:
+  const intptr_t token_pos_;
+  Token::Kind kind_;
+  intptr_t operation_cid_;  // Set by optimizer.
+
+  DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
+};
+
+
 class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false);
 
   DECLARE_INSTRUCTION(Branch)
 
-  virtual intptr_t ArgumentCount() const;
-  intptr_t InputCount() const;
-  Value* InputAt(intptr_t i) const;
-  virtual bool CanDeoptimize() const;
-  virtual bool CanBecomeDeoptimizationTarget() const;
+  virtual intptr_t ArgumentCount() const {
+    return comparison()->ArgumentCount();
+  }
 
-  virtual EffectSet Effects() const;
+  intptr_t InputCount() const { return comparison()->InputCount(); }
+
+  Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+
+  virtual bool CanDeoptimize() const {
+    // Branches need a deoptimization info in checked mode if they
+    // can throw a type check error.
+    return comparison()->CanDeoptimize() || is_checked();
+  }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    return comparison()->CanBecomeDeoptimizationTarget();
+  }
+
+  virtual EffectSet Effects() const {
+    return comparison()->Effects();
+  }
 
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
 
   bool is_checked() const { return is_checked_; }
 
-  virtual LocationSummary* locs();
-  virtual intptr_t DeoptimizationTarget() const;
-  virtual Representation RequiredInputRepresentation(intptr_t i) const;
+  virtual LocationSummary* locs() {
+    if (comparison()->locs_ == NULL) {
+      LocationSummary* summary = comparison()->MakeLocationSummary();
+      // Branches don't produce a result.
+      summary->set_out(Location::NoLocation());
+      comparison()->locs_ = summary;
+    }
+    return comparison()->locs_;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return comparison()->DeoptimizationTarget();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return comparison()->RequiredInputRepresentation(i);
+  }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -2177,7 +2280,9 @@ class BranchInstr : public Instruction {
 
   virtual void InheritDeoptTarget(Instruction* other);
 
-  virtual bool MayThrow() const;
+  virtual bool MayThrow() const {
+    return comparison()->MayThrow();
+  }
 
   TargetEntryInstr* true_successor() const { return true_successor_; }
   TargetEntryInstr* false_successor() const { return false_successor_; }
@@ -2226,37 +2331,6 @@ class StoreContextInstr : public TemplateInstruction<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
-};
-
-
-template<intptr_t N>
-class TemplateDefinition : public Definition {
- public:
-  TemplateDefinition<N>() : locs_(NULL) { }
-
-  virtual intptr_t InputCount() const { return N; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  // Returns a structure describing the location constraints required
-  // to emit native code for this definition.
-  LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
- protected:
-  EmbeddedArray<Value*, N> inputs_;
-
- private:
-  friend class BranchInstr;
-
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    inputs_[i] = value;
-  }
-
-  LocationSummary* locs_;
 };
 
 
@@ -2805,110 +2879,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };
-
-
-class ComparisonInstr : public TemplateDefinition<2> {
- public:
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  virtual ComparisonInstr* AsComparison() { return this; }
-
-  intptr_t token_pos() const { return token_pos_; }
-  Token::Kind kind() const { return kind_; }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
-                              BranchInstr* branch) = 0;
-
-  void SetDeoptId(intptr_t deopt_id) {
-    deopt_id_ = deopt_id;
-  }
-
-  // Operation class id is computed from collected ICData.
-  void set_operation_cid(intptr_t value) { operation_cid_ = value; }
-  intptr_t operation_cid() const { return operation_cid_; }
-
-  void NegateComparison() {
-    kind_ = Token::NegateComparison(kind_);
-  }
-
- protected:
-  ComparisonInstr(intptr_t token_pos,
-                  Token::Kind kind,
-                  Value* left,
-                  Value* right)
-      : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
- private:
-  const intptr_t token_pos_;
-  Token::Kind kind_;
-  intptr_t operation_cid_;  // Set by optimizer.
-
-  DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
-};
-
-
-// Inlined functions from class BranchInstr that forward to their comparison.
-inline intptr_t BranchInstr::ArgumentCount() const {
-  return comparison()->ArgumentCount();
-}
-
-
-inline intptr_t BranchInstr::InputCount() const {
-  return comparison()->InputCount();
-}
-
-
-inline Value* BranchInstr::InputAt(intptr_t i) const {
-  return comparison()->InputAt(i);
-}
-
-
-inline bool BranchInstr::CanDeoptimize() const {
-  // Branches need a deoptimization info in checked mode if they
-  // can throw a type check error.
-  return comparison()->CanDeoptimize() || is_checked();
-}
-
-
-inline bool BranchInstr::CanBecomeDeoptimizationTarget() const {
-  return comparison()->CanBecomeDeoptimizationTarget();
-}
-
-
-inline EffectSet BranchInstr::Effects() const {
-  return comparison()->Effects();
-}
-
-
-inline LocationSummary* BranchInstr::locs() {
-  if (comparison()->locs_ == NULL) {
-    LocationSummary* summary = comparison()->MakeLocationSummary();
-    // Branches don't produce a result.
-    summary->set_out(Location::NoLocation());
-    comparison()->locs_ = summary;
-  }
-  return comparison()->locs_;
-}
-
-
-inline intptr_t BranchInstr::DeoptimizationTarget() const {
-  return comparison()->DeoptimizationTarget();
-}
-
-
-inline Representation BranchInstr::RequiredInputRepresentation(
-    intptr_t i) const {
-  return comparison()->RequiredInputRepresentation(i);
-}
-
-
-inline bool BranchInstr::MayThrow() const {
-  return comparison()->MayThrow();
-}
 
 
 class StrictCompareInstr : public ComparisonInstr {
