@@ -8,6 +8,15 @@
 #include "platform/thread.h"
 
 #include <sys/errno.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
+#include <sys/sysctl.h>  // NOLINT
+#include <mach/mach_init.h>  // NOLINT
+#include <mach/mach_host.h>  // NOLINT
+#include <mach/mach_port.h>  // NOLINT
+#include <mach/mach_traps.h>  // NOLINT
+#include <mach/task_info.h>  // NOLINT
+#include <mach/thread_info.h>  // NOLINT
+#include <mach/thread_act.h>  // NOLINT
 
 #include "platform/assert.h"
 
@@ -128,6 +137,30 @@ intptr_t Thread::GetMaxStackSize() {
 }
 
 
+ThreadId Thread::GetCurrentThreadId() {
+  return pthread_self();
+}
+
+
+void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
+  ASSERT(thread_id == GetCurrentThreadId());
+  ASSERT(cpu_usage != NULL);
+  mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
+  thread_basic_info_data_t info_data;
+  thread_basic_info_t info = &info_data;
+  mach_port_t thread_port = mach_thread_self();
+  kern_return_t r = thread_info(thread_port, THREAD_BASIC_INFO,
+                                (thread_info_t)info, &count);
+  mach_port_deallocate(mach_task_self(), thread_port);
+  if (r == KERN_SUCCESS) {
+    *cpu_usage = (info->user_time.seconds * kMicrosecondsPerSecond) +
+                 info->user_time.microseconds;
+    return;
+  }
+  *cpu_usage = 0;
+}
+
+
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
@@ -229,17 +262,22 @@ void Monitor::Exit() {
 
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
+  return WaitMicros(millis * kMicrosecondsPerMillisecond);
+}
+
+
+Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   // TODO(iposva): Do we need to track lock owners?
   Monitor::WaitResult retval = kNotified;
-  if (millis == 0) {
+  if (micros == kNoTimeout) {
     // Wait forever.
     int result = pthread_cond_wait(data_.cond(), data_.mutex());
     VALIDATE_PTHREAD_RESULT(result);
   } else {
     struct timespec ts;
-    int64_t secs = millis / kMillisecondsPerSecond;
-    int64_t nanos = (millis - (secs * kMillisecondsPerSecond)) *
-        kNanosecondsPerMillisecond;
+    int64_t secs = micros / kMicrosecondsPerSecond;
+    int64_t nanos =
+        (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
     ts.tv_sec = secs;
     ts.tv_nsec = nanos;
     int result = pthread_cond_timedwait_relative_np(data_.cond(),

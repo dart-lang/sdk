@@ -7311,7 +7311,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Field& field = Field::Handle(GetMetadataField(metaname));
   if (field.IsNull()) {
     // There is no metadata for this object.
-    return Object::empty_array().raw();;
+    return Object::empty_array().raw();
   }
   Object& metadata = Object::Handle();
   metadata = field.value();
@@ -9597,6 +9597,9 @@ RawCode* Code::LookupCode(uword pc) {
   NoGCScope no_gc;
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
+  if (isolate->heap() == NULL) {
+    return Code::null();
+  }
   instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
   if (instr != Instructions::null()) {
     return instr->ptr()->code_;

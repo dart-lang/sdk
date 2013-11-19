@@ -16,6 +16,8 @@
 #include "vm/object_store.h"
 #include "vm/object_id_ring.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
+#include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
@@ -96,6 +98,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
+  ProfilerManager::InitOnce();
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
 #endif
@@ -170,6 +173,8 @@ const char* Dart::Cleanup() {
   vm_isolate_ = NULL;
 #endif
 
+  ScopedSignalBlocker ssb;
+  ProfilerManager::Shutdown();
   CodeObservers::DeleteAll();
 
   return NULL;

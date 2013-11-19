@@ -15,12 +15,17 @@
 namespace dart {
 
 typedef DWORD ThreadLocalKey;
+typedef HANDLE ThreadId;
+
 
 class ThreadInlineImpl {
  private:
   ThreadInlineImpl() {}
   ~ThreadInlineImpl() {}
 
+  static ThreadLocalKey thread_id_key;
+  static ThreadId CreateThreadId();
+  static void DestroyThreadId(ThreadId);
   static uword GetThreadLocal(ThreadLocalKey key) {
     static ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
     ASSERT(key != kUnsetThreadLocalKey);
@@ -28,6 +33,8 @@ class ThreadInlineImpl {
   }
 
   friend class Thread;
+  friend class OS;
+  friend unsigned int __stdcall ThreadEntry(void* data_ptr);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
@@ -70,6 +77,8 @@ class MonitorWaitData {
 
   friend class Monitor;
   friend class MonitorData;
+  friend class OS;
+
 
   DISALLOW_COPY_AND_ASSIGN(MonitorWaitData);
 };
@@ -86,7 +95,7 @@ class MonitorData {
   void RemoveWaiter(MonitorWaitData* wait_data);
   void SignalAndRemoveFirstWaiter();
   void SignalAndRemoveAllWaiters();
-  MonitorWaitData* GetMonitorWaitDataForThread();
+  static MonitorWaitData* GetMonitorWaitDataForThread();
 
   // The external critical section for the monitor.
   CRITICAL_SECTION cs_;
@@ -104,6 +113,8 @@ class MonitorData {
   MonitorWaitData* waiters_tail_;
 
   friend class Monitor;
+  friend class OS;
+  friend unsigned int __stdcall ThreadEntry(void* data_ptr);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MonitorData);

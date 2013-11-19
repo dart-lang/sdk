@@ -22,8 +22,10 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
+#include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -309,6 +311,7 @@ Isolate::Isolate()
       stack_frame_index_(-1),
       object_histogram_(NULL),
       object_id_ring_(NULL),
+      profiler_data_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       reusable_handles_() {
   if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
@@ -337,7 +340,15 @@ Isolate::~Isolate() {
 }
 
 void Isolate::SetCurrent(Isolate* current) {
+  ScopedSignalBlocker ssb;
+  Isolate* old_isolate = Current();
+  if (old_isolate != NULL) {
+    ProfilerManager::DescheduleIsolate(old_isolate);
+  }
   Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+  if (current != NULL) {
+    ProfilerManager::ScheduleIsolate(current);
+  }
 }
 
 
@@ -397,6 +408,10 @@ Isolate* Isolate::Init(const char* name_prefix) {
                 "\tisolate:    %s\n", result->name());
     }
   }
+
+  // Setup for profiling.
+  ProfilerManager::SetupIsolateForProfiling(result);
+
   return result;
 }
 
@@ -441,6 +456,21 @@ void Isolate::SetStackLimit(uword limit) {
     stack_limit_ = limit;
   }
   saved_stack_limit_ = limit;
+}
+
+
+bool Isolate::GetStackBounds(uintptr_t* lower, uintptr_t* upper) {
+  uintptr_t stack_lower = stack_limit();
+  if (stack_lower == static_cast<uintptr_t>(~0)) {
+    stack_lower = saved_stack_limit();
+  }
+  if (stack_lower == static_cast<uintptr_t>(~0)) {
+    return false;
+  }
+  uintptr_t stack_upper = stack_lower + GetSpecifiedStackSize();
+  *lower = stack_lower;
+  *upper = stack_upper;
+  return true;
 }
 
 
@@ -674,6 +704,11 @@ void Isolate::Shutdown() {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
 
+    ScopedSignalBlocker ssb;
+
+    ProfilerManager::DescheduleIsolate(this);
+
+
     if (FLAG_print_object_histogram) {
       heap()->CollectAllGarbage();
       object_histogram()->Print();
@@ -715,6 +750,7 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
+  ProfilerManager::ShutdownIsolateForProfiling(this);
 }
 
 

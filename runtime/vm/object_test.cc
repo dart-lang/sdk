@@ -17,6 +17,11 @@
 
 namespace dart {
 
+static RawLibrary* CreateDummyLibrary(const String& library_name) {
+  return Library::New(library_name);
+}
+
+
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
   const Class& cls = Class::Handle(
@@ -2396,9 +2401,13 @@ TEST_CASE(CheckedHandle) {
 
 static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  const String& lib_name = String::Handle(Symbols::New("ownerLibrary"));
   const Script& script = Script::Handle();
   const Class& owner_class =
       Class::Handle(CreateDummyClass(class_name, script));
+  const Library& owner_library =
+      Library::Handle(CreateDummyLibrary(lib_name));
+  owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
