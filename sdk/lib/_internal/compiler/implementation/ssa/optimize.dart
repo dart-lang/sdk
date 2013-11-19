@@ -1649,9 +1649,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   void visitIndexAssign(HIndexAssign instruction) {
     HInstruction receiver = instruction.receiver.nonCheck();
-    JavaScriptBackend backend = compiler.backend;
-    // Typed arrays may narrow incoming values.
-    if (backend.couldBeTypedArray(receiver.instructionType)) return;
     memorySet.registerKeyedValueUpdate(
         receiver, instruction.index, instruction.value);
   }
@@ -1831,6 +1828,10 @@ class MemorySet {
         });
       }
     });
+
+    JavaScriptBackend backend = compiler.backend;
+    // Typed arrays may narrow incoming values.
+    if (backend.couldBeTypedArray(receiver.instructionType)) return;
 
     Map<HInstruction, HInstruction> map = keyedValues.putIfAbsent(
         receiver, () => <HInstruction, HInstruction> {});

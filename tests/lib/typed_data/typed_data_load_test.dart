@@ -13,4 +13,10 @@ main() {
   if (list[0] != 44) {
     throw 'Test failed';
   }
+
+  var a = list[0];
+  list[0] = 0;
+  if (list[0] != 0) {
+    throw 'Test failed';
+  }
 }
