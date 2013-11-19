@@ -199,11 +199,37 @@ const String TEST_16 = """
 var a;
 
 void main() {
-  a = 42;
-  if (true) {
-    a = 0;
+  a = false;
+  if (main()) {
+    a = true;
   }
   return a;
+}
+""";
+
+const String TEST_17 = """
+var a;
+
+void main() {
+  if (main()) {
+    a = true;
+  } else {
+    a = false;
+  }
+  return a;
+}
+""";
+
+const String TEST_18 = """
+
+void main() {
+  var a = [42, true];
+  if (a[1]) {
+    a[0] = 1;
+  } else {
+    a[0] = 2;
+  }
+  return a[0];
 }
 """;
 
@@ -230,4 +256,6 @@ main() {
   test(TEST_14, (generated) => generated.contains('return t1[0]'));
   test(TEST_15, (generated) => generated.contains('return 42'));
   test(TEST_16, (generated) => generated.contains('return \$.a'));
+  test(TEST_17, (generated) => generated.contains('return t1'));
+  test(TEST_18, (generated) => generated.contains('return t1'));
 }

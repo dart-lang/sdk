@@ -58,6 +58,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           new SsaCodeMotion(),
           new SsaLoadElimination(compiler),
+          new SsaDeadPhiEliminator(),
           new SsaTypePropagator(compiler),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
@@ -1558,7 +1559,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       // Compute the intersection of all predecessors.
       memorySet = memories[block.predecessors[0].id];
       for (int i = 1; i < block.predecessors.length; i++) {
-       memorySet = memorySet.intersection(memories[block.predecessors[i].id]);
+        memorySet = memorySet.intersectionFor(
+          memories[block.predecessors[i].id], block, i);
       }
     }
     memories[block.id] = memorySet;
@@ -1839,16 +1841,51 @@ class MemorySet {
   }
 
   /**
+   * Returns null if either [first] or [second] is null. Otherwise
+   * returns [first] if [first] and [second] are equal. Otherwise
+   * creates or re-uses a phi in [block] that holds [first] and [second].
+   */
+  HInstruction findCommonInstruction(HInstruction first,
+                                     HInstruction second,
+                                     HBasicBlock block,
+                                     int predecessorIndex) {
+    if (first == null || second == null) return null;
+    if (first == second) return first;
+    TypeMask phiType = second.instructionType.union(
+          first.instructionType, compiler);
+    if (first is HPhi && first.block == block) {
+      HPhi phi = first;
+      phi.addInput(second);
+      phi.instructionType = phiType;
+      return phi;
+    } else {
+      HPhi phi = new HPhi.noInputs(null, phiType);
+      block.addPhi(phi);
+      // Previous predecessors had the same input. A phi must have
+      // the same number of inputs as its block has predecessors.
+      for (int i = 0; i < predecessorIndex; i++) {
+        phi.addInput(first);
+      }
+      phi.addInput(second);
+      return phi;
+    }
+  }
+
+  /**
    * Returns the intersection between [this] and [other].
    */
-  MemorySet intersection(MemorySet other) {
+  MemorySet intersectionFor(MemorySet other,
+                            HBasicBlock block,
+                            int predecessorIndex) {
     MemorySet result = new MemorySet(compiler);
     fieldValues.forEach((element, values) {
       var otherValues = other.fieldValues[element];
       if (otherValues == null) return;
       values.forEach((receiver, value) {
-        if (otherValues[receiver] == value) {
-          result.registerFieldValue(element, receiver, value);
+        HInstruction instruction = findCommonInstruction(
+            value, otherValues[receiver], block, predecessorIndex);
+        if (instruction != null) {
+          result.registerFieldValue(element, receiver, instruction);
         }
       });
     });
@@ -1857,8 +1894,10 @@ class MemorySet {
       var otherValues = other.keyedValues[receiver];
       if (otherValues == null) return;
       values.forEach((index, value) {
-        if (otherValues[index] == value) {
-          result.registerKeyedValue(receiver, index, value);
+        HInstruction instruction = findCommonInstruction(
+            value, otherValues[index], block, predecessorIndex);
+        if (instruction != null) {
+          result.registerKeyedValue(receiver, index, instruction);
         }
       });
     });
