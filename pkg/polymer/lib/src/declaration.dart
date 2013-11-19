@@ -365,7 +365,7 @@ class PolymerDeclaration extends HtmlElement {
   void installLocalSheets() {
     var sheets = this.sheets.where(
         (s) => !s.attributes.containsKey(_SCOPE_ATTR));
-    var content = this.templateContent;
+    var content = templateContent;
     if (content != null) {
       var cssText = new StringBuffer();
       for (var sheet in sheets) {
@@ -380,8 +380,8 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   List<Element> findNodes(String selector, [bool matcher(Element e)]) {
-    var nodes = this.queryAll(selector).toList();
-    var content = this.templateContent;
+    var nodes = this.querySelectorAll(selector).toList();
+    var content = templateContent;
     if (content != null) {
       nodes = nodes..addAll(content.queryAll(selector));
     }
@@ -570,11 +570,38 @@ const _SCOPE_ATTR = 'polymer-scope';
 const _STYLE_SCOPE_ATTRIBUTE = 'element';
 const _STYLE_CONTROLLER_SCOPE = 'controller';
 
-String _cssTextFromSheet(Element sheet) {
-  if (sheet == null || js.context == null) return '';
-  var resource = new js.JsObject.fromBrowserObject(sheet)['__resource'];
-  return resource != null ? resource : '';
+String _cssTextFromSheet(LinkElement sheet) {
+  if (sheet == null) return '';
+
+  // TODO(jmesserly): sometimes the href property is wrong after deployment.
+  var href = sheet.href;
+  if (href == '') href = sheet.attributes["href"];
+
+  if (js.context != null && js.context.hasProperty('HTMLImports')) {
+    var jsSheet = new js.JsObject.fromBrowserObject(sheet);
+    var resource = jsSheet['__resource'];
+    if (resource != null) return resource;
+    _sheetLog.fine('failed to get stylesheet text href="$href"');
+    return '';
+  }
+  // TODO(jmesserly): it seems like polymer-js is always polyfilling
+  // HTMLImports, because their code depends on "__resource" to work.
+  // We work around this by using a sync XHR to get the stylesheet text.
+  // Right now this code is only used in Dartium, but if it's going to stick
+  // around we will need to find a different approach.
+  try {
+    return (new HttpRequest()
+        ..open('GET', href, async: false)
+        ..send())
+        .responseText;
+  } on DomException catch (e, t) {
+    _sheetLog.fine('failed to get stylesheet text href="$href" error: '
+        '$e, trace: $t');
+    return '';
+  }
 }
+
+final Logger _sheetLog = new Logger('polymer.stylesheet');
 
 const _OBSERVE_SUFFIX = 'Changed';
 
