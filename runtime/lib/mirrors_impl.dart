@@ -9,11 +9,10 @@ import "dart:collection";
 final emptyList = new UnmodifiableListView([]);
 final emptyMap = new _UnmodifiableMapView({});
 
-// Copied from js_mirrors, in turn copied from the package
-// "unmodifiable_collection".
 // TODO(14314): Move to dart:collection.
 class _UnmodifiableMapView<K, V> implements Map<K, V> {
-   Map<K, V> _source;
+  final Map<K, V> _source;
+
   _UnmodifiableMapView(Map<K, V> source) : _source = source;
 
  static void _throw() {
@@ -21,38 +20,25 @@ class _UnmodifiableMapView<K, V> implements Map<K, V> {
   }
 
   int get length => _source.length;
-
   bool get isEmpty => _source.isEmpty;
-
   bool get isNotEmpty => _source.isNotEmpty;
-
   V operator [](K key) => _source[key];
-
   bool containsKey(K key) => _source.containsKey(key);
-
   bool containsValue(V value) => _source.containsValue(value);
-
   void forEach(void f(K key, V value)) => _source.forEach(f);
-
   Iterable<K> get keys => _source.keys;
-
   Iterable<V> get values => _source.values;
-
   void operator []=(K key, V value) => _throw();
-
   V putIfAbsent(K key, V ifAbsent()) { _throw(); }
-
   void addAll(Map<K, V> other) => _throw();
-
   V remove(K key) { _throw(); }
-
   void clear() => _throw();
 }
 
 class _InternalMirrorError {
+  final String _msg;
   const _InternalMirrorError(String this._msg);
   String toString() => _msg;
-  final String _msg;
 }
 
 Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
@@ -120,16 +106,15 @@ String _makeSignatureString(TypeMirror returnType,
 }
 
 List _metadata(reflectee)
-  native 'DeclarationMirror_metadata';
+    native 'DeclarationMirror_metadata';
 
 class _LocalMirrorSystem extends MirrorSystem {
-  // Change parameter back to "this.libraries" when native code is changed.
+  final Map<Uri, LibraryMirror> libraries;
+  final IsolateMirror isolate;
+
   _LocalMirrorSystem(List<LibraryMirror> libraries, this.isolate)
       : this.libraries = new Map<Uri, LibraryMirror>.fromIterable(
             libraries, key: (e) => e.uri);
-
-  final Map<Uri, LibraryMirror> libraries;
-  final IsolateMirror isolate;
 
   TypeMirror _dynamicType = null;
   TypeMirror get dynamicType {
@@ -153,18 +138,19 @@ class _LocalMirrorSystem extends MirrorSystem {
 abstract class _LocalMirror implements Mirror {}
 
 class _LocalIsolateMirror extends _LocalMirror implements IsolateMirror {
-  _LocalIsolateMirror (this.debugName, this.rootLibrary);
-
   final String debugName;
-  final bool isCurrent = true;
   final LibraryMirror rootLibrary;
+
+  _LocalIsolateMirror(this.debugName, this.rootLibrary);
+
+  bool get isCurrent => true;
 
   String toString() => "IsolateMirror on '$debugName'";
 }
 
 class _InvocationTrampoline implements Function {
-  ObjectMirror _receiver;
-  Symbol _selector;
+  final ObjectMirror _receiver;
+  final Symbol _selector;
   _InvocationTrampoline(this._receiver, this._selector);
   noSuchMethod(Invocation msg) {
     if (msg.memberName != #call) return super.noSuchMethod(msg);
@@ -175,14 +161,13 @@ class _InvocationTrampoline implements Function {
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
-  _LocalObjectMirror(this._reflectee);
-
   final _reflectee; // May be a MirrorReference or an ordinary object.
+
+  _LocalObjectMirror(this._reflectee);
 
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
                         [Map<Symbol, dynamic> namedArguments]) {
-
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;
@@ -198,21 +183,15 @@ abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
       });
     }
 
-    return reflect(this._invoke(_reflectee,
-                                _n(memberName),
-                                arguments,
-                                names));
+    return reflect(this._invoke(_reflectee, _n(memberName), arguments, names));
   }
 
   InstanceMirror getField(Symbol memberName) {
-    return reflect(this._invokeGetter(_reflectee,
-                                      _n(memberName)));
+    return reflect(this._invokeGetter(_reflectee, _n(memberName)));
   }
 
   InstanceMirror setField(Symbol memberName, Object value) {
-    this._invokeSetter(_reflectee,
-                       _n(memberName),
-                       value);
+    this._invokeSetter(_reflectee, _n(memberName), value);
     return reflect(value);
   }
 }
@@ -303,10 +282,7 @@ class _LocalInstanceMirror extends _LocalObjectMirror
       });
     }
 
-    return reflect(this._invoke(_reflectee,
-                                _n(memberName),
-                                arguments,
-                                names));
+    return reflect(this._invoke(_reflectee, _n(memberName), arguments, names));
   }
 
   _invoke(reflectee, functionName, arguments, argumentNames)
@@ -399,6 +375,14 @@ class _LocalClosureMirror extends _LocalInstanceMirror
 
 class _LocalClassMirror extends _LocalObjectMirror
     implements ClassMirror {
+  final Type _reflectedType;
+  Symbol _simpleName;
+  DeclarationMirror _owner;
+  final bool _isGeneric;
+  final bool _isMixinAlias;
+  final bool _isGenericDeclaration;
+  Type _instantiator;
+
   _LocalClassMirror(reflectee,
                     reflectedType,
                     String simpleName,
@@ -411,11 +395,6 @@ class _LocalClassMirror extends _LocalObjectMirror
         this._instantiator = reflectedType,
         super(reflectee);
 
-  final Type _reflectedType;
-  final bool _isGeneric;
-  final bool _isMixinAlias;
-  final bool _isGenericDeclaration;
-  Type _instantiator;
 
   bool get hasReflectedType => !_isGenericDeclaration;
   Type get reflectedType {
@@ -426,7 +405,6 @@ class _LocalClassMirror extends _LocalObjectMirror
     return _reflectedType;
   }
 
-  Symbol _simpleName;
   Symbol get simpleName {
     // All but anonymous mixin applications have their name set at construction.
     if(_simpleName == null) {
@@ -443,7 +421,6 @@ class _LocalClassMirror extends _LocalObjectMirror
     return _qualifiedName;
   }
 
-  var _owner;
   DeclarationMirror get owner {
     if (_owner == null) {
       _owner = _library(_reflectee);
@@ -816,11 +793,11 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
 
 abstract class _LocalDeclarationMirror extends _LocalMirror
     implements DeclarationMirror {
+  final _reflectee;
+  Symbol _simpleName;
+
   _LocalDeclarationMirror(this._reflectee, this._simpleName);
 
-  final _reflectee;
-
-  Symbol _simpleName;
   Symbol get simpleName => _simpleName;
 
   Symbol _qualifiedName = null;
@@ -862,8 +839,7 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
 
   bool get isPrivate => false;
   bool get isStatic => false;
-
-  final bool isTopLevel = false;
+  bool get isTopLevel => false;
 
   SourceLocation get location {
     throw new UnimplementedError(
@@ -906,6 +882,10 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
 
 class _LocalTypedefMirror extends _LocalDeclarationMirror
     implements TypedefMirror {
+  final Type _reflectedType;
+  final bool _isGeneric;
+  final bool _isGenericDeclaration;
+
   _LocalTypedefMirror(reflectee,
                       this._reflectedType,
                       String simpleName,
@@ -913,10 +893,6 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
                       this._isGenericDeclaration,
                       this._owner)
       : super(reflectee, _s(simpleName));
-
-  final Type _reflectedType;
-  final bool _isGeneric;
-  final bool _isGenericDeclaration;
 
   bool get isTopLevel => true;
   bool get isPrivate => false;
@@ -992,6 +968,9 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
 
 class _LocalLibraryMirror extends _LocalObjectMirror
     implements LibraryMirror {
+  final Symbol simpleName;
+  final Uri uri;
+
   _LocalLibraryMirror(reflectee,
                       String simpleName,
                       String url)
@@ -999,27 +978,19 @@ class _LocalLibraryMirror extends _LocalObjectMirror
         this.uri = Uri.parse(url),
         super(reflectee);
 
-  final Symbol simpleName;
-
   // The simple name and the qualified name are the same for a library.
   Symbol get qualifiedName => simpleName;
 
-  // Always null for libraries.
-  final DeclarationMirror owner = null;
+  DeclarationMirror get owner => null;
 
-  // Always false for libraries.
-  final bool isPrivate = false;
-
-  // Always false for libraries.
-  final bool isTopLevel = false;
+  bool get isPrivate => false;
+  bool get isTopLevel => false;
 
   Type get _instantiator => null;
 
   SourceLocation get location {
     throw new UnimplementedError('LibraryMirror.location is not implemented');
   }
-
-  final Uri uri;
 
   Map<Symbol, DeclarationMirror> _declarations;
   Map<Symbol, DeclarationMirror> get declarations {
@@ -1125,6 +1096,20 @@ class _LocalLibraryMirror extends _LocalObjectMirror
 
 class _LocalMethodMirror extends _LocalDeclarationMirror
     implements MethodMirror {
+  final bool isStatic;
+  final bool isAbstract;
+  final bool isGetter;
+  final bool isSetter;
+  final bool isConstructor;
+  final bool isConstConstructor;
+  final bool isGenerativeConstructor;
+  final bool isRedirectingConstructor;
+  final bool isFactoryConstructor;
+  final bool isOperator;
+
+  static const _operators = const ["%", "&", "*", "+", "-", "/", "<", "<<",
+      "<=", "==", ">", ">=", ">>", "[]", "[]=", "^", "|", "~", "unary-", "~/"];
+
   _LocalMethodMirror(reflectee,
                      String simpleName,
                      this._owner,
@@ -1140,20 +1125,6 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
       : this.isOperator = _operators.contains(simpleName),
         super(reflectee, _s(simpleName));
 
-  static const _operators = const ["%", "&", "*", "+", "-", "/", "<", "<<",
-      "<=", "==", ">", ">=", ">>", "[]", "[]=", "^", "|", "~", "unary-", "~/"];
-
-  final bool isStatic;
-  final bool isAbstract;
-  final bool isGetter;
-  final bool isSetter;
-  final bool isConstructor;
-  final bool isConstConstructor;
-  final bool isGenerativeConstructor;
-  final bool isRedirectingConstructor;
-  final bool isFactoryConstructor;
-  final bool isOperator;
-
   DeclarationMirror _owner;
   DeclarationMirror get owner {
     // For nested closures it is possible, that the mirror for the owner has not
@@ -1167,7 +1138,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   bool get isPrivate => _n(simpleName).startsWith('_') ||
                         _n(constructorName).startsWith('_');
 
-  bool get isTopLevel =>  owner is LibraryMirror;
+  bool get isTopLevel => owner is LibraryMirror;
 
   SourceLocation get location {
     throw new UnimplementedError('MethodMirror.location is not implemented');
@@ -1260,6 +1231,11 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
 
 class _LocalVariableMirror extends _LocalDeclarationMirror
     implements VariableMirror {
+  final DeclarationMirror owner;
+  final bool isStatic;
+  final bool isFinal;
+  final bool isConst;
+
   _LocalVariableMirror(reflectee,
                        String simpleName,
                        this.owner,
@@ -1268,11 +1244,6 @@ class _LocalVariableMirror extends _LocalDeclarationMirror
                        this.isFinal,
                        this.isConst)
       : super(reflectee, _s(simpleName));
-
-  final DeclarationMirror owner;
-  final bool isStatic;
-  final bool isFinal;
-  final bool isConst;
 
   bool get isPrivate => _n(simpleName).startsWith('_');
 
@@ -1302,6 +1273,11 @@ class _LocalVariableMirror extends _LocalDeclarationMirror
 
 class _LocalParameterMirror extends _LocalVariableMirror
     implements ParameterMirror {
+  final int _position;
+  final bool isOptional;
+  final bool isNamed;
+  final List _unmirroredMetadata;
+
   _LocalParameterMirror(reflectee,
                         String simpleName,
                         DeclarationMirror owner,
@@ -1319,11 +1295,6 @@ class _LocalParameterMirror extends _LocalVariableMirror
               isFinal,
               false  // Not const.
               );
-
-  final int _position;
-  final bool isOptional;
-  final bool isNamed;
-  final List _unmirroredMetadata;
 
   Object _defaultValueReflectee;
   InstanceMirror _defaultValue;
@@ -1367,13 +1338,16 @@ class _LocalParameterMirror extends _LocalVariableMirror
 
 class _SpecialTypeMirror extends _LocalMirror
     implements TypeMirror, DeclarationMirror {
+  final Symbol simpleName;
+
   _SpecialTypeMirror(String name) : simpleName = _s(name);
 
-  final bool isPrivate = false;
-  final DeclarationMirror owner = null;
-  final Symbol simpleName;
-  final bool isTopLevel = true;
-  final List<InstanceMirror> metadata = emptyList;
+  bool get isPrivate => false;
+  bool get isTopLevel => true;
+
+  DeclarationMirror get owner => null;
+
+  List<InstanceMirror> get metadata => emptyList;
 
   List<TypeVariableMirror> get typeVariables => emptyList;
   List<TypeMirror> get typeArguments => emptyList;
