@@ -5,7 +5,7 @@
 async_window_test: Skip #TODO(gram): investigating
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
-dromaeo_smoke_test: Fail, Pass # Issue 14521
+dromaeo_smoke_test: Skip # Issue 14521, 8257
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
@@ -54,7 +54,6 @@ fileapi_test/getFile: Fail, Pass # TODO(kasperl): Please triage.
 audiobuffersourcenode_test/supported: Fail # TODO(kasperl): Please triage.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # TODO(kasperl): Please triage.
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # TODO(kasperl): Please triage.
-dromaeo_smoke_test: Fail # TODO(kasperl): Please triage.
 element_types_test/supported_datalist: Fail # TODO(kasperl): Please triage.
 fileapi_test/directoryReader: Fail # TODO(kasperl): Please triage.
 input_element_test/supported_week: Fail # TODO(kasperl): Please triage.
@@ -107,7 +106,6 @@ websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
 audiobuffersourcenode_test: Pass, Fail
 
 [$runtime == ie10 ]
-dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 history_test/history: Pass, Fail # issue 8183
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
@@ -173,7 +171,6 @@ blob_constructor_test: Fail
 custom/document_register_type_extensions_test/namespaces: Fail # Issue 13193
 document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
-dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 form_element_test: Fail # Issue 4793.
 localstorage_test: Fail
@@ -346,7 +343,6 @@ websql_test/supported: Fail
 [ $runtime == ff ]
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
-dromaeo_smoke_test: Pass, Fail # Issue: 8257
 webgl_1_test: Pass, Fail   # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox does not like dataUrl videos for drawImage
 
@@ -399,7 +395,6 @@ wheelevent_test: Fail # http://dartbug.com/12958
 
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
-dromaeo_smoke_test: Fail # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
 touchevent_test/supported: Fail # Issue 13719: Please triage this failure.
 

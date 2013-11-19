@@ -673,14 +673,16 @@ class BrowserTest {
 
 /* Describes the output of running the test in a browser */
 class BrowserTestOutput {
-  final bool didTimeout;
   final Duration delayUntilTestStarted;
   final Duration duration;
+
+  final String lastKnownMessage;
+
   final BrowserOutput browserOutput;
-  final String dom;
+  final bool didTimeout;
 
   BrowserTestOutput(
-      this.delayUntilTestStarted, this.duration, this.dom,
+      this.delayUntilTestStarted, this.duration, this.lastKnownMessage,
       this.browserOutput, {this.didTimeout: false});
 }
 

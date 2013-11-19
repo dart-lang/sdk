@@ -13,7 +13,7 @@ library test_runner;
 
 import "dart:async";
 import "dart:collection" show Queue;
-import "dart:convert" show LineSplitter, UTF8;
+import "dart:convert" show LineSplitter, UTF8, JSON;
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;
@@ -878,6 +878,217 @@ class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
   }
 }
 
+class BrowserTestJsonResult {
+  static const ALLOWED_TYPES =
+      const ['sync_exception', 'window_onerror', 'script_onerror',
+             'window_compilationerror', 'print', 'message_received', 'dom',
+             'debug'];
+
+  final Expectation outcome;
+  final String htmlDom;
+  final List events;
+
+  BrowserTestJsonResult(this.outcome,
+                        this.htmlDom,
+                        this.events);
+
+  static BrowserTestJsonResult parseFromString(String content) {
+    void validate(String assertion, bool value) {
+      if (!value) {
+        throw "InvalidFormat sent from browser driving page: $assertion:\n\n"
+               "$content";
+      }
+    }
+
+    var events;
+    try {
+      events = JSON.decode(content);
+      if (events != null) {
+        validate("Message must be a List", events is List);
+
+        Map<String, List<String>> messagesByType = {};
+        ALLOWED_TYPES.forEach((type) => messagesByType[type] = <String>[]);
+
+        for (var entry in events) {
+          validate("An entry must be a Map", entry is Map);
+
+          var type = entry['type'];
+          var value = entry['value'];
+          var timestamp = entry['timestamp'];
+
+          validate("'type' of an entry must be a String",
+                   type is String);
+          validate("'type' has to be in $ALLOWED_TYPES.",
+                   ALLOWED_TYPES.contains(type));
+          validate("'timestamp' of an entry must be a number",
+                   timestamp is num);
+
+          messagesByType[type].add(value);
+        }
+        validate("The message must have exactly one 'dom' entry.",
+            messagesByType['dom'].length == 1);
+
+        return new BrowserTestJsonResult(
+            _getOutcome(messagesByType), messagesByType['dom'][0], events);
+      }
+    } catch(error) {
+      // If something goes wrong, we know the content was not in the correct
+      // JSON format. So we can't parse it.
+      // The caller is responsible for falling back to the old way of
+      // determining if a test failed.
+    }
+
+    return null;
+  }
+
+  static Expectation _getOutcome(Map<String, List<String>> messagesByType) {
+    occured(type) => messagesByType[type].length > 0;
+    searchForMsg(types, message) {
+      return types.any((type) => messagesByType[type].contains(message));
+    }
+
+    // FIXME(kustermann,ricow): I think this functionality doesn't work in
+    // test_controller.js: So far I haven't seen anything being reported on
+    // "window.compilationerror"
+    if (occured('window_compilationerror')) {
+      return Expectation.COMPILETIME_ERROR;
+    }
+
+    if (occured('sync_exception') ||
+        occured('window_onerror') ||
+        occured('script_onerror')) {
+      return Expectation.RUNTIME_ERROR;
+    }
+
+    if (messagesByType['dom'][0].contains('FAIL')) {
+      return Expectation.RUNTIME_ERROR;
+    }
+
+    // We search for these messages in 'print' and 'message_received' because
+    // the unittest implementation posts these messages using
+    // "window.postMessage()" instead of the normal "print()" them.
+
+    var isAsyncTest = searchForMsg(['print', 'message_received'],
+                                   'unittest-suite-wait-for-done');
+    var isAsyncSuccess =
+        searchForMsg(['print', 'message_received'], 'unittest-suite-success') ||
+        searchForMsg(['print', 'message_received'], 'unittest-suite-done');
+
+    if (isAsyncTest) {
+      if (isAsyncSuccess) {
+        return Expectation.PASS;
+      }
+      return Expectation.RUNTIME_ERROR;
+    }
+
+    var mainStarted =
+        searchForMsg(['print', 'message_received'], 'dart-calling-main');
+    var mainDone =
+        searchForMsg(['print', 'message_received'], 'dart-main-done');
+
+    if (mainStarted && mainDone) {
+      return Expectation.PASS;
+    }
+    return Expectation.FAIL;
+  }
+}
+
+class BrowserControllerTestOutcome extends CommandOutputImpl
+                                   with UnittestSuiteMessagesMixin {
+  BrowserTestOutput _result;
+  Expectation _rawOutcome;
+
+  factory BrowserControllerTestOutcome(Command command,
+                                       BrowserTestOutput result) {
+    void validate(String assertion, bool value) {
+      if (!value) {
+        throw "InvalidFormat sent from browser driving page: $assertion:\n\n"
+              "${result.lastKnownMessage}";
+      }
+    }
+
+    String indent(String string, int numSpaces) {
+      var spaces = new List.filled(numSpaces, ' ').join('');
+      return string.replaceAll('\r\n', '\n')
+          .split('\n')
+          .map((line) => "$spaces$line")
+          .join('\n');
+    }
+
+    String stdout = "";
+    String stderr = "";
+    Expectation outcome;
+
+    var parsedResult =
+        BrowserTestJsonResult.parseFromString(result.lastKnownMessage);
+    if (parsedResult != null) {
+      outcome = parsedResult.outcome;
+    } else {
+      // Old way of determining whether a test failed or passed.
+      if (result.lastKnownMessage.contains("FAIL")) {
+        outcome = Expectation.RUNTIME_ERROR;
+      } else if (result.lastKnownMessage.contains("PASS")) {
+        outcome = Expectation.PASS;
+      } else {
+        outcome = Expectation.RUNTIME_ERROR;
+      }
+    }
+
+    if (result.didTimeout) {
+      if (result.delayUntilTestStarted != null) {
+        stderr = "This test timed out. The delay until the test actually "
+                 "started was: ${result.delayUntilTestStarted}.";
+      } else {
+        // TODO(ricow/kustermann) as soon as we record the state periodically,
+        // we will have more information and can remove this warning.
+        stderr = "This test has not notified test.py that it started running. "
+                 "This could be a bug in test.py! "
+                 "Please contact ricow/kustermann";
+      }
+    }
+
+    if (parsedResult != null) {
+      stdout = "events:\n${indent(prettifyJson(parsedResult.events), 2)}\n\n";
+    } else {
+      stdout = "message:\n${indent(result.lastKnownMessage, 2)}\n\n";
+    }
+
+    stderr =
+        '$stderr\n\n'
+        'BrowserOutput while running the test (* EXPERIMENTAL *):\n'
+        'BrowserOutput.stdout:\n'
+        '${indent(result.browserOutput.stdout.toString(), 2)}\n'
+        'BrowserOutput.stderr:\n'
+        '${indent(result.browserOutput.stderr.toString(), 2)}\n'
+        '\n';
+    return new BrowserControllerTestOutcome._internal(
+      command, result, outcome, encodeUtf8(stdout), encodeUtf8(stderr));
+  }
+
+  BrowserControllerTestOutcome._internal(
+      Command command, BrowserTestOutput result, this._rawOutcome,
+      List<int> stdout, List<int> stderr)
+      : super(command, 0, result.didTimeout, stdout, stderr, result.duration,
+              false) {
+    _result = result;
+  }
+
+  Expectation result(TestCase testCase) {
+    // Handle timeouts first
+    if (_result.didTimeout)  return Expectation.TIMEOUT;
+
+    // Multitests are handled specially
+    if (testCase.info != null) {
+      if (testCase.info.hasRuntimeError) {
+        if (_rawOutcome == Expectation.RUNTIME_ERROR) return Expectation.PASS;
+        return Expectation.MISSING_RUNTIME_ERROR;
+      }
+    }
+
+    return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
+  }
+}
+
 
 class AnalysisCommandOutputImpl extends CommandOutputImpl {
   // An error line has 8 fields that look like:
@@ -1065,7 +1276,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
 
     // Multitests are handled specially
     if (testCase.info != null) {
-      if (testCase.info.hasCompileError) {
+    if (testCase.info.hasCompileError) {
         // Nonzero exit code of the compiler means compilation failed
         // TODO(kustermann): Do we have a special exit code in that case???
         if (exitCode != 0) {
@@ -1858,31 +2069,8 @@ class CommandExecutorImpl implements CommandExecutor {
     var completer = new Completer<CommandOutput>();
 
     var callback = (BrowserTestOutput output) {
-      bool timedOut = output.didTimeout;
-      String stderr = "";
-      if (timedOut) {
-        if (output.delayUntilTestStarted != null) {
-          stderr = "This test timed out. The delay until the test actually "
-                   "started was: ${output.delayUntilTestStarted}.";
-        } else {
-          stderr = "This test has not notified test.py that it started running."
-                   " This could be a bug in test.py! "
-                   "Please contact ricow/kustermann";
-        }
-      }
-      stderr =
-          '$stderr\n\n'
-          'BrowserOutput while running the test (* EXPERIMENTAL *):\n'
-          'BrowserOutput.stdout:\n${output.browserOutput.stdout.toString()}\n'
-          'BrowserOutput.stderr:\n${output.browserOutput.stderr.toString()}\n';
-      var commandOutput = createCommandOutput(browserCommand,
-                          0,
-                          timedOut,
-                          encodeUtf8(output.dom),
-                          encodeUtf8(stderr),
-                          output.duration,
-                          false);
-      completer.complete(commandOutput);
+      completer.complete(
+          new BrowserControllerTestOutcome(browserCommand, output));
     };
     BrowserTest browserTest = new BrowserTest(browserCommand.url,
                                               callback,

@@ -65,6 +65,53 @@ class DebugLogger {
   static String get _datetime => "${new DateTime.now()}";
 }
 
+String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
+  int currentIndentation = startIndentation;
+  var buffer = new StringBuffer();
+
+  String indentationString() {
+    return new List.filled(currentIndentation, ' ').join('');
+  }
+
+  addString(String s, {bool indentation: true, bool newLine: true}) {
+    if (indentation) {
+      buffer.write(indentationString());
+    }
+    buffer.write(s.replaceAll("\n", "\n${indentationString()}"));
+    if (newLine) buffer.write("\n");
+  }
+
+  prettifyJsonInternal(
+      Object obj, {bool indentation: true, bool newLine: true}) {
+    if (obj is List) {
+      addString("[", indentation: indentation);
+      currentIndentation += shiftWidth;
+      for (var item in obj) {
+
+        prettifyJsonInternal(item, indentation: indentation, newLine: false);
+        addString(",", indentation: false);
+      }
+      currentIndentation -= shiftWidth;
+      addString("]", indentation: indentation);
+    } else if (obj is Map) {
+      addString("{", indentation: indentation);
+      currentIndentation += shiftWidth;
+      for (var key in obj.keys) {
+        addString("$key: ", indentation: indentation, newLine: false);
+        currentIndentation += shiftWidth;
+        prettifyJsonInternal(obj[key], indentation: false);
+        currentIndentation -= shiftWidth;
+      }
+      currentIndentation -= shiftWidth;
+      addString("}", indentation: indentation, newLine: newLine);
+    } else {
+      addString("$obj", indentation: indentation, newLine: newLine);
+    }
+  }
+  prettifyJsonInternal(json);
+  return buffer.toString();
+}
+
 
 /**
  * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
