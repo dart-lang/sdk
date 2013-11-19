@@ -34,7 +34,8 @@ void main() {
     _testLinter('missing Dart code and dart.js', {
         'a|web/test.html': '<!DOCTYPE html><html></html>',
       }, {
-        'a|web/test.html.messages': 'error: $USE_INIT_DART',
+        'a|web/test.html.messages': 'error: $USE_INIT_DART\n'
+                                    'error: $USE_DART_JS',
       });
 
     _testLinter('using deprecated boot.js', {
@@ -58,7 +59,7 @@ void main() {
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
       }, {
-        'a|web/test.html.messages':
+        'a|web/test.html.messages': 
             'warning: Only one "application/dart" script tag per document is'
             ' allowed. (web/test.html 1 0)',
       });
@@ -71,7 +72,7 @@ void main() {
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
       }, {
-        'a|lib/test.html.messages':
+        'a|lib/test.html.messages': 
             'warning: Only one "application/dart" script tag per document is'
             ' allowed. (lib/test.html 1 0)',
       });
@@ -86,7 +87,7 @@ void main() {
             '</script>'
             '<script src="packages/browser/dart.js"></script>'
       }, {
-        'a|web/test.html.messages':
+        'a|web/test.html.messages': 
             'warning: Only one "application/dart" script tag per document is'
             ' allowed. (web/test.html 1 0)',
       });
@@ -99,7 +100,8 @@ void main() {
         'a|web/test.html.messages':
             'warning: Unexpected start tag (html). Expected DOCTYPE. '
             '(web/test.html 0 0)\n'
-            'error: $USE_INIT_DART',
+            'error: $USE_INIT_DART\n'
+            'error: $USE_DART_JS',
       });
 
     _testLinter('in lib', {
@@ -359,12 +361,18 @@ void main() {
             '(lib/test.html 1 33)'
       });
 
-    _testLinter('on-foo-bar is supported as a custom event name', {
+    _testLinter('on-foo-bar is no longer supported', {
         'a|lib/test.html': '''<html><body>
             <polymer-element name="x-a"><div on-foo-bar="quux"></div>
             </polymer-element>
             '''.replaceAll('            ', ''),
-      }, {});
+      }, {
+        'a|lib/test.html.messages':
+            'warning: Invalid event name "on-foo-bar". After the "on-" the '
+            'event name should not use dashes. For example use "on-fooBar" or '
+            '"on-foobar" (both forms are equivalent in HTML). '
+            '(lib/test.html 1 33)'
+      });
   });
 
   group('using custom tags', () {
