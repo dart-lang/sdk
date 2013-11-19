@@ -1478,11 +1478,8 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check,
                                                     intptr_t token_pos) {
-  if (needs_number_check) {
-    if (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()) {
-      needs_number_check = false;
-    }
-  }
+  ASSERT(!needs_number_check ||
+         (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
 
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
     ASSERT(!needs_number_check);

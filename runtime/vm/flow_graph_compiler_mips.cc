@@ -1485,8 +1485,8 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     bool needs_number_check,
                                                     intptr_t token_pos) {
   __ TraceSimMsg("EqualityRegConstCompare");
-  if (needs_number_check &&
-      (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
+  if (needs_number_check) {
+    ASSERT(!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint());
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(reg, Address(SP, 1 * kWordSize));
     __ LoadObject(TMP, obj);

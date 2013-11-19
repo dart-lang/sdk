@@ -2151,14 +2151,6 @@ class BranchInstr : public Instruction {
   virtual intptr_t DeoptimizationTarget() const;
   virtual Representation RequiredInputRepresentation(intptr_t i) const;
 
-  // A misleadingly named function for use in template functions that also
-  // replace definitions.  In this case, leave the branch intact and replace
-  // its comparison with another comparison that has been removed from the
-  // graph but still has uses properly linked into their definition's use
-  // list.
-  void ReplaceWith(ComparisonInstr* other,
-                   ForwardInstructionIterator* ignored);
-
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintTo(BufferFormatter* f) const;

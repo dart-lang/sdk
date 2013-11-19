@@ -141,7 +141,11 @@ LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterOrConstant(left()));
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  // Only one of the inputs can be a constant. Choose register if the first one
+  // is a constant.
+  locs->set_in(1, locs->in(0).IsConstant()
+                      ? Location::RequiresRegister()
+                      : Location::RegisterOrConstant(right()));
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
@@ -153,17 +157,6 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Location left = locs()->in(0);
   Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(srdjan): Determine why this instruction was not eliminated.
-    bool res = (left.constant().raw() == right.constant().raw());
-    if ((kind_ == Token::kNE_STRICT) || (kind_ == Token::kNE)) {
-      res = !res;
-    }
-    __ LoadImmediate(locs()->out().reg(),
-        reinterpret_cast<int32_t>(Smi::New(res ? if_true_ : if_false_)));
-    return;
-  }
-
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   // Clear out register.

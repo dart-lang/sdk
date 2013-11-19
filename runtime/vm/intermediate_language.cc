@@ -772,16 +772,6 @@ void BranchInstr::RawSetInputAt(intptr_t i, Value* value) {
 }
 
 
-// A misleadingly named function for use in template functions that replace
-// both definitions with definitions and branch comparisons with
-// comparisons.  In the branch case, leave the branch intact and replace its
-// comparison with a new comparison not currently in the graph.
-void BranchInstr::ReplaceWith(ComparisonInstr* other,
-                              ForwardInstructionIterator* ignored) {
-  SetComparison(other);
-}
-
-
 void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
   for (intptr_t i = new_comparison->InputCount() - 1; i >= 0; --i) {
     Value* input = new_comparison->InputAt(i);

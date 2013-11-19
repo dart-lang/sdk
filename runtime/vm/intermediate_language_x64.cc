@@ -136,7 +136,11 @@ LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterOrConstant(left()));
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  // Only one of the inputs can be a constant. Choose register if the first one
+  // is a constant.
+  locs->set_in(1, locs->in(0).IsConstant()
+                      ? Location::RequiresRegister()
+                      : Location::RegisterOrConstant(right()));
   // TODO(vegorov): support byte register constraints in the register allocator.
   locs->set_out(Location::RegisterLocation(RDX));
   return locs;
@@ -149,18 +153,6 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Location left = locs()->in(0);
   Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(srdjan): Determine why this instruction was not eliminated.
-    bool result = (left.constant().raw() == right.constant().raw());
-    if ((kind_ == Token::kNE_STRICT) || (kind_ == Token::kNE)) {
-      result = !result;
-    }
-    __ LoadImmediate(locs()->out().reg(),
-            Immediate(reinterpret_cast<int64_t>(
-                Smi::New(result ? if_true_ : if_false_))), PP);
-    return;
-  }
-
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   // Clear upper part of the out register. We are going to use setcc on it
