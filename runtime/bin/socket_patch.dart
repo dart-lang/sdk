@@ -73,8 +73,10 @@ class _InternetAddress implements InternetAddress {
 
   final InternetAddressType type;
   final String address;
-  final String host;
+  final String _host;
   final Uint8List _sockaddr_storage;
+
+  String get host => _host != null ? _host : address;
 
   bool get isLoopback {
     switch (type) {
@@ -108,7 +110,7 @@ class _InternetAddress implements InternetAddress {
 
   _InternetAddress(InternetAddressType this.type,
                    String this.address,
-                   String this.host,
+                   String this._host,
                    List<int> this._sockaddr_storage);
 
   factory _InternetAddress.fixed(int id) {
@@ -116,10 +118,10 @@ class _InternetAddress implements InternetAddress {
     switch (id) {
       case _ADDRESS_LOOPBACK_IP_V4:
         return new _InternetAddress(
-            InternetAddressType.IP_V4, "127.0.0.1", "localhost", sockaddr);
+            InternetAddressType.IP_V4, "127.0.0.1", null, sockaddr);
       case _ADDRESS_LOOPBACK_IP_V6:
         return new _InternetAddress(
-            InternetAddressType.IP_V6, "::1", "ip6-localhost", sockaddr);
+            InternetAddressType.IP_V6, "::1", null, sockaddr);
       case _ADDRESS_ANY_IP_V4:
         return new _InternetAddress(
             InternetAddressType.IP_V4, "0.0.0.0", "0.0.0.0", sockaddr);
@@ -443,7 +445,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   InternetAddress get remoteAddress {
     var result = nativeGetRemotePeer()[0];
     var type = new InternetAddressType._from(result[0]);
-    return new _InternetAddress(type, result[1], "", result[2]);
+    return new _InternetAddress(type, result[1], null, result[2]);
   }
 
   // Multiplexes socket events to the socket handlers.

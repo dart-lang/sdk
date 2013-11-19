@@ -77,12 +77,15 @@ abstract class InternetAddress {
   InternetAddressType type;
 
   /**
-   * The resolved address of the host.
+   * The numeric address of the host. For IPv4 addresses this is using
+   * the dotted-decimal notation. For IPv6 it is using the
+   * hexadecimal representation.
    */
   String get address;
 
   /**
-   * The host used to lookup the address.
+   * The host used to lookup the address. If there is no host
+   * associated with the address this returns the numeric address.
    */
   String get host;
 
@@ -507,11 +510,7 @@ class SocketException implements IOException {
       sb.write(": $osError");
     }
     if (address != null) {
-      if (address.host.isNotEmpty) {
-        sb.write(", address = ${address.host}");
-      } else {
-        sb.write(", address = ${address.address}");
-      }
+      sb.write(", address = ${address.host}");
     }
     if (port != null) {
       sb.write(", port = $port");
