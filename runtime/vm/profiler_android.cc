@@ -51,7 +51,6 @@ static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
     uintptr_t PC = SignalHandler::GetProgramCounter(mcontext);
     uintptr_t FP = SignalHandler::GetFramePointer(mcontext);
     uintptr_t SP = SignalHandler::GetStackPointer(mcontext);
-    stack_lower = SignalHandler::GetStackPointer(mcontext);
     int64_t sample_time = OS::GetCurrentTimeMicros();
     profiler_data->SampledAt(sample_time);
     CollectSample(profiler_data, PC, FP, SP, stack_lower, stack_upper);
