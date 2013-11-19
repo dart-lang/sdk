@@ -129,10 +129,10 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         // readdir_r. For those and for links we use stat to determine
         // the actual entry type. Notice that stat returns the type of
         // the file pointed to.
-        struct stat entry_info;
+        struct stat64 entry_info;
         int stat_success;
         stat_success = TEMP_FAILURE_RETRY(
-            lstat(listing->path_buffer().AsString(), &entry_info));
+            lstat64(listing->path_buffer().AsString(), &entry_info));
         if (stat_success == -1) {
           return kListError;
         }
@@ -151,7 +151,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             previous = previous->next;
           }
           stat_success = TEMP_FAILURE_RETRY(
-              stat(listing->path_buffer().AsString(), &entry_info));
+              stat64(listing->path_buffer().AsString(), &entry_info));
           if (stat_success == -1) {
             // Report a broken link as a link, even if follow_links is true.
             return kListLink;
@@ -230,8 +230,8 @@ static bool DeleteDir(char* dir_name,
 static bool DeleteRecursively(PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
-  struct stat st;
-  if (TEMP_FAILURE_RETRY(lstat(path->AsString(), &st)) == -1) {
+  struct stat64 st;
+  if (TEMP_FAILURE_RETRY(lstat64(path->AsString(), &st)) == -1) {
     return false;
   } else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
     return (unlink(path->AsString()) == 0);
@@ -276,13 +276,13 @@ static bool DeleteRecursively(PathBuffer* path) {
         // On some file systems the entry type is not determined by
         // readdir_r. For those we use lstat to determine the entry
         // type.
-        struct stat entry_info;
+        struct stat64 entry_info;
         if (!path->Add(entry.d_name)) {
           success = false;
           break;
         }
         int lstat_success = TEMP_FAILURE_RETRY(
-            lstat(path->AsString(), &entry_info));
+            lstat64(path->AsString(), &entry_info));
         if (lstat_success == -1) {
           success = false;
           break;
@@ -314,8 +314,8 @@ static bool DeleteRecursively(PathBuffer* path) {
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  struct stat entry_info;
-  int success = TEMP_FAILURE_RETRY(stat(dir_name, &entry_info));
+  struct stat64 entry_info;
+  int success = TEMP_FAILURE_RETRY(stat64(dir_name, &entry_info));
   if (success == 0) {
     if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;

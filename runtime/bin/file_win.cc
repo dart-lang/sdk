@@ -72,21 +72,21 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
 }
 
 
-off_t File::Position() {
+off64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
-  return lseek(handle_->fd(), 0, SEEK_CUR);
+  return _lseeki64(handle_->fd(), 0, SEEK_CUR);
 }
 
 
-bool File::SetPosition(int64_t position) {
+bool File::SetPosition(off64_t position) {
   ASSERT(handle_->fd() >= 0);
-  return (lseek(handle_->fd(), position, SEEK_SET) != -1);
+  return _lseeki64(handle_->fd(), position, SEEK_SET) >= 0;
 }
 
 
-bool File::Truncate(int64_t length) {
+bool File::Truncate(off64_t length) {
   ASSERT(handle_->fd() >= 0);
-  return (chsize(handle_->fd(), length) != -1);
+  return (_chsize_s(handle_->fd(), length) != -1);
 }
 
 
@@ -96,10 +96,10 @@ bool File::Flush() {
 }
 
 
-off_t File::Length() {
+off64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
-  struct stat st;
-  if (fstat(handle_->fd(), &st) == 0) {
+  struct __stat64 st;
+  if (_fstat64(handle_->fd(), &st) == 0) {
     return st.st_size;
   }
   return -1;
@@ -121,7 +121,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
     return NULL;
   }
   if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
-    int position = lseek(fd, 0, SEEK_END);
+    off64_t position = _lseeki64(fd, 0, SEEK_END);
     if (position < 0) {
       return NULL;
     }
@@ -137,9 +137,9 @@ File* File::OpenStdio(int fd) {
 
 
 bool File::Exists(const char* name) {
-  struct _stat st;
+  struct __stat64 st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
-  bool stat_status = _wstat(system_name, &st);
+  bool stat_status = _wstat64(system_name, &st);
   free(const_cast<wchar_t*>(system_name));
   if (stat_status == 0) {
     return ((st.st_mode & S_IFMT) == S_IFREG);
@@ -322,10 +322,10 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
 }
 
 
-off_t File::LengthFromPath(const char* name) {
-  struct _stat st;
+off64_t File::LengthFromPath(const char* name) {
+  struct __stat64 st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
-  int stat_status = _wstat(system_name, &st);
+  int stat_status = _wstat64(system_name, &st);
   free(const_cast<wchar_t*>(system_name));
   if (stat_status == 0) {
     return st.st_size;
@@ -448,9 +448,9 @@ void File::Stat(const char* name, int64_t* data) {
 
 
 time_t File::LastModified(const char* name) {
-  struct _stat st;
+  struct __stat64 st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
-  int stat_status = _wstat(system_name, &st);
+  int stat_status = _wstat64(system_name, &st);
   free(const_cast<wchar_t*>(system_name));
   if (stat_status == 0) {
     return st.st_mtime;

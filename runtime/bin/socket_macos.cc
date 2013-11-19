@@ -168,8 +168,8 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
 
 
 int Socket::GetType(intptr_t fd) {
-  struct stat buf;
-  int result = fstat(fd, &buf);
+  struct stat64 buf;
+  int result = fstat64(fd, &buf);
   if (result == -1) return -1;
   if (S_ISCHR(buf.st_mode)) return File::kTerminal;
   if (S_ISFIFO(buf.st_mode)) return File::kPipe;
