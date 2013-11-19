@@ -151,10 +151,6 @@ class TypeVariableHandler {
   }
 
   List<int> typeVariablesOf(ClassElement classElement) {
-    List<int> result = typeVariables[classElement];
-    if (result == null) {
-      result = const <int>[];
-    }
-    return result;
+    return typeVariables[classElement];
   }
 }
