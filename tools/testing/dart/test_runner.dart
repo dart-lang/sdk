@@ -834,8 +834,11 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
       }
       assert(containsPass);
       if (exitCode != 0) {
-        DebugLogger.warning("All tests passed, but exitCode != 0. "
-                            "($command)");
+        var message = "All tests passed, but exitCode != 0. "
+                      "Actual exitcode: $exitCode. "
+                      "($command)";
+        DebugLogger.warning(message);
+        diagnostics.add(message);
       }
       return (exitCode != 0 && !hasCrashed);
     }
