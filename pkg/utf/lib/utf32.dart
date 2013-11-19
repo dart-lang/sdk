@@ -234,7 +234,12 @@ abstract class Utf32BytesDecoder implements _ListRangeIterator {
 
   bool moveNext() {
     _current = null;
-    if (utf32EncodedBytesIterator.remaining < 4) {
+    int remaining = utf32EncodedBytesIterator.remaining;
+    if (remaining == 0) {
+      _current = null;
+      return false;
+    }
+    if (remaining < 4) {
       utf32EncodedBytesIterator.skip(utf32EncodedBytesIterator.remaining);
       if (replacementCodepoint != null) {
           _current = replacementCodepoint;
@@ -243,18 +248,17 @@ abstract class Utf32BytesDecoder implements _ListRangeIterator {
         throw new ArgumentError(
             "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
       }
+    }
+    int codepoint = decode();
+    if (_validCodepoint(codepoint)) {
+      _current = codepoint;
+      return true;
+    } else if (replacementCodepoint != null) {
+      _current = replacementCodepoint;
+      return true;
     } else {
-      int codepoint = decode();
-      if (_validCodepoint(codepoint)) {
-        _current = codepoint;
-        return true;
-      } else if (replacementCodepoint != null) {
-        _current = replacementCodepoint;
-        return true;
-      } else {
-        throw new ArgumentError(
-            "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
-      }
+      throw new ArgumentError(
+          "Invalid UTF32 at ${utf32EncodedBytesIterator.position}");
     }
   }
 
