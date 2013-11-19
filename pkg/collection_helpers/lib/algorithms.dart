@@ -5,7 +5,7 @@
 /**
  * Operations on collections.
  */
-library dart.collection_helper.algorithms;
+library dart.collection_helpers.algorithms;
 
 import "dart:math" show Random;
 

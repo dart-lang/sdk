@@ -8,7 +8,7 @@ description: >
  a set of options and values using GNU and POSIX style options.
 
 dependencies:
-  unmodifiable_collection: ">=0.9.0 <0.10.0"
+  collection_helpers: ">=0.9.0 <0.10.0"
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:

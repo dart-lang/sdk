@@ -4,11 +4,19 @@
 
 /**
  * Delegating wrappers for [Iterable], [List], [Set], [Queue] and [Map].
+ *
+ * Also adds unmodifiable views for `Set` and `Map`, and a fixed length
+ * view for `List`. The unmodifable list view from `dart:collection` is exported
+ * as well, just for completeness.
  */
-library dart.collection_helper.wrappers;
+library dart.collection_helpers.wrappers;
 
 import "dart:collection";
 import "dart:math" show Random;
+
+export "dart:collection" show UnmodifiableListView;
+
+part "unmodifiable_wrappers.dart";
 
 /**
  * Creates an [Iterable] that delegates all operations to a base iterable.

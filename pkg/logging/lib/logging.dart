@@ -51,7 +51,7 @@
 library logging;
 
 import 'dart:async';
-import 'package:unmodifiable_collection/unmodifiable_collection.dart';
+import 'package:collection_helpers/wrappers.dart';
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
