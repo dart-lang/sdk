@@ -47,6 +47,8 @@ class JsBuilder {
 
   LiteralString string(String value) => new LiteralString('"$value"');
 
+  LiteralNumber number(num value) => new LiteralNumber('$value');
+
   If if_(condition, thenPart, [elsePart]) {
     condition = toExpression(condition);
     return (elsePart == null)
