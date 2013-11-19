@@ -390,6 +390,7 @@ class TypeGraphInferrerEngine
       <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
   final Element mainElement;
+  final Set<Element> analyzedElements = new Set<Element>();
 
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
@@ -397,13 +398,13 @@ class TypeGraphInferrerEngine
   final int MAX_CHANGE_COUNT = 5;
 
   int overallRefineCount = 0;
+  int addedInGraph = 0;
 
   TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
 
   void runOverAllElements() {
     if (compiler.disableTypeInference) return;
-    int addedInGraph = 0;
     compiler.progress.reset();
 
     sortResolvedElements().forEach((Element element) {
@@ -414,48 +415,7 @@ class TypeGraphInferrerEngine
       // Force the creation of the [ElementTypeInformation] to ensure it is
       // in the graph.
       types.getInferredTypeOf(element);
-
-      SimpleTypeInferrerVisitor visitor =
-          new SimpleTypeInferrerVisitor(element, compiler, this);
-      TypeInformation type;
-      compiler.withCurrentElement(element, () {
-        type = visitor.run();
-      });
-      addedInGraph++;
-
-      if (element.isField()) {
-        Node node = element.parseNode(compiler);
-        if (element.modifiers.isFinal() || element.modifiers.isConst()) {
-          // If [element] is final and has an initializer, we record
-          // the inferred type.
-          if (node.asSendSet() != null) {
-            recordType(element, type);
-          } else if (!element.isInstanceMember()) {
-            recordType(element, types.nullType);
-          }
-        } else if (node.asSendSet() == null) {
-          // Only update types of static fields if there is no
-          // assignment. Instance fields are dealt with in the constructor.
-          if (Elements.isStaticOrTopLevelField(element)) {
-            recordTypeOfNonFinalField(node, element, type);
-          }
-        } else {
-          recordTypeOfNonFinalField(node, element, type);
-        }
-        if (Elements.isStaticOrTopLevelField(element)
-            && node.asSendSet() != null
-            && !element.modifiers.isConst()) {
-          var argument = node.asSendSet().arguments.head;
-          // TODO(13429): We could do better here by using the
-          // constant handler to figure out if it's a lazy field or not.
-          if (argument.asSend() != null
-              || (argument.asNewExpression() != null && !argument.isConst())) {
-            recordType(element, types.nullType);
-          }
-        }
-      } else {
-        recordReturnType(element, type);
-      }
+      analyze(element);
     });
     compiler.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -501,6 +461,54 @@ class TypeGraphInferrerEngine
     compiler.log('Inferred $overallRefineCount types.');
 
     processLoopInformation();
+  }
+
+  void analyze(Element element) {
+    element = element.implementation;
+    if (analyzedElements.contains(element)) return;
+    analyzedElements.add(element);
+
+    SimpleTypeInferrerVisitor visitor =
+        new SimpleTypeInferrerVisitor(element, compiler, this);
+    TypeInformation type;
+    compiler.withCurrentElement(element, () {
+      type = visitor.run();
+    });
+    addedInGraph++;
+
+    if (element.isField()) {
+      Node node = element.parseNode(compiler);
+      if (element.modifiers.isFinal() || element.modifiers.isConst()) {
+        // If [element] is final and has an initializer, we record
+        // the inferred type.
+        if (node.asSendSet() != null) {
+          recordType(element, type);
+        } else if (!element.isInstanceMember()) {
+          recordType(element, types.nullType);
+        }
+      } else if (node.asSendSet() == null) {
+        // Only update types of static fields if there is no
+        // assignment. Instance fields are dealt with in the constructor.
+        if (Elements.isStaticOrTopLevelField(element)) {
+          recordTypeOfNonFinalField(node, element, type);
+        }
+      } else {
+        recordTypeOfNonFinalField(node, element, type);
+      }
+      if (Elements.isStaticOrTopLevelField(element)
+          && node.asSendSet() != null
+          && !element.modifiers.isConst()) {
+        var argument = node.asSendSet().arguments.head;
+        // TODO(13429): We could do better here by using the
+        // constant handler to figure out if it's a lazy field or not.
+        if (argument.asSend() != null
+            || (argument.asNewExpression() != null && !argument.isConst())) {
+          recordType(element, types.nullType);
+        }
+      }
+    } else {
+      recordReturnType(element, type);
+    }
   }
 
   void processLoopInformation() {
@@ -790,6 +798,8 @@ class TypeGraphInferrerEngine
     types.typeInformations.values.forEach((info) => info.clear());
     types.allocatedTypes.clear();
     types.concreteTypes.clear();
+    analyzedElements.clear();
+    generativeConstructorsExposingThis.clear();
   }
 
   Iterable<Element> getCallersOf(Element element) {

@@ -135,6 +135,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   final Compiler compiler;
   final V types;
   final Map<Node, T> concreteTypes = new Map<Node, T>();
+  final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
   InferrerEngine(this.compiler, this.types);
 
@@ -372,6 +373,20 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         && element.getEnclosingClass().isNative()
         && element.isField();
   }
+
+  void analyze(Element element);
+
+  bool checkIfExposesThis(Element element) {
+    element = element.implementation;
+    return generativeConstructorsExposingThis.contains(element);
+  }
+
+  void recordExposesThis(Element element, bool exposesThis) {
+    element = element.implementation;
+    if (exposesThis) {
+      generativeConstructorsExposingThis.add(element);
+    }
+  }
 }
 
 class SimpleTypeInferrerVisitor<T>
@@ -402,6 +417,11 @@ class SimpleTypeInferrerVisitor<T>
     assert(outermostElement != null);
     return new SimpleTypeInferrerVisitor<T>.internal(
         element, outermostElement, inferrer, compiler, handler);
+  }
+
+  void analyzeSuperConstructorCall(Element target) {
+    inferrer.analyze(target);
+    isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
   T run() {
@@ -469,7 +489,6 @@ class SimpleTypeInferrerVisitor<T>
         visitingInitializers = true;
         visit(node.initializers);
         visitingInitializers = false;
-        visit(node.body);
         // For a generative constructor like: `Foo();`, we synthesize
         // a call to the default super constructor (the one that takes
         // no argument). Resolution ensures that such a constructor
@@ -480,8 +499,11 @@ class SimpleTypeInferrerVisitor<T>
           Selector selector =
               new Selector.callDefaultConstructor(analyzedElement.getLibrary());
           FunctionElement target = cls.superclass.lookupConstructor(selector);
+          analyzeSuperConstructorCall(target);
           synthesizeForwardingCall(analyzedElement, target);
         }
+        visit(node.body);
+        inferrer.recordExposesThis(analyzedElement, isThisExposed);
       }
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
@@ -584,13 +606,18 @@ class SimpleTypeInferrerVisitor<T>
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
 
+  bool isInClassOrSubclass(Element element) {
+    ClassElement cls = outermostElement.getEnclosingClass();
+    ClassElement enclosing = element.getEnclosingClass();
+    return (enclosing == cls) || compiler.world.isSubclass(cls, enclosing);
+  }
+
   void checkIfExposesThis(Selector selector) {
     if (isThisExposed) return;
     inferrer.forEachElementMatching(selector, (element) {
       if (element.isField()) {
         if (!selector.isSetter()
-            && element.getEnclosingClass() ==
-                    outermostElement.getEnclosingClass()
+            && isInClassOrSubclass(element)
             && !element.modifiers.isFinal()
             && locals.fieldScope.readField(element) == null
             && element.parseNode(compiler).asSendSet() == null) {
@@ -798,10 +825,11 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitSuperSend(Send node) {
+    Element element = elements[node];
     if (visitingInitializers) {
       seenSuperConstructorCall = true;
+      analyzeSuperConstructorCall(element);
     }
-    Element element = elements[node];
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): We could do better here if we knew what we
     // are calling does not expose this.
@@ -846,14 +874,15 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitStaticSend(Send node) {
+    Element element = elements[node];
     if (visitingInitializers) {
       if (Initializers.isConstructorRedirect(node)) {
         isConstructorRedirect = true;
       } else if (Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
+        analyzeSuperConstructorCall(element);
       }
     }
-    Element element = elements[node];
     if (element.isForeign(compiler)) {
       return handleForeignSend(node);
     }
