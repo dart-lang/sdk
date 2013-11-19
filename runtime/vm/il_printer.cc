@@ -573,6 +573,12 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("'%s', ", MethodRecognizer::KindToCString(kind()));
+  value()->PrintTo(f);
+}
+
+
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');

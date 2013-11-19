@@ -4747,6 +4747,8 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   MethodRecognizer::Kind kind() const { return kind_; }
   const RuntimeEntry& TargetFunction() const;
 
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation representation() const {
