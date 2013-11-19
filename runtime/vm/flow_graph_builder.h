@@ -25,6 +25,9 @@ class LocalVariable;
 class ParsedFunction;
 class String;
 
+class NestedStatement;
+class TestGraphVisitor;
+
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
@@ -106,8 +109,6 @@ class InlineExitCollector: public ZoneAllocated {
 };
 
 
-class NestedStatement;
-
 // Build a flow graph from a parsed function's AST.
 class FlowGraphBuilder: public ValueObject {
  public:
@@ -128,8 +129,7 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   void SetInitialBlockId(intptr_t id) { last_used_block_id_ = id; }
 
-  void set_context_level(intptr_t value) { context_level_ = value; }
-  intptr_t context_level() const { return context_level_; }
+  intptr_t context_level() const;
 
   void IncrementLoopDepth() { ++loop_depth_; }
   void DecrementLoopDepth() { --loop_depth_; }
@@ -198,7 +198,6 @@ class FlowGraphBuilder: public ValueObject {
   ZoneGrowableArray<const Field*>* guarded_fields_;
 
   intptr_t last_used_block_id_;
-  intptr_t context_level_;
   intptr_t try_index_;
   intptr_t catch_try_index_;
   intptr_t loop_depth_;
@@ -220,44 +219,6 @@ class FlowGraphBuilder: public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
 
-
-// Base class for a stack of enclosing statements of interest (e.g.,
-// blocks (breakable) and loops (continuable)).
-class NestedStatement : public ValueObject {
- public:
-  NestedStatement(FlowGraphBuilder* owner, const SourceLabel* label)
-      : owner_(owner),
-        label_(label),
-        outer_(owner->nesting_stack_),
-        break_target_(NULL) {
-    // Push on the owner's nesting stack.
-    owner->nesting_stack_ = this;
-  }
-
-  virtual ~NestedStatement() {
-    // Pop from the owner's nesting stack.
-    ASSERT(owner_->nesting_stack_ == this);
-    owner_->nesting_stack_ = outer_;
-  }
-
-  FlowGraphBuilder* owner() const { return owner_; }
-  const SourceLabel* label() const { return label_; }
-  NestedStatement* outer() const { return outer_; }
-  JoinEntryInstr* break_target() const { return break_target_; }
-
-  virtual JoinEntryInstr* BreakTargetFor(SourceLabel* label);
-  virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
-
- private:
-  FlowGraphBuilder* owner_;
-  const SourceLabel* label_;
-  NestedStatement* outer_;
-
-  JoinEntryInstr* break_target_;
-};
-
-
-class TestGraphVisitor;
 
 // Translate an AstNode to a control-flow graph fragment for its effects
 // (e.g., a statement or an expression in an effect context).  Implements a
@@ -402,8 +363,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
 
-  // Moves parent context into the context register.
-  void UnchainContext();
+  // Moves the nth parent context into the context register.
+  void UnchainContexts(intptr_t n);
 
   void CloseFragment() { exit_ = NULL; }
 

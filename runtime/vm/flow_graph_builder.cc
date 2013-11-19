@@ -42,6 +42,56 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
+// Base class for a stack of enclosing statements of interest (e.g.,
+// blocks (breakable) and loops (continuable)).
+class NestedStatement : public ValueObject {
+ public:
+  FlowGraphBuilder* owner() const { return owner_; }
+  const SourceLabel* label() const { return label_; }
+  NestedStatement* outer() const { return outer_; }
+  JoinEntryInstr* break_target() const { return break_target_; }
+
+  virtual intptr_t ContextLevel() const;
+
+  virtual JoinEntryInstr* BreakTargetFor(SourceLabel* label);
+  virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
+
+ protected:
+  NestedStatement(FlowGraphBuilder* owner, const SourceLabel* label)
+      : owner_(owner),
+        label_(label),
+        outer_(owner->nesting_stack_),
+        break_target_(NULL) {
+    // Push on the owner's nesting stack.
+    owner->nesting_stack_ = this;
+  }
+
+  virtual ~NestedStatement() {
+    // Pop from the owner's nesting stack.
+    ASSERT(owner_->nesting_stack_ == this);
+    owner_->nesting_stack_ = outer_;
+  }
+
+ private:
+  FlowGraphBuilder* owner_;
+  const SourceLabel* label_;
+  NestedStatement* outer_;
+
+  JoinEntryInstr* break_target_;
+};
+
+
+intptr_t NestedStatement::ContextLevel() const {
+  // Context level is determined by the innermost nested statement having one.
+  return (outer() == NULL) ? 0 : outer()->ContextLevel();
+}
+
+
+intptr_t FlowGraphBuilder::context_level() const {
+  return (nesting_stack() == NULL) ? 0 : nesting_stack()->ContextLevel();
+}
+
+
 JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
   if (label != label_) return NULL;
   if (break_target_ == NULL) {
@@ -57,12 +107,38 @@ JoinEntryInstr* NestedStatement::ContinueTargetFor(SourceLabel* label) {
 }
 
 
+// A nested statement that has its own context level.
+class NestedBlock : public NestedStatement {
+ public:
+  NestedBlock(FlowGraphBuilder* owner, SequenceNode* node)
+      : NestedStatement(owner, node->label()), scope_(node->scope()) {}
+
+  virtual intptr_t ContextLevel() const;
+
+ private:
+  LocalScope* scope_;
+};
+
+
+intptr_t NestedBlock::ContextLevel() const {
+  return ((scope_ == NULL) || (scope_->num_context_variables() == 0))
+      ? NestedStatement::ContextLevel()
+      : scope_->context_level();
+}
+
+
 // A nested statement that can be the target of a continue as well as a
 // break.
 class NestedLoop : public NestedStatement {
  public:
   NestedLoop(FlowGraphBuilder* owner, SourceLabel* label)
-      : NestedStatement(owner, label), continue_target_(NULL) { }
+      : NestedStatement(owner, label), continue_target_(NULL) {
+    owner->IncrementLoopDepth();
+  }
+
+  virtual ~NestedLoop() {
+    owner()->DecrementLoopDepth();
+  }
 
   JoinEntryInstr* continue_target() const { return continue_target_; }
 
@@ -143,7 +219,6 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     exit_collector_(exit_collector),
     guarded_fields_(new ZoneGrowableArray<const Field*>()),
     last_used_block_id_(0),  // 0 is used for the graph entry.
-    context_level_(0),
     try_index_(CatchClauseNode::kInvalidTryIndex),
     catch_try_index_(CatchClauseNode::kInvalidTryIndex),
     loop_depth_(0),
@@ -916,9 +991,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     // CTX on entry was saved, but not linked as context parent.
     BuildRestoreContext(*owner()->parsed_function()->saved_entry_context_var());
   } else {
-    while (current_context_level-- > 0) {
-      UnchainContext();
-    }
+    UnchainContexts(current_context_level);
   }
 
   AddReturnExit(node->token_pos(), return_value);
@@ -1779,7 +1852,6 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   NestedLoop nested_loop(owner(), node->label());
-  owner()->IncrementLoopDepth();
 
   TestGraphVisitor for_test(owner(), node->condition()->token_pos());
   node->condition()->Visit(&for_test);
@@ -1800,7 +1872,6 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
     Goto(join);
     exit_ = join;
   }
-  owner()->DecrementLoopDepth();
 }
 
 
@@ -1814,7 +1885,6 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   NestedLoop nested_loop(owner(), node->label());
-  owner()->IncrementLoopDepth();
 
   // Traverse the body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner());
@@ -1854,7 +1924,6 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     for_test.IfFalseGoto(join);
     exit_ = join;
   }
-  owner()->DecrementLoopDepth();
 }
 
 
@@ -1877,7 +1946,6 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   ASSERT(is_open());
 
   NestedLoop nested_loop(owner(), node->label());
-  owner()->IncrementLoopDepth();
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner());
   node->body()->Visit(&for_body);
@@ -1923,7 +1991,6 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
       exit_ = nested_loop.break_target();
     }
   }
-  owner()->DecrementLoopDepth();
 }
 
 
@@ -1959,25 +2026,16 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   ASSERT(target_context_level >= 0);
   intptr_t current_context_level = owner()->context_level();
   ASSERT(current_context_level >= target_context_level);
-  while (current_context_level-- > target_context_level) {
-    UnchainContext();
-  }
+  UnchainContexts(current_context_level - target_context_level);
 
   JoinEntryInstr* jump_target = NULL;
-  if (node->kind() == Token::kBREAK) {
-    NestedStatement* current = owner()->nesting_stack();
-    while (current != NULL) {
-      jump_target = current->BreakTargetFor(node->label());
-      if (jump_target != NULL) break;
-      current = current->outer();
-    }
-  } else {
-    NestedStatement* current = owner()->nesting_stack();
-    while (current != NULL) {
-      jump_target = current->ContinueTargetFor(node->label());
-      if (jump_target != NULL) break;
-      current = current->outer();
-    }
+  NestedStatement* current = owner()->nesting_stack();
+  while (current != NULL) {
+    jump_target = (node->kind() == Token::kBREAK)
+        ? current->BreakTargetFor(node->label())
+        : current->ContinueTargetFor(node->label());
+    if (jump_target != NULL) break;
+    current = current->outer();
   }
   ASSERT(jump_target != NULL);
   Goto(jump_target);
@@ -3457,13 +3515,17 @@ bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
 }
 
 
-void EffectGraphVisitor::UnchainContext() {
-  Value* context = Bind(new CurrentContextInstr());
-  Value* parent = Bind(
-      new LoadFieldInstr(context,
-                         Context::parent_offset(),
-                         Type::ZoneHandle()));  // Not an instance, no type.
-  AddInstruction(new StoreContextInstr(parent));
+void EffectGraphVisitor::UnchainContexts(intptr_t n) {
+  if (n > 0) {
+    Value* context = Bind(new CurrentContextInstr());
+    while (n-- > 0) {
+      context = Bind(
+          new LoadFieldInstr(context,
+                             Context::parent_offset(),
+                             Type::ZoneHandle()));  // Not an instance, no type.
+    }
+    AddInstruction(new StoreContextInstr(context));
+  }
 }
 
 
@@ -3474,11 +3536,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
-  int previous_context_level = owner()->context_level();
   // The outermost function sequence cannot contain a label.
   ASSERT((node->label() == NULL) ||
          (node != owner()->parsed_function()->node_sequence()));
-  NestedStatement nested_block(owner(), node->label());
+  NestedBlock nested_block(owner(), node);
 
   if (num_context_variables > 0) {
     // The loop local scope declares variables that are captured.
@@ -3509,8 +3570,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       AddInstruction(
           new StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }
-
-    owner()->set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy
     // the captured parameters from the frame into the context.
@@ -3600,7 +3659,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       BuildRestoreContext(
           *owner()->parsed_function()->saved_entry_context_var());
     } else if (num_context_variables > 0) {
-      UnchainContext();
+      UnchainContexts(1);
     }
   }
 
@@ -3610,8 +3669,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (is_open()) Goto(nested_block.break_target());
     exit_ = nested_block.break_target();
   }
-
-  owner()->set_context_level(previous_context_level);
 }
 
 
