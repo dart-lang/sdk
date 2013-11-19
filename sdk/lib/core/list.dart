@@ -421,15 +421,15 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
 
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive
-   * and replaces them with the contents of the [iterable].
+   * and inserts the contents of [replacement] in its place.
    *
-   *     List<int> list = [1, 2, 3, 4];
-   *     list.replaceRange(1, 3, [6, 7]);
-   *     list.join(', '); // '1, 6, 7, 4'
+   *     List<int> list = [1, 2, 3, 4, 5];
+   *     list.replaceRange(1, 4, [6, 7]);
+   *     list.join(', '); // '1, 6, 7, 5'
    *
    * An error occurs if [start]..[end] is not a valid range for `this`.
    */
-  void replaceRange(int start, int end, Iterable<E> iterable);
+  void replaceRange(int start, int end, Iterable<E> replacement);
 
   /**
    * Returns an unmodifiable [Map] view of `this`.
