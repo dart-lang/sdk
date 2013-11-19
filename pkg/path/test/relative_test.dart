@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Test "relative" on all styles of path.Builder, on all platforms.
+// Test "relative" on all styles of path.Context, on all platforms.
 
 import "package:unittest/unittest.dart";
 import "package:path/path.dart" as path;
@@ -11,27 +11,27 @@ import "utils.dart";
 
 void main() {
   test("test relative", () {
-    relativeTest(new path.Builder(style: path.Style.posix, root: '.'), '/');
-    relativeTest(new path.Builder(style: path.Style.posix, root: '/'), '/');
-    relativeTest(new path.Builder(style: path.Style.windows, root: r'd:\'),
+    relativeTest(new path.Context(style: path.Style.posix, current: '.'), '/');
+    relativeTest(new path.Context(style: path.Style.posix, current: '/'), '/');
+    relativeTest(new path.Context(style: path.Style.windows, current: r'd:\'),
                  r'c:\');
-    relativeTest(new path.Builder(style: path.Style.windows, root: '.'),
+    relativeTest(new path.Context(style: path.Style.windows, current: '.'),
                  r'c:\');
-    relativeTest(new path.Builder(style: path.Style.url, root: 'file:///'),
+    relativeTest(new path.Context(style: path.Style.url, current: 'file:///'),
                  'http://myserver/');
-    relativeTest(new path.Builder(style: path.Style.url, root: '.'),
+    relativeTest(new path.Context(style: path.Style.url, current: '.'),
                  'http://myserver/');
-    relativeTest(new path.Builder(style: path.Style.url, root: 'file:///'),
+    relativeTest(new path.Context(style: path.Style.url, current: 'file:///'),
                  '/');
-    relativeTest(new path.Builder(style: path.Style.url, root: '.'), '/');
+    relativeTest(new path.Context(style: path.Style.url, current: '.'), '/');
   });
 }
 
-void relativeTest(path.Builder builder, String prefix) {
-  var isRelative = (builder.root == '.');
+void relativeTest(path.Context context, String prefix) {
+  var isRelative = (context.current == '.');
   // Cases where the arguments are absolute paths.
   expectRelative(result, pathArg, fromArg) {
-    expect(builder.normalize(result), builder.relative(pathArg, from: fromArg));
+    expect(context.normalize(result), context.relative(pathArg, from: fromArg));
   }
 
   expectRelative('c/d', '${prefix}a/b/c/d', '${prefix}a/b');
@@ -77,10 +77,10 @@ void relativeTest(path.Builder builder, String prefix) {
 
   // Should always throw - no relative path can be constructed.
   if (isRelative) {
-    expect(() => builder.relative('.', from: '..'), throwsPathException);
-    expect(() => builder.relative('a/b', from: '../../d'),
+    expect(() => context.relative('.', from: '..'), throwsPathException);
+    expect(() => context.relative('a/b', from: '../../d'),
            throwsPathException);
-    expect(() => builder.relative('a/b', from: '${prefix}a/b'),
+    expect(() => context.relative('a/b', from: '${prefix}a/b'),
            throwsPathException);
     // An absolute path relative from a relative path returns the absolute path.
     expectRelative('${prefix}a/b', '${prefix}a/b', 'c/d');

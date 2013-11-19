@@ -10,361 +10,355 @@ import 'package:path/path.dart' as path;
 import 'utils.dart';
 
 main() {
-  var builder = new path.Builder(style: path.Style.posix, root: '/root/path');
-
-  if (new path.Builder().style == path.Style.posix) {
-    group('absolute', () {
-      expect(path.absolute('a/b.txt'), path.join(path.current, 'a/b.txt'));
-      expect(path.absolute('/a/b.txt'), '/a/b.txt');
-    });
-  }
+  var context = new path.Context(
+      style: path.Style.posix, current: '/root/path');
 
   test('separator', () {
-    expect(builder.separator, '/');
+    expect(context.separator, '/');
   });
 
   test('extension', () {
-    expect(builder.extension(''), '');
-    expect(builder.extension('.'), '');
-    expect(builder.extension('..'), '');
-    expect(builder.extension('foo.dart'), '.dart');
-    expect(builder.extension('foo.dart.js'), '.js');
-    expect(builder.extension('a.b/c'), '');
-    expect(builder.extension('a.b/c.d'), '.d');
-    expect(builder.extension('~/.bashrc'), '');
-    expect(builder.extension(r'a.b\c'), r'.b\c');
-    expect(builder.extension('foo.dart/'), '.dart');
-    expect(builder.extension('foo.dart//'), '.dart');
+    expect(context.extension(''), '');
+    expect(context.extension('.'), '');
+    expect(context.extension('..'), '');
+    expect(context.extension('foo.dart'), '.dart');
+    expect(context.extension('foo.dart.js'), '.js');
+    expect(context.extension('a.b/c'), '');
+    expect(context.extension('a.b/c.d'), '.d');
+    expect(context.extension('~/.bashrc'), '');
+    expect(context.extension(r'a.b\c'), r'.b\c');
+    expect(context.extension('foo.dart/'), '.dart');
+    expect(context.extension('foo.dart//'), '.dart');
   });
 
   test('rootPrefix', () {
-    expect(builder.rootPrefix(''), '');
-    expect(builder.rootPrefix('a'), '');
-    expect(builder.rootPrefix('a/b'), '');
-    expect(builder.rootPrefix('/a/c'), '/');
-    expect(builder.rootPrefix('/'), '/');
+    expect(context.rootPrefix(''), '');
+    expect(context.rootPrefix('a'), '');
+    expect(context.rootPrefix('a/b'), '');
+    expect(context.rootPrefix('/a/c'), '/');
+    expect(context.rootPrefix('/'), '/');
   });
 
   test('dirname', () {
-    expect(builder.dirname(''), '.');
-    expect(builder.dirname('.'), '.');
-    expect(builder.dirname('..'), '.');
-    expect(builder.dirname('../..'), '..');
-    expect(builder.dirname('a'), '.');
-    expect(builder.dirname('a/b'), 'a');
-    expect(builder.dirname('a/b/c'), 'a/b');
-    expect(builder.dirname('a/b.c'), 'a');
-    expect(builder.dirname('a/'), '.');
-    expect(builder.dirname('a/.'), 'a');
-    expect(builder.dirname('a/..'), 'a');
-    expect(builder.dirname(r'a\b/c'), r'a\b');
-    expect(builder.dirname('/a'), '/');
-    expect(builder.dirname('///a'), '/');
-    expect(builder.dirname('/'), '/');
-    expect(builder.dirname('///'), '/');
-    expect(builder.dirname('a/b/'), 'a');
-    expect(builder.dirname(r'a/b\c'), 'a');
-    expect(builder.dirname('a//'), '.');
-    expect(builder.dirname('a/b//'), 'a');
-    expect(builder.dirname('a//b'), 'a');
+    expect(context.dirname(''), '.');
+    expect(context.dirname('.'), '.');
+    expect(context.dirname('..'), '.');
+    expect(context.dirname('../..'), '..');
+    expect(context.dirname('a'), '.');
+    expect(context.dirname('a/b'), 'a');
+    expect(context.dirname('a/b/c'), 'a/b');
+    expect(context.dirname('a/b.c'), 'a');
+    expect(context.dirname('a/'), '.');
+    expect(context.dirname('a/.'), 'a');
+    expect(context.dirname('a/..'), 'a');
+    expect(context.dirname(r'a\b/c'), r'a\b');
+    expect(context.dirname('/a'), '/');
+    expect(context.dirname('///a'), '/');
+    expect(context.dirname('/'), '/');
+    expect(context.dirname('///'), '/');
+    expect(context.dirname('a/b/'), 'a');
+    expect(context.dirname(r'a/b\c'), 'a');
+    expect(context.dirname('a//'), '.');
+    expect(context.dirname('a/b//'), 'a');
+    expect(context.dirname('a//b'), 'a');
   });
 
   test('basename', () {
-    expect(builder.basename(''), '');
-    expect(builder.basename('.'), '.');
-    expect(builder.basename('..'), '..');
-    expect(builder.basename('.foo'), '.foo');
-    expect(builder.basename('a'), 'a');
-    expect(builder.basename('a/b'), 'b');
-    expect(builder.basename('a/b/c'), 'c');
-    expect(builder.basename('a/b.c'), 'b.c');
-    expect(builder.basename('a/'), 'a');
-    expect(builder.basename('a/.'), '.');
-    expect(builder.basename('a/..'), '..');
-    expect(builder.basename(r'a\b/c'), 'c');
-    expect(builder.basename('/a'), 'a');
-    expect(builder.basename('/'), '/');
-    expect(builder.basename('a/b/'), 'b');
-    expect(builder.basename(r'a/b\c'), r'b\c');
-    expect(builder.basename('a//'), 'a');
-    expect(builder.basename('a/b//'), 'b');
-    expect(builder.basename('a//b'), 'b');
+    expect(context.basename(''), '');
+    expect(context.basename('.'), '.');
+    expect(context.basename('..'), '..');
+    expect(context.basename('.foo'), '.foo');
+    expect(context.basename('a'), 'a');
+    expect(context.basename('a/b'), 'b');
+    expect(context.basename('a/b/c'), 'c');
+    expect(context.basename('a/b.c'), 'b.c');
+    expect(context.basename('a/'), 'a');
+    expect(context.basename('a/.'), '.');
+    expect(context.basename('a/..'), '..');
+    expect(context.basename(r'a\b/c'), 'c');
+    expect(context.basename('/a'), 'a');
+    expect(context.basename('/'), '/');
+    expect(context.basename('a/b/'), 'b');
+    expect(context.basename(r'a/b\c'), r'b\c');
+    expect(context.basename('a//'), 'a');
+    expect(context.basename('a/b//'), 'b');
+    expect(context.basename('a//b'), 'b');
   });
 
   test('basenameWithoutExtension', () {
-    expect(builder.basenameWithoutExtension(''), '');
-    expect(builder.basenameWithoutExtension('.'), '.');
-    expect(builder.basenameWithoutExtension('..'), '..');
-    expect(builder.basenameWithoutExtension('a'), 'a');
-    expect(builder.basenameWithoutExtension('a/b'), 'b');
-    expect(builder.basenameWithoutExtension('a/b/c'), 'c');
-    expect(builder.basenameWithoutExtension('a/b.c'), 'b');
-    expect(builder.basenameWithoutExtension('a/'), 'a');
-    expect(builder.basenameWithoutExtension('a/.'), '.');
-    expect(builder.basenameWithoutExtension(r'a/b\c'), r'b\c');
-    expect(builder.basenameWithoutExtension('a/.bashrc'), '.bashrc');
-    expect(builder.basenameWithoutExtension('a/b/c.d.e'), 'c.d');
-    expect(builder.basenameWithoutExtension('a//'), 'a');
-    expect(builder.basenameWithoutExtension('a/b//'), 'b');
-    expect(builder.basenameWithoutExtension('a//b'), 'b');
-    expect(builder.basenameWithoutExtension('a/b.c/'), 'b');
-    expect(builder.basenameWithoutExtension('a/b.c//'), 'b');
-    expect(builder.basenameWithoutExtension('a/b c.d e'), 'b c');
+    expect(context.basenameWithoutExtension(''), '');
+    expect(context.basenameWithoutExtension('.'), '.');
+    expect(context.basenameWithoutExtension('..'), '..');
+    expect(context.basenameWithoutExtension('a'), 'a');
+    expect(context.basenameWithoutExtension('a/b'), 'b');
+    expect(context.basenameWithoutExtension('a/b/c'), 'c');
+    expect(context.basenameWithoutExtension('a/b.c'), 'b');
+    expect(context.basenameWithoutExtension('a/'), 'a');
+    expect(context.basenameWithoutExtension('a/.'), '.');
+    expect(context.basenameWithoutExtension(r'a/b\c'), r'b\c');
+    expect(context.basenameWithoutExtension('a/.bashrc'), '.bashrc');
+    expect(context.basenameWithoutExtension('a/b/c.d.e'), 'c.d');
+    expect(context.basenameWithoutExtension('a//'), 'a');
+    expect(context.basenameWithoutExtension('a/b//'), 'b');
+    expect(context.basenameWithoutExtension('a//b'), 'b');
+    expect(context.basenameWithoutExtension('a/b.c/'), 'b');
+    expect(context.basenameWithoutExtension('a/b.c//'), 'b');
+    expect(context.basenameWithoutExtension('a/b c.d e'), 'b c');
   });
 
   test('isAbsolute', () {
-    expect(builder.isAbsolute(''), false);
-    expect(builder.isAbsolute('a'), false);
-    expect(builder.isAbsolute('a/b'), false);
-    expect(builder.isAbsolute('/a'), true);
-    expect(builder.isAbsolute('/a/b'), true);
-    expect(builder.isAbsolute('~'), false);
-    expect(builder.isAbsolute('.'), false);
-    expect(builder.isAbsolute('..'), false);
-    expect(builder.isAbsolute('.foo'), false);
-    expect(builder.isAbsolute('../a'), false);
-    expect(builder.isAbsolute('C:/a'), false);
-    expect(builder.isAbsolute(r'C:\a'), false);
-    expect(builder.isAbsolute(r'\\a'), false);
+    expect(context.isAbsolute(''), false);
+    expect(context.isAbsolute('a'), false);
+    expect(context.isAbsolute('a/b'), false);
+    expect(context.isAbsolute('/a'), true);
+    expect(context.isAbsolute('/a/b'), true);
+    expect(context.isAbsolute('~'), false);
+    expect(context.isAbsolute('.'), false);
+    expect(context.isAbsolute('..'), false);
+    expect(context.isAbsolute('.foo'), false);
+    expect(context.isAbsolute('../a'), false);
+    expect(context.isAbsolute('C:/a'), false);
+    expect(context.isAbsolute(r'C:\a'), false);
+    expect(context.isAbsolute(r'\\a'), false);
   });
 
   test('isRelative', () {
-    expect(builder.isRelative(''), true);
-    expect(builder.isRelative('a'), true);
-    expect(builder.isRelative('a/b'), true);
-    expect(builder.isRelative('/a'), false);
-    expect(builder.isRelative('/a/b'), false);
-    expect(builder.isRelative('~'), true);
-    expect(builder.isRelative('.'), true);
-    expect(builder.isRelative('..'), true);
-    expect(builder.isRelative('.foo'), true);
-    expect(builder.isRelative('../a'), true);
-    expect(builder.isRelative('C:/a'), true);
-    expect(builder.isRelative(r'C:\a'), true);
-    expect(builder.isRelative(r'\\a'), true);
+    expect(context.isRelative(''), true);
+    expect(context.isRelative('a'), true);
+    expect(context.isRelative('a/b'), true);
+    expect(context.isRelative('/a'), false);
+    expect(context.isRelative('/a/b'), false);
+    expect(context.isRelative('~'), true);
+    expect(context.isRelative('.'), true);
+    expect(context.isRelative('..'), true);
+    expect(context.isRelative('.foo'), true);
+    expect(context.isRelative('../a'), true);
+    expect(context.isRelative('C:/a'), true);
+    expect(context.isRelative(r'C:\a'), true);
+    expect(context.isRelative(r'\\a'), true);
   });
 
   group('join', () {
     test('allows up to eight parts', () {
-      expect(builder.join('a'), 'a');
-      expect(builder.join('a', 'b'), 'a/b');
-      expect(builder.join('a', 'b', 'c'), 'a/b/c');
-      expect(builder.join('a', 'b', 'c', 'd'), 'a/b/c/d');
-      expect(builder.join('a', 'b', 'c', 'd', 'e'), 'a/b/c/d/e');
-      expect(builder.join('a', 'b', 'c', 'd', 'e', 'f'), 'a/b/c/d/e/f');
-      expect(builder.join('a', 'b', 'c', 'd', 'e', 'f', 'g'), 'a/b/c/d/e/f/g');
-      expect(builder.join('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'),
+      expect(context.join('a'), 'a');
+      expect(context.join('a', 'b'), 'a/b');
+      expect(context.join('a', 'b', 'c'), 'a/b/c');
+      expect(context.join('a', 'b', 'c', 'd'), 'a/b/c/d');
+      expect(context.join('a', 'b', 'c', 'd', 'e'), 'a/b/c/d/e');
+      expect(context.join('a', 'b', 'c', 'd', 'e', 'f'), 'a/b/c/d/e/f');
+      expect(context.join('a', 'b', 'c', 'd', 'e', 'f', 'g'), 'a/b/c/d/e/f/g');
+      expect(context.join('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'),
           'a/b/c/d/e/f/g/h');
     });
 
     test('does not add separator if a part ends in one', () {
-      expect(builder.join('a/', 'b', 'c/', 'd'), 'a/b/c/d');
-      expect(builder.join('a\\', 'b'), r'a\/b');
+      expect(context.join('a/', 'b', 'c/', 'd'), 'a/b/c/d');
+      expect(context.join('a\\', 'b'), r'a\/b');
     });
 
     test('ignores parts before an absolute path', () {
-      expect(builder.join('a', '/', 'b', 'c'), '/b/c');
-      expect(builder.join('a', '/b', '/c', 'd'), '/c/d');
-      expect(builder.join('a', r'c:\b', 'c', 'd'), r'a/c:\b/c/d');
-      expect(builder.join('a', r'\\b', 'c', 'd'), r'a/\\b/c/d');
+      expect(context.join('a', '/', 'b', 'c'), '/b/c');
+      expect(context.join('a', '/b', '/c', 'd'), '/c/d');
+      expect(context.join('a', r'c:\b', 'c', 'd'), r'a/c:\b/c/d');
+      expect(context.join('a', r'\\b', 'c', 'd'), r'a/\\b/c/d');
     });
 
     test('ignores trailing nulls', () {
-      expect(builder.join('a', null), equals('a'));
-      expect(builder.join('a', 'b', 'c', null, null), equals('a/b/c'));
+      expect(context.join('a', null), equals('a'));
+      expect(context.join('a', 'b', 'c', null, null), equals('a/b/c'));
     });
 
     test('ignores empty strings', () {
-      expect(builder.join(''), '');
-      expect(builder.join('', ''), '');
-      expect(builder.join('', 'a'), 'a');
-      expect(builder.join('a', '', 'b', '', '', '', 'c'), 'a/b/c');
-      expect(builder.join('a', 'b', ''), 'a/b');
+      expect(context.join(''), '');
+      expect(context.join('', ''), '');
+      expect(context.join('', 'a'), 'a');
+      expect(context.join('a', '', 'b', '', '', '', 'c'), 'a/b/c');
+      expect(context.join('a', 'b', ''), 'a/b');
     });
 
     test('disallows intermediate nulls', () {
-      expect(() => builder.join('a', null, 'b'), throwsArgumentError);
-      expect(() => builder.join(null, 'a'), throwsArgumentError);
+      expect(() => context.join('a', null, 'b'), throwsArgumentError);
+      expect(() => context.join(null, 'a'), throwsArgumentError);
     });
 
     test('join does not modify internal ., .., or trailing separators', () {
-      expect(builder.join('a/', 'b/c/'), 'a/b/c/');
-      expect(builder.join('a/b/./c/..//', 'd/.././..//e/f//'),
+      expect(context.join('a/', 'b/c/'), 'a/b/c/');
+      expect(context.join('a/b/./c/..//', 'd/.././..//e/f//'),
              'a/b/./c/..//d/.././..//e/f//');
-      expect(builder.join('a/b', 'c/../../../..'), 'a/b/c/../../../..');
-      expect(builder.join('a', 'b${builder.separator}'), 'a/b/');
+      expect(context.join('a/b', 'c/../../../..'), 'a/b/c/../../../..');
+      expect(context.join('a', 'b${context.separator}'), 'a/b/');
     });
   });
 
   group('joinAll', () {
     test('allows more than eight parts', () {
-      expect(builder.joinAll(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']),
+      expect(context.joinAll(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']),
           'a/b/c/d/e/f/g/h/i');
     });
 
     test('does not add separator if a part ends in one', () {
-      expect(builder.joinAll(['a/', 'b', 'c/', 'd']), 'a/b/c/d');
-      expect(builder.joinAll(['a\\', 'b']), r'a\/b');
+      expect(context.joinAll(['a/', 'b', 'c/', 'd']), 'a/b/c/d');
+      expect(context.joinAll(['a\\', 'b']), r'a\/b');
     });
 
     test('ignores parts before an absolute path', () {
-      expect(builder.joinAll(['a', '/', 'b', 'c']), '/b/c');
-      expect(builder.joinAll(['a', '/b', '/c', 'd']), '/c/d');
-      expect(builder.joinAll(['a', r'c:\b', 'c', 'd']), r'a/c:\b/c/d');
-      expect(builder.joinAll(['a', r'\\b', 'c', 'd']), r'a/\\b/c/d');
+      expect(context.joinAll(['a', '/', 'b', 'c']), '/b/c');
+      expect(context.joinAll(['a', '/b', '/c', 'd']), '/c/d');
+      expect(context.joinAll(['a', r'c:\b', 'c', 'd']), r'a/c:\b/c/d');
+      expect(context.joinAll(['a', r'\\b', 'c', 'd']), r'a/\\b/c/d');
     });
   });
 
   group('split', () {
     test('simple cases', () {
-      expect(builder.split(''), []);
-      expect(builder.split('.'), ['.']);
-      expect(builder.split('..'), ['..']);
-      expect(builder.split('foo'), equals(['foo']));
-      expect(builder.split('foo/bar.txt'), equals(['foo', 'bar.txt']));
-      expect(builder.split('foo/bar/baz'), equals(['foo', 'bar', 'baz']));
-      expect(builder.split('foo/../bar/./baz'),
+      expect(context.split(''), []);
+      expect(context.split('.'), ['.']);
+      expect(context.split('..'), ['..']);
+      expect(context.split('foo'), equals(['foo']));
+      expect(context.split('foo/bar.txt'), equals(['foo', 'bar.txt']));
+      expect(context.split('foo/bar/baz'), equals(['foo', 'bar', 'baz']));
+      expect(context.split('foo/../bar/./baz'),
           equals(['foo', '..', 'bar', '.', 'baz']));
-      expect(builder.split('foo//bar///baz'), equals(['foo', 'bar', 'baz']));
-      expect(builder.split('foo/\\/baz'), equals(['foo', '\\', 'baz']));
-      expect(builder.split('.'), equals(['.']));
-      expect(builder.split(''), equals([]));
-      expect(builder.split('foo/'), equals(['foo']));
-      expect(builder.split('//'), equals(['/']));
+      expect(context.split('foo//bar///baz'), equals(['foo', 'bar', 'baz']));
+      expect(context.split('foo/\\/baz'), equals(['foo', '\\', 'baz']));
+      expect(context.split('.'), equals(['.']));
+      expect(context.split(''), equals([]));
+      expect(context.split('foo/'), equals(['foo']));
+      expect(context.split('//'), equals(['/']));
     });
 
     test('includes the root for absolute paths', () {
-      expect(builder.split('/foo/bar/baz'), equals(['/', 'foo', 'bar', 'baz']));
-      expect(builder.split('/'), equals(['/']));
+      expect(context.split('/foo/bar/baz'), equals(['/', 'foo', 'bar', 'baz']));
+      expect(context.split('/'), equals(['/']));
     });
   });
 
   group('normalize', () {
     test('simple cases', () {
-      expect(builder.normalize(''), '.');
-      expect(builder.normalize('.'), '.');
-      expect(builder.normalize('..'), '..');
-      expect(builder.normalize('a'), 'a');
-      expect(builder.normalize('/'), '/');
-      expect(builder.normalize(r'\'), r'\');
-      expect(builder.normalize('C:/'), 'C:');
-      expect(builder.normalize(r'C:\'), r'C:\');
-      expect(builder.normalize(r'\\'), r'\\');
-      expect(builder.normalize('a/./\xc5\u0bf8-;\u{1f085}\u{00}/c/d/../'),
+      expect(context.normalize(''), '.');
+      expect(context.normalize('.'), '.');
+      expect(context.normalize('..'), '..');
+      expect(context.normalize('a'), 'a');
+      expect(context.normalize('/'), '/');
+      expect(context.normalize(r'\'), r'\');
+      expect(context.normalize('C:/'), 'C:');
+      expect(context.normalize(r'C:\'), r'C:\');
+      expect(context.normalize(r'\\'), r'\\');
+      expect(context.normalize('a/./\xc5\u0bf8-;\u{1f085}\u{00}/c/d/../'),
              'a/\xc5\u0bf8-;\u{1f085}\u{00}/c');
     });
 
     test('collapses redundant separators', () {
-      expect(builder.normalize(r'a/b/c'), r'a/b/c');
-      expect(builder.normalize(r'a//b///c////d'), r'a/b/c/d');
+      expect(context.normalize(r'a/b/c'), r'a/b/c');
+      expect(context.normalize(r'a//b///c////d'), r'a/b/c/d');
     });
 
     test('does not collapse separators for other platform', () {
-      expect(builder.normalize(r'a\\b\\\c'), r'a\\b\\\c');
+      expect(context.normalize(r'a\\b\\\c'), r'a\\b\\\c');
     });
 
     test('eliminates "." parts', () {
-      expect(builder.normalize('./'), '.');
-      expect(builder.normalize('/.'), '/');
-      expect(builder.normalize('/./'), '/');
-      expect(builder.normalize('./.'), '.');
-      expect(builder.normalize('a/./b'), 'a/b');
-      expect(builder.normalize('a/.b/c'), 'a/.b/c');
-      expect(builder.normalize('a/././b/./c'), 'a/b/c');
-      expect(builder.normalize('././a'), 'a');
-      expect(builder.normalize('a/./.'), 'a');
+      expect(context.normalize('./'), '.');
+      expect(context.normalize('/.'), '/');
+      expect(context.normalize('/./'), '/');
+      expect(context.normalize('./.'), '.');
+      expect(context.normalize('a/./b'), 'a/b');
+      expect(context.normalize('a/.b/c'), 'a/.b/c');
+      expect(context.normalize('a/././b/./c'), 'a/b/c');
+      expect(context.normalize('././a'), 'a');
+      expect(context.normalize('a/./.'), 'a');
     });
 
     test('eliminates ".." parts', () {
-      expect(builder.normalize('..'), '..');
-      expect(builder.normalize('../'), '..');
-      expect(builder.normalize('../../..'), '../../..');
-      expect(builder.normalize('../../../'), '../../..');
-      expect(builder.normalize('/..'), '/');
-      expect(builder.normalize('/../../..'), '/');
-      expect(builder.normalize('/../../../a'), '/a');
-      expect(builder.normalize('c:/..'), '.');
-      expect(builder.normalize('A:/../../..'), '../..');
-      expect(builder.normalize('a/..'), '.');
-      expect(builder.normalize('a/b/..'), 'a');
-      expect(builder.normalize('a/../b'), 'b');
-      expect(builder.normalize('a/./../b'), 'b');
-      expect(builder.normalize('a/b/c/../../d/e/..'), 'a/d');
-      expect(builder.normalize('a/b/../../../../c'), '../../c');
-      expect(builder.normalize(r'z/a/b/../../..\../c'), r'z/..\../c');
-      expect(builder.normalize(r'a/b\c/../d'), 'a/d');
+      expect(context.normalize('..'), '..');
+      expect(context.normalize('../'), '..');
+      expect(context.normalize('../../..'), '../../..');
+      expect(context.normalize('../../../'), '../../..');
+      expect(context.normalize('/..'), '/');
+      expect(context.normalize('/../../..'), '/');
+      expect(context.normalize('/../../../a'), '/a');
+      expect(context.normalize('c:/..'), '.');
+      expect(context.normalize('A:/../../..'), '../..');
+      expect(context.normalize('a/..'), '.');
+      expect(context.normalize('a/b/..'), 'a');
+      expect(context.normalize('a/../b'), 'b');
+      expect(context.normalize('a/./../b'), 'b');
+      expect(context.normalize('a/b/c/../../d/e/..'), 'a/d');
+      expect(context.normalize('a/b/../../../../c'), '../../c');
+      expect(context.normalize(r'z/a/b/../../..\../c'), r'z/..\../c');
+      expect(context.normalize(r'a/b\c/../d'), 'a/d');
     });
 
     test('does not walk before root on absolute paths', () {
-      expect(builder.normalize('..'), '..');
-      expect(builder.normalize('../'), '..');
-      expect(builder.normalize('http://dartlang.org/..'), 'http:');
-      expect(builder.normalize('http://dartlang.org/../../a'), 'a');
-      expect(builder.normalize('file:///..'), '.');
-      expect(builder.normalize('file:///../../a'), '../a');
-      expect(builder.normalize('/..'), '/');
-      expect(builder.normalize('a/..'), '.');
-      expect(builder.normalize('../a'), '../a');
-      expect(builder.normalize('/../a'), '/a');
-      expect(builder.normalize('c:/../a'), 'a');
-      expect(builder.normalize('/../a'), '/a');
-      expect(builder.normalize('a/b/..'), 'a');
-      expect(builder.normalize('../a/b/..'), '../a');
-      expect(builder.normalize('a/../b'), 'b');
-      expect(builder.normalize('a/./../b'), 'b');
-      expect(builder.normalize('a/b/c/../../d/e/..'), 'a/d');
-      expect(builder.normalize('a/b/../../../../c'), '../../c');
-      expect(builder.normalize('a/b/c/../../..d/./.e/f././'), 'a/..d/.e/f.');
+      expect(context.normalize('..'), '..');
+      expect(context.normalize('../'), '..');
+      expect(context.normalize('http://dartlang.org/..'), 'http:');
+      expect(context.normalize('http://dartlang.org/../../a'), 'a');
+      expect(context.normalize('file:///..'), '.');
+      expect(context.normalize('file:///../../a'), '../a');
+      expect(context.normalize('/..'), '/');
+      expect(context.normalize('a/..'), '.');
+      expect(context.normalize('../a'), '../a');
+      expect(context.normalize('/../a'), '/a');
+      expect(context.normalize('c:/../a'), 'a');
+      expect(context.normalize('/../a'), '/a');
+      expect(context.normalize('a/b/..'), 'a');
+      expect(context.normalize('../a/b/..'), '../a');
+      expect(context.normalize('a/../b'), 'b');
+      expect(context.normalize('a/./../b'), 'b');
+      expect(context.normalize('a/b/c/../../d/e/..'), 'a/d');
+      expect(context.normalize('a/b/../../../../c'), '../../c');
+      expect(context.normalize('a/b/c/../../..d/./.e/f././'), 'a/..d/.e/f.');
     });
 
     test('removes trailing separators', () {
-      expect(builder.normalize('./'), '.');
-      expect(builder.normalize('.//'), '.');
-      expect(builder.normalize('a/'), 'a');
-      expect(builder.normalize('a/b/'), 'a/b');
-      expect(builder.normalize(r'a/b\'), r'a/b\');
-      expect(builder.normalize('a/b///'), 'a/b');
+      expect(context.normalize('./'), '.');
+      expect(context.normalize('.//'), '.');
+      expect(context.normalize('a/'), 'a');
+      expect(context.normalize('a/b/'), 'a/b');
+      expect(context.normalize(r'a/b\'), r'a/b\');
+      expect(context.normalize('a/b///'), 'a/b');
     });
   });
 
   group('relative', () {
     group('from absolute root', () {
       test('given absolute path in root', () {
-        expect(builder.relative('/'), '../..');
-        expect(builder.relative('/root'), '..');
-        expect(builder.relative('/root/path'), '.');
-        expect(builder.relative('/root/path/a'), 'a');
-        expect(builder.relative('/root/path/a/b.txt'), 'a/b.txt');
-        expect(builder.relative('/root/a/b.txt'), '../a/b.txt');
+        expect(context.relative('/'), '../..');
+        expect(context.relative('/root'), '..');
+        expect(context.relative('/root/path'), '.');
+        expect(context.relative('/root/path/a'), 'a');
+        expect(context.relative('/root/path/a/b.txt'), 'a/b.txt');
+        expect(context.relative('/root/a/b.txt'), '../a/b.txt');
       });
 
       test('given absolute path outside of root', () {
-        expect(builder.relative('/a/b'), '../../a/b');
-        expect(builder.relative('/root/path/a'), 'a');
-        expect(builder.relative('/root/path/a/b.txt'), 'a/b.txt');
-        expect(builder.relative('/root/a/b.txt'), '../a/b.txt');
+        expect(context.relative('/a/b'), '../../a/b');
+        expect(context.relative('/root/path/a'), 'a');
+        expect(context.relative('/root/path/a/b.txt'), 'a/b.txt');
+        expect(context.relative('/root/a/b.txt'), '../a/b.txt');
       });
 
       test('given relative path', () {
         // The path is considered relative to the root, so it basically just
         // normalizes.
-        expect(builder.relative(''), '.');
-        expect(builder.relative('.'), '.');
-        expect(builder.relative('a'), 'a');
-        expect(builder.relative('a/b.txt'), 'a/b.txt');
-        expect(builder.relative('../a/b.txt'), '../a/b.txt');
-        expect(builder.relative('a/./b/../c.txt'), 'a/c.txt');
+        expect(context.relative(''), '.');
+        expect(context.relative('.'), '.');
+        expect(context.relative('a'), 'a');
+        expect(context.relative('a/b.txt'), 'a/b.txt');
+        expect(context.relative('../a/b.txt'), '../a/b.txt');
+        expect(context.relative('a/./b/../c.txt'), 'a/c.txt');
       });
 
       // Regression
       test('from root-only path', () {
-        expect(builder.relative('/', from: '/'), '.');
-        expect(builder.relative('/root/path', from: '/'), 'root/path');
+        expect(context.relative('/', from: '/'), '.');
+        expect(context.relative('/root/path', from: '/'), 'root/path');
       });
     });
 
     group('from relative root', () {
-      var r = new path.Builder(style: path.Style.posix, root: 'foo/bar');
+      var r = new path.Context(style: path.Style.posix, current: 'foo/bar');
 
       test('given absolute path', () {
         expect(r.relative('/'), equals('/'));
@@ -385,20 +379,21 @@ main() {
     });
 
     test('from a root with extension', () {
-      var r = new path.Builder(style: path.Style.posix, root: '/dir.ext');
+      var r = new path.Context(style: path.Style.posix, current: '/dir.ext');
       expect(r.relative('/dir.ext/file'), 'file');
     });
 
     test('with a root parameter', () {
-      expect(builder.relative('/foo/bar/baz', from: '/foo/bar'), equals('baz'));
-      expect(builder.relative('..', from: '/foo/bar'), equals('../../root'));
-      expect(builder.relative('/foo/bar/baz', from: 'foo/bar'),
+      expect(context.relative('/foo/bar/baz', from: '/foo/bar'), equals('baz'));
+      expect(context.relative('..', from: '/foo/bar'), equals('../../root'));
+      expect(context.relative('/foo/bar/baz', from: 'foo/bar'),
           equals('../../../../foo/bar/baz'));
-      expect(builder.relative('..', from: 'foo/bar'), equals('../../..'));
+      expect(context.relative('..', from: 'foo/bar'), equals('../../..'));
     });
 
     test('with a root parameter and a relative root', () {
-      var r = new path.Builder(style: path.Style.posix, root: 'relative/root');
+      var r = new path.Context(
+          style: path.Style.posix, current: 'relative/root');
       expect(r.relative('/foo/bar/baz', from: '/foo/bar'), equals('baz'));
       expect(() => r.relative('..', from: '/foo/bar'), throwsPathException);
       expect(r.relative('/foo/bar/baz', from: 'foo/bar'),
@@ -407,7 +402,7 @@ main() {
     });
 
     test('from a . root', () {
-      var r = new path.Builder(style: path.Style.posix, root: '.');
+      var r = new path.Context(style: path.Style.posix, current: '.');
       expect(r.relative('/foo/bar/baz'), equals('/foo/bar/baz'));
       expect(r.relative('foo/bar/baz'), equals('foo/bar/baz'));
     });
@@ -415,94 +410,95 @@ main() {
 
   group('isWithin', () {
     test('simple cases', () {
-      expect(builder.isWithin('foo/bar', 'foo/bar'), isFalse);
-      expect(builder.isWithin('foo/bar', 'foo/bar/baz'), isTrue);
-      expect(builder.isWithin('foo/bar', 'foo/baz'), isFalse);
-      expect(builder.isWithin('foo/bar', '../path/foo/bar/baz'), isTrue);
-      expect(builder.isWithin('/', '/foo/bar'), isTrue);
-      expect(builder.isWithin('baz', '/root/path/baz/bang'), isTrue);
-      expect(builder.isWithin('baz', '/root/path/bang/baz'), isFalse);
+      expect(context.isWithin('foo/bar', 'foo/bar'), isFalse);
+      expect(context.isWithin('foo/bar', 'foo/bar/baz'), isTrue);
+      expect(context.isWithin('foo/bar', 'foo/baz'), isFalse);
+      expect(context.isWithin('foo/bar', '../path/foo/bar/baz'), isTrue);
+      expect(context.isWithin('/', '/foo/bar'), isTrue);
+      expect(context.isWithin('baz', '/root/path/baz/bang'), isTrue);
+      expect(context.isWithin('baz', '/root/path/bang/baz'), isFalse);
     });
 
     test('from a relative root', () {
-      var r = new path.Builder(style: path.Style.posix, root: 'foo/bar');
-      expect(builder.isWithin('.', 'a/b/c'), isTrue);
-      expect(builder.isWithin('.', '../a/b/c'), isFalse);
-      expect(builder.isWithin('.', '../../a/foo/b/c'), isFalse);
-      expect(builder.isWithin('/', '/baz/bang'), isTrue);
-      expect(builder.isWithin('.', '/baz/bang'), isFalse);
+      var r = new path.Context(style: path.Style.posix, current: 'foo/bar');
+      expect(context.isWithin('.', 'a/b/c'), isTrue);
+      expect(context.isWithin('.', '../a/b/c'), isFalse);
+      expect(context.isWithin('.', '../../a/foo/b/c'), isFalse);
+      expect(context.isWithin('/', '/baz/bang'), isTrue);
+      expect(context.isWithin('.', '/baz/bang'), isFalse);
     });
   });
 
-  group('resolve', () {
+  group('absolute', () {
     test('allows up to seven parts', () {
-      expect(builder.resolve('a'), '/root/path/a');
-      expect(builder.resolve('a', 'b'), '/root/path/a/b');
-      expect(builder.resolve('a', 'b', 'c'), '/root/path/a/b/c');
-      expect(builder.resolve('a', 'b', 'c', 'd'), '/root/path/a/b/c/d');
-      expect(builder.resolve('a', 'b', 'c', 'd', 'e'), '/root/path/a/b/c/d/e');
-      expect(builder.resolve('a', 'b', 'c', 'd', 'e', 'f'),
+      expect(context.absolute('a'), '/root/path/a');
+      expect(context.absolute('a', 'b'), '/root/path/a/b');
+      expect(context.absolute('a', 'b', 'c'), '/root/path/a/b/c');
+      expect(context.absolute('a', 'b', 'c', 'd'), '/root/path/a/b/c/d');
+      expect(context.absolute('a', 'b', 'c', 'd', 'e'), '/root/path/a/b/c/d/e');
+      expect(context.absolute('a', 'b', 'c', 'd', 'e', 'f'),
           '/root/path/a/b/c/d/e/f');
-      expect(builder.resolve('a', 'b', 'c', 'd', 'e', 'f', 'g'),
+      expect(context.absolute('a', 'b', 'c', 'd', 'e', 'f', 'g'),
           '/root/path/a/b/c/d/e/f/g');
     });
 
     test('does not add separator if a part ends in one', () {
-      expect(builder.resolve('a/', 'b', 'c/', 'd'), '/root/path/a/b/c/d');
-      expect(builder.resolve(r'a\', 'b'), r'/root/path/a\/b');
+      expect(context.absolute('a/', 'b', 'c/', 'd'), '/root/path/a/b/c/d');
+      expect(context.absolute(r'a\', 'b'), r'/root/path/a\/b');
     });
 
     test('ignores parts before an absolute path', () {
-      expect(builder.resolve('a', '/b', '/c', 'd'), '/c/d');
-      expect(builder.resolve('a', r'c:\b', 'c', 'd'), r'/root/path/a/c:\b/c/d');
-      expect(builder.resolve('a', r'\\b', 'c', 'd'), r'/root/path/a/\\b/c/d');
+      expect(context.absolute('a', '/b', '/c', 'd'), '/c/d');
+      expect(context.absolute('a', r'c:\b', 'c', 'd'),
+          r'/root/path/a/c:\b/c/d');
+      expect(context.absolute('a', r'\\b', 'c', 'd'), r'/root/path/a/\\b/c/d');
     });
   });
 
   test('withoutExtension', () {
-    expect(builder.withoutExtension(''), '');
-    expect(builder.withoutExtension('a'), 'a');
-    expect(builder.withoutExtension('.a'), '.a');
-    expect(builder.withoutExtension('a.b'), 'a');
-    expect(builder.withoutExtension('a/b.c'), 'a/b');
-    expect(builder.withoutExtension('a/b.c.d'), 'a/b.c');
-    expect(builder.withoutExtension('a/'), 'a/');
-    expect(builder.withoutExtension('a/b/'), 'a/b/');
-    expect(builder.withoutExtension('a/.'), 'a/.');
-    expect(builder.withoutExtension('a/.b'), 'a/.b');
-    expect(builder.withoutExtension('a.b/c'), 'a.b/c');
-    expect(builder.withoutExtension(r'a.b\c'), r'a');
-    expect(builder.withoutExtension(r'a/b\c'), r'a/b\c');
-    expect(builder.withoutExtension(r'a/b\c.d'), r'a/b\c');
-    expect(builder.withoutExtension('a/b.c/'), 'a/b/');
-    expect(builder.withoutExtension('a/b.c//'), 'a/b//');
+    expect(context.withoutExtension(''), '');
+    expect(context.withoutExtension('a'), 'a');
+    expect(context.withoutExtension('.a'), '.a');
+    expect(context.withoutExtension('a.b'), 'a');
+    expect(context.withoutExtension('a/b.c'), 'a/b');
+    expect(context.withoutExtension('a/b.c.d'), 'a/b.c');
+    expect(context.withoutExtension('a/'), 'a/');
+    expect(context.withoutExtension('a/b/'), 'a/b/');
+    expect(context.withoutExtension('a/.'), 'a/.');
+    expect(context.withoutExtension('a/.b'), 'a/.b');
+    expect(context.withoutExtension('a.b/c'), 'a.b/c');
+    expect(context.withoutExtension(r'a.b\c'), r'a');
+    expect(context.withoutExtension(r'a/b\c'), r'a/b\c');
+    expect(context.withoutExtension(r'a/b\c.d'), r'a/b\c');
+    expect(context.withoutExtension('a/b.c/'), 'a/b/');
+    expect(context.withoutExtension('a/b.c//'), 'a/b//');
   });
 
   test('fromUri', () {
-    expect(builder.fromUri(Uri.parse('file:///path/to/foo')), '/path/to/foo');
-    expect(builder.fromUri(Uri.parse('file:///path/to/foo/')), '/path/to/foo/');
-    expect(builder.fromUri(Uri.parse('file:///')), '/');
-    expect(builder.fromUri(Uri.parse('foo/bar')), 'foo/bar');
-    expect(builder.fromUri(Uri.parse('/path/to/foo')), '/path/to/foo');
-    expect(builder.fromUri(Uri.parse('///path/to/foo')), '/path/to/foo');
-    expect(builder.fromUri(Uri.parse('file:///path/to/foo%23bar')),
+    expect(context.fromUri(Uri.parse('file:///path/to/foo')), '/path/to/foo');
+    expect(context.fromUri(Uri.parse('file:///path/to/foo/')), '/path/to/foo/');
+    expect(context.fromUri(Uri.parse('file:///')), '/');
+    expect(context.fromUri(Uri.parse('foo/bar')), 'foo/bar');
+    expect(context.fromUri(Uri.parse('/path/to/foo')), '/path/to/foo');
+    expect(context.fromUri(Uri.parse('///path/to/foo')), '/path/to/foo');
+    expect(context.fromUri(Uri.parse('file:///path/to/foo%23bar')),
         '/path/to/foo#bar');
-    expect(builder.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
+    expect(context.fromUri(Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_')),
         r'_{_}_`_^_ _"_%_');
-    expect(() => builder.fromUri(Uri.parse('http://dartlang.org')),
+    expect(() => context.fromUri(Uri.parse('http://dartlang.org')),
         throwsArgumentError);
   });
 
   test('toUri', () {
-    expect(builder.toUri('/path/to/foo'), Uri.parse('file:///path/to/foo'));
-    expect(builder.toUri('/path/to/foo/'), Uri.parse('file:///path/to/foo/'));
-    expect(builder.toUri('/'), Uri.parse('file:///'));
-    expect(builder.toUri('foo/bar'), Uri.parse('foo/bar'));
-    expect(builder.toUri('/path/to/foo#bar'),
+    expect(context.toUri('/path/to/foo'), Uri.parse('file:///path/to/foo'));
+    expect(context.toUri('/path/to/foo/'), Uri.parse('file:///path/to/foo/'));
+    expect(context.toUri('/'), Uri.parse('file:///'));
+    expect(context.toUri('foo/bar'), Uri.parse('foo/bar'));
+    expect(context.toUri('/path/to/foo#bar'),
         Uri.parse('file:///path/to/foo%23bar'));
-    expect(builder.toUri(r'/_{_}_`_^_ _"_%_'),
+    expect(context.toUri(r'/_{_}_`_^_ _"_%_'),
         Uri.parse('file:///_%7B_%7D_%60_%5E_%20_%22_%25_'));
-    expect(builder.toUri(r'_{_}_`_^_ _"_%_'),
+    expect(context.toUri(r'_{_}_`_^_ _"_%_'),
         Uri.parse('_%7B_%7D_%60_%5E_%20_%22_%25_'));
   });
 }

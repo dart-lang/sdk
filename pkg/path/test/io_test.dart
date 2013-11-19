@@ -8,20 +8,20 @@ import 'package:unittest/unittest.dart';
 import 'package:path/path.dart' as path;
 
 main() {
-  group('new Builder()', () {
+  group('new Context()', () {
     test('uses the current directory if root and style are omitted', () {
-      var builder = new path.Builder();
-      expect(builder.root, io.Directory.current.path);
+      var context = new path.Context();
+      expect(context.current, io.Directory.current.path);
     });
 
     test('uses "." if root is omitted', () {
-      var builder = new path.Builder(style: path.Style.platform);
-      expect(builder.root, ".");
+      var context = new path.Context(style: path.Style.platform);
+      expect(context.current, ".");
     });
 
     test('uses the host platform if style is omitted', () {
-      var builder = new path.Builder();
-      expect(builder.style, path.Style.platform);
+      var context = new path.Context();
+      expect(context.style, path.Style.platform);
     });
   });
 

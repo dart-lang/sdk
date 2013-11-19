@@ -43,16 +43,14 @@ void main() {
     test('.parse parses a real stack trace correctly', () {
       var string = getStackTraceString();
       var trace = new Trace.parse(string);
-      var builder = new path.Builder(style: path.Style.url);
-      expect(builder.basename(trace.frames.first.uri.path),
+      expect(path.url.basename(trace.frames.first.uri.path),
           equals('vm_test.dart'));
       expect(trace.frames.first.member, equals('getStackTraceString'));
     });
 
     test('converts from a native stack trace correctly', () {
       var trace = new Trace.from(getStackTraceObject());
-      var builder = new path.Builder(style: path.Style.url);
-      expect(builder.basename(trace.frames.first.uri.path),
+      expect(path.url.basename(trace.frames.first.uri.path),
           equals('vm_test.dart'));
       expect(trace.frames.first.member, equals('getStackTraceObject'));
     });
