@@ -13,7 +13,6 @@
 #include <ucontext.h>  // NOLINT
 #elif defined(TARGET_OS_ANDROID)
 #include <signal.h>  // NOLINT
-#include <sys/sigcontext.h>  // NOLINT
 struct mcontext_t;
 #elif defined(TARGET_OS_MACOS)
 #include <signal.h>  // NOLINT
