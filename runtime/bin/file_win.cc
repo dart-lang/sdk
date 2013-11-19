@@ -86,7 +86,7 @@ bool File::SetPosition(off64_t position) {
 
 bool File::Truncate(off64_t length) {
   ASSERT(handle_->fd() >= 0);
-  return (_chsize_s(handle_->fd(), length) != -1);
+  return _chsize_s(handle_->fd(), length) == 0;
 }
 
 
