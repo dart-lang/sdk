@@ -55,11 +55,6 @@ static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
 }
 
 
-static void ComputeTimeSpec(struct timespec* ts, int64_t millis) {
-  ComputeTimeSpec(ts, millis * kMicrosecondsPerMillisecond);
-}
-
-
 class ThreadStartData {
  public:
   ThreadStartData(Thread::ThreadStartFunction function,
