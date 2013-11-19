@@ -8,6 +8,8 @@ part of dart2js.js_emitter;
  * A data structure for collecting fragments of a class definition.
  */
 class ClassBuilder {
+  // TODO (sigurdm) this is just a bag of properties, rename this class
+
   final List<jsAst.Property> properties = <jsAst.Property>[];
 
   /// Set to true by user if class is indistinguishable from its superclass.
@@ -22,14 +24,4 @@ class ClassBuilder {
     return new jsAst.ObjectInitializer(properties);
   }
 
-  /// This method is temporary. Do not use it unless you're working on
-  /// transforming code to build jsAst.Nodes.
-  void writeOn_DO_NOT_USE(CodeBuffer buffer,
-                          Compiler compiler,
-                          String separatedBy) {
-    for (jsAst.Property property in properties) {
-      if (!buffer.isEmpty) buffer.write(separatedBy);
-      buffer.write(jsAst.prettyPrint(property, compiler));
-    }
-  }
 }

@@ -288,7 +288,7 @@ class NativeEmitter {
         emitter.classEmitter.emitClassBuilderWithReflectionData(
             backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
-            emitter.bufferForElement(classElement, mainBuffer));
+            emitter.getElementDecriptor(classElement));
         emitter.needsDefineClass = true;
       }
     }

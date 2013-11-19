@@ -11,7 +11,7 @@ class ClassEmitter extends CodeEmitterHelper {
    * Invariant: [classElement] must be a declaration element.
    */
   void generateClass(ClassElement classElement,
-                     CodeBuffer buffer,
+                     ClassBuilder properties,
                      Map<String, jsAst.Expression> additionalProperties) {
     final onlyForRti =
         task.typeTestEmitter.rtiNeededClasses.contains(classElement);
@@ -48,7 +48,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     emitClassBuilderWithReflectionData(
-        className, classElement, builder, buffer);
+        className, classElement, builder, properties);
   }
 
   void emitClassConstructor(ClassElement classElement,
@@ -295,77 +295,66 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassBuilderWithReflectionData(String className,
                                           ClassElement classElement,
-                                          ClassBuilder builder,
-                                          CodeBuffer buffer) {
+                                          ClassBuilder classBuilder,
+                                          ClassBuilder enclosingBuilder) {
     var metadata = task.metadataEmitter.buildMetadataFunction(classElement);
     if (metadata != null) {
-      builder.addProperty("@", metadata);
+      classBuilder.addProperty("@", metadata);
     }
 
     if (backend.isNeededForReflection(classElement)) {
       Link typeVars = classElement.typeVariables;
-      Iterable properties = [];
-      if (task.typeVariableHandler.typeVariablesOf(classElement) != null) {
-        properties = task.typeVariableHandler.typeVariablesOf(classElement)
-            .map(js.toExpression);
-      }
+      Iterable typeVariableProperties = task.typeVariableHandler
+          .typeVariablesOf(classElement).map(js.toExpression);
 
       ClassElement superclass = classElement.superclass;
       bool hasSuper = superclass != null;
-      if ((!properties.isEmpty && !hasSuper) ||
+      if ((!typeVariableProperties.isEmpty && !hasSuper) ||
           (hasSuper && superclass.typeVariables != typeVars)) {
-        builder.addProperty('<>', new jsAst.ArrayInitializer.from(properties));
+        classBuilder.addProperty('<>',
+            new jsAst.ArrayInitializer.from(typeVariableProperties));
       }
     }
-    List<CodeBuffer> classBuffers = task.elementBuffers[classElement];
-    if (classBuffers == null) {
-      classBuffers = [];
-    } else {
-      task.elementBuffers.remove(classElement);
-    }
-    CodeBuffer statics = new CodeBuffer();
-    statics.write('{$n');
-    bool hasStatics = false;
+
+    List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder = new ClassBuilder();
     if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
-      hasStatics = true;
-      statics.write('"":$_');
-      statics.write(
-          jsAst.prettyPrint(staticsBuilder.properties.single.value, compiler));
-      statics.write(',$n');
+      statics.add(staticsBuilder.properties.single);
     }
-    for (CodeBuffer classBuffer in classBuffers) {
-      // TODO(ahe): What about deferred?
-      if (classBuffer != null) {
-        hasStatics = true;
-        statics.addBuffer(classBuffer);
+
+    Map<String, ClassBuilder> classPropertyLists =
+        task.elementDecriptors.remove(classElement);
+    if (classPropertyLists != null) {
+      for (ClassBuilder classProperties in classPropertyLists.values) {
+        // TODO(ahe): What about deferred?
+        if (classProperties != null) {
+          statics.addAll(classProperties.properties);
+        }
       }
     }
-    statics.write('}$n');
-    if (hasStatics) {
-      builder.addProperty('static', new jsAst.Blob(statics));
+
+    if (!statics.isEmpty) {
+      classBuilder.addProperty('static', new jsAst.ObjectInitializer(statics));
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
-    if (!buffer.isEmpty) {
-      buffer.write(',$n$n');
-    }
-    buffer.write('$className:$_');
-    buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
+    enclosingBuilder.addProperty(className, classBuilder.toObjectInitializer());
+
     String reflectionName = task.getReflectionName(classElement, className);
     if (reflectionName != null) {
       if (!backend.isNeededForReflection(classElement)) {
-        buffer.write(',$n$n"+$reflectionName": 0');
+        enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
-        List<int> types = <int>[];
+        List<int> types = new List<int>();
         if (classElement.supertype != null) {
-          types.add(
-              task.metadataEmitter.reifyType(classElement.supertype));
+          types.add(task.metadataEmitter.reifyType(classElement.supertype));
         }
         for (DartType interface in classElement.interfaces) {
           types.add(task.metadataEmitter.reifyType(interface));
         }
-        buffer.write(',$n$n"+$reflectionName": $types');
+        enclosingBuilder.addProperty("+$reflectionName",
+            new jsAst.ArrayInitializer.from(types.map((typeNumber) =>
+                js.number(typeNumber))));
       }
     }
   }
