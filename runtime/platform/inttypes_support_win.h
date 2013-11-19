@@ -14,9 +14,6 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
-// off64_t is not defined on windows.
-typedef int64_t off64_t;
-
 // Printf format specifiers for intptr_t and uintptr_t.
 #define PRIdPTR "Id"
 #define PRIuPTR "Iu"

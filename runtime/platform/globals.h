@@ -255,6 +255,11 @@ const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
 typedef intptr_t word;
 typedef uintptr_t uword;
 
+#if defined(TARGET_OS_WINDOWS) || defined(TARGET_OS_MACOS)
+// off64_t is not defined on Windows or Mac OS.
+typedef int64_t off64_t;
+#endif
+
 // Byte sizes.
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT
