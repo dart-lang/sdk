@@ -178,11 +178,16 @@ class ElementX implements Element {
   Token position() => null;
 
   Token findMyName(Token token) {
+    return findNameToken(token, isConstructor(), name, enclosingElement.name);
+  }
+
+  static Token findNameToken(Token token, bool isConstructor, String name,
+                             String enclosingClassName) {
     // We search for the token that has the name of this element.
     // For constructors, that doesn't work because they may have
     // named formed out of multiple tokens (named constructors) so
     // for those we search for the class name instead.
-    String needle = isConstructor() ? enclosingElement.name : name;
+    String needle = isConstructor ? enclosingClassName : name;
     // The unary '-' operator has a special element name (specified).
     if (needle == 'unary-') needle = '-';
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
@@ -281,7 +286,7 @@ class ElementX implements Element {
 
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 
-  bool isAbstract() => modifiers.isAbstract();
+  bool get isAbstract => modifiers.isAbstract();
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
   FunctionElement get targetConstructor => null;
@@ -1538,8 +1543,11 @@ class FunctionElementX extends ElementX implements FunctionElement {
     }
   }
 
-  bool isAbstract() =>
-      !modifiers.isExternal() && (isFunction() || isAccessor()) && _hasNoBody;
+  bool get isAbstract {
+    return !modifiers.isExternal() &&
+           (isFunction() || isAccessor()) &&
+           _hasNoBody;
+  }
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1882,13 +1890,13 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         FunctionElement setter = field.setter;
         if (selector.isSetter()) {
           // Abstract members can be defined in a super class.
-          if (setter != null && !setter.isAbstract()) return setter;
+          if (setter != null && !setter.isAbstract) return setter;
         } else {
           assert(selector.isGetter() || selector.isCall());
-          if (getter != null && !getter.isAbstract()) return getter;
+          if (getter != null && !getter.isAbstract) return getter;
         }
       // Abstract members can be defined in a super class.
-      } else if (!member.isAbstract()) {
+      } else if (!member.isAbstract) {
         return member;
       }
     }

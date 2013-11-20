@@ -602,7 +602,7 @@ class ContainerBuilder extends CodeEmitterHelper {
   }
 
   void addMemberMethod(FunctionElement member, ClassBuilder builder) {
-    if (member.isAbstract()) return;
+    if (member.isAbstract) return;
     jsAst.Expression code = backend.generatedCode[member];
     if (code == null) return;
     String name = namer.getNameOfMember(member);

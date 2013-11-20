@@ -1903,19 +1903,23 @@ class PartialFunctionElement extends FunctionElementX {
    * The position is computed in the constructor using [findMyName]. Computing
    * it on demand fails in case tokens are GC'd.
    */
-  Token positionCache;
+  final Token _position;
 
   PartialFunctionElement(String name,
-                         Token this.beginToken,
-                         Token this.getOrSet,
-                         Token this.endToken,
+                         Token beginToken,
+                         this.getOrSet,
+                         this.endToken,
                          ElementKind kind,
                          Modifiers modifiers,
                          Element enclosing,
                          bool hasNoBody)
-    : super(name, kind, modifiers, enclosing, hasNoBody) {
-    positionCache = findMyName(beginToken);
-  }
+    : super(name, kind, modifiers, enclosing, hasNoBody),
+      beginToken = beginToken,
+      _position = ElementX.findNameToken(
+          beginToken,
+          modifiers.isFactory() ||
+            identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR),
+          name, enclosing.name);
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -1930,7 +1934,7 @@ class PartialFunctionElement extends FunctionElementX {
     return cachedNode;
   }
 
-  Token position() => positionCache;
+  Token position() => _position;
 }
 
 class PartialFieldListElement extends VariableListElementX {

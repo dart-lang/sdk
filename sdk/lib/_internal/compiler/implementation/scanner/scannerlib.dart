@@ -8,7 +8,8 @@ import 'dart:collection' show IterableBase, HashSet;
 
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
-    show FunctionElementX,
+    show ElementX,
+         FunctionElementX,
          TypedefElementX,
          VariableElementX,
          VariableListElementX,
