@@ -95,6 +95,14 @@ abstract class Process {
    * streams of processes started with [:Process.start:]. If the user
    * does not read all data on the streams the underlying system
    * resources will not be freed since there is still pending data.
+   *
+   * The following code uses `Process.start` to grep for `main` in the
+   * file `test.dart` on Linux.
+   *
+   *     Process.start('grep', ['-i', 'main', 'test.dart']).then((process) {
+   *       stdout.addStream(process.stdout);
+   *       stderr.addStream(process.stderr);
+   *     });
    */
   external static Future<Process> start(
       String executable,
@@ -136,6 +144,14 @@ abstract class Process {
    * Returns a `Future<ProcessResult>` that completes with the
    * result of running the process, i.e., exit code, standard out and
    * standard in.
+   *
+   * The following code uses `Process.run` to grep for `main` in the
+   * file `test.dart` on Linux.
+   *
+   *     Process.run('grep', ['-i', 'main', 'test.dart']).then((result) {
+   *       stdout.write(result.stdout);
+   *       stderr.write(result.stderr);
+   *     });
    */
   external static Future<ProcessResult> run(
       String executable,
