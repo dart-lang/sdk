@@ -198,29 +198,15 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 }
 
 
-bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
-  char* dst = reinterpret_cast<char*>(msg);
-  int total_read = 0;
-  int bytes_read =
-      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], dst, kInterruptMessageSize));
-  if (bytes_read < 0) {
-    return false;
-  }
-  total_read = bytes_read;
-  while (total_read < kInterruptMessageSize) {
-    bytes_read = TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
-                                         dst + total_read,
-                                         kInterruptMessageSize - total_read));
-    if (bytes_read > 0) {
-      total_read = total_read + bytes_read;
-    }
-  }
-  return (total_read == kInterruptMessageSize) ? true : false;
-}
-
 void EventHandlerImplementation::HandleInterruptFd() {
   InterruptMessage msg;
-  while (GetInterruptMessage(&msg)) {
+  intptr_t available = FDUtils::AvailableBytes(interrupt_fds_[0]);
+  for (int i = 0;
+       i + kInterruptMessageSize <= available;
+       i += kInterruptMessageSize) {
+    VOID_TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
+                                 reinterpret_cast<char*>(&msg),
+                                 kInterruptMessageSize));
     if (msg.id == kTimerId) {
       timeout_queue_.UpdateTimeout(msg.dart_port, msg.data);
     } else if (msg.id == kShutdownId) {
@@ -343,6 +329,7 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
 
 void EventHandlerImplementation::HandleEvents(struct kevent* events,
                                               int size) {
+  bool interrupt_seen = false;
   for (int i = 0; i < size; i++) {
     // If flag EV_ERROR is set it indicates an error in kevent processing.
     if ((events[i].flags & EV_ERROR) != 0) {
@@ -351,7 +338,9 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       strerror_r(events[i].data, error_message, kBufferSize);
       FATAL1("kevent failed %s\n", error_message);
     }
-    if (events[i].udata != NULL) {
+    if (events[i].udata == NULL) {
+      interrupt_seen = true;
+    } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
@@ -365,7 +354,11 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       }
     }
   }
-  HandleInterruptFd();
+  if (interrupt_seen) {
+    // Handle after socket events, so we avoid closing a socket before we handle
+    // the current events.
+    HandleInterruptFd();
+  }
 }
 
 

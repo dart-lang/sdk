@@ -103,7 +103,6 @@ class EventHandlerImplementation {
 
  private:
   int64_t GetTimeout();
-  bool GetInterruptMessage(InterruptMessage* msg);
   void HandleEvents(struct epoll_event* events, int size);
   void HandleTimeout();
   static void Poll(uword args);

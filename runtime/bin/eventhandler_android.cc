@@ -175,29 +175,15 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 }
 
 
-bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
-  char* dst = reinterpret_cast<char*>(msg);
-  int total_read = 0;
-  int bytes_read =
-      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], dst, kInterruptMessageSize));
-  if (bytes_read < 0) {
-    return false;
-  }
-  total_read = bytes_read;
-  while (total_read < kInterruptMessageSize) {
-    bytes_read = TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
-                                         dst + total_read,
-                                         kInterruptMessageSize - total_read));
-    if (bytes_read > 0) {
-      total_read = total_read + bytes_read;
-    }
-  }
-  return (total_read == kInterruptMessageSize) ? true : false;
-}
-
 void EventHandlerImplementation::HandleInterruptFd() {
   InterruptMessage msg;
-  while (GetInterruptMessage(&msg)) {
+  intptr_t available = FDUtils::AvailableBytes(interrupt_fds_[0]);
+  for (int i = 0;
+       i + kInterruptMessageSize <= available;
+       i += kInterruptMessageSize) {
+    VOID_TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
+                                 reinterpret_cast<char*>(&msg),
+                                 kInterruptMessageSize));
     if (msg.id == kTimerId) {
       timeout_queue_.UpdateTimeout(msg.dart_port, msg.data);
     } else if (msg.id == kShutdownId) {
@@ -348,8 +334,11 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
 
 void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
                                               int size) {
+  bool interrupt_seen = false;
   for (int i = 0; i < size; i++) {
-    if (events[i].data.ptr != NULL) {
+    if (events[i].data.ptr == NULL) {
+      interrupt_seen = true;
+    } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
       if (event_mask != 0) {
@@ -363,7 +352,11 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
       }
     }
   }
-  HandleInterruptFd();
+  if (interrupt_seen) {
+    // Handle after socket events, so we avoid closing a socket before we handle
+    // the current events.
+    HandleInterruptFd();
+  }
 }
 
 
