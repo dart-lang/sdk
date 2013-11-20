@@ -987,7 +987,7 @@ class ResolverTask extends CompilerTask {
   }
 
   void checkOverrideHashCode(FunctionElement operatorEquals) {
-    if (operatorEquals.isAbstract) return;
+    if (operatorEquals.isAbstract(compiler)) return;
     ClassElement cls = operatorEquals.getEnclosingClass();
     Element hashCodeImplementation =
         cls.lookupLocalMember('hashCode');
@@ -3044,7 +3044,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
       world.registerFactoryWithTypeArguments(mapping);
     }
-    if (constructor.isGenerativeConstructor() && cls.isAbstract) {
+    if (constructor.isGenerativeConstructor() && cls.isAbstract(compiler)) {
       warning(node, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }

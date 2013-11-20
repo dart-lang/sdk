@@ -178,18 +178,11 @@ class ElementX implements Element {
   Token position() => null;
 
   Token findMyName(Token token) {
-    return findNameToken(token, isConstructor(), name, enclosingElement.name);
-  }
-
-  static Token findNameToken(Token token, bool isConstructor, String name,
-                             String enclosingClassName) {
     // We search for the token that has the name of this element.
     // For constructors, that doesn't work because they may have
     // named formed out of multiple tokens (named constructors) so
     // for those we search for the class name instead.
-    String needle = isConstructor ? enclosingClassName : name;
-    // The unary '-' operator has a special element name (specified).
-    if (needle == 'unary-') needle = '-';
+    String needle = isConstructor() ? enclosingElement.name : name;
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
       if (needle == t.value) return t;
     }
@@ -286,7 +279,7 @@ class ElementX implements Element {
 
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 
-  bool get isAbstract => modifiers.isAbstract();
+  bool isAbstract(Compiler compiler) => modifiers.isAbstract();
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
   FunctionElement get targetConstructor => null;
@@ -1247,7 +1240,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     throw "internal error: AbstractFieldElement has no node";
   }
 
-  Token position() {
+  position() {
     // The getter and setter may be defined in two different
     // compilation units.  However, we know that one of them is
     // non-null and defined in the same compilation unit as the
@@ -1396,8 +1389,6 @@ class FunctionElementX extends ElementX implements FunctionElement {
   FunctionElement patch = null;
   FunctionElement origin = null;
 
-  final bool _hasNoBody;
-
   /**
    * If this is a redirecting factory, [defaultImplementation] will be
    * changed by the resolver to point to the redirection target.
@@ -1409,36 +1400,30 @@ class FunctionElementX extends ElementX implements FunctionElement {
   FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
-                   Element enclosing,
-                   bool hasNoBody)
-      : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null,
-                                hasNoBody);
+                   Element enclosing)
+      : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null);
 
   FunctionElementX.node(String name,
                         FunctionExpression node,
                         ElementKind kind,
                         Modifiers modifiers,
                         Element enclosing)
-      : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
-                                false);
+      : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null);
 
   FunctionElementX.from(String name,
                         FunctionElement other,
                         Element enclosing)
       : this.tooMuchOverloading(name, other.cachedNode, other.kind,
                                 other.modifiers, enclosing,
-                                other.functionSignature,
-                                false);
+                                other.functionSignature);
 
   FunctionElementX.tooMuchOverloading(String name,
                                       FunctionExpression this.cachedNode,
                                       ElementKind kind,
-                                      this.modifiers,
+                                      Modifiers this.modifiers,
                                       Element enclosing,
-                                      this.functionSignature,
-                                      bool hasNoBody)
-      : super(name, kind, enclosing),
-        _hasNoBody = hasNoBody {
+                                      FunctionSignature this.functionSignature)
+      : super(name, kind, enclosing) {
     assert(modifiers != null);
     defaultImplementation = this;
   }
@@ -1543,10 +1528,14 @@ class FunctionElementX extends ElementX implements FunctionElement {
     }
   }
 
-  bool get isAbstract {
-    return !modifiers.isExternal() &&
-           (isFunction() || isAccessor()) &&
-           _hasNoBody;
+  bool isAbstract(Compiler compiler) {
+    if (super.isAbstract(compiler)) return true;
+    if (modifiers.isExternal()) return false;
+    if (isFunction() || isAccessor()) {
+      return compiler.withCurrentElement(this,
+          () => !parseNode(compiler).hasBody());
+    }
+    return false;
   }
 }
 
@@ -1559,7 +1548,7 @@ class ConstructorBodyElementX extends FunctionElementX
         super(constructor.name,
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
-              constructor.enclosingElement, false) {
+              constructor.enclosingElement) {
     functionSignature = constructor.functionSignature;
   }
 
@@ -1597,7 +1586,7 @@ class SynthesizedConstructorElementX extends FunctionElementX {
       : super(name,
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
-              enclosing, false);
+              enclosing);
 
   SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
       : this('', superMember, enclosing, true);
@@ -1890,13 +1879,13 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         FunctionElement setter = field.setter;
         if (selector.isSetter()) {
           // Abstract members can be defined in a super class.
-          if (setter != null && !setter.isAbstract) return setter;
+          if (setter != null && !setter.isAbstract(compiler)) return setter;
         } else {
           assert(selector.isGetter() || selector.isCall());
-          if (getter != null && !getter.isAbstract) return getter;
+          if (getter != null && !getter.isAbstract(compiler)) return getter;
         }
       // Abstract members can be defined in a super class.
-      } else if (!member.isAbstract) {
+      } else if (!member.isAbstract(compiler)) {
         return member;
       }
     }

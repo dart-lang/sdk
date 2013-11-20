@@ -128,11 +128,9 @@ class MemberListener extends NodeListener {
       kind = (identical(getOrSet.stringValue, 'get'))
              ? ElementKind.GETTER : ElementKind.SETTER;
     }
-    bool hasNoBody = !isConstructor && !method.hasBody();
     Element memberElement =
         new PartialFunctionElement(name, beginToken, getOrSet, endToken,
-                                   kind, method.modifiers, enclosingElement,
-                                   hasNoBody);
+                                   kind, method.modifiers, enclosingElement);
     addMember(memberElement);
   }
 
@@ -151,8 +149,8 @@ class MemberListener extends NodeListener {
     }
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
-        new PartialFunctionElement(name, beginToken, null, endToken, kind,
-                                   method.modifiers, enclosingElement, false);
+        new PartialFunctionElement(name, beginToken, null, endToken,
+                                   kind, method.modifiers, enclosingElement);
     addMember(memberElement);
   }
 

@@ -490,7 +490,7 @@ class FlatTypeMask implements TypeMask {
     Element element = findMatchIn(cls, selector, compiler);
     if (element == null) return false;
 
-    if (element.isAbstract) {
+    if (element.isAbstract(compiler)) {
       ClassElement enclosingClass = element.getEnclosingClass();
       return hasConcreteMatch(enclosingClass.superclass, selector, compiler);
     }
@@ -519,7 +519,7 @@ class FlatTypeMask implements TypeMask {
     // `null`.
     if (isEmpty) return false;
     // A call on an exact mask for an abstract class is dead code.
-    if (isExact && base.isAbstract) return false;
+    if (isExact && base.isAbstract(compiler)) return false;
     // If the receiver is guaranteed to have a member that
     // matches what we're looking for, there's no need to
     // introduce a noSuchMethod handler. It will never be called.
@@ -564,7 +564,7 @@ class FlatTypeMask implements TypeMask {
 
     bool hasMatch = hasConcreteMatch(base, selector, compiler);
     if (isExact) return !hasMatch;
-    if (!base.isAbstract && !hasMatch) return true;
+    if (!base.isAbstract(compiler) && !hasMatch) return true;
 
     Set<ClassElement> subtypesToCheck;
     if (isSubtype) {
@@ -580,7 +580,7 @@ class FlatTypeMask implements TypeMask {
               // instance of them will be created at runtime, and
               // therefore there is no instance that will require
               // [noSuchMethod] handling.
-              return !cls.isAbstract
+              return !cls.isAbstract(compiler)
                   && !hasConcreteMatch(cls, selector, compiler);
            });
   }

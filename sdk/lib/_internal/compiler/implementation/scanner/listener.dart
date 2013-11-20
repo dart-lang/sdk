@@ -136,9 +136,6 @@ class Listener {
   void handleNoFunctionBody(Token token) {
   }
 
-  void skippedFunctionBody(Token token) {
-  }
-
   void beginFunctionName(Token token) {
   }
 
@@ -846,8 +843,8 @@ class ElementListener extends Listener {
       kind = ElementKind.SETTER;
     }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, kind, modifiers,
-                                           compilationUnitElement, false));
+                                           endToken, kind,
+                                           modifiers, compilationUnitElement));
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
@@ -1243,8 +1240,8 @@ class NodeListener extends ElementListener {
       kind = ElementKind.SETTER;
     }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, kind, modifiers,
-                                           compilationUnitElement, false));
+                                           endToken, kind,
+                                           modifiers, compilationUnitElement));
   }
 
   void endFormalParameter(Token thisKeyword) {
@@ -1466,12 +1463,8 @@ class NodeListener extends ElementListener {
     }
   }
 
-  void skippedFunctionBody(Token token) {
-    pushNode(new Block(new NodeList.empty()));
-  }
-
   void handleNoFunctionBody(Token token) {
-    pushNode(new EmptyStatement(token));
+    pushNode(null);
   }
 
   void endFunction(Token getOrSet, Token endToken) {
@@ -1899,27 +1892,14 @@ class PartialFunctionElement extends FunctionElementX {
   final Token getOrSet;
   final Token endToken;
 
-  /**
-   * The position is computed in the constructor using [findMyName]. Computing
-   * it on demand fails in case tokens are GC'd.
-   */
-  final Token _position;
-
   PartialFunctionElement(String name,
-                         Token beginToken,
-                         this.getOrSet,
-                         this.endToken,
+                         Token this.beginToken,
+                         Token this.getOrSet,
+                         Token this.endToken,
                          ElementKind kind,
                          Modifiers modifiers,
-                         Element enclosing,
-                         bool hasNoBody)
-    : super(name, kind, modifiers, enclosing, hasNoBody),
-      beginToken = beginToken,
-      _position = ElementX.findNameToken(
-          beginToken,
-          modifiers.isFactory() ||
-            identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR),
-          name, enclosing.name);
+                         Element enclosing)
+    : super(name, kind, modifiers, enclosing);
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -1934,7 +1914,19 @@ class PartialFunctionElement extends FunctionElementX {
     return cachedNode;
   }
 
-  Token position() => _position;
+  Token position() {
+    return findMyName(beginToken);
+  }
+
+  PartialFunctionElement cloneTo(Element enclosing,
+                                 DiagnosticListener listener) {
+    if (patch != null) {
+      listener.cancel("Cloning a patched function.", element: this);
+    }
+    PartialFunctionElement result = new PartialFunctionElement(
+        name, beginToken, getOrSet, endToken, kind, modifiers, enclosing);
+    return result;
+  }
 }
 
 class PartialFieldListElement extends VariableListElementX {
@@ -1964,6 +1956,13 @@ class PartialFieldListElement extends VariableListElementX {
   }
 
   Token position() => beginToken; // findMyName doesn't work. I'm nameless.
+
+  PartialFieldListElement cloneTo(Element enclosing,
+                                  DiagnosticListener listener) {
+    PartialFieldListElement result = new PartialFieldListElement(
+        beginToken, endToken, modifiers, enclosing);
+    return result;
+  }
 }
 
 class PartialTypedefElement extends TypedefElementX {
@@ -1980,7 +1979,14 @@ class PartialTypedefElement extends TypedefElementX {
     return cachedNode;
   }
 
-  Token position() => findMyName(token);
+  position() => findMyName(token);
+
+  PartialTypedefElement cloneTo(Element enclosing,
+                                DiagnosticListener listener) {
+    PartialTypedefElement result =
+        new PartialTypedefElement(name, enclosing, token);
+    return result;
+  }
 }
 
 /// A [MetadataAnnotation] which is constructed on demand.

@@ -240,7 +240,7 @@ abstract class Element implements Spannable {
   bool hasFixedBackendName();
   String fixedBackendName();
 
-  bool get isAbstract;
+  bool isAbstract(Compiler compiler);
   bool isForeign(Compiler compiler);
 
   void addMetadata(MetadataAnnotation annotation);

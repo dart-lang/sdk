@@ -774,7 +774,7 @@ class TypeGraphInferrerEngine
         // TODO(ngeoffray): Not sure why the resolver would put a null
         // mapping.
         if (mapping == null) return;
-        if (element.isAbstract) return;
+        if (element.isAbstract(compiler)) return;
         // Put the other operators in buckets by length, later to be added in
         // length order.
         int length = mapping.selectors.length;
