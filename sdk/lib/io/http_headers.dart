@@ -5,8 +5,24 @@
 part of dart.io;
 
 class _HttpHeaders implements HttpHeaders {
+  final Map<String, List<String>> _headers;
+  final String protocolVersion;
+
+  bool _mutable = true;  // Are the headers currently mutable?
+  List<String> _noFoldingHeaders;
+
+  int _contentLength = -1;
+  bool _persistentConnection = true;
+  bool _chunkedTransferEncoding = false;
+  String _host;
+  int _port;
+
   _HttpHeaders(String this.protocolVersion)
-      : _headers = new HashMap<String, List<String>>();
+      : _headers = new HashMap<String, List<String>>() {
+    if (protocolVersion == "1.0") {
+      _persistentConnection = false;
+    }
+  }
 
   List<String> operator[](String name) {
     name = name.toLowerCase();
@@ -70,35 +86,46 @@ class _HttpHeaders implements HttpHeaders {
     _noFoldingHeaders.add(name);
   }
 
-  bool get persistentConnection {
-    List<String> connection = _headers[HttpHeaders.CONNECTION];
-    if (protocolVersion == "1.1") {
-      if (connection == null) return true;
-      return !connection.any((value) => value.toLowerCase() == "close");
-    } else {
-      if (connection == null) return false;
-      return connection.any((value) => value.toLowerCase() == "keep-alive");
-    }
-  }
+  bool get persistentConnection => _persistentConnection;
 
   void set persistentConnection(bool persistentConnection) {
     _checkMutable();
-    // Determine the value of the "Connection" header.
-    remove(HttpHeaders.CONNECTION, "close");
-    remove(HttpHeaders.CONNECTION, "keep-alive");
-    if (protocolVersion == "1.1" && !persistentConnection) {
-      add(HttpHeaders.CONNECTION, "close");
-    } else if (protocolVersion == "1.0" && persistentConnection) {
-      add(HttpHeaders.CONNECTION, "keep-alive");
+    if (persistentConnection == _persistentConnection) return;
+    if (persistentConnection) {
+      if (protocolVersion == "1.1") {
+        remove(HttpHeaders.CONNECTION, "close");
+      } else {
+        if (_contentLength == -1) {
+          throw new HttpException(
+              "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with "
+              "no ContentLength");
+        }
+        add(HttpHeaders.CONNECTION, "keep-alive");
+      }
+    } else {
+      if (protocolVersion == "1.1") {
+        add(HttpHeaders.CONNECTION, "close");
+      } else {
+        remove(HttpHeaders.CONNECTION, "keep-alive");
+      }
     }
+    _persistentConnection = persistentConnection;
   }
 
   int get contentLength => _contentLength;
 
   void set contentLength(int contentLength) {
     _checkMutable();
+    if (protocolVersion == "1.0" &&
+        persistentConnection &&
+        contentLength == -1) {
+      throw new HttpException(
+          "Trying to clear ContentLength on HTTP 1.0 headers with "
+          "'Connection: Keep-Alive' set");
+    }
     _contentLength = contentLength;
     if (_contentLength >= 0) {
+      if (chunkedTransferEncoding) chunkedTransferEncoding = false;
       _set(HttpHeaders.CONTENT_LENGTH, contentLength.toString());
     } else {
       removeAll(HttpHeaders.CONTENT_LENGTH);
@@ -109,16 +136,23 @@ class _HttpHeaders implements HttpHeaders {
 
   void set chunkedTransferEncoding(bool chunkedTransferEncoding) {
     _checkMutable();
-    _chunkedTransferEncoding = chunkedTransferEncoding;
-    List<String> values = _headers[HttpHeaders.TRANSFER_ENCODING];
-    if ((values == null || values[values.length - 1] != "chunked") &&
-        chunkedTransferEncoding) {
-      // Headers does not specify chunked encoding - add it if set.
+    if (chunkedTransferEncoding && protocolVersion == "1.0") {
+      throw new HttpException(
+          "Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers");
+    }
+    if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
+    if (chunkedTransferEncoding) {
+      List<String> values = _headers[HttpHeaders.TRANSFER_ENCODING];
+      if ((values == null || values.last != "chunked")) {
+        // Headers does not specify chunked encoding - add it if set.
         _addValue(HttpHeaders.TRANSFER_ENCODING, "chunked");
-    } else if (!chunkedTransferEncoding) {
+      }
+      contentLength = -1;
+    } else {
       // Headers does specify chunked encoding - remove it if not set.
       remove(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
+    _chunkedTransferEncoding = chunkedTransferEncoding;
   }
 
   String get host => _host;
@@ -275,6 +309,14 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
+    } else if (name == HttpHeaders.CONNECTION) {
+      var lowerCaseValue = value.toLowerCase();
+      if (lowerCaseValue == 'close') {
+        _persistentConnection = false;
+      } else if (lowerCaseValue == 'keep-alive') {
+        _persistentConnection = true;
+      }
+      _addValue(name, value);
     } else if (name == HttpHeaders.CONTENT_TYPE) {
       _set(HttpHeaders.CONTENT_TYPE, value);
     } else {
@@ -321,27 +363,7 @@ class _HttpHeaders implements HttpHeaders {
     return true;
   }
 
-  void _synchronize() {
-    // If the content length is not known make sure chunked transfer
-    // encoding is used for HTTP 1.1.
-    if (contentLength < 0) {
-      if (protocolVersion == "1.0") {
-        persistentConnection = false;
-      } else {
-        chunkedTransferEncoding = true;
-      }
-    }
-    // If a Transfer-Encoding header field is present the
-    // Content-Length header MUST NOT be sent (RFC 2616 section 4.4).
-    if (chunkedTransferEncoding &&
-        contentLength >= 0 &&
-        protocolVersion == "1.1") {
-      contentLength = -1;
-    }
-  }
-
   void _finalize() {
-    _synchronize();
     _mutable = false;
   }
 
@@ -463,17 +485,6 @@ class _HttpHeaders implements HttpHeaders {
     }
     return cookies;
   }
-
-
-  bool _mutable = true;  // Are the headers currently mutable?
-  Map<String, List<String>> _headers;
-  List<String> _noFoldingHeaders;
-
-  int _contentLength = -1;
-  bool _chunkedTransferEncoding = false;
-  final String protocolVersion;
-  String _host;
-  int _port;
 }
 
 

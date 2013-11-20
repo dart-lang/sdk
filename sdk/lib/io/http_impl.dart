@@ -95,7 +95,10 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
                _HttpServer this._httpServer,
                _HttpConnection this._httpConnection)
       : super(_incoming) {
-    response.headers.persistentConnection = headers.persistentConnection;
+    if (headers.protocolVersion == "1.1") {
+      response.headers.chunkedTransferEncoding = true;
+      response.headers.persistentConnection = headers.persistentConnection;
+    }
 
     if (_httpServer._sessionManagerInstance != null) {
       // Map to session if exists.
@@ -492,7 +495,6 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     }
     if (_headersWritten) return new Future.value();
     _headersWritten = true;
-    headers._synchronize();  // Be sure the 'chunked' option is updated.
     _dataSink.encoding = encoding;
     bool isServerSide = this is _HttpResponse;
     if (isServerSide) {
@@ -543,8 +545,6 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   }
 
   Future _close() {
-    // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
-    // persistentConnection is not guaranteed to be in sync.
     if (!_headersWritten) {
       if (!_ignoreBody && headers.contentLength == -1) {
         // If no body was written, _ignoreBody is false (it's not a HEAD
@@ -933,6 +933,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
       contentLength = 0;
+    } else {
+      headers.chunkedTransferEncoding = true;
     }
   }
 

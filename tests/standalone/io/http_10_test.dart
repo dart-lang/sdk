@@ -128,6 +128,7 @@ void testHttp10KeepAlive() {
           Expect.equals(-1, request.contentLength);
           var response = request.response;
           response.contentLength = 1;
+          response.persistentConnection = true;
           Expect.equals("1.0", request.protocolVersion);
           response.write("Z");
           response.close();
