@@ -276,6 +276,10 @@ class DelegatingQueue<E> extends DelegatingIterable<E> implements Queue<E> {
 
   bool remove(Object object) => _baseQueue.remove(object);
 
+  void removeWhere(bool test(E element)) { _baseQueue.removeWhere(test); }
+
+  void retainWhere(bool test(E element)) { _baseQueue.retainWhere(test); }
+
   E removeFirst() => _baseQueue.removeFirst();
 
   E removeLast() => _baseQueue.removeLast();
