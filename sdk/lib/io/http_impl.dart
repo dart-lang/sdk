@@ -940,8 +940,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   Future<HttpClientResponse> get done {
     if (_response == null) {
-      _response = Future.wait([_responseCompleter.future,
-                               super.done])
+      _response = Future.wait([_responseCompleter.future, super.done],
+                              eagerError: true)
         .then((list) => list[0]);
     }
     return _response;
