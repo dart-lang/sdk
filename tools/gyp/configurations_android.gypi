@@ -56,7 +56,7 @@
         'cflags': [
           '-fdata-sections',
           '-ffunction-sections',
-          '-fomit-frame-pointer',
+          '-fno-omit-frame-pointer',
           '-O3',
         ],
       },

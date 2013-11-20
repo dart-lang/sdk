@@ -91,12 +91,17 @@
       'Dart_Debug': {
         'cflags': [
           '-O<(dart_debug_optimization_level)',
+          # The sampling profiler uses the frame pointer to walk the stack.
           '-fno-omit-frame-pointer',
         ],
       },
 
       'Dart_Release': {
-        'cflags': [ '-O3', ],
+        'cflags': [
+          '-O3',
+          # The sampling profiler uses the frame pointer to walk the stack.
+          '-fno-omit-frame-pointer',
+        ],
       },
     },
   },

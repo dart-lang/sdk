@@ -16,7 +16,7 @@
 namespace dart {
 
 // Notes on locking and signal handling:
-
+//
 // The ProfilerManager has a single monitor (monitor_). This monitor guards
 // access to the schedule list of isolates (isolates_, isolates_size_, etc).
 //
@@ -57,9 +57,19 @@ namespace dart {
 // Isolate::SetCurrent which blocks signal delivery while removing the old
 // current isolate from the scheduled list and adding the new current isolate
 // to the scheduled list.
+//
+
+// Notes on stack frame walking:
+//
+// The sampling profiler will collect up to Sample::kNumStackFrames stack frames
+// The stack frame walking code uses the frame pointer to traverse the stack.
+// If the VM is compiled without frame pointers (which is the default on
+// recent GCC versions with optimizing enabled) the stack walking code will
+// fail (sometimes leading to a crash).
+//
 
 
-DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 
 bool ProfilerManager::initialized_ = false;
 bool ProfilerManager::shutdown_ = false;
