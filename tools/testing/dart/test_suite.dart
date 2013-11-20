@@ -1630,14 +1630,9 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
 
   AnalysisCommand makeAnalysisCommand(TestInformation info,
                                       List<String> arguments) {
-    bool fileFilter(String filepath) {
-      return filepath == "${info.originTestPath}";
-    }
-
     return CommandBuilder.instance.getAnalysisCommand(
         configuration['compiler'], dartShellFileName, arguments,
-        configurationDir, flavor: configuration['compiler'],
-        fileFilter: fileFilter);
+        configurationDir, flavor: configuration['compiler']);
   }
 
   bool get listRecursively => true;
