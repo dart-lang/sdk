@@ -145,5 +145,4 @@ collection_to_string_test: Pass, Crash # Issue: 11207
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
-queue_test: StaticWarning # Issue 12274.
 string_test: StaticWarning, OK # Test generates error on purpose.
