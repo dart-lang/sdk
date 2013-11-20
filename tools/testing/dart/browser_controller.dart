@@ -630,11 +630,9 @@ class Firefox extends Browser {
  * Describes the current state of a browser used for testing.
  */
 class BrowserTestingStatus {
-// TODO(ricow): Add prefetching to the browsers. We spend a lot of time waiting
-// for the next test. Handling timeouts is the hard part of this!
-
   Browser browser;
   BrowserTest currentTest;
+
   // This is currently not used for anything except for error reporting.
   // Given the usefulness of this in debugging issues this should not be
   // removed even when we have really stable system.
@@ -652,6 +650,7 @@ class BrowserTest {
   Function doneCallback;
   String url;
   int timeout;
+  String lastKnownMessage = '';
   Stopwatch stopwatch;
 
   // This might be null
@@ -733,6 +732,7 @@ class BrowserTestRunner {
         globalConfiguration, localIp, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
+      testingServer.testStatusUpdateCallBack = handleStatusUpdate;
       testingServer.testStartedCallBack = handleStarted;
       testingServer.nextTestCallBack = getNextTest;
       return getBrowsers().then((browsers) {
@@ -847,6 +847,18 @@ class BrowserTestRunner {
     }
   }
 
+  void handleStatusUpdate(String browserId, String output, int testId) {
+    var status = browserStatus[browserId];
+
+    if (status == null || status.timeout) {
+      // We don't do anything, this browser is currently being killed and
+      // replaced. The browser here can be null if we decided to kill the
+      // browser.
+    } else if (status.currentTest != null && status.currentTest.id != testId) {
+      status.currentTest.lastKnownMessage = output;
+    }
+  }
+
   void handleStarted(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
 
@@ -868,13 +880,18 @@ class BrowserTestRunner {
 
     status.currentTest.stopwatch.stop();
     status.browser.close().then((_) {
+      var lastKnownMessage =
+          'Dom could not be fetched, since the test timed out.';
+      if (status.currentTest.lastKnownMessage.length > 0) {
+        lastKnownMessage = status.currentTest.lastKnownMessage;
+      }
       // Wait until the browser is closed before reporting the test as timeout.
       // This will enable us to capture stdout/stderr from the browser
       // (which might provide us with information about what went wrong).
       var browserTestOutput = new BrowserTestOutput(
           status.currentTest.delayUntilTestStarted,
           status.currentTest.stopwatch.elapsed,
-          'Dom could not be fetched, since the test timed out.',
+          lastKnownMessage,
           status.browser.testBrowserOutput,
           didTimeout: true);
       status.currentTest.doneCallback(browserTestOutput);
@@ -935,6 +952,7 @@ class BrowserTestRunner {
     BrowserTest test = testQueue.removeLast();
     if (status.currentTest == null) {
       status.currentTest = test;
+      status.currentTest.lastKnownMessage = '';
     } else {
       // TODO(ricow): Handle this better.
       print("This is bad, should never happen, getNextTest all full");
@@ -1029,6 +1047,7 @@ class BrowserTestingServer {
   static const String driverPath = "/driver";
   static const String nextTestPath = "/next_test";
   static const String reportPath = "/report";
+  static const String statusUpdatePath = "/status_update";
   static const String startedPath = "/started";
   static const String waitSignal = "WAIT";
   static const String terminateSignal = "TERMINATE";
@@ -1040,6 +1059,7 @@ class BrowserTestingServer {
   bool useIframe = false;
 
   Function testDoneCallBack;
+  Function testStatusUpdateCallBack;
   Function testStartedCallBack;
   Function nextTestCallBack;
 
@@ -1054,11 +1074,19 @@ class BrowserTestingServer {
         // we don't want the browser to cache the result of getNextTest.
         request.response.headers.set("Cache-Control",
                                      "no-cache, no-store, must-revalidate");
-        if (request.uri.path.startsWith(reportPath)) {
-          var browserId = request.uri.path.substring(reportPath.length + 1);
+        bool isReport = request.uri.path.startsWith(reportPath);
+        bool isStatusUpdate = request.uri.path.startsWith(statusUpdatePath);
+        if (isReport || isStatusUpdate) {
+          var browserId;
+          if (isStatusUpdate) {
+            browserId = request.uri.path.substring(statusUpdatePath.length + 1);
+          } else {
+            browserId = request.uri.path.substring(reportPath.length + 1);
+          }
           var testId =
               int.parse(request.uri.queryParameters["id"].split("=")[1]);
-          handleReport(request, browserId, testId);
+          handleReport(
+              request, browserId, testId, isStatusUpdate: isStatusUpdate);
           // handleReport will asynchroniously fetch the data and will handle
           // the closing of the streams.
           return;
@@ -1124,14 +1152,19 @@ class BrowserTestingServer {
     });
   }
 
-  void handleReport(HttpRequest request, String browserId, var testId) {
+  void handleReport(HttpRequest request, String browserId, var testId,
+                    {bool isStatusUpdate}) {
     StringBuffer buffer = new StringBuffer();
     request.transform(UTF8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       String back = buffer.toString();
       request.response.close();
-      testDoneCallBack(browserId, back, testId);
+      if (isStatusUpdate) {
+        testStatusUpdateCallBack(browserId, back, testId);
+      } else {
+        testDoneCallBack(browserId, back, testId);
+      }
       // TODO(ricow): We should do something smart if we get an error here.
     }, onError: (error) { DebugLogger.error("$error"); });
   }
@@ -1183,7 +1216,6 @@ class BrowserTestingServer {
 <head>
   <title>Driving page</title>
   <script type='text/javascript'>
-
     function startTesting() {
       var number_of_tests = 0;
       var current_id;
@@ -1279,39 +1311,69 @@ class BrowserTestingServer {
             'POST', '$errorReportingUrl?test=1', handleReady, msg, true); 
       }
 
-      function reportMessage(msg) {
-        if (msg == 'STARTING') {
+      function reportMessage(msg, isFirstMessage, isStatusUpdate) {
+        if (isFirstMessage) {
           test_completed = false;
           current_id = next_id;
           contactBrowserController(
             'POST', '$startedPath/${browserId}?id=' + current_id,
             function () {}, msg, true);
-          return;
-        }
+        } else if (isStatusUpdate) {
+            contactBrowserController(
+              'POST', '$statusUpdatePath/${browserId}?id=' + current_id,
+              function() {}, msg, true);
+        } else {
+          var is_double_report = test_completed;
+          test_completed = true;
 
-        var is_double_report = test_completed;
-        test_completed = true;
-
-        function handleReady() {
-          if (this.readyState == this.DONE) {
-            if (this.status == 200) {
-              if (!is_double_report) {
-                getNextTask();
+          function handleReady() {
+            if (this.readyState == this.DONE) {
+              if (this.status == 200) {
+                if (!is_double_report) {
+                  getNextTask();
+                }
+              } else {
+                reportError('Error sending result to server');
               }
-            } else {
-              reportError('Error sending result to server');
             }
           }
-        }
-        contactBrowserController(
+          contactBrowserController(
             'POST', '$reportPath/${browserId}?id=' + current_id, handleReady,
             msg, true);
+        }
+      }
+
+      function parseResult(result) {
+        var parsedData = null;
+        try {
+          parsedData = JSON.parse(result);
+        } catch(error) { }
+        return parsedData;
       }
 
       function messageHandler(e) {
         var msg = e.data;
         if (typeof msg != 'string') return;
-        reportMessage(msg);
+        
+        var parsedData = parseResult(msg);
+        if (parsedData) {
+          // Only if the JSON was valid, we'll post it back.
+          var message = parsedData['message'];
+          var isFirstMessage = parsedData['is_first_message'];
+          var isStatusUpdate = parsedData['is_status_update'];
+          var isDone = parsedData['is_done'];
+          if (!isFirstMessage && !isStatusUpdate) {
+            if (!isDone) {
+              alert("Bug in test_controller.js: " +
+                    "isFirstMessage/isStatusUpdate/isDone were all false");
+            }
+          }
+          if (message) {
+            reportMessage(message, isFirstMessage, isStatusUpdate);
+          }
+        } else {
+          reportMessage(msg, msg == 'STARTING', false);
+        }
       }
 
       window.addEventListener('message', messageHandler, false);

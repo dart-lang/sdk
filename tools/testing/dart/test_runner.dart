@@ -888,9 +888,7 @@ class BrowserTestJsonResult {
   final String htmlDom;
   final List events;
 
-  BrowserTestJsonResult(this.outcome,
-                        this.htmlDom,
-                        this.events);
+  BrowserTestJsonResult(this.outcome, this.htmlDom, this.events);
 
   static BrowserTestJsonResult parseFromString(String content) {
     void validate(String assertion, bool value) {
@@ -928,8 +926,13 @@ class BrowserTestJsonResult {
         validate("The message must have exactly one 'dom' entry.",
             messagesByType['dom'].length == 1);
 
+        var dom = messagesByType['dom'][0];
+        if (dom.endsWith('\n')) {
+          dom = '$dom\n';
+        }
+
         return new BrowserTestJsonResult(
-            _getOutcome(messagesByType), messagesByType['dom'][0], events);
+            _getOutcome(messagesByType), dom, events);
       }
     } catch(error) {
       // If something goes wrong, we know the content was not in the correct

@@ -1,10 +1,23 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Test controller logic - used by unit test harness to embed tests in
- * conent shell.
+/*
+ * The communication protocol between test_controller.js and the driving
+ * page are JSON encoded messages of the following form:
+ *   message = {
+ *      is_first_message: true/false,
+ *      is_status_update: true/false,
+ *      is_done: true/false,
+ *      message: message_content,
+ *   }
+ *
+ * The first message should have [is_first_message] set, the last message
+ * should have [is_done] set. Status updates should have [is_status_update] set.
+ *
+ * The [message_content] can be be any content. In our case it will a list of
+ * events encoded in JSON. See the next comment further down about what an event
+ * is.
  */
 
 /*
@@ -20,6 +33,8 @@
  */
 var recordedEventList = [];
 var timestampOfFirstEvent = null;
+
+var STATUS_UPDATE_INTERVALL = 5000; // Every 10 seconds.
 
 function getCurrentTimestamp() {
   if (timestampOfFirstEvent == null) {
@@ -112,44 +127,61 @@ function usingBrowserController() {
   return getDriverWindow() != null;
 }
 
-function notifyStart() {
-  recordEvent('debug', 'test_controller.js started');
-  var driver = getDriverWindow();
-  if (driver) {
-    driver.postMessage('STARTING', '*');
-  }
+function buildDomEvent() {
+  return {
+      type: 'dom',
+      value: '' + window.document.documentElement.innerHTML,
+      timestamp: getCurrentTimestamp()
+  };
 }
-// We call notifyStart here to notify the encapsulating browser.
-notifyStart();
 
-function notifyDone(test_outcome) {
+function notifyUpdate(testOutcome, isFirstMessage, isStatusUpdate, isDone) {
   // If we are not using the browser controller (e.g. in the none-drt
-  // configuration), we need to print 'test_outcome' as it is.
-  if (!usingBrowserController()) {
+  // configuration), we need to print 'testOutcome' as it is.
+  if (isDone && !usingBrowserController()) {
     if (isContentShell) {
       // We need this, since test.dart is looking for 'FAIL\n', 'PASS\n' in the
       // DOM output of content shell.
-      printToDOM(test_outcome);
+      printToDOM(testOutcome);
     } else {
-      printToConsole('Test outcome: ' + test_outcome);
+      printToConsole('Test outcome: ' + testOutcome);
     }
-  } else {
+  } else if (usingBrowserController()) {
     // To support in browser launching of tests we post back start and result
     // messages to the window.opener.
     var driver = getDriverWindow();
 
     // Post the DOM and all events that happened.
     var events = recordedEventList.slice(0);
-    events.push({
-      type: 'dom',
-      value: '' + window.document.documentElement.innerHTML,
-      timestamp: getCurrentTimestamp()
-    });
+    events.push(buildDomEvent());
 
-    driver.postMessage(JSON.stringify(events), '*');
+    var message = JSON.stringify(events);
+    driver.postMessage(
+        JSON.stringify({
+          message: message,
+          is_first_message: isFirstMessage,
+          is_status_update: isStatusUpdate,
+          is_done: isDone
+        }), '*');
   }
-  if (testRunner) testRunner.notifyDone();
+  if (isDone) {
+    if (testRunner) testRunner.notifyDone();
+  }
 }
+
+function notifyDone(testOutcome) {
+  notifyUpdate(testOutcome, false, false, true);
+}
+
+// Repeatedly send back the current status of this test.
+function sendStatusUpdate(isFirstMessage) {
+  notifyUpdate('', isFirstMessage, true, false);
+  setTimeout(function() {sendStatusUpdate(false)}, STATUS_UPDATE_INTERVALL);
+}
+
+// We call notifyStart here to notify the encapsulating browser.
+recordEvent('debug', 'test_controller.js started');
+sendStatusUpdate(true);
 
 function processMessage(msg) {
   // Filter out ShadowDOM polyfill messages which are random floats.
