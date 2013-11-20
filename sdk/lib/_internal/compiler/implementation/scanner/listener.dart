@@ -136,6 +136,9 @@ class Listener {
   void handleNoFunctionBody(Token token) {
   }
 
+  void skippedFunctionBody(Token token) {
+  }
+
   void beginFunctionName(Token token) {
   }
 
@@ -843,8 +846,8 @@ class ElementListener extends Listener {
       kind = ElementKind.SETTER;
     }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, kind,
-                                           modifiers, compilationUnitElement));
+                                           endToken, kind, modifiers,
+                                           compilationUnitElement, false));
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
@@ -1240,8 +1243,8 @@ class NodeListener extends ElementListener {
       kind = ElementKind.SETTER;
     }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, kind,
-                                           modifiers, compilationUnitElement));
+                                           endToken, kind, modifiers,
+                                           compilationUnitElement, false));
   }
 
   void endFormalParameter(Token thisKeyword) {
@@ -1463,8 +1466,12 @@ class NodeListener extends ElementListener {
     }
   }
 
+  void skippedFunctionBody(Token token) {
+    pushNode(new Block(new NodeList.empty()));
+  }
+
   void handleNoFunctionBody(Token token) {
-    pushNode(null);
+    pushNode(new EmptyStatement(token));
   }
 
   void endFunction(Token getOrSet, Token endToken) {
@@ -1894,8 +1901,7 @@ class PartialFunctionElement extends FunctionElementX {
 
   /**
    * The position is computed in the constructor using [findMyName]. Computing
-   * it on demand fails in case tokens are GC'd, for example after building
-   * the IR.
+   * it on demand fails in case tokens are GC'd.
    */
   Token positionCache;
 
@@ -1906,9 +1912,8 @@ class PartialFunctionElement extends FunctionElementX {
                          ElementKind kind,
                          Modifiers modifiers,
                          Element enclosing,
-                         {bool hasNoBody: false})
-    : super(name, kind, modifiers, enclosing,
-            hasNoBody: hasNoBody) {
+                         bool hasNoBody)
+    : super(name, kind, modifiers, enclosing, hasNoBody) {
     positionCache = findMyName(beginToken);
   }
 

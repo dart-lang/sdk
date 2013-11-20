@@ -112,20 +112,6 @@ class MemberListener extends NodeListener {
     }
   }
 
-  bool functionHasBody(Token nameEndToken) {
-    Token token = nameEndToken;
-    if (identical('(', token.next.stringValue)) {
-      BeginGroupToken beginGroupToken = token.next;
-      token = beginGroupToken.endGroup;
-    }
-    token = token.next;
-    if (identical(';', token.stringValue)) return false;
-    assert(identical('{', token.stringValue) ||
-           identical('=>', token.stringValue) ||
-           identical('native', token.stringValue));
-    return true;
-  }
-
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     super.endMethod(getOrSet, beginToken, endToken);
     FunctionExpression method = popNode();
@@ -142,12 +128,11 @@ class MemberListener extends NodeListener {
       kind = (identical(getOrSet.stringValue, 'get'))
              ? ElementKind.GETTER : ElementKind.SETTER;
     }
-    bool hasNoBody =
-        !isConstructor && !functionHasBody(method.name.getEndToken());
+    bool hasNoBody = !isConstructor && !method.hasBody();
     Element memberElement =
         new PartialFunctionElement(name, beginToken, getOrSet, endToken,
                                    kind, method.modifiers, enclosingElement,
-                                   hasNoBody: hasNoBody);
+                                   hasNoBody);
     addMember(memberElement);
   }
 
@@ -166,8 +151,8 @@ class MemberListener extends NodeListener {
     }
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
-        new PartialFunctionElement(name, beginToken, null, endToken,
-                                   kind, method.modifiers, enclosingElement);
+        new PartialFunctionElement(name, beginToken, null, endToken, kind,
+                                   method.modifiers, enclosingElement, false);
     addMember(memberElement);
   }
 

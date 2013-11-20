@@ -1391,7 +1391,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
   FunctionElement patch = null;
   FunctionElement origin = null;
 
-  bool _isAbstract;
+  final bool _hasNoBody;
 
   /**
    * If this is a redirecting factory, [defaultImplementation] will be
@@ -1405,9 +1405,9 @@ class FunctionElementX extends ElementX implements FunctionElement {
                    ElementKind kind,
                    Modifiers modifiers,
                    Element enclosing,
-                   {bool hasNoBody: false})
+                   bool hasNoBody)
       : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null,
-                                hasNoBody: hasNoBody);
+                                hasNoBody);
 
   FunctionElementX.node(String name,
                         FunctionExpression node,
@@ -1415,7 +1415,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
                         Modifiers modifiers,
                         Element enclosing)
       : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
-                                hasNoBody: false);
+                                false);
 
   FunctionElementX.from(String name,
                         FunctionElement other,
@@ -1423,7 +1423,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
       : this.tooMuchOverloading(name, other.cachedNode, other.kind,
                                 other.modifiers, enclosing,
                                 other.functionSignature,
-                                hasNoBody: false);
+                                false);
 
   FunctionElementX.tooMuchOverloading(String name,
                                       FunctionExpression this.cachedNode,
@@ -1431,12 +1431,11 @@ class FunctionElementX extends ElementX implements FunctionElement {
                                       this.modifiers,
                                       Element enclosing,
                                       this.functionSignature,
-                                      {bool hasNoBody: false})
-      : super(name, kind, enclosing) {
+                                      bool hasNoBody)
+      : super(name, kind, enclosing),
+        _hasNoBody = hasNoBody {
     assert(modifiers != null);
     defaultImplementation = this;
-    _isAbstract = super.isAbstract() || (
-        !modifiers.isExternal() && (isFunction() || isAccessor()) && hasNoBody);
   }
 
   bool get isPatched => patch != null;
@@ -1539,7 +1538,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
     }
   }
 
-  bool isAbstract() => _isAbstract;
+  bool isAbstract() =>
+      !modifiers.isExternal() && (isFunction() || isAccessor()) && _hasNoBody;
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1551,7 +1551,7 @@ class ConstructorBodyElementX extends FunctionElementX
         super(constructor.name,
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
-              constructor.enclosingElement) {
+              constructor.enclosingElement, false) {
     functionSignature = constructor.functionSignature;
   }
 
@@ -1589,7 +1589,7 @@ class SynthesizedConstructorElementX extends FunctionElementX {
       : super(name,
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
-              enclosing);
+              enclosing, false);
 
   SynthesizedConstructorElementX.forDefault(superMember, Element enclosing)
       : this('', superMember, enclosing, true);
