@@ -16,15 +16,17 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
 
   Function _callback;
   int _milliSeconds;
-  int _wakeupTime;
+  int _wakeupTime = 0;
 
   static Timer _createTimer(void callback(Timer timer),
                             int milliSeconds,
                             bool repeating) {
     _Timer timer = new _Timer._internal();
     timer._callback = callback;
-    timer._wakeupTime =
-        new DateTime.now().millisecondsSinceEpoch + milliSeconds;
+    if (milliSeconds > 0) {
+      timer._wakeupTime =
+          new DateTime.now().millisecondsSinceEpoch + milliSeconds;
+    }
     timer._milliSeconds = repeating ? milliSeconds : -1;
     timer._addTimerToList();
     timer._notifyEventHandler();
