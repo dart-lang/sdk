@@ -130,6 +130,9 @@ async/catch_errors8_test: Fail # Timer interface not supported: dartbug.com/7728
 async/run_zoned8_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 
+[ $compiler == dart2js && $checked ]
+convert/utf85_test: Pass, Slow # Issue 12029.
+
 [ $compiler == dart2js && $browser ]
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                          # implement timer (currently only in d8)
