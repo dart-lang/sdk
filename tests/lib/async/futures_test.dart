@@ -76,6 +76,23 @@ Future testWaitWithMultipleErrors() {
   });
 }
 
+Future testWaitWithMultipleErrorsEager() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.completeError('correct error');
+  c2.completeError('incorrect error 1');
+
+  return Future.wait(futures, eagerError: true).then((_) {
+    throw 'incorrect error 2';
+  }).catchError((error, stackTrace) {
+    Expect.equals('correct error', error);
+    Expect.isNull(stackTrace);
+  });
+}
+
 StackTrace get currentStackTrace {
   try {
     throw 0;
@@ -119,6 +136,40 @@ Future testWaitWithMultipleErrorsWithStackTrace() {
   });
 }
 
+Future testWaitWithMultipleErrorsWithStackTraceEager() {
+  List<Future> futures = new List<Future>();
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  futures.add(c1.future);
+  futures.add(c2.future);
+  c1.completeError('correct error', currentStackTrace);
+  c2.completeError('incorrect error 1');
+
+  return Future.wait(futures, eagerError: true).then((_) {
+    throw 'incorrect error 2';
+  }).catchError((error, stackTrace) {
+    Expect.equals('correct error', error);
+    Expect.isNotNull(stackTrace);
+  });
+}
+
+Future testEagerWait() {
+  var st;
+  try { throw 0; } catch (e, s) { st = s; }
+  Completer c1 = new Completer();
+  Completer c2 = new Completer();
+  List<Future> futures = <Future>[c1.future, c2.future];
+  Future waited = Future.wait(futures, eagerError: true);
+  var result = waited.then((v) { throw "should not be called"; },
+                           onError: (e, s) {
+                             Expect.equals(e, 42);
+                             Expect.identical(st, s);
+                             return true;
+                           });
+  c1.completeError(42, st);
+  return result;
+}
+
 Future testForEachEmpty() {
   return Future.forEach([], (_) {
     throw 'should not be called';
@@ -155,15 +206,18 @@ main() {
   futures.add(testWaitWithMultipleValues());
   futures.add(testWaitWithSingleError());
   futures.add(testWaitWithMultipleErrors());
+  futures.add(testWaitWithMultipleErrorsEager());
   futures.add(testWaitWithSingleErrorWithStackTrace());
   futures.add(testWaitWithMultipleErrorsWithStackTrace());
+  futures.add(testWaitWithMultipleErrorsWithStackTraceEager());
+  futures.add(testEagerWait());
   futures.add(testForEachEmpty());
   futures.add(testForEach());
   futures.add(testForEachWithException());
 
   asyncStart();
   Future.wait(futures).then((List list) {
-    Expect.equals(11, list.length);
+    Expect.equals(14, list.length);
     asyncEnd();
   });
 }

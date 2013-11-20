@@ -211,34 +211,51 @@ abstract class Future<T> {
    * complete. If any of the futures in the list completes with an error,
    * the resulting future also completes with an error. Otherwise the value
    * of the returned future will be a list of all the values that were produced.
+   *
+   * If `eagerError` is true, the future completes with an error immediately on
+   * the first error from one of the futures. Otherwise all futures must
+   * complete before the returned future is completed (still with the first
+   * error to occur, the remaining errors are silently dropped).
    */
-  static Future<List> wait(Iterable<Future> futures) {
-    Completer completer;
-    // List collecting values from the futures.
-    // Set to null if an error occurs.
-    List values;
+  static Future<List> wait(Iterable<Future> futures, {bool eagerError: false}) {
+    Completer completer;  // Completer for the returned future.
+    List values;  // Collects the values. Set to null on error.
+    int remaining = 0;  // How many futures are we waiting for.
+    var error;   // The first error from a future.
+    StackTrace stackTrace;  // The stackTrace that came with the error.
 
-    dynamic handleError(error, stackTrace) {
-      if (values != null) {
-        values = null;
+    // Handle an error from any of the futures.
+    handleError(theError, theStackTrace) {
+      bool isFirstError = values != null;
+      values = null;
+      remaining--;
+      if (isFirstError) {
+        if (remaining == 0 || eagerError) {
+          completer.completeError(theError, theStackTrace);
+        } else {
+          error = theError;
+          stackTrace = theStackTrace;
+        }
+      } else if (remaining == 0 && !eagerError) {
         completer.completeError(error, stackTrace);
       }
-      return null;
     }
 
     // As each future completes, put its value into the corresponding
     // position in the list of values.
-    int remaining = 0;
     for (Future future in futures) {
       int pos = remaining++;
-      future.catchError(handleError).then((Object value) {
-        if (values == null) return null;
-        values[pos] = value;
+      future.then((Object value) {
         remaining--;
-        if (remaining == 0) {
-          completer.complete(values);
+        if (values != null) {
+          values[pos] = value;
+          if (remaining == 0) {
+            completer.complete(values);
+          }
+        } else if (remaining == 0 && !eagerError) {
+          completer.completeError(error, stackTrace);
         }
-      });
+      }, onError: handleError);
     }
     if (remaining == 0) {
       return new Future.value(const []);
