@@ -243,7 +243,7 @@ void testTypeAnnotations(Set<int> set) {
   testLength(1, set);
 }
 
-void testRetainWhere(Set create([equals, hashCode, validKey])) {
+void testRetainWhere(Set create([equals, hashCode, validKey, compare])) {
   // The retainWhere method must not collapse the argument Iterable
   // in a way that doesn't match the equality of the set.
   // It must not throw away equal elements that are different in the
