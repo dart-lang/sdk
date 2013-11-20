@@ -1300,13 +1300,12 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
 
   for (intptr_t i = 0; i < ex_trace.Length(); i++) {
     function = ex_trace.FunctionAtFrame(i);
-    if (function.IsNull()) {
-      // Check if null function object indicates a stack trace overflow.
-      // Preallocated stacktraces like StackOverflow or OutOfMemory make skip
-      // frames.
-      ASSERT((i < (ex_trace.Length() - 1)) &&
-          (ex_trace.FunctionAtFrame(i + 1) != Function::null()));
-    } else if (function.is_visible()) {
+    // Pre-allocated Stacktraces may include empty slots, either (a) to indicate
+    // where frames were omitted in the case a stack has more frames than the
+    // pre-allocated trace (such as a stack overflow) or (b) because a stack has
+    // fewer frames that the pre-allocated trace (such as memory exhaustion with
+    // a shallow stack).
+    if (!function.IsNull() && function.is_visible()) {
       code = ex_trace.CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
