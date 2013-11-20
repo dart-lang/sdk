@@ -278,7 +278,6 @@ class DateTime implements Comparable {
    * 1970-01-01T00:00:00Z + [millisecondsSinceEpoch] ms in the given
    * time zone (local or UTC).
    */
-  // TODO(lrn): Have two constructors instead of taking an optional bool.
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
                                       {bool isUtc: false})
       : this.millisecondsSinceEpoch = millisecondsSinceEpoch,
