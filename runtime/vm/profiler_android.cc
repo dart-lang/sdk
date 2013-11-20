@@ -14,25 +14,11 @@ namespace dart {
 
 DECLARE_FLAG(bool, profile);
 
-static void CollectSample(IsolateProfilerData* profiler_data,
-                          uintptr_t pc,
-                          uintptr_t fp,
-                          uintptr_t sp,
-                          uintptr_t stack_lower,
-                          uintptr_t stack_upper) {
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  Sample* sample = sample_buffer->ReserveSample();
-  ASSERT(sample != NULL);
-  sample->timestamp = OS::GetCurrentTimeMicros();
-}
-
 
 static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
   if (signal != SIGPROF) {
     return;
   }
-  ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
-  mcontext_t mcontext = context->uc_mcontext;
   Isolate* isolate = Isolate::Current();
   if (isolate == NULL) {
     return;
@@ -45,15 +31,6 @@ static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
     if (profiler_data == NULL) {
       return;
     }
-    uintptr_t stack_lower = 0;
-    uintptr_t stack_upper = 0;
-    isolate->GetStackBounds(&stack_lower, &stack_upper);
-    uintptr_t PC = SignalHandler::GetProgramCounter(mcontext);
-    uintptr_t FP = SignalHandler::GetFramePointer(mcontext);
-    uintptr_t SP = SignalHandler::GetStackPointer(mcontext);
-    int64_t sample_time = OS::GetCurrentTimeMicros();
-    profiler_data->SampledAt(sample_time);
-    CollectSample(profiler_data, PC, FP, SP, stack_lower, stack_upper);
   }
   // Thread owns no profiler locks at this point.
   // This call will acquire both ProfilerManager::monitor and the
