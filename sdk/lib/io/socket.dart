@@ -46,7 +46,7 @@ class InternetAddressType {
  * endpoint that a socket can connect to or a listening socket can
  * bind to.
  */
-class InternetAddress {
+abstract class InternetAddress {
   /**
    * IP version 4 loopback address. Use this address when listening on
    * or connecting to the loopback adapter using IP version 4 (IPv4).
@@ -111,7 +111,7 @@ class InternetAddress {
    * (dotted-decimal notation) or IPv6 (hexadecimal representation).
    * address [ArgumentError] is thrown.
    */
-  external InternetAddress(String address);
+  external factory InternetAddress(String address);
 
   /**
    * Perform a reverse dns lookup on the [address], creating a new
