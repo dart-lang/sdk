@@ -129,9 +129,9 @@ class _TreePrinter extends Visitor {
 
   void visitStyletDirective(StyletDirective node) {
     heading('StyletDirective', node);
-    output.writeValue('dartClassName', node._dartClassName);
+    output.writeValue('dartClassName', node.dartClassName);
     output.depth++;
-    output.writeNodeList('rulesets', node._rulesets);
+    output.writeNodeList('rulesets', node.rulesets);
     output.depth--;
   }
 
@@ -200,7 +200,7 @@ class _TreePrinter extends Visitor {
   void visitDeclarationGroup(DeclarationGroup node) {
     heading('DeclarationGroup', node);
     output.depth++;
-    output.writeNodeList('declarations', node._declarations);
+    output.writeNodeList('declarations', node.declarations);
     output.depth--;
   }
 
@@ -208,7 +208,7 @@ class _TreePrinter extends Visitor {
     heading('MarginGroup', node);
     output.depth++;
     output.writeValue('@directive', node.margin_sym);
-    output.writeNodeList('declarations', node._declarations);
+    output.writeNodeList('declarations', node.declarations);
     output.depth--;
   }
 

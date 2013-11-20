@@ -573,7 +573,7 @@ int _findInclude(List list, var node) {
  * parameters.
  */
 class CallMixin extends Visitor {
-  var mixinDef;
+  final MixinDefinition mixinDef;
   List _definedArgs;
   Expressions _currExpressions;
   int _currIndex = -1;
@@ -595,7 +595,7 @@ class CallMixin extends Visitor {
    * Given a mixin's defined arguments return a cloned mixin defintion that has
    * replaced all defined arguments with user's supplied VarUsages.
    */
-  transform(List<TreeNode> callArgs) {
+  MixinDefinition transform(List<TreeNode> callArgs) {
     // TODO(terry): Handle default arguments and varArgs.
     // Transform mixin with callArgs.
     var index = 0;
@@ -620,7 +620,6 @@ class CallMixin extends Visitor {
       }
 
       var expressions = varUsages[varDef.definedName];
-      var expressionsLength = expressions.length;
       expressions.forEach((k, v) {
         for (var usagesIndex in v) {
           k.expressions.replaceRange(usagesIndex, usagesIndex + 1, callArg);
@@ -724,7 +723,7 @@ class DeclarationIncludes extends Visitor {
   bool _allIncludes(rulesets) =>
       rulesets.every((rule) => rule is IncludeDirective || rule is NoOp);
 
-  CallMixin _createCallDeclMixin(mixinDef) {
+  CallMixin _createCallDeclMixin(MixinDefinition mixinDef) {
     callMap.putIfAbsent(mixinDef.name, () =>
         callMap[mixinDef.name] = new CallMixin(mixinDef, varDefs));
     return callMap[mixinDef.name];
@@ -968,8 +967,8 @@ class AllExtends extends Visitor {
  * Changes any selector that matches @extend.
  */
 class InheritExtends extends Visitor {
-  Messages _messages;
-  AllExtends _allExtends;
+  final Messages _messages;
+  final AllExtends _allExtends;
 
   InheritExtends(this._messages, this._allExtends);
 

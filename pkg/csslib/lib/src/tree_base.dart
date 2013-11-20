@@ -77,20 +77,6 @@ class TreeOutput {
     writeln('${label}: ${v}');
   }
 
-  void writeList(String label, List<TreeNode> list) {
-    write('${label}: ');
-    if (list == null) {
-      buf.write('null');
-      buf.write('\n');
-    } else {
-      for (var item in list) {
-        buf.write(item.toString());
-        buf.write(', ');
-      }
-      buf.write('\n');
-    }
-  }
-
   void writeNodeList(String label, List<TreeNode> list) {
     writeln('${label} [');
     if (list != null) {
