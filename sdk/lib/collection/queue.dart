@@ -72,6 +72,20 @@ abstract class Queue<E> implements Iterable<E>, EfficientLength {
   void addAll(Iterable<E> iterable);
 
   /**
+   * Removes all elements matched by [test] from the queue.
+   *
+   * The `test` function must not throw or modify the queue.
+   */
+  void removeWhere(bool test(E element));
+
+  /**
+   * Removes all elements not matched by [test] from the queue.
+   *
+   * The `test` function must not throw or modify the queue.
+   */
+  void retainWhere(bool test(E element));
+
+  /**
    * Removes all elements in the queue. The size of the queue becomes zero.
    */
   void clear();
