@@ -255,17 +255,17 @@ void testRetainWhere(Set create([equals, hashCode, validKey])) {
   // must work. Can't use an identity set internally (as was done at some point
   // during development).
   Set set = create();
-  set.addAll([new EO(0), new EO(1), new EO(2)]);
+  set.addAll([new CE(0), new CE(1), new CE(2)]);
   Expect.equals(3, set.length);  // All different.
-  set.retainAll([new EO(0), new EO(2)]);
+  set.retainAll([new CE(0), new CE(2)]);
   Expect.equals(2, set.length);
-  Expect.isTrue(set.contains(new EO(0)));
-  Expect.isTrue(set.contains(new EO(2)));
+  Expect.isTrue(set.contains(new CE(0)));
+  Expect.isTrue(set.contains(new CE(2)));
 
   // If equality of set is identity, we can't internally use a non-identity
   // based set because it might throw away equal objects that are not identical.
-  var elems = [new EO(0), new EO(1), new EO(2), new EO(0)];
-  set = create(identical);
+  var elems = [new CE(0), new CE(1), new CE(2), new CE(0)];
+  set = create(identical, null, null, identityCompare);
   set.addAll(elems);
   Expect.equals(4, set.length);
   set.retainAll([elems[0], elems[2], elems[3]]);
@@ -276,37 +276,88 @@ void testRetainWhere(Set create([equals, hashCode, validKey])) {
 
   // If set equality is less precise than equality, we must not use equality
   // internally to see if the element is there:
-  set = create(customEq(3), customHash(3), validKey);
-  set.addAll([new EO(0), new EO(1), new EO(2)]);
+  set = create(customEq(3), customHash(3), validKey, customCompare(3));
+  set.addAll([new CE(0), new CE(1), new CE(2)]);
   Expect.equals(3, set.length);
-  set.retainAll([new EO(3), new EO(5)]);
+  set.retainAll([new CE(3), new CE(5)]);
   Expect.equals(2, set.length);
-  Expect.isTrue(set.contains(new EO(6)));
-  Expect.isTrue(set.contains(new EO(8)));
+  Expect.isTrue(set.contains(new CE(6)));
+  Expect.isTrue(set.contains(new CE(8)));
 
   // It shouldn't matter if the input is a set.
   set.clear();
-  set.addAll([new EO(0), new EO(1), new EO(2)]);
+  set.addAll([new CE(0), new CE(1), new CE(2)]);
   Expect.equals(3, set.length);
-  set.retainAll(new Set.from([new EO(3), new EO(5)]));
+  set.retainAll(new Set.from([new CE(3), new CE(5)]));
   Expect.equals(2, set.length);
-  Expect.isTrue(set.contains(new EO(6)));
-  Expect.isTrue(set.contains(new EO(8)));
+  Expect.isTrue(set.contains(new CE(6)));
+  Expect.isTrue(set.contains(new CE(8)));
+}
+
+void testDifferenceIntersection(create([equals, hashCode, validKey, compare])) {
+  // Test that elements of intersection comes from receiver set.
+  CE ce1a = new CE(1);
+  CE ce1b = new CE(1);
+  CE ce2 = new CE(2);
+  CE ce3 = new CE(3);
+  Expect.equals(ce1a, ce1b);  // Sanity check.
+
+  var set1 = create();
+  var set2 = create();
+  set1.add(ce1a);
+  set1.add(ce2);
+  set2.add(ce1b);
+  set2.add(ce3);
+
+  var difference = set1.difference(set2);
+  testLength(1, difference);
+  Expect.identical(ce2, difference.lookup(ce2));
+
+  difference = set2.difference(set1);
+  testLength(1, difference);
+  Expect.identical(ce3, difference.lookup(ce3));
+
+  // Difference uses other.contains to check for equality.
+  var set3 = create(identical, identityHashCode, null, identityCompare);
+  set3.add(ce1b);
+  difference = set1.difference(set3);
+  testLength(2, difference);  // ce1a is not identical to element in set3.
+  Expect.identical(ce1a, difference.lookup(ce1a));
+  Expect.identical(ce2, difference.lookup(ce2));
+
+  // Intesection always takes elements from receiver set.
+  var intersection = set1.intersection(set2);
+  testLength(1, intersection);
+  Expect.identical(ce1a, intersection.lookup(ce1a));
+
+  intersection = set1.intersection(set3);
+  testLength(0, intersection);
 }
 
 // Objects that are equal based on data.
-class EO {
+class CE implements Comparable<CE> {
   final int id;
-  const EO(this.id);
+  const CE(this.id);
   int get hashCode => id;
-  bool operator==(Object other) => other is EO && id == (other as EO).id;
+  bool operator==(Object other) => other is CE && id == (other as CE).id;
+  int compareTo(CE other) => id - other.id;
+  String toString() => "CE($id)";
 }
 
 // Equality of Id objects based on id modulo value.
-Function customEq(int mod) => (EO e1, EO e2) => ((e1.id - e2.id) % mod) == 0;
-Function customHash(int mod) => (EO e) => e.id % mod;
-bool validKey(Object o) => o is EO;
-
+Function customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
+Function customHash(int mod) => (CE e) => e.id % mod;
+Function customCompare(int mod) => (CE e1, CE e2) =>
+    (e1.id % mod) - (e2.id % mod);
+bool validKey(Object o) => o is CE;
+final customId = new Map.identity();
+int counter = 0;
+int identityCompare(e1, e2) {
+  if (identical(e1, e2)) return 0;
+  int i1 = customId.putIfAbsent(e1, () => ++counter);
+  int i2 = customId.putIfAbsent(e2, () => ++counter);
+  return i1 - i2;
+}
 
 main() {
   testMain(() => new HashSet());
@@ -320,6 +371,7 @@ main() {
       equals: (a, b) => a == b,
       hashCode: (a) => -a.hashCode,
       isValidKey: (a) => true));
+  testMain(() => new SplayTreeSet());
 
   testTypeAnnotations(new HashSet<int>());
   testTypeAnnotations(new LinkedHashSet<int>());
@@ -331,10 +383,22 @@ main() {
   testTypeAnnotations(new LinkedHashSet<int>(equals: (int a, int b) => a == b,
                                              hashCode: (int a) => a.hashCode,
                                              isValidKey: (a) => a is int));
+  testTypeAnnotations(new SplayTreeSet<int>());
 
-  testRetainWhere(([equals, hashCode, validKey]) =>
+  testRetainWhere(([equals, hashCode, validKey, comparator]) =>
       new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
-  testRetainWhere(([equals, hashCode, validKey]) =>
+  testRetainWhere(([equals, hashCode, validKey, comparator]) =>
       new LinkedHashSet(equals: equals, hashCode: hashCode,
                         isValidKey: validKey));
+  testRetainWhere(([equals, hashCode, validKey, comparator]) =>
+      new SplayTreeSet(comparator, validKey));
+
+  testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
+      new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
+  testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
+      new LinkedHashSet(equals: equals, hashCode: hashCode,
+                        isValidKey: validKey));
+  testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
+      new SplayTreeSet(comparator, validKey));
+
 }

@@ -136,32 +136,35 @@ abstract class _SplayTree<K> {
     return comp;
   }
 
-  // Emulates splaying with a key that is smaller than any in the tree.
-  // After this, the smallest element in the tree is the root.
-  void _splayMin() {
-    assert(_root != null);
-    _SplayTreeNode current = _root;
+  // Emulates splaying with a key that is smaller than any in the subtree
+  // anchored at [node].
+  // and that node is returned. It should replace the reference to [node]
+  // in any parent tree or root pointer.
+  _SplayTreeNode<K> _splayMin(_SplayTreeNode<K> node) {
+    _SplayTreeNode current = node;
     while (current.left != null) {
       _SplayTreeNode left = current.left;
       current.left = left.right;
       left.right = current;
       current = left;
     }
-    _root = current;
+    return current;
   }
 
-  // Emulates splaying with a key that is greater than any in the tree.
-  // After this, the largest element in the tree is the root.
-  void _splayMax() {
-    assert(_root != null);
-    _SplayTreeNode current = _root;
+  // Emulates splaying with a key that is greater than any in the subtree
+  // anchored at [node].
+  // After this, the largest element in the tree is the root of the subtree,
+  // and that node is returned. It should replace the reference to [node]
+  // in any parent tree or root pointer.
+  _SplayTreeNode<K> _splayMax(_SplayTreeNode<K> node) {
+    _SplayTreeNode current = node;
     while (current.right != null) {
       _SplayTreeNode right = current.right;
       current.right = right.left;
       right.left = current;
       current = right;
     }
-    _root = current;
+    return current;
   }
 
   _SplayTreeNode _remove(K key) {
@@ -175,9 +178,8 @@ abstract class _SplayTree<K> {
       _root = _root.right;
     } else {
       _SplayTreeNode<K> right = _root.right;
-      _root = _root.left;
       // Splay to make sure that the new root has an empty right child.
-      _splay(key);
+      _root = _splayMax(_root.left);
       // Insert the original right child as the right child of the new
       // root.
       _root.right = right;
@@ -214,13 +216,13 @@ abstract class _SplayTree<K> {
 
   _SplayTreeNode get _first {
     if (_root == null) return null;
-    _splayMin();
+    _root = _splayMin(_root);
     return _root;
   }
 
   _SplayTreeNode get _last {
     if (_root == null) return null;
-    _splayMax();
+    _root = _splayMax(_root);
     return _root;
   }
 
@@ -495,8 +497,11 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
    *
    * Incremented on [_tree] when a key is added or removed.
    * If it changes, iteration is aborted.
+   *
+   * Not final because some iterators may modify the tree knowingly,
+   * and they update the modification count in that case.
    */
-  final int _modificationCount;
+  int _modificationCount;
 
   /**
    * Count of splay operations on [_tree] when [_workList] was built.
@@ -515,9 +520,21 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
     _findLeftMostDescendent(tree._root);
   }
 
+  _SplayTreeIterator.startAt(_SplayTree tree, var startKey)
+      : _tree = tree,
+        _modificationCount = tree._modificationCount {
+    int compare = tree._splay(startKey);
+    _splayCount = tree._splayCount;
+    _findLeftMostDescendent(compare < 0 ? tree._root.right : tree._root);
+  }
+
   T get current {
     if (_currentNode == null) return null;
     return _getValue(_currentNode);
+  }
+
+  _SplayTreeNode _findStartNode(K key) {
+
   }
 
   void _findLeftMostDescendent(_SplayTreeNode node) {
@@ -560,7 +577,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
       _currentNode = null;
       return false;
     }
-    if (_tree._splayCount != _splayCount) {
+    if (_tree._splayCount != _splayCount && _currentNode != null) {
       _rebuildWorkList(_currentNode);
     }
     _currentNode = _workList.removeLast();
@@ -601,6 +618,171 @@ class _SplayTreeValueIterator<K, V> extends _SplayTreeIterator<V> {
 
 class _SplayTreeNodeIterator<K>
     extends _SplayTreeIterator<_SplayTreeNode<K>> {
-  _SplayTreeNodeIterator(_SplayTree<K> map): super(map);
+  _SplayTreeNodeIterator(_SplayTree<K> tree): super(tree);
+  _SplayTreeNodeIterator.startAt(_SplayTree<K> tree, var startKey)
+      : super.startAt(tree, startKey);
   _SplayTreeNode<K> _getValue(_SplayTreeNode node) => node;
+}
+
+
+class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
+                      implements Set<E> {
+  Comparator _comparator;
+  _Predicate _validKey;
+  SplayTreeSet([int compare(E key1, E key2), bool isValidKey(potentialKey)])
+      : _comparator = (compare == null) ? Comparable.compare : compare,
+        _validKey = (isValidKey != null) ? isValidKey : ((v) => v is E);
+
+  int _compare(E e1, E e2) => _comparator(e1, e2);
+
+  // From Iterable.
+
+  Iterator<E> get iterator => new _SplayTreeKeyIterator<E>(this);
+
+  int get length => _count;
+  bool get isEmpty => _root == null;
+  bool get isNotEmpty => _root != null;
+
+  E get first {
+    if (_count == 0) throw new StateError("no such element");
+    return _first.key;
+  }
+
+  E get last {
+    if (_count == 0) throw new StateError("no such element");
+    return _last.key;
+  }
+
+  E get single {
+    if (_count == 0) throw new StateError("no such element");
+    if (_count > 1) throw new StateError("too many elements");
+    return _root.key;
+  }
+
+  // From Set.
+  bool contains(Object object) {
+    return _validKey(object) && _splay(object) == 0;
+  }
+
+  bool add(E element) {
+    int compare = _splay(element);
+    if (compare == 0) return false;
+    _addNewRoot(new _SplayTreeNode(element), compare);
+    return true;
+  }
+
+  bool remove(Object object) {
+    if (!_validKey(object)) return false;
+    return _remove(object) != null;
+  }
+
+  void addAll(Iterable<E> elements) {
+    for (E element in elements) {
+      int compare = _splay(element);
+      if (compare != 0) {
+        _addNewRoot(new _SplayTreeNode(element), compare);
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    for (Object element in elements) {
+      if (_validKey(element)) _remove(element);
+    }
+  }
+
+  /**
+   * Removes all elements not in [elements].
+   */
+  void retainAll(Iterable<Object> elements) {
+    // Build a set with the same sense of equality as this set.
+    Set<E> retainSet = new SplayTreeSet<E>(_comparator, _validKey);
+    int modificationCount = _modificationCount;
+    for (Object object in elements) {
+      if (modificationCount != _modificationCount) {
+        // The iterator should not have side effects.
+        throw new ConcurrentModificationError(this);
+      }
+      if (this.contains(object)) retainSet.add(object);
+    }
+    // Take over the elements from the retained set, if it differs.
+    if (retainSet._count != _count) {
+      _root = retainSet._root;
+      _count = retainSet._count;
+      _modificationCount++;
+    }
+  }
+
+  void _filterWhere(bool test(E element), bool removeMatching) {
+    _SplayTreeNodeIterator it = new _SplayTreeNodeIterator(this);
+    while (it.moveNext()) {
+      _SplayTreeNode node = it.current;
+      int modificationCount = _modificationCount;
+      bool matches = test(node.key);
+      if (modificationCount != _modificationCount) {
+        throw new ConcurrentModificationError(this);
+      }
+      if (matches == removeMatching) {
+        _remove(node.key);
+        it = new _SplayTreeNodeIterator.startAt(this, node.key);
+      }
+    }
+  }
+
+  void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
+  }
+
+  void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
+  }
+
+  E lookup(Object object) {
+    if (!_validKey(object)) return null;
+    int comp = _splay(object);
+    if (comp != 0) return null;
+    return _root.key;
+  }
+
+  Set<E> intersection(Set<E> other) {
+    Set<E> result = new SplayTreeSet<E>();
+    for (E element in this) {
+      if (other.contains(element)) result.add(element);
+    }
+    return result;
+  }
+
+  Set<E> difference(Set<E> other) {
+    Set<E> result = new SplayTreeSet<E>();
+    for (E element in this) {
+      if (!other.contains(element)) result.add(element);
+    }
+    return result;
+  }
+
+  Set<E> union(Set<E> other) {
+    return _clone()..addAll(other);
+  }
+
+  SplayTreeSet<E> _clone() {
+    var set = new SplayTreeSet<E>();
+    set._count = _count;
+    set._root = _cloneNode(_root);
+    return set;
+  }
+
+  _SplayTreeNode<E> _cloneNode(_SplayTreeNode<E> node) {
+    if (node == null) return null;
+    return new _SplayTreeNode<E>(node.key)..left = _cloneNode(node.left)
+                                          ..right = _cloneNode(node.right);
+  }
+
+  bool containsAll(Iterable other) {
+    for (var element in other) {
+      if (!this.contains(element)) return false;
+    }
+    return true;
+  }
+
+  void clear() { _clear(); }
 }
