@@ -233,6 +233,9 @@ patch class InternetAddress {
   patch static InternetAddress get ANY_IP_V6 {
     throw new UnsupportedError("InternetAddress.ANY_IP_V6");
   }
+  patch InternetAddress(String address) {
+    throw new UnsupportedError("InternetAddress");
+  }
   patch static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     throw new UnsupportedError("InternetAddress.lookup");

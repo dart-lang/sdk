@@ -36,6 +36,10 @@ patch class InternetAddress {
     return _InternetAddress.ANY_IP_V6;
   }
 
+  /* patch */ factory InternetAddress(String address) {
+    return new _InternetAddress.parse(address);
+  }
+
   /* patch */ static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _NativeSocket.lookup(host, type: type);

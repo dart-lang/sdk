@@ -111,8 +111,7 @@ abstract class InternetAddress {
    * (dotted-decimal notation) or IPv6 (hexadecimal representation).
    * address [ArgumentError] is thrown.
    */
-  factory InternetAddress(String address) =>
-      new _InternetAddress.parse(address);
+  external InternetAddress(String address);
 
   /**
    * Perform a reverse dns lookup on the [address], creating a new
