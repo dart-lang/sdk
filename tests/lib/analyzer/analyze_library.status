@@ -28,7 +28,7 @@ lib/_internal/dartdoc/lib/src/client/dropdown: CompileTimeError
 lib/_internal/dartdoc/lib/src/client/search: CompileTimeError
 lib/_internal/dartdoc/lib/universe_serializer: CompileTimeError
 lib/_internal/pub/bin/pub: CompileTimeError
-lib/_internal/pub/lib/src/barback: CompileTimeError
+lib/_internal/pub/lib/src/barback: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/barback.dart)
 lib/_internal/pub/lib/src/barback/dart2js_transformer: CompileTimeError
 lib/_internal/pub/lib/src/barback/dart_forwarding_transformer: CompileTimeError
 lib/_internal/pub/lib/src/barback/load_all_transformers: CompileTimeError
