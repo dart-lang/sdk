@@ -1,6 +1,6 @@
 name: observe
-version: 0.9.1
-author: Web UI Team <web-ui-dev@dartlang.org>
+version: 0.9.1-dev
+author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in Model-Driven-Views (MDV).
   MDV extends HTML and the DOM APIs to support a sensible separation between the

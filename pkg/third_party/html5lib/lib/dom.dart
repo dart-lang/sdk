@@ -181,6 +181,8 @@ abstract class Node {
     nodes.addAll(parseFragment(value, container: tagName).nodes);
   }
 
+  Node get firstChild => nodes.isNotEmpty ? nodes[0] : null;
+
   void _addOuterHtml(StringBuffer str);
 
   void _addInnerHtml(StringBuffer str) {

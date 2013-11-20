@@ -27,9 +27,6 @@ import 'common.dart';
  * support script tags with inlined code, use this transformer after running
  * [InlineCodeExtractor] on an earlier phase.
  */
-// TODO(sigmund): currently we just inline polymer-element and script tags, we
-// need to make sure we match semantics of html-imports for other tags too.
-// (see dartbug.com/12613).
 class ImportInliner extends Transformer with PolymerTransformer {
   final TransformOptions options;
 
@@ -42,11 +39,11 @@ class ImportInliner extends Transformer with PolymerTransformer {
   Future apply(Transform transform) {
     var logger = transform.logger;
     var seen = new Set<AssetId>();
-    var elements = [];
+    var documents = [];
     var id = transform.primaryInput.id;
     seen.add(id);
     return readPrimaryAsHtml(transform).then((document) {
-      var future = _visitImports(document, id, transform, seen, elements);
+      var future = _visitImports(document, id, transform, seen, documents);
       return future.then((importsFound) {
         // We produce a secondary asset with extra information for later phases.
         var secondaryId = id.addExtension('.scriptUrls');
@@ -56,39 +53,42 @@ class ImportInliner extends Transformer with PolymerTransformer {
           return;
         }
 
-        for (var tag in document.queryAll('link')) {
-          if (tag.attributes['rel'] == 'import') {
-            tag.remove();
-          }
-        }
-
         // Split Dart script tags from all the other elements. Now that Dartium
         // only allows a single script tag per page, we can't inline script
         // tags. Instead, we collect the urls of each script tag so we import
         // them directly from the Dart bootstrap code.
         var scripts = [];
-        var rest = [];
-        for (var e in elements) {
-          if (e.tagName == 'script' &&
-              e.attributes['type'] == 'application/dart') {
-            scripts.add(e);
-          } else if (e.tagName == 'polymer-element') {
-            rest.add(e);
-            var script = e.query('script');
-            if (script != null &&
-                script.attributes['type'] == 'application/dart') {
-              script.remove();
-              scripts.add(script);
+
+        var fragment = new DocumentFragment();
+        for (var importedDoc in documents) {
+          bool first = true;
+          for (var e in importedDoc.queryAll('script')) {
+            if (e.attributes['type'] == 'application/dart') {
+              e.remove();
+
+              // only one Dart script per document is supported in Dartium.
+              if (first) {
+                first = false;
+                scripts.add(e);
+              } else {
+                // TODO(jmesserly): remove this when we are running linter.
+                logger.warning('more than one Dart script per HTML document is '
+                    'not supported. Script will be ignored.',
+                    span: e.sourceSpan);
+              }
             }
-          } else {
-            rest.add(e);
           }
+
+          // TODO(jmesserly): should we merge the head too?
+          fragment.nodes.addAll(importedDoc.body.nodes);
         }
 
-        var fragment = new DocumentFragment()..nodes.addAll(rest);
-        document.body.insertBefore(fragment,
-            //TODO(jmesserly): add Node.firstChild to html5lib
-            document.body.nodes.length == 0 ? null : document.body.nodes[0]);
+        document.body.insertBefore(fragment, document.body.firstChild);
+
+        for (var tag in document.queryAll('link')) {
+          if (tag.attributes['rel'] == 'import') tag.remove();
+        }
+
         transform.addOutput(new Asset.fromString(id, document.outerHtml));
 
         var scriptIds = [];
@@ -114,7 +114,7 @@ class ImportInliner extends Transformer with PolymerTransformer {
    * the order they appear, transitive imports are added first.
    */
   Future<bool> _visitImports(Document document, AssetId sourceId,
-      Transform transform, Set<AssetId> seen, List<Node> elements) {
+      Transform transform, Set<AssetId> seen, List<Document> documents) {
     var importIds = [];
     bool hasImports = false;
     for (var tag in document.queryAll('link')) {
@@ -133,7 +133,7 @@ class ImportInliner extends Transformer with PolymerTransformer {
     return Future.forEach(importIds, (id) {
       if (seen.contains(id)) return new Future.value(null);
       seen.add(id);
-      return _collectElements(id, transform, seen, elements);
+      return _collectImportedDocuments(id, transform, seen, documents);
     }).then((_) => true);
   }
 
@@ -141,29 +141,14 @@ class ImportInliner extends Transformer with PolymerTransformer {
    * Loads an asset identified by [id], visits its imports and collects it's
    * polymer-element definitions and script tags.
    */
-  Future _collectElements(AssetId id, Transform transform,
-      Set<AssetId> seen, List elements) {
+  Future _collectImportedDocuments(AssetId id, Transform transform,
+      Set<AssetId> seen, List documents) {
     return readAsHtml(id, transform).then((document) {
-      return _visitImports(document, id, transform, seen, elements).then((_) {
+      return _visitImports(document, id, transform, seen, documents).then((_) {
         new _UrlNormalizer(transform, id).visit(document);
-        new _InlineQuery(elements).visit(document);
+        documents.add(document);
       });
     });
-  }
-}
-
-/** Implements document.queryAll('polymer-element,script'). */
-// TODO(sigmund): delete this (dartbug.com/14135)
-class _InlineQuery extends TreeVisitor {
-  final List<Element> elements;
-  _InlineQuery(this.elements);
-
-  visitElement(Element node) {
-    if (node.tagName == 'polymer-element' || node.tagName == 'script') {
-      elements.add(node);
-    } else {
-      super.visitElement(node);
-    }
   }
 }
 
