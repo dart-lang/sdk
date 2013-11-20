@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:nativewrappers";
 // TODO(ahe): Move _symbol_dev.Symbol to its own "private" library?
 import "dart:_collection-dev" as _symbol_dev;
 
@@ -78,7 +77,7 @@ patch class MirrorSystem {
   }
 
   /* patch */ static Symbol getSymbol(String name, [LibraryMirror library]) {
-    if (library is! LibraryMirror ||
+    if ((library != null && library is! _LocalLibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);
     }

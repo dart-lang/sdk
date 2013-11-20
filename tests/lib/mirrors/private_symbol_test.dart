@@ -29,15 +29,21 @@ main() {
   Symbol corefoo = MirrorSystem.getSymbol('foo', libcore);
   Symbol mathfoo = MirrorSystem.getSymbol('foo', libmath);
   Symbol testfoo = MirrorSystem.getSymbol('foo', libtest);
+  Symbol nullfoo1 = MirrorSystem.getSymbol('foo');
+  Symbol nullfoo2 = MirrorSystem.getSymbol('foo', null);
 
   Expect.equals(corefoo, mathfoo);
   Expect.equals(mathfoo, testfoo);
   Expect.equals(testfoo, corefoo);
+  Expect.equals(nullfoo1, corefoo);
+  Expect.equals(nullfoo2, corefoo);
 
   Expect.equals('foo', MirrorSystem.getName(corefoo));
   Expect.equals('foo', MirrorSystem.getName(mathfoo));
   Expect.equals('foo', MirrorSystem.getName(testfoo));
   Expect.equals('foo', MirrorSystem.getName(#foo));
+  Expect.equals('foo', MirrorSystem.getName(nullfoo1));
+  Expect.equals('foo', MirrorSystem.getName(nullfoo2));
 
   Symbol core_foo = MirrorSystem.getSymbol('_foo', libcore);
   Symbol math_foo = MirrorSystem.getSymbol('_foo', libmath);
