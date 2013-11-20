@@ -111,6 +111,7 @@ spawn_function_custom_class_test: Fail
 spawn_function_test: Fail
 stacktrace_message_test: Fail
 unresolved_ports_test: Fail
+static_function_test: Fail
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning

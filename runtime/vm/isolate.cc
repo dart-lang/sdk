@@ -1032,17 +1032,21 @@ IsolateSpawnState::IsolateSpawnState(const Function& func)
     : isolate_(NULL),
       script_url_(NULL),
       library_url_(NULL),
+      class_name_(NULL),
       function_name_(NULL),
       exception_callback_name_(NULL) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
-  ASSERT(cls.IsTopLevel());
   const Library& lib = Library::Handle(cls.library());
   const String& lib_url = String::Handle(lib.url());
   library_url_ = strdup(lib_url.ToCString());
 
   const String& func_name = String::Handle(func.name());
   function_name_ = strdup(func_name.ToCString());
+  if (!cls.IsTopLevel()) {
+    const String& class_name = String::Handle(cls.Name());
+    class_name_ = strdup(class_name.ToCString());
+  }
   exception_callback_name_ = strdup("_unhandledExceptionCallback");
 }
 
@@ -1050,6 +1054,7 @@ IsolateSpawnState::IsolateSpawnState(const Function& func)
 IsolateSpawnState::IsolateSpawnState(const char* script_url)
     : isolate_(NULL),
       library_url_(NULL),
+      class_name_(NULL),
       function_name_(NULL),
       exception_callback_name_(NULL) {
   script_url_ = strdup(script_url);
@@ -1063,6 +1068,7 @@ IsolateSpawnState::~IsolateSpawnState() {
   free(script_url_);
   free(library_url_);
   free(function_name_);
+  free(class_name_);
   free(exception_callback_name_);
 }
 
@@ -1084,13 +1090,36 @@ RawObject* IsolateSpawnState::ResolveFunction() {
   ASSERT(!lib.IsNull());
 
   // Resolve the function.
-  const String& func_name =
-      String::Handle(String::New(function_name()));
-  const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+  const String& func_name = String::Handle(String::New(function_name()));
+
+  if (class_name() == NULL) {
+    const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+    if (func.IsNull()) {
+      const String& msg = String::Handle(String::NewFormatted(
+          "Unable to resolve function '%s' in library '%s'.",
+          function_name(),
+          (library_url() != NULL ? library_url() : script_url())));
+      return LanguageError::New(msg);
+    }
+    return func.raw();
+  }
+
+  const String& cls_name = String::Handle(String::New(class_name()));
+  const Class& cls = Class::Handle(lib.LookupLocalClass(cls_name));
+  if (cls.IsNull()) {
+    const String& msg = String::Handle(String::NewFormatted(
+          "Unable to resolve class '%s' in library '%s'.",
+          class_name(),
+          (library_url() != NULL ? library_url() : script_url())));
+    return LanguageError::New(msg);
+  }
+  const Function& func =
+      Function::Handle(cls.LookupStaticFunctionAllowPrivate(func_name));
   if (func.IsNull()) {
     const String& msg = String::Handle(String::NewFormatted(
-        "Unable to resolve function '%s' in library '%s'.",
-        function_name(), (library_url() ? library_url() : script_url())));
+          "Unable to resolve static method '%s.%s' in library '%s'.",
+          class_name(), function_name(),
+          (library_url() != NULL ? library_url() : script_url())));
     return LanguageError::New(msg);
   }
   return func.raw();
