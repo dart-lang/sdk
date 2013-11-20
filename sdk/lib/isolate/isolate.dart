@@ -178,7 +178,7 @@ abstract class ReceivePort implements Stream {
   void close();
 
   /**
-   * Returns a send port that sends to this receive port.
+   * Returns a [SendPort] that sends to this receive port.
    */
   SendPort get sendPort;
 }
@@ -206,6 +206,11 @@ abstract class RawReceivePort {
    * After a call to this method any incoming message is silently dropped.
    */
   void close();
+
+  /**
+   * Returns a [SendPort] that sends to this receive port.
+   */
+  SendPort get sendPort;
 }
 
 /**

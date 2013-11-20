@@ -7,6 +7,7 @@
 import 'dart:_isolate_helper' show IsolateNatives,
                                    lazyPort,
                                    ReceivePortImpl,
+                                   RawReceivePortImpl,
                                    CloseToken,
                                    JsIsolateSink;
 
@@ -34,17 +35,15 @@ patch class Isolate {
 
 /** Default factory for receive ports. */
 patch class ReceivePort {
-  patch factory ReceivePort() {
-    return new ReceivePortImpl();
-  }
+  patch factory ReceivePort() = ReceivePortImpl;
 
   patch factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
-    throw new UnimplementedError("ReceivePort.fromRawReceivePort");
+    return new ReceivePortImpl.fromRawReceivePort(rawPort);
   }
 }
 
 patch class RawReceivePort {
   patch factory RawReceivePort([void handler(event)]) {
-    throw new UnimplementedError("RawReceivePort");
+    return new RawReceivePortImpl(handler);
   }
 }

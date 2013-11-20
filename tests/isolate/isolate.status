@@ -106,6 +106,7 @@ message_test: Fail
 mint_maker_test: Fail
 nested_spawn2_test: Fail
 nested_spawn_test: Fail
+raw_port_test: Fail
 request_reply_test: Fail
 spawn_function_custom_class_test: Fail
 spawn_function_test: Fail
