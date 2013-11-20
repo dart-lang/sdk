@@ -907,6 +907,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
     prefix = it.GetNext();
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
+    prefix_name = String::IdentifierPrettyName(prefix_name);
     prefix_name = String::Concat(prefix_name, Symbols::Dot());
     for (int i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);

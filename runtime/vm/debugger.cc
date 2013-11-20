@@ -1749,6 +1749,7 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
         field_name = field.name();
         field_list.Add(field_name);
         field_value = GetInstanceField(cls, field_name, obj);
+        field_name = String::IdentifierPrettyName(field_name);
         field_list.Add(field_value);
       }
     }
@@ -1770,6 +1771,7 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
     if (field.is_static()) {
       field_name = field.name();
       field_value = GetStaticField(cls, field_name);
+      field_name = String::IdentifierPrettyName(field_name);
       field_list.Add(field_name);
       field_list.Add(field_value);
     }
@@ -1803,6 +1805,7 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
       if (!prefix.IsNull()) {
         field_name = String::Concat(prefix, field_name);
       }
+      field_name = String::IdentifierPrettyName(field_name);
       field_list.Add(field_name);
       field_list.Add(field_value);
     }
