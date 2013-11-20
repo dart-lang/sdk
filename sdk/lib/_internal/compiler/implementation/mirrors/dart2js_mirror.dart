@@ -1496,7 +1496,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       mirrors, _function.computeSignature(mirrors.compiler).returnType,
       mirrors.compiler.types.dynamicType);
 
-  bool get isAbstract => _function.isAbstract(mirrors.compiler);
+  bool get isAbstract => _function.isAbstract();
 
   bool get isRegularMethod => !(isGetter || isSetter || isConstructor);
 

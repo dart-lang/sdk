@@ -1892,14 +1892,25 @@ class PartialFunctionElement extends FunctionElementX {
   final Token getOrSet;
   final Token endToken;
 
+  /**
+   * The position is computed in the constructor using [findMyName]. Computing
+   * it on demand fails in case tokens are GC'd, for example after building
+   * the IR.
+   */
+  Token positionCache;
+
   PartialFunctionElement(String name,
                          Token this.beginToken,
                          Token this.getOrSet,
                          Token this.endToken,
                          ElementKind kind,
                          Modifiers modifiers,
-                         Element enclosing)
-    : super(name, kind, modifiers, enclosing);
+                         Element enclosing,
+                         {bool hasNoBody: false})
+    : super(name, kind, modifiers, enclosing,
+            hasNoBody: hasNoBody) {
+    positionCache = findMyName(beginToken);
+  }
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -1914,19 +1925,7 @@ class PartialFunctionElement extends FunctionElementX {
     return cachedNode;
   }
 
-  Token position() {
-    return findMyName(beginToken);
-  }
-
-  PartialFunctionElement cloneTo(Element enclosing,
-                                 DiagnosticListener listener) {
-    if (patch != null) {
-      listener.cancel("Cloning a patched function.", element: this);
-    }
-    PartialFunctionElement result = new PartialFunctionElement(
-        name, beginToken, getOrSet, endToken, kind, modifiers, enclosing);
-    return result;
-  }
+  Token position() => positionCache;
 }
 
 class PartialFieldListElement extends VariableListElementX {
@@ -1956,13 +1955,6 @@ class PartialFieldListElement extends VariableListElementX {
   }
 
   Token position() => beginToken; // findMyName doesn't work. I'm nameless.
-
-  PartialFieldListElement cloneTo(Element enclosing,
-                                  DiagnosticListener listener) {
-    PartialFieldListElement result = new PartialFieldListElement(
-        beginToken, endToken, modifiers, enclosing);
-    return result;
-  }
 }
 
 class PartialTypedefElement extends TypedefElementX {
@@ -1979,14 +1971,7 @@ class PartialTypedefElement extends TypedefElementX {
     return cachedNode;
   }
 
-  position() => findMyName(token);
-
-  PartialTypedefElement cloneTo(Element enclosing,
-                                DiagnosticListener listener) {
-    PartialTypedefElement result =
-        new PartialTypedefElement(name, enclosing, token);
-    return result;
-  }
+  Token position() => findMyName(token);
 }
 
 /// A [MetadataAnnotation] which is constructed on demand.

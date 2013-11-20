@@ -191,7 +191,7 @@ class World {
   }
 
   void registerUsedElement(Element element) {
-    if (element.isInstanceMember() && !element.isAbstract(compiler)) {
+    if (element.isInstanceMember() && !element.isAbstract()) {
       allFunctions.add(element);
     }
   }

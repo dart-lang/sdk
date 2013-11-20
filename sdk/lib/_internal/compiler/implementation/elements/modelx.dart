@@ -183,6 +183,8 @@ class ElementX implements Element {
     // named formed out of multiple tokens (named constructors) so
     // for those we search for the class name instead.
     String needle = isConstructor() ? enclosingElement.name : name;
+    // The unary '-' operator has a special element name (specified).
+    if (needle == 'unary-') needle = '-';
     for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
       if (needle == t.value) return t;
     }
@@ -279,7 +281,7 @@ class ElementX implements Element {
 
   static bool isInvalid(Element e) => e == null || e.isErroneous();
 
-  bool isAbstract(Compiler compiler) => modifiers.isAbstract();
+  bool isAbstract() => modifiers.isAbstract();
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
   FunctionElement get targetConstructor => null;
@@ -1240,7 +1242,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     throw "internal error: AbstractFieldElement has no node";
   }
 
-  position() {
+  Token position() {
     // The getter and setter may be defined in two different
     // compilation units.  However, we know that one of them is
     // non-null and defined in the same compilation unit as the
@@ -1389,6 +1391,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
   FunctionElement patch = null;
   FunctionElement origin = null;
 
+  bool _isAbstract;
+
   /**
    * If this is a redirecting factory, [defaultImplementation] will be
    * changed by the resolver to point to the redirection target.
@@ -1400,32 +1404,39 @@ class FunctionElementX extends ElementX implements FunctionElement {
   FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
-                   Element enclosing)
-      : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null);
+                   Element enclosing,
+                   {bool hasNoBody: false})
+      : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null,
+                                hasNoBody: hasNoBody);
 
   FunctionElementX.node(String name,
                         FunctionExpression node,
                         ElementKind kind,
                         Modifiers modifiers,
                         Element enclosing)
-      : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null);
+      : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null,
+                                hasNoBody: false);
 
   FunctionElementX.from(String name,
                         FunctionElement other,
                         Element enclosing)
       : this.tooMuchOverloading(name, other.cachedNode, other.kind,
                                 other.modifiers, enclosing,
-                                other.functionSignature);
+                                other.functionSignature,
+                                hasNoBody: false);
 
   FunctionElementX.tooMuchOverloading(String name,
                                       FunctionExpression this.cachedNode,
                                       ElementKind kind,
-                                      Modifiers this.modifiers,
+                                      this.modifiers,
                                       Element enclosing,
-                                      FunctionSignature this.functionSignature)
+                                      this.functionSignature,
+                                      {bool hasNoBody: false})
       : super(name, kind, enclosing) {
     assert(modifiers != null);
     defaultImplementation = this;
+    _isAbstract = super.isAbstract() || (
+        !modifiers.isExternal() && (isFunction() || isAccessor()) && hasNoBody);
   }
 
   bool get isPatched => patch != null;
@@ -1528,15 +1539,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
     }
   }
 
-  bool isAbstract(Compiler compiler) {
-    if (super.isAbstract(compiler)) return true;
-    if (modifiers.isExternal()) return false;
-    if (isFunction() || isAccessor()) {
-      return compiler.withCurrentElement(this,
-          () => !parseNode(compiler).hasBody());
-    }
-    return false;
-  }
+  bool isAbstract() => _isAbstract;
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1879,13 +1882,13 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         FunctionElement setter = field.setter;
         if (selector.isSetter()) {
           // Abstract members can be defined in a super class.
-          if (setter != null && !setter.isAbstract(compiler)) return setter;
+          if (setter != null && !setter.isAbstract()) return setter;
         } else {
           assert(selector.isGetter() || selector.isCall());
-          if (getter != null && !getter.isAbstract(compiler)) return getter;
+          if (getter != null && !getter.isAbstract()) return getter;
         }
       // Abstract members can be defined in a super class.
-      } else if (!member.isAbstract(compiler)) {
+      } else if (!member.isAbstract()) {
         return member;
       }
     }
