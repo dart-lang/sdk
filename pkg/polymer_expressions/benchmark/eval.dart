@@ -18,24 +18,42 @@ class Bar {
   Bar(this.baz);
 }
 
-/**
- * Measures eval time of several expressions. Parsing time is not included.
- */
-class PolymerEvalBenchmark extends BenchmarkBase {
-  PolymerEvalBenchmark() : super('PolymerEvalBenchmark');
+class EvalBenchmark extends BenchmarkBase {
+  final expr;
+  final scope;
 
-  final expr = parse('foo.bar.baz');
-  final expr2 = parse('(1 + 2) * 3');
-  final scope = new Scope(variables: {'foo': new Foo(new Bar('hello'))});
+  EvalBenchmark(String name, String expr, {Object model, Map variables})
+      : expr = parse(expr),
+        scope = new Scope(model: model, variables: variables),
+        super('$name: $expr ');
 
   run() {
     var value = eval(expr, scope);
-    if (value != 'hello') throw new StateError(value);
-    value = eval(expr2, scope);
-    if (value != 9) throw new StateError(value);
   }
+
+}
+
+double total = 0.0;
+
+benchmark(String name, String expr, {Object model, Map variables}) {
+  var score = new EvalBenchmark(name, expr, model: model, variables: variables)
+      .measure();
+  print("$name $expr: $score us");
+  total += score;
 }
 
 main() {
-  new PolymerEvalBenchmark().report();
+
+  benchmark('Constant', '1');
+  benchmark('Top-level Name', 'foo',
+      variables: {'foo': new Foo(new Bar('hello'))});
+  benchmark('Model field', 'bar',
+      model: new Foo(new Bar('hello')));
+  benchmark('Path', 'foo.bar.baz',
+      variables: {'foo': new Foo(new Bar('hello'))});
+  benchmark('Map', 'm["foo"]',
+      variables: {'m': {'foo': 1}});
+  benchmark('Equality', '"abc" == "123"');
+  print('total: $total us');
+
 }

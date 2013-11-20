@@ -80,15 +80,15 @@ main() {
     });
 
     test('should parse a dot operator', () {
-      expectParse('a.b', invoke(ident('a'), 'b'));
+      expectParse('a.b', getter(ident('a'), 'b'));
     });
 
     test('should parse chained dot operators', () {
-      expectParse('a.b.c', invoke(invoke(ident('a'), 'b'), 'c'));
+      expectParse('a.b.c', getter(getter(ident('a'), 'b'), 'c'));
     });
 
     test('should give dot high associativity', () {
-      expectParse('a * b.c', binary(ident('a'), '*', invoke(ident('b'), 'c')));
+      expectParse('a * b.c', binary(ident('a'), '*', getter(ident('b'), 'c')));
     });
 
     test('should parse a function with no arguments', () {
@@ -146,20 +146,19 @@ main() {
     });
 
     test('should parse an index operator', () {
-      expectParse('a[b]', invoke(ident('a'), '[]', [ident('b')]));
-      expectParse('a.b[c]', invoke(invoke(ident('a'), 'b', null),
-          '[]', [ident('c')]));
+      expectParse('a[b]', index(ident('a'), ident('b')));
+      expectParse('a.b[c]', index(getter(ident('a'), 'b'), ident('c')));
     });
 
     test('should parse chained index operators', () {
-      expectParse('a[][]', invoke(invoke(ident('a'), '[]', []), '[]', []));
+      expectParse('a[][]', index(index(ident('a'), null), null));
     });
 
     test('should parse multiple index operators', () {
       expectParse('a[b] + c[d]', binary(
-          invoke(ident('a'), '[]', [ident('b')]),
+          index(ident('a'), ident('b')),
           '+',
-          invoke(ident('c'), '[]', [ident('d')])));
+          index(ident('c'), ident('d'))));
     });
 
     test('should parse a filter chain', () {
@@ -170,7 +169,7 @@ main() {
     test('should parse comprehension', () {
       expectParse('a in b', inExpr(ident('a'), ident('b')));
       expectParse('a in b.c',
-          inExpr(ident('a'), invoke(ident('b'), 'c', null)));
+          inExpr(ident('a'), getter(ident('b'), 'c')));
       expectParse('a in b + c',
           inExpr(ident('a'), binary(ident('b'), '+', ident('c'))));
     });
@@ -201,7 +200,7 @@ main() {
 
     test('should parse map literals with method calls', () {
       expectParse("{'a': 1}.length",
-          invoke(mapLiteral([mapLiteralEntry(literal('a'), literal(1))]),
+          getter(mapLiteral([mapLiteralEntry(literal('a'), literal(1))]),
               'length'));
     });
   });
