@@ -79,6 +79,11 @@ Context get _context {
 }
 Context _cachedContext;
 
+/// Returns the [Style] of the current context.
+///
+/// This is the style that all top-level path functions will use.
+Style get style => _context.style;
+
 /// Gets the path to the current working directory.
 ///
 /// In the browser, this means the current URL, without the last file segment.

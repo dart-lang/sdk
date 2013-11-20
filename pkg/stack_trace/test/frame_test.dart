@@ -495,5 +495,11 @@ void main() {
       expect(new Frame.parseVM('#0 Foo (dart:core/uri.dart:5)').toString(),
           equals('dart:core/uri.dart 5 in Foo'));
     });
+
+    test('prints relative paths as relative', () {
+      var relative = path.normalize('relative/path/to/foo.dart');
+      expect(new Frame.parseFriendly('$relative 5:10  Foo').toString(),
+          equals('$relative 5:10 in Foo'));
+    });
   });
 }

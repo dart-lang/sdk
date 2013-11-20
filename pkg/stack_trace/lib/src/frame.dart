@@ -69,7 +69,8 @@ class Frame {
   /// This will usually be the string form of [uri], but a relative URI will be
   /// used if possible.
   String get library {
-    if (uri.scheme != 'file') return uri.toString();
+    if (uri.scheme != Uri.base.scheme) return uri.toString();
+    if (path.style == path.Style.url) return path.relative(uri.toString());
     return path.relative(path.fromUri(uri));
   }
 
