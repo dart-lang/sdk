@@ -3868,7 +3868,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     ClassElement cls = constructor.getEnclosingClass();
-    if (cls.isAbstract(compiler) && constructor.isGenerativeConstructor()) {
+    if (cls.isAbstract && constructor.isGenerativeConstructor()) {
       generateAbstractClassInstantiationError(send, cls.name);
       return;
     }
