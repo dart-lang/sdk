@@ -106,12 +106,36 @@ class _InternetAddress implements InternetAddress {
     }
   }
 
+  bool get isMulticast {
+    switch (type) {
+      case InternetAddressType.IP_V4:
+        // Checking for 224.0.0.0 through 239.255.255.255.
+        return _sockaddr_storage[_IPV4_ADDR_OFFSET] >= 224 &&
+            _sockaddr_storage[_IPV4_ADDR_OFFSET] < 240;
+
+      case InternetAddressType.IP_V6:
+        // Checking for ff00::/8.
+        return _sockaddr_storage[_IPV6_ADDR_OFFSET] == 0xFF;
+    }
+  }
+
   Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
 
   _InternetAddress(InternetAddressType this.type,
                    String this.address,
                    String this._host,
                    List<int> this._sockaddr_storage);
+
+  factory _InternetAddress.parse(String address) {
+    var type = address.indexOf(':') == -1
+        ? InternetAddressType.IP_V4
+        : InternetAddressType.IP_V6;
+    var raw = _parse(type._value, address);
+    if (raw == null) {
+      throw new ArgumentError("Invalid internet address $address");
+    }
+    return new _InternetAddress(type, address, null, raw);
+  }
 
   factory _InternetAddress.fixed(int id) {
     var sockaddr = _fixed(id);
@@ -140,11 +164,31 @@ class _InternetAddress implements InternetAddress {
         type, address, host, new Uint8List.fromList(_sockaddr_storage));
   }
 
+  bool operator ==(other) {
+    if (!(other is _InternetAddress)) return false;
+    if (other.type != type) return false;
+    bool equals = true;
+    for (int i = 0; i < _sockaddr_storage.length && equals; i++) {
+      equals = other._sockaddr_storage[i] == _sockaddr_storage[i];
+    }
+    return equals;
+  }
+
+  int get hashCode {
+    int result = 1;
+    for (int i = 0; i < _sockaddr_storage.length; i++) {
+      result = (result * 31 + _sockaddr_storage[i]) & 0x3FFFFFFF;
+    }
+    return result;
+  }
+
   String toString() {
     return "InternetAddress('$address', ${type.name})";
   }
 
   static Uint8List _fixed(int id) native "InternetAddress_Fixed";
+  static Uint8List _parse(int type, String address)
+      native "InternetAddress_Parse";
 }
 
 class _NetworkInterface implements NetworkInterface {

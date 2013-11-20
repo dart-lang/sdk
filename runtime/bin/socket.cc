@@ -73,11 +73,32 @@ void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
       if (Dart_IsError(error)) Dart_PropagateError(error);
       Dart_ThrowException(error);
   }
-  int len = SocketAddress::GetAddrLength(&raw);
-  Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
-  Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(&raw), len);
-  Dart_SetReturnValue(args, result);
+  Dart_SetReturnValue(args, SocketAddress::ToTypedData(&raw));
+}
+
+
+void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
+  int64_t type = 0;
+  bool ok = DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &type);
+  ASSERT(ok);
+  USE(ok);
+  const char* address =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+  ASSERT(address != NULL);
+  RawAddr raw;
+  memset(&raw, 0, sizeof(raw));
+  if (type == SocketAddress::TYPE_IPV4) {
+    raw.addr.sa_family = AF_INET;
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    raw.addr.sa_family = AF_INET6;
+  }
+  ok = Socket::ParseAddress(type, address, &raw);
+  if (!ok) {
+    Dart_SetReturnValue(args, Dart_Null());
+  } else {
+    Dart_SetReturnValue(args, SocketAddress::ToTypedData(&raw));
+  }
 }
 
 

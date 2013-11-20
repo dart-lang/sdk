@@ -100,6 +100,21 @@ abstract class InternetAddress {
   bool get isLinkLocal;
 
   /**
+   * Returns true if the [InternetAddress]s scope is multicast.
+   */
+  bool get isMulticast;
+
+  /**
+   * Creates a new [InternetAddress] from a numeric address.
+   *
+   * If the address in [address] is not a numeric IPv4
+   * (dotted-decimal notation) or IPv6 (hexadecimal representation).
+   * address [ArgumentError] is thrown.
+   */
+  factory InternetAddress(String address) =>
+      new _InternetAddress.parse(address);
+
+  /**
    * Perform a reverse dns lookup on the [address], creating a new
    * [InternetAddress] where the host field set to the result.
    */
