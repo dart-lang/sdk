@@ -533,7 +533,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
     return _getValue(_currentNode);
   }
 
-  _SplayTreeNode _findStartNode(K key) {
+  _SplayTreeNode _findStartNode(T key) {
 
   }
 
@@ -696,7 +696,7 @@ class SplayTreeSet<E> extends _SplayTree<E> with IterableMixin<E>
    */
   void retainAll(Iterable<Object> elements) {
     // Build a set with the same sense of equality as this set.
-    Set<E> retainSet = new SplayTreeSet<E>(_comparator, _validKey);
+    SplayTreeSet<E> retainSet = new SplayTreeSet<E>(_comparator, _validKey);
     int modificationCount = _modificationCount;
     for (Object object in elements) {
       if (modificationCount != _modificationCount) {
