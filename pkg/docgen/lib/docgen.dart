@@ -36,6 +36,10 @@ import '../../../sdk/lib/_internal/libraries.dart';
 
 var logger = new Logger('Docgen');
 
+const DEFAULT_OUTPUT_DIRECTORY = 'docs';
+
+var _outputDirectory;
+
 const String USAGE = 'Usage: dart docgen.dart [OPTIONS] fooDir/barFile';
 
 
@@ -62,6 +66,12 @@ Map<String, Indexable> entityMap = new Map<String, Indexable>();
 /// This is set from the command line arguments flag --include-private
 bool _includePrivate = false;
 
+/// Library names to explicitly exclude.
+///
+///   Set from the command line option
+/// --exclude-lib.
+List<String> _excluded;
+
 // TODO(janicejl): Make MDN content generic or pluggable. Maybe move
 // MDN-specific code to its own library that is imported into the default impl?
 /// Map of all the comments for dom elements from MDN.
@@ -79,10 +89,13 @@ Map _mdn;
 /// Returned Future completes with true if document generation is successful.
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
-    bool parseSdk: false, bool append: false, String introduction: ''}) {
+    bool parseSdk: false, bool append: false, String introduction: '',
+    out: DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries}) {
+  _excluded = excludeLibraries;
   _includePrivate = includePrivate;
+  _outputDirectory = out;
   if (!append) {
-    var dir = new Directory('docs');
+    var dir = new Directory(_outputDirectory);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   }
 
@@ -96,26 +109,32 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     }
   }
   logger.info('Package Root: ${packageRoot}');
+  var requestedLibraries = _listLibraries(files);
+  var allLibraries = []..addAll(requestedLibraries);
+  if (includeSdk) {
+    allLibraries.addAll(_listSdk());
+  }
 
-  return getMirrorSystem(files, packageRoot: packageRoot, parseSdk: parseSdk)
+  return getMirrorSystem(allLibraries, packageRoot: packageRoot,
+      parseSdk: parseSdk)
     .then((MirrorSystem mirrorSystem) {
       if (mirrorSystem.libraries.isEmpty) {
         throw new StateError('No library mirrors were created.');
       }
-      var librariesWeAskedFor = _listLibraries(files);
-      var librariesWeGot = mirrorSystem.libraries.values.where(
+      var availableLibraries = mirrorSystem.libraries.values.where(
           (each) => each.uri.scheme == 'file');
       _sdkLibraries = mirrorSystem.libraries.values.where(
           (each) => each.uri.scheme == 'dart');
       _coreLibrary = _sdkLibraries.singleWhere((lib) =>
           lib.uri.toString().startsWith('dart:core'));
-      var librariesWeGotByPath = new Map.fromIterables(
-          librariesWeGot.map((each) => each.uri.toFilePath()),
-          librariesWeGot);
-      var librariesToDocument = librariesWeAskedFor.map(
-          (each) => librariesWeGotByPath.putIfAbsent(each,
+      var availableLibrariesByPath = new Map.fromIterables(
+          availableLibraries.map((each) => each.uri.toFilePath()),
+          availableLibraries);
+      var librariesToDocument = requestedLibraries.map(
+          (each) => availableLibrariesByPath.putIfAbsent(each,
               () => throw "Missing library $each")).toList();
       librariesToDocument.addAll((includeSdk || parseSdk) ? _sdkLibraries : []);
+      librariesToDocument.removeWhere((x) => _excluded.contains(x.simpleName));
       _documentLibraries(librariesToDocument, includeSdk: includeSdk,
           outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
           introduction: introduction);
@@ -209,7 +228,7 @@ List<String> _listDartFromDir(String args) {
       }
     }
   });
-  return libraries;
+  return libraries.map(path.absolute).map(path.normalize).toList();
 }
 
 String _findPackageRoot(String directory) {
@@ -245,9 +264,8 @@ List<String> _listSdk() {
 
 /// Analyzes set of libraries by getting a mirror system and triggers the
 /// documentation of the libraries.
-Future<MirrorSystem> getMirrorSystem(List<String> args, {String packageRoot,
-    bool parseSdk: false}) {
-  var libraries = !parseSdk ? _listLibraries(args) : _listSdk();
+Future<MirrorSystem> getMirrorSystem(List<String> libraries,
+    {String packageRoot, bool parseSdk: false}) {
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // Finds the root of SDK library based off the location of docgen.
 
@@ -323,12 +341,12 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
   var libraryMap;
   var linkResolver = (name) => fixReference(name, null, null, null);
   if (append) {
-    var docsDir = listDir('docs');
-    if (!docsDir.contains('docs/library_list.json')) {
+    var docsDir = listDir(_outputDirectory);
+    if (!docsDir.contains('$_outputDirectory/library_list.json')) {
       throw new StateError('No library_list.json');
     }
     libraryMap =
-        JSON.decode(new File('docs/library_list.json').readAsStringSync());
+        JSON.decode(new File('$_outputDirectory/library_list.json').readAsStringSync());
     libraryMap['libraries'].addAll(filteredEntities
         .where((e) => e is Library)
         .map((e) => e.previewMap));
@@ -369,7 +387,7 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
       filteredEntities.map((e) => e.typeName));
   if (append) {
     var previousIndex =
-        JSON.decode(new File('docs/index.json').readAsStringSync());
+        JSON.decode(new File('$_outputDirectory/index.json').readAsStringSync());
     index.addAll(previousIndex);
   }
   _writeToFile(JSON.encode(index), 'index.json');
@@ -771,24 +789,21 @@ List<Type> _typeGenerics(TypeMirror mirror) {
   return [];
 }
 
-/// Writes text to a file in the 'docs' directory.
+/// Writes text to a file in the output directory.
 void _writeToFile(String text, String filename, {bool append: false}) {
-  Directory dir = new Directory('docs');
+  if (text == null) return;
+  Directory dir = new Directory(_outputDirectory);
   if (!dir.existsSync()) {
     dir.createSync();
   }
   // We assume there's a single extra level of directory structure for packages.
   if (path.split(filename).length > 1) {
-    var subdir = new Directory(path.join('docs', path.dirname(filename)));
+    var subdir = new Directory(path.join(_outputDirectory, path.dirname(filename)));
     if (!subdir.existsSync()) {
       subdir.createSync();
     }
   }
-
-  File file = new File('docs/$filename');
-  if (!file.existsSync()) {
-    file.createSync();
-  }
+  File file = new File(path.join(_outputDirectory, filename));
   file.writeAsStringSync(text, mode: append ? FileMode.APPEND : FileMode.WRITE);
 }
 

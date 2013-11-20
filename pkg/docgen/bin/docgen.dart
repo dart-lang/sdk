@@ -10,6 +10,8 @@ import 'package:logging/logging.dart';
 import '../lib/docgen.dart';
 import 'package:path/path.dart' as path;
 
+List<String> excludedLibraries = [];
+
 /**
  * Analyzes Dart files and generates a representation of included libraries,
  * classes, and members.
@@ -18,15 +20,21 @@ void main(List<String> arguments) {
   logger.onRecord.listen((record) => print(record.message));
   var results = _initArgParser().parse(arguments);
 
+  var includeSdk = results['parse-sdk'] || results['include-sdk'];
+  var scriptDir = path.dirname(Platform.script.toFilePath());
+  var introFile =
+      path.join(path.dirname(scriptDir), 'doc', 'sdk-introduction.md');
+  var introduction = includeSdk ? introFile : results['introduction'];
   docgen(results.rest.map(path.normalize).toList(),
       packageRoot: results['package-root'],
       outputToYaml: !results['json'],
       includePrivate: results['include-private'],
-      includeSdk: results['parse-sdk'] || results['include-sdk'],
+      includeSdk: includeSdk,
       parseSdk: results['parse-sdk'],
-      append: results['append'] && new Directory('docs').existsSync(),
-      introduction: (results['parse-sdk'] || results['include-sdk']) ?
-          'sdk-introduction.md' : results['introduction']);
+      append: results['append'] && new Directory(results['out']).existsSync(),
+      introduction: introduction,
+      out: results['out'],
+      excludeLibraries: excludedLibraries);
 }
 
 /**
@@ -69,6 +77,12 @@ ArgParser _initArgParser() {
   parser.addOption('introduction',
       help: 'Adds the provided markdown text file as the introduction'
         ' for the outputted documentation.', defaultsTo: '');
-
+  parser.addOption('out',
+      help: 'The name of the output directory.',
+      defaultsTo: 'docs');
+  parser.addOption('exclude-lib',
+      help: 'Exclude the library by this name from the documentation',
+      allowMultiple: true,
+      callback: (libs) => excludedLibraries.addAll(libs));
   return parser;
 }
