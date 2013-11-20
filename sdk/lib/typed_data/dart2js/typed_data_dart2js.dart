@@ -42,18 +42,6 @@ class ByteBuffer native "ArrayBuffer" {
   final int lengthInBytes;
 }
 
-// TODO(12929): Remove this constant once V8 optimizes length access of
-// typed arrays. Firefox does not like accessing a named property of a
-// typed array, so we only use the new [:$dartCachedLength:] property in V8 and
-// Chrome.
-const fetchLength = const JS_CONST(r'''
-    ((typeof version == "function" && typeof os == "object" && "system" in os)
-    || (typeof navigator == "object"
-        && navigator.userAgent.indexOf('Chrome') != -1))
-        ? function(x) { return x.$dartCachedLength || x.length; }
-        : function(x) { return x.length; };
-''');
-
 /**
  * A typed view of a sequence of bytes.
  */
@@ -519,7 +507,7 @@ class Float32List
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   num operator[](int index) {
     _checkIndex(index, length);
@@ -597,7 +585,7 @@ class Float64List
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   num operator[](int index) {
     _checkIndex(index, length);
@@ -676,7 +664,7 @@ class Int16List
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -751,7 +739,7 @@ class Int32List
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -823,7 +811,7 @@ class Int8List
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -899,7 +887,7 @@ class Uint16List
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -975,7 +963,7 @@ class Uint32List
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -1048,7 +1036,7 @@ class Uint8ClampedList extends TypedData with ListMixin<int>,
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -1127,7 +1115,7 @@ class Uint8List
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  int get length => JS("int", '#(#)', fetchLength, this);
+  int get length => JS("int", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
