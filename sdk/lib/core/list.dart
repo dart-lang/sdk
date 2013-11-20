@@ -307,10 +307,10 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * Returns the removed object.
    *
-   * * Throws an [ArgumentError] if [index] is not an [int].
-   * * Throws a [RangeError] if the [index] is out of range for this list.
-   * * Throws an [UnsupportedError], and doesn't remove the object,
-   * if this is a fixed-length list.
+   * The [index] must be in the range `0 ≤ index < length`.
+   *
+   * Throws an [UnsupportedError] if this is a fixed-length list. In that case
+   * the list is not modified.
    */
   E removeAt(int index);
 
@@ -406,8 +406,11 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive.
    *
-   * An error occurs if [start]..[end] is not a valid range for `this`.
-   * Throws an [UnsupportedError] if this is a fixed-length list.
+   * The [start] and [end] indices must be in the range
+   * `0 ≤ index ≤ length`, and `start ≤ end`.
+   *
+   * Throws an [UnsupportedError] if this is a fixed-length list. In that case
+   * the list is not modified.
    */
   void removeRange(int start, int end);
 
