@@ -123,12 +123,16 @@ class _HttpHeaders implements HttpHeaders {
           "Trying to clear ContentLength on HTTP 1.0 headers with "
           "'Connection: Keep-Alive' set");
     }
+    if (_contentLength == contentLength) return;
     _contentLength = contentLength;
     if (_contentLength >= 0) {
       if (chunkedTransferEncoding) chunkedTransferEncoding = false;
       _set(HttpHeaders.CONTENT_LENGTH, contentLength.toString());
     } else {
       removeAll(HttpHeaders.CONTENT_LENGTH);
+      if (protocolVersion == "1.1") {
+        chunkedTransferEncoding = true;
+      }
     }
   }
 
