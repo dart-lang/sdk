@@ -724,7 +724,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
                 _HttpOutgoing outgoing,
                 String serverHeader)
       : super(uri, protocolVersion, outgoing) {
-    if (serverHeader != null) headers.set('Server', serverHeader);
+    if (serverHeader != null) headers._add('server', serverHeader);
   }
 
   List<Cookie> get cookies {
@@ -747,7 +747,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) {
     if (_headersWritten) throw new StateError("Header already sent");
     statusCode = status;
-    headers.set("Location", location.toString());
+    headers.set("location", location.toString());
     return close();
   }
 
@@ -1303,9 +1303,9 @@ class _HttpClientConnection {
                                          this);
     request.headers.host = uri.host;
     request.headers.port = port;
-    request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+    request.headers._add(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (_httpClient.userAgent != null) {
-      request.headers.set('User-Agent', _httpClient.userAgent);
+      request.headers._add('user-agent', _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that

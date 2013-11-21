@@ -15,16 +15,17 @@ class _Const {
   // Bytes for "HTTP/1.1".
   static const HTTP11 = const [72, 84, 84, 80, 47, 49, 46, 49];
 
-  static const END_CHUNKED = const [0x30, 13, 10, 13, 10];
-
-  // Bytes for '()<>@,;:\\"/[]?={} \t'.
-  static const SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
-                                   91, 93, 63, 61, 123, 125, 32, 9];
-
-  // Bytes for '()<>@,;:\\"/[]?={} \t\r\n'.
-  static const SEPARATORS_AND_CR_LF = const [40, 41, 60, 62, 64, 44, 59, 58, 92,
-                                             34, 47, 91, 93, 63, 61, 123, 125,
-                                             32, 9, 13, 10];
+  static const bool T = true;
+  static const bool F = false;
+  // Loopup-map for the following characters: '()<>@,;:\\"/[]?={} \t'.
+  static const SEPARATOR_MAP = const [
+      F,F,F,F,F,F,F,F,F,T,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,T,F,T,F,F,
+      F,F,F,T,T,F,F,T,F,F,T,F,F,F,F,F,F,F,F,F,F,T,T,T,T,T,T,T,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,T,T,T,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,T,F,T,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F];
 }
 
 
@@ -369,7 +370,9 @@ class _HttpParser
           if (byte == _CharCode.SP) {
             _state = _State.REQUEST_LINE_URI;
           } else {
-            if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
+            if (_Const.SEPARATOR_MAP[byte] ||
+                byte == _CharCode.CR ||
+                byte == _CharCode.LF) {
               throw new HttpException("Invalid request method");
             }
             _method_or_status_code.add(byte);
@@ -836,7 +839,7 @@ class _HttpParser
   }
 
   bool _isTokenChar(int byte) {
-    return byte > 31 && byte < 128 && _Const.SEPARATORS.indexOf(byte) == -1;
+    return byte > 31 && byte < 128 && !_Const.SEPARATOR_MAP[byte];
   }
 
   List<String> _tokenizeFieldValue(String headerValue) {

@@ -41,21 +41,24 @@ class _HttpHeaders implements HttpHeaders {
 
   void add(String name, value) {
     _checkMutable();
-    var lowerCaseName = name.toLowerCase();
+    _addAll(name.toLowerCase(), value);
+  }
+
+  void _addAll(String name, value) {
     if (value is List) {
       for (int i = 0; i < value.length; i++) {
-        _add(lowerCaseName, value[i]);
+        _add(name, value[i]);
       }
     } else {
-      _add(lowerCaseName, value);
+      _add(name, value);
     }
   }
 
   void set(String name, Object value) {
-    name = name.toLowerCase();
     _checkMutable();
-    removeAll(name);
-    add(name, value);
+    name = name.toLowerCase();
+    _headers.remove(name);
+    _addAll(name, value);
   }
 
   void remove(String name, Object value) {
@@ -342,7 +345,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void _set(String name, String value) {
-    name = name.toLowerCase();
+    assert(name == name.toLowerCase());
     List<String> values = new List<String>();
     _headers[name] = values;
     values.add(value);
