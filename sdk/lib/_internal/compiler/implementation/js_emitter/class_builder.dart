@@ -21,7 +21,7 @@ class ClassBuilder {
   }
 
   jsAst.Expression toObjectInitializer() {
-    return new jsAst.ObjectInitializer(properties, isOneLiner: false);
+    return new jsAst.ObjectInitializer(properties);
   }
 
 }

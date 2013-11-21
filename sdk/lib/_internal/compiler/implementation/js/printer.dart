@@ -802,26 +802,25 @@ class Printer implements NodeVisitor {
     // Print all the properties on one line until we see a function-valued
     // property.  Ideally, we would use a proper pretty-printer to make the
     // decision based on layout.
+    bool onePerLine = false;
     List<Property> properties = node.properties;
     out("{");
     ++indentLevel;
     for (int i = 0; i < properties.length; i++) {
       Expression value = properties[i].value;
+      if (value is Fun || value is NamedFunction) onePerLine = true;
       if (i != 0) {
         out(",");
-        if (node.isOneLiner) spaceOut();
+        if (!onePerLine) spaceOut();
       }
-      if (!node.isOneLiner) {
+      if (onePerLine) {
         forceLine();
         indent();
       }
       visitProperty(properties[i]);
     }
     --indentLevel;
-    if (!node.isOneLiner && !properties.isEmpty) {
-      lineOut();
-      indent();
-    }
+    if (onePerLine) lineOut();
     out("}");
   }
 
