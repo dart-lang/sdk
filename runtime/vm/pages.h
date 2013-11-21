@@ -18,8 +18,7 @@ DECLARE_FLAG(bool, log_code_drop);
 class Heap;
 class ObjectPointerVisitor;
 
-// An aligned page containing old generation objects. Alignment is used to be
-// able to get to a HeapPage header quickly based on a pointer to an object.
+// A page containing old generation objects.
 class HeapPage {
  public:
   enum PageType {
@@ -64,7 +63,7 @@ class HeapPage {
   }
 
   static HeapPage* Initialize(VirtualMemory* memory, PageType type);
-  static HeapPage* Allocate(intptr_t size, PageType type);
+  static HeapPage* Allocate(intptr_t size_in_words, PageType type);
 
   // Deallocate the virtual memory backing this page. The page pointer to this
   // page becomes immediately inaccessible.
@@ -171,8 +170,7 @@ class PageSpaceController {
 class PageSpace {
  public:
   // TODO(iposva): Determine heap sizes and tune the page size accordingly.
-  static const intptr_t kPageSize = 256 * KB;
-  static const intptr_t kPageAlignment = kPageSize;
+  static const intptr_t kPageSizeInWords = 256 * KBInWords;
 
   enum GrowthPolicy {
     kControlGrowth,
@@ -243,7 +241,7 @@ class PageSpace {
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
-  static intptr_t LargePageSizeFor(intptr_t size);
+  static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
   bool CanIncreaseCapacityInWords(intptr_t increase_in_words) {
     ASSERT(capacity_in_words_ <= max_capacity_in_words_);

@@ -43,8 +43,9 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
 }
 
 
-HeapPage* HeapPage::Allocate(intptr_t size, PageType type) {
-  VirtualMemory* memory = VirtualMemory::Reserve(size);
+HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
+  VirtualMemory* memory =
+      VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
   return Initialize(memory, type);
 }
 
@@ -134,33 +135,33 @@ PageSpace::~PageSpace() {
 }
 
 
-intptr_t PageSpace::LargePageSizeFor(intptr_t size) {
+intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
   intptr_t page_size = Utils::RoundUp(size + HeapPage::ObjectStartOffset(),
                                       VirtualMemory::PageSize());
-  return page_size;
+  return page_size >> kWordSizeLog2;
 }
 
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
-  HeapPage* page = HeapPage::Allocate(kPageSize, type);
+  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type);
   if (pages_ == NULL) {
     pages_ = page;
   } else {
     pages_tail_->set_next(page);
   }
   pages_tail_ = page;
-  capacity_in_words_ += (kPageSize >> kWordSizeLog2);
+  capacity_in_words_ += kPageSizeInWords;
   page->set_object_end(page->memory_->end());
   return page;
 }
 
 
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
-  intptr_t page_size = LargePageSizeFor(size);
-  HeapPage* page = HeapPage::Allocate(page_size, type);
+  intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  HeapPage* page = HeapPage::Allocate(page_size_in_words, type);
   page->set_next(large_pages_);
   large_pages_ = page;
-  capacity_in_words_ += (page_size >> kWordSizeLog2);
+  capacity_in_words_ += page_size_in_words;
   // Only one object in this page.
   page->set_object_end(page->object_start() + size);
   return page;
@@ -216,7 +217,7 @@ uword PageSpace::TryAllocate(intptr_t size,
     if ((result == 0) &&
         (page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
-        CanIncreaseCapacityInWords(kPageSize >> kWordSizeLog2)) {
+        CanIncreaseCapacityInWords(kPageSizeInWords)) {
       HeapPage* page = AllocatePage(type);
       ASSERT(page != NULL);
       // Start of the newly allocated page is the allocated object.
@@ -230,14 +231,14 @@ uword PageSpace::TryAllocate(intptr_t size,
     }
   } else {
     // Large page allocation.
-    intptr_t page_size = LargePageSizeFor(size);
-    if (page_size < size) {
+    intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+    if ((page_size_in_words << kWordSizeLog2) < size) {
       // On overflow we fail to allocate.
       return 0;
     }
     if ((page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
-        CanIncreaseCapacityInWords(page_size >> kWordSizeLog2)) {
+        CanIncreaseCapacityInWords(page_size_in_words)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
@@ -568,8 +569,9 @@ PageSpaceController::~PageSpaceController() {}
 
 
 bool PageSpaceController::CanGrowPageSpace(intptr_t size_in_bytes) {
-  size_in_bytes = Utils::RoundUp(size_in_bytes, PageSpace::kPageSize);
-  intptr_t size_in_pages =  size_in_bytes / PageSpace::kPageSize;
+  intptr_t size_in_words = size_in_bytes >> kWordSizeLog2;
+  size_in_words = Utils::RoundUp(size_in_words, PageSpace::kPageSizeInWords);
+  intptr_t size_in_pages =  size_in_words / PageSpace::kPageSizeInWords;
   if (!is_enabled_) {
     return true;
   }
@@ -610,9 +612,9 @@ void PageSpaceController::EvaluateGarbageCollection(
         used_after_in_words /  desired_utilization_);
     intptr_t growth_in_words = Utils::RoundUp(
         growth_target - used_after_in_words,
-        PageSpace::kPageSize >> kWordSizeLog2);
+        PageSpace::kPageSizeInWords);
     int growth_in_pages =
-        growth_in_words / (PageSpace::kPageSize >> kWordSizeLog2);
+        growth_in_words / PageSpace::kPageSizeInWords;
     grow_heap_ = Utils::Maximum(growth_in_pages, heap_growth_rate_);
     heap->RecordData(PageSpace::kPageGrowth, growth_in_pages);
   }

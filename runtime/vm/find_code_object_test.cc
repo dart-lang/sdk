@@ -149,7 +149,7 @@ TEST_CASE(FindCodeObject) {
   pc = code.EntryPoint() + (PageSpace::kPageSize / 4);
   EXPECT(Code::LookupCode(pc) == code.raw());
 #else
-  EXPECT(code.Size() > PageSpace::kPageSize);
+  EXPECT(code.Size() > (PageSpace::kPageSizeInWords << kWordSizeLog2));
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
