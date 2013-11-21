@@ -1249,7 +1249,9 @@ class _Serializer extends _MessageTraverser {
 
   _serializeList(List list) {
     int len = list.length;
-    var result = new List(len);
+    // Use a growable list because we do not add extra properties on
+    // them.
+    var result = new List()..length = len;
     for (int i = 0; i < len; i++) {
       result[i] = _dispatch(list[i]);
     }
