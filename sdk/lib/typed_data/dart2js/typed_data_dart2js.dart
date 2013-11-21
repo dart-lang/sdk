@@ -86,12 +86,6 @@ class TypedData native "ArrayBufferView" {
     }
   }
 
-  // TODO(12929): Remove this method once V8 optimizes length access of
-  // typed arrays.
-  void _setCachedLength() {
-    JS('void', r'#.$dartCachedLength = #.length', this, this);
-  }
-
   int _checkSublistArguments(int start, int end, int length) {
     // For `sublist` the [start] and [end] indices are allowed to be equal to
     // [length]. However, [_checkIndex] only allows indices in the range
@@ -451,14 +445,13 @@ class ByteData extends TypedData native "DataView" {
   void setUint8(int byteOffset, int value) native;
 
   static ByteData _create1(arg) =>
-      JS('ByteData', 'new DataView(new ArrayBuffer(#))', arg).._setCachedLength();
+      JS('ByteData', 'new DataView(new ArrayBuffer(#))', arg);
 
   static ByteData _create2(arg1, arg2) =>
-      JS('ByteData', 'new DataView(#, #)', arg1, arg2).._setCachedLength();
+      JS('ByteData', 'new DataView(#, #)', arg1, arg2);
 
   static ByteData _create3(arg1, arg2, arg3) =>
-      JS('ByteData', 'new DataView(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('ByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
 }
 
 /**
@@ -522,20 +515,17 @@ class Float32List
   List<double> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
     var source = JS('Float32List', '#.subarray(#, #)', this, start, end);
-    source._setCachedLength();
     return _create1(source);
   }
 
   static Float32List _create1(arg) =>
-      JS('Float32List', 'new Float32Array(#)', arg).._setCachedLength();
+      JS('Float32List', 'new Float32Array(#)', arg);
 
   static Float32List _create2(arg1, arg2) =>
-      JS('Float32List', 'new Float32Array(#, #)', arg1, arg2)
-          .._setCachedLength();
+      JS('Float32List', 'new Float32Array(#, #)', arg1, arg2);
 
   static Float32List _create3(arg1, arg2, arg3) =>
-      JS('Float32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Float32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -600,22 +590,19 @@ class Float64List
   List<double> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
     var source = JS('Float64List', '#.subarray(#, #)', this, start, end);
-    source._setCachedLength();
     return _create1(source);
   }
 
   static Float64List _create1(arg) {
-    return JS('Float64List', 'new Float64Array(#)', arg).._setCachedLength();
+    return JS('Float64List', 'new Float64Array(#)', arg);
   }
 
   static Float64List _create2(arg1, arg2) {
-    return JS('Float64List', 'new Float64Array(#, #)', arg1, arg2)
-        .._setCachedLength();
+    return JS('Float64List', 'new Float64Array(#, #)', arg1, arg2);
   }
 
   static Float64List _create3(arg1, arg2, arg3) {
-    return JS('Float64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3)
-        .._setCachedLength();
+    return JS('Float64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
   }
 }
 
@@ -678,20 +665,18 @@ class Int16List
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Int16List', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Int16List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Int16List _create1(arg) =>
-      JS('Int16List', 'new Int16Array(#)', arg).._setCachedLength();
+      JS('Int16List', 'new Int16Array(#)', arg);
 
   static Int16List _create2(arg1, arg2) =>
-      JS('Int16List', 'new Int16Array(#, #)', arg1, arg2).._setCachedLength();
+      JS('Int16List', 'new Int16Array(#, #)', arg1, arg2);
 
   static Int16List _create3(arg1, arg2, arg3) =>
-      JS('Int16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Int16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -753,20 +738,18 @@ class Int32List
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Int32List', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Int32List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Int32List _create1(arg) =>
-      JS('Int32List', 'new Int32Array(#)', arg).._setCachedLength();
+      JS('Int32List', 'new Int32Array(#)', arg);
 
   static Int32List _create2(arg1, arg2) =>
-      JS('Int32List', 'new Int32Array(#, #)', arg1, arg2).._setCachedLength();
+      JS('Int32List', 'new Int32Array(#, #)', arg1, arg2);
 
   static Int32List _create3(arg1, arg2, arg3) =>
-      JS('Int32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Int32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -825,20 +808,18 @@ class Int8List
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Int8List', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Int8List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Int8List _create1(arg) =>
-      JS('Int8List', 'new Int8Array(#)', arg).._setCachedLength();
+      JS('Int8List', 'new Int8Array(#)', arg);
 
   static Int8List _create2(arg1, arg2) =>
-      JS('Int8List', 'new Int8Array(#, #)', arg1, arg2).._setCachedLength();
+      JS('Int8List', 'new Int8Array(#, #)', arg1, arg2);
 
   static Int8List _create3(arg1, arg2, arg3) =>
-      JS('Int8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Int8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -901,20 +882,18 @@ class Uint16List
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint16List', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Uint16List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Uint16List _create1(arg) =>
-      JS('Uint16List', 'new Uint16Array(#)', arg).._setCachedLength();
+      JS('Uint16List', 'new Uint16Array(#)', arg);
 
   static Uint16List _create2(arg1, arg2) =>
-      JS('Uint16List', 'new Uint16Array(#, #)', arg1, arg2).._setCachedLength();
+      JS('Uint16List', 'new Uint16Array(#, #)', arg1, arg2);
 
   static Uint16List _create3(arg1, arg2, arg3) =>
-      JS('Uint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Uint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -977,20 +956,18 @@ class Uint32List
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint32List', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Uint32List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Uint32List _create1(arg) =>
-      JS('Uint32List', 'new Uint32Array(#)', arg).._setCachedLength();
+      JS('Uint32List', 'new Uint32Array(#)', arg);
 
   static Uint32List _create2(arg1, arg2) =>
-      JS('Uint32List', 'new Uint32Array(#, #)', arg1, arg2).._setCachedLength();
+      JS('Uint32List', 'new Uint32Array(#, #)', arg1, arg2);
 
   static Uint32List _create3(arg1, arg2, arg3) =>
-      JS('Uint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Uint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -1050,22 +1027,19 @@ class Uint8ClampedList extends TypedData with ListMixin<int>,
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint8ClampedList', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Uint8ClampedList', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Uint8ClampedList _create1(arg) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#)', arg)
-          .._setCachedLength();
+      JS('Uint8ClampedList', 'new Uint8ClampedArray(#)', arg);
 
   static Uint8ClampedList _create2(arg1, arg2) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #)', arg1, arg2)
-          .._setCachedLength();
+      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #)', arg1, arg2);
 
   static Uint8ClampedList _create3(arg1, arg2, arg3) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #, #)',
+         arg1, arg2, arg3);
 }
 
 
@@ -1129,20 +1103,18 @@ class Uint8List
 
   List<int> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint8List', '#.subarray(#, #)', this, start, end)
-        .._setCachedLength();
+    var source = JS('Uint8List', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static Uint8List _create1(arg) =>
-      JS('Uint8List', 'new Uint8Array(#)', arg).._setCachedLength();
+      JS('Uint8List', 'new Uint8Array(#)', arg);
 
   static Uint8List _create2(arg1, arg2) =>
-      JS('Uint8List', 'new Uint8Array(#, #)', arg1, arg2).._setCachedLength();
+      JS('Uint8List', 'new Uint8Array(#, #)', arg1, arg2);
 
   static Uint8List _create3(arg1, arg2, arg3) =>
-      JS('Uint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3)
-          .._setCachedLength();
+      JS('Uint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
