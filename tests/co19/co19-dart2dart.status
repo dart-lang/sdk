@@ -10,11 +10,6 @@ Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with s
 Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 
-Language/12_Expressions/32_Type_Test_A04_t01: Fail # Issue 463
-Language/12_Expressions/32_Type_Test_A04_t02: Fail # Issue 463
-Language/12_Expressions/33_Type_Cast_A03_t01: Fail # Issue 463
-Language/12_Expressions/33_Type_Cast_A03_t03: Fail # Issue 463
-
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
@@ -69,22 +64,10 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
-LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
-LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
-LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail, OK # Problems with the test: encoded file name
-LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail, OK # Problems with the test: encoded file name
-LibTest/isolate/IsolateSink/add_A01_t01: CompileTimeError # Issue 13683
 LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
 LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
-LibTest/typed_data/Float32x4/interleaveZWPairs_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
@@ -173,10 +156,6 @@ Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please tri
 LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/spawnUri_A02_t02: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/isolate_api/spawnUri_A02_t03: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t02: timeout # co19-roll r546: Please triage this failure
@@ -191,8 +170,6 @@ Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r559: Ple
 Language/12_Expressions/18_Assignment_A05_t02: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/18_Assignment_A05_t04: fail # co19-roll r559: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
-LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure
-LibTest/json/printOn_A03_t02: fail # co19-roll r587: Please triage this failure
 Language/12_Expressions/32_Type_Test_A02_t04: RuntimeError # co19-roll to r667: Please triage this failure
 
 [ $compiler == dart2dart && $unminified ]

@@ -33,11 +33,9 @@ lib/_internal/pub/lib/src/barback/dart2js_transformer: CompileTimeError
 lib/_internal/pub/lib/src/barback/dart_forwarding_transformer: CompileTimeError
 lib/_internal/pub/lib/src/barback/load_all_transformers: CompileTimeError
 lib/_internal/pub/lib/src/barback/load_transformers: CompileTimeError
-lib/_internal/pub/lib/src/barback/pub_barback_logger: CompileTimeError
 lib/_internal/pub/lib/src/barback/pub_package_provider: CompileTimeError
 lib/_internal/pub/lib/src/barback/server: CompileTimeError
 lib/_internal/pub/lib/src/barback/sources: CompileTimeError
-lib/_internal/pub/lib/src/barback/watch_sources: CompileTimeError
 lib/_internal/pub/lib/src/command/build: CompileTimeError
 lib/_internal/pub/lib/src/command/lish: CompileTimeError
 lib/_internal/pub/lib/src/command/list_package_dirs: CompileTimeError
@@ -96,4 +94,3 @@ lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError
 lib/web_gl/dartium/web_gl_dartium: CompileTimeError
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError
 lib/web_sql/dartium/web_sql_dartium: CompileTimeError
-

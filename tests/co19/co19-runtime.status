@@ -18,11 +18,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/12_Expressions/33_Type_Cast_A03_t01: Fail # Issue 463
-Language/12_Expressions/33_Type_Cast_A03_t03: Fail # Issue 463
-Language/12_Expressions/32_Type_Test_A04_t01: Fail # Issue 463
-Language/12_Expressions/32_Type_Test_A04_t02: Fail # Issue 463
-
 LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
@@ -36,10 +31,6 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
 # All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail, Timeout # VM triage, check spec.
-LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail, Timeout # VM triage, check spec.
-LibTest/isolate/IsolateSink/addError_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateSink/addError_A01_t02: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
@@ -50,11 +41,6 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # c
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # co19 issue 636
-LibTest/typed_data/Float32x4/interleaveZWPairs_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveZW_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/withZWInXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXY_A01_t01: Fail # co19 issue 650
-LibTest/typed_data/Float32x4/interleaveXYPairs_A01_t01: Fail # co19 issue 650
 LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
@@ -82,7 +68,6 @@ LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407
 #end [ $compiler == none && $runtime == vm && $checked ]
 
 [ $compiler == none && $runtime == vm && $mode == debug ]
-LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 LibTest/async/Stream/Stream.periodic_A03_t01: Fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: Pass, Slow
@@ -125,4 +110,3 @@ Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
 Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
-

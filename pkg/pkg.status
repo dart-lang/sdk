@@ -86,7 +86,6 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
-pkg/collection_helpers/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
 [ $runtime == safari ]
@@ -350,4 +349,3 @@ watcher/test/*/linux_test: Pass, Slow # Issue 14606
 
 [ $runtime == vm && $system == macos ]
 watcher/test/directory_watcher/mac_os_test: Pass, Fail  # Issue 15024
-watcher/test/no_subscribers/mac_os_test: Fail # Issue 14793 (see test file for details)
