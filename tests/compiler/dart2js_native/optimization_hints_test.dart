@@ -61,6 +61,7 @@ main() {
   check(JS('', 'arguments.callee'));
 }
 
+@js.NoInline()
 check(func) {
   JS('', 'String("in check function")');
   var source = JS('String', 'String(#)', func);
