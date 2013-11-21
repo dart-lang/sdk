@@ -2201,7 +2201,7 @@ class _ProxyConfiguration {
           }
           String host = proxy.substring(0, colon).trim();
           if (host.startsWith("[") && host.endsWith("]")) {
-            host = host.substring(1, host.length - 2);
+            host = host.substring(1, host.length - 1);
           }
           String portString = proxy.substring(colon + 1).trim();
           int port;
