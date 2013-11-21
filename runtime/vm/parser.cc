@@ -10299,6 +10299,9 @@ AstNode* Parser::ParsePrimary() {
   } else if (CurrentToken() == Token::kHASH) {
     primary = ParseSymbolLiteral();
   } else if (CurrentToken() == Token::kSUPER) {
+    if (parsing_metadata_) {
+      ErrorMsg("cannot access superclass from metadata");
+    }
     if (current_function().is_static()) {
       ErrorMsg("cannot access superclass from static method");
     }

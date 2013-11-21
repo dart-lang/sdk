@@ -45,6 +45,16 @@ class G {
   instanceMethod() {}
 }
 
+@Tag(named: this)  /// 06: compile-time error
+class H {
+  instanceMethod() {}
+}
+
+@Tag(named: super)  /// 07: compile-time error
+class I {
+  instanceMethod() {}
+}
+
 checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   Expect.listEquals(expectedMetadata.map(reflect).toList(), mirror.metadata);
 }
@@ -57,4 +67,6 @@ main() {
   reflectClass(E).metadata;
   reflectClass(F).metadata;
   reflectClass(G).metadata;
+  reflectClass(H).metadata;
+  reflectClass(I).metadata;
 }
