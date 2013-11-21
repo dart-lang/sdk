@@ -49,6 +49,15 @@ Language/14_Libraries_and_Scripts/5_URIs_A01_t25: fail, OK
 LibTest/collection/LinkedList/LinkedList_A01_t01: Fail, OK
 
 # co19 issue 639.
+Language/12_Expressions/12_Spawning_an_Isolate_A01_t01: Fail
+LibTest/isolate/IsolateSink/add_A01_t01: Fail
+LibTest/isolate/IsolateSink/add_A01_t02: Fail
+LibTest/isolate/IsolateSink/add_A02_t01: Fail
+LibTest/isolate/IsolateSink/close_A01_t01: Fail
+LibTest/isolate/IsolateSink/close_A01_t02: Fail
+LibTest/isolate/IsolateSink/close_A01_t03: Fail
+LibTest/isolate/IsolateSink/close_A01_t04: Fail
+LibTest/isolate/IsolateSink/operator_equality_A01_t01: Fail
 LibTest/isolate/IsolateStream/any_A01_t01: Fail
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail
 LibTest/isolate/IsolateStream/contains_A01_t01: Fail
@@ -79,6 +88,25 @@ LibTest/isolate/SendPort/send_A02_t05: Fail
 LibTest/isolate/SendPort/send_A02_t06: Fail
 LibTest/isolate/SendPort/send_A03_t01: Fail
 LibTest/isolate/SendPort/send_A03_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail
+LibTest/isolate/isolate_api/spawnFunction_A04_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A04_t03: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail
+LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail
+LibTest/isolate/isolate_api/streamSpawnFunction_A01_t01: Fail
+LibTest/isolate/isolate_api/stream_A01_t01: Fail
+LibTest/isolate/isolate_api/port_A01_t01: Fail
+LibTest/isolate/IsolateSink/addError_A01_t01: Fail
+LibTest/isolate/IsolateSink/addError_A01_t02: Fail
 LibTest/isolate/IsolateStream/any_A02_t01: Fail
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
@@ -86,6 +114,14 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail
 LibTest/isolate/SendPort/send_A01_t01: Fail
 LibTest/isolate/SendPort/send_A02_t02: Fail
 LibTest/isolate/SendPort/send_A02_t03: Fail
+LibTest/isolate/isolate_api/spawnFunction_A02_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A04_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Fail
+LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail
+
 
 # co19 issue 642, The argument type 'int' cannot be assigned to the parameter type 'Iterable'
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK
