@@ -1823,7 +1823,12 @@ class _HttpClient implements HttpClient {
       if (option == null) return null;
       Iterator<String> names = option.split(",").map((s) => s.trim()).iterator;
       while (names.moveNext()) {
-        if (url.host.endsWith(names.current)) {
+        var name = names.current;
+        if ((name.startsWith("[") &&
+             name.endsWith("]") &&
+             "[${url.host}]" == name) ||
+            (name.isNotEmpty &&
+             url.host.endsWith(name))) {
           return "DIRECT";
         }
       }
@@ -1832,6 +1837,8 @@ class _HttpClient implements HttpClient {
 
     checkProxy(String option) {
       if (option == null) return null;
+      option = option.trim();
+      if (option.isEmpty) return null;
       int pos = option.indexOf("://");
       if (pos >= 0) {
         option = option.substring(pos + 3);
@@ -1840,7 +1847,13 @@ class _HttpClient implements HttpClient {
       if (pos >= 0) {
         option = option.substring(0, pos);
       }
-      if (option.indexOf(":") == -1) option = "$option:1080";
+      // Add default port if no port configured.
+      if (option.indexOf("[") == 0) {
+        var pos = option.lastIndexOf(":");
+        if (option.indexOf("]") > pos) option = "$option:1080";
+      } else {
+        if (option.indexOf(":") == -1) option = "$option:1080";
+      }
       return "PROXY $option";
     }
 
@@ -2181,12 +2194,15 @@ class _ProxyConfiguration {
             password = userinfo.substring(colon + 1).trim();
           }
           // Look for proxy host and port.
-          int colon = proxy.indexOf(":");
+          int colon = proxy.lastIndexOf(":");
           if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
             throw new HttpException(
                 "Invalid proxy configuration $configuration");
           }
           String host = proxy.substring(0, colon).trim();
+          if (host.startsWith("[") && host.endsWith("]")) {
+            host = host.substring(1, host.length - 2);
+          }
           String portString = proxy.substring(colon + 1).trim();
           int port;
           try {
