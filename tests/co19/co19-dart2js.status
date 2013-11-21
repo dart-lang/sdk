@@ -14,7 +14,8 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Pass, Fail # Issue 8920
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
-Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
+Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # co19-roll r607: Please triage this failure
+Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter
@@ -600,6 +601,7 @@ LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: fail # co19-roll r559: 
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+Language/07_Classes/1_Instance_Methods_A07_t02: CompileTimeError # co19-roll r667: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A03_t06: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A07_t01: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A08_t02: fail # co19-roll r587: Please triage this failure
@@ -617,6 +619,12 @@ LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please tr
 
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
+Language/03_Overview/2_Privacy_A01_t02: RuntimeError # co19-roll r667: Please triage this failure
+Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Pass # co19-roll r667: Please triage this failure
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # co19-roll r667: Please triage this failure
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # co19-roll r667: Please triage this failure
+LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
+LibTest/convert/JsonEncoder/convert_A01_t01: RuntimeError # co19-roll r667: Please triage this failure
 
 LibTest/json/printOn_A01_t01: fail # co19-roll r587: Please triage this failure
 LibTest/json/printOn_A02_t01: fail # co19-roll r587: Please triage this failure

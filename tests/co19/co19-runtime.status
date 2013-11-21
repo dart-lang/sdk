@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $compiler == none && ($runtime == vm || $runtime == dartium) && $unchecked]
-
-
 [ $compiler == none && ($runtime == vm || $runtime == dartium) ]
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # Issue 12508
@@ -21,9 +18,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/10_Generics/10_Generics_A05_t01: Fail # Issue 463
-Language/14_Libraries_and_Scripts/1_Imports_A03_t05: Fail # Issue 463
-Language/15_Types/1_Static_Types_A03_t01: Fail # Issue 463
 Language/12_Expressions/33_Type_Cast_A03_t01: Fail # Issue 463
 Language/12_Expressions/33_Type_Cast_A03_t03: Fail # Issue 463
 Language/12_Expressions/32_Type_Test_A04_t01: Fail # Issue 463
@@ -78,6 +72,7 @@ LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
+Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
 
 # Passing for the wrong reasons:
 LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
@@ -105,11 +100,6 @@ LibTest/core/double/toInt_A01_t01: Fail
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
 [ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
-Language/10_Generics/10_Generics_A05_t02: Fail # Issue 463
-Language/15_Types/1_Static_Types_A03_t02: Fail # Issue 463
-Language/15_Types/1_Static_Types_A03_t03: Fail # Issue 463
-Language/15_Types/1_Static_Types_A03_t04: Fail # Issue 463
-Language/14_Libraries_and_Scripts/1_Imports_A03_t31: Fail # Issue 14006, discussion on-going
 LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/first_A01_t01: Fail # Dart issue 12861

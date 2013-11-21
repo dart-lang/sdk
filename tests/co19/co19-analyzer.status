@@ -38,10 +38,6 @@ Language/12_Expressions/01_Constants_A16_t02: fail, OK
 # co19 issue #454 (wrongly closed)
 Language/12_Expressions/12_Instance_Creation/1_New_A01_t04: fail, OK
 
-# co19 issue #541: tests contain unqualified reference to static members defined in superclass
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t07: fail, OK
-Language/12_Expressions/30_Identifier_Reference_A14_t03: fail, OK
-
 # co19 issue #543: invocation of a non-function
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A03_t02: fail, OK
 
@@ -126,24 +122,12 @@ LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t01: Fail
 LibTest/isolate/isolate_api/streamSpawnFunction_A02_t02: Fail
 
-#co19 issue 631
-Language/12_Expressions/30_Identifier_Reference_A02_t01: Fail
 
 # co19 issue 642, The argument type 'int' cannot be assigned to the parameter type 'Iterable'
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Fail, OK
 LibTest/collection/ListQueue/ListQueue_class_A01_t01: Fail, OK
 LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
 
-# co19 issue 646, I don't see where Spec requires any warning for boolean conversion
-Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: MissingStaticWarning
-
-# co19 issue #652, test is invalid, class "C" is not inherited from "A"
-Language/07_Classes/1_Instance_Methods_A07_t02: MissingStaticWarning, OK
-
-# co19 issue #653, instance method setter with the same name
-Language/07_Classes/3_Setters_A04_t02: StaticWarning, OK
-Language/07_Classes/3_Setters_A04_t03: StaticWarning, OK
-Language/07_Classes/3_Setters_A04_t04: StaticWarning, OK
 
 Language/12_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: MissingStaticWarning
 Language/12_Expressions/19_Conditional_A01_t14: MissingStaticWarning
@@ -163,7 +147,6 @@ Language/12_Expressions/25_Additive_Expressions_A01_t14: MissingStaticWarning
 Language/12_Expressions/26_Multiplicative_Expressions_A01_t17: MissingStaticWarning
 Language/12_Expressions/27_Unary_Expressions_A01_t21: MissingStaticWarning
 Language/12_Expressions/29_Assignable_Expressions_A01_t09: MissingStaticWarning
-Language/12_Expressions/30_Identifier_Reference_A07_t01: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t07: MissingStaticWarning
 Language/13_Statements/06_For/1_For_Loop_A01_t08: MissingStaticWarning
 Language/13_Statements/09_Switch_A10_t03: MissingStaticWarning
@@ -177,10 +160,14 @@ Language/05_Variables/05_Variables_A05_t07: MissingCompileTimeError # co19-roll 
 Language/05_Variables/05_Variables_A06_t01: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t02: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/05_Variables/05_Variables_A06_t03: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/12_Expressions/04_Booleans/1_Boolean_Conversion_A01_t03: MissingStaticWarning # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
+
+Language/07_Classes/10_Superinterfaces_A07_t05: StaticWarning # co19-roll r667: Please triage this failure
+LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: StaticWarning # co19-roll r667: Please triage this failure
+LibTest/isolate/Isolate/spawnFunction_A02_t02: CompileTimeError # co19-roll r667: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t01: CompileTimeError # co19-roll r667: Please triage this failure
 
 # co19 issue 656
 LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
