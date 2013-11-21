@@ -96,6 +96,7 @@ namespace dart {
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
   V(OneByteString_allocate, 1)                                                 \
+  V(OneByteString_allocateFromOneByteList, 1)                                  \
   V(OneByteString_setAt, 3)                                                    \
   V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \

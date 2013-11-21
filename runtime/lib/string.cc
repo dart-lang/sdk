@@ -152,6 +152,57 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 1) {
+  Instance& list = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  uint8_t* data = NULL;
+  intptr_t length = 0;
+  if (list.IsTypedData()) {
+    const TypedData& array = TypedData::Cast(list);
+    length = array.LengthInBytes();
+    data = reinterpret_cast<uint8_t*>(array.DataAddr(0));
+  } else if (list.IsExternalTypedData()) {
+    const ExternalTypedData& array = ExternalTypedData::Cast(list);
+    length = array.LengthInBytes();
+    data = reinterpret_cast<uint8_t*>(array.DataAddr(0));
+  } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
+    const Instance& view = Instance::Cast(list);
+    length = Smi::Value(TypedDataView::Length(view));
+    const Instance& data_obj = Instance::Handle(TypedDataView::Data(view));
+    intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(view));
+    if (data_obj.IsTypedData()) {
+      const TypedData& array = TypedData::Cast(data_obj);
+      data = reinterpret_cast<uint8_t*>(array.DataAddr(data_offset));
+    } else if (data_obj.IsExternalTypedData()) {
+      const ExternalTypedData& array = ExternalTypedData::Cast(data_obj);
+      data = reinterpret_cast<uint8_t*>(array.DataAddr(data_offset));
+    } else {
+      UNREACHABLE();
+    }
+  } else if (list.IsArray()) {
+    const Array& array = Array::Cast(list);
+    intptr_t length = array.Length();
+    String& string = String::Handle(OneByteString::New(length, Heap::kNew));
+    for (int i = 0; i < length; i++) {
+      intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(array.At(i)));
+      OneByteString::SetCharAt(string, i, value);
+    }
+    return string.raw();
+  } else if (list.IsGrowableObjectArray()) {
+    const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
+    intptr_t length = array.Length();
+    String& string = String::Handle(OneByteString::New(length, Heap::kNew));
+    for (int i = 0; i < length; i++) {
+      intptr_t value = Smi::Value(reinterpret_cast<RawSmi*>(array.At(i)));
+      OneByteString::SetCharAt(string, i, value);
+    }
+    return string.raw();
+  } else {
+    UNREACHABLE();
+  }
+  return OneByteString::New(data, length, Heap::kNew);
+}
+
+
 DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
