@@ -672,6 +672,7 @@ class EmbeddedArray<T, 0> {
   M(StringFromCharCode)                                                        \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
+  M(MergedMath)                                                                \
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
@@ -998,6 +999,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
+  friend class MergedMathInstr;
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
@@ -6563,6 +6565,108 @@ class InvokeMathCFunctionInstr : public Definition {
   const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
+};
+
+
+class MergedMathInstr : public Definition {
+ public:
+  enum Kind {
+    kTruncDivMod,
+    kTruncDivRem,
+    kSinCos,
+  };
+
+  MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
+                  intptr_t original_deopt_id,
+                  MergedMathInstr::Kind kind);
+
+  static intptr_t InputCountFor(MergedMathInstr::Kind kind) {
+    if (kind == kTruncDivMod) {
+      return 2;
+    } else {
+      UNIMPLEMENTED();
+      return -1;
+    }
+  }
+
+  MergedMathInstr::Kind kind() const { return kind_; }
+
+  virtual intptr_t InputCount() const { return inputs_->length(); }
+
+  virtual Value* InputAt(intptr_t i) const {
+    return (*inputs_)[i];
+  }
+
+  virtual CompileType ComputeType() const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const {
+    if (kind_ == kTruncDivMod) {
+      return true;
+    } else {
+      UNIMPLEMENTED();
+      return false;
+    }
+  }
+
+  virtual Representation representation() const {
+    if (kind_ == kTruncDivMod) {
+      return kTagged;
+    } else {
+      UNIMPLEMENTED();
+      return kTagged;
+    }
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (kind_ == kTruncDivMod) {
+      ASSERT((0 <= idx) && (idx < InputCount()));
+      return kTagged;
+    } else {
+      UNIMPLEMENTED();
+      return kTagged;
+    }
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  DECLARE_INSTRUCTION(MergedMath)
+
+  // Returns a structure describing the location constraints required
+  // to emit native code for this definition.
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    MergedMathInstr* other_invoke = other->AsMergedMath();
+    return other_invoke->kind() == kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  static const char* KindToCString(MergedMathInstr::Kind kind) {
+    if (kind == kTruncDivMod) return "TruncDivMod";
+    UNIMPLEMENTED();
+    return "";
+  }
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
+
+  ZoneGrowableArray<Value*>* inputs_;
+  LocationSummary* locs_;
+  MergedMathInstr::Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(MergedMathInstr);
 };
 
 

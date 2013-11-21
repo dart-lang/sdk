@@ -31,7 +31,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
   // shift can be a truncating Smi shift-left and result is always Smi.
-  void TryOptimizeLeftShiftWithBitAndPattern();
+  // Merge instructions (only per basic-block).
+  void TryOptimizePatterns();
 
   // Returns true if any instructions were canonicalized away.
   bool Canonicalize();
@@ -203,6 +204,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
                                     Definition* left_instr,
                                     Definition* right_instr);
+  void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
 
   FlowGraph* flow_graph_;
 

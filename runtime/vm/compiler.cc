@@ -354,11 +354,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Optimize (a << b) & c patterns. Must occur before
+        // Optimize (a << b) & c patterns, merge operations. Must occur before
         // 'SelectRepresentations' which inserts conversion nodes.
         // TODO(srdjan): Moved before inlining until environment use list can
         // be used to detect when shift-left is outside the scope of bit-and.
-        optimizer.TryOptimizeLeftShiftWithBitAndPattern();
+        optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Inlining (mutates the flow graph)

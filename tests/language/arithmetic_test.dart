@@ -423,6 +423,15 @@ class ArithmeticTest {
     var b = -1;
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, div(a, b));
   }
+  
+  
+  static int divMod(a, b) => a ~/ b + a % b;
+  
+  static void testSmiDivModDeopt() {
+    var a = -0x40000000;
+    var b = -1;
+    for (var i = 0; i < 10; i++) Expect.equals(0x40000000, divMod(a, b));
+  }
 
   static mySqrt(var x) => sqrt(x);
 
@@ -448,6 +457,7 @@ class ArithmeticTest {
     for (int i = 0; i < 20; i++) {
       runOne();
       testSmiDivDeopt();
+      testSmiDivModDeopt();
       testSqrtDeopt();
       testDoubleEquality();
     }

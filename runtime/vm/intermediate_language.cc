@@ -2938,6 +2938,22 @@ const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   return kSinRuntimeEntry;
 }
 
+
+MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
+                                 intptr_t original_deopt_id,
+                                 MergedMathInstr::Kind kind)
+    : inputs_(inputs),
+      locs_(NULL),
+      kind_(kind) {
+  ASSERT(inputs_->length() == InputCountFor(kind_));
+  for (intptr_t i = 0; i < inputs_->length(); ++i) {
+    ASSERT((*inputs)[i] != NULL);
+    (*inputs)[i]->set_instruction(this);
+    (*inputs)[i]->set_use_index(i);
+  }
+  deopt_id_ = original_deopt_id;
+}
+
 #undef __
 
 }  // namespace dart

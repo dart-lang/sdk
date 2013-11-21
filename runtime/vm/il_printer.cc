@@ -579,6 +579,12 @@ void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void MergedMathInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("'%s', ", MergedMathInstr::KindToCString(kind()));
+  Definition::PrintOperandsTo(f);
+}
+
+
 void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
   Definition::PrintTo(f);
   f->Print(" %co", overflow_ ? '+' : '-');

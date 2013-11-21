@@ -568,6 +568,11 @@ class CallSiteInliner : public ValueObject {
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
         DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+        // Optimize (a << b) & c patterns, merge instructions. Must occur before
+        // 'SelectRepresentations' which inserts conversion nodes.
+        optimizer.TryOptimizePatterns();
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       if (FLAG_trace_inlining &&

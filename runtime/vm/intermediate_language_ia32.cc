@@ -3978,6 +3978,97 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MergedMathInstr::MakeLocationSummary() const {
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
+    summary->set_in(0, Location::RegisterLocation(EAX));
+    summary->set_in(1, Location::WritableRegister());
+    summary->set_out(Location::RequiresRegister());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(EDX));
+    return summary;
+  }
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+  }
+
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    Register left = locs()->in(0).reg();
+    Register right = locs()->in(1).reg();
+    Register result = locs()->out().reg();
+    // Handle divide by zero in runtime.
+    __ testl(right, right);
+    __ j(ZERO, deopt);
+    ASSERT(left == EAX);
+    ASSERT((right != EDX) && (right != EAX));
+    ASSERT(locs()->temp(0).reg() == EDX);
+    ASSERT((result != EDX) && (result != EAX));
+    __ SmiUntag(left);
+    __ SmiUntag(right);
+    __ cdq();  // Sign extend EAX -> EDX:EAX.
+    __ idivl(right);  //  EAX: quotient, EDX: remainder.
+    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+    // case we cannot tag the result.
+    // TODO(srdjan): We could store instead untagged intermediate results in a
+    // typed array, but then the load indexed instructions would need to be
+    // able to deoptimize.
+    __ cmpl(EAX, Immediate(0x40000000));
+    __ j(EQUAL, deopt);
+    // Modulo result (EDX) correction:
+    //  res = left % right;
+    //  if (res < 0) {
+    //    if (right < 0) {
+    //      res = res - right;
+    //    } else {
+    //      res = res + right;
+    //    }
+    //  }
+    Label subtract, done;
+    __ cmpl(EDX, Immediate(0));
+    __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
+    // Result is negative, adjust it.
+    __ cmpl(right, Immediate(0));
+    __ j(LESS, &subtract, Assembler::kNearJump);
+    __ addl(EDX, right);
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&subtract);
+    __ subl(EDX, right);
+    __ Bind(&done);
+
+    __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)));
+    const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(kArrayCid);
+    Address trunc_div_address(
+        FlowGraphCompiler::ElementAddressForIntIndex(kArrayCid,
+                                                     index_scale,
+                                                     result,
+                                                     0));
+    Address mod_address(
+        FlowGraphCompiler::ElementAddressForIntIndex(kArrayCid,
+                                                     index_scale,
+                                                     result,
+                                                     1));
+    __ SmiTag(EAX);
+    __ SmiTag(EDX);
+    __ StoreIntoObjectNoBarrier(result, trunc_div_address, EAX);
+    __ StoreIntoObjectNoBarrier(result, mod_address, EDX);
+    return;
+  }
+
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }

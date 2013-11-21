@@ -4065,6 +4065,89 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* MergedMathInstr::MakeLocationSummary() const {
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 4;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresFpuRegister());
+    summary->set_temp(2, Location::RequiresRegister());  // result_div.
+    summary->set_temp(3, Location::RequiresRegister());  // result_mod.
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  }
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+  }
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    Register left = locs()->in(0).reg();
+    Register right = locs()->in(1).reg();
+    Register result = locs()->out().reg();
+    // Handle divide by zero in runtime.
+    __ cmp(right, ShifterOperand(0));
+    __ b(deopt, EQ);
+    Register temp = locs()->temp(0).reg();
+    DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+    Register result_div = locs()->temp(2).reg();
+    Register result_mod = locs()->temp(3).reg();
+    __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+    __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+
+    __ IntegerDivide(result_div, temp, IP, dtemp, DTMP);
+
+    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+    // case we cannot tag the result.
+    __ CompareImmediate(result_div, 0x40000000);
+    __ b(deopt, EQ);
+    __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
+    // result_mod <- left - right * result_div.
+    __ mls(result_mod, IP, result_div, temp);
+    __ SmiTag(result_div);
+    __ SmiTag(result_mod);
+    // Correct MOD result:
+    //  res = left % right;
+    //  if (res < 0) {
+    //    if (right < 0) {
+    //      res = res - right;
+    //    } else {
+    //      res = res + right;
+    //    }
+    //  }
+    Label done;
+    __ cmp(result_mod, ShifterOperand(0));
+    __ b(&done, GE);
+    // Result is negative, adjust it.
+    __ cmp(right, ShifterOperand(0));
+    __ sub(result_mod, result_mod, ShifterOperand(right), LT);
+    __ add(result_mod, result_mod, ShifterOperand(right), GE);
+    __ Bind(&done);
+
+    __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)));
+    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays.
+    // [0]: divide resut, [1]: mod result.
+    __ mov(temp, ShifterOperand(0 +
+        FlowGraphCompiler::DataOffsetFor(kArrayCid) - kHeapObjectTag));
+    Address store_address(result, temp, LSL, 0);
+    __ StoreIntoObjectNoBarrier(result, store_address, result_div);
+    __ add(temp, temp, ShifterOperand(kWordSize));
+    __ StoreIntoObjectNoBarrier(result, store_address, result_mod);
+    return;
+  }
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }
