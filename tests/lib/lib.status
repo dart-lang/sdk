@@ -186,8 +186,6 @@ mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to e
 mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
-mirrors/generic_f_bounded_test/01: RuntimeError # Issue 14000
-mirrors/generic_superclass_test/01: RuntimeError # Issue 14000
 mirrors/generics_double_substitution_test/01: RuntimeError # Issue 14869
 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913

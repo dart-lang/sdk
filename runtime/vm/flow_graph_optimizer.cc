@@ -3098,13 +3098,16 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
     return Bool::null();
   }
   const Class& type_class = Class::Handle(type.type_class());
-  if (type_class.NumTypeArguments() > 0) {
+  const intptr_t num_type_args = type_class.NumTypeArguments();
+  if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type
     // arguments.
+    const intptr_t num_type_params = type_class.NumTypeParameters();
+    const intptr_t from_index = num_type_args - num_type_params;
     const AbstractTypeArguments& type_arguments =
         AbstractTypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(type_arguments.Length());
+        type_arguments.IsRaw(from_index, num_type_params);
     if (!is_raw_type) {
       // Unknown result.
       return Bool::null();

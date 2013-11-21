@@ -883,7 +883,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         }
         CheckTypeArgumentBounds(type_class, full_arguments, &bound_error);
       }
-      if (full_arguments.IsRaw(num_type_arguments)) {
+      if (full_arguments.IsRaw(0, num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which
         // is more efficient in type tests.
         full_arguments = TypeArguments::null();
@@ -891,6 +891,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         // FinalizeTypeArguments can modify 'full_arguments',
         // canonicalize afterwards.
         full_arguments ^= full_arguments.Canonicalize();
+        ASSERT(full_arguments.Length() == num_type_arguments);
       }
       parameterized_type.set_arguments(full_arguments);
     } else {

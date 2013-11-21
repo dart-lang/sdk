@@ -9320,7 +9320,9 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       element_type = list_type_arguments.TypeAt(0);
       ASSERT(!element_type.IsMalformed());  // Would be mapped to dynamic.
       ASSERT(!element_type.IsMalbounded());  // No declared bound in List.
-      if (is_const && !element_type.IsInstantiated()) {
+      if (element_type.IsDynamicType()) {
+        list_type_arguments = AbstractTypeArguments::null();
+      } else if (is_const && !element_type.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type argument of a constant list literal cannot include "
                  "a type variable");
@@ -9516,7 +9518,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       ASSERT(!key_type.IsMalformed() && !value_type.IsMalformed());
       // No declared bounds in Map.
       ASSERT(!key_type.IsMalbounded() && !value_type.IsMalbounded());
-      if (is_const && !type_arguments.IsInstantiated()) {
+      if (key_type.IsDynamicType() && value_type.IsDynamicType()) {
+        map_type_arguments = AbstractTypeArguments::null();
+      } else if (is_const && !type_arguments.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type arguments of a constant map literal cannot include "
                  "a type variable");

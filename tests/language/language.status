@@ -6,6 +6,7 @@
 # current state of the language.
 
 [ $compiler == none ]
+mixin_regress_13688_test: RuntimeError # Issue 15244
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 built_in_identifier_prefix_test: Fail # Issue 6970

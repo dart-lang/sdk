@@ -1187,10 +1187,6 @@ class AbstractTypeArguments : public Object {
   // Returns true if all types of this vector are finalized.
   virtual bool IsFinalized() const { return true; }
 
-  // Returns true if both arguments represent vectors of equal types.
-  static bool AreEqual(const AbstractTypeArguments& arguments,
-                       const AbstractTypeArguments& other_arguments);
-
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
@@ -1220,10 +1216,10 @@ class AbstractTypeArguments : public Object {
     return SubvectorName(0, Length(), kUserVisibleName);
   }
 
-  // Check if this type argument vector consists solely of DynamicType,
-  // considering only a prefix of length 'len'.
-  bool IsRaw(intptr_t len) const {
-    return IsDynamicTypes(false, len);
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  bool IsRaw(intptr_t from_index, intptr_t len) const {
+    return IsDynamicTypes(false, from_index, len);
   }
 
   // Check if this type argument vector would consist solely of DynamicType if
@@ -1231,24 +1227,28 @@ class AbstractTypeArguments : public Object {
   // parameter as it would be first instantiated from a vector of dynamic types.
   // Consider only a prefix of length 'len'.
   bool IsRawInstantiatedRaw(intptr_t len) const {
-    return IsDynamicTypes(true, len);
+    return IsDynamicTypes(true, 0, len);
   }
 
-  // Check the subtype relationship, considering only a prefix of length 'len'.
+  // Check the subtype relationship, considering only a subvector of length
+  // 'len' starting at 'from_index'.
   bool IsSubtypeOf(const AbstractTypeArguments& other,
+                   intptr_t from_index,
                    intptr_t len,
                    Error* bound_error) const {
-    return TypeTest(kIsSubtypeOf, other, len, bound_error);
+    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error);
   }
 
-  // Check the 'more specific' relationship, considering only a prefix of
-  // length 'len'.
+  // Check the 'more specific' relationship, considering only a subvector of
+  // length 'len' starting at 'from_index'.
   bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+                          intptr_t from_index,
                           intptr_t len,
                           Error* bound_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, len, bound_error);
+    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error);
   }
 
+  // Check if the vectors are equal.
   bool Equals(const AbstractTypeArguments& other) const;
 
   // UNREACHABLEs as AbstractTypeArguments is an abstract class.
@@ -1265,16 +1265,19 @@ class AbstractTypeArguments : public Object {
   virtual intptr_t Hash() const;
 
  private:
-  // Check if this type argument vector consists solely of DynamicType,
-  // considering only a prefix of length 'len'.
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
   // If raw_instantiated is true, consider each type parameter to be first
   // instantiated from a vector of dynamic types.
-  bool IsDynamicTypes(bool raw_instantiated, intptr_t len) const;
+  bool IsDynamicTypes(bool raw_instantiated,
+                      intptr_t from_index,
+                      intptr_t len) const;
 
   // Check the subtype or 'more specific' relationship, considering only a
-  // prefix of length 'len'.
+  // subvector of length 'len' starting at 'from_index'.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractTypeArguments& other,
+                intptr_t from_index,
                 intptr_t len,
                 Error* bound_error) const;
 

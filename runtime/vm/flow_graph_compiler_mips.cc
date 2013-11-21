@@ -236,10 +236,13 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   } else {
     __ beq(CMPRES1, ZR, is_not_instance_lbl);
   }
+  const intptr_t num_type_args = type_class.NumTypeArguments();
+  const intptr_t num_type_params = type_class.NumTypeParameters();
+  const intptr_t from_index = num_type_args - num_type_params;
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
-      type_arguments.IsRaw(type_arguments.Length());
+      type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
   if (!type_class.IsSignatureClass()) {
     if (is_raw_type) {

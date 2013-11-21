@@ -34,6 +34,12 @@ class ConstListTest {
     a = const [1, 2, 3.1];
     b = const [1, 2, 3.1];
     Expect.equals(true, a == b);
+    a = const <num>[1, 2, 3.1];
+    b = const [1, 2, 3.1];
+    Expect.equals(false, a == b);
+    a = const <dynamic>[1, 2, 3.1];
+    b = const [1, 2, 3.1];
+    Expect.equals(true, a == b);
   }
 }
 

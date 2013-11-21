@@ -2778,17 +2778,21 @@ bool Class::TypeTestNonRecursive(
     }
     // Check for reflexivity.
     if (thsi.raw() == other.raw()) {
-      const intptr_t len = thsi.NumTypeArguments();
-      if (len == 0) {
+      const intptr_t num_type_args = thsi.NumTypeArguments();
+      if (num_type_args == 0) {
         return true;
       }
+      const intptr_t num_type_params = thsi.NumTypeParameters();
+      const intptr_t from_index = num_type_args - num_type_params;
       // Since we do not truncate the type argument vector of a subclass (see
-      // below), we only check a prefix of the proper length.
+      // below), we only check a subvector of the proper length.
       // Check for covariance.
-      if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+      if (other_type_arguments.IsNull() ||
+          other_type_arguments.IsRaw(from_index, num_type_params)) {
         return true;
       }
-      if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
+      if (type_arguments.IsNull() ||
+          type_arguments.IsRaw(from_index, num_type_params)) {
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
@@ -2796,7 +2800,8 @@ bool Class::TypeTestNonRecursive(
       }
       return type_arguments.TypeTest(test_kind,
                                      other_type_arguments,
-                                     len,
+                                     from_index,
+                                     num_type_params,
                                      bound_error);
     }
     const bool other_is_function_class = other.IsFunctionClass();
@@ -3459,11 +3464,10 @@ RawString* AbstractTypeArguments::SubvectorName(
 
 
 bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
-  ASSERT(!IsNull());  // Use AbstractTypeArguments::AreEqual().
   if (this->raw() == other.raw()) {
     return true;
   }
-  if (other.IsNull()) {
+  if (IsNull() || other.IsNull()) {
     return false;
   }
   const intptr_t num_types = Length();
@@ -3483,22 +3487,6 @@ bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
 }
 
 
-bool AbstractTypeArguments::AreEqual(
-    const AbstractTypeArguments& arguments,
-    const AbstractTypeArguments& other_arguments) {
-  if (arguments.raw() == other_arguments.raw()) {
-    return true;
-  }
-  if (arguments.IsNull()) {
-    return other_arguments.IsDynamicTypes(false, other_arguments.Length());
-  }
-  if (other_arguments.IsNull()) {
-    return arguments.IsDynamicTypes(false, arguments.Length());
-  }
-  return arguments.Equals(other_arguments);
-}
-
-
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
     Error* bound_error) const {
@@ -3509,12 +3497,13 @@ RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
 
 
 bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
+                                           intptr_t from_index,
                                            intptr_t len) const {
-  ASSERT(Length() >= len);
+  ASSERT(Length() >= (from_index + len));
   AbstractType& type = AbstractType::Handle();
   Class& type_class = Class::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(i);
+    type = TypeAt(from_index + i);
     ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
@@ -3538,17 +3527,18 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
 
 bool AbstractTypeArguments::TypeTest(TypeTestKind test_kind,
                                      const AbstractTypeArguments& other,
+                                     intptr_t from_index,
                                      intptr_t len,
                                      Error* bound_error) const {
-  ASSERT(Length() >= len);
+  ASSERT(Length() >= (from_index + len));
   ASSERT(!other.IsNull());
-  ASSERT(other.Length() >= len);
+  ASSERT(other.Length() >= (from_index + len));
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(i);
+    type = TypeAt(from_index + i);
     ASSERT(!type.IsNull());
-    other_type = other.TypeAt(i);
+    other_type = other.TypeAt(from_index + i);
     ASSERT(!other_type.IsNull());
     if (!type.TypeTest(test_kind, other_type, bound_error)) {
       return false;
@@ -12003,6 +11993,7 @@ RawAbstractType* Type::InstantiateFrom(
 
 
 bool Type::Equals(const Instance& other) const {
+  ASSERT(!IsNull());
   if (raw() == other.raw()) {
     return true;
   }
@@ -12020,9 +12011,35 @@ bool Type::Equals(const Instance& other) const {
   if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;
   }
-  return AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(arguments()),
-      AbstractTypeArguments::Handle(other_type.arguments()));
+  if (arguments() == other_type.arguments()) {
+    return true;
+  }
+  const Class& cls = Class::Handle(type_class());
+  const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+      arguments());
+  const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
+      other_type.arguments());
+  const intptr_t num_type_args = cls.NumTypeArguments();
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t from_index = num_type_args - num_type_params;
+  if (type_args.IsNull()) {
+    return other_type_args.IsRaw(from_index, num_type_params);
+  }
+  if (other_type_args.IsNull()) {
+    return type_args.IsRaw(from_index, num_type_params);
+  }
+  ASSERT(type_args.Length() >= (from_index + num_type_params));
+  ASSERT(other_type_args.Length() >= (from_index + num_type_params));
+  AbstractType& type_arg = AbstractType::Handle();
+  AbstractType& other_type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_arg = type_args.TypeAt(from_index + i);
+    other_type_arg = other_type_args.TypeAt(from_index + i);
+    if (!type_arg.Equals(other_type_arg)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -12072,6 +12089,7 @@ RawAbstractType* Type::Canonicalize() const {
   }
   // Canonicalize the type arguments.
   AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(arguments());
+  ASSERT(type_args.IsNull() || (type_args.Length() == cls.NumTypeArguments()));
   type_args = type_args.Canonicalize();
   set_arguments(type_args);
   // The type needs to be added to the list. Grow the list if it is full.
@@ -14876,14 +14894,17 @@ bool Array::Equals(const Instance& other) const {
     return true;
   }
 
+  // An Array may be compared to an ImmutableArray.
   if (!other.IsArray() || other.IsNull()) {
     return false;
   }
 
-  // Must have the same type arguments.
-  if (!AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(GetTypeArguments()),
-      AbstractTypeArguments::Handle(other.GetTypeArguments()))) {
+  // Both arrays must have the same type arguments.
+  const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+      GetTypeArguments());
+  const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
+      other.GetTypeArguments());
+  if (!type_args.Equals(other_type_args)) {
     return false;
   }
 
@@ -15102,10 +15123,12 @@ bool GrowableObjectArray::Equals(const Instance& other) const {
     return false;
   }
 
-  // Both must have the same type arguments.
-  if (!AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(GetTypeArguments()),
-      AbstractTypeArguments::Handle(other.GetTypeArguments()))) {
+  // Both arrays must have the same type arguments.
+  const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+      GetTypeArguments());
+  const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
+      other.GetTypeArguments());
+  if (!type_args.Equals(other_type_args)) {
     return false;
   }
 
