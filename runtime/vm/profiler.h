@@ -190,6 +190,7 @@ class ProfilerSampleStackWalker : public ValueObject {
   const uintptr_t original_pc_;
   const uintptr_t original_fp_;
   const uintptr_t original_sp_;
+  uintptr_t lower_bound_;
 };
 
 

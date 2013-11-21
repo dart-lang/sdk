@@ -69,7 +69,7 @@ namespace dart {
 //
 
 
-DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 
 bool ProfilerManager::initialized_ = false;
 bool ProfilerManager::shutdown_ = false;
@@ -96,6 +96,7 @@ void ProfilerManager::Shutdown() {
   if (!FLAG_profile) {
     return;
   }
+  ASSERT(initialized_);
   ScopedMonitor lock(monitor_);
   shutdown_ = true;
   for (intptr_t i = 0; i < isolates_size_; i++) {
@@ -530,7 +531,8 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
     stack_upper_(stack_upper),
     original_pc_(pc),
     original_fp_(fp),
-    original_sp_(sp) {
+    original_sp_(sp),
+    lower_bound_(stack_lower) {
   ASSERT(sample_ != NULL);
 }
 
@@ -538,6 +540,12 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
 int ProfilerSampleStackWalker::walk() {
   uword* pc = reinterpret_cast<uword*>(original_pc_);
   uword* fp = reinterpret_cast<uword*>(original_fp_);
+  uword* previous_fp = fp;
+  if (original_sp_ < lower_bound_) {
+    // The stack pointer gives us a better lower bound than
+    // the isolates stack limit.
+    lower_bound_ = original_sp_;
+  }
   int i = 0;
   for (; i < Sample::kNumStackFrames; i++) {
     sample_->pcs[i] = reinterpret_cast<uintptr_t>(pc);
@@ -545,12 +553,14 @@ int ProfilerSampleStackWalker::walk() {
       break;
     }
     pc = CallerPC(fp);
-    uword* previous_fp = fp;
+    previous_fp = fp;
     fp = CallerFP(fp);
-    if (fp <= previous_fp) {
+    if ((fp <= previous_fp) || !ValidFramePointer(fp)) {
       // Frame pointers should only move to higher addresses.
       break;
     }
+    // Move the lower bound up.
+    lower_bound_ = reinterpret_cast<uintptr_t>(fp);
   }
   return i;
 }
@@ -558,7 +568,7 @@ int ProfilerSampleStackWalker::walk() {
 
 uword* ProfilerSampleStackWalker::CallerPC(uword* fp) {
   ASSERT(fp != NULL);
-  return reinterpret_cast<uword*>(*(fp+1));
+  return reinterpret_cast<uword*>(*(fp + 1));
 }
 
 
@@ -574,7 +584,7 @@ bool ProfilerSampleStackWalker::ValidFramePointer(uword* fp) {
   }
   uintptr_t cursor = reinterpret_cast<uintptr_t>(fp);
   cursor += sizeof(fp);
-  bool r = cursor >= stack_lower_ && cursor <= stack_upper_;
+  bool r = cursor >= lower_bound_ && cursor < stack_upper_;
   return r;
 }
 

@@ -17,6 +17,9 @@ static Mutex* lock_ = NULL;
 
 void NativeSymbolResolver::InitOnce() {
   ASSERT(running_ == false);
+  lock_ = new Mutex();
+  running_ = true;
+#if 0
   SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
   HANDLE hProcess = GetCurrentProcess();
   if (!SymInitialize(hProcess, NULL, TRUE)) {
@@ -24,8 +27,7 @@ void NativeSymbolResolver::InitOnce() {
     printf("Failed to init NativeSymbolResolver (SymInitialize %d)\n", error);
     return;
   }
-  lock_ = new Mutex();
-  running_ = true;
+#endif
 }
 
 
@@ -35,11 +37,13 @@ void NativeSymbolResolver::ShutdownOnce() {
     return;
   }
   running_ = false;
+#if 0
   HANDLE hProcess = GetCurrentProcess();
   if (!SymCleanup(hProcess)) {
     DWORD error = GetLastError();
     printf("Failed to shutdown NativeSymbolResolver (SymCleanup  %d)\n", error);
   }
+#endif
 }
 
 
@@ -52,6 +56,7 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc) {
   if (!running_) {
     return NULL;
   }
+#if 0
   memset(&buffer[0], 0, sizeof(buffer));
   HANDLE hProcess = GetCurrentProcess();
   DWORD64 address = static_cast<DWORD64>(pc);
@@ -63,6 +68,8 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc) {
     return NULL;
   }
   return strdup(pSymbol->Name);
+#endif
+  return NULL;
 }
 
 
