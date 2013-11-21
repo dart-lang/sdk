@@ -150,7 +150,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
 String _findPackage(LibraryMirror mirror, [Library library]) {
   if (mirror == null) return '';
   if (library == null) {
-    library = entityMap[mirror.simpleName];
+    library = entityMap[docName(mirror)];
   }
   if (library != null) {
     if (library.hasBeenCheckedForPackage) return library.packageName;
@@ -394,12 +394,7 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
 }
 
 Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
-  var result = new Library(docName(library),
-      (actualLibrary) => _commentToHtml(library, actualLibrary),
-      _classes(library.classes),
-      _methods(library.functions),
-      _variables(library.variables),
-      _isHidden(library), library);
+  var result = new Library(library);
   _findPackage(library, result);
   logger.fine('Generated library for ${result.name}');
   return result;
@@ -449,53 +444,6 @@ bool _isHidden(DeclarationMirror mirror) {
 
 bool _isVisible(Indexable item) {
   return _includePrivate || !item.isPrivate;
-}
-
-/// Returns a list of meta annotations assocated with a mirror.
-List<Annotation> _annotations(DeclarationMirror mirror) {
-  var annotationMirrors = mirror.metadata.where((e) =>
-      e is dart2js.Dart2JsConstructedConstantMirror);
-  var annotations = [];
-  annotationMirrors.forEach((annotation) {
-    var parameterList = annotation.type.variables.values
-      .where((e) => e.isFinal)
-      .map((e) => annotation.getField(e.simpleName).reflectee)
-      .where((e) => e != null)
-      .toList();
-    if (!skippedAnnotations.contains(docName(annotation.type))) {
-      annotations.add(new Annotation(docName(annotation.type),
-          parameterList));
-    }
-  });
-  return annotations;
-}
-
-/// Returns any documentation comments associated with a mirror with
-/// simple markdown converted to html.
-///
-/// It's possible to have a comment that comes from one mirror applied to
-/// another, in the case of an inherited comment.
-String _commentToHtml(DeclarationMirror mirror, [DeclarationMirror appliedTo]) {
-  if (appliedTo == null) appliedTo = mirror;
-  String commentText;
-  mirror.metadata.forEach((metadata) {
-    if (metadata is CommentInstanceMirror) {
-      CommentInstanceMirror comment = metadata;
-      if (comment.isDocComment) {
-        if (commentText == null) {
-          commentText = comment.trimmedText;
-        } else {
-          commentText = '$commentText\n${comment.trimmedText}';
-        }
-      }
-    }
-  });
-
-  var linkResolver = (name) => fixReferenceWithScope(name, appliedTo);
-  commentText = commentText == null ? '' :
-      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver,
-          inlineSyntaxes: markdownSyntaxes);
-  return commentText;
 }
 
 /// Generates MDN comments from database.json.
@@ -692,103 +640,6 @@ markdown.Node fixReferenceWithScope(String name, DeclarationMirror scope) {
   return null;
 }
 
-/// Returns a map of [Variable] objects constructed from [mirrorMap].
-Map<String, Variable> _variables(Map<String, VariableMirror> mirrorMap) {
-  var data = {};
-  // TODO(janicejl): When map to map feature is created, replace the below with
-  // a filter. Issue(#9590).
-  mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
-    if (_includePrivate || !_isHidden(mirror)) {
-      entityMap[docName(mirror)] = new Variable(mirrorName, mirror.isFinal,
-         mirror.isStatic, mirror.isConst, _type(mirror.type),
-         (actualVariable) => _commentToHtml(mirror, actualVariable),
-         _annotations(mirror), docName(mirror),
-         _isHidden(mirror), docName(mirror.owner), mirror);
-      data[mirrorName] = entityMap[docName(mirror)];
-    }
-  });
-  return data;
-}
-
-/// Returns a map of [Method] objects constructed from [mirrorMap].
-MethodGroup _methods(Map<String, MethodMirror> mirrorMap) {
-  var group = new MethodGroup();
-  mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
-    if (_includePrivate || !mirror.isPrivate) {
-      group.addMethod(mirror);
-    }
-  });
-  return group;
-}
-
-/// Returns the [Class] for the given [mirror] has already been created, and if
-/// it does not exist, creates it.
-Class _class(ClassMirror mirror) {
-  var clazz = entityMap[docName(mirror)];
-  if (clazz == null) {
-    var superclass = mirror.superclass != null ?
-        _class(mirror.superclass) : null;
-    var interfaces =
-        mirror.superinterfaces.map((interface) => _class(interface));
-    clazz = new Class(mirror.simpleName, superclass,
-        (actualClass) => _commentToHtml(mirror, actualClass),
-        interfaces.toList(), _variables(mirror.variables),
-        _methods(mirror.methods), _annotations(mirror), _generics(mirror),
-        docName(mirror), _isHidden(mirror), docName(mirror.owner),
-        mirror.isAbstract, mirror);
-    if (superclass != null) clazz.addInherited(superclass);
-    interfaces.forEach((interface) => clazz.addInherited(interface));
-    entityMap[docName(mirror)] = clazz;
-  }
-  return clazz;
-}
-
-/// Returns a map of [Class] objects constructed from [mirrorMap].
-ClassGroup _classes(Map<String, ClassMirror> mirrorMap) {
-  var group = new ClassGroup();
-  mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
-      group.addClass(mirror);
-  });
-  return group;
-}
-
-/// Returns a map of [Parameter] objects constructed from [mirrorList].
-Map<String, Parameter> _parameters(List<ParameterMirror> mirrorList) {
-  var data = {};
-  mirrorList.forEach((ParameterMirror mirror) {
-    data[mirror.simpleName] = new Parameter(mirror.simpleName,
-        mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue,
-        _type(mirror.type), mirror.defaultValue,
-        _annotations(mirror));
-  });
-  return data;
-}
-
-/// Returns a map of [Generic] objects constructed from the class mirror.
-Map<String, Generic> _generics(ClassMirror mirror) {
-  return new Map.fromIterable(mirror.typeVariables,
-      key: (e) => e.toString(),
-      value: (e) => new Generic(e.toString(), e.upperBound.qualifiedName));
-}
-
-/// Returns a single [Type] object constructed from the Method.returnType
-/// Type mirror.
-Type _type(TypeMirror mirror) {
-  return new Type(docName(mirror), _typeGenerics(mirror));
-}
-
-/// Returns a list of [Type] objects constructed from TypeMirrors.
-List<Type> _typeGenerics(TypeMirror mirror) {
-  if (mirror is ClassMirror && !mirror.isTypedef) {
-    var innerList = [];
-    mirror.typeArguments.forEach((e) {
-      innerList.add(new Type(docName(e), _typeGenerics(e)));
-    });
-    return innerList;
-  }
-  return [];
-}
-
 /// Writes text to a file in the output directory.
 void _writeToFile(String text, String filename, {bool append: false}) {
   if (text == null) return;
@@ -825,10 +676,13 @@ typedef String CommentGenerator(Mirror m);
 
 /// A class representing all programming constructs, like library or class.
 class Indexable {
-  String name;
   String get qualifiedName => fileName;
   bool isPrivate;
-  Mirror mirror;
+  DeclarationMirror mirror;
+
+  Indexable(this.mirror) {
+    this.isPrivate = _isHidden(mirror);
+  }
 
   // The qualified name (for URL purposes) and the file name are the same,
   // of the form packageName/ClassName or packageName/ClassName.methodName.
@@ -837,9 +691,9 @@ class Indexable {
 
   Indexable get owningEntity => entityMap[owner];
 
-  String get ownerPrefix => owningEntity == null
-      ? (owner == null || owner.isEmpty ? '' : owner + '.')
-      : owningEntity.qualifiedName + '.';
+  String get ownerPrefix => owningEntity == null ?
+      (owner == null || owner.isEmpty ? '' : owner + '.') :
+      owningEntity.qualifiedName + '.';
 
   String get packagePrefix => '';
 
@@ -848,7 +702,7 @@ class Indexable {
 
   String get comment {
     if (_comment != null) return _comment;
-    _comment = _commentFunction(mirror);
+    _comment = _commentToHtml(mirror);
     if (_comment.isEmpty) {
       _mdnComment(this);
     }
@@ -857,15 +711,10 @@ class Indexable {
 
   set comment(x) => _comment = x;
 
-  /// We defer evaluating the comment until we have all the context available
-  CommentGenerator _commentFunction;
+  String get name => mirror.simpleName;
 
   /// Qualified Name of the owner of this Indexable Item.
-  /// For Library, owner will be "";
-  String owner;
-
-  Indexable(this.name, this._commentFunction, this.isPrivate, this.owner,
-      this.mirror);
+  String get owner => docName(mirror.owner);
 
   /// The type of this member to be used in index.txt.
   String get typeName => '';
@@ -878,6 +727,115 @@ class Indexable {
       finalMap['preview'] = '${comment.substring(0, index)}</p>';
     }
     return finalMap;
+  }
+
+  /// Returns any documentation comments associated with a mirror with
+  /// simple markdown converted to html.
+  ///
+  /// It's possible to have a comment that comes from one mirror applied to
+  /// another, in the case of an inherited comment.
+  String _commentToHtml(itemToDocument) {
+    String commentText;
+    mirror.metadata.forEach((metadata) {
+      if (metadata is CommentInstanceMirror) {
+        CommentInstanceMirror comment = metadata;
+        if (comment.isDocComment) {
+          if (commentText == null) {
+            commentText = comment.trimmedText;
+          } else {
+            commentText = '$commentText\n${comment.trimmedText}';
+          }
+        }
+      }
+    });
+
+    var linkResolver = (name) => fixReferenceWithScope(name, itemToDocument);
+    commentText = commentText == null ? '' :
+        markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver,
+            inlineSyntaxes: markdownSyntaxes);
+    return commentText;
+  }
+
+  /// Returns a map of [Variable] objects constructed from [mirrorMap].
+  Map<String, Variable> _createVariables(Map<String,
+      VariableMirror> mirrorMap) {
+    var data = {};
+    // TODO(janicejl): When map to map feature is created, replace the below
+    // with a filter. Issue(#9590).
+    mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
+      if (_includePrivate || !_isHidden(mirror)) {
+        entityMap[docName(mirror)] = new Variable(mirrorName, mirror);
+        data[mirrorName] = entityMap[docName(mirror)];
+      }
+    });
+    return data;
+  }
+
+  /// Returns a map of [Method] objects constructed from [mirrorMap].
+  MethodGroup _createMethods(Map<String, MethodMirror> mirrorMap) {
+    var group = new MethodGroup();
+    mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
+      if (_includePrivate || !mirror.isPrivate) {
+        group.addMethod(mirror);
+      }
+    });
+    return group;
+  }
+
+  /// Returns a map of [Parameter] objects constructed from [mirrorList].
+  Map<String, Parameter> _createParameters(List<ParameterMirror> mirrorList) {
+    var data = {};
+    mirrorList.forEach((ParameterMirror mirror) {
+      data[mirror.simpleName] = new Parameter(mirror.simpleName,
+          mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue,
+          _createType(mirror.type), mirror.defaultValue,
+          _createAnnotations(mirror));
+    });
+    return data;
+  }
+
+  /// Returns a map of [Generic] objects constructed from the class mirror.
+  Map<String, Generic> _createGenerics(ClassMirror mirror) {
+    return new Map.fromIterable(mirror.typeVariables,
+        key: (e) => e.toString(),
+        value: (e) => new Generic(e.toString(), e.upperBound.qualifiedName));
+  }
+
+  /// Returns a single [Type] object constructed from the Method.returnType
+  /// Type mirror.
+  Type _createType(TypeMirror mirror) {
+    return new Type(docName(mirror), _createTypeGenerics(mirror));
+  }
+
+  /// Returns a list of [Type] objects constructed from TypeMirrors.
+  List<Type> _createTypeGenerics(TypeMirror mirror) {
+    if (mirror is ClassMirror && !mirror.isTypedef) {
+      var innerList = [];
+      mirror.typeArguments.forEach((e) {
+        innerList.add(new Type(docName(e), _createTypeGenerics(e)));
+      });
+      return innerList;
+    }
+    return [];
+  }
+
+  /// Returns a list of meta annotations assocated with a mirror.
+  List<Annotation> _createAnnotations(DeclarationMirror mirror) {
+    var annotationMirrors = mirror.metadata.where((e) =>
+        e is dart2js.Dart2JsConstructedConstantMirror);
+    var annotations = [];
+    annotationMirrors.forEach((annotation) {
+      var parameterList = annotation.type.variables.values
+        .where((e) => e.isFinal)
+        .map((e) => annotation.getField(e.simpleName).reflectee)
+        .where((e) => e != null)
+        .toList();
+      if (!skippedAnnotations.contains(docName(annotation.type))) {
+        annotations.add(new Annotation(docName(annotation.type),
+            parameterList));
+      }
+    });
+    return annotations;
   }
 
   /// Return an informative [Object.toString] for debugging.
@@ -901,12 +859,20 @@ class Library extends Indexable {
 
   String packageName = '';
   bool hasBeenCheckedForPackage = false;
-
-  String get packagePrefix => packageName == null || packageName.isEmpty
-      ? ''
-      : '$packageName/';
-
   String packageIntro;
+
+  Library(LibraryMirror libraryMirror) : super(libraryMirror) {
+    var exported = _calcExportedItems(libraryMirror);
+    this.classes = _createClasses(
+        exported['classes']..addAll(libraryMirror.classes));
+    this.functions = _createMethods(
+        exported['methods']..addAll(libraryMirror.functions));
+    this.variables = _createVariables(
+        exported['variables']..addAll(libraryMirror.variables));
+  }
+
+  String get packagePrefix => packageName == null || packageName.isEmpty ?
+      '' : '$packageName/';
 
   Map get previewMap {
     var basic = super.previewMap;
@@ -917,9 +883,80 @@ class Library extends Indexable {
     return basic;
   }
 
-  Library(String name, Function commentFunction, this.classes, this.functions,
-      this.variables, bool isPrivate, Mirror mirror)
-      : super(name, commentFunction, isPrivate, "", mirror);
+  String get owner => '';
+
+  String get name => docName(mirror);
+
+  /// Returns a [ClassGroup] containing error, typedef and regular classes.
+  ClassGroup _createClasses(Map<String, ClassMirror> mirrorMap) {
+    var group = new ClassGroup();
+    mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
+        group.addClass(mirror);
+    });
+    return group;
+  }
+
+  /// For the given library determine what items (if any) are exported.
+  ///
+  /// Returns a Map with three keys: "classes", "methods", and "variables" the
+  /// values of which point to a map of exported name identifiers with values
+  /// corresponding to the actual DeclarationMirror.
+  Map<String, Map<String, DeclarationMirror>> _calcExportedItems(
+      LibraryMirror library) {
+    var exports = {};
+    exports['classes'] = {};
+    exports['methods'] = {};
+    exports['variables'] = {};
+
+    // Determine the classes, variables and methods that are exported for a
+    // specific dependency.
+    _populateExports(LibraryDependencyMirror export, bool showExport) {
+      if (!showExport) {
+        // Add all items, and then remove the hidden ones.
+        // Ex: "export foo hide bar"
+        exports['classes'].addAll(export.targetLibrary.classes);
+        exports['methods'].addAll(export.targetLibrary.functions);
+        exports['variables'].addAll(export.targetLibrary.variables);
+      }
+      for (CombinatorMirror combinator in export.combinators) {
+        for (String identifier in combinator.identifiers) {
+          DeclarationMirror declaration =
+              export.targetLibrary.lookupInScope(identifier);
+          if (declaration == null) {
+            // Technically this should be a bug, but some of our packages
+            // (such as the polymer package) are curently broken in this
+            // way, so we just produce a warning.
+            print('Warning identifier $identifier not found in library '
+                '${export.targetLibrary.qualifiedName}');
+          } else {
+            var subMap = exports['classes'];
+            if (declaration is MethodMirror) {
+              subMap = exports['methods'];
+            } else if (declaration is VariableMirror) {
+              subMap = exports['variables'];
+            }
+            if (showExport) {
+              subMap[identifier] = declaration;
+            } else {
+              subMap.remove(identifier);
+            }
+          }
+        }
+      }
+    }
+
+    Iterable<LibraryDependencyMirror> exportList =
+        library.libraryDependencies.where((lib) => lib.isExport);
+    for (LibraryDependencyMirror export in exportList) {
+      // If there is a show in the export, add only the show items to the
+      // library. Ex: "export foo show bar"
+      // Otherwise, add all items, and then remove the hidden ones.
+      // Ex: "export foo hide bar"
+      _populateExports(export,
+          export.combinators.any((combinator) => combinator.isShow));
+    }
+    return exports;
+  }
 
   /// Generates a map describing the [Library] object.
   Map toMap() => {
@@ -969,16 +1006,46 @@ class Class extends Indexable implements Comparable {
   /// Make sure that we don't check for inherited comments more than once.
   bool _commentsEnsured = false;
 
-  Class(String name, this.superclass, Function commentFunction, this.interfaces,
-      this.variables, this.methods, this.annotations, this.generics,
-      String qualifiedName, bool isPrivate, String owner, this.isAbstract,
-      Mirror mirror)
-      : super(name, commentFunction, isPrivate, owner, mirror);
+  /// Returns the [Class] for the given [mirror] if it has already been created,
+  /// else creates it.
+  factory Class(ClassMirror mirror) {
+    var clazz = entityMap[docName(mirror)];
+    if (clazz == null) {
+      clazz = new Class._(mirror);
+      entityMap[docName(mirror)] = clazz;
+    }
+    return clazz;
+  }
+
+  Class._(ClassMirror classMirror) : super(classMirror) {
+    var superclass = classMirror.superclass != null ?
+        new Class(classMirror.superclass) : null;
+    var interfaces = classMirror.superinterfaces.map(
+        (interface) => new Class(interface));
+
+    this.superclass = superclass;
+    this.interfaces = interfaces.toList();
+    this.variables = _createVariables(classMirror.variables);
+    this.methods = _createMethods(classMirror.methods);
+    this.annotations = _createAnnotations(classMirror);
+    this.generics = _createGenerics(classMirror);
+    this.isAbstract = classMirror.isAbstract;
+
+    // Tell all superclasses that you are a subclass.
+    if (!classMirror.isNameSynthetic && _isVisible(this)) {
+      parentChain().forEach((parentClass) {
+          parentClass.addSubclass(this);
+      });
+    }
+
+    if (this.superclass != null) addInherited(superclass);
+    interfaces.forEach((interface) => addInherited(interface));
+  }
 
   String get typeName => 'class';
 
   /// Returns a list of all the parent classes.
-  List<Class> parent() {
+  List<Class> parentChain() {
     var parent = superclass == null ? [] : [superclass];
     parent.addAll(interfaces);
     return parent;
@@ -995,8 +1062,8 @@ class Class extends Indexable implements Comparable {
 
   /// Add the subclass to the class.
   ///
-  /// If [this] is private, it will add the subclass to the list of subclasses in
-  /// the superclasses.
+  /// If [this] is private, it will add the subclass to the list of subclasses
+  /// in the superclasses.
   void addSubclass(Class subclass) {
     if (!_includePrivate && isPrivate) {
       if (superclass != null) superclass.addSubclass(subclass);
@@ -1090,23 +1157,11 @@ class ClassGroup {
       // but we don't have visibility to that type.
       var mirror = classMirror;
       if (_includePrivate || !mirror.isPrivate) {
-        entityMap[docName(mirror)] = new Typedef(mirror.simpleName,
-            docName(mirror.value.returnType),
-            (actualTypedef) => _commentToHtml(mirror, actualTypedef),
-            _generics(mirror), _parameters(mirror.value.parameters),
-            _annotations(mirror), docName(mirror),  _isHidden(mirror),
-            docName(mirror.owner), mirror);
+        entityMap[docName(mirror)] = new Typedef(mirror);
         typedefs[mirror.simpleName] = entityMap[docName(mirror)];
       }
     } else {
-      var clazz = _class(classMirror);
-
-      // Adding inherited parent variables and methods.
-      clazz.parent().forEach((parent) {
-        if (_isVisible(clazz)) {
-          parent.addSubclass(clazz);
-        }
-      });
+      var clazz = new Class(classMirror);
 
       if (clazz.isError()) {
         errors[classMirror.simpleName] = clazz;
@@ -1144,10 +1199,12 @@ class Typedef extends Indexable {
   /// List of the meta annotations on the typedef.
   List<Annotation> annotations;
 
-  Typedef(String name, this.returnType, Function commentFunction, this.generics,
-      this.parameters, this.annotations,
-      String qualifiedName, bool isPrivate, String owner, Mirror mirror)
-        : super(name, commentFunction, isPrivate, owner, mirror);
+  Typedef(mirror) : super(mirror) {
+    this.returnType = docName(mirror.value.returnType);
+    this.generics = _createGenerics(mirror);
+    this.parameters = _createParameters(mirror.value.parameters);
+    this.annotations = _createAnnotations(mirror);
+  }
 
   Map toMap() => {
     'name': name,
@@ -1169,15 +1226,20 @@ class Variable extends Indexable {
   bool isStatic;
   bool isConst;
   Type type;
+  String _variableName;
 
   /// List of the meta annotations on the variable.
   List<Annotation> annotations;
 
-  Variable(String name, this.isFinal, this.isStatic, this.isConst, this.type,
-      Function commentFunction, this.annotations, String qualifiedName,
-      bool isPrivate, String owner, Mirror mirror)
-        : super(name, commentFunction, isPrivate, owner, mirror) {
+  Variable(this._variableName, VariableMirror mirror) : super(mirror) {
+    this.isFinal = mirror.isFinal;
+    this.isStatic = mirror.isStatic;
+    this.isConst = mirror.isConst;
+    this.type = _createType(mirror.type);
+    this.annotations = _createAnnotations(mirror);
   }
+
+  String get name => _variableName;
 
   /// Generates a map describing the [Variable] object.
   Map toMap() => {
@@ -1224,18 +1286,23 @@ class Method extends Indexable {
   /// List of the meta annotations on the method.
   List<Annotation> annotations;
 
-  Method(String name, this.isStatic, this.isAbstract, this.isConst,
-      this.returnType, Function commentFunction, this.parameters,
-      this.annotations,
-      String qualifiedName, bool isPrivate, String owner, this.isConstructor,
-      this.isGetter, this.isSetter, this.isOperator, Mirror mirror)
-        : super(name, commentFunction, isPrivate, owner, mirror) {
+  Method(MethodMirror mirror) : super(mirror) {
+    this.isStatic = mirror.isStatic;
+    this.isAbstract = mirror.isAbstract;
+    this.isConst = mirror.isConstConstructor;
+    this.returnType = _createType(mirror.returnType);
+    this.parameters = _createParameters(mirror.parameters);
+    this.annotations = _createAnnotations(mirror);
+    this.isConstructor = mirror.isConstructor;
+    this.isGetter = mirror.isGetter;
+    this.isSetter = mirror.isSetter;
+    this.isOperator = mirror.isOperator;
   }
 
   /// Makes sure that the method with an inherited equivalent have comments.
   void ensureCommentFor(Method inheritedMethod) {
     if (comment.isNotEmpty) return;
-    comment = inheritedMethod._commentFunction(mirror);
+    comment = inheritedMethod._commentToHtml(mirror);
     commentInheritedFrom = inheritedMethod.commentInheritedFrom == '' ?
         inheritedMethod.qualifiedName : inheritedMethod.commentInheritedFrom;
   }
@@ -1278,13 +1345,7 @@ class MethodGroup {
   Map<String, Method> regularMethods = {};
 
   void addMethod(MethodMirror mirror) {
-    var method = new Method(mirror.simpleName, mirror.isStatic,
-        mirror.isAbstract, mirror.isConstConstructor, _type(mirror.returnType),
-        (actualMethod) => _commentToHtml(mirror, actualMethod),
-        _parameters(mirror.parameters),
-        _annotations(mirror), docName(mirror), _isHidden(mirror),
-        docName(mirror.owner), mirror.isConstructor, mirror.isGetter,
-        mirror.isSetter, mirror.isOperator, mirror);
+    var method = new Method(mirror);
     entityMap[docName(mirror)] = method;
     if (mirror.isSetter) {
       setters[mirror.simpleName] = method;
@@ -1437,7 +1498,7 @@ class Annotation {
 /// have them replaced with hyphens.
 String docName(DeclarationMirror m) {
   if (m is LibraryMirror) {
-    return (m as LibraryMirror).qualifiedName.replaceAll('.','-');
+    return m.qualifiedName.replaceAll('.','-');
   }
   var owner = m.owner;
   if (owner == null) return m.qualifiedName;

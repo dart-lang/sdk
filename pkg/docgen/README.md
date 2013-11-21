@@ -10,7 +10,7 @@ its imported libraries.
 
 ### Quick Start: Common Commands 
 
-While standing in the `bin` directory:
+##### To only generate documentation, while standing in the `bin` directory:
 
 `dartdoc.py` generates all documentation and runs a local server with your html
 pages.
@@ -20,6 +20,11 @@ html pages generated and no server).
 
 `dartdoc.py -d -o package/to/document` ONLY generates documenation for the
 specified package.
+
+##### To generate documentation and view it through the webpage:
+- Install [Google App Engine SDK for Python][GAE] (one time setup) and agree to
+   add symlinks so that dev\_appserver.py can be found on your PATH.
+- Run `dartdoc.py`.
 
 ### Generating files & uploading to Cloud Storage
 
@@ -59,7 +64,7 @@ for the outputted documentation.
 
 ###### Output directory
 Documented libraries will be located at bin/docs in either YAML or JSON format 
-depending on options specified. There will also be a library_list.json, 
+depending on options specified. There will also be a library\_list.json, 
 containing a list of all the libraries inside the docs folder. 
 
 To get more information on how to use the outputted documentation with 

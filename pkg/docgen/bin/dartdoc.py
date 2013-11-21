@@ -28,6 +28,7 @@ PACKAGE_ROOT = join(dirname(dirname(dirname(DART_EXECUTABLE[:-(len('dart'))]))),
     'packages/')
 EXCLUDED_PACKAGES = ['browser', 'html_import', 'mutation_observer',
     'pkg.xcodeproj', 'shadow_dom']
+APPSERVER_EXECUTABLE = 'dev_appserver.py'
 
 
 def SetPackageRoot(path):
@@ -53,8 +54,8 @@ def ParseArgs():
       'SDK and all packages in the dart repository in JSON.',
       default='--json')
   parser.add_option('--gae-sdk',
-      help='The path to the Google App Engine SDK. Defaults to the top level '
-      'dart directory.', default=PACKAGE_ROOT)
+      help='The path to the Google App Engine SDK. Defaults to finding the '
+      'script in the PATH.', default='')
   options, _ = parser.parse_args()
   SetPackageRoot(options.pkg_root)
   return options
@@ -145,9 +146,14 @@ def main():
       os.chdir('dartdoc-viewer/client/')
       subprocess.call([PUB, 'install'])
       subprocess.call([DART_EXECUTABLE, 'deploy.dart'])
-      server = subprocess.Popen(['python',
-        join(abspath(join(dirname(__file__), options.gae_sdk)),
-        'dev_appserver.py'), '..'])
+      if options.gae_sdk == '':
+        server = subprocess.Popen(' '.join([APPSERVER_EXECUTABLE, '..']),
+            shell=True)
+      else:
+        path_to_gae = options.gae_sdk
+        if not path_to_gae.endswith(APPSERVER_EXECUTABLE):
+          path_to_gae = join(path_to_gae, APPSERVER_EXECUTABLE)
+        server = subprocess.Popen(join(['python', path_to_gae, '..']))
       print (
         "\nPoint your browser to the address of the 'default' server below.")
       raw_input("Press <RETURN> to terminate the server.\n\n")
