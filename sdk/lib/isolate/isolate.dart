@@ -48,8 +48,8 @@ class Isolate {
    * Usually the initial [message] contains a [SendPort] so
    * that the spawner and spawnee can communicate with each other.
    *
-   * Returns a future that will complete with an [Isolate] instance. The
-   * isolate instance can be used to control the spawned isolate.
+   * Returns a future that will complete with an [Isolate] instance if the
+   * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawn(void entryPoint(message), var message);
 
@@ -60,7 +60,7 @@ class Isolate {
    * The isolate starts executing the top-level `main` function of the library
    * with the given URI.
    *
-   * The target `main` may have one of three signatures:
+   * The target `main` must be a subtype of one of these three signatures:
    *
    * * `main()`
    * * `main(args)`
@@ -69,8 +69,8 @@ class Isolate {
    * When present, the parameter `args` is set to the provided [args] list.
    * When present, the parameter `message` is set to the initial [message].
    *
-   * Returns a future that will complete with an [Isolate] instance. The
-   * isolate instance can be used to control the spawned isolate.
+   * Returns a future that will complete with an [Isolate] instance if the
+   * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message);
