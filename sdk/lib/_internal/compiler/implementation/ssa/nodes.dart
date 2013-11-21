@@ -2232,6 +2232,7 @@ class HIndex extends HInstruction {
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
+  bool canThrow() => receiver.canBeNull();
 
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;
@@ -2263,6 +2264,7 @@ class HIndexAssign extends HInstruction {
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
+  bool canThrow() => receiver.canBeNull();
 }
 
 class HIs extends HInstruction {
