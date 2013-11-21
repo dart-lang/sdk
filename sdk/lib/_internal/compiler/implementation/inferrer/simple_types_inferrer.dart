@@ -801,6 +801,22 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, element, arguments);
     } else if (Elements.isUnresolved(element) || element.isSetter()) {
+      if (analyzedElement.isGenerativeConstructor()
+          && (node.asSendSet() != null)
+          && (node.asSendSet().receiver != null)
+          && node.asSendSet().receiver.isThis()) {
+        Setlet<Element> targets = compiler.world.allFunctions.filter(
+            types.newTypedSelector(thisType, setterSelector));
+        // We just recognized a field initialization of the form:
+        // `this.foo = 42`. If there is only one target, we can update
+        // its type.
+        if (targets.length == 1) {
+          Element single = targets.first;
+          if (single.isField()) {
+            locals.updateField(single, rhsType);
+          }
+        }
+      }
       handleDynamicSend(
           node, setterSelector, receiverType, arguments);
     } else if (element.isField()) {
