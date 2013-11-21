@@ -39,8 +39,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
-  const intptr_t exitframe_last_param_slot_from_fp = 1;
+  const intptr_t exitframe_last_param_slot_from_fp = 2;
 
+  __ mov(IP, ShifterOperand(0));
+  __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Load current Isolate pointer from Context structure into R0.
@@ -98,6 +100,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(CTX, ShifterOperand(R2));
 
   __ LeaveFrame((1 << FP) | (1 << LR));
+  // Adjust SP for the empty PC marker.
+  __ AddImmediate(SP, kWordSize);
   __ Ret();
 }
 
@@ -133,6 +137,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ mov(IP, ShifterOperand(0));
+  __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Load current Isolate pointer from Context structure into R0.
@@ -168,7 +174,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Set argv in NativeArguments: R2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ add(R3, FP, ShifterOperand(2 * kWordSize));  // Set retval in NativeArgs.
+  __ add(R3, FP, ShifterOperand(3 * kWordSize));  // Set retval in NativeArgs.
 
   // TODO(regis): Should we pass the structure by value as in runtime calls?
   // It would require changing Dart API for native functions.
@@ -203,6 +209,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(CTX, ShifterOperand(R2));
 
   __ LeaveFrame((1 << FP) | (1 << LR));
+  // Adjust SP for the empty PC marker.
+  __ AddImmediate(SP, kWordSize);
   __ Ret();
 }
 
@@ -219,6 +227,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ mov(IP, ShifterOperand(0));
+  __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Load current Isolate pointer from Context structure into R0.
@@ -254,7 +264,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Set argv in NativeArguments: R2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ add(R3, FP, ShifterOperand(2 * kWordSize));  // Set retval in NativeArgs.
+  __ add(R3, FP, ShifterOperand(3 * kWordSize));  // Set retval in NativeArgs.
 
   // TODO(regis): Should we pass the structure by value as in runtime calls?
   // It would require changing Dart API for native functions.
@@ -280,6 +290,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ mov(CTX, ShifterOperand(R2));
 
   __ LeaveFrame((1 << FP) | (1 << LR));
+  // Adjust SP for the empty PC marker.
+  __ AddImmediate(SP, kWordSize);
   __ Ret();
 }
 

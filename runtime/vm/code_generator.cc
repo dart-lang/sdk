@@ -1340,6 +1340,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   if (FLAG_use_osr && (interrupt_bits == 0)) {
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
     const Function& function = Function::Handle(frame->LookupDartFunction());
     ASSERT(!function.IsNull());
     if (!CanOptimizeFunction(function, isolate)) return;

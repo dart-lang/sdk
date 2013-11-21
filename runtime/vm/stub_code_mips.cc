@@ -39,11 +39,15 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
-  const intptr_t exitframe_last_param_slot_from_fp = 1;
+  const intptr_t exitframe_last_param_slot_from_fp = 2;
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallToRuntimeStub");
-  __ EnterFrame();
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
+  __ sw(RA, Address(SP, 1 * kWordSize));
+  __ sw(FP, Address(SP, 0 * kWordSize));
+  __ mov(FP, SP);
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -80,10 +84,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Set argv in NativeArguments.
   __ addiu(A2, A2, Immediate(exitframe_last_param_slot_from_fp * kWordSize));
 
-  ASSERT(retval_offset == 3 * kWordSize);
-
   // Call runtime or redirection via simulator.
   __ jalr(S5);
+    ASSERT(retval_offset == 3 * kWordSize);
   // Retval is next to 1st argument.
   __ delay_slot()->addiu(A3, A2, Immediate(kWordSize));
   __ TraceSimMsg("CallToRuntimeStub return");
@@ -103,7 +106,11 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ LeaveFrameAndReturn();
+  __ mov(SP, FP);
+  __ lw(RA, Address(SP, 1 * kWordSize));
+  __ lw(FP, Address(SP, 0 * kWordSize));
+  __ Ret();
+  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
 }
 
 
@@ -140,7 +147,11 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallNativeCFunctionStub");
-  __ EnterFrame();
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
+  __ sw(RA, Address(SP, 1 * kWordSize));
+  __ sw(FP, Address(SP, 0 * kWordSize));
+  __ mov(FP, SP);
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -170,7 +181,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Set argv in NativeArguments: A2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ addiu(A3, FP, Immediate(2 * kWordSize));  // Set retval in NativeArgs.
+  __ addiu(A3, FP, Immediate(3 * kWordSize));  // Set retval in NativeArgs.
 
   // TODO(regis): Should we pass the structure by value as in runtime calls?
   // It would require changing Dart API for native functions.
@@ -212,7 +223,11 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ LeaveFrameAndReturn();
+  __ mov(SP, FP);
+  __ lw(RA, Address(SP, 1 * kWordSize));
+  __ lw(FP, Address(SP, 0 * kWordSize));
+  __ Ret();
+  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
 }
 
 
@@ -230,7 +245,11 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ TraceSimMsg("CallNativeCFunctionStub");
-  __ EnterFrame();
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
+  __ sw(RA, Address(SP, 1 * kWordSize));
+  __ sw(FP, Address(SP, 0 * kWordSize));
+  __ mov(FP, SP);
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -260,7 +279,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Set argv in NativeArguments: A2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ addiu(A3, FP, Immediate(2 * kWordSize));  // Set retval in NativeArgs.
+  __ addiu(A3, FP, Immediate(3 * kWordSize));  // Set retval in NativeArgs.
 
   // TODO(regis): Should we pass the structure by value as in runtime calls?
   // It would require changing Dart API for native functions.
@@ -293,7 +312,11 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
 
-  __ LeaveFrameAndReturn();
+  __ mov(SP, FP);
+  __ lw(RA, Address(SP, 1 * kWordSize));
+  __ lw(FP, Address(SP, 0 * kWordSize));
+  __ Ret();
+  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
 }
 
 

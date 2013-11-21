@@ -97,14 +97,18 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // Spill slots are at the 'bottom' of the frame.
       intptr_t spill_slot_count = length - map.RegisterBitCount();
       for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
-        if (map.IsObject(bit)) visitor->VisitPointer(last);
+        if (map.IsObject(bit)) {
+          visitor->VisitPointer(last);
+        }
         --last;
       }
 
       // The live registers at the 'top' of the frame comprise the rest of the
       // stack map.
       for (intptr_t bit = length - 1; bit >= spill_slot_count; --bit) {
-        if (map.IsObject(bit)) visitor->VisitPointer(first);
+        if (map.IsObject(bit)) {
+          visitor->VisitPointer(first);
+        }
         ++first;
       }
 
