@@ -28,7 +28,7 @@ abstract class RecursiveVisitor extends Visitor {
   visitEmptyExpression(EmptyExpression e) => visitExpression(e);
 
   visitParenthesizedExpression(ParenthesizedExpression e) {
-    visit(e);
+    visit(e.child);
     visitExpression(e);
   }
 
