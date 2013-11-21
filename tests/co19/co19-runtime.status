@@ -72,7 +72,6 @@ LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
-Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
 
 # Passing for the wrong reasons:
 LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
@@ -121,6 +120,7 @@ LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
 LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
+Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
