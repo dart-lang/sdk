@@ -196,7 +196,7 @@ class _UrlNormalizer extends TreeVisitor {
       // Techincally we shouldn't get there
       transform.logger.error("don't know how to include $id from $primaryId",
           span: span);
-      return null;
+      return href;
     }
 
     var builder = path.url;

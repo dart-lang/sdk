@@ -140,7 +140,7 @@ void main() {
           '</head><body><polymer-element>2</polymer-element></html>',
       'b|asset/test3.html':
           '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="packages/c/test4.html">'
+          '<link rel="import" href="../../packages/c/test4.html">'
           '</head><body><polymer-element>3</polymer-element></html>',
       'c|lib/test4.html':
           '<!DOCTYPE html><html><head>'
@@ -160,7 +160,7 @@ void main() {
           '<polymer-element>2</polymer-element></body></html>',
       'b|asset/test3.html':
           '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="packages/c/test4.html">'
+          '<link rel="import" href="../../packages/c/test4.html">'
           '</head><body><polymer-element>3</polymer-element></html>',
       'c|lib/test4.html':
           '<!DOCTYPE html><html><head>'

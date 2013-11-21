@@ -125,32 +125,45 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
     return null;
   }
 
-  var package;
-  var targetPath;
   var segments = urlBuilder.split(url);
-  if (segments[0] == 'packages') {
-    if (segments.length < 3) {
-      logger.error("incomplete packages/ path. It should have at least 3 "
-          "segments packages/name/path-from-name's-lib-dir", span: span);
-      return null;
-    }
-    package = segments[1];
-    targetPath = urlBuilder.join('lib',
-        urlBuilder.joinAll(segments.sublist(2)));
-  } else if (segments[0] == 'assets') {
-    if (segments.length < 3) {
-      logger.error("incomplete assets/ path. It should have at least 3 "
-          "segments assets/name/path-from-name's-asset-dir", span: span);
-    }
-    package = segments[1];
-    targetPath = urlBuilder.join('asset',
-        urlBuilder.joinAll(segments.sublist(2)));
-  } else {
-    package = source.package;
-    targetPath = urlBuilder.normalize(
-        urlBuilder.join(urlBuilder.dirname(source.path), url));
+  var prefix = segments[0];
+  var entryFolder = !source.path.startsWith('lib/') &&
+      !source.path.startsWith('asset/');
+
+  // URLs of the form "packages/foo/bar" seen under entry folders (like web/,
+  // test/, example/, etc) are resolved as an asset in another package.
+  if (entryFolder && (prefix == 'packages' || prefix == 'assets')) {
+    return _extractOtherPackageId(0, segments, logger, span);
   }
-  return new AssetId(package, targetPath);
+
+  var targetPath = urlBuilder.normalize(
+      urlBuilder.join(urlBuilder.dirname(source.path), url));
+
+  // Relative URLs of the form "../../packages/foo/bar" in an asset under lib/
+  // or asset/ are also resolved as an asset in another package.
+  segments = urlBuilder.split(targetPath);
+  if (!entryFolder && segments.length > 1 && segments[0] == '..' &&
+      (segments[1] == 'packages' || segments[1] == 'assets')) {
+    return _extractOtherPackageId(1, segments, logger, span);
+  }
+
+  // Otherwise, resolve as a path in the same package.
+  return new AssetId(source.package, targetPath);
+}
+
+AssetId _extractOtherPackageId(int index, List segments,
+    TransformLogger logger, Span span) {
+  if (index >= segments.length) return null;
+  var prefix = segments[index];
+  if (prefix != 'packages' && prefix != 'assets') return null;
+  var folder = prefix == 'packages' ? 'lib' : 'asset';
+  if (segments.length < index + 3) {
+    logger.error("incomplete $prefix/ path. It should have at least 3 "
+        "segments $prefix/name/path-from-name's-$folder-dir", span: span);
+    return null;
+  }
+  return new AssetId(segments[index + 1],
+      path.url.join(folder, path.url.joinAll(segments.sublist(index + 2))));
 }
 
 /**

@@ -157,7 +157,7 @@ void main() {
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
         'a|lib/test.html': '''<html>
-            <link rel="import" href="packages/b/b.html">
+            <link rel="import" href="../../packages/b/b.html">
             <polymer-element name="x-a"></polymer-element>
             </html>'''.replaceAll('            ', ''),
       }, {
