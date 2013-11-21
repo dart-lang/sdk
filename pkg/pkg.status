@@ -32,7 +32,6 @@ collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
-template_binding/test/template_binding_test: Fail # Issue 15093
 
 [ $compiler == dart2js && $checked && $runtime == d8 ]
 serialization/test/serialization_test: Pass, RuntimeError # Issue 14735
