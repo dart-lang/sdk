@@ -3201,7 +3201,7 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bit(7) == 0) && (instr->Bits(16, 4) == 9)) {
       // Format(instr, "vabsqs 'qd, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.data_[i].f = abs(s8m.data_[i].f);
+        s8d.data_[i].f = fabsf(s8m.data_[i].f);
       }
     } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
