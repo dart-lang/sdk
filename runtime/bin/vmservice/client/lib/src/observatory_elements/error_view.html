@@ -8,7 +8,12 @@
       <div class="panel panel-danger">
         <div class="panel-heading">Error</div>
         <div class="panel-body">
-          <p>{{ error }}</p>
+          <template if="{{ (error_obj == null) || (error_obj['type'] != 'LanguageError') }}">
+            <p>{{ error }}</p>
+          </template>
+          <template if="{{ (error_obj != null) && (error_obj['type'] == 'LanguageError') }}">
+            <pre>{{ error_obj['error_msg'] }}</pre>
+          </template>
         </div>
       </div>
     </div>

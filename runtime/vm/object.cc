@@ -3231,6 +3231,10 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("name", internal_class_name);
   jsobj.AddProperty("user_name", user_visible_class_name);
   if (!ref) {
+    const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
+    if (!err.IsNull()) {
+      jsobj.AddProperty("error", err);
+    }
     jsobj.AddProperty("implemented", is_implemented());
     jsobj.AddProperty("abstract", is_abstract());
     jsobj.AddProperty("patch", is_patch());
@@ -10626,6 +10630,8 @@ const char* Error::ToCString() const {
 
 void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10671,6 +10677,8 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10855,6 +10863,8 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10929,6 +10939,8 @@ const char* UnhandledException::ToCString() const {
 void UnhandledException::PrintToJSONStream(JSONStream* stream,
                                            bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10965,6 +10977,8 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 

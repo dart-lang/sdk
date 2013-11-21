@@ -1,4 +1,6 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html><html><head><script src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script src="packages/custom_element/custom-elements.debug.js"></script>
+<script src="packages/browser/interop.js"></script>
 
   <title>Dart VM Observatory</title>
   <meta charset="utf-8">
@@ -8,6 +10,25 @@
   
 </head>
 <body><polymer-element name="observatory-element">
+  
+</polymer-element><polymer-element name="error-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-danger">
+        <div class="panel-heading">Error</div>
+        <div class="panel-body">
+	        <template if="{{ (error_obj == null) || (error_obj['type'] != '@LanguageError') }}">
+	          <p>{{ error }}</p>
+	        </template>
+	        <template if="{{ (error_obj != null) &amp;&amp; (error_obj['type'] == '@LanguageError') }}">
+	          <pre>{{ error_obj['error_msg'] }}</pre>
+	        </template>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
   
 </polymer-element><polymer-element name="class-view" extends="observatory-element">
   <template>
@@ -46,36 +67,41 @@
               </tr>
             </tbody>
           </table>
-          <blockquote><strong>Fields</strong></blockquote>
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>User Name</th>
-                <th>VM Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr template="" repeat="{{ field in cls['fields'] }}">
-                <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['user_name'] }}</a></td>
-                <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['name'] }}</a></td>
-              </tr>
-            </tbody>
-          </table>
-          <blockquote><strong>Functions</strong></blockquote>
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>User Name</th>
-                <th>VM Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr template="" repeat="{{ function in cls['functions'] }}">
-                <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['user_name'] }}</a></td>
-                <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['name'] }}</a></td>
-              </tr>
-            </tbody>
-          </table>
+          <template if="{{ cls['error'] == null }}">
+            <blockquote><strong>Fields</strong></blockquote>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>User Name</th>
+                  <th>VM Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr template="" repeat="{{ field in cls['fields'] }}">
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['user_name'] }}</a></td>
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['name'] }}</a></td>
+                </tr>
+              </tbody>
+            </table>
+            <blockquote><strong>Functions</strong></blockquote>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>User Name</th>
+                  <th>VM Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr template="" repeat="{{ function in cls['functions'] }}">
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['user_name'] }}</a></td>
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['name'] }}</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template if="{{ cls['error'] != null }}">
+            <error-view error_obj="{{ cls['error'] }}"></error-view>
+          </template>
         </div>
       </div>
     </div>
@@ -135,20 +161,6 @@
       <div style="display: {{ displayValue }}" class="well">
         <content></content>
       </div>
-    </div>
-  </template>
-  
-</polymer-element><polymer-element name="error-view" extends="observatory-element">
-  <template>
-    <div class="row">
-    <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-danger">
-        <div class="panel-heading">Error</div>
-        <div class="panel-body">
-          <p>{{ error }}</p>
-        </div>
-      </div>
-    </div>
     </div>
   </template>
   
@@ -248,7 +260,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-  	  	<img src="img/isolate_icon.png" class="img-polaroid">	
+  	  	<img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">	
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>

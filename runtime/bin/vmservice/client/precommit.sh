@@ -17,13 +17,15 @@ OBSERVATORY="index.html_bootstrap.dart.precompiled.js"
 
 # Base directory
 BASE="out/web"
+DEPLOYED="deployed/web"
 
 INPUT="$BASE/$SHADOW_DOM"
 INPUT="$INPUT $BASE/$CUSTOM_ELEMENTS"
 INPUT="$INPUT $BASE/$INTEROP"
 INPUT="$INPUT $BASE/$OBSERVATORY"
 
-OUTPUT="$BASE/index.html_bootstrap.dart.js"
+OUTPUT="$DEPLOYED/index.html_bootstrap.dart.js"
 
 # Rolling
 cat $INPUT > $OUTPUT
+cp $BASE/index.html $DEPLOYED/index.html
