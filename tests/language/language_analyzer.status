@@ -13,8 +13,6 @@ built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 class_literal_test: fail
 constructor_call_as_function_test/01: fail
 
-function_type_alias9_test/00: crash # Issue 11987
-
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
