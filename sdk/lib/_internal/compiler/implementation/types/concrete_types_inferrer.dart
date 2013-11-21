@@ -1079,6 +1079,10 @@ class ConcreteTypesInferrer extends TypesInferrer {
     throw new UnsupportedError("");
   }
 
+  bool isCalledOnce(Element element) {
+    throw new UnsupportedError("");
+  }
+
   // --- analysis ---
 
   /**
