@@ -208,6 +208,7 @@ class JSNumber extends Interceptor implements num {
     }
   }
 
+  @NoInline()
   num _slowTdiv(num other) {
     if (other is !num) throw new ArgumentError(other);
     return (JS('num', r'# / #', this, other)).toInt();

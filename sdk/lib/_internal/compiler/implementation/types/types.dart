@@ -31,6 +31,7 @@ abstract class TypesInferrer {
   Iterable<TypeMask> get containerTypes;
   void clear();
   Iterable<Element> getCallersOf(Element element);
+  bool isCalledOnce(Element element);
 }
 
 /**

@@ -915,6 +915,18 @@ class TypeGraphInferrer implements TypesInferrer {
     return inferrer.getCallersOf(element);
   }
 
+  bool isCalledOnce(Element element) {
+    if (compiler.disableTypeInference) return false;
+
+    int count = 0;
+    ElementTypeInformation info = inferrer.types.getInferredTypeOf(element);
+    for (var set in info.callers.values) {
+      count += set.length;
+      if (count > 1) return false;
+    }
+    return count == 1;
+  }
+
   void clear() {
     inferrer.clear();
   }

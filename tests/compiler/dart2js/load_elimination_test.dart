@@ -200,7 +200,7 @@ var a;
 
 void main() {
   a = false;
-  if (main()) {
+  if (main() && main()) {
     a = true;
   }
   return a;

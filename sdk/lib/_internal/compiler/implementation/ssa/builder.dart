@@ -1364,6 +1364,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
+      bool useMaxInliningNodes = true;
       if (insideLoop) {
         maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
             InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
@@ -1371,8 +1372,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         maxInliningNodes = InlineWeeder.INLINING_NODES_OUTSIDE_LOOP +
             InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
       }
+
+      // If a method is called only once, and all the methods in the
+      // inlining stack are called only once as well, we know we will
+      // save on output size by inlining this method.
+      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+      if (inferrer.isCalledOnce(element)
+          && (inliningStack.every(
+                  (entry) => inferrer.isCalledOnce(entry.function)))) {
+        useMaxInliningNodes = false;
+      }
       bool canBeInlined = InlineWeeder.canBeInlined(
-          functionExpression, maxInliningNodes);
+          functionExpression, maxInliningNodes, useMaxInliningNodes);
       if (canBeInlined) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -5548,18 +5559,22 @@ class InlineWeeder extends Visitor {
   bool tooDifficult = false;
   int nodeCount = 0;
   final int maxInliningNodes;
+  final bool useMaxInliningNodes;
 
-  InlineWeeder(this.maxInliningNodes);
+  InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes);
 
   static bool canBeInlined(FunctionExpression functionExpression,
-                           int maxInliningNodes) {
-    InlineWeeder weeder = new InlineWeeder(maxInliningNodes);
+                           int maxInliningNodes,
+                           bool useMaxInliningNodes) {
+    InlineWeeder weeder =
+        new InlineWeeder(maxInliningNodes, useMaxInliningNodes);
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     return !weeder.tooDifficult;
   }
 
   bool registerNode() {
+    if (!useMaxInliningNodes) return true;
     if (nodeCount++ > maxInliningNodes) {
       tooDifficult = true;
       return false;
