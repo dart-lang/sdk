@@ -1,0 +1,12 @@
+name: unmodifiable_collection
+version: 0.9.1
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+documentation: http://api.dartlang.org/docs/pkg/unmodifiable_collection
+description: >
+ Discontinued library. Use package:collection_helpers/wrappers.dart instead.
+
+dependencies:
+  collection_helpers: ">=0.9.0 <0.10.0"
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"
