@@ -77,7 +77,7 @@ source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers th
 # Bug in Spidermonkey's Uint8ClampedArray.
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
 # Likely to get patched only on some versions of Firefox.
-collection_helpers/test/typed_buffers_test: RuntimeError
+collection_helpers/test/typed_buffers_test: RuntimeError, Pass
 
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
@@ -86,6 +86,10 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
+<<<<<<< HEAD
+=======
+collection_helpers/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
+>>>>>>> Update test expectations.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
 [ $runtime == safari ]
