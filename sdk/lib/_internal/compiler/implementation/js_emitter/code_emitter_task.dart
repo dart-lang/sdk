@@ -129,6 +129,7 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.isolateName}.${namer.isolatePropertiesName}';
   String get lazyInitializerName
       => '${namer.isolateName}.\$lazy';
+  String get initName => 'init';
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
@@ -927,9 +928,9 @@ class CodeEmitterTask extends CompilerTask {
     hasMakeConstantList = true;
     buffer
         ..write(namer.isolateName)
-        ..write(r'''.makeConstantList = function(list) {
-  list.immutable$list = true;
-  list.fixed$length = true;
+        ..write('''.makeConstantList = function(list) {
+  list.immutable\$list = $initName;
+  list.fixed\$length = $initName;
   return list;
 };
 ''');

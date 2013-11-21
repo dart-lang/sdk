@@ -70,7 +70,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
       JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation));
 
   static List markFixedList(List list) {
-    JS('void', r'#.fixed$length = #', list, true);
+    JS('void', r'#.fixed$length = init', list);
     return JS('JSFixedArray', '#', list);
   }
 
