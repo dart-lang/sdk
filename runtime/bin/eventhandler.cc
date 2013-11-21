@@ -90,7 +90,7 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   if (Dart_IsNull(sender)) {
     id = kTimerId;
   } else {
-    Socket::GetSocketIdNativeField(sender, &id);
+    id = Socket::GetSocketIdNativeField(sender);
   }
   Dart_Handle handle = Dart_GetNativeArgument(args, 1);
   Dart_Port dart_port =
