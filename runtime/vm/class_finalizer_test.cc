@@ -40,7 +40,7 @@ TEST_CASE(ClassFinalizer) {
   pending_classes.Add(*classes_2[1]);
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Alfa")));
   pending_classes.Add(*classes_2[2]);
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   for (int i = 0; i < classes_1.length(); i++) {
     EXPECT(classes_1[i]->is_type_finalized());
   }
@@ -48,7 +48,7 @@ TEST_CASE(ClassFinalizer) {
     EXPECT(classes_2[i]->is_type_finalized());
   }
   EXPECT(ClassFinalizer::AllClassesFinalized());
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
 }
 
 
@@ -67,7 +67,7 @@ TEST_CASE(ClassFinalize_Cycles) {
       Type::Handle(Type::NewNonParameterizedType(*classes[1])));
   classes[1]->set_super_type(
       Type::Handle(Type::NewNonParameterizedType(*classes[0])));
-  EXPECT(!ClassFinalizer::FinalizePendingClasses());
+  EXPECT(!ClassFinalizer::FinalizeTypeHierarchy());
 }
 
 
@@ -99,7 +99,7 @@ TEST_CASE(ClassFinalize_Resolve) {
       Type::New(Object::Handle(unresolved.raw()),
                 type_arguments,
                 Scanner::kDummyTokenIndex)));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
 }
 
 }  // namespace dart

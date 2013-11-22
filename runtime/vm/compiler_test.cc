@@ -42,7 +42,7 @@ TEST_CASE(CompileFunction) {
                                               RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());

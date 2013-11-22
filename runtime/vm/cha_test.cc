@@ -28,7 +28,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
       "}\n";
 
   TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   EXPECT(!lib.IsNull());

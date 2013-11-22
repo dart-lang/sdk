@@ -1536,6 +1536,7 @@ void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
         DeoptimizeAt(optimized_code, frame->pc());
       }
     }
+    frame = iterator.NextFrame();
   }
 }
 
