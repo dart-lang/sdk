@@ -424,7 +424,9 @@ class Commando {
   }
 
   void _historyNext() {
-    if (_linePos == (_lines.length - 1)) {
+    // For the very first command, _linePos (0) will exceed
+    // (_lines.length - 1) (-1) so we use a ">=" here instead of an "==".
+    if (_linePos >= (_lines.length - 1)) {
       return;
     }
 
