@@ -1,5 +1,5 @@
 name: observe
-version: 0.9.1-dev
+version: 0.9.1
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in Model-Driven-Views (MDV).
@@ -17,4 +17,4 @@ dependencies:
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.0.0 <2.0.0"
